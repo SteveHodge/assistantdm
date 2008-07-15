@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:simpleType name="SaveType">
+	<xs:restriction base="xs:string">
+		<xs:enumeration value="Fortitude"/>
+		<xs:enumeration value="Reflex"/>
+		<xs:enumeration value="Will"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:element name="Save">
+	<xs:complexType>
+		<xs:attribute name="type" type="SaveType" use="required"/>
+		<xs:attribute name="value" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="SavingThrows">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Save"/>
+			<xs:element ref="Save"/>
+			<xs:element ref="Save"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Skill">
+	<xs:complexType>
+		<xs:attribute name="type" type="xs:string" use="required"/>
+		<xs:attribute name="value" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Skills">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Skill" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+<xs:simpleType name="ACComponentType">
+	<xs:restriction base="xs:string">
+		<xs:enumeration value="Dex"/>
+		<xs:enumeration value="Armor"/>
+		<xs:enumeration value="Shield"/>
+		<xs:enumeration value="Size"/>
+		<xs:enumeration value="Natural"/>
+		<xs:enumeration value="Deflect"/>
+		<xs:enumeration value="Dodge"/>
+		<xs:enumeration value="Other"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:element name="ACComponent">
+	<xs:complexType>
+		<xs:attribute name="type" type="ACComponentType" use="required"/>
+		<xs:attribute name="value" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="AC">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="ACComponent" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Character">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element name="HitPoints" maxOccurs="1">
+				<xs:complexType>
+					<xs:attribute name="maximum" type="xs:int" use="required"/>
+					<xs:attribute name="wounds" type="xs:int"/>
+					<xs:attribute name="non-lethal" type="xs:int"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Initiative" maxOccurs="1">
+				<xs:complexType>
+					<xs:attribute name="value" type="xs:int" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element ref="SavingThrows" maxOccurs="1"/>
+			<xs:element ref="Skills" maxOccurs="1"/>
+			<xs:element ref="AC" maxOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<!-- =========== Top-Level Structure =========== -->
+
+<xs:element name="Party">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Character" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+</xs:schema>

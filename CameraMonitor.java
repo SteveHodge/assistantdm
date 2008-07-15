@@ -1,0 +1,156 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+
+import javax.swing.event.EventListenerList;
+
+/**
+ * Periodically monitors a directory for files of the form prefixX.jpg where X is a number.
+ * When a file of the specified type appears it is copied to the specified
+ * destination and any registered action listeners are notified. Only the file with the
+ * latest creation date is copied. Whether a file is copied or not the monitor sleeps for the
+ * specified period before scanning the directory again.   
+ * 
+ * Files that match the specified pattern are renamed (prefixing 'done') in order to prevent
+ * them being scanned again.
+ * 
+ * @author Steve
+ *
+ */
+// TODO implement option of deleting seen files instead of just renaming them.
+public class CameraMonitor implements Runnable {
+	File source;
+	File destination;
+	String prefix;
+	int period;
+
+	EventListenerList listenerList = new EventListenerList();
+
+	/**
+	 * 
+	 * @param source Path to directory to monitor
+	 * @param prefix Static part of filename (case insensitive)
+	 * @param destination Filename of destination copy, including path
+	 * @param period Sleep duration between checks in microseconds
+	 */
+	public CameraMonitor(String source, String prefix, String destination, int period) {
+		this.source = new File(source);
+		this.destination = new File(destination);
+		this.prefix = prefix.toLowerCase();
+		this.period = period;
+	}
+
+	public void addImageScanListener(ImageScanListener l) {
+		listenerList.add(ImageScanListener.class, l);
+	}
+
+	public void removeImageScanListener(ImageScanListener l) {
+		listenerList.remove(ImageScanListener.class, l);
+	}
+
+	protected void fireImageFound(File file) {
+		// Guaranteed to return a non-null array
+		Object[] listeners = listenerList.getListenerList();
+		ImageScanEvent event = null;
+		// Process the listeners last to first, notifying
+		// those that are interested in this event
+		for (int i = listeners.length-2; i>=0; i-=2) {
+			if (listeners[i]==ImageScanListener.class) {
+				if (event == null)
+					event = new ImageScanEvent(this,file);
+				((ImageScanListener)listeners[i+1]).imageFound(event);
+			}
+		}
+	}
+
+	public void run() {
+		while(true) {
+			//System.out.println("Camera Monitor scanning");
+
+			File file = scanDirectory();
+			if (file != null) {
+				System.out.println("Copying most recent '"+file+"' to '"+destination+"'");
+				try {
+					fileCopy(file,destination);
+					fireImageFound(file);
+					// rename source
+					File dest = new File(source, "done"+file.getName());
+					//System.out.println("Renaming to "+dest);
+					file.renameTo(dest);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			try {
+				Thread.sleep(period);
+			} catch (InterruptedException e) {
+				System.out.println("Camera Monitor sleep interrupted");
+			}
+		}
+	}
+
+	/*
+	 * Scans the directory for files matching the specified name
+	 * (currently just tests that the prefix matches and the suffix is '.jpg').
+	 * Returns the matching file with the most recent last modification time.
+	 * Renames all other matching files so they are prefixed with 'done'.
+	 */
+	private File scanDirectory() {
+		File[] files = source.listFiles(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				String lowerName = name.toLowerCase();
+				if (!lowerName.startsWith(prefix)) return false;
+				if (!lowerName.endsWith(".jpg")) return false;
+				// TODO check for number between prefix and suffix
+				return true;
+			}
+		});
+
+		if (files.length == 0) return null;
+
+		// find the most recent matching file
+		File mostRecent = null;
+		long mostRecentTime = -1;
+		for (File f : files) {
+			System.out.println("Found "+f.getName());
+			if (f.lastModified() >= mostRecentTime) {
+				mostRecent = f;
+				mostRecentTime = f.lastModified();
+			}
+		}
+
+		// rename all files but the most recent
+		for (File f : files) {
+			if (f != mostRecent) {
+				File dest = new File(source, "done"+f.getName());
+				//System.out.println("Renaming to "+dest);
+				f.renameTo(dest);
+			}
+		}
+
+		return mostRecent;
+	}
+
+    public static void fileCopy( File in, File out ) throws IOException {
+    	FileChannel inChannel = new FileInputStream( in ).getChannel();
+    	FileChannel outChannel = new FileOutputStream( out ).getChannel();
+    	try {
+    		//  inChannel.transferTo(0, inChannel.size(), outChannel);      // original -- apparently has trouble copying large files on Windows
+	
+    		// magic number for Windows, 64Mb - 32Kb)
+    		int maxCount = (64 * 1024 * 1024) - (32 * 1024);
+    		long size = inChannel.size();
+    		long position = 0;
+    		while ( position < size ) {
+    			position += inChannel.transferTo( position, maxCount, outChannel );
+    		}
+    	} finally {
+    		if (inChannel != null) inChannel.close();
+    		if (outChannel != null) outChannel.close();
+    	}
+	}
+}
