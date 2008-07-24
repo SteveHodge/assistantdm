@@ -1,8 +1,15 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import javax.swing.JComponent;
 import javax.swing.JMenu;
@@ -16,11 +23,12 @@ import javax.swing.WindowConstants;
 import party.Party;
 
 @SuppressWarnings("serial")
-public class AssistantDM extends javax.swing.JFrame implements ActionListener {
+public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
 	JMenuBar menuBar;
 	JMenu fileMenu;
 	JMenuItem saveItem;
 	JMenuItem openItem;
+	ShoppingPanel shopPanel;
 
 	Party party;
 
@@ -35,8 +43,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	}
 	
 	public AssistantDM() {
-		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		this.setTitle("Assistant DM");
+		setTitle("Assistant DM");
+		addWindowListener(this);
 
 		menuBar = new JMenuBar();
 		fileMenu = new JMenu("File");
@@ -63,6 +71,11 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		panel = new RollsPanel(party);
 		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
 
+		shopPanel = loadShops();
+		if (shopPanel == null) shopPanel = new ShoppingPanel();
+		else System.out.println("Loaded shops from file");
+		tabbedPane.addTab("Shops", null, shopPanel, "Magic Item Shops");
+
 		panel = new MagicGeneratorPanel();
 		tabbedPane.addTab("Random Magic", null, panel, "Generate Random Magic Items");
 
@@ -73,34 +86,88 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		pack();
 	}
 
+	public void saveParty(String filename) {
+        FileWriter outputStream = null;
+
+		try {
+			outputStream = new FileWriter(filename);
+			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+			outputStream.write(System.getProperty("line.separator"));
+			outputStream.write(System.getProperty("line.separator"));
+			outputStream.write(party.getXML("", "    "));
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} finally {
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public ShoppingPanel loadShops() {
+		String filename = "shops.ser";
+		FileInputStream fis = null;
+		ObjectInputStream in = null;
+		ShoppingPanel panel = null;
+		try {
+			fis = new FileInputStream(filename);
+			in = new ObjectInputStream(fis);
+			panel = new ShoppingPanel(in); 
+			in.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("No shops file found");
+			panel = null;
+		} catch(IOException ex) {
+			ex.printStackTrace();
+			panel = null;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			panel = null;
+		}
+		return panel;
+	}
+
+	public void saveShops() {
+		String filename = "shops.ser";
+		FileOutputStream fos = null;
+		ObjectOutputStream out = null;
+		try {
+			fos = new FileOutputStream(filename);
+			out = new ObjectOutputStream(fos);
+			shopPanel.saveShops(out);
+			out.close();
+		} catch(IOException ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == saveItem) {
 			System.out.println("Save");
-
-	        FileWriter outputStream = null;
-
-			try {
-				outputStream = new FileWriter("party.xml");
-				outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-				outputStream.write(System.getProperty("line.separator"));
-				outputStream.write(System.getProperty("line.separator"));
-				outputStream.write(party.getXML("", "    "));
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			} finally {
-				if (outputStream != null) {
-					try {
-						outputStream.close();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
+			saveParty("party.xml");
 
 		} else if(e.getSource() == openItem) {
 			System.out.println("Open");
 		} else {
 			System.err.println("ActionEvent from unknown source: "+e);
 		}
+	}
+
+	public void windowActivated(WindowEvent e) {}
+	public void windowClosed(WindowEvent e) {}
+	public void windowDeactivated(WindowEvent e) {}
+	public void windowDeiconified(WindowEvent e) {}
+	public void windowIconified(WindowEvent e) {}
+	public void windowOpened(WindowEvent e) {}
+
+	public void windowClosing(WindowEvent e) {
+		System.out.println("Exiting");
+		saveParty("party_autosave.xml");
+		saveShops();
+		System.exit(0);
 	}
 }

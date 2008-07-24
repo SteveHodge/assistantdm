@@ -47,7 +47,7 @@ public class MagicGeneratorPanel extends JPanel {
 	private JButton createMediumJButton;
 	private DefaultListModel itemJListModel;
 
-	private Generator generator = new Generator();
+	private Generator generator = new Generator("random_item_dmg.txt");
 
 	public MagicGeneratorPanel() {
 		try {

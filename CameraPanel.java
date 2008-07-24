@@ -17,8 +17,10 @@ import javax.swing.SwingUtilities;
 
 @SuppressWarnings("serial")
 public class CameraPanel extends JPanel implements ImageScanListener {
-	static final String destination = "c:\\temp\\2\\image.jpg";
-	static final String sourcedir = "c:\\temp\\1";
+//	static final String destination = "c:\\temp\\2\\image.jpg";
+//	static final String sourcedir = "c:\\temp\\1";
+	static final String destination = "m:\\webcam\\capture2.jpg";
+	static final String sourcedir = "c:\\documents and settings\\stephen\\my documents";
 	static final String sourceprefix = "IMG_";
 
 	Thread cameraThread;

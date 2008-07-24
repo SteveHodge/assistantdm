@@ -25,14 +25,14 @@ import party.Character;
 
 @SuppressWarnings("serial")
 public class InitiativeEntry extends JPanel implements PropertyChangeListener {
-	JFormattedTextField rollField;
-	JFormattedTextField modifierField;
-	JFormattedTextField tiebreakField;
-	JLabel total;
-	JCheckBox onlyDM;
-	JTextField nameField;
-	JLabel nameLabel;
-	boolean blank = true;
+	protected JFormattedTextField rollField;
+	protected JFormattedTextField modifierField;
+	protected JFormattedTextField tiebreakField;
+	protected JLabel total;
+	protected JCheckBox onlyDM;
+	protected JTextField nameField;
+	protected JLabel nameLabel;
+	protected boolean blank = true;
 
 	Character character = null;
 
@@ -179,6 +179,10 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 		return (Integer)modifierField.getValue();
 	}
 
+	public int getTieBreak() {
+		return (Integer)tiebreakField.getValue();
+	}
+
 	public int getRoll() {
 		return (Integer)rollField.getValue();
 	}
@@ -203,5 +207,9 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 	public String toString() {
 		return "InitiativeEntry (name="+getName()+", roll="+rollField.getValue()
 			+", modifier="+getModifier()+", tiebreak="+tiebreakField.getValue()+")";
+	}
+
+	public boolean isBlank() {
+		return blank;
 	}
 }

@@ -6,7 +6,7 @@ import magicgenerator.Roller;
 
 public class TreasureGenerator {
 	public static void main(String[] args) {
-		Generator magic = new Generator();
+		Generator magic = new Generator("random_item_dmg.txt");
 		int i = 0;
 		//for (int i=0; i<200000; i++) {
 		while(i < 10) {
