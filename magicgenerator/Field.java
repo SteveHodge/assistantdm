@@ -1,7 +1,11 @@
 package magicgenerator;
 
+import java.io.Serializable;
+
 // an item field
-public class Field {
+public class Field implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	public final static int TYPE_TEXT = 0;
 	public final static int TYPE_NUMBER = 1;
 	public final static int TYPE_OBJECT = 2;

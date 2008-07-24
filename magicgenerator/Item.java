@@ -1,10 +1,13 @@
 package magicgenerator;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 // contains information about a specific item
-public class Item {
+public class Item implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	public final static int CLASS_MINOR = 0;
 	public final static int CLASS_MEDIUM = 1;
 	public final static int CLASS_MAJOR = 2;
@@ -29,7 +32,13 @@ public class Item {
 	}
 
 	public int getCost() {
-		return ((Integer)getValue("cost")).intValue();
+		int cost = 0;
+		if (getValue("cost") instanceof Integer) {
+			cost = (Integer)getValue("cost");
+		} else if (getValue("cost") instanceof Float) {
+			cost = (int)((Float)getValue("cost")).longValue();
+		}
+		return cost;
 	}
 
 	public String toString() {

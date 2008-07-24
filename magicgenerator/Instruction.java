@@ -1,5 +1,6 @@
 package magicgenerator;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -291,10 +292,10 @@ abstract class Instruction {
 			desc += " +"+mod;
 			Field f = item.getField("specials_map");
 			if (f != null) {
-				Map<Integer,AddSpecial> map = (Map<Integer,AddSpecial>)item.getValue(f);
+				Map<Integer,Special> map = (Map<Integer,Special>)item.getValue(f);
 				if (map != null) {
-					for (AddSpecial sp : map.values()) {
-						desc += ", "+sp.specialName;
+					for (Special sp : map.values()) {
+						desc += ", "+sp.name;
 					}
 				}
 			}
@@ -379,9 +380,20 @@ abstract class Instruction {
 		}
 	}
 
-	//TODO this can't handle multiple cases of Bane - need to have a type that allows dups and
-	// also need to store special properly in the map (not just store this instruction)
-	static class AddSpecial extends Instruction {
+	static class Special implements Serializable {
+		private static final long serialVersionUID = 1L;
+
+		String name;
+		int level = 0;
+
+		public Special(int l, String n) {
+			level = l;
+			name = n;
+		}
+	}
+
+	//TODO this can't handle multiple cases of Bane - need to have a type that allows dups
+	static class AddSpecial extends Instruction  {
 		int type;
 		int level = 0;
 		String tableName;
@@ -396,14 +408,14 @@ abstract class Instruction {
 		public void execute(Item item) {
 //			System.out.println("AddSpecial("+specialName+")");
 			// first get the map if it exists otherwise create it
-			Map<Integer,AddSpecial> map;
+			Map<Integer,Special> map;
 			Field f = item.getField("specials_map");
 			if (f == null) {
 				f = new Field("specials_map",Field.TYPE_OBJECT);
-				map = new HashMap<Integer,AddSpecial>();
+				map = new HashMap<Integer,Special>();
 				item.setValue(f, map);
 			} else {
-				map = (Map<Integer,AddSpecial>)item.getValue(f);
+				map = (Map<Integer,Special>)item.getValue(f);
 			}
 
 			boolean add = false;
@@ -414,7 +426,7 @@ abstract class Instruction {
 			} else {
 				if (tableName == null) {
 					// add this special if it's level is greater than the existing one
-					AddSpecial existing = map.get(type);
+					Special existing = map.get(type);
 					if (level > existing.level) {
 						add = true;
 					}
@@ -442,7 +454,7 @@ abstract class Instruction {
 					specialName = item.getValue(specialName.substring(1)).toString();
 				}
 
-				map.put(type, this);
+				map.put(type, new Special(level,specialName));
 			}
 		}
 
@@ -453,7 +465,7 @@ abstract class Instruction {
 		// <level/table> is either a number indicating the level of the special or the name of the
 		// table to roll on if a special with the same <type> is already in the item. if the level is
 		// specified then the old special is replaced if the new special's level is higher.
-		// <name> is the name of the special. current commas are no allowed
+		// <name> is the name of the special. currently commas are no allowed
 		// <instructions> are the instructions to run if the special is added
 		public static Instruction parseInstruction(NameSpace ns, String str) {
 			AddSpecial s = new AddSpecial(ns);
