@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="Field">
+	<xs:complexType mixed="true">
+		<xs:attribute name="name" type="xs:string" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Item">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Field" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="category" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Items">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Item" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Shop">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element name="Minor" maxOccurs="1">
+				<xs:complexType>
+					<xs:attribute name="newChance" type="xs:int" use="required"/>
+					<xs:attribute name="sellChance" type="xs:int" use="required"/>
+					<xs:attribute name="number" type="xs:int" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Medium" maxOccurs="1">
+				<xs:complexType>
+					<xs:attribute name="newChance" type="xs:int" use="required"/>
+					<xs:attribute name="sellChance" type="xs:int" use="required"/>
+					<xs:attribute name="number" type="xs:int" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Major" maxOccurs="1">
+				<xs:complexType>
+					<xs:attribute name="newChance" type="xs:int" use="required"/>
+					<xs:attribute name="sellChance" type="xs:int" use="required"/>
+					<xs:attribute name="number" type="xs:int" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element ref="Items" maxOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute name="scriptName" type="xs:string" use="required"/>
+		<xs:attribute name="procName" type="xs:string" use="required"/>
+		<xs:attribute name="day" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<!-- =========== Top-Level Structure =========== -->
+
+<xs:element name="Shops">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Shop" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+</xs:schema>

@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JMenu;
@@ -71,9 +72,15 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		panel = new RollsPanel(party);
 		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
 
-		shopPanel = loadShops();
-		if (shopPanel == null) shopPanel = new ShoppingPanel();
-		else System.out.println("Loaded shops from file");
+		List<Shop> shops = ShoppingPanel.parseShopsXML("shops.xml");
+		if (shops.size() > 0) {
+			shopPanel = new ShoppingPanel(shops);
+			System.out.println("Loaded shops from XML file");
+		}
+		if (shopPanel == null) {
+			shopPanel = new ShoppingPanel();
+			System.out.println("Setup shops from scratch");
+		}
 		tabbedPane.addTab("Shops", null, shopPanel, "Magic Item Shops");
 
 		panel = new MagicGeneratorPanel();
@@ -167,7 +174,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	public void windowClosing(WindowEvent e) {
 		System.out.println("Exiting");
 		saveParty("party_autosave.xml");
-		saveShops();
+		shopPanel.writeShopsXML(shopPanel.shops, "shops.xml");
 		System.exit(0);
 	}
 }

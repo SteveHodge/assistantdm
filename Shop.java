@@ -9,6 +9,13 @@ import java.util.Random;
 
 import javax.swing.AbstractListModel;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import xml.XML;
+import xml.XMLUtils;
+
 import magicgenerator.Field;
 import magicgenerator.Generator;
 import magicgenerator.Item;
@@ -27,7 +34,7 @@ import magicgenerator.Item;
  * Typical chances of sale (per day) are: 0.05, 0.10, 0.20
  * Therefore need to add on average 0.15 major, 0.7 medium, 2 minor per day
  */
-public class Shop extends AbstractListModel {
+public class Shop extends AbstractListModel implements XML {
 	List<Item> inventory;
 
 	int day = 0;
@@ -61,6 +68,9 @@ public class Shop extends AbstractListModel {
 		number[Item.CLASS_MAJOR] = majorNumber;
 
 		inventory = new ArrayList<Item>();
+	}
+
+	public void createInitialInventory() {
 		// setup initial inventory:
 		for (int i=0; i<3; i++) {
 			for (int j=0; j<number[i]; j++) {
@@ -131,6 +141,28 @@ public class Shop extends AbstractListModel {
 		return inventory.get(index);
 	}
 
+	public Item deleteItemAt(int i) {
+		Item item = inventory.remove(i);
+		fireIntervalRemoved(this, i, i);
+		return item;
+	}
+
+	public void recreateItemAt(int i) {
+		Item item = inventory.remove(i);
+		Item newItem = generator.generate(item.getCategory(), procName);
+		inventory.add(i, newItem);
+		fireContentsChanged(this, i, i);
+	}
+
+	public void createItem(int power) {
+		addItem(generator.generate(power, procName));
+	}
+
+	public void addItem(Item i) {
+		inventory.add(i);
+		fireIntervalAdded(this, inventory.size(), inventory.size());
+	}
+
 	public int getSize() {
 		return inventory.size();
 	}
@@ -139,5 +171,96 @@ public class Shop extends AbstractListModel {
 		in.defaultReadObject();
 		random = new Random();
 		generator = new Generator(scriptName);
+	}
+
+	public String getXML() {
+		return getXML("", "    ");
+	}
+
+	public String getXML(String indent, String nextIndent) {
+		StringBuilder s = new StringBuilder();
+		s.append(indent).append("<Shop scriptName=\"").append(scriptName).append("\" procName=\"");
+		s.append(procName).append("\" day=\"").append(day).append("\">\n");
+
+		s.append(indent).append(nextIndent).append("<Minor newChance=\"");
+		s.append(newChance[Item.CLASS_MINOR]).append("\" sellChance=\"");
+		s.append(sellChance[Item.CLASS_MINOR]).append("\" number=\"");
+		s.append(number[Item.CLASS_MINOR]).append("\"/>\n");
+
+		s.append(indent).append(nextIndent).append("<Medium newChance=\"");
+		s.append(newChance[Item.CLASS_MEDIUM]).append("\" sellChance=\"");
+		s.append(sellChance[Item.CLASS_MEDIUM]).append("\" number=\"");
+		s.append(number[Item.CLASS_MEDIUM]).append("\"/>\n");
+
+		s.append(indent).append(nextIndent).append("<Major newChance=\"");
+		s.append(newChance[Item.CLASS_MAJOR]).append("\" sellChance=\"");
+		s.append(sellChance[Item.CLASS_MAJOR]).append("\" number=\"");
+		s.append(number[Item.CLASS_MAJOR]).append("\"/>\n");
+
+		s.append(indent).append(nextIndent).append("<Items>\n");
+		for (Item i : inventory) {
+			s.append(i.getXML(indent + nextIndent + nextIndent, nextIndent));
+		}
+		s.append(indent).append(nextIndent).append("</Items>\n");
+		s.append(indent).append("</Shop>\n");
+		return s.toString();
+	}
+
+	public static Shop parseDOM(Node node) {
+		if (!node.getNodeName().equals("Shop")) return null;
+		String script = XMLUtils.getAttribute(node, "scriptName");
+		String proc = XMLUtils.getAttribute(node, "procName");
+		int day = Integer.parseInt(XMLUtils.getAttribute(node, "day"));
+		int majorChance = 0, majorNumber = 0, mediumChance = 0;
+		int mediumNumber = 0, minorChance = 0, minorNumber = 0;
+		int majorSell = -99, mediumSell = -99, minorSell = -99;
+
+		Shop s = null;
+
+		NodeList nodes = node.getChildNodes();
+		if (nodes != null) {
+			for (int i=0; i<nodes.getLength(); i++) {
+				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+				Element e = (Element)nodes.item(i);
+				String tag = e.getTagName();
+
+				if (tag.equals("Minor")) {
+					minorChance = Integer.parseInt(e.getAttribute("newChance"));
+					minorNumber = Integer.parseInt(e.getAttribute("number"));
+					minorSell = Integer.parseInt(e.getAttribute("sellChance"));
+
+				} else if (tag.equals("Medium")) {
+					mediumChance = Integer.parseInt(e.getAttribute("newChance"));
+					mediumNumber = Integer.parseInt(e.getAttribute("number"));
+					mediumSell = Integer.parseInt(e.getAttribute("sellChance"));
+
+				} else if (tag.equals("Major")) {
+					majorChance = Integer.parseInt(e.getAttribute("newChance"));
+					majorNumber = Integer.parseInt(e.getAttribute("number"));
+					majorSell = Integer.parseInt(e.getAttribute("sellChance"));
+
+				} else if (tag.equals("Items")) {
+					s = new Shop(script,proc, majorChance, majorNumber, mediumChance, mediumNumber,
+							minorChance, minorNumber);
+					s.setSellChance(Item.CLASS_MINOR, minorSell);
+					s.setSellChance(Item.CLASS_MEDIUM, mediumSell);
+					s.setSellChance(Item.CLASS_MAJOR, majorSell);
+					s.day = day;
+
+					NodeList items = e.getChildNodes();
+					if (items != null) {
+						for (int j=0; j<items.getLength(); j++) {
+							if (!items.item(j).getNodeName().equals("Item")) continue;
+							Element ie = (Element)items.item(j);
+							Item item = Item.parseItemDOM(ie);
+							if (item != null) {
+								s.addItem(item);
+							}
+						}
+					}
+				}
+			}
+		}
+		return s;
 	}
 }

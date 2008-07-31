@@ -154,9 +154,9 @@ table "7-8" "Specific Shields"
 0:01-30,01-20,-:item="Darkwood buckler"|cost=205
 1:31-80,21-45,-:item="Darkwood shield"|cost=257
 2:81-95,46-70,-:item="Mithral heavy shield"|cost=1020
-3:96-100,71-85,01-20:item="Caster’s shield"|cost=3153
+3:96-100,71-85,01-20:item="Caster's shield"|cost=3153
 4:-,86-90,21-40:item="Spined shield"|cost=5580
-5:-,91-95,41-60:item="Lion’s shield"|cost=9170
+5:-,91-95,41-60:item="Lion's shield"|cost=9170
 6:-,96-100,61-90:item="Winged shield"|cost=17257
 7:-,-,91-100:item="Absorbing shield"|cost=50170
 
@@ -351,8 +351,8 @@ table "7-16" "Specific Weapons"
 09:-,38-40,-:item="Shatterspike"|cost=4315
 10:-,41-46,-:item="Dagger of venom"|cost=8302
 11:-,47-51,-:item="Trident of warning"|cost=10115
-12:-,52-57,01-04:item="Assassin’s dagger"|cost=10302
-13:-,58-62,05-07:item="Shifter’s sorrow"|cost=12780
+12:-,52-57,01-04:item="Assassin's dagger"|cost=10302
+13:-,58-62,05-07:item="Shifter's sorrow"|cost=12780
 14:-,63-66,08-09:item="Trident of fish command"|cost=18650
 15:-,67-74,10-13:item="Flame tongue"|cost=20715
 16:-,75-79,14-17:item="Luck blade (0 wishes)"|cost=22060
@@ -432,21 +432,21 @@ table "7-17" "Potions and Oils"
 17:45,05,-:item="Potion of Reduce person"|cost=250
 18:46-47,06,-:item="Potion of Aid"|cost=300
 19:48-50,07,-:item="Potion of Barkskin +2"|cost=300
-20:51-53,08-10,-:item="Potion of Bear’s endurance"|cost=300
+20:51-53,08-10,-:item="Potion of Bear's endurance"|cost=300
 21:54-56,11-13,01-02:item="Potion of Blur"|cost=300
-22:57-59,14-16,-:item="Potion of Bull’s strength"|cost=300
-23:60-62,17-19,-:item="Potion of Cat’s grace"|cost=300
+22:57-59,14-16,-:item="Potion of Bull's strength"|cost=300
+23:60-62,17-19,-:item="Potion of Cat's grace"|cost=300
 24:63-67,20-27,03-07:item="Potion of Cure moderate wounds"|cost=300
 25:68,28,-:item="Oil of Darkness"|cost=300
 26:69-71,29-30,08-09:item="Potion of Darkvision"|cost=300
 27:72-74,31,-:item="Potion of Delay poison"|cost=300
-28:75-76,32-33,-:item="Potion of Eagle’s splendor"|cost=300
-29:77-78,34-35,-:item="Potion of Fox’s cunning"|cost=300
+28:75-76,32-33,-:item="Potion of Eagle's splendor"|cost=300
+29:77-78,34-35,-:item="Potion of Fox's cunning"|cost=300
 30:79-81,36-37,10-11:item="Potion/Oil of Invisibility"|cost=300
 31:82-84,38,12:item="Potion of lesser restoration"|cost=300
 32:85-86,39,-:item="Potion/Oil of Levitate"|cost=300
 33:87,40,-:item="Potion of Misdirection"|cost=300
-34:88-89,41-42,-:item="Potion of Owl’s wisdom"|cost=300
+34:88-89,41-42,-:item="Potion of Owl's wisdom"|cost=300
 35:90-91,43,-:item="Potion of Protection from arrows 10/magic"|cost=300
 36:92-93,44,13:item="Potion of Remove paralysis"|cost=300
 37:94-96,45-46,-:item="Potion of Resist energy ("|roll("energy_type")|item+=") 10"|cost=300
@@ -705,7 +705,7 @@ table "7-23.1" "1st-Level Arcane Spells"
 24:55-56:item&="magic missile"|cost+=25
 25:57-59:item&="magic weapon"|cost+=25
 26:60-62:item&="mount"|cost+=25
-27:63-64:item&="Nystul’s magic aura"|cost+=25
+27:63-64:item&="Nystul's magic aura"|cost+=25
 28:65-66:item&="obscuring mist"|cost+=25
 29:67-74:item&="protection from "|roll("alignment_component")|cost+=25
 30:75-76:item&="ray of enfeeblement"|cost+=25
@@ -716,7 +716,7 @@ table "7-23.1" "1st-Level Arcane Spells"
 35:85-86:item&="silent image"|cost+=25
 36:87-88:item&="sleep"|cost+=25
 37:89-90:item&="summon monster I"|cost+=25
-38:91-93:item&="Tenser’s floating disk"|cost+=25
+38:91-93:item&="Tenser's floating disk"|cost+=25
 39:94-95:item&="true strike"|cost+=25
 40:96:item&="undetectable alignment"|cost+=50
 41:97-98:item&="unseen servant"|cost+=25
@@ -726,12 +726,12 @@ table "7-23.2" "2nd-Level Arcane Spells"
 00:01:item&="animal messenger"|cost+=200
 01:02:item&="animal trance"|cost+=200
 02:03:item&="arcane lock"|cost+=175
-03:04-06:item&="bear’s endurance"|cost+=150
+03:04-06:item&="bear's endurance"|cost+=150
 04:07-08:item&="blindness/deafness"|cost+=150
 05:09-10:item&="blur"|cost+=150
-06:11-13:item&="bull’s strength"|cost+=150
+06:11-13:item&="bull's strength"|cost+=150
 07:14:item&="calm emotions"|cost+=200
-08:15-17:item&="cat’s grace"|cost+=150
+08:15-17:item&="cat's grace"|cost+=150
 09:18-19:item&="command undead"|cost+=150
 10:20:item&="continual flame"|cost+=200
 11:21:item&="cure moderate wounds"|cost+=200
@@ -741,28 +741,28 @@ table "7-23.2" "2nd-Level Arcane Spells"
 15:27:item&="delay poison"|cost+=200
 16:28-29:item&="detect thoughts"|cost+=150
 17:30-31:item&="disguise self"|cost+=150
-18:32-34:item&="eagle’s splendor"|cost+=150
+18:32-34:item&="eagle's splendor"|cost+=150
 19:35:item&="enthrall"|cost+=200
 20:36-37:item&="false life"|cost+=150
 21:38-39:item&="flaming sphere"|cost+=150
 22:40:item&="fog cloud"|cost+=150
-23:41-43:item&="fox’s cunning"|cost+=150
+23:41-43:item&="fox's cunning"|cost+=150
 24:44:item&="ghoul touch"|cost+=150
 25:45-46:item&="glitterdust"|cost+=150
 26:47:item&="gust of wind"|cost+=150
 27:48-49:item&="hypnotic pattern"|cost+=150
 28:50-52:item&="invisibility"|cost+=150
 29:53-55:item&="knock"|cost+=150
-30:56:item&="Leomund’s trap"|cost+=200
+30:56:item&="Leomund's trap"|cost+=200
 31:57-58:item&="levitate"|cost+=150
 32:59:item&="locate object"|cost+=150
 33:60:item&="magic mouth"|cost+=160
-34:61-62:item&="Melf’s acid arrow"|cost+=150
+34:61-62:item&="Melf's acid arrow"|cost+=150
 35:63:item&="minor image"|cost+=150
 36:64-65:item&="mirror image"|cost+=150
 37:66:item&="misdirection"|cost+=150
 38:67:item&="obscure object"|cost+=150
-39:68-70:item&="owl’s wisdom"|cost+=150
+39:68-70:item&="owl's wisdom"|cost+=150
 40:71-73:item&="protection from arrows"|cost+=150
 41:74-75:item&="pyrotechnics"|cost+=150
 42:76-78:item&="resist energy"|cost+=150
@@ -777,7 +777,7 @@ table "7-23.2" "2nd-Level Arcane Spells"
 51:90-91:item&="spider climb"|cost+=150
 52:92-93:item&="summon monster II"|cost+=150
 53:94-95:item&="summon swarm"|cost+=150
-54:96:item&="Tasha’s hideous laughter"|cost+=150
+54:96:item&="Tasha's hideous laughter"|cost+=150
 55:97:item&="touch of idiocy"|cost+=150
 56:98-99:item&="web"|cost+=150
 57:100:item&="whispering wind"|cost+=150
@@ -806,7 +806,7 @@ table "7-23.3" "3rd-Level Arcane Spells"
 20:41:item&="illusory script"|cost+=425
 21:42-44:item&="invisibility sphere"|cost+=375
 22:45-47:item&="keen edge"|cost+=375
-23:48-49:item&="Leomund’s tiny hut"|cost+=375
+23:48-49:item&="Leomund's tiny hut"|cost+=375
 24:50-51:item&="lightning bolt"|cost+=375
 25:52-59:item&="magic circle against "|roll("alignment_component")|cost+=375
 26:60-62:item&="magic weapon, greater"|cost+=375
@@ -845,7 +845,7 @@ table "7-23.4" "4th-Level Arcane Spells"
 10:24-26:item&="dimensional anchor"|cost+=700
 11:27-28:item&="enervation"|cost+=700
 12:29-30:item&="enlarge person, mass"|cost+=700
-13:31-32:item&="Evard’s black tentacles"|cost+=700
+13:31-32:item&="Evard's black tentacles"|cost+=700
 14:33-34:item&="fear"|cost+=700
 15:35-37:item&="fire shield"|cost+=700
 16:38-39:item&="fire trap"|cost+=725
@@ -856,16 +856,16 @@ table "7-23.4" "4th-Level Arcane Spells"
 21:49-50:item&="ice storm"|cost+=700
 22:51-52:item&="illusory wall"|cost+=700
 23:53-55:item&="invisibility, greater"|cost+=700
-24:56-57:item&="Leomund’s secure shelter"|cost+=700
+24:56-57:item&="Leomund's secure shelter"|cost+=700
 25:58:item&="locate creature"|cost+=700
 26:59-60:item&="minor creation"|cost+=700
 27:61:item&="modify memory"|cost+=1000
 28:62:item&="neutralize poison"|cost+=1000
-29:63-64:item&="Otiluke’s resilient sphere"|cost+=700
+29:63-64:item&="Otiluke's resilient sphere"|cost+=700
 30:65-66:item&="phantasmal killer"|cost+=700
 31:67-68:item&="polymorph"|cost+=700
 32:69-70:item&="rainbow pattern"|cost+=700
-33:71:item&="Rary’s mnemonic enhancer"|cost+=700
+33:71:item&="Rary's mnemonic enhancer"|cost+=700
 34:72-73:item&="reduce person, mass"|cost+=700
 35:74-76:item&="remove curse"|cost+=700
 36:77:item&="repel vermin"|cost+=1000
@@ -884,7 +884,7 @@ table "7-23.4" "4th-Level Arcane Spells"
 table "7-23.5" "5th-Level Arcane Spells"
 00:01-02:item&="animal growth"|cost+=1125
 01:03-05:item&="baleful polymorph"|cost+=1125
-02:06-07:item&="Bigby’s interposing hand"|cost+=1125
+02:06-07:item&="Bigby's interposing hand"|cost+=1125
 03:08-09:item&="blight"|cost+=1125
 04:10-12:item&="break enchantment"|cost+=1125
 05:13-14:item&="cloudkill"|cost+=1125
@@ -899,13 +899,13 @@ table "7-23.5" "5th-Level Arcane Spells"
 14:32-33:item&="false vision"|cost+=1375
 15:34-35:item&="feeblemind"|cost+=1125
 16:36-39:item&="hold monster"|cost+=1125
-17:40:item&="Leomund’s secret chest"|cost+=1125
+17:40:item&="Leomund's secret chest"|cost+=1125
 18:41:item&="magic jar"|cost+=1125
 19:42-43:item&="major creation"|cost+=1125
 20:44-45:item&="mind fog"|cost+=1125
 21:46-47:item&="mirage arcana"|cost+=1125
-22:48-49:item&="Mordenkainen’s faithful hound"|cost+=1125
-23:50-51:item&="Mordenkainen’s private sanctum"|cost+=1125
+22:48-49:item&="Mordenkainen's faithful hound"|cost+=1125
+23:50-51:item&="Mordenkainen's private sanctum"|cost+=1125
 24:52-53:item&="nightmare"|cost+=1125
 25:54-57:item&="overland flight"|cost+=1125
 26:58-60:item&="passwall"|cost+=1125
@@ -913,7 +913,7 @@ table "7-23.5" "5th-Level Arcane Spells"
 28:62-63:item&="persistent image"|cost+=1125
 29:64-65:item&="planar binding, lesser"|cost+=1125
 30:66-67:item&="prying eyes"|cost+=1125
-31:68-69:item&="Rary’s telepathic bond"|cost+=1125
+31:68-69:item&="Rary's telepathic bond"|cost+=1125
 32:70-71:item&="seeming"|cost+=1125
 33:72-74:item&="sending"|cost+=1125
 34:75-76:item&="shadow evocation"|cost+=1125
@@ -934,10 +934,10 @@ table "7-23.6" "6th-Level Arcane Spells"
 01:03-05:item&="analyze dweomer"|cost+=1650
 02:06:item&="animate objects"|cost+=2400
 03:07-09:item&="antimagic field"|cost+=1650
-04:10-12:item&="bear’s endurance, mass"|cost+=1650
-05:13-14:item&="Bigby’s forceful hand"|cost+=1650
-06:15-17:item&="bull’s strength, mass"|cost+=1650
-07:18-20:item&="cat’s grace, mass"|cost+=1650
+04:10-12:item&="bear's endurance, mass"|cost+=1650
+05:13-14:item&="Bigby's forceful hand"|cost+=1650
+06:15-17:item&="bull's strength, mass"|cost+=1650
+07:18-20:item&="cat's grace, mass"|cost+=1650
 08:21-23:item&="chain lightning"|cost+=1650
 09:24-25:item&="circle of death"|cost+=2150
 10:26:item&="contingency"|cost+=1650
@@ -946,22 +946,22 @@ table "7-23.6" "6th-Level Arcane Spells"
 13:30:item&="cure moderate wounds, mass"|cost+=2400
 14:31-33:item&="disintegrate"|cost+=1650
 15:34-37:item&="dispel magic, greater"|cost+=1650
-16:38-40:item&="eagle’s splendor, mass"|cost+=1650
+16:38-40:item&="eagle's splendor, mass"|cost+=1650
 17:41-42:item&="eyebite"|cost+=1650
 18:43:item&="find the path"|cost+=2400
 19:44-45:item&="flesh to stone"|cost+=1650
-20:46-48:item&="fox’s cunning, mass"|cost+=1650
+20:46-48:item&="fox's cunning, mass"|cost+=1650
 21:49:item&="geas/quest"|cost+=1650
 22:50-52:item&="globe of invulnerability"|cost+=1650
 23:53:item&="guards and wards"|cost+=1650
-24:54:item&="heroes’ feast"|cost+=2400
+24:54:item&="heroes' feast"|cost+=2400
 25:55-56:item&="heroism, greater"|cost+=1650
 26:57:item&="legend lore"|cost+=1900
 27:58-59:item&="mislead"|cost+=1650
-28:60:item&="Mordenkainen’s lucubration"|cost+=1650
+28:60:item&="Mordenkainen's lucubration"|cost+=1650
 29:61-62:item&="move earth"|cost+=1650
-30:63-64:item&="Otiluke’s freezing sphere"|cost+=1650
-31:65-67:item&="owl’s wisdom, mass"|cost+=1650
+30:63-64:item&="Otiluke's freezing sphere"|cost+=1650
+31:65-67:item&="owl's wisdom, mass"|cost+=1650
 32:68-69:item&="permanent image"|cost+=1650
 33:70-71:item&="planar binding"|cost+=1650
 34:72-73:item&="programmed image"|cost+=1675
@@ -973,7 +973,7 @@ table "7-23.6" "6th-Level Arcane Spells"
 40:86:item&="symbol of fear"|cost+=2650
 41:87:item&="symbol of persuasion"|cost+=6650
 42:88:item&="sympathetic vibration"|cost+=2400
-43:89-90:item&="Tenser’s transformation"|cost+=1950
+43:89-90:item&="Tenser's transformation"|cost+=1950
 44:91-93:item&="true seeing"|cost+=1900
 45:94-95:item&="undeath to death"|cost+=2150
 46:96-97:item&="veil"|cost+=1650
@@ -982,11 +982,11 @@ table "7-23.6" "6th-Level Arcane Spells"
 table "7-23.7" "7th-Level Arcane Spells"
 00:01-03:item&="arcane sight, greater"|cost+=2275
 01:04-07:item&="banishment"|cost+=2275
-02:08-10:item&="Bigby’s grasping hand"|cost+=2275
+02:08-10:item&="Bigby's grasping hand"|cost+=2275
 03:11-13:item&="control undead"|cost+=2275
 04:14-16:item&="control weather"|cost+=2275
 05:17-19:item&="delayed blast fireball"|cost+=2275
-06:20-21:item&="Drawmij’s instant summons"|cost+=3275
+06:20-21:item&="Drawmij's instant summons"|cost+=3275
 07:22-25:item&="ethereal jaunt"|cost+=2275
 08:26-28:item&="finger of death"|cost+=2275
 09:29-31:item&="forcecage"|cost+=23775
@@ -994,8 +994,8 @@ table "7-23.7" "7th-Level Arcane Spells"
 11:36-38:item&="insanity"|cost+=2275
 12:39-42:item&="invisibility, mass"|cost+=2275
 13:43:item&="limited wish"|cost+=3775
-14:44-45:item&="Mordenkainen’s magnificent mansion"|cost+=2275
-15:46-48:item&="Mordenkainen’s sword"|cost+=2275
+14:44-45:item&="Mordenkainen's magnificent mansion"|cost+=2275
+15:46-48:item&="Mordenkainen's sword"|cost+=2275
 16:49-51:item&="phase door"|cost+=2275
 17:52-54:item&="plane shift"|cost+=2275
 18:55-57:item&="power word blind"|cost+=2275
@@ -1018,7 +1018,7 @@ table "7-23.7" "7th-Level Arcane Spells"
 
 table "7-23.8" "8th-Level Arcane Spells"
 00:01-02:item&="antipathy"|cost+=3000
-01:03-05:item&="Bigby’s clenched fist"|cost+=3000
+01:03-05:item&="Bigby's clenched fist"|cost+=3000
 02:06-08:item&="binding"|cost+=85001
 03:09-12:item&="charm monster, mass"|cost+=3000
 04:13:item&="clone"|cost+=4000
@@ -1032,8 +1032,8 @@ table "7-23.8" "8th-Level Arcane Spells"
 12:36-38:item&="maze"|cost+=3000
 13:39-41:item&="mind blank"|cost+=3000
 14:42-44:item&="moment of prescience"|cost+=3000
-15:45-48:item&="Otiluke’s telekinetic sphere"|cost+=3000
-16:49-51:item&="Otto’s irresistible dance"|cost+=3000
+15:45-48:item&="Otiluke's telekinetic sphere"|cost+=3000
+16:49-51:item&="Otto's irresistible dance"|cost+=3000
 17:52-54:item&="planar binding, greater"|cost+=3000
 18:55-57:item&="polar ray"|cost+=3000
 19:58-60:item&="polymorph any object"|cost+=3000
@@ -1055,7 +1055,7 @@ table "7-23.8" "8th-Level Arcane Spells"
 
 table "7-23.9" "9th-Level Arcane Spells"
 00:01-03:item&="astral projection"|cost+=4870
-01:04-07:item&="Bigby’s crushing hand"|cost+=3825
+01:04-07:item&="Bigby's crushing hand"|cost+=3825
 02:08-12:item&="dominate monster"|cost+=3825
 03:13-16:item&="energy drain"|cost+=3825
 04:17-21:item&="etherealness"|cost+=3825
@@ -1065,7 +1065,7 @@ table "7-23.9" "9th-Level Arcane Spells"
 08:37-40:item&="hold monster, mass"|cost+=3825
 09:41-44:item&="imprisonment"|cost+=3825
 10:45-49:item&="meteor swarm"|cost+=3825
-11:50-53:item&="Mordenkainen’s disjunction"|cost+=3825
+11:50-53:item&="Mordenkainen's disjunction"|cost+=3825
 12:54-58:item&="power word kill"|cost+=3825
 13:59-62:item&="prismatic sphere"|cost+=3825
 14:63-66:item&="refuge"|cost+=3825
@@ -1138,17 +1138,17 @@ table "7-24.1" "1st-Level Divine Spells"
 39:93-94:item&="shillelagh"|cost+=25
 40:95-96:item&="speak with animals"|cost+=25
 41:97-98:item&="summon monster I"|cost+=25
-42:99-100:item&="summon nature’s ally I"|cost+=25
+42:99-100:item&="summon nature's ally I"|cost+=25
 
 table "7-24.2" "2nd-Level Divine Spells"
 00:01:item&="animal messenger"|cost+=150
 01:02:item&="animal trance"|cost+=150
 02:03-04:item&="augury"|cost+=175
 03:05-06:item&="barkskin"|cost+=150
-04:07-09:item&="bear’s endurance"|cost+=150
-05:10-12:item&="bull’s strength"|cost+=150
+04:07-09:item&="bear's endurance"|cost+=150
+05:10-12:item&="bull's strength"|cost+=150
 06:13-14:item&="calm emotions"|cost+=150
-07:15-17:item&="cat’s grace"|cost+=150
+07:15-17:item&="cat's grace"|cost+=150
 08:18:item&="chill metal"|cost+=150
 09:19-20:item&="consecrate"|cost+=200
 10:21-24:item&="cure moderate wounds"|cost+=150
@@ -1156,7 +1156,7 @@ table "7-24.2" "2nd-Level Divine Spells"
 12:27:item&="death knell"|cost+=150
 13:28-30:item&="delay poison"|cost+=150
 14:31-32:item&="desecrate"|cost+=200
-15:33-35:item&="eagle’s splendor"|cost+=150
+15:33-35:item&="eagle's splendor"|cost+=150
 16:36-37:item&="enthrall"|cost+=150
 17:38-39:item&="find traps"|cost+=150
 18:40:item&="fire trap"|cost+=175
@@ -1170,7 +1170,7 @@ table "7-24.2" "2nd-Level Divine Spells"
 26:52-54:item&="hold person"|cost+=150
 27:55-56:item&="inflict moderate wounds"|cost+=150
 28:57-58:item&="make whole"|cost+=150
-29:59-61:item&="owl’s wisdom"|cost+=150
+29:59-61:item&="owl's wisdom"|cost+=150
 30:62:item&="reduce animal"|cost+=150
 31:63-64:item&="remove paralysis"|cost+=150
 32:65-67:item&="resist energy"|cost+=150
@@ -1186,7 +1186,7 @@ table "7-24.2" "2nd-Level Divine Spells"
 42:84-85:item&="spiritual weapon"|cost+=150
 43:86:item&="status"|cost+=150
 44:87-88:item&="summon monster II"|cost+=150
-45:89-90:item&="summon nature’s ally II"|cost+=150
+45:89-90:item&="summon nature's ally II"|cost+=150
 46:91-92:item&="summon swarm"|cost+=150
 47:93:item&="tree shape"|cost+=150
 48:94-95:item&="undetectable alignment"|cost+=150
@@ -1236,7 +1236,7 @@ table "7-24.3" "3rd-Level Divine Spells"
 38:86-87:item&="spike growth"|cost+=375
 39:88-89:item&="stone shape"|cost+=375
 40:90-91:item&="summon monster III"|cost+=375
-41:92-93:item&="summon nature’s ally III"|cost+=375
+41:92-93:item&="summon nature's ally III"|cost+=375
 42:94-96:item&="water breathing"|cost+=375
 43:97-98:item&="water walk"|cost+=375
 44:99-100:item&="wind wall"|cost+=375
@@ -1272,7 +1272,7 @@ table "7-24.4" "4th-Level Divine Spells"
 27:82-85:item&="spell immunity"|cost+=700
 28:86-87:item&="spike stones"|cost+=700
 29:88-90:item&="summon monster IV"|cost+=700
-30:91-93:item&="summon nature’s ally IV"|cost+=700
+30:91-93:item&="summon nature's ally IV"|cost+=700
 31:94-98:item&="tongues"|cost+=700
 32:99-100:item&="tree stride"|cost+=700
 
@@ -1304,7 +1304,7 @@ table "7-24.5" "5th-Level Divine Spells"
 24:67-69:item&="spell resistance"|cost+=1125
 25:70-71:item&="stoneskin"|cost+=1375
 26:72-74:item&="summon monster V"|cost+=1125
-27:75-77:item&="summon nature’s ally V"|cost+=1125
+27:75-77:item&="summon nature's ally V"|cost+=1125
 28:78:item&="symbol of pain"|cost+=2125
 29:79:item&="symbol of sleep"|cost+=2125
 30:80-82:item&="transmute mud to rock"|cost+=1125
@@ -1319,14 +1319,14 @@ table "7-24.6" "6th-Level Divine Spells"
 00:01-03:item&="animate objects"|cost+=1650
 01:04-06:item&="antilife shell"|cost+=1650
 02:07-09:item&="banishment"|cost+=1650
-03:10-13:item&="bear’s endurance, mass"|cost+=1650
+03:10-13:item&="bear's endurance, mass"|cost+=1650
 04:14-16:item&="blade barrier"|cost+=1650
-05:17-20:item&="bull’s strength, mass"|cost+=1650
-06:21-24:item&="cat’s grace, mass"|cost+=1650
+05:17-20:item&="bull's strength, mass"|cost+=1650
+06:21-24:item&="cat's grace, mass"|cost+=1650
 07:25:item&="create undead"|cost+=1650
 08:26-29:item&="cure moderate wounds, mass"|cost+=1650
 09:30-33:item&="dispel magic, greater"|cost+=1650
-10:34-37:item&="eagle’s splendor, mass"|cost+=1650
+10:34-37:item&="eagle's splendor, mass"|cost+=1650
 11:38-40:item&="find the path"|cost+=1650
 12:41-43:item&="fire seeds"|cost+=1650
 13:44:item&="forbiddance"|cost+=4650
@@ -1334,18 +1334,18 @@ table "7-24.6" "6th-Level Divine Spells"
 15:46:item&="glyph of warding, greater"|cost+=1650
 16:47-49:item&="harm"|cost+=1650
 17:50-52:item&="heal"|cost+=1650
-18:53-55:item&="heroes’ feast"|cost+=1650
+18:53-55:item&="heroes' feast"|cost+=1650
 19:56-58:item&="inflict moderate wounds, mass"|cost+=1650
 20:59-61:item&="ironwood"|cost+=1650
 21:62:item&="liveoak"|cost+=1650
 22:63-65:item&="move earth"|cost+=1650
-23:66-69:item&="owl’s wisdom, mass"|cost+=1650
+23:66-69:item&="owl's wisdom, mass"|cost+=1650
 24:70-71:item&="planar ally"|cost+=2400
 25:72-74:item&="repel wood"|cost+=1650
 26:75-77:item&="spellstaff"|cost+=1650
 27:78-80:item&="stone tell"|cost+=1650
 28:81-83:item&="summon monster VI"|cost+=1650
-29:84-86:item&="summon nature’s ally VI"|cost+=1650
+29:84-86:item&="summon nature's ally VI"|cost+=1650
 30:87:item&="symbol of fear"|cost+=2650
 31:88:item&="symbol of persuasion"|cost+=6650
 32:89-91:item&="transport via plants"|cost+=1650
@@ -1372,7 +1372,7 @@ table "7-24.7" "7th-Level Divine Spells"
 15:70-71:item&="resurrection"|cost+=12275
 16:72-76:item&="scrying, greater"|cost+=2275
 17:77-81:item&="summon monster VII"|cost+=2275
-18:82-85:item&="summon nature’s ally VII"|cost+=2275
+18:82-85:item&="summon nature's ally VII"|cost+=2275
 19:86-90:item&="sunbeam"|cost+=2275
 20:91:item&="symbol of stunning"|cost+=7275
 21:92:item&="symbol of weakness"|cost+=7275
@@ -1399,7 +1399,7 @@ table "7-24.8" "8th-Level Divine Spells"
 16:70-72:item&="shield of law"|cost+=3000
 17:73-76:item&="spell immunity, greater"|cost+=3000
 18:77-80:item&="summon monster VIII"|cost+=3000
-19:81-84:item&="summon nature’s ally VIII"|cost+=3000
+19:81-84:item&="summon nature's ally VIII"|cost+=3000
 20:85-89:item&="sunburst"|cost+=3000
 21:90-91:item&="symbol of death"|cost+=8000
 22:92-93:item&="symbol of insanity"|cost+=8000
@@ -1423,7 +1423,7 @@ table "7-24.9" "9th-Level Divine Spells"
 13:73-77:item&="soul bind"|cost+=3825
 14:78-83:item&="storm of vengeance"|cost+=3825
 15:84-89:item&="summon monster IX"|cost+=3825
-16:90-95:item&="summon nature’s ally IX"|cost+=3825
+16:90-95:item&="summon nature's ally IX"|cost+=3825
 17:96-99:item&="sympathy"|cost+=5325
 18:100:item&="true resurrection"|cost+=28825
 
@@ -1480,24 +1480,24 @@ table "7-26" "Wands"
 11:32-34,-,-:item+="Summon monster I"|cost=750
 12:35-36,-,-:item+="Magic missile (3rd)"|cost=2250
 13:37,01-03,-:item+="Magic missile (5th)"|cost=3750
-14:38-40,04-07,-:item+="Bear’s endurance"|cost=4500
-15:41-43,08-11,-:item+="Bull’s strength"|cost=4500
-16:44-46,12-15,-:item+="Cat’s grace"|cost=4500
+14:38-40,04-07,-:item+="Bear's endurance"|cost=4500
+15:41-43,08-11,-:item+="Bull's strength"|cost=4500
+16:44-46,12-15,-:item+="Cat's grace"|cost=4500
 17:47-49,16-20,-:item+="Cure moderate wounds"|cost=4500
 18:50-51,21-22,-:item+="Darkness"|cost=4500
 19:52-54,23-24,-:item+="Daylight"|cost=4500
 20:55-57,25-27,-:item+="Delay poison"|cost=4500
-21:58-60,28-31,-:item+="Eagle’s splendor"|cost=4500
+21:58-60,28-31,-:item+="Eagle's splendor"|cost=4500
 22:61-63,32-33,-:item+="False life"|cost=4500
-23:64-66,34-37,-:item+="Fox’s cunning"|cost=4500
+23:64-66,34-37,-:item+="Fox's cunning"|cost=4500
 24:67-68,38,-:item+="Ghoul touch"|cost=4500
 25:69-71,39,-:item+="Hold person"|cost=4500
 26:72-74,40-42,-:item+="Invisibility"|cost=4500
 27:75-77,43-44,-:item+="Knock"|cost=4500
 28:78-80,45,-:item+="Levitate"|cost=4500
-29:81-83,46-47,-:item+="Melf’s acid arrow"|cost=4500
+29:81-83,46-47,-:item+="Melf's acid arrow"|cost=4500
 30:84-86,48-49,-:item+="Mirror image"|cost=4500
-31:87-89,50-53,-:item+="Owl’s wisdom"|cost=4500
+31:87-89,50-53,-:item+="Owl's wisdom"|cost=4500
 32:90-91,54,-:item+="Shatter"|cost=4500
 33:92-94,55-56,-:item+="Silence"|cost=4500
 34:95-97,57,-:item+="Summon monster II"|cost=4500
@@ -1543,7 +1543,7 @@ table "7-26" "Wands"
 74:-,-,93:item+="Lightning bolt (10th)"|cost=22500
 75:-,-,94:item+="Chaos hammer (8th)"|cost=24000
 76:-,-,95:item+="Holy smite (8th)"|cost=24000
-77:-,-,96:item+="Order’s wrath (8th)"|cost=24000
+77:-,-,96:item+="Order's wrath (8th)"|cost=24000
 78:-,-,97:item+="Unholy blight (8th)"|cost=24000
 79:-,-,98-99:item+="Restoration"|cost=26000
 80:-,-,100:item+="Stoneskin"|cost=33500
@@ -1560,22 +1560,22 @@ table "wondrous_items" "Wondrous Items"
 2:-,-,0-100:roll("7-29")
 
 table "7-27" "Minor Wondrous Items"
-00:01:item="Quaal’s feather token, anchor"|cost=50
+00:01:item="Quaal's feather token, anchor"|cost=50
 01:02:item="Universal solvent"|cost=50
 02:03:item="Elixir of love"|cost=150
 03:04:item="Unguent of timelessness"|cost=150
-04:05:item="Quaal’s feather token, fan"|cost=200
+04:05:item="Quaal's feather token, fan"|cost=200
 05:06:item="Dust of tracelessness"|cost=250
 06:07:item="Elixir of hiding"|cost=250
 07:08:item="Elixir of sneaking"|cost=250
 08:09:item="Elixir of swimming"|cost=250
 09:10:item="Elixir of vision"|cost=250
 10:11:item="Silversheen"|cost=250
-11:12:item="Quaal’s feather token, bird"|cost=300
-12:13:item="Quaal’s feather token, tree"|cost=400
-13:14:item="Quaal’s feather token, swan boat"|cost=450
+11:12:item="Quaal's feather token, bird"|cost=300
+12:13:item="Quaal's feather token, tree"|cost=400
+13:14:item="Quaal's feather token, swan boat"|cost=450
 14:15:item="Elixir of truth"|cost=500
-15:16:item="Quaal’s feather token, whip"|cost=500
+15:16:item="Quaal's feather token, whip"|cost=500
 16:17:item="Dust of dryness"|cost=850
 17:18:item="Bag of tricks, gray"|cost=900
 18:19:item="Hand of the mage"|cost=900
@@ -1595,7 +1595,7 @@ table "7-27" "Minor Wondrous Items"
 32:33:item="Pipes of sounding"|cost=1800
 33:34:item="Quiver of Ehlonna"|cost=1800
 34:35:item="Amulet of natural armor +1"|cost=2000
-35:36:item="Heward’s handy haversack"|cost=2000
+35:36:item="Heward's handy haversack"|cost=2000
 36:37:item="Horn of fog"|cost=2000
 37:38:item="Elemental gem"|cost=2250
 38:39:item="Robe of bones"|cost=2400
@@ -1616,7 +1616,7 @@ table "7-27" "Minor Wondrous Items"
 53:54:item="Rope of climbing"|cost=3000
 54:55:item="Dust of disappearance"|cost=3500
 55:56:item="Lens of detection"|cost=3500
-56:57:item="Vestment, druid’s"|cost=3750
+56:57:item="Vestment, druid's"|cost=3750
 57:58:item="Figurine of wondrous power, silver raven"|cost=3800
 58:59:item="Amulet of health +2"|cost=4000
 59:60:item="Bracers of armor +2"|cost=4000
@@ -1627,8 +1627,8 @@ table "7-27" "Minor Wondrous Items"
 64:65:item="Gloves of Dexterity +2"|cost=4000
 65:66:item="Headband of intellect +2"|cost=4000
 66:67:item="Ioun stone, clear spindle"|cost=4000
-67:68:item="Keoghtom’s ointment"|cost=4000
-68:69:item="Nolzur’s marvelous pigments"|cost=4000
+67:68:item="Keoghtom's ointment"|cost=4000
+68:69:item="Nolzur's marvelous pigments"|cost=4000
 69:70:item="Pearl of power, 2nd-level spell"|cost=4000
 70:71:item="Periapt of Wisdom +2"|cost=4000
 71:72:item="Stone salve"|cost=4000
@@ -1642,7 +1642,7 @@ table "7-27" "Minor Wondrous Items"
 79:80:item="Helm of comprehend languages and read magic"|cost=5200
 80:81:item="Vest of escape"|cost=5200
 81:82:item="Eversmoking bottle"|cost=5400
-82:83:item="Murlynd’s spoon"|cost=5400
+82:83:item="Murlynd's spoon"|cost=5400
 83:84:item="Necklace of fireballs type IV"|cost=5400
 84:85:item="Boots of striding and springing"|cost=5500
 85:86:item="Wind fan"|cost=5500
@@ -1699,8 +1699,8 @@ table "7-28" "Medium Wondrous Items"
 34:35:item="Golem manual, clay"|cost=12000
 35:36:item="Medallion of thoughts"|cost=12000
 36:37:item="Pipes of pain"|cost=12000
-37:38:item="Boccob’s blessed book"|cost=12500
-38:39:item="Belt, monk’s"|cost=13000
+37:38:item="Boccob's blessed book"|cost=12500
+38:39:item="Belt, monk's"|cost=13000
 39:40:item="Gem of brightness"|cost=13000
 40:41:item="Lyre of building"|cost=13000
 41:42:item="Cloak of arachnida"|cost=14000
@@ -1802,7 +1802,7 @@ table "7-29" "Major Wondrous Items"
 35:36:item="Amulet of mighty fists +3"|cost=54000
 36:37:item="Wings of flying"|cost=54000
 37:38:item="Cloak of etherealness"|cost=55000
-38:39:item="Daern’s instant fortress"|cost=55000
+38:39:item="Daern's instant fortress"|cost=55000
 39:40:item="Manual of bodily health +2"|cost=55000
 40:41:item="Manual of gainful exercise +2"|cost=55000
 41:42:item="Manual of quickness in action +2"|cost=55000

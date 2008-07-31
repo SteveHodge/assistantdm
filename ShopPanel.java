@@ -2,7 +2,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -19,7 +18,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import magicgenerator.Field;
-import magicgenerator.Generator;
 import magicgenerator.Item;
 
 @SuppressWarnings("serial")
@@ -72,26 +70,26 @@ public class ShopPanel extends JPanel {
 			{
 				deleteJButton = new JButton();
 				deleteJButton.setText("Delete");
-//				deleteJButton.setAction(getActionDelete());
+				deleteJButton.setAction(getActionDelete());
 			}
 			{
 				redoJButton = new JButton();
 				redoJButton.setText("Recreate");
-//				redoJButton.setAction(getActionRecreate());
+				redoJButton.setAction(getActionRecreate());
 			}
 			{
 				createMinorJButton = new JButton();
-//				createMinorJButton.setAction(getActionCreateMinor());
+				createMinorJButton.setAction(getActionCreateMinor());
 				createMinorJButton.setText("Create Minor Item");
 			}
 			{
 				createMajorJButton = new JButton();
-//				createMajorJButton.setAction(getActionCreateMajor());
+				createMajorJButton.setAction(getActionCreateMajor());
 				createMajorJButton.setText("Create Major Item");
 			}
 			{
 				createMediumJButton = new JButton();
-//				createMediumJButton.setAction(getActionCreateMedium());
+				createMediumJButton.setAction(getActionCreateMedium());
 				createMediumJButton.setText("Create Medium Item");
 			}
 			thisLayout.setVerticalGroup(thisLayout.createSequentialGroup()
@@ -144,7 +142,7 @@ public class ShopPanel extends JPanel {
 					for (int i=0; i<3; i++) {
 						int num = categorySpinnerModels[i].getNumber().intValue();
 						for (int j=0; j<num; j++) {
-//							createItem(i);
+							shop.createItem(i);
 						}
 					}
 				}
@@ -153,11 +151,11 @@ public class ShopPanel extends JPanel {
 		return actionCreateItems;
 	}
 	
-/*	private AbstractAction getActionCreateMinor() {
+	private AbstractAction getActionCreateMinor() {
 		if(actionCreateMinor == null) {
 			actionCreateMinor = new AbstractAction("CreateMinor", null) {
 				public void actionPerformed(ActionEvent evt) {
-					createItem(Item.CLASS_MINOR);
+					shop.createItem(Item.CLASS_MINOR);
 				}
 			};
 		}
@@ -168,7 +166,7 @@ public class ShopPanel extends JPanel {
 		if(actionCreateMedium == null) {
 			actionCreateMedium = new AbstractAction("CreateMedium", null) {
 				public void actionPerformed(ActionEvent evt) {
-					createItem(Item.CLASS_MEDIUM);
+					shop.createItem(Item.CLASS_MEDIUM);
 				}
 			};
 		}
@@ -179,66 +177,63 @@ public class ShopPanel extends JPanel {
 		if(actionCreateMajor == null) {
 			actionCreateMajor = new AbstractAction("CreateMajor", null) {
 				public void actionPerformed(ActionEvent evt) {
-					createItem(Item.CLASS_MAJOR);
+					shop.createItem(Item.CLASS_MAJOR);
 				}
 			};
 		}
 		return actionCreateMajor;
 	}
-*/	
-/*	private AbstractAction getActionDelete() {
+
+	private AbstractAction getActionDelete() {
 		if(actionDelete == null) {
 			actionDelete = new AbstractAction("Delete", null) {
 				public void actionPerformed(ActionEvent evt) {
 					while (itemJList.getSelectedIndex() != -1) {
-						itemJListModel.remove(itemJList.getSelectedIndex());
+						shop.deleteItemAt(itemJList.getSelectedIndex());
 					}
 				}
 			};
 		}
 		return actionDelete;
 	}
-*/
-/*
+
 	private AbstractAction getActionRecreate() {
 		if(actionRecreate == null) {
 			actionRecreate = new AbstractAction("Recreate", null) {
 				public void actionPerformed(ActionEvent evt) {
 					int[] selected = itemJList.getSelectedIndices();
 					for (int i : selected) {
-						Item item = (Item)itemJListModel.remove(i);
-						Item newItem = generator.generate(item.getCategory(), "Myraeth's Shop");
-						itemJListModel.add(i, newItem);
+						shop.recreateItemAt(i);
 					}
+					Item i = (Item)shop.getElementAt(itemJList.getSelectedIndex());
+					showDescription(i);
 				}
 			};
 		}
 		return actionRecreate;
 	}
-*/
-/*
-	private void createItem(int power) {
-		Item i = generator.generate(power, "Myraeth's Shop");
-		itemJListModel.addElement(i);
-	}
-*/	
+
 	private void itemJListValueChanged(ListSelectionEvent evt) {
 		if (!evt.getValueIsAdjusting()) {
 			if (itemJList.getSelectedIndex() == -1) {
 				itemTextArea.setText("");
 			} else {
 				Item i = (Item)shop.getElementAt(itemJList.getSelectedIndex());
-				String str = i.toString()+"\n("+categoryNames[i.getCategory()]+")\nValue: "+i.getCost();
-				Field f = i.getField("qualities");
-				if (f != null) {
-					String quals = i.getValue(f).toString();
-					if (!quals.equals("")) str += "\nQualities: "+ quals;
-				}
-				itemTextArea.setText(str);
+				showDescription(i);
 			}
 		}
 	}
-	
+
+	private void showDescription(Item i) {
+		String str = i.toString()+"\n("+categoryNames[i.getCategory()]+")\nValue: "+i.getCost();
+		Field f = i.getField("qualities");
+		if (f != null) {
+			String quals = i.getValue(f).toString();
+			if (!quals.equals("")) str += "\nQualities: "+ quals;
+		}
+		itemTextArea.setText(str);
+	}
+
 	private JPanel getMultiJPanel() {
 		if(multiJPanel == null) {
 			multiJPanel = new JPanel();
