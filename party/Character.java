@@ -8,8 +8,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import xml.XML;
+import xml.XMLUtils;
 
-public class Character {
+
+public class Character implements XML {
 	public static final int SAVE_FORTITUDE = 0;
 	public static final int SAVE_REFLEX = 1;
 	public static final int SAVE_WILL = 2;
@@ -201,11 +204,15 @@ public class Character {
 		return c;
 	}
 
-	public String getXML(String indent) {
+	public String getXML() {
+		return getXML("","    ");
+	}
+
+	public String getXML(String indent, String nextIndent) {
 		StringBuilder b = new StringBuilder();
 		String nl = System.getProperty("line.separator");
-		String i2 = indent + indent;
-		String i3 = i2 + indent;
+		String i2 = indent + nextIndent;
+		String i3 = i2 + nextIndent;
 		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
 		b.append(i2).append("<HitPoints maximum=\"").append(getFullHPs()).append("\"");
 		if (getWounds() != 0) b.append(" wounds=\"").append(getWounds()).append("\"");

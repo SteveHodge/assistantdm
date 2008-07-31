@@ -11,7 +11,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Party implements Iterable<Character> {
+import xml.XML;
+import xml.XMLUtils;
+
+public class Party implements Iterable<Character>, XML {
 	List<Character> characters;
 
 	public Party() {
@@ -65,6 +68,10 @@ public class Party implements Iterable<Character> {
 		return p;
 	}
 
+	public String getXML() {
+		return getXML("", "    ");
+	}
+
 	public String getXML(String indent, String nextIndent) {
 		StringBuilder b = new StringBuilder();
 		String nl = System.getProperty("line.separator");
@@ -72,7 +79,7 @@ public class Party implements Iterable<Character> {
 		b.append("<Party xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"party.xsd\">");
 		b.append(nl);
 		for (Character c : characters) {
-			b.append(c.getXML(indent+nextIndent));
+			b.append(c.getXML(indent+nextIndent,nextIndent));
 		}
 		b.append(indent).append("</Party>").append(nl);
 		return b.toString();
