@@ -3,9 +3,17 @@ package magicgenerator;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import xml.XML;
+import xml.XMLUtils;
 
 // contains information about a specific item
-public class Item implements Serializable {
+public class Item implements Serializable, XML {
 	private static final long serialVersionUID = 1L;
 
 	public final static int CLASS_MINOR = 0;
@@ -100,5 +108,59 @@ public class Item implements Serializable {
 	// add the specified field to this object. a value will be created when the field is accessed
 	public void addField(Field f) {
 		fields.put(f.name,f);
+	}
+
+	public Set<String> getFields() {
+		return fields.keySet();
+	}
+
+	public String getXML() {
+		return getXML("","    ");
+	}
+
+	public String getXML(String indent, String nextIndent) {
+		String s = indent + "<Item category=\""+category+"\">\n";
+		for (Field f : fields.values()) {
+			s += indent + nextIndent + "<Field name=\""+f.name;
+			Object v = values.get(f);
+			if (v != null) {
+				s += "\">" + v + "</Field>\n";
+			} else {
+				s += "\"/>\n";
+			}
+		}
+		return s + indent + "</Item>\n";
+	}
+
+	public static Item parseItemDOM(Element node) {
+		if (!node.getNodeName().equals("Item")) return null;
+		int cat = Integer.parseInt(XMLUtils.getAttribute(node, "category"));
+
+		Item item = new Item(cat);
+
+		NodeList nodes = node.getChildNodes();
+		if (nodes != null) {
+			for (int i=0; i<nodes.getLength(); i++) {
+				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+				Element e = (Element)nodes.item(i);
+				String tag = e.getTagName();
+
+				if (tag.equals("Field")) {
+					String name = e.getAttribute("name");
+					String value = e.getTextContent();
+					try {
+						int v = Integer.parseInt(value);
+						Field f = item.getField(name);
+						if (f == null) f = new Field(name, Field.TYPE_NUMBER);
+						item.setValue(f, v);
+					} catch(NumberFormatException ex) {
+						Field f = item.getField(name);
+						if (f == null) f = new Field(name, Field.TYPE_TEXT);
+						item.setValue(f, value);
+					}
+				}
+			}
+		}
+		return item;
 	}
 }
