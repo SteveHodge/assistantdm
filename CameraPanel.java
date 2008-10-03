@@ -17,10 +17,10 @@ import javax.swing.SwingUtilities;
 
 @SuppressWarnings("serial")
 public class CameraPanel extends JPanel implements ImageScanListener {
-//	static final String destination = "c:\\temp\\2\\image.jpg";
-//	static final String sourcedir = "c:\\temp\\1";
-	static final String destination = "m:\\webcam\\capture2.jpg";
-	static final String sourcedir = "c:\\documents and settings\\stephen\\my documents";
+	static final String destination = "c:\\temp\\2\\image.jpg";
+	static final String sourcedir = "c:\\temp\\1";
+//	static final String destination = "m:\\webcam\\capture2.jpg";
+//	static final String sourcedir = "c:\\documents and settings\\stephen\\my documents";
 	static final String sourceprefix = "IMG_";
 
 	Thread cameraThread;
@@ -36,8 +36,7 @@ public class CameraPanel extends JPanel implements ImageScanListener {
 		try {
 			image = ImageIO.read(new File(destination));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println("Can't read image file "+destination);
 		}
 		imagePanel = new ImagePanel(image);
 		JScrollPane scrollPane2 = new JScrollPane(imagePanel); 

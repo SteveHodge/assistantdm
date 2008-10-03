@@ -26,6 +26,7 @@ public class CameraMonitor implements Runnable {
 	File destination;
 	String prefix;
 	int period;
+	boolean renameFiles = false;		// deletes the files if this is false
 
 	EventListenerList listenerList = new EventListenerList();
 
@@ -38,6 +39,9 @@ public class CameraMonitor implements Runnable {
 	 */
 	public CameraMonitor(String source, String prefix, String destination, int period) {
 		this.source = new File(source);
+		if (!this.source.exists()) {
+			System.err.println("Can't file source directory: "+source);
+		}
 		this.destination = new File(destination);
 		this.prefix = prefix.toLowerCase();
 		this.period = period;
@@ -66,22 +70,32 @@ public class CameraMonitor implements Runnable {
 		}
 	}
 
+	protected void cleanupFile(File file) {
+		if (renameFiles) {
+			// rename source
+			File dest = new File(source, "done"+file.getName());
+			//System.out.println("Renaming to "+dest);
+			file.renameTo(dest);
+		} else {
+			if (!file.delete()) {
+				System.err.println("Failed to delete "+file.getAbsolutePath());
+			}
+		}
+	}
+
 	public void run() {
 		while(true) {
 			//System.out.println("Camera Monitor scanning");
 
 			File file = scanDirectory();
 			if (file != null) {
-				System.out.println("Copying most recent '"+file+"' to '"+destination+"'");
+				//System.out.println("Copying most recent '"+file+"' to '"+destination+"'");
 				try {
 					fileCopy(file,destination);
 					fireImageFound(file);
-					// rename source
-					File dest = new File(source, "done"+file.getName());
-					//System.out.println("Renaming to "+dest);
-					file.renameTo(dest);
+					cleanupFile(file);
 				} catch (IOException e) {
-					e.printStackTrace();
+					System.out.println("Failed to copy '"+file+"' to '"+destination+"': "+e.getMessage());
 				}
 			}
 
@@ -97,7 +111,7 @@ public class CameraMonitor implements Runnable {
 	 * Scans the directory for files matching the specified name
 	 * (currently just tests that the prefix matches and the suffix is '.jpg').
 	 * Returns the matching file with the most recent last modification time.
-	 * Renames all other matching files so they are prefixed with 'done'.
+	 * Renames or deletes all other matching files so they are prefixed with 'done'.
 	 */
 	private File scanDirectory() {
 		File[] files = source.listFiles(new FilenameFilter() {
@@ -110,25 +124,23 @@ public class CameraMonitor implements Runnable {
 			}
 		});
 
-		if (files.length == 0) return null;
+		if (files == null || files.length == 0) return null;
 
 		// find the most recent matching file
 		File mostRecent = null;
 		long mostRecentTime = -1;
 		for (File f : files) {
-			System.out.println("Found "+f.getName());
+			//System.out.println("Found "+f.getName());
 			if (f.lastModified() >= mostRecentTime) {
 				mostRecent = f;
 				mostRecentTime = f.lastModified();
 			}
 		}
 
-		// rename all files but the most recent
+		// rename or delete all files but the most recent
 		for (File f : files) {
 			if (f != mostRecent) {
-				File dest = new File(source, "done"+f.getName());
-				//System.out.println("Renaming to "+dest);
-				f.renameTo(dest);
+				cleanupFile(f);
 			}
 		}
 
