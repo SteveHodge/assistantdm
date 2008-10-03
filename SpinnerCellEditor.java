@@ -1,4 +1,5 @@
 import java.awt.Component;
+import java.text.ParseException;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JSpinner;
@@ -31,5 +32,14 @@ public class SpinnerCellEditor extends AbstractCellEditor implements TableCellEd
 		}
 		spinner.setValue(value);
 		return spinner;
+	}
+
+	public boolean stopCellEditing() {
+		try {
+			spinner.commitEdit();
+		} catch (ParseException e) {
+			cancelCellEditing();
+		}
+		return super.stopCellEditing();
 	}
 }

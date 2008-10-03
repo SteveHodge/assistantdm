@@ -2,6 +2,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -21,7 +23,7 @@ import party.Party;
 
 
 @SuppressWarnings("serial")
-public class InitiativePanel extends JLayeredPane implements ChangeListener, MouseMotionListener, MouseListener {
+public class InitiativePanel extends JLayeredPane implements ActionListener, ChangeListener, MouseMotionListener, MouseListener {
 	private static final double DRAG_START_DISTANCE = 3;
 	List<InitiativeEntry> list = new ArrayList<InitiativeEntry>();
 	String lastOutput = "";
@@ -46,18 +48,28 @@ public class InitiativePanel extends JLayeredPane implements ChangeListener, Mou
 		party = p;
 		if (party != null) {
 			for (Character c : party) {
-				addEntry(new InitiativeEntry(c));
+				addEntry(new CharacterInitiativeEntry(c));
 			}
 		}
 		blankInit = new InitiativeEntry();
+		blankInit.addActionListener(this);
 		addEntry(blankInit);
 		reorderList();
+		writeHTML();
 	}
 
 	protected void addEntry(InitiativeEntry e) {
 		list.add(e);
 		e.addChangeListener(this);
+		e.addActionListener(this);
 		add(e);
+	}
+
+	protected void removeEntry(InitiativeEntry e) {
+		remove(e);
+		e.removeChangeListener(this);
+		e.removeActionListener(this);
+		list.remove(e);
 	}
 
 	public void stateChanged(ChangeEvent e) {
@@ -69,6 +81,7 @@ public class InitiativePanel extends JLayeredPane implements ChangeListener, Mou
 		if (changed == blankInit && !changed.isBlank()) {
 //			System.out.println("Adding new entry");
 			blankInit = new InitiativeEntry();
+			blankInit.addActionListener(this);
 			addEntry(blankInit);
 			reorder = true;
 		}
@@ -239,7 +252,7 @@ public class InitiativePanel extends JLayeredPane implements ChangeListener, Mou
 
 			// next check the new prev and next entries against the dragEntry
 			int index = list.indexOf(dragEntry);
-			System.out.println("Index of dragged entry = "+index);
+			//System.out.println("Index of dragged entry = "+index);
 			if (index == 0 && list.size() > 1) {
 				// case: entry is now first
 				InitiativeEntry next = list.get(index+1);
@@ -253,7 +266,7 @@ public class InitiativePanel extends JLayeredPane implements ChangeListener, Mou
 				if (compareInitiatives(dragEntry, prev) < 0) {
 					// entry needs correction...
 					dragEntry.setRoll(prev.getTotal()-1 - dragEntry.getModifier());
-					reorderList();	// need this to make sure the blank entry stays at the bottom
+					//reorderList();	// need this to make sure the blank entry stays at the bottom, but it gets called at the bottom
 				}
 			} else if (index > 0 && index < list.size()-2) {
 				// case: entry is between two other legitimate entries
@@ -287,27 +300,27 @@ public class InitiativePanel extends JLayeredPane implements ChangeListener, Mou
 							prev.getTotal(),dragEntry.getModifier(),dragEntry.getTieBreak()) < 0) {
 						// with dragEntry.total = X, A > C - do it for real and we're done
 						dragEntry.setRoll(prev.getTotal() - dragEntry.getModifier());
-						System.out.println("Setting dragged entry total to "+prev.getTotal()+" works");
+						//System.out.println("Setting dragged entry total to "+prev.getTotal()+" works");
 					} else if (compareInitiatives(next.getTotal(),dragEntry.getModifier(),dragEntry.getTieBreak(),
 							next.getTotal(),next.getModifier(),next.getTieBreak()) < 0) {
 						// with dragEntry total = X-1, C > B - do it for real and we're done
 						dragEntry.setRoll(next.getTotal() - dragEntry.getModifier());
-						System.out.println("Setting dragged entry total to "+next.getTotal()+" works");
+						//System.out.println("Setting dragged entry total to "+next.getTotal()+" works");
 					} else {
 						// neither X or X-1 just work. So we have too try each option in each direction
-						System.out.println("Neither X or X-1 just work");
+						//System.out.println("Neither X or X-1 just work");
 						// We'll arbitrarily set dragEntry's total to X-1
 						dragEntry.setRoll(next.getTotal() - dragEntry.getModifier());
-						System.out.println("Setting dragged entry total to "+next.getTotal()+" and testing moves");
+						//System.out.println("Setting dragged entry total to "+next.getTotal()+" and testing moves");
 						int bDown = testMove(index+1,-1);
 						int acUp = testMove(index,1);
 						acUp--; // above counts moving dragEntry which shouldn't really count
-						System.out.println("AC up = "+acUp+", B Down = "+bDown);
+						//System.out.println("AC up = "+acUp+", B Down = "+bDown);
 						if (bDown <= acUp) {
-							System.out.println("Moving B down");
+							//System.out.println("Moving B down");
 							moveEntries(index+1,-1);
 						} else {
-							System.out.println("Moving A & C up");
+							//System.out.println("Moving A & C up");
 							moveEntries(index,1);
 						}
 					}
@@ -329,151 +342,43 @@ public class InitiativePanel extends JLayeredPane implements ChangeListener, Mou
 					int c_b = compareInitiatives(dragEntry, next);
 					if (a_c <= 0 && c_b <= 0) {
 						// A > C > B
-						System.out.println("A>C>B - done");
+						//System.out.println("A>C>B - done");
 					} else if (a_c <= 0 && c_b > 0) {
 						// A > B > C
-						System.out.println("A>B>C - move B down or A & C up");
+						//System.out.println("A>B>C - move B down or A & C up");
 						int bDown = testMove(index+1,-1);
 						int acUp = testMove(index,1);
 						acUp--; // above counts moving dragEntry which shouldn't really count
-						System.out.println("AC up = "+acUp+", B Down = "+bDown);
+						//System.out.println("AC up = "+acUp+", B Down = "+bDown);
 						if (bDown <= acUp) {
-							System.out.println("Moving B down");
+							//System.out.println("Moving B down");
 							moveEntries(index+1,-1);
 						} else {
-							System.out.println("Moving A & C up");
+							//System.out.println("Moving A & C up");
 							moveEntries(index,1);
 						}
 					} else if (a_c > 0 && c_b <= 0) {
 						// C > A > B
-						System.out.println("C>A>B - move A up or B & C down");
+						//System.out.println("C>A>B - move A up or B & C down");
 						int bcDown = testMove(index,-1);
 						bcDown--; // above counts moving dragEntry which shouldn't really count
 						int aUp = testMove(index-1,1);
-						System.out.println("A up = "+aUp+", B&C Down = "+bcDown);
+						//System.out.println("A up = "+aUp+", B&C Down = "+bcDown);
 						if (bcDown <= aUp) {
-							System.out.println("Moving B & C down");
+							//System.out.println("Moving B & C down");
 							moveEntries(index,-1);
 						} else {
-							System.out.println("Moving A up");
+							//System.out.println("Moving A up");
 							moveEntries(index-1,1);
 						}
 					} else {
 						System.err.println("Impossible: a_c = "+a_c+", c_b = "+c_b);
 					}
 				}
-
-/*				} else {
-					// there may not be enough room. check what happens if we set the target to the same
-					// total as the next and previous
-					boolean prevNudgeNext = false;
-					boolean prevNudgePrev = false;
-					boolean nextNudgeNext = false;
-					boolean nextNudgePrev = false;
-					System.out.println("dragEntry,next = " + compareInitiatives(dragEntry, next));
-					System.out.println("dragEntry,prev = " + compareInitiatives(dragEntry, prev));
-					// 1. try setting the total to the total of the prev
-					dragEntry.setRoll(prev.getTotal() - dragEntry.getModifier());
-					System.out.println("Changed dragEntry total to "+dragEntry.getTotal());
-					if (compareInitiatives(prev, dragEntry) < 0) {
-						System.out.println("prev and dragEntry are in correct order");
-					} else {
-						// prev <= dragEntry - would require nudge of prev up
-						prevNudgePrev = true;
-					}
-					if (compareInitiatives(dragEntry, next) < 0) {
-						System.out.println("dragEntry and next are in correct order");
-					} else {
-						// prev > dragEntry <= next - would require nudge of next down
-						prevNudgeNext = true;
-					}
-					if (!prevNudgeNext && !prevNudgePrev) {
-						System.out.println("Order is correct - leave");
-					} else {
-						// 2. try setting the total to the total of the next
-						dragEntry.setRoll(next.getTotal() - dragEntry.getModifier());
-						System.out.println("Changed dragEntry total to "+dragEntry.getTotal());
-						if (compareInitiatives(dragEntry, next) < 0) {
-							System.out.println("dragEntry and next are in correct order");
-						} else {
-							// dragEntry <= next - would require nudge of next down
-							nextNudgeNext = true;
-						}
-						if (compareInitiatives(prev, dragEntry) < 0) {
-							System.out.println("prev and dragEntry are in correct order");
-						} else {
-							// prev <= dragEntry > next - would require nudge of prev up
-							nextNudgePrev = true;
-						}
-						if (!nextNudgeNext && !nextNudgePrev) {
-							System.out.println("Order is correct - leave");
-						} else {
-							// TODO: 3. if all three have the same modifiers we could manipulate tiebreaks
-							// some sort of manipulation is required:
-							// note because prev >= next it is not possible for prev < dragEntry < next
-							// so (prevNudgeNext && prevNudgePrev) is always false
-							// and (nextNudgeNext && nextNudgePrev) is always false
-							if ((prevNudgeNext && prevNudgePrev) || (nextNudgeNext && nextNudgePrev)) {
-								System.err.println("Assertion failure:");
-								System.err.println("Setting total to previous:");
-								if (prevNudgeNext) System.err.println(" requires nudge of next");
-								if (prevNudgePrev) System.err.println(" requires nudge of prev");
-								System.err.println("Setting total to next:");
-								if (nextNudgeNext) System.err.println(" requires nudge of next");
-								if (nextNudgePrev) System.err.println(" requires nudge of prev");
-							}
-							// TODO choose best option and perform necessary nudges
-							// if both options force us to nudge prev then do that otherwise nudge next
-							if (prevNudgePrev && nextNudgePrev) {
-								System.out.println("Nudging previous entry(s) up");
-								// nudging prev up. first set dragEntry total to prev's current total
-								dragEntry.setRoll(prev.getTotal() - dragEntry.getModifier());
-								// nudge the previous entries up..
-								int i = index-1;
-								while (i >= 0) {
-									InitiativeEntry a = list.get(i);
-									a.adjustRoll(1);
-									System.out.println("Index: " + i + ", adjusted to "+a);
-									if (i == 0) break;
-									InitiativeEntry b = list.get(i-1);
-									System.out.println("Quit if less than: "+b);
-									System.out.println(" = " + compareInitiatives(b,a));
-									if (compareInitiatives(b,a) < 0) break;	// done
-									i--;
-								}
-							} else {
-								System.out.println("Nudging next entry(s) down");
-								// if only one of nextNudgeNext and prevNudgeNext is set then we
-								// need to choose the total that works for that, if they are both
-								// set then we choose to use prev's total
-								if (nextNudgeNext && !prevNudgeNext) {
-									System.out.println("Setting to next");
-									dragEntry.setRoll(next.getTotal() - dragEntry.getModifier());
-								} else {
-									dragEntry.setRoll(prev.getTotal() - dragEntry.getModifier());
-								}
-								// nudge next
-								int i = index+1;
-								while (i < list.size()-2) {
-									InitiativeEntry a = list.get(i);
-									a.adjustRoll(-1);
-									System.out.println("Index: " + i + ", adjusted to "+a);
-									InitiativeEntry b = list.get(i+1);
-									System.out.println("Quit if greater than: "+b);
-									System.out.println(" = " + compareInitiatives(a,b));
-									if (compareInitiatives(a,b) < 0) break;	// done
-									i++;
-								}
-							}
-						}
-					}
-					
- 					// if necessary, nudge the next entries down, ignoring the blank
-				}
-*/
 			}
 
 			reorderList();
+			writeHTML();	// TODO should only do this if we've actually changed something
 			dragging = false;
 			dragEntry = null;
 		}
@@ -496,7 +401,7 @@ public class InitiativePanel extends JLayeredPane implements ChangeListener, Mou
 				// two real entries
 				int comp = compareInitiatives(current.getTotal()+dir,current.getModifier(),current.getTieBreak(),
 						next.getTotal(),next.getModifier(),next.getTieBreak());
-				System.out.println("("+(current.getTotal()+dir)+") "+current+"\nvs. ("+next.getTotal()+") "+next+"\n = "+comp+" ("+(comp*dir)+")");
+				//System.out.println("("+(current.getTotal()+dir)+") "+current+"\nvs. ("+next.getTotal()+") "+next+"\n = "+comp+" ("+(comp*dir)+")");
 				if (dir * comp < 0) {
 					count++;
 					//System.out.println("No room, need to move");
@@ -533,6 +438,15 @@ public class InitiativePanel extends JLayeredPane implements ChangeListener, Mou
 				}
 			}
 			i -= dir;
+		}
+	}
+
+	public void actionPerformed(ActionEvent arg0) {
+		if (arg0.getActionCommand().equals("delete")) {
+			InitiativeEntry e = (InitiativeEntry)arg0.getSource();
+			removeEntry(e);
+			reorderList();
+			writeHTML();
 		}
 	}
 }

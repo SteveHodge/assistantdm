@@ -20,7 +20,7 @@ final public class XMLUtils {
 		return null;
 	}
 
-	protected static void printNode(Node node, String indent)  {
+	public static void printNode(Node node, String indent)  {
 		switch (node.getNodeType()) {
 			case Node.DOCUMENT_NODE:
 				System.out.println("<xml version=\"1.0\">\n");

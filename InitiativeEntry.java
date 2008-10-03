@@ -9,6 +9,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Random;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
@@ -23,30 +24,51 @@ import javax.swing.event.EventListenerList;
 
 import party.Character;
 
+// TODO cleanup architecture. protected constructor is ugly, createPanel is ugly, addNameSection is ugly
 @SuppressWarnings("serial")
-public class InitiativeEntry extends JPanel implements PropertyChangeListener {
+public class InitiativeEntry extends JPanel implements PropertyChangeListener, ActionListener {
 	protected JFormattedTextField rollField;
 	protected JFormattedTextField modifierField;
 	protected JFormattedTextField tiebreakField;
 	protected JLabel total;
 	protected JCheckBox onlyDM;
 	protected JTextField nameField;
-	protected JLabel nameLabel;
+	protected JButton delete;
 	protected boolean blank = true;
-
-	Character character = null;
 
 	EventListenerList listenerList = new EventListenerList();
 	ChangeEvent changeEvent = null;
+	ActionEvent actionEvent = null;
 
-	public InitiativeEntry(Character c) {
-		character = c;
-		blank = false;
-		createPanel();
+	protected InitiativeEntry(boolean initUI) {
+		if (initUI) createPanel();
 	}
 
 	public InitiativeEntry() {
-		createPanel();
+		this(true);
+	}
+
+	public void addActionListener(ActionListener l) {
+		listenerList.add(ActionListener.class, l);
+	}
+
+	public void removeActionListener(ActionListener l) {
+		listenerList.remove(ActionListener.class, l);
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		// Guaranteed to return a non-null array
+		Object[] listeners = listenerList.getListenerList();
+		// Process the listeners last to first, notifying
+		// those that are interested in this event
+		for (int i = listeners.length-2; i>=0; i-=2) {
+			if (listeners[i]==ChangeListener.class) {
+				// Lazily create the event:
+				if (actionEvent == null)
+					actionEvent = new ActionEvent(this,ActionEvent.ACTION_PERFORMED,"delete",e.getWhen(),e.getModifiers());
+				((ActionListener)listeners[i+1]).actionPerformed(actionEvent);
+			}
+		}
 	}
 
 	public void addChangeListener(ChangeListener l) {
@@ -65,6 +87,9 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 				Random r = new Random();
 				rollField.setValue(r.nextInt(20)+1);
 			}
+			if (delete != null) {
+				delete.setEnabled(true);
+			}
 		}
 
 		// Guaranteed to return a non-null array
@@ -81,7 +106,7 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 		}
 	}
 
-	private void createPanel() {
+	protected void createPanel() {
 		setLayout(new GridBagLayout());
 
 		onlyDM = new JCheckBox();
@@ -97,13 +122,7 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 		rollField.addPropertyChangeListener("value", this);
 
 		modifierField = new JFormattedTextField();
-		Integer mod;
-		if( character == null) {
-			mod = new Integer(0);
-		} else {
-			mod = new Integer(character.getInitiativeModifier());
-		}
-		modifierField.setValue(mod);
+		modifierField.setValue(new Integer(0));
 		modifierField.setColumns(3);
 		modifierField.addPropertyChangeListener("value", this);
 
@@ -119,38 +138,14 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 		total = new JLabel("= XXX");
 		Dimension size = total.getPreferredSize();
 		total.setPreferredSize(size);
-		total.setText("= "+mod);
+		total.setText("= 0");
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0; c.gridy = 0;
 		c.insets = new Insets(2, 3, 2, 3);
 		add(onlyDM, c);
 		c.gridx = GridBagConstraints.RELATIVE;
-		c.weightx = 1.0;
-		c.anchor = GridBagConstraints.LINE_START;
-		if (character == null) {
-			nameField = new JTextField(20);
-			nameField.getDocument().addDocumentListener(new DocumentListener() {
-				public void changedUpdate(DocumentEvent e) {
-					fireChange();
-				}
-
-				public void insertUpdate(DocumentEvent e) {
-					fireChange();
-				}
-
-				public void removeUpdate(DocumentEvent e) {
-					fireChange();
-				}
-				
-			});
-			add(nameField, c);
-		} else {
-			onlyDM.setSelected(true);
-			modifierField.setValue(new Integer(character.getInitiativeModifier()));
-			nameLabel = new JLabel(character.getName());
-			add(nameLabel, c);
-		}
+		addNameSection(c);
 		c.weightx = 0.0;
 		add(rollField, c);
 		add(new JLabel("+"), c);
@@ -160,10 +155,34 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 	}
 
+	protected void addNameSection(GridBagConstraints c) {
+		delete = new JButton("X");
+		delete.setMargin(new Insets(2, 4, 2, 3));
+		delete.setFocusPainted(false);
+		delete.setEnabled(false);
+		delete.addActionListener(this);
+		add(delete, c);
+		nameField = new JTextField(20);
+		nameField.getDocument().addDocumentListener(new DocumentListener() {
+			public void changedUpdate(DocumentEvent e) {
+				fireChange();
+			}
+
+			public void insertUpdate(DocumentEvent e) {
+				fireChange();
+			}
+
+			public void removeUpdate(DocumentEvent e) {
+				fireChange();
+			}
+			
+		});
+		c.weightx = 1.0;
+		c.anchor = GridBagConstraints.LINE_START;
+		add(nameField, c);
+	}
+
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getSource() == modifierField && character != null) {
-			character.setInitiativeModifier((Integer)modifierField.getValue());
-		}
 		total.setText("= "+getTotal());
 		fireChange();
 	}
@@ -175,7 +194,6 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 	}
 
 	public int getModifier() {
-		if (character != null) return character.getInitiativeModifier();
 		return (Integer)modifierField.getValue();
 	}
 
@@ -196,8 +214,7 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener {
 	}
 
 	public String getName() {
-		if (character == null) return nameField.getText();
-		return character.getName();
+		return nameField.getText();
 	}
 
 	public boolean isDMOnly() {
