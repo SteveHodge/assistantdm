@@ -18,10 +18,10 @@ class Procedure {
 		return s;
 	}
 
-	public void execute(Item item) {
+	public void execute(Item item, TableRowChooser tabChooser) {
 		//System.out.println("Running "+name);
 		for (Instruction i : instructions) {
-			i.execute(item);
+			i.execute(item,tabChooser);
 		}
 	}
 

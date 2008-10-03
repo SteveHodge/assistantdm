@@ -16,7 +16,7 @@ abstract class Instruction {
 		namespace = ns;
 	}
 
-	public abstract void execute(Item item);
+	public abstract void execute(Item item, TableRowChooser tabChooser);
 
 	// parse a series of instructions separated by pipe symbols ('|')
 	// it never returns null - if there are no instructions then an empty list will be returned
@@ -61,18 +61,16 @@ abstract class Instruction {
 			super(ns);
 		}
 
-		public void execute(Item item) {
+		public void execute(Item item, TableRowChooser tabChooser) {
 			Table t = namespace.getTable(tableName);
 			if (t == null) throw new IllegalArgumentException("Table "+tableName+" not found");
-			int roll;
 			TableRow row;
 			do {
-				roll = Roller.roll();
-				row = t.getTableRow(item.category, roll);
+				row = tabChooser.chooseRow(t, item.category);
 				//System.out.println("Rolled "+roll+" on '"+t.name+"' giving row "+row.number);
 			} while (ignore.contains(row.number));
 			for (Instruction i : row.instructions) {
-				i.execute(item);
+				i.execute(item, tabChooser);
 			}
 		}
 
@@ -148,7 +146,7 @@ abstract class Instruction {
 			super(ns);
 		}
 
-		public void execute(Item item) {
+		public void execute(Item item, TableRowChooser tabChooser) {
 			Field f = item.getField(fieldName);
 			Object v = item.getValue(fieldName);
 
@@ -262,7 +260,7 @@ abstract class Instruction {
 		}
 
 		@SuppressWarnings("unchecked")
-		public void execute(Item item) {
+		public void execute(Item item, TableRowChooser tabChooser) {
 			int mod = (Integer)item.getValue("modifier");
 			if (mod == 0) return;
 
@@ -312,7 +310,7 @@ abstract class Instruction {
 			super(ns);
 		}
 
-		public void execute(Item item) {
+		public void execute(Item item, TableRowChooser tabChooser) {
 			int times = 0;
 			if (timesString.startsWith("@")) {
 				// replace val with the current value of the field
@@ -323,7 +321,7 @@ abstract class Instruction {
 
 			for (int i=0; i<times; i++) {
 				for (Instruction inst : instructions) {
-					inst.execute(item);
+					inst.execute(item, tabChooser);
 				}
 			}
 		}
@@ -346,10 +344,10 @@ abstract class Instruction {
 			super(ns);
 		}
 
-		public void execute(Item item) {
+		public void execute(Item item, TableRowChooser tabChooser) {
 			Procedure p = namespace.getProcedure(procedureName);
 			if (p == null) throw new IllegalArgumentException("Procedure '"+procedureName+"' not found");
-			p.execute(item);
+			p.execute(item, tabChooser);
 		}
 
 		// expects:
@@ -368,7 +366,7 @@ abstract class Instruction {
 			super(ns);
 		}
 
-		public void execute(Item item) {
+		public void execute(Item item, TableRowChooser tabChooser) {
 			item.addField(field);
 		}
 
@@ -405,7 +403,7 @@ abstract class Instruction {
 		}
 
 		@SuppressWarnings("unchecked")
-		public void execute(Item item) {
+		public void execute(Item item, TableRowChooser tabChooser) {
 //			System.out.println("AddSpecial("+specialName+")");
 			// first get the map if it exists otherwise create it
 			Map<Integer,Special> map;
@@ -434,11 +432,11 @@ abstract class Instruction {
 					// reroll on the specified table
 					Table t = namespace.getTable(tableName);
 					if (t == null) throw new IllegalArgumentException("Table "+tableName+" not found");
-					int roll = Roller.roll();
+					int roll = TableRoller.roll();
 					TableRow row = t.getTableRow(item.category, roll);
 					//System.out.println("Rolled "+roll+" on '"+t.name+"' giving row "+row.number);
 					for (Instruction i : row.instructions) {
-						i.execute(item);
+						i.execute(item, tabChooser);
 					}
 				}
 			}
@@ -446,7 +444,7 @@ abstract class Instruction {
 			if (add) {
 				// run the instructions since we're adding this special
 				for (Instruction inst : instructions) {
-					inst.execute(item);
+					inst.execute(item, tabChooser);
 				}
 
 				if (specialName.startsWith("@")) {

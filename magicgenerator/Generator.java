@@ -43,10 +43,14 @@ public class Generator implements NameSpace {
 	}
 
 	public Item generate(int category, String procName) {
+		return generate(category, procName, new TableRoller());
+	}
+
+	public Item generate(int category, String procName, TableRowChooser tabChooser) {
 		Procedure p = procedures.get(procName);
 		if (p == null) throw new IllegalArgumentException("Unknown procedure "+procName);
 		Item item = new Item(category);
-		p.execute(item);
+		p.execute(item, tabChooser);
 
 		while(true) {
 			Field f = item.getField("invalid");
@@ -59,7 +63,7 @@ public class Generator implements NameSpace {
 //			System.out.println("! Rerunning procedure "+name);
 			p = procedures.get(name);
 			item = new Item(item.category);
-			p.execute(item);
+			p.execute(item, tabChooser);
 		}
 
 		return item;
