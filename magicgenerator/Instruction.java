@@ -66,7 +66,7 @@ abstract class Instruction {
 			if (t == null) throw new IllegalArgumentException("Table "+tableName+" not found");
 			TableRow row;
 			do {
-				row = tabChooser.chooseRow(t, item.category);
+				row = tabChooser.chooseRow(item, t);
 				//System.out.println("Rolled "+roll+" on '"+t.name+"' giving row "+row.number);
 			} while (ignore.contains(row.number));
 			for (Instruction i : row.instructions) {
@@ -356,6 +356,10 @@ abstract class Instruction {
 			RunProcedure r = new RunProcedure(ns);
 			r.procedureName = str.substring(str.indexOf('"')+1, str.lastIndexOf('"'));
 			return r;
+		}
+
+		public String toString() {
+			return "RunProcedure('"+procedureName+"')";
 		}
 	}
 

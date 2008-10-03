@@ -8,6 +8,8 @@ import java.util.Map;
 
 //TODO doesn't handle double weapons
 //TODO doesn't handle duplicated specials 
+//TODO this is going to have to be thread safe - generator() at least
+//TODO tables need readable comments for user selection
 
 public class Generator implements NameSpace {
 	Map<String,Procedure> procedures = new HashMap<String,Procedure>();

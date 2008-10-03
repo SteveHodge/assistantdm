@@ -1,8 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,14 +21,13 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import magicgenerator.Item;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import xml.XMLUtils;
-
-import magicgenerator.Field;
-import magicgenerator.Item;
 
 public class ShoppingPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
@@ -130,7 +127,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 			}
 			dayLabel.setText("Day = "+day);
 			if (alertCheckBox.isSelected()) {
-				popupItemList(changes,new DefaultItemFormatter() {
+				popupItemList(changes,new CostFirstItemFormatter() {
 					public String toString(Item i) {
 						if (i.getField("sold") != null) {
 							return "Sold: "+super.toString(i);
@@ -152,27 +149,9 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 		}
 	}
 
-	interface ItemFormatter {
-		public String toString(Item i);
-	}
-
-	class DefaultItemFormatter implements ItemFormatter {
-		public String toString(Item i) {
-			StringBuffer output = new StringBuffer();
-			output.append(i.getCost()).append(" - ").append(i.getValue("item"));
-
-			Field f = i.getField("qualities");
-			if (f != null) {
-				String quals = i.getValue(f).toString();
-				if (!quals.equals("")) output.append(" (").append(quals).append(")");
-			}
-			return output.toString();
-		}
-	}
-
 	// sorts by cost
 	protected void popupItemList(List<Item>items) {
-		popupItemList(items,new DefaultItemFormatter());
+		popupItemList(items,new CostFirstItemFormatter());
 	}
 
 	// sorts by cost

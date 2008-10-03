@@ -1,7 +1,7 @@
 import magicgenerator.Field;
 import magicgenerator.Generator;
 import magicgenerator.Item;
-import magicgenerator.Roller;
+import magicgenerator.TableRoller;
 
 
 public class TreasureGenerator {
@@ -12,7 +12,7 @@ public class TreasureGenerator {
 		while(i < 10) {
 			i++;
 			//System.out.println();
-			Item item = magic.generate(Roller.rand.nextInt(3), "Random Magic Item");
+			Item item = magic.generate(TableRoller.rand.nextInt(3), "Random Magic Item");
 			System.out.print(""+i+": "+item+" ("+item.getValue("cost")+")");
 			Field f = item.getField("qualities");
 			if (f != null) {

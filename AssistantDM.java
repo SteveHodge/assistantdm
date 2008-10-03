@@ -19,8 +19,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
-
 import party.Party;
 
 @SuppressWarnings("serial")
@@ -174,7 +172,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	public void windowClosing(WindowEvent e) {
 		System.out.println("Exiting");
 		saveParty("party_autosave.xml");
-		shopPanel.writeShopsXML(shopPanel.shops, "shops.xml");
+		ShoppingPanel.writeShopsXML(shopPanel.shops, "shops.xml");
 		System.exit(0);
 	}
 }

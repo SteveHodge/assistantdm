@@ -1,5 +1,5 @@
 package magicgenerator;
 
 public interface TableRowChooser {
-	public TableRow chooseRow(Table t, int category);
+	public TableRow chooseRow(Item i, Table t);
 }

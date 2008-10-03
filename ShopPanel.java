@@ -17,7 +17,6 @@ import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import magicgenerator.Field;
 import magicgenerator.Item;
 
 @SuppressWarnings("serial")
@@ -34,6 +33,7 @@ public class ShopPanel extends JPanel {
 	private AbstractAction actionCreateMedium;
 	private AbstractAction actionCreateMinor;
 	private AbstractAction actionCreateItems;
+	private AbstractAction actionBuildItem;
 	private JButton redoJButton;
 	private JList itemJList;
 	private JButton deleteJButton;
@@ -42,6 +42,7 @@ public class ShopPanel extends JPanel {
 	private JButton createMajorJButton;
 	private JButton createItemsJButton;
 	private JButton createMediumJButton;
+	private JButton buildItemJButton;
 
 	Shop shop;
 
@@ -92,6 +93,11 @@ public class ShopPanel extends JPanel {
 				createMediumJButton.setAction(getActionCreateMedium());
 				createMediumJButton.setText("Create Medium Item");
 			}
+			{
+				buildItemJButton = new JButton();
+				buildItemJButton.setAction(getActionBuildItem());
+				buildItemJButton.setText("Build Item");
+			}
 			thisLayout.setVerticalGroup(thisLayout.createSequentialGroup()
 				.addContainerGap()
 				.addGroup(thisLayout.createParallelGroup()
@@ -99,10 +105,12 @@ public class ShopPanel extends JPanel {
 				        .addComponent(createMinorJButton, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 				        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 				        .addComponent(createMediumJButton, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-				        .addGap(15)
+				        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 				        .addComponent(createMajorJButton, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 				        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-				        .addComponent(getMultiJPanel(), GroupLayout.PREFERRED_SIZE, 148, GroupLayout.PREFERRED_SIZE))
+				        .addComponent(getMultiJPanel(), GroupLayout.PREFERRED_SIZE, 148, GroupLayout.PREFERRED_SIZE)
+				        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+				        .addComponent(buildItemJButton, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE))
 				    .addGroup(GroupLayout.Alignment.LEADING, thisLayout.createSequentialGroup()
 				        .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 131, Short.MAX_VALUE)
 				        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -116,7 +124,8 @@ public class ShopPanel extends JPanel {
 				    .addComponent(createMinorJButton, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 177, GroupLayout.PREFERRED_SIZE)
 				    .addComponent(createMediumJButton, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 177, GroupLayout.PREFERRED_SIZE)
 				    .addComponent(createMajorJButton, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 177, GroupLayout.PREFERRED_SIZE)
-				    .addComponent(getMultiJPanel(), GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 177, GroupLayout.PREFERRED_SIZE))
+				    .addComponent(getMultiJPanel(), GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 177, GroupLayout.PREFERRED_SIZE)
+				    .addComponent(buildItemJButton, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 177, GroupLayout.PREFERRED_SIZE))
 				.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 				.addGroup(thisLayout.createParallelGroup()
 				    .addGroup(GroupLayout.Alignment.LEADING, thisLayout.createSequentialGroup()
@@ -184,6 +193,19 @@ public class ShopPanel extends JPanel {
 		return actionCreateMajor;
 	}
 
+	private AbstractAction getActionBuildItem() {
+		if(actionBuildItem == null) {
+			actionBuildItem = new AbstractAction("BuildItem", null) {
+				public void actionPerformed(ActionEvent evt) {
+					ItemBuilderWizard wizard = new ItemBuilderWizard(shop.generator,shop.procName,shop);
+					//wizard.addItemCreatedListener(this);
+					wizard.startWizard();
+				}
+			};
+		}
+		return actionBuildItem;
+	}
+
 	private AbstractAction getActionDelete() {
 		if(actionDelete == null) {
 			actionDelete = new AbstractAction("Delete", null) {
@@ -206,7 +228,7 @@ public class ShopPanel extends JPanel {
 						shop.recreateItemAt(i);
 					}
 					Item i = (Item)shop.getElementAt(itemJList.getSelectedIndex());
-					showDescription(i);
+					itemTextArea.setText(DefaultItemFormatter.getItemDescription(i));
 				}
 			};
 		}
@@ -219,19 +241,9 @@ public class ShopPanel extends JPanel {
 				itemTextArea.setText("");
 			} else {
 				Item i = (Item)shop.getElementAt(itemJList.getSelectedIndex());
-				showDescription(i);
+				itemTextArea.setText(DefaultItemFormatter.getItemDescription(i));
 			}
 		}
-	}
-
-	private void showDescription(Item i) {
-		String str = i.toString()+"\n("+categoryNames[i.getCategory()]+")\nValue: "+i.getCost();
-		Field f = i.getField("qualities");
-		if (f != null) {
-			String quals = i.getValue(f).toString();
-			if (!quals.equals("")) str += "\nQualities: "+ quals;
-		}
-		itemTextArea.setText(str);
 	}
 
 	private JPanel getMultiJPanel() {

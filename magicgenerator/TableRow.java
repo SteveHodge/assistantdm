@@ -4,10 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 // a row in a Table
-class TableRow {
+public class TableRow {
 	int number;
 	int chances[] = new int[3];
 	List<Instruction> instructions = new ArrayList<Instruction>();
+
+	public int getChance(int cat) {
+		// TODO check argument
+		return chances[cat];
+	}
+
+	public String getInstructionString() {
+		String s = "";
+		for (Instruction i : instructions) {
+			s += i.toString();
+		}
+		return s;
+	}
 
 	public String toString() {
 		String s = "  Row ("+number+") chances = ";

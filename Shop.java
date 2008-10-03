@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,16 +7,16 @@ import java.util.Random;
 
 import javax.swing.AbstractListModel;
 
+import magicgenerator.Field;
+import magicgenerator.Generator;
+import magicgenerator.Item;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import xml.XML;
 import xml.XMLUtils;
-
-import magicgenerator.Field;
-import magicgenerator.Generator;
-import magicgenerator.Item;
 
 /*
  * Average inventory can be calculated as follows. Given:
@@ -34,7 +32,8 @@ import magicgenerator.Item;
  * Typical chances of sale (per day) are: 0.05, 0.10, 0.20
  * Therefore need to add on average 0.15 major, 0.7 medium, 2 minor per day
  */
-public class Shop extends AbstractListModel implements XML {
+@SuppressWarnings("serial")
+public class Shop extends AbstractListModel implements XML, ItemTarget {
 	List<Item> inventory;
 
 	int day = 0;
@@ -164,7 +163,7 @@ public class Shop extends AbstractListModel implements XML {
 		addItem(generator.generate(power, procName));
 	}
 
-	public void addItem(Item i) {
+	public synchronized void addItem(Item i) {
 		inventory.add(i);
 		fireIntervalAdded(this, inventory.size(), inventory.size());
 	}

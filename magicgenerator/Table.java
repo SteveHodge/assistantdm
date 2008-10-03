@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 // a table used to generate Items
-class Table {
-	String name;
-	String comment;
+public class Table {
+	public String name;
+	public String comment;
 	List<TableRow> rows = new ArrayList<TableRow>();
 
 	public String toString() {
@@ -17,6 +17,14 @@ class Table {
 			s += "\n"+r;
 		}
 		return s;
+	}
+
+	public int getRowCount() {
+		return rows.size();
+	}
+
+	public TableRow getRow(int rownum) {
+		return rows.get(rownum);
 	}
 
 	public TableRow getTableRow(int category, int roll) {

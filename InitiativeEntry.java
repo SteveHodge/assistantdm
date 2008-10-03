@@ -22,8 +22,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 
-import party.Character;
-
 // TODO cleanup architecture. protected constructor is ugly, createPanel is ugly, addNameSection is ugly
 @SuppressWarnings("serial")
 public class InitiativeEntry extends JPanel implements PropertyChangeListener, ActionListener {
