@@ -95,7 +95,12 @@ public class Item implements Serializable, XML {
 
 	// get the value of the field called 'name'
 	public void setValue(String name, Object c) {
-		values.put(getField(name),c);
+		Field f = getField(name);
+		if (f == null) {
+			f = new Field(name,Field.TYPE_OBJECT);
+			addField(f);
+		}
+		values.put(f,c);
 	}
 
 	// get the value of the field f

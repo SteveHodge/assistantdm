@@ -84,7 +84,8 @@ public class Shop extends AbstractListModel implements XML {
 		sellChance[cat] = chance;
 	}
 
-	public void nextDay() {
+	public List<Item> nextDay() {
+		List<Item> changes = new ArrayList<Item>();
 		day++;
 
 		// check for sold items
@@ -94,6 +95,8 @@ public class Shop extends AbstractListModel implements XML {
 			if (random.nextInt(100) < sellChance[item.getCategory()]) {
 				ii.remove();
 				System.out.println("Sold ("+getCategory(item)+") "+item);
+				item.setValue("sold", day);
+				changes.add(item);
 			}
 		}
 
@@ -104,11 +107,14 @@ public class Shop extends AbstractListModel implements XML {
 					Item item = generator.generate(i, procName);
 					inventory.add(item);
 					System.out.println("Added ("+getCategory(item)+") "+item);
+					item.setValue("added", day);
+					changes.add(item);
 				}
 			}
 		}
 
 		fireContentsChanged(this, 0, inventory.size());
+		return changes;
 	}
 
 	static void printItems(List<Item> inventory) {

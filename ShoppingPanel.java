@@ -1,18 +1,26 @@
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
@@ -21,6 +29,7 @@ import org.w3c.dom.NodeList;
 
 import xml.XMLUtils;
 
+import magicgenerator.Field;
 import magicgenerator.Item;
 
 public class ShoppingPanel extends JPanel implements ActionListener {
@@ -30,6 +39,9 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 	JLabel dayLabel;
 	int day = 0;
 	JTabbedPane tabbedPane;
+	JButton nextDayButton;
+	JButton listItemsButton;
+	JCheckBox alertCheckBox;
 
 	@SuppressWarnings("unchecked")
 	public ShoppingPanel(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -91,9 +103,17 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 		JPanel header = new JPanel();
 		dayLabel = new JLabel("Day = 0");
 		header.add(dayLabel);
-		JButton nextDayButton = new JButton("Next Day");
+		nextDayButton = new JButton("Next Day");
 		nextDayButton.addActionListener(this);
 		header.add(nextDayButton);
+
+		listItemsButton = new JButton("List All Items");
+		listItemsButton.addActionListener(this);
+		header.add(listItemsButton);
+
+		alertCheckBox = new JCheckBox("Changes Alert");
+		alertCheckBox.setSelected(true);
+		header.add(alertCheckBox);
 		add(header,BorderLayout.NORTH);
 
 		tabbedPane = new JTabbedPane();
@@ -102,9 +122,88 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		day++;
-		for (Shop s : shops) s.nextDay();
-		dayLabel.setText("Day = "+day);
+		if (e.getSource() == nextDayButton) {
+			day++;
+			List<Item>changes = new ArrayList<Item>();
+			for (Shop s : shops) {
+				changes.addAll(s.nextDay());
+			}
+			dayLabel.setText("Day = "+day);
+			if (alertCheckBox.isSelected()) {
+				popupItemList(changes,new DefaultItemFormatter() {
+					public String toString(Item i) {
+						if (i.getField("sold") != null) {
+							return "Sold: "+super.toString(i);
+						} else if (i.getField("added") != null) {
+							return "Added: "+super.toString(i);
+						}
+						return super.toString(i);
+					}
+				});
+
+			}
+
+		} else if (e.getSource() == listItemsButton) {
+			List<Item>items = new ArrayList<Item>();
+			for (Shop s : shops) {
+				items.addAll(s.inventory);
+			}
+			popupItemList(items);
+		}
+	}
+
+	interface ItemFormatter {
+		public String toString(Item i);
+	}
+
+	class DefaultItemFormatter implements ItemFormatter {
+		public String toString(Item i) {
+			StringBuffer output = new StringBuffer();
+			output.append(i.getCost()).append(" - ").append(i.getValue("item"));
+
+			Field f = i.getField("qualities");
+			if (f != null) {
+				String quals = i.getValue(f).toString();
+				if (!quals.equals("")) output.append(" (").append(quals).append(")");
+			}
+			return output.toString();
+		}
+	}
+
+	// sorts by cost
+	protected void popupItemList(List<Item>items) {
+		popupItemList(items,new DefaultItemFormatter());
+	}
+
+	// sorts by cost
+	protected void popupItemList(List<Item>items,ItemFormatter formatter) {
+		// sort the items
+		Collections.sort(items, new Comparator<Item>() {
+			public int compare(Item o1, Item o2) {
+				int c1 = o1.getCost();
+				int c2 = o2.getCost();
+				if (c1 != c2) return c1 - c2;
+				String i1 = o1.getValue("item").toString();
+				String i2 = o2.getValue("item").toString();
+				return i1.compareTo(i2);
+			}
+		}); 
+
+		// list the items
+		StringBuffer output = new StringBuffer();
+		for (Item i : items) {
+			output.append(formatter.toString(i));
+			output.append("\n");
+		}
+
+		JTextArea area = new JTextArea(output.toString());
+		JScrollPane scroll = new JScrollPane(area);
+		
+		JFrame popup = new JFrame("All Items");
+		popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		popup.getContentPane().add(scroll);
+		popup.pack();
+		popup.setVisible(true);
 	}
 
 	public void saveShops(ObjectOutputStream out) throws IOException {
