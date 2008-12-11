@@ -66,7 +66,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 			tabbedPane.addTab(tabName, null, panel, tabTip);
 		}
 		// TODO could bring any lagging shops up to maxDay
-		dayLabel.setText("Day = "+day);
+		dayLabel.setText(PtolusCalendar.getShortDescription(day));
 	}
 
 	public ShoppingPanel() {
@@ -98,7 +98,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 		setLayout(new BorderLayout());
 
 		JPanel header = new JPanel();
-		dayLabel = new JLabel("Day = 0");
+		dayLabel = new JLabel("(no date)");
 		header.add(dayLabel);
 		nextDayButton = new JButton("Next Day");
 		nextDayButton.addActionListener(this);
@@ -125,7 +125,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 			for (Shop s : shops) {
 				changes.addAll(s.nextDay());
 			}
-			dayLabel.setText("Day = "+day);
+			dayLabel.setText(PtolusCalendar.getShortDescription(day));
 			if (alertCheckBox.isSelected()) {
 				popupItemList(changes,new CostFirstItemFormatter() {
 					public String toString(Item i) {

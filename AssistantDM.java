@@ -3,6 +3,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -94,7 +95,24 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	public void saveParty(String filename) {
         FileWriter outputStream = null;
 
-		try {
+        // check if file exists
+        File f = new File(filename);
+        if (f.exists()) {
+        	String backName;
+        	if (filename.contains(".")) {
+        		backName = filename.substring(0,filename.lastIndexOf('.'));
+        		backName += "_backup";
+        		backName += filename.substring(filename.lastIndexOf('.'));
+        	} else {
+        		backName = filename + "_backup";
+        	}
+        	System.out.println("Writing backup to: "+backName);
+        	File back = new File(backName);
+        	if (back.exists()) back.delete();
+        	f.renameTo(back);
+        }
+
+        try {
 			outputStream = new FileWriter(filename);
 			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			outputStream.write(System.getProperty("line.separator"));
@@ -171,7 +189,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 	public void windowClosing(WindowEvent e) {
 		System.out.println("Exiting");
-		saveParty("party_autosave.xml");
+		saveParty("party.xml");
 		ShoppingPanel.writeShopsXML(shopPanel.shops, "shops.xml");
 		System.exit(0);
 	}

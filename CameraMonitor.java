@@ -20,7 +20,6 @@ import javax.swing.event.EventListenerList;
  * @author Steve
  *
  */
-// TODO implement option of deleting seen files instead of just renaming them.
 public class CameraMonitor implements Runnable {
 	File source;
 	File destination;
