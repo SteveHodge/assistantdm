@@ -13,7 +13,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
@@ -22,9 +21,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 
+import swing.ReorderableListEntry;
+
 // TODO cleanup architecture. protected constructor is ugly, createPanel is ugly, addNameSection is ugly
 @SuppressWarnings("serial")
-public class InitiativeEntry extends JPanel implements PropertyChangeListener, ActionListener {
+public class InitiativeEntry extends ReorderableListEntry implements PropertyChangeListener, ActionListener {
 	protected JFormattedTextField rollField;
 	protected JFormattedTextField modifierField;
 	protected JFormattedTextField tiebreakField;
@@ -226,5 +227,27 @@ public class InitiativeEntry extends JPanel implements PropertyChangeListener, A
 
 	public boolean isBlank() {
 		return blank;
+	}
+
+	// compares InitiativeEntrys for initiative order, i.e. highest total first, ties
+	// broken by modifier and then tiebreak
+	protected static int compareInitiatives(int total1, int mod1, int tie1, int total2, int mod2, int tie2) {
+		if (total1 != total2) return total2 - total1;
+		// totals the same, next check is modifiers
+		if (mod1 != mod2) return mod2 - mod1;
+		// totals and modifiers are the same, next check is tie break
+		return tie2 - tie1;
+	}
+
+	// compares InitiativeEntrys for initiative order, i.e. highest total first, ties
+	// broken by modifier and then tiebreak
+	public static int compareInitiatives(InitiativeEntry ie1, InitiativeEntry ie2) {
+		if (ie2.isBlank()) {
+			if (ie1.isBlank()) return 0;
+			else return -1;
+		}
+		if (ie1.isBlank()) return 1;
+		return compareInitiatives(ie1.getTotal(), ie1.getModifier(), ie1.getTieBreak(),
+				ie2.getTotal(), ie2.getModifier(), ie2.getTieBreak());
 	}
 }

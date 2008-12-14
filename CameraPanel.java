@@ -14,6 +14,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
+import swing.ImagePanel;
+
 
 @SuppressWarnings("serial")
 public class CameraPanel extends JPanel implements ImageScanListener {

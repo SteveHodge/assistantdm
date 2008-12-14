@@ -9,6 +9,7 @@ import javax.swing.table.AbstractTableModel;
 
 import party.Character;
 import party.Party;
+import swing.ReorderableList;
 
 
 @SuppressWarnings("serial")
@@ -17,8 +18,17 @@ public class CombatPanel extends JPanel {
 
 	public CombatPanel(Party p) {
 		party = p;
-		JLayeredPane initiativePanel = new InitiativePanel(party);
+		InitiativeListModel ilm = new InitiativeListModel(party);
+		JLayeredPane initiativePanel = new ReorderableList(ilm);
 		JScrollPane listScroller = new JScrollPane(initiativePanel);
+
+		EffectListModel m = new EffectListModel();
+		m.addEntry("Entry 1");
+		m.addEntry("Entry 2");
+		m.addEntry("Entry 3");
+		m.addEntry("Entry 4");
+		ReorderableList effectsPanel = new ReorderableList(m);
+		JScrollPane effectsScroller = new JScrollPane(effectsPanel);
 
 		HPModel model = new HPModel();
 		JTable hpTable = new JTable(model);
@@ -32,14 +42,17 @@ public class CombatPanel extends JPanel {
 		JScrollPane acScroller = new JScrollPane(acTable);
 		acScroller.setPreferredSize(acTable.getPreferredSize());
 
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroller, hpScroller);
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroller, effectsScroller);
 		splitPane.setOneTouchExpandable(true);
 
-		JSplitPane splitPane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane, acScroller);
+		JSplitPane splitPane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, hpScroller, acScroller);
 		splitPane2.setOneTouchExpandable(true);
 
+		JSplitPane splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane, splitPane2);
+		splitPane3.setOneTouchExpandable(true);
+
 		setLayout(new BorderLayout());
-		add(splitPane2, BorderLayout.CENTER);
+		add(splitPane3, BorderLayout.CENTER);
 	}
 
 	public String getCharacterName(int index) {
