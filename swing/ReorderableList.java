@@ -23,7 +23,7 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 
 	protected int maxWidth = 0;		// width of widest child 
 
-	protected ReorderableListEntry dragEntry;
+	protected Component dragEntry;
 	protected Dimension dragEntrySize;	// size of drag entry
 	protected int yoffset;	// offset of mouse from top of dragged component 
 	protected Point origin;	// mouse position when button is pressed - used to determine if we should start dragging
@@ -31,6 +31,7 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 	protected int gapTop;		// position of the top of the gap in the list. the height of the gap will be dragEntrySize.height
 
 	public ReorderableList(ReorderableListModel model) {
+		model.sort();
 		model.addListDataListener(this);
 		this.model = model;
 		setLayout(null);
@@ -41,8 +42,17 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 
 	protected void addEntries(int first, int last) {
 		for (int i = first; i <= last; i++) {
-			ReorderableListEntry entry = (ReorderableListEntry)model.getElementAt(i);
+			Component entry = (Component)model.getElementAt(i);
 			add(entry);
+		}
+		layoutList();
+	}
+
+	protected void removeMissingEntries() {
+		// remove all entries that are no longer in the list
+		Component[] children = getComponents();
+		for (Component child : children) {
+			if (model.indexOf(child) == -1) remove(child);
 		}
 		layoutList();
 	}
@@ -53,16 +63,12 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 
 		// first add all entries that are not added
 		for (int i = 0; i < model.getSize(); i++) {
-			ReorderableListEntry entry = (ReorderableListEntry)model.getElementAt(i);
+			Component entry = (Component)model.getElementAt(i);
 			if (!isAncestorOf(entry)) add(entry);
 		}
 
 		// now remove all entries that are no longer in the list
-		Component[] children = getComponents();
-		for (Component child : children) {
-			if (model.indexOf(child) == -1) remove(child);
-		}
-		layoutList();
+		removeMissingEntries();
 	}
 
 	public void intervalAdded(ListDataEvent e) {
@@ -70,16 +76,17 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 	}
 
 	public void intervalRemoved(ListDataEvent e) {
-		for (int i = e.getIndex0(); i <= e.getIndex1(); i++) {
-			ReorderableListEntry entry = (ReorderableListEntry)model.getElementAt(i);
-			remove(entry);
-		}
-		layoutList();
+		removeMissingEntries();
 	}
 
 	private void layoutList() {
+		if (model.getSize() == 0) {
+			repaint();
+			return;
+		}
+
 		int nextTop = getInsets().top;
-		maxWidth = 0;
+		maxWidth = getWidth();
 		for (int i=0; i<model.getSize(); i++) {
 			JComponent e = (JComponent)model.getElementAt(i);
 			Dimension size = e.getPreferredSize();
@@ -93,6 +100,26 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 		}
 		setPreferredSize(new Dimension(maxWidth,nextTop));
 		revalidate();
+	}
+
+	public void setBounds(int x, int y, int width, int height) {
+		super.setBounds(x, y, width, height);
+		layoutList();
+	}
+
+	public void setBounds(Rectangle r) {
+		super.setBounds(r);
+		layoutList();
+	}
+
+	public void setSize(Dimension d) {
+		super.setSize(d);
+		layoutList();
+	}
+
+	public void setSize(int width, int height) {
+		super.setSize(width, height);
+		layoutList();
 	}
 
 	public void mouseDragged(MouseEvent e) {
@@ -109,7 +136,7 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 				// TODO: scanning the entries like this is pretty inefficient - could track the indexes instead
 				Rectangle bounds = null;
 				for (int i=0; i<model.getSize(); i++) {
-					ReorderableListEntry ie = (ReorderableListEntry)model.getElementAt(i);
+					Component ie = (Component)model.getElementAt(i);
 					if (ie == dragEntry) continue;
 					bounds = ie.getBounds(bounds);
 					if (bounds.contains(e.getPoint())) {
@@ -146,8 +173,8 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 
 	public void mousePressed(MouseEvent e) {
 		Component comp = getComponentAt(e.getPoint());
-		if (comp instanceof ReorderableListEntry) {
-			dragEntry = (ReorderableListEntry)comp;
+		if (comp instanceof Component) {
+			dragEntry = (Component)comp;
 			dragEntrySize = dragEntry.getSize(dragEntrySize);
 			yoffset = e.getY() - dragEntry.getY();
 			origin = e.getPoint();

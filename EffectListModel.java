@@ -4,30 +4,30 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import javax.swing.JLabel;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import swing.ReorderableListEntry;
 import swing.ReorderableListModel;
 
 
 public class EffectListModel implements ReorderableListModel {
-	List<Object> list = new ArrayList<Object>();
+	List<EffectEntry> list = new ArrayList<EffectEntry>();
 
 	EventListenerList listenerList = new EventListenerList();
 
 	public void moveTo(Object item, int newPos) {
 		if (!list.remove(item)) throw new NoSuchElementException();
-		list.add(newPos,item);
+		list.add(newPos,(EffectEntry)item);
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
 	public void sort() {
-		Collections.sort(list, new Comparator<Object>() {
-			public int compare(Object arg0, Object arg1) {
-				return list.indexOf(arg0) - list.indexOf(arg1);
+		Collections.sort(list, new Comparator<EffectEntry>() {
+			public int compare(EffectEntry arg0, EffectEntry arg1) {
+				int diff = arg0.duration - arg1.duration;
+				if (diff == 0) return arg0.initiative - arg1.initiative;
+				return diff;
 			}
 		});
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
@@ -46,10 +46,22 @@ public class EffectListModel implements ReorderableListModel {
 		return list.size();
 	}
 
-	public void addEntry(String string) {
-		ReorderableListEntry e = new ReorderableListEntry(string);
+	public void addEntry(String effect, String source, int initiative, int duration) {
+		EffectEntry e = new EffectEntry(this, effect, source, initiative, duration);
 		list.add(e);
 		fireListDataEvent(ListDataEvent.INTERVAL_ADDED,list.size()-1,list.size()-1);
+	}
+
+	public void clear() {
+		int last = list.size()-1;
+		list.clear();
+		fireListDataEvent(ListDataEvent.INTERVAL_REMOVED,0,last);
+	}
+
+	protected void removeEntry(EffectEntry e) {
+		int pos = list.indexOf(e);
+		list.remove(e);
+		fireListDataEvent(ListDataEvent.INTERVAL_REMOVED,pos,pos);
 	}
 
 	public void addListDataListener(ListDataListener l) {

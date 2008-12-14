@@ -16,7 +16,6 @@ import javax.swing.event.ListDataListener;
 
 import party.Character;
 import party.Party;
-import swing.ReorderableListEntry;
 import swing.ReorderableListModel;
 
 
@@ -54,8 +53,8 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 
 		// fix up roll so that it remains in this position
 		// first sort the list by y-position
-		Collections.sort(list,new Comparator<ReorderableListEntry>() {
-			public int compare(ReorderableListEntry o1, ReorderableListEntry o2) {
+		Collections.sort(list,new Comparator<InitiativeEntry>() {
+			public int compare(InitiativeEntry o1, InitiativeEntry o2) {
 				return o1.getY() - o2.getY();
 			}
 		});
@@ -238,7 +237,6 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-//-------------------------------------
 	protected void addEntry(InitiativeEntry e) {
 		list.add(e);
 		e.addChangeListener(this);
@@ -250,6 +248,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		e.removeChangeListener(this);
 		e.removeActionListener(this);
 		int pos = list.indexOf(e);
+		System.out.println("remove entry "+e+" at "+pos);
 		list.remove(e);
 		fireListDataEvent(ListDataEvent.INTERVAL_REMOVED,pos,pos);
 	}
@@ -380,4 +379,32 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			writeHTML();
 		}
 	}
+
+	// removes all created (non-character) initiative entries and reset rolls 
+	public void reset() {
+		// first check out all the entries and determine what to do with them
+		// we need to do it this way because both changing the rolls and removing entries
+		// will alter the list or list order
+		ArrayList<InitiativeEntry> toRemove = new ArrayList<InitiativeEntry>();
+		ArrayList<InitiativeEntry> toReset = new ArrayList<InitiativeEntry>();
+
+		for (InitiativeEntry e : list) {
+			if (e instanceof CharacterInitiativeEntry) {
+				toReset.add(e);
+			} else if (e != blankInit) {
+				toRemove.add(e);
+			}
+		}
+
+		// remove entries to remove
+		for (InitiativeEntry e : toRemove) {
+			removeEntry(e);
+		}
+
+		// reset entries' rolls to 0 
+		for (InitiativeEntry e : toReset) {
+			e.setRoll(0);
+		}
+	}
 }
+

@@ -13,6 +13,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
@@ -21,11 +22,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 
-import swing.ReorderableListEntry;
-
 // TODO cleanup architecture. protected constructor is ugly, createPanel is ugly, addNameSection is ugly
 @SuppressWarnings("serial")
-public class InitiativeEntry extends ReorderableListEntry implements PropertyChangeListener, ActionListener {
+public class InitiativeEntry extends JPanel implements PropertyChangeListener, ActionListener {
 	protected JFormattedTextField rollField;
 	protected JFormattedTextField modifierField;
 	protected JFormattedTextField tiebreakField;

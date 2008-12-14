@@ -1,5 +1,12 @@
 import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -11,6 +18,7 @@ import party.Character;
 import party.Party;
 import swing.ReorderableList;
 
+// TODO consider moving initiative reset and next round buttons out of their current panels
 
 @SuppressWarnings("serial")
 public class CombatPanel extends JPanel {
@@ -18,17 +26,50 @@ public class CombatPanel extends JPanel {
 
 	public CombatPanel(Party p) {
 		party = p;
-		InitiativeListModel ilm = new InitiativeListModel(party);
-		JLayeredPane initiativePanel = new ReorderableList(ilm);
-		JScrollPane listScroller = new JScrollPane(initiativePanel);
+
+		final InitiativeListModel ilm = new InitiativeListModel(party);
+		JLayeredPane initiativeList = new ReorderableList(ilm);
+		JScrollPane listScroller = new JScrollPane(initiativeList);
+
+		JPanel initiativePanel = new JPanel();
+		initiativePanel.setBorder(BorderFactory.createTitledBorder("Initiative"));
+		initiativePanel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0; c.gridy = 0;
+		c.insets = new Insets(2, 3, 2, 3);
+		c.weightx = 1.0;
+		c.anchor = GridBagConstraints.LINE_START;
+		JButton resetInitButton = new JButton("Reset");
+		resetInitButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ilm.reset();
+			}
+		});
+		initiativePanel.add(resetInitButton, c);
+
+		c.gridy = 1;
+		c.weighty = 1.0;
+		c.fill = GridBagConstraints.BOTH;
+		initiativePanel.add(listScroller, c);
 
 		EffectListModel m = new EffectListModel();
-		m.addEntry("Entry 1");
-		m.addEntry("Entry 2");
-		m.addEntry("Entry 3");
-		m.addEntry("Entry 4");
-		ReorderableList effectsPanel = new ReorderableList(m);
-		JScrollPane effectsScroller = new JScrollPane(effectsPanel);
+		ReorderableList effectsList = new ReorderableList(m);
+		JScrollPane effectsScroller = new JScrollPane(effectsList);
+
+		JPanel effectsPanel = new JPanel();
+		effectsPanel.setBorder(BorderFactory.createTitledBorder("Temporary Effects"));
+		effectsPanel.setLayout(new GridBagLayout());
+		c = new GridBagConstraints();
+		c.gridx = 0; c.gridy = 0;
+		c.insets = new Insets(2, 3, 2, 3);
+		c.weightx = 1.0;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		effectsPanel.add(new NewEffectPanel(p, m, ilm), c);
+
+		c.gridy = 1;
+		c.weighty = 1.0;
+		c.fill = GridBagConstraints.BOTH;
+		effectsPanel.add(effectsScroller, c);
 
 		HPModel model = new HPModel();
 		JTable hpTable = new JTable(model);
@@ -42,7 +83,7 @@ public class CombatPanel extends JPanel {
 		JScrollPane acScroller = new JScrollPane(acTable);
 		acScroller.setPreferredSize(acTable.getPreferredSize());
 
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroller, effectsScroller);
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initiativePanel, effectsPanel);
 		splitPane.setOneTouchExpandable(true);
 
 		JSplitPane splitPane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, hpScroller, acScroller);
