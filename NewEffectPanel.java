@@ -4,7 +4,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -53,7 +52,7 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		}
 
 		public Object getElementAt(int arg0) {
-			return ((InitiativeEntry)initiativeModel.getElementAt(arg0)).getName();
+			return ((CombatEntry)initiativeModel.getElementAt(arg0)).getName();
 		}
 
 		public int getSize() {
@@ -65,7 +64,7 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		}
 
 		public int getInitiative(int index) {
-			InitiativeEntry e = (InitiativeEntry)initiativeModel.getElementAt(index);
+			CombatEntry e = (CombatEntry)initiativeModel.getElementAt(index);
 			return e.getTotal();
 		}
 	}

@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -32,7 +33,7 @@ public class CombatPanel extends JPanel {
 		JScrollPane listScroller = new JScrollPane(initiativeList);
 
 		JPanel initiativePanel = new JPanel();
-		initiativePanel.setBorder(BorderFactory.createTitledBorder("Initiative"));
+		initiativePanel.setBorder(BorderFactory.createTitledBorder("Combat"));
 		initiativePanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0; c.gridy = 0;
@@ -71,87 +72,80 @@ public class CombatPanel extends JPanel {
 		c.fill = GridBagConstraints.BOTH;
 		effectsPanel.add(effectsScroller, c);
 
-		HPModel model = new HPModel();
-		JTable hpTable = new JTable(model);
-		hpTable.setDefaultEditor(Integer.class, new SpinnerCellEditor(0));
-		JScrollPane hpScroller = new JScrollPane(hpTable);
-		hpScroller.setPreferredSize(hpTable.getPreferredSize());
-
 		ACModel acmodel = new ACModel();
 		JTable acTable = new JTable(acmodel);
 		acTable.setDefaultEditor(Integer.class, new SpinnerCellEditor());
 		JScrollPane acScroller = new JScrollPane(acTable);
-		acScroller.setPreferredSize(acTable.getPreferredSize());
+		Dimension d = acTable.getPreferredSize();
+		d.height += 20;
+		acScroller.setPreferredSize(d);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initiativePanel, effectsPanel);
 		splitPane.setOneTouchExpandable(true);
 
-		JSplitPane splitPane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, hpScroller, acScroller);
+		JSplitPane splitPane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane, acScroller);
 		splitPane2.setOneTouchExpandable(true);
 
-		JSplitPane splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane, splitPane2);
-		splitPane3.setOneTouchExpandable(true);
-
 		setLayout(new BorderLayout());
-		add(splitPane3, BorderLayout.CENTER);
+		add(splitPane2, BorderLayout.CENTER);
 	}
 
 	public String getCharacterName(int index) {
 		return party.get(index).getName();
 	}
 
-	class HPModel extends AbstractTableModel {
-		String[] columns = {"Name","HP","Wounds","Non-lethal","Current"};
-
-		public HPModel() {
-		}
-
-		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			// HP, wounds, and non-lethal are editable
-			if (columnIndex >= 1 && columnIndex <= 3) return true;
-			return false;
-		}
-
-		public Class<?> getColumnClass(int columnIndex) {
-			if (columnIndex == 0) return String.class;
-			return Integer.class;
-		}
-
-		public void setValueAt(Object value, int rowIndex, int columnIndex) {
-			if (value == null) value = new Integer(0);
-			if (columnIndex == 1) {
-				party.get(rowIndex).setFullHPs((Integer)value);
-			} else if (columnIndex == 2) {
-				party.get(rowIndex).setWounds((Integer)value);
-			} else if (columnIndex == 3) {
-				party.get(rowIndex).setNonLethal((Integer)value);
-			} else {
-				return;
-			}
-			this.fireTableRowsUpdated(rowIndex, rowIndex);
-		}
-
-		public String getColumnName(int column) {
-			return columns[column];
-		}
-
-		public int getColumnCount() {
-			return 5;
-		}
-
-		public int getRowCount() {
-			return party.size();
-		}
-
-		public Object getValueAt(int row, int column) {
-			if (column == 0) return getCharacterName(row);
-			if (column == 1) return party.get(row).getFullHPs();
-			if (column == 2) return party.get(row).getWounds();
-			if (column == 3) return party.get(row).getNonLethal();			
-			if (column == 4) return party.get(row).getHPs();
-			return null;
-		}
-	}
+//	class HPModel extends AbstractTableModel {
+//		String[] columns = {"Name","HP","Wounds","Non-lethal","Current"};
+//
+//		public HPModel() {
+//		}
+//
+//		public boolean isCellEditable(int rowIndex, int columnIndex) {
+//			// HP, wounds, and non-lethal are editable
+//			if (columnIndex >= 1 && columnIndex <= 3) return true;
+//			return false;
+//		}
+//
+//		public Class<?> getColumnClass(int columnIndex) {
+//			if (columnIndex == 0) return String.class;
+//			return Integer.class;
+//		}
+//
+//		public void setValueAt(Object value, int rowIndex, int columnIndex) {
+//			if (value == null) value = new Integer(0);
+//			if (columnIndex == 1) {
+//				party.get(rowIndex).setMaximumHitPoints((Integer)value);
+//			} else if (columnIndex == 2) {
+//				party.get(rowIndex).setWounds((Integer)value);
+//			} else if (columnIndex == 3) {
+//				party.get(rowIndex).setNonLethal((Integer)value);
+//			} else {
+//				return;
+//			}
+//			this.fireTableRowsUpdated(rowIndex, rowIndex);
+//		}
+//
+//		public String getColumnName(int column) {
+//			return columns[column];
+//		}
+//
+//		public int getColumnCount() {
+//			return 5;
+//		}
+//
+//		public int getRowCount() {
+//			return party.size();
+//		}
+//
+//		public Object getValueAt(int row, int column) {
+//			if (column == 0) return getCharacterName(row);
+//			if (column == 1) return party.get(row).getMaximumHitPoints();
+//			if (column == 2) return party.get(row).getWounds();
+//			if (column == 3) return party.get(row).getNonLethal();			
+//			if (column == 4) return party.get(row).getHPs();
+//			return null;
+//		}
+//	}
 
 	class ACModel extends AbstractTableModel {
 		String[] columns = {"Name","AC","Touch","Flat-Footed"};

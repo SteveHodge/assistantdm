@@ -22,6 +22,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import party.Party;
 
+// TODO: would be nice to have a library of creatures that could be selected for the combat panel
+// TODO: character tab 
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
 	JMenuBar menuBar;

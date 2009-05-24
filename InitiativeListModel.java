@@ -15,27 +15,28 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 import party.Character;
+import party.Monster;
 import party.Party;
 import swing.ReorderableListModel;
 
 
 public class InitiativeListModel implements ReorderableListModel, ActionListener, ChangeListener {
 	Party party;
-	List<InitiativeEntry> list = new ArrayList<InitiativeEntry>();
+	List<CombatEntry> list = new ArrayList<CombatEntry>();
 
 	EventListenerList listenerList = new EventListenerList();
 
 	String lastOutput = "";
-	InitiativeEntry blankInit = null;
+	CombatEntry blankInit = null;
 
 	public InitiativeListModel(Party p) {
 		party = p;
 		if (party != null) {
 			for (Character c : party) {
-				addEntry(new CharacterInitiativeEntry(c));
+				addEntry(new CombatEntry(c,false));
 			}
 		}
-		blankInit = new InitiativeEntry();
+		blankInit = new CombatEntry(new Monster());
 		blankInit.addActionListener(this);
 		addEntry(blankInit);
 		sort();
@@ -48,13 +49,13 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 
 	public void moveTo(Object item, int index) {
 		if (!list.remove(item)) throw new NoSuchElementException();
-		InitiativeEntry dragged = (InitiativeEntry)item;
+		CombatEntry dragged = (CombatEntry)item;
 		list.add(index,dragged);
 
 		// fix up roll so that it remains in this position
 		// first sort the list by y-position
-		Collections.sort(list,new Comparator<InitiativeEntry>() {
-			public int compare(InitiativeEntry o1, InitiativeEntry o2) {
+		Collections.sort(list,new Comparator<CombatEntry>() {
+			public int compare(CombatEntry o1, CombatEntry o2) {
 				return o1.getY() - o2.getY();
 			}
 		});
@@ -63,27 +64,27 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		//System.out.println("Index of dragged entry = "+index);
 		if (index == 0 && list.size() > 1) {
 			// case: entry is now first
-			InitiativeEntry next = list.get(index+1);
-			if (InitiativeEntry.compareInitiatives(dragged, next) > 0) {
+			CombatEntry next = list.get(index+1);
+			if (CombatEntry.compareInitiatives(dragged, next) > 0) {
 				// entry needs correction...
 				dragged.setRoll(next.getTotal()+1 - dragged.getModifier());
 			}
 		} else if (index >= list.size()-2 && list.size() > 2) {
 			// case: entry is now last or second to last (before only the blank entry)
-			InitiativeEntry prev = list.get(list.size()-3);
-			if (InitiativeEntry.compareInitiatives(dragged, prev) < 0) {
+			CombatEntry prev = list.get(list.size()-3);
+			if (CombatEntry.compareInitiatives(dragged, prev) < 0) {
 				// entry needs correction...
 				dragged.setRoll(prev.getTotal()-1 - dragged.getModifier());
 			}
 		} else if (index > 0 && index < list.size()-2) {
 			// case: entry is between two other legitimate entries
-			InitiativeEntry next = list.get(index+1);
-			InitiativeEntry prev = list.get(index-1);
+			CombatEntry next = list.get(index+1);
+			CombatEntry prev = list.get(index-1);
 			if (prev.getTotal() - next.getTotal() >= 2) {
 				// there's a gap: if the current total doesn't fit in the gap
 				// then put the dragged entry in the middle of the gap
-				if (InitiativeEntry.compareInitiatives(dragged, next) >= 0
-						|| InitiativeEntry.compareInitiatives(prev, dragged) >= 0) {
+				if (CombatEntry.compareInitiatives(dragged, next) >= 0
+						|| CombatEntry.compareInitiatives(prev, dragged) >= 0) {
 					int target = (prev.getTotal() + next.getTotal()) / 2;
 					dragged.setRoll(target - dragged.getModifier());
 				}
@@ -102,12 +103,12 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 				// If neither succeeds then B > C > A. Test 2 and 4 and use the option that
 				// results in the least amount of movement. In practice it's easiest to set
 				// dragEntry total to X-1 and then test moving next down or prev and dragEntry up.
-				if (InitiativeEntry.compareInitiatives(prev.getTotal(),prev.getModifier(),prev.getTieBreak(),
+				if (CombatEntry.compareInitiatives(prev.getTotal(),prev.getModifier(),prev.getTieBreak(),
 						prev.getTotal(),dragged.getModifier(),dragged.getTieBreak()) < 0) {
 					// with dragEntry.total = X, A > C - do it for real and we're done
 					dragged.setRoll(prev.getTotal() - dragged.getModifier());
 					//System.out.println("Setting dragged entry total to "+prev.getTotal()+" works");
-				} else if (InitiativeEntry.compareInitiatives(next.getTotal(),dragged.getModifier(),dragged.getTieBreak(),
+				} else if (CombatEntry.compareInitiatives(next.getTotal(),dragged.getModifier(),dragged.getTieBreak(),
 						next.getTotal(),next.getModifier(),next.getTieBreak()) < 0) {
 					// with dragEntry total = X-1, C > B - do it for real and we're done
 					dragged.setRoll(next.getTotal() - dragged.getModifier());
@@ -144,8 +145,8 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 				// the one that results in the least amount of movement.
 				// TODO: There is one special case: if all the modifiers are equal then we could manipulate the tiebreak scores.
 				dragged.setRoll(prev.getTotal() - dragged.getModifier());
-				int a_c = InitiativeEntry.compareInitiatives(prev, dragged);
-				int c_b = InitiativeEntry.compareInitiatives(dragged, next);
+				int a_c = CombatEntry.compareInitiatives(prev, dragged);
+				int c_b = CombatEntry.compareInitiatives(dragged, next);
 				if (a_c <= 0 && c_b <= 0) {
 					// A > C > B
 					//System.out.println("A>C>B - done");
@@ -187,9 +188,9 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	}
 
 	public void sort() {
-		Collections.sort(list,new Comparator<InitiativeEntry>() {
-			public int compare(InitiativeEntry ie1, InitiativeEntry ie2) {
-				return InitiativeEntry.compareInitiatives(ie1,ie2);
+		Collections.sort(list,new Comparator<CombatEntry>() {
+			public int compare(CombatEntry ie1, CombatEntry ie2) {
+				return CombatEntry.compareInitiatives(ie1,ie2);
 			}
 		});
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
@@ -237,14 +238,14 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	protected void addEntry(InitiativeEntry e) {
+	protected void addEntry(CombatEntry e) {
 		list.add(e);
 		e.addChangeListener(this);
 		e.addActionListener(this);
 		fireListDataEvent(ListDataEvent.INTERVAL_ADDED,list.size()-1,list.size()-1);
 	}
 
-	protected void removeEntry(InitiativeEntry e) {
+	protected void removeEntry(CombatEntry e) {
 		e.removeChangeListener(this);
 		e.removeActionListener(this);
 		int pos = list.indexOf(e);
@@ -254,13 +255,13 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	}
 
 	public void stateChanged(ChangeEvent e) {
-		InitiativeEntry changed = (InitiativeEntry)e.getSource();
+		CombatEntry changed = (CombatEntry)e.getSource();
 		boolean reorder = false;
 
 		// check if we need to add a new entry:
 		if (changed == blankInit && !changed.isBlank()) {
 //			System.out.println("Adding new entry");
-			blankInit = new InitiativeEntry();
+			blankInit = new CombatEntry(new Monster());
 			blankInit.addActionListener(this);
 			addEntry(blankInit);
 			reorder = true;
@@ -269,15 +270,15 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		// check if reorder is necessary
 		int index = list.indexOf(e.getSource());
 		if (!reorder && index >0) {
-			InitiativeEntry prev = list.get(index-1);
-			if (InitiativeEntry.compareInitiatives(changed,prev) < 0) {
+			CombatEntry prev = list.get(index-1);
+			if (CombatEntry.compareInitiatives(changed,prev) < 0) {
 				//System.out.println("Changed entry is > prev");
 				reorder = true;
 			}
 		}
 		if (!reorder && index < list.size()-1) {
-			InitiativeEntry next = list.get(index+1);
-			if (InitiativeEntry.compareInitiatives(changed,next) > 0) {
+			CombatEntry next = list.get(index+1);
+			if (CombatEntry.compareInitiatives(changed,next) > 0) {
 				//System.out.println("Changed entry is < next");
 				reorder = true;
 			}
@@ -291,7 +292,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	private void writeHTML() {
 		String output = "round=1\n";
 		int i = 0;
-		for (InitiativeEntry e : list) {
+		for (CombatEntry e : list) {
 			if (!e.isDMOnly()) {
 				i++;
 				//System.out.println(e.getName() + " - " +e.getTotal());
@@ -324,11 +325,11 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		int i = start;
 		int count = 1;
 		while (i > 0 && i < list.size()-1) {
-			InitiativeEntry current = list.get(i);
-			InitiativeEntry next = list.get(i-dir);
+			CombatEntry current = list.get(i);
+			CombatEntry next = list.get(i-dir);
 			if (!current.isBlank() && !next.isBlank()) {
 				// two real entries
-				int comp = InitiativeEntry.compareInitiatives(current.getTotal()+dir,current.getModifier(),current.getTieBreak(),
+				int comp = CombatEntry.compareInitiatives(current.getTotal()+dir,current.getModifier(),current.getTieBreak(),
 						next.getTotal(),next.getModifier(),next.getTieBreak());
 				//System.out.println("("+(current.getTotal()+dir)+") "+current+"\nvs. ("+next.getTotal()+") "+next+"\n = "+comp+" ("+(comp*dir)+")");
 				if (dir * comp < 0) {
@@ -350,16 +351,16 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	protected void moveEntries(int start, int dir) {
 		int i = start;
 		while (i >= 0 && i <= list.size()-1) {
-			InitiativeEntry current = list.get(i);
+			CombatEntry current = list.get(i);
 			if (!current.isBlank()) {
 				current.adjustRoll(dir);
 			}
 			if (i == 0 || i == list.size()-1) break;
 			// only proceed if there is a next element
-			InitiativeEntry next = list.get(i-dir);
+			CombatEntry next = list.get(i-dir);
 			if (!next.isBlank()) {
 				// two real entries
-				int comp = InitiativeEntry.compareInitiatives(current,next);
+				int comp = CombatEntry.compareInitiatives(current,next);
 				//System.out.println("("+current.getTotal()+") "+current+"\nvs. ("+next.getTotal()+") "+next+"\n = "+comp+" ("+(comp*dir)+")");
 				if (dir * comp >= 0) {
 					//System.out.println("There is room, finished");
@@ -372,7 +373,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getActionCommand().equals("delete")) {
-			InitiativeEntry e = (InitiativeEntry)arg0.getSource();
+			CombatEntry e = (CombatEntry)arg0.getSource();
 			removeEntry(e);
 // should we sort here? (shouldn't be necessary I think)
 //			reorderList();
@@ -385,11 +386,11 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		// first check out all the entries and determine what to do with them
 		// we need to do it this way because both changing the rolls and removing entries
 		// will alter the list or list order
-		ArrayList<InitiativeEntry> toRemove = new ArrayList<InitiativeEntry>();
-		ArrayList<InitiativeEntry> toReset = new ArrayList<InitiativeEntry>();
+		ArrayList<CombatEntry> toRemove = new ArrayList<CombatEntry>();
+		ArrayList<CombatEntry> toReset = new ArrayList<CombatEntry>();
 
-		for (InitiativeEntry e : list) {
-			if (e instanceof CharacterInitiativeEntry) {
+		for (CombatEntry e : list) {
+			if (e.getSource() instanceof Character) {
 				toReset.add(e);
 			} else if (e != blankInit) {
 				toRemove.add(e);
@@ -397,12 +398,12 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 
 		// remove entries to remove
-		for (InitiativeEntry e : toRemove) {
+		for (CombatEntry e : toRemove) {
 			removeEntry(e);
 		}
 
 		// reset entries' rolls to 0 
-		for (InitiativeEntry e : toReset) {
+		for (CombatEntry e : toReset) {
 			e.setRoll(0);
 		}
 	}

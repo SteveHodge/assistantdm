@@ -20,6 +20,7 @@ import javax.swing.event.EventListenerList;
  * @author Steve
  *
  */
+// TODO could implement the image monitoring as an ImageProducer. we'd still need the event stuff to handle logging
 public class CameraMonitor implements Runnable {
 	File source;
 	File destination;

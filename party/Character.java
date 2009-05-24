@@ -1,4 +1,6 @@
 package party;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -12,7 +14,7 @@ import xml.XML;
 import xml.XMLUtils;
 
 
-public class Character implements XML {
+public class Character implements XML, Creature {
 	public static final int SAVE_FORTITUDE = 0;
 	public static final int SAVE_REFLEX = 1;
 	public static final int SAVE_WILL = 2;
@@ -37,8 +39,18 @@ public class Character implements XML {
 	protected int hps, wounds, nonLethal;
 	protected int[] ac = new int[AC_MAX_INDEX];
 
+	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
 	public Character(String n) {
 		name = n;
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pcs.removePropertyChangeListener(listener);
 	}
 
 	public Set<String> getSkillNames() {
@@ -73,28 +85,34 @@ public class Character implements XML {
 		return name;
 	}
 
-	public void setFullHPs(int i) {
-		hps = i;
-	}
-
-	public void setWounds(int i) {
-		wounds = i;
-	}
-
-	public void setNonLethal(int i) {
-		nonLethal = i;
-	}
-
-	public int getFullHPs() {
+	public int getMaximumHitPoints() {
 		return hps;
 	}
+
+	public void setMaximumHitPoints(int hp) {
+		int old = hps;
+		hps = hp;
+        pcs.firePropertyChange("maximumHitPoints", old, hp);
+	}		
 
 	public int getWounds() {
 		return wounds;
 	}
 
+	public void setWounds(int i) {
+		int old = wounds;
+		wounds = i;
+		pcs.firePropertyChange("wounds", old, i);
+	}
+
 	public int getNonLethal() {
 		return nonLethal;
+	}
+
+	public void setNonLethal(int i) {
+		int old = nonLethal;
+		nonLethal = i;
+		pcs.firePropertyChange("nonLethal", old, i);
 	}
 
 	public int getHPs() {
@@ -102,7 +120,9 @@ public class Character implements XML {
 	}
 
 	public void setACComponent(int type, int value) {
+		int oldValue = ac[type];
 		ac[type] = value;
+		pcs.firePropertyChange("ac", oldValue, value);
 	}
 
 	public int getACComponent(int type) {
@@ -134,6 +154,11 @@ public class Character implements XML {
 		return ac_names[type];
 	}
 
+	public void setAC(int ac) {}
+	public void setTouchAC(int ac) {}
+	public void setFlatFootedAC(int ac) {}
+	public void setName(String name) {}
+
 	public static Character parseDOM(Node node) {
 		if (!node.getNodeName().equals("Character")) return null;
 		Character c = new Character(XMLUtils.getAttribute(node, "name"));
@@ -146,7 +171,7 @@ public class Character implements XML {
 				String tag = e.getTagName();
 
 				if (tag.equals("HitPoints")) {
-					c.setFullHPs(Integer.parseInt(e.getAttribute("maximum")));
+					c.setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
 					if (e.hasAttribute("wounds")) c.setWounds(Integer.parseInt(e.getAttribute("wounds")));
 					if (e.hasAttribute("non-lethal")) c.setNonLethal(Integer.parseInt(e.getAttribute("non-lethal")));
 
@@ -214,7 +239,7 @@ public class Character implements XML {
 		String i2 = indent + nextIndent;
 		String i3 = i2 + nextIndent;
 		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
-		b.append(i2).append("<HitPoints maximum=\"").append(getFullHPs()).append("\"");
+		b.append(i2).append("<HitPoints maximum=\"").append(getMaximumHitPoints()).append("\"");
 		if (getWounds() != 0) b.append(" wounds=\"").append(getWounds()).append("\"");
 		if (getNonLethal() != 0) b.append(" non-lethal=\"").append(getNonLethal()).append("\"");
 		b.append("/>").append(nl);
