@@ -14,27 +14,12 @@ import xml.XML;
 import xml.XMLUtils;
 
 
-public class Character implements XML, Creature {
-	public static final int SAVE_FORTITUDE = 0;
-	public static final int SAVE_REFLEX = 1;
-	public static final int SAVE_WILL = 2;
-
-	public static final int AC_ARMOR = 0;
-	public static final int AC_SHIELD = 1;
-	public static final int AC_DEX = 2;
-	public static final int AC_SIZE = 3;
-	public static final int AC_NATURAL = 4;
-	public static final int AC_DEFLECTION = 5;
-	public static final int AC_DODGE = 6;
-	public static final int AC_OTHER = 7;
-	public static final int AC_MAX_INDEX = 8;
-
-	protected static final String[] save_names = {"Fortitude", "Reflex", "Will"};
-	protected static final String[] ac_names = {"Armor","Shield","Dex","Size","Natural","Deflect","Dodge","Other"};
-
+public class Character extends Creature implements XML {
 	protected String name;
 	protected int initModifier = 0;
 	protected int[] saves = new int[3];
+	protected int[] abilities = new int[6];
+	protected int[] tempAbilities = new int[6];
 	protected Map<String,Integer> skills = new HashMap<String,Integer>();
 	protected int hps, wounds, nonLethal;
 	protected int[] ac = new int[AC_MAX_INDEX];
@@ -43,6 +28,7 @@ public class Character implements XML, Creature {
 
 	public Character(String n) {
 		name = n;
+		for (int i=0; i<6; i++) tempAbilities[i] = -1;
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -51,6 +37,65 @@ public class Character implements XML, Creature {
 
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		pcs.removePropertyChangeListener(listener);
+	}
+
+	public int getAbilityScore(int type) {
+		if (tempAbilities[type] != -1) return tempAbilities[type];
+		return abilities[type];
+	}
+
+	public int getBaseAbilityScore(int type) {
+		return abilities[type];
+	}
+
+	public int getAbilityModifier(int type) {
+		return getModifier(getAbilityScore(type));
+	}
+
+	protected void fireAbilityChange(int type, int old, int value) {
+        pcs.firePropertyChange("ability"+ability_names[type], old, value);
+        int modDelta = Creature.getModifier(value) - Creature.getModifier(old);
+        if (modDelta != 0) {
+        	// skills
+        	// TODO this is inefficient
+        	for (String skill : Skill.skill_ability_map.keySet()) {
+        		int ability = Skill.skill_ability_map.get(skill);
+        		if (ability == type) {
+        	        pcs.firePropertyChange("skill"+skill, getSkill(skill)-modDelta, getSkill(skill));
+        		}
+        	}
+        	// TODO saves
+        	for (int i = 0; i < 3; i++) {
+        		int stat = Creature.getSaveAbility(i);
+        		if (stat == type) {
+        			pcs.firePropertyChange("save"+Creature.getSavingThrowName(i),
+        					this.getSavingThrow(i)-modDelta,
+        					this.getSavingThrow(i)
+        				);
+        		}
+        	}
+        	
+        	// TODO initiative and other properties
+        }
+	}
+
+	public void setAbilityScore(int type, int value) {
+		int old = abilities[type];
+		abilities[type] = value;
+		fireAbilityChange(type,old,value);
+	}
+
+	public void setTemporaryAbility(int type, int value) {
+		int old = tempAbilities[type];
+		if (old == -1) old = abilities[type];
+		if (value == abilities[type] || value == -1) {
+			// reseting to normal score
+			tempAbilities[type] = -1;
+			fireAbilityChange(type,old,abilities[type]);
+		} else {
+			tempAbilities[type] = value;
+			fireAbilityChange(type,old,value);
+		}
 	}
 
 	public Set<String> getSkillNames() {
@@ -66,19 +111,36 @@ public class Character implements XML, Creature {
 	}
 
 	public int getSavingThrow(int save) {
+		return saves[save]+getAbilityModifier(Creature.getSaveAbility(save));
+	}
+
+	public int getBaseSavingThrow(int save) {
 		return saves[save];
 	}
 
 	public void setSavingThrow(int save, int total) {
+		int old = saves[save];
 		saves[save] = total;
+		pcs.firePropertyChange("save"+Creature.getSavingThrowName(save), old, total);
 	}
 
-	public Integer getSkill(String skill) {
+	public int getSkill(String skill) {
+		int ranks = 0;
+		if (skills.get(skill) != null) ranks = skills.get(skill);
+		int ability = Skill.getAbilityForSkill(skill);
+		if (ability == -1) return ranks;
+		return ranks+getAbilityModifier(ability);
+	}
+
+	public int getSkillRanks(String skill) {
 		return skills.get(skill);
 	}
 
 	public void setSkill(String skill, int total) {
+		int old = 0;
+		if (skills.containsKey(skill)) old = skills.get(skill);
 		skills.put(skill,total);
+        pcs.firePropertyChange("skill"+skill, old, total);
 	}
 
 	public String getName() {
@@ -146,14 +208,6 @@ public class Character implements XML, Creature {
 		return getAC() - ac[AC_ARMOR] - ac[AC_SHIELD] - ac[AC_NATURAL];
 	}
 
-	public static String getSavingThrowName(int save) {
-		return save_names[save];
-	}
-
-	public static String getACComponentName(int type) {
-		return ac_names[type];
-	}
-
 	public void setAC(int ac) {}
 	public void setTouchAC(int ac) {}
 	public void setFlatFootedAC(int ac) {}
@@ -178,6 +232,22 @@ public class Character implements XML, Creature {
 				} else if (tag.equals("Initiative")) {
 					String value = e.getAttribute("value");
 					if (value != null) c.setInitiativeModifier(Integer.parseInt(value));
+
+				} else if (tag.equals("AbilityScores")) {
+					NodeList abilities = e.getChildNodes();
+					if (abilities != null) {
+						for (int j=0; j<abilities.getLength(); j++) {
+							if (!abilities.item(j).getNodeName().equals("AbilityScore")) continue;
+							Element s = (Element)abilities.item(j);
+							String value = s.getAttribute("value");
+							String type = s.getAttribute("type");
+							for (int k=0; k<ability_names.length; k++) {
+								if (ability_names[k].equals(type)) {
+									c.setAbilityScore(k, Integer.parseInt(value));
+								}
+							}
+						}
+					}
 
 				} else if (tag.equals("SavingThrows")) {
 					NodeList saves = e.getChildNodes();
@@ -239,6 +309,12 @@ public class Character implements XML, Creature {
 		String i2 = indent + nextIndent;
 		String i3 = i2 + nextIndent;
 		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
+		b.append(i2).append("<AbilityScores>").append(nl);
+		for (int i=0; i<ability_names.length; i++) {
+			b.append(i3).append("<AbilityScore type=\"").append(ability_names[i]);
+			b.append("\" value=\"").append(getBaseAbilityScore(i)).append("\"/>").append(nl);
+		}
+		b.append(i2).append("</AbilityScores>").append(nl);
 		b.append(i2).append("<HitPoints maximum=\"").append(getMaximumHitPoints()).append("\"");
 		if (getWounds() != 0) b.append(" wounds=\"").append(getWounds()).append("\"");
 		if (getNonLethal() != 0) b.append(" non-lethal=\"").append(getNonLethal()).append("\"");
@@ -247,14 +323,14 @@ public class Character implements XML, Creature {
 		b.append(i2).append("<SavingThrows>").append(nl);
 		for (int i=0; i<save_names.length; i++) {
 			b.append(i3).append("<Save type=\"").append(save_names[i]);
-			b.append("\" value=\"").append(getSavingThrow(i)).append("\"/>").append(nl);
+			b.append("\" value=\"").append(getBaseSavingThrow(i)).append("\"/>").append(nl);
 		}
 		b.append(i2).append("</SavingThrows>").append(nl);
 		b.append(i2).append("<Skills>").append(nl);
 		for (String s : skills.keySet()) {
 			if (getSkill(s) != 0) {
 				b.append(i3).append("<Skill type=\"").append(s);
-				b.append("\" value=\"").append(getSkill(s)).append("\"/>").append(nl);
+				b.append("\" value=\"").append(getSkillRanks(s)).append("\"/>").append(nl);
 			}
 		}
 		b.append(i2).append("</Skills>").append(nl);

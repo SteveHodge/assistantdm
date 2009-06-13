@@ -20,7 +20,7 @@ import party.Party;
 import swing.ReorderableList;
 
 // TODO consider moving initiative reset and next round buttons out of their current panels
-
+// TODO consider removing ability to edit max hitpoints and initiative modifier once these are editable on the character tab. Maybe have modifications on this tab be temporary
 @SuppressWarnings("serial")
 public class CombatPanel extends JPanel {
 	Party party;
@@ -72,22 +72,22 @@ public class CombatPanel extends JPanel {
 		c.fill = GridBagConstraints.BOTH;
 		effectsPanel.add(effectsScroller, c);
 
-		ACModel acmodel = new ACModel();
-		JTable acTable = new JTable(acmodel);
-		acTable.setDefaultEditor(Integer.class, new SpinnerCellEditor());
-		JScrollPane acScroller = new JScrollPane(acTable);
-		Dimension d = acTable.getPreferredSize();
-		d.height += 20;
-		acScroller.setPreferredSize(d);
+//		ACModel acmodel = new ACModel();
+//		JTable acTable = new JTable(acmodel);
+//		acTable.setDefaultEditor(Integer.class, new SpinnerCellEditor());
+//		JScrollPane acScroller = new JScrollPane(acTable);
+//		Dimension d = acTable.getPreferredSize();
+//		d.height += 20;
+//		acScroller.setPreferredSize(d);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initiativePanel, effectsPanel);
 		splitPane.setOneTouchExpandable(true);
 
-		JSplitPane splitPane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane, acScroller);
-		splitPane2.setOneTouchExpandable(true);
+//		JSplitPane splitPane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane, acScroller);
+//		splitPane2.setOneTouchExpandable(true);
 
 		setLayout(new BorderLayout());
-		add(splitPane2, BorderLayout.CENTER);
+		add(splitPane, BorderLayout.CENTER);
 	}
 
 	public String getCharacterName(int index) {

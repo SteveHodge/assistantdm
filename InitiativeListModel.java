@@ -296,7 +296,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			if (!e.isDMOnly()) {
 				i++;
 				//System.out.println(e.getName() + " - " +e.getTotal());
-				output += "fixedname"+i+"="+e.getName()+"\n";
+				output += "fixedname"+i+"="+e.getCreatureName()+"\n";
 				output += "init"+i+"="+e.getTotal()+"\n";
 			}
 		}

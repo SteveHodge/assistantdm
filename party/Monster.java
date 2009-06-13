@@ -3,7 +3,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 
-public class Monster implements Creature {
+public class Monster extends Creature {
 	int fullAC;
 	int flatFootedAC;
 	int touchAC;

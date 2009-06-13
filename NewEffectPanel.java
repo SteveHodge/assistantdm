@@ -14,7 +14,6 @@ import javax.swing.event.ListDataListener;
 
 import party.Party;
 
-// TODO need to get character's initiative if one is selected
 // TODO either have minute/hour increment or allow editing remaining duration of entries
 
 @SuppressWarnings("serial")
@@ -52,7 +51,7 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		}
 
 		public Object getElementAt(int arg0) {
-			return ((CombatEntry)initiativeModel.getElementAt(arg0)).getName();
+			return ((CombatEntry)initiativeModel.getElementAt(arg0)).getCreatureName();
 		}
 
 		public int getSize() {

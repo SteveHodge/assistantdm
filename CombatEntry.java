@@ -1,8 +1,6 @@
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,7 +9,6 @@ import java.beans.PropertyChangeListener;
 import java.util.Random;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -172,6 +169,7 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 		maxHPsField = new JFormattedTextField();
 		maxHPsField.setValue(new Integer(creature.getMaximumHitPoints()));
 		maxHPsField.setColumns(4);
+		maxHPsField.addPropertyChangeListener("value", this);
 		add(maxHPsField, c);
 		c.weightx = 0.0;
 		add(new JLabel("Dmg:"), c);
@@ -337,6 +335,7 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 			// update the relevant fields
 			if (evt.getPropertyName().equals("maximumHitPoints")) {
 				maxHPsField.setValue(new Integer(creature.getMaximumHitPoints()));
+				updateHPs();
 			} else if (evt.getPropertyName().equals("ac")) {
 				if (editable) {
 					((JFormattedTextField)acComp).setValue(creature.getAC());
@@ -349,16 +348,24 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 				}
 			} else if (evt.getPropertyName().equals("wounds")
 					|| evt.getPropertyName().equals("nonLethal")) {
-				String hps = ""+(creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
-				if (creature.getNonLethal() != 0) hps += " ("+creature.getNonLethal()+")";
-				currentHPs.setText(hps);
+				updateHPs();
 			}
 
 		} else if (evt.getPropertyName().equals("value")) {
-			// one of the initiative fields has changed
-			total.setText("= "+getTotal());
-			fireChange();
+			if (evt.getSource() == maxHPsField) {
+				creature.setMaximumHitPoints((Integer)maxHPsField.getValue());
+			} else {
+				// one of the initiative fields has changed
+				total.setText("= "+getTotal());
+				fireChange();
+			}
 		}
+	}
+
+	protected void updateHPs() {
+		String hps = ""+(creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
+		if (creature.getNonLethal() != 0) hps += " ("+creature.getNonLethal()+")";
+		currentHPs.setText(hps);
 	}
 
 	public int getTotal() {
@@ -387,12 +394,16 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 		rollField.setValue(getRoll()+delta);
 	}
 
+	public String getCreatureName() {
+		return creature.getName();
+	}
+
 	public boolean isDMOnly() {
 		return !onlyDM.isSelected();
 	}
 
 	public String toString() {
-		return "InitiativeEntry (name="+getName()+", roll="+rollField.getValue()
+		return "CombatEntry (name="+getCreatureName()+", roll="+rollField.getValue()
 			+", modifier="+getModifier()+", tiebreak="+tiebreakField.getValue()+")";
 	}
 

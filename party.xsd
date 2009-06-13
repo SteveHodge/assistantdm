@@ -1,6 +1,32 @@
 <?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+<xs:simpleType name="AbilityType">
+	<xs:restriction base="xs:string">
+		<xs:enumeration value="Strength"/>
+		<xs:enumeration value="Dexterity"/>
+		<xs:enumeration value="Constitution"/>
+		<xs:enumeration value="Intelligence"/>
+		<xs:enumeration value="Wisdom"/>
+		<xs:enumeration value="Charisma"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:element name="AbilityScore">
+	<xs:complexType>
+		<xs:attribute name="type" type="AbilityType" use="required"/>
+		<xs:attribute name="value" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="AbilityScores">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="AbilityScore" maxOccurs="6"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
 <xs:simpleType name="SaveType">
 	<xs:restriction base="xs:string">
 		<xs:enumeration value="Fortitude"/>
@@ -72,6 +98,7 @@
 <xs:element name="Character">
 	<xs:complexType>
 		<xs:sequence>
+			<xs:element ref="AbilityScores" maxOccurs="1"/>
 			<xs:element name="HitPoints" maxOccurs="1">
 				<xs:complexType>
 					<xs:attribute name="maximum" type="xs:int" use="required"/>

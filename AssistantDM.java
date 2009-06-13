@@ -20,10 +20,11 @@ import javax.swing.JMenuItem;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+
+import party.Creature;
 import party.Party;
 
 // TODO: would be nice to have a library of creatures that could be selected for the combat panel
-// TODO: character tab 
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
 	JMenuBar menuBar;
@@ -72,6 +73,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		panel = new RollsPanel(party);
 		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
+
+		panel = new PartyPanel(party);
+		tabbedPane.addTab("Party", null, panel, "Character Details");
 
 		List<Shop> shops = ShoppingPanel.parseShopsXML("shops.xml");
 		if (shops.size() > 0) {
