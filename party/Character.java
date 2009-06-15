@@ -31,6 +31,15 @@ public class Character extends Creature implements XML {
 		for (int i=0; i<6; i++) tempAbilities[i] = -1;
 	}
 
+	// Properties:
+	// "ability"+ability name
+	// "skill"+skill name
+	// "save"+save name
+    // "initiative"
+    // "maximumHitPoints"
+	// "wounds"
+	// "nonLethal"
+	// "ac"
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
 	}
@@ -64,18 +73,25 @@ public class Character extends Creature implements XML {
         	        pcs.firePropertyChange("skill"+skill, getSkill(skill)-modDelta, getSkill(skill));
         		}
         	}
-        	// TODO saves
+
+        	// saves
         	for (int i = 0; i < 3; i++) {
         		int stat = Creature.getSaveAbility(i);
         		if (stat == type) {
         			pcs.firePropertyChange("save"+Creature.getSavingThrowName(i),
-        					this.getSavingThrow(i)-modDelta,
-        					this.getSavingThrow(i)
+        					getSavingThrow(i)-modDelta, getSavingThrow(i)
         				);
         		}
         	}
-        	
-        	// TODO initiative and other properties
+
+        	// initiative
+        	if (type == Creature.ABILITY_DEXTERITY) {
+        		pcs.firePropertyChange("initiative", getInitiativeModifier()-modDelta,
+        				getInitiativeModifier()
+        			);
+        	}
+
+        	// TODO other properties
         }
 	}
 
@@ -103,11 +119,17 @@ public class Character extends Creature implements XML {
 	}
 
 	public int getInitiativeModifier() {
+		return initModifier+getAbilityModifier(Creature.ABILITY_DEXTERITY);
+	}
+
+	public int getBaseInitiative() {
 		return initModifier;
 	}
 
 	public void setInitiativeModifier(int i) {
-		initModifier = i;		
+		int old = initModifier;
+		initModifier = i;
+		pcs.firePropertyChange("initiative", old, i);
 	}
 
 	public int getSavingThrow(int save) {
@@ -319,7 +341,7 @@ public class Character extends Creature implements XML {
 		if (getWounds() != 0) b.append(" wounds=\"").append(getWounds()).append("\"");
 		if (getNonLethal() != 0) b.append(" non-lethal=\"").append(getNonLethal()).append("\"");
 		b.append("/>").append(nl);
-		b.append(i2).append("<Initiative value=\"").append(getInitiativeModifier()).append("\"/>").append(nl);
+		b.append(i2).append("<Initiative value=\"").append(getBaseInitiative()).append("\"/>").append(nl);
 		b.append(i2).append("<SavingThrows>").append(nl);
 		for (int i=0; i<save_names.length; i++) {
 			b.append(i3).append("<Save type=\"").append(save_names[i]);

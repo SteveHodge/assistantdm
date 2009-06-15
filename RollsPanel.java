@@ -15,6 +15,7 @@ import javax.swing.table.AbstractTableModel;
 
 import party.Character;
 import party.Party;
+import swing.SpinnerCellEditor;
 
 
 @SuppressWarnings("serial")
