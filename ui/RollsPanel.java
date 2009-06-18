@@ -16,6 +16,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
 import party.Character;
+import party.Creature;
 import party.Party;
 import swing.SpinnerCellEditor;
 
@@ -160,7 +161,7 @@ public class RollsPanel extends JPanel {
 
 		protected String getRowName(int rowIndex) {
 			if (rowIndex <= LAST_SAVE_ROW) {
-				return Character.getSavingThrowName(rowIndex);
+				return Creature.getSavingThrowName(rowIndex);
 			}
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
 				return skills[rowIndex-FIRST_SKILL_ROW];

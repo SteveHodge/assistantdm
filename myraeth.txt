@@ -1,0 +1,13 @@
+include "magic_tables.txt"
+
+procedure "Myraeth's Shop"
+roll("Myraeth")
+
+table "Myraeth" "Random Magic Item Generation"
+0:1-38,1-13,1-6:run("Potions and Oils")
+1:39-41,14-25,7-19:run("Rings")
+2:-,26-38,20-31:run("Rods")
+3:42-79,39-56,32-44:run("Scrolls")
+4:-,57-60,45-69:run("Staffs")
+5:80-90,61-79,70-75:run("Wands")
+6:91-100,80-100,76-100:run("Wondrous Items")

@@ -1,0 +1,4 @@
+include "magic_tables.txt"
+
+procedure "Bull and Bear Armory"
+run("Armor and Shields")

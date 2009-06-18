@@ -28,6 +28,8 @@ import javax.swing.event.EventListenerList;
 import party.Creature;
 import party.Character;
 
+// TODO altering initiative doesn't update character on party tab
+
 @SuppressWarnings("serial")
 public class CombatEntry extends JPanel implements PropertyChangeListener, ActionListener {
 	protected JFormattedTextField rollField;
@@ -362,10 +364,10 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (evt.getSource() == creature) {
 			// update the relevant fields
-			if (evt.getPropertyName().equals(Character.PROPERTY_MAXHPS)) {
+			if (evt.getPropertyName().equals(Creature.PROPERTY_MAXHPS)) {
 				maxHPsField.setValue(new Integer(creature.getMaximumHitPoints()));
 				updateHPs();
-			} else if (evt.getPropertyName().equals(Character.PROPERTY_AC)) {
+			} else if (evt.getPropertyName().equals(Creature.PROPERTY_AC)) {
 				if (editable) {
 					((JFormattedTextField)acComp).setValue(creature.getAC());
 					((JFormattedTextField)touchACComp).setValue(creature.getTouchAC());
@@ -375,10 +377,10 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 					((JLabel)touchACComp).setText(""+creature.getTouchAC());
 					((JLabel)flatFootedACComp).setText(""+creature.getFlatFootedAC());
 				}
-			} else if (evt.getPropertyName().equals(Character.PROPERTY_WOUNDS)
-					|| evt.getPropertyName().equals(Character.PROPERTY_NONLETHAL)) {
+			} else if (evt.getPropertyName().equals(Creature.PROPERTY_WOUNDS)
+					|| evt.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)) {
 				updateHPs();
-			} else if (evt.getPropertyName().equals(Character.PROPERTY_INITIATIVE)) {
+			} else if (evt.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 				int mod = creature.getInitiativeModifier();
 				modifierField.setValue(mod);
 				total.setText("= "+mod);

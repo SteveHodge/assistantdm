@@ -145,49 +145,49 @@ public class CombatPanel extends JPanel {
 //		}
 //	}
 
-	class ACModel extends AbstractTableModel {
-		String[] columns = {"Name","AC","Touch","Flat-Footed"};
-
-		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			// all AC components are editable, but the totals are not
-			if (columnIndex >= columns.length) return true;
-			return false;
-		}
-
-		public Class<?> getColumnClass(int columnIndex) {
-			if (columnIndex == 0) return String.class;
-			return Integer.class;
-		}
-
-		public void setValueAt(Object value, int rowIndex, int columnIndex) {
-			if (columnIndex < columns.length) return;
-			if (value == null) value = new Integer(0);
-			party.get(rowIndex).setACComponent(columnIndex-columns.length, (Integer)value);
-			this.fireTableRowsUpdated(rowIndex, rowIndex);
-		}
-
-		public String getColumnName(int column) {
-			if (column < columns.length) return columns[column];
-			return Character.getACComponentName(column-columns.length);
-		}
-
-		public int getColumnCount() {
-			return 4+Character.AC_MAX_INDEX;
-		}
-
-		public int getRowCount() {
-			return party.size();
-		}
-
-		public Object getValueAt(int row, int column) {
-			if (column == 0) return getCharacterName(row);
-			if (column == 1) return party.get(row).getAC();
-			if (column == 2) return party.get(row).getTouchAC();
-			if (column == 3) return party.get(row).getFlatFootedAC();
-			if (column >= columns.length) {
-				return party.get(row).getACComponent(column-columns.length);
-			}
-			return null;
-		}
-	}
+//	class ACModel extends AbstractTableModel {
+//		String[] columns = {"Name","AC","Touch","Flat-Footed"};
+//
+//		public boolean isCellEditable(int rowIndex, int columnIndex) {
+//			// all AC components are editable, but the totals are not
+//			if (columnIndex >= columns.length) return true;
+//			return false;
+//		}
+//
+//		public Class<?> getColumnClass(int columnIndex) {
+//			if (columnIndex == 0) return String.class;
+//			return Integer.class;
+//		}
+//
+//		public void setValueAt(Object value, int rowIndex, int columnIndex) {
+//			if (columnIndex < columns.length) return;
+//			if (value == null) value = new Integer(0);
+//			party.get(rowIndex).setACComponent(columnIndex-columns.length, (Integer)value);
+//			this.fireTableRowsUpdated(rowIndex, rowIndex);
+//		}
+//
+//		public String getColumnName(int column) {
+//			if (column < columns.length) return columns[column];
+//			return Character.getACComponentName(column-columns.length);
+//		}
+//
+//		public int getColumnCount() {
+//			return 4+Character.AC_MAX_INDEX;
+//		}
+//
+//		public int getRowCount() {
+//			return party.size();
+//		}
+//
+//		public Object getValueAt(int row, int column) {
+//			if (column == 0) return getCharacterName(row);
+//			if (column == 1) return party.get(row).getAC();
+//			if (column == 2) return party.get(row).getTouchAC();
+//			if (column == 3) return party.get(row).getFlatFootedAC();
+//			if (column >= columns.length) {
+//				return party.get(row).getACComponent(column-columns.length);
+//			}
+//			return null;
+//		}
+//	}
 }

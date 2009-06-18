@@ -26,36 +26,9 @@ public class Character extends Creature implements XML {
 	protected int hps, wounds, nonLethal;
 	protected int[] ac = new int[AC_MAX_INDEX];
 
-	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
-	// properties
-	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
-	public final static String PROPERTY_MAXHPS = "Hit Points";
-	public final static String PROPERTY_WOUNDS = "Wounds";
-	public final static String PROPERTY_NONLETHAL = "Non Lethal Damage";
-	public final static String PROPERTY_INITIATIVE = "Initiative";
-	public final static String PROPERTY_ABILITY_PREFIX = "Ability: ";
-	public final static String PROPERTY_ABILITY_OVERRIDE_PREFIX = "Temporary Ability: ";	// not currently sent to listeners
-	public final static String PROPERTY_SAVE_PREFIX = "Save: ";
-	public final static String PROPERTY_AC = "AC";
-	public final static String PROPERTY_AC_COMPONENT_PREFIX = "AC: ";	// not currently sent to listeners
-	public final static String PROPERTY_SKILL_PREFIX = "Skill: ";
-
 	public Character(String n) {
 		name = n;
 		for (int i=0; i<6; i++) tempAbilities[i] = -1;
-	}
-
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		pcs.addPropertyChangeListener(listener);
-	}
-
-	public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
-		pcs.addPropertyChangeListener(property, listener);
-	}
-
-	public void removePropertyChangeListener(PropertyChangeListener listener) {
-		pcs.removePropertyChangeListener(listener);
 	}
 
 	public int getAbilityScore(int type) {

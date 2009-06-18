@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Shops xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="shops.xsd">
+    <Shop scriptName="myraeth.txt" procName="Myraeth's Shop" day="96">
+        <Minor newChance="20" sellChance="20" number="10"/>
+        <Medium newChance="10" sellChance="10" number="7"/>
+        <Major newChance="5" sellChance="5" number="3"/>
+        <Items>
+            <Item category="2">
+                <Field name="added">54</Field>
+                <Field name="qualities"></Field>
+                <Field name="item">Staff of Life</Field>
+                <Field name="type">Staff</Field>
+                <Field name="cost">155750</Field>
+            </Item>
+            <Item category="1">
+                <Field name="added">82</Field>
+                <Field name="qualities"></Field>
+                <Field name="item">Rod of Metal and mineral detection</Field>
+                <Field name="type">Rod</Field>
+                <Field name="cost">10500</Field>
+            </Item>
+            <Item category="1">
+                <Field name="added">87</Field>
+                <Field name="qualities"></Field>
+                <Field name="item">Figurine of wondrous power, golden lions</Field>
+                <Field name="type">Wondrous Item</Field>
+                <Field name="cost">16500</Field>
+            </Item>
+            <Item category="2">
+                <Field name="added">88</Field>
+                <Field name="qualities">Clue to function</Field>
+                <Field name="item">Rod of Python</Field>
+                <Field name="type">Rod</Field>
+                <Field name="cost">13000</Field>
+            </Item>
+            <Item category="0">
+                <Field name="added">89</Field>
+                <Field name="item">Arcane Scroll of shield (CL1), summon monster I (CL1), protection from Good (CL1)</Field>
+                <Field name="number">3</Field>
+                <Field name="type">Scroll</Field>
+                <Field name="cost">75</Field>
+            </Item>
+            <Item category="0">
+                <Field name="added">90</Field>
+                <Field name="item">Potion of Jump</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">50</Field>
+            </Item>
+            <Item category="1">
+                <Field name="added">92</Field>
+                <Field name="item">Arcane Scroll of stoneskin (CL7), fireball (CL5), rainbow pattern (CL7), gaseous form (CL5)</Field>
+                <Field name="number">4</Field>
+                <Field name="type">Scroll</Field>
+                <Field name="cost">2400</Field>
+            </Item>
+            <Item category="0">
+                <Field name="added">95</Field>
+                <Field name="item">Arcane Scroll of enlarge person (CL1), misdirection (CL3), expeditious retreat (CL1)</Field>
+                <Field name="number">3</Field>
+                <Field name="type">Scroll</Field>
+                <Field name="cost">200</Field>
+            </Item>
+            <Item category="0">
+                <Field name="added">95</Field>
+                <Field name="item">Potion of Jump</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">50</Field>
+            </Item>
+            <Item category="0">
+                <Field name="added">96</Field>
+                <Field name="item">Potion of Pass without trace</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">50</Field>
+            </Item>
+            <Item category="0">
+                <Field name="added">96</Field>
+                <Field name="item">Arcane Scroll of disrupt undead (CL1), acid splash (CL1)</Field>
+                <Field name="number">2</Field>
+                <Field name="type">Scroll</Field>
+                <Field name="cost">25.0</Field>
+            </Item>
+            <Item category="0">
+                <Field name="added">96</Field>
+                <Field name="qualities">Clue to function</Field>
+                <Field name="item">Cloak of the manta ray</Field>
+                <Field name="type">Wondrous Item</Field>
+                <Field name="cost">7200</Field>
+            </Item>
+            <Item category="0">
+                <Field name="added">96</Field>
+                <Field name="item">Potion of Cat's grace</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">300</Field>
+            </Item>
+        </Items>
+    </Shop>
+    <Shop scriptName="rastor.txt" procName="Rastor's Shop" day="96">
+        <Minor newChance="10" sellChance="10" number="5"/>
+        <Medium newChance="5" sellChance="33" number="1"/>
+        <Major newChance="0" sellChance="0" number="0"/>
+        <Items>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="added">85</Field>
+                <Field name="qualities">Altered magic aura</Field>
+                <Field name="foe"></Field>
+                <Field name="item">Sword, bastard +1</Field>
+                <Field name="effective_modifier">1</Field>
+                <Field name="type">Weapon</Field>
+                <Field name="cost">2335</Field>
+            </Item>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="added">95</Field>
+                <Field name="qualities">Sheds light</Field>
+                <Field name="foe"></Field>
+                <Field name="item">Warhammer +1</Field>
+                <Field name="effective_modifier">1</Field>
+                <Field name="type">Weapon</Field>
+                <Field name="cost">2312</Field>
+            </Item>
+        </Items>
+    </Shop>
+    <Shop scriptName="bullandbear.txt" procName="Bull and Bear Armory" day="96">
+        <Minor newChance="10" sellChance="10" number="5"/>
+        <Medium newChance="5" sellChance="33" number="1"/>
+        <Major newChance="0" sellChance="0" number="0"/>
+        <Items>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="added">82</Field>
+                <Field name="qualities">Altered magic aura</Field>
+                <Field name="item">Shield, heavy, steel +1</Field>
+                <Field name="effective_modifier">1</Field>
+                <Field name="type">Armor</Field>
+                <Field name="cost">1170</Field>
+            </Item>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="added">90</Field>
+                <Field name="qualities"></Field>
+                <Field name="item">Shield, light, wooden +1, Animated</Field>
+                <Field name="specials_map">{6=magicgenerator.Instruction$Special@121b59a}</Field>
+                <Field name="effective_modifier">3</Field>
+                <Field name="type">Armor</Field>
+                <Field name="cost">9153</Field>
+            </Item>
+        </Items>
+    </Shop>
+</Shops>

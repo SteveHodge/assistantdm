@@ -49,9 +49,9 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 	}
 
 	public void propertyChange(PropertyChangeEvent arg0) {
-		if (arg0.getPropertyName().equals(Character.PROPERTY_ABILITY_PREFIX+"Dexterity")) {
+		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+"Dexterity")) {
 			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(Creature.ABILITY_DEXTERITY));
-		} else if (arg0.getPropertyName().equals(Character.PROPERTY_INITIATIVE)) {
+		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 			totLabel.setText("Total: "+character.getInitiativeModifier());
 			baseInit.setValue(character.getBaseInitiative());
 		}

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Party xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="party.xsd">
+    <Character name="Obsidian Sundark">
+        <AbilityScores>
+            <AbilityScore type="Strength" value="8"/>
+            <AbilityScore type="Dexterity" value="16"/>
+            <AbilityScore type="Constitution" value="20"/>
+            <AbilityScore type="Intelligence" value="20"/>
+            <AbilityScore type="Wisdom" value="14"/>
+            <AbilityScore type="Charisma" value="10"/>
+        </AbilityScores>
+        <HitPoints maximum="42" wounds="17" non-lethal="10"/>
+        <Initiative value="0"/>
+        <SavingThrows>
+            <Save type="Fortitude" value="4"/>
+            <Save type="Reflex" value="6"/>
+            <Save type="Will" value="7"/>
+        </SavingThrows>
+        <Skills>
+            <Skill type="Listen" value="0"/>
+            <Skill type="Knowledge (Arcana)" value="8"/>
+            <Skill type="Knowledge (History)" value="3"/>
+            <Skill type="Knowledge (Local)" value="2"/>
+            <Skill type="Knowledge (Nobility)" value="3"/>
+            <Skill type="Knowledge (Machinery)" value="7"/>
+            <Skill type="Knowledge (Religion)" value="6"/>
+            <Skill type="Knowledge (The Planes)" value="3"/>
+            <Skill type="Spot" value="0"/>
+            <Skill type="Knowledge (Dungeoneering)" value="4"/>
+        </Skills>
+        <AC>
+            <ACComponent type="Dex" value="3"/>
+            <ACComponent type="Size" value="1"/>
+            <ACComponent type="Deflect" value="1"/>
+        </AC>
+    </Character>
+    <Character name="FitzLoyal">
+        <AbilityScores>
+            <AbilityScore type="Strength" value="16"/>
+            <AbilityScore type="Dexterity" value="18"/>
+            <AbilityScore type="Constitution" value="17"/>
+            <AbilityScore type="Intelligence" value="16"/>
+            <AbilityScore type="Wisdom" value="8"/>
+            <AbilityScore type="Charisma" value="12"/>
+        </AbilityScores>
+        <HitPoints maximum="55" wounds="10"/>
+        <Initiative value="4"/>
+        <SavingThrows>
+            <Save type="Fortitude" value="2"/>
+            <Save type="Reflex" value="7"/>
+            <Save type="Will" value="-1"/>
+        </SavingThrows>
+        <Skills>
+            <Skill type="Search" value="9"/>
+            <Skill type="Knowledge (Local)" value="5"/>
+            <Skill type="Gather Information" value="1"/>
+            <Skill type="Spot" value="8"/>
+        </Skills>
+        <AC>
+            <ACComponent type="Armor" value="5"/>
+            <ACComponent type="Shield" value="2"/>
+            <ACComponent type="Dex" value="4"/>
+        </AC>
+    </Character>
+    <Character name="Deadwood">
+        <AbilityScores>
+            <AbilityScore type="Strength" value="9"/>
+            <AbilityScore type="Dexterity" value="14"/>
+            <AbilityScore type="Constitution" value="15"/>
+            <AbilityScore type="Intelligence" value="11"/>
+            <AbilityScore type="Wisdom" value="18"/>
+            <AbilityScore type="Charisma" value="7"/>
+        </AbilityScores>
+        <HitPoints maximum="50"/>
+        <Initiative value="0"/>
+        <SavingThrows>
+            <Save type="Fortitude" value="6"/>
+            <Save type="Reflex" value="3"/>
+            <Save type="Will" value="6"/>
+        </SavingThrows>
+        <Skills>
+            <Skill type="Listen" value="6"/>
+            <Skill type="Knowledge (nature)" value="13"/>
+            <Skill type="Spellcraft" value="4"/>
+            <Skill type="Move Silently" value="-3"/>
+            <Skill type="Survival" value="7"/>
+            <Skill type="Jump" value="-9"/>
+            <Skill type="Gather Information" value="0"/>
+            <Skill type="Escape Artist" value="-3"/>
+            <Skill type="Craft (Woodworking)" value="1"/>
+            <Skill type="Swim" value="-5"/>
+            <Skill type="Hide" value="-3"/>
+            <Skill type="Handle Animal" value="9"/>
+            <Skill type="Spot" value="6"/>
+            <Skill type="Balance" value="-3"/>
+            <Skill type="Profession (Landscaping)" value="1"/>
+            <Skill type="Ride" value="3"/>
+        </Skills>
+        <AC>
+            <ACComponent type="Armor" value="2"/>
+            <ACComponent type="Shield" value="1"/>
+            <ACComponent type="Dex" value="2"/>
+        </AC>
+    </Character>
+    <Character name="Sir Tanndeth">
+        <AbilityScores>
+            <AbilityScore type="Strength" value="10"/>
+            <AbilityScore type="Dexterity" value="10"/>
+            <AbilityScore type="Constitution" value="10"/>
+            <AbilityScore type="Intelligence" value="10"/>
+            <AbilityScore type="Wisdom" value="10"/>
+            <AbilityScore type="Charisma" value="10"/>
+        </AbilityScores>
+        <HitPoints maximum="22"/>
+        <Initiative value="0"/>
+        <SavingThrows>
+            <Save type="Fortitude" value="8"/>
+            <Save type="Reflex" value="3"/>
+            <Save type="Will" value="5"/>
+        </SavingThrows>
+        <Skills>
+            <Skill type="Listen" value="-14"/>
+            <Skill type="Search" value="-14"/>
+            <Skill type="Handle Animal" value="-9"/>
+            <Skill type="Gather Information" value="-11"/>
+            <Skill type="Spot" value="-14"/>
+        </Skills>
+        <AC>
+            <ACComponent type="Armor" value="4"/>
+            <ACComponent type="Shield" value="2"/>
+            <ACComponent type="Dex" value="-1"/>
+        </AC>
+    </Character>
+    <Character name="Heidi Himmler">
+        <AbilityScores>
+            <AbilityScore type="Strength" value="15"/>
+            <AbilityScore type="Dexterity" value="14"/>
+            <AbilityScore type="Constitution" value="18"/>
+            <AbilityScore type="Intelligence" value="14"/>
+            <AbilityScore type="Wisdom" value="18"/>
+            <AbilityScore type="Charisma" value="11"/>
+        </AbilityScores>
+        <HitPoints maximum="22"/>
+        <Initiative value="4"/>
+        <SavingThrows>
+            <Save type="Fortitude" value="7"/>
+            <Save type="Reflex" value="2"/>
+            <Save type="Will" value="6"/>
+        </SavingThrows>
+        <Skills>
+            <Skill type="Listen" value="0"/>
+            <Skill type="Search" value="0"/>
+            <Skill type="Knowledge (History)" value="1"/>
+            <Skill type="Knowledge (Religion)" value="8"/>
+            <Skill type="Spot" value="0"/>
+        </Skills>
+        <AC>
+            <ACComponent type="Armor" value="10"/>
+            <ACComponent type="Shield" value="4"/>
+            <ACComponent type="Dex" value="1"/>
+        </AC>
+    </Character>
+</Party>

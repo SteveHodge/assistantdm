@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 import party.Character;
+import party.Creature;
 
 @SuppressWarnings("serial")
 public class CharacterHitPointPanel extends JPanel implements PropertyChangeListener {
@@ -88,11 +89,11 @@ public class CharacterHitPointPanel extends JPanel implements PropertyChangeList
 
 	public void propertyChange(PropertyChangeEvent arg0) {
 		currHP.setValue(new Integer(character.getHPs()));
-		if (arg0.getPropertyName().equals(Character.PROPERTY_MAXHPS)) {
+		if (arg0.getPropertyName().equals(Creature.PROPERTY_MAXHPS)) {
 			maxHP.setValue(new Integer(character.getMaximumHitPoints()));
-		} else if (arg0.getPropertyName().equals(Character.PROPERTY_WOUNDS)) {
+		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_WOUNDS)) {
 			wounds.setValue(new Integer(character.getWounds()));
-		} else if (arg0.getPropertyName().equals(Character.PROPERTY_NONLETHAL)) {
+		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)) {
 			nonLethal.setValue(new Integer(character.getNonLethal()));
 		}
 	}

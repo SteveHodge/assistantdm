@@ -75,7 +75,7 @@ public class CharacterAbilityPanel extends JPanel {
 		}
 
 		public Object getValueAt(int row, int column) {
-			if (column == 0) return Character.getAbilityName(row);
+			if (column == 0) return Creature.getAbilityName(row);
 			if (column == 1) return character.getBaseAbilityScore(row);
 			if (column == 2) {
 				if (character.getAbilityScore(row) == character.getBaseAbilityScore(row)) return null;
@@ -87,7 +87,7 @@ public class CharacterAbilityPanel extends JPanel {
 
 		public void propertyChange(PropertyChangeEvent evt) {
 			String abilityName = evt.getPropertyName();
-			if (abilityName.startsWith(Character.PROPERTY_ABILITY_PREFIX)) {
+			if (abilityName.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
 				abilityName = abilityName.substring(7);
 				for (int i = 0; i < 6; i++) {
 					if (Creature.getAbilityName(i).equals(abilityName)) {

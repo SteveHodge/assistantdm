@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<Shops xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="shops.xsd">
+    <Shop scriptName="myraeth.txt" procName="Myraeth's Shop" day="17">
+        <Minor newChance="20" sellChance="20" number="10"/>
+        <Medium newChance="10" sellChance="10" number="7"/>
+        <Major newChance="5" sellChance="5" number="3"/>
+        <Items>
+            <Item category="1">
+                <Field name="qualities"></Field>
+                <Field name="item">Wand of Silence</Field>
+                <Field name="type">Wand</Field>
+                <Field name="cost">4500</Field>
+            </Item>
+            <Item category="2">
+                <Field name="qualities"></Field>
+                <Field name="item">Staff of Fire</Field>
+                <Field name="type">Staff</Field>
+                <Field name="cost">17750</Field>
+            </Item>
+            <Item category="0">
+                <Field name="item">Arcane Scroll of spectral hand (CL3), knock (CL3)</Field>
+                <Field name="number">2</Field>
+                <Field name="type">Scroll</Field>
+                <Field name="cost">300</Field>
+            </Item>
+            <Item category="0">
+                <Field name="qualities"></Field>
+                <Field name="item">Cloak of resistance +1</Field>
+                <Field name="type">Wondrous Item</Field>
+                <Field name="cost">1000</Field>
+            </Item>
+            <Item category="0">
+                <Field name="item">Potion of Protection from Chaos</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">50</Field>
+            </Item>
+            <Item category="1">
+                <Field name="qualities"></Field>
+                <Field name="item">Periapt of proof against poison</Field>
+                <Field name="type">Wondrous Item</Field>
+                <Field name="cost">27000</Field>
+            </Item>
+            <Item category="0">
+                <Field name="qualities">Clue to function</Field>
+                <Field name="item">Wand of Cure light wounds</Field>
+                <Field name="type">Wand</Field>
+                <Field name="cost">750</Field>
+            </Item>
+            <Item category="2">
+                <Field name="qualities">Clue to function</Field>
+                <Field name="item">Staff of Earth and stone</Field>
+                <Field name="type">Staff</Field>
+                <Field name="cost">80500</Field>
+            </Item>
+            <Item category="1">
+                <Field name="qualities">Clue to function</Field>
+                <Field name="item">Ring of Wizardry (I)</Field>
+                <Field name="type">Ring</Field>
+                <Field name="cost">20000</Field>
+            </Item>
+            <Item category="0">
+                <Field name="item">Potion of Remove fear</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">50</Field>
+            </Item>
+            <Item category="0">
+                <Field name="item">Divine Scroll of longstrider (CL1), bull's strength (CL3), charm animal (CL1)</Field>
+                <Field name="number">3</Field>
+                <Field name="type">Scroll</Field>
+                <Field name="cost">200</Field>
+            </Item>
+            <Item category="0">
+                <Field name="item">Arcane Scroll of silent image (CL1), expeditious retreat (CL1)</Field>
+                <Field name="number">2</Field>
+                <Field name="type">Scroll</Field>
+                <Field name="cost">50</Field>
+            </Item>
+            <Item category="0">
+                <Field name="item">Oil of Shillelagh</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">50</Field>
+            </Item>
+            <Item category="2">
+                <Field name="item">Potion of Tongues</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">750</Field>
+            </Item>
+            <Item category="0">
+                <Field name="item">Potion of Darkvision</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">300</Field>
+            </Item>
+            <Item category="0">
+                <Field name="item">Potion of Reduce person</Field>
+                <Field name="type">Potion</Field>
+                <Field name="cost">250</Field>
+            </Item>
+            <Item category="1">
+                <Field name="qualities">Clue to function</Field>
+                <Field name="item">Figurine of wondrous power, ebony fly</Field>
+                <Field name="type">Wondrous Item</Field>
+                <Field name="cost">10000</Field>
+            </Item>
+        </Items>
+    </Shop>
+    <Shop scriptName="rastor.txt" procName="Rastor's Shop" day="17">
+        <Minor newChance="10" sellChance="10" number="5"/>
+        <Medium newChance="5" sellChance="33" number="1"/>
+        <Major newChance="0" sellChance="0" number="0"/>
+        <Items>
+            <Item category="0">
+                <Field name="modifier">2</Field>
+                <Field name="qualities"></Field>
+                <Field name="foe"/>
+                <Field name="item">Shortbow, composite (+0 Str) +2</Field>
+                <Field name="effective_modifier">2</Field>
+                <Field name="type">Weapon</Field>
+                <Field name="cost">8375</Field>
+            </Item>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="qualities">Sheds light</Field>
+                <Field name="foe"/>
+                <Field name="item">Greataxe +1</Field>
+                <Field name="effective_modifier">1</Field>
+                <Field name="type">Weapon</Field>
+                <Field name="cost">2320</Field>
+            </Item>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="qualities"></Field>
+                <Field name="item">Rapier +1, Merciful</Field>
+                <Field name="foe"/>
+                <Field name="type">Weapon</Field>
+                <Field name="effective_modifier">2</Field>
+                <Field name="cost">8320</Field>
+            </Item>
+        </Items>
+    </Shop>
+    <Shop scriptName="bullandbear.txt" procName="Bull and Bear Armory" day="17">
+        <Minor newChance="10" sellChance="10" number="5"/>
+        <Medium newChance="5" sellChance="33" number="1"/>
+        <Major newChance="0" sellChance="0" number="0"/>
+        <Items>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="qualities"></Field>
+                <Field name="item">Full plate +1</Field>
+                <Field name="type">Armor</Field>
+                <Field name="effective_modifier">1</Field>
+                <Field name="cost">2650</Field>
+            </Item>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="qualities"></Field>
+                <Field name="item">Shield, light, wooden +1</Field>
+                <Field name="type">Armor</Field>
+                <Field name="effective_modifier">1</Field>
+                <Field name="cost">1153</Field>
+            </Item>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="qualities"></Field>
+                <Field name="item">Shield, heavy, steel +1</Field>
+                <Field name="type">Armor</Field>
+                <Field name="effective_modifier">1</Field>
+                <Field name="cost">1170</Field>
+            </Item>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="qualities">Altered magic aura</Field>
+                <Field name="item">Shield, light, wooden +1</Field>
+                <Field name="effective_modifier">1</Field>
+                <Field name="type">Armor</Field>
+                <Field name="cost">1153</Field>
+            </Item>
+            <Item category="0">
+                <Field name="modifier">1</Field>
+                <Field name="qualities">Clue to function</Field>
+                <Field name="item">Shield, heavy, wooden +1, Blinding</Field>
+                <Field name="effective_modifier">2</Field>
+                <Field name="type">Armor</Field>
+                <Field name="cost">4157</Field>
+            </Item>
+        </Items>
+    </Shop>
+</Shops>

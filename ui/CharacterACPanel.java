@@ -16,6 +16,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import party.Character;
+import party.Creature;
 import swing.SpinnerCellEditor;
 
 @SuppressWarnings("serial")
@@ -73,7 +74,7 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 
 	protected class ACTableModel extends AbstractTableModel implements PropertyChangeListener {
 		public ACTableModel() {
-			character.addPropertyChangeListener(Character.PROPERTY_AC, this);
+			character.addPropertyChangeListener(Creature.PROPERTY_AC, this);
 		}
 
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -101,11 +102,11 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 		}
 
 		public int getRowCount() {
-			return Character.AC_MAX_INDEX;
+			return Creature.AC_MAX_INDEX;
 		}
 
 		public Object getValueAt(int row, int column) {
-			if (column == 0) return Character.getACComponentName(row);
+			if (column == 0) return Creature.getACComponentName(row);
 			return character.getACComponent(row);
 		}
 

@@ -78,7 +78,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 
 	public void propertyChange(PropertyChangeEvent evt) {
 		String prop = evt.getPropertyName();
-		if (prop.startsWith(Character.PROPERTY_ABILITY_PREFIX)) {
+		if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
 			prop = prop.substring(7);
 			for (int i = 0; i < 3; i++) {
 				if (prop.equals(Creature.getAbilityName(Creature.getSaveAbility(i)))) {
@@ -87,7 +87,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 					totalLabels[i].setText(""+character.getSavingThrow(i));
 				}
 			}
-		} else if (prop.startsWith(Character.PROPERTY_SAVE_PREFIX)) {
+		} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
 			prop = prop.substring(4);
 			for (int i = 0; i < 3; i++) {
 				if (prop.equals(Creature.getSavingThrowName(i))) {

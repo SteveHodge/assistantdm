@@ -1,5 +1,6 @@
 package party;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 public abstract class Creature {
 	public static final int SAVE_FORTITUDE = 0;
@@ -22,6 +23,19 @@ public abstract class Creature {
 	public static final int ABILITY_INTELLIGENCE = 3;
 	public static final int ABILITY_WISDOM = 4;
 	public static final int ABILITY_CHARISMA = 5;
+
+	// properties
+	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
+	public final static String PROPERTY_MAXHPS = "Hit Points";
+	public final static String PROPERTY_WOUNDS = "Wounds";
+	public final static String PROPERTY_NONLETHAL = "Non Lethal Damage";
+	public final static String PROPERTY_INITIATIVE = "Initiative";
+	public final static String PROPERTY_ABILITY_PREFIX = "Ability: ";
+	public final static String PROPERTY_ABILITY_OVERRIDE_PREFIX = "Temporary Ability: ";	// not currently sent to listeners
+	public final static String PROPERTY_SAVE_PREFIX = "Save: ";
+	public final static String PROPERTY_AC = "AC";
+	public final static String PROPERTY_AC_COMPONENT_PREFIX = "AC: ";	// not currently sent to listeners
+	public final static String PROPERTY_SKILL_PREFIX = "Skill: ";
 
 	protected static final String[] save_names = {"Fortitude", "Reflex", "Will"};
 	protected static final String[] ability_names = {"Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"};
@@ -50,6 +64,22 @@ public abstract class Creature {
 		return ability_names[type];
 	}
 
+	// ************************* Non static members and methods **************************
+
+	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
+	}
+
+	public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(property, listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pcs.removePropertyChangeListener(listener);
+	}
+
 	abstract public String getName();
 	abstract public void setName(String name);
 
@@ -76,8 +106,4 @@ public abstract class Creature {
 	
 	abstract public int getFlatFootedAC();
 	abstract public void setFlatFootedAC(int ac);
-
-	abstract public void addPropertyChangeListener(PropertyChangeListener listener);
-	abstract public void addPropertyChangeListener(String property, PropertyChangeListener listener);
-	abstract public void removePropertyChangeListener(PropertyChangeListener listener);
 }

@@ -16,6 +16,7 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import party.Character;
+import party.Creature;
 
 @SuppressWarnings("serial")
 public class SelectDiffsDialog extends JDialog implements ActionListener {
@@ -33,10 +34,10 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 		this.newChar = newChar;
 		selected = new HashMap<String,Boolean>();
 		for (String diff : diffs) {
-			if (!diff.equals(Character.PROPERTY_NAME)
-				&& !diff.equals(Character.PROPERTY_WOUNDS)
-				&& !diff.equals(Character.PROPERTY_NONLETHAL)
-				&& !diff.startsWith(Character.PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
+			if (!diff.equals(Creature.PROPERTY_NAME)
+				&& !diff.equals(Creature.PROPERTY_WOUNDS)
+				&& !diff.equals(Creature.PROPERTY_NONLETHAL)
+				&& !diff.startsWith(Creature.PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
 				selected.put(diff,true);
 			}
 		}
