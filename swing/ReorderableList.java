@@ -133,7 +133,7 @@ public class ReorderableList extends JLayeredPane implements MouseMotionListener
 			if (dragging) {
 				dragEntry.setBounds(0, y, dragEntrySize.width, dragEntrySize.height);
 				// 1. find entry under mouse
-				// TODO: scanning the entries like this is pretty inefficient - could track the indexes instead
+				// TODO scanning the entries like this is pretty inefficient - could track the indexes instead
 				Rectangle bounds = null;
 				for (int i=0; i<model.getSize(); i++) {
 					Component ie = (Component)model.getElementAt(i);

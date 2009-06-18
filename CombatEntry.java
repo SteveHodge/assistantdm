@@ -1,3 +1,4 @@
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -16,6 +17,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JToolTip;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -24,6 +26,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 
 import party.Creature;
+import party.Character;
 
 @SuppressWarnings("serial")
 public class CombatEntry extends JPanel implements PropertyChangeListener, ActionListener {
@@ -140,6 +143,28 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 		}
 	}
 
+	public JToolTip createToolTip() {
+		JToolTip tip = new JToolTip() {
+			public String getTipText() {
+				if (creature instanceof Character) {
+					Character c = (Character)creature;
+					// get the AC components
+					String components = "<html>Base AC: 10<br>";
+					for (int i = 0; i < Creature.AC_MAX_INDEX; i++) {
+						int v = c.getACComponent(i);
+						if (v != 0) {
+							components += Creature.getACComponentName(i) + ": " + v + "<br>";
+						}
+					}
+					return components+"</html>";
+				}
+				return null;
+			}
+		};
+        tip.setComponent(this);
+        return tip;
+	}
+
 	protected void createPanel() {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -229,6 +254,10 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 		add(healAll, c);
 
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+
+		if (creature instanceof Character) {
+			setToolTipText("has tooltip"); // the text is irrelevant as we override the JToolTip (see above). this just forces the tip to appear
+		}
 	}
 
 	protected JComponent createInitiativeSection() {
@@ -278,7 +307,7 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 			name = createEditableNameSection();
 		} else {
 			onlyDM.setSelected(true); // we assume an non-editable source is a character that should be visible
-			Integer mod = new Integer(creature.getInitiativeModifier());
+			int mod = creature.getInitiativeModifier();
 			modifierField.setValue(mod);
 			total.setText("= "+mod);
 			name = new JLabel(creature.getName());
@@ -333,10 +362,10 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (evt.getSource() == creature) {
 			// update the relevant fields
-			if (evt.getPropertyName().equals("maximumHitPoints")) {
+			if (evt.getPropertyName().equals(Character.PROPERTY_MAXHPS)) {
 				maxHPsField.setValue(new Integer(creature.getMaximumHitPoints()));
 				updateHPs();
-			} else if (evt.getPropertyName().equals("ac")) {
+			} else if (evt.getPropertyName().equals(Character.PROPERTY_AC)) {
 				if (editable) {
 					((JFormattedTextField)acComp).setValue(creature.getAC());
 					((JFormattedTextField)touchACComp).setValue(creature.getTouchAC());
@@ -346,9 +375,13 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 					((JLabel)touchACComp).setText(""+creature.getTouchAC());
 					((JLabel)flatFootedACComp).setText(""+creature.getFlatFootedAC());
 				}
-			} else if (evt.getPropertyName().equals("wounds")
-					|| evt.getPropertyName().equals("nonLethal")) {
+			} else if (evt.getPropertyName().equals(Character.PROPERTY_WOUNDS)
+					|| evt.getPropertyName().equals(Character.PROPERTY_NONLETHAL)) {
 				updateHPs();
+			} else if (evt.getPropertyName().equals(Character.PROPERTY_INITIATIVE)) {
+				int mod = creature.getInitiativeModifier();
+				modifierField.setValue(mod);
+				total.setText("= "+mod);
 			}
 
 		} else if (evt.getPropertyName().equals("value")) {

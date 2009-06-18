@@ -1,8 +1,10 @@
 package party;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,22 +28,30 @@ public class Character extends Creature implements XML {
 
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
+	// properties
+	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
+	public final static String PROPERTY_MAXHPS = "Hit Points";
+	public final static String PROPERTY_WOUNDS = "Wounds";
+	public final static String PROPERTY_NONLETHAL = "Non Lethal Damage";
+	public final static String PROPERTY_INITIATIVE = "Initiative";
+	public final static String PROPERTY_ABILITY_PREFIX = "Ability: ";
+	public final static String PROPERTY_ABILITY_OVERRIDE_PREFIX = "Temporary Ability: ";	// not currently sent to listeners
+	public final static String PROPERTY_SAVE_PREFIX = "Save: ";
+	public final static String PROPERTY_AC = "AC";
+	public final static String PROPERTY_AC_COMPONENT_PREFIX = "AC: ";	// not currently sent to listeners
+	public final static String PROPERTY_SKILL_PREFIX = "Skill: ";
+
 	public Character(String n) {
 		name = n;
 		for (int i=0; i<6; i++) tempAbilities[i] = -1;
 	}
 
-	// Properties:
-	// "ability"+ability name
-	// "skill"+skill name
-	// "save"+save name
-    // "initiative"
-    // "maximumHitPoints"
-	// "wounds"
-	// "nonLethal"
-	// "ac"
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
+	}
+
+	public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(property, listener);
 	}
 
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
@@ -62,7 +72,7 @@ public class Character extends Creature implements XML {
 	}
 
 	protected void fireAbilityChange(int type, int old, int value) {
-        pcs.firePropertyChange("ability"+ability_names[type], old, value);
+        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+ability_names[type], old, value);
         int modDelta = Creature.getModifier(value) - Creature.getModifier(old);
         if (modDelta != 0) {
         	// skills
@@ -70,7 +80,7 @@ public class Character extends Creature implements XML {
         	for (String skill : Skill.skill_ability_map.keySet()) {
         		int ability = Skill.skill_ability_map.get(skill);
         		if (ability == type) {
-        	        pcs.firePropertyChange("skill"+skill, getSkill(skill)-modDelta, getSkill(skill));
+        	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, getSkill(skill)-modDelta, getSkill(skill));
         		}
         	}
 
@@ -78,7 +88,7 @@ public class Character extends Creature implements XML {
         	for (int i = 0; i < 3; i++) {
         		int stat = Creature.getSaveAbility(i);
         		if (stat == type) {
-        			pcs.firePropertyChange("save"+Creature.getSavingThrowName(i),
+        			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(i),
         					getSavingThrow(i)-modDelta, getSavingThrow(i)
         				);
         		}
@@ -86,7 +96,7 @@ public class Character extends Creature implements XML {
 
         	// initiative
         	if (type == Creature.ABILITY_DEXTERITY) {
-        		pcs.firePropertyChange("initiative", getInitiativeModifier()-modDelta,
+        		pcs.firePropertyChange(PROPERTY_INITIATIVE, getInitiativeModifier()-modDelta,
         				getInitiativeModifier()
         			);
         	}
@@ -129,7 +139,7 @@ public class Character extends Creature implements XML {
 	public void setInitiativeModifier(int i) {
 		int old = initModifier;
 		initModifier = i;
-		pcs.firePropertyChange("initiative", old, i);
+		pcs.firePropertyChange(PROPERTY_INITIATIVE, old, i);
 	}
 
 	public int getSavingThrow(int save) {
@@ -143,7 +153,7 @@ public class Character extends Creature implements XML {
 	public void setSavingThrow(int save, int total) {
 		int old = saves[save];
 		saves[save] = total;
-		pcs.firePropertyChange("save"+Creature.getSavingThrowName(save), old, total);
+		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(save), old, total);
 	}
 
 	public int getSkill(String skill) {
@@ -155,14 +165,24 @@ public class Character extends Creature implements XML {
 	}
 
 	public int getSkillRanks(String skill) {
-		return skills.get(skill);
+		Integer ranks = skills.get(skill);
+		if (ranks == null) return 0;
+		return ranks;
 	}
 
 	public void setSkill(String skill, int total) {
 		int old = 0;
 		if (skills.containsKey(skill)) old = skills.get(skill);
 		skills.put(skill,total);
-        pcs.firePropertyChange("skill"+skill, old, total);
+        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, old, total);
+	}
+
+	public void deleteSkill(String skill) {
+		if (skills.containsKey(skill)) {
+			int old = skills.get(skill);
+			skills.remove(skill);
+	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, old, 0);
+		}
 	}
 
 	public String getName() {
@@ -176,7 +196,7 @@ public class Character extends Creature implements XML {
 	public void setMaximumHitPoints(int hp) {
 		int old = hps;
 		hps = hp;
-        pcs.firePropertyChange("maximumHitPoints", old, hp);
+        pcs.firePropertyChange(PROPERTY_MAXHPS, old, hp);
 	}		
 
 	public int getWounds() {
@@ -186,7 +206,7 @@ public class Character extends Creature implements XML {
 	public void setWounds(int i) {
 		int old = wounds;
 		wounds = i;
-		pcs.firePropertyChange("wounds", old, i);
+		pcs.firePropertyChange(PROPERTY_WOUNDS, old, i);
 	}
 
 	public int getNonLethal() {
@@ -196,7 +216,7 @@ public class Character extends Creature implements XML {
 	public void setNonLethal(int i) {
 		int old = nonLethal;
 		nonLethal = i;
-		pcs.firePropertyChange("nonLethal", old, i);
+		pcs.firePropertyChange(PROPERTY_NONLETHAL, old, i);
 	}
 
 	public int getHPs() {
@@ -206,7 +226,7 @@ public class Character extends Creature implements XML {
 	public void setACComponent(int type, int value) {
 		int oldValue = ac[type];
 		ac[type] = value;
-		pcs.firePropertyChange("ac", oldValue, value);
+		pcs.firePropertyChange(PROPERTY_AC, oldValue, value);
 	}
 
 	public int getACComponent(int type) {
@@ -366,5 +386,183 @@ public class Character extends Creature implements XML {
 		b.append(i2).append("</AC>").append(nl);
 		b.append(indent).append("</Character>").append(nl);
 		return b.toString();
+	}
+
+	// Prints the differences between this and inChar
+	public void showDiffs(Character inChar) {
+		if (!name.equals(inChar.name)) {
+			// new attribute
+			System.out.println(PROPERTY_NAME+"|"+name+"|"+inChar.name);
+		}
+		if (hps != inChar.hps) {
+			System.out.println(PROPERTY_MAXHPS+"|"+hps+"|"+inChar.hps);
+		}
+		if (wounds != inChar.wounds) {
+			System.out.println(PROPERTY_WOUNDS+"|"+wounds+"|"+inChar.wounds);
+		}
+		if (nonLethal != inChar.nonLethal) {
+			System.out.println(PROPERTY_NONLETHAL+"|"+nonLethal+"|"+inChar.nonLethal);
+		}
+		if (initModifier != inChar.initModifier) {
+			System.out.println(PROPERTY_INITIATIVE+"|"+initModifier+"|"+inChar.initModifier);
+		}
+		for (int i=0; i<6; i++) {
+			if (abilities[i] != inChar.abilities[i]) {
+				System.out.println(PROPERTY_ABILITY_PREFIX+ability_names[i]+"|"+abilities[i]+"|"+inChar.abilities[i]);
+			}
+		}
+		for (int i=0; i<6; i++) {
+			if (tempAbilities[i] != inChar.tempAbilities[i]) {
+				// new attribute
+				System.out.println(PROPERTY_ABILITY_OVERRIDE_PREFIX+getAbilityName(i)+"|"+tempAbilities[i]+"|"+inChar.tempAbilities[i]);
+			}
+		}
+		for (int i=0; i<3; i++) {
+			if (saves[i] != inChar.saves[i]) {
+				System.out.println(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(i)+"|"+saves[i]+"|"+inChar.saves[i]);
+			}
+		}
+		for (int i=0; i<AC_MAX_INDEX; i++) {
+			if (ac[i] != inChar.ac[i]) {
+				// new attribute
+				System.out.println(PROPERTY_AC_COMPONENT_PREFIX+Creature.getACComponentName(i)+"|"+ac[i]+"|"+inChar.ac[i]);
+			}
+		}
+		HashSet<String> allSkills = new HashSet<String>(skills.keySet());
+		allSkills.addAll(inChar.skills.keySet());
+		for (String skill : allSkills) {
+			if (getSkillRanks(skill) != inChar.getSkillRanks(skill)) {
+				System.out.println(PROPERTY_SKILL_PREFIX+skill+"|"+getSkillRanks(skill)+"|"+inChar.getSkillRanks(skill));
+			}
+		}
+	}
+
+	// Returns a list of the properties that differ between this and inChar
+	// The list is ordered by the type of property
+	public List<String> getDifferences(Character inChar) {
+		List<String> diffs = new ArrayList<String>();
+
+		if (!name.equals(inChar.name)) diffs.add(PROPERTY_NAME);
+		if (hps != inChar.hps) diffs.add(PROPERTY_MAXHPS);
+		if (wounds != inChar.wounds) diffs.add(PROPERTY_WOUNDS);
+		if (nonLethal != inChar.nonLethal) diffs.add(PROPERTY_NONLETHAL);
+		if (initModifier != inChar.initModifier) diffs.add(PROPERTY_INITIATIVE);
+		for (int i=0; i<6; i++) {
+			if (abilities[i] != inChar.abilities[i]) {
+				diffs.add(PROPERTY_ABILITY_PREFIX+getAbilityName(i));
+			}
+		}
+		for (int i=0; i<6; i++) {
+			if (tempAbilities[i] != inChar.tempAbilities[i]) {
+				diffs.add(PROPERTY_ABILITY_OVERRIDE_PREFIX+getAbilityName(i));
+			}
+		}
+		for (int i=0; i<3; i++) {
+			if (saves[i] != inChar.saves[i]) {
+				diffs.add(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(i));
+			}
+		}
+		for (int i=0; i<AC_MAX_INDEX; i++) {
+			if (ac[i] != inChar.ac[i]) {
+				diffs.add(PROPERTY_AC_COMPONENT_PREFIX+Creature.getACComponentName(i));
+			}
+		}
+		HashSet<String> allSkills = new HashSet<String>(skills.keySet());
+		allSkills.addAll(inChar.skills.keySet());
+		for (String skill : allSkills) {
+			if (getSkillRanks(skill) != inChar.getSkillRanks(skill)) {
+				diffs.add(PROPERTY_SKILL_PREFIX+skill);
+			}
+		}
+		return diffs;
+	}
+
+	public Object getProperty(String prop) {
+		if (prop.equals(PROPERTY_NAME)) return name;
+		if (prop.equals(PROPERTY_MAXHPS)) return hps;
+		if (prop.equals(PROPERTY_WOUNDS)) return wounds;
+		if (prop.equals(PROPERTY_NONLETHAL)) return nonLethal;
+		if (prop.equals(PROPERTY_INITIATIVE)) return initModifier;
+		
+		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
+			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
+			for (int i=0; i<6; i++) {
+				if (ability.equals(Creature.getAbilityName(i))) return abilities[i];
+			}
+		}
+
+		if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
+			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
+			for (int i=0; i<6; i++) {
+				if (ability.equals(Creature.getAbilityName(i))) return tempAbilities[i];
+			}
+		}
+
+		if (prop.startsWith(PROPERTY_SAVE_PREFIX)) {
+			String save = prop.substring(PROPERTY_SAVE_PREFIX.length());
+			for (int i=0; i<3; i++) {
+				if (save.equals(Creature.getSavingThrowName(i))) return saves[i];
+			}
+		}
+
+		if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
+			String comp = prop.substring(PROPERTY_AC_COMPONENT_PREFIX.length());
+			for (int i=0; i<Creature.AC_MAX_INDEX; i++) {
+				if (comp.equals(Creature.getACComponentName(i))) return ac[i];
+			}
+		}
+
+		if (prop.startsWith(PROPERTY_SKILL_PREFIX)) {
+			String skill = prop.substring(PROPERTY_SKILL_PREFIX.length());
+			Integer ranks = skills.get(skill);
+			if (ranks != null) return ranks;
+		}
+
+		return null;
+	}
+
+	public void setProperty(String prop, Object value) {
+		if (prop.equals(PROPERTY_NAME)) setName((String)value);
+		if (prop.equals(PROPERTY_MAXHPS)) setMaximumHitPoints((Integer)value);
+		if (prop.equals(PROPERTY_WOUNDS)) setWounds((Integer)value);
+		if (prop.equals(PROPERTY_NONLETHAL)) setNonLethal((Integer)value);
+		if (prop.equals(PROPERTY_INITIATIVE)) setInitiativeModifier((Integer)value);
+		
+		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
+			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
+			for (int i=0; i<6; i++) {
+				if (ability.equals(Creature.getAbilityName(i))) setAbilityScore(i, (Integer)value);
+			}
+		}
+
+		if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
+			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
+			for (int i=0; i<6; i++) {
+				if (ability.equals(Creature.getAbilityName(i))) setTemporaryAbility(i, (Integer)value);
+			}
+		}
+
+		if (prop.startsWith(PROPERTY_SAVE_PREFIX)) {
+			String save = prop.substring(PROPERTY_SAVE_PREFIX.length());
+			for (int i=0; i<3; i++) {
+				if (save.equals(Creature.getSavingThrowName(i))) setSavingThrow(i, (Integer)value);
+			}
+		}
+
+		if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
+			String comp = prop.substring(PROPERTY_AC_COMPONENT_PREFIX.length());
+			for (int i=0; i<Creature.AC_MAX_INDEX; i++) {
+				if (comp.equals(Creature.getACComponentName(i))) setACComponent(i, (Integer)value);
+			}
+		}
+
+		if (prop.startsWith(PROPERTY_SKILL_PREFIX)) {
+			String skill = prop.substring(PROPERTY_SKILL_PREFIX.length());
+			if (value == null) {
+				deleteSkill(skill);
+			} else {
+				setSkill(skill, (Integer)value);
+			}
+		}
 	}
 }

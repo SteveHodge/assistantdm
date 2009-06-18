@@ -1,3 +1,5 @@
+package ui;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
@@ -17,6 +19,7 @@ import party.Character;
 import party.Party;
 import swing.SpinnerCellEditor;
 
+//TODO better layout
 
 @SuppressWarnings("serial")
 public class RollsPanel extends JPanel {
@@ -45,7 +48,7 @@ public class RollsPanel extends JPanel {
 		table.setDefaultEditor(Integer.class, new SpinnerCellEditor());
 
 		JScrollPane scrollpane = new JScrollPane(table);
-		add(scrollpane);
+
 		JButton rollButton = new JButton("Roll");
 		rollButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -55,14 +58,19 @@ public class RollsPanel extends JPanel {
 				}
 			}
 		});
-		add(rollButton);
 		JButton clearButton = new JButton("Clear");
 		clearButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				model.clear();
 			}
 		});
-		add(clearButton);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(rollButton);
+		buttonPanel.add(clearButton);
+
+		setLayout(new BorderLayout());
+		add(scrollpane);
+		add(buttonPanel,"South");
 	}
 
 	class RollsTableModel extends AbstractTableModel {
@@ -95,7 +103,7 @@ public class RollsPanel extends JPanel {
 				if (value == null) value = new Integer(0);
 				party.get(columnIndex-1).setSavingThrow(rowIndex, (Integer)value);
 			} else if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
-				// TODO: this should instead delete the skill from the character:
+				// TODO this should instead delete the skill from the character:
 				if (value == null) party.get(columnIndex-1).setSkill(skills[rowIndex-FIRST_SKILL_ROW], 0);
 				else party.get(columnIndex-1).setSkill(skills[rowIndex-FIRST_SKILL_ROW], (Integer)value);
 			} else if (rowIndex == getLastSkillRowIndex()+2 && currentRollRow != -1) {
@@ -205,7 +213,7 @@ public class RollsPanel extends JPanel {
 					setSelectionInterval(index0, index1);
 				}
 
-				// TODO: this is probably in terms of the model when it should be in terms of the view
+				// TODO this is probably in terms of the model when it should be in terms of the view
 				// shouldn't matter as we shouldn't ever reorder rows
 				public void setSelectionInterval(int index0, int index1) {
 					if ((index1 > LAST_SAVE_ROW && index1 < FIRST_SKILL_ROW)

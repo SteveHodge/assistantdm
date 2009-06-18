@@ -85,6 +85,10 @@ public class Monster extends Creature {
 		pcs.addPropertyChangeListener(listener);
 	}
 
+	public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(property, listener);
+	}
+
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		this.pcs.removePropertyChangeListener(listener);
 	}

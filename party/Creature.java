@@ -78,5 +78,6 @@ public abstract class Creature {
 	abstract public void setFlatFootedAC(int ac);
 
 	abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+	abstract public void addPropertyChangeListener(String property, PropertyChangeListener listener);
 	abstract public void removePropertyChangeListener(PropertyChangeListener listener);
 }

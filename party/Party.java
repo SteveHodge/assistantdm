@@ -37,9 +37,8 @@ public class Party implements Iterable<Character>, XML {
 		return characters.iterator();
 	}
 
-	public static Party parseXML(String filename) {
+	public static Party parseXML(File xmlFile) {
 		Party p = new Party();
-		File xmlFile = new File(filename);
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setValidating(true);

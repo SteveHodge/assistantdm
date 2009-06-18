@@ -65,7 +65,7 @@ public class PtolusCalendar {
 				}
 				day_of_week = day / 7;
 			} else {
-				// TODO: handle BE case
+				// TODO handle BE case
 				//year = ((date+1) / year_days)-1;
 			}
 		}

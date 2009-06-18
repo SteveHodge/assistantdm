@@ -88,11 +88,11 @@ public class CharacterHitPointPanel extends JPanel implements PropertyChangeList
 
 	public void propertyChange(PropertyChangeEvent arg0) {
 		currHP.setValue(new Integer(character.getHPs()));
-		if (arg0.getPropertyName().equals("maximumHitPoints")) {
+		if (arg0.getPropertyName().equals(Character.PROPERTY_MAXHPS)) {
 			maxHP.setValue(new Integer(character.getMaximumHitPoints()));
-		} else if (arg0.getPropertyName().equals("wounds")) {
+		} else if (arg0.getPropertyName().equals(Character.PROPERTY_WOUNDS)) {
 			wounds.setValue(new Integer(character.getWounds()));
-		} else if (arg0.getPropertyName().equals("nonLethal")) {
+		} else if (arg0.getPropertyName().equals(Character.PROPERTY_NONLETHAL)) {
 			nonLethal.setValue(new Integer(character.getNonLethal()));
 		}
 	}

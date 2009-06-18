@@ -87,7 +87,7 @@ public class CharacterAbilityPanel extends JPanel {
 
 		public void propertyChange(PropertyChangeEvent evt) {
 			String abilityName = evt.getPropertyName();
-			if (abilityName.startsWith("ability")) {
+			if (abilityName.startsWith(Character.PROPERTY_ABILITY_PREFIX)) {
 				abilityName = abilityName.substring(7);
 				for (int i = 0; i < 6; i++) {
 					if (Creature.getAbilityName(i).equals(abilityName)) {

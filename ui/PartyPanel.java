@@ -1,20 +1,20 @@
+package ui;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
-import javax.swing.JComponent;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import party.Character;
 import party.Party;
-import ui.CharacterACPanel;
-import ui.CharacterAbilityPanel;
-import ui.CharacterHitPointPanel;
-import ui.CharacterInitiativePanel;
-import ui.CharacterSavesPanel;
-import ui.CharacterSkillsPanel;
+
+// TODO better layout of characters
+// TODO would be nice to be able to pop characters out to windows and pop them back in to tabs
 
 @SuppressWarnings("serial")
 public class PartyPanel extends JPanel {
@@ -27,11 +27,37 @@ public class PartyPanel extends JPanel {
 
 		for (Character c : party) {
 			tabbedPane.addTab(c.getName(), null, createCharacterPanel(c), c.getName());
+			//JFrame window = new JFrame(c.getName());
+			//window.add(createCharacterPanel(c));
+			//window.pack();
+			//window.setVisible(true);
 		}
 		add(tabbedPane);
 	}
 
 	public JPanel createCharacterPanel(Character c) {
+		JPanel panel = new JPanel();
+
+		Box leftPanel = new Box(BoxLayout.PAGE_AXIS);
+		leftPanel.add(new CharacterAbilityPanel(c));
+		//leftPanel.add(Box.createRigidArea(new Dimension(0,5)));
+		leftPanel.add(new CharacterSavesPanel(c));
+		//leftPanel.add(Box.createRigidArea(new Dimension(0,5)));
+		leftPanel.add(new CharacterInitiativePanel(c));
+
+		Box rightPanel = new Box(BoxLayout.PAGE_AXIS);
+		rightPanel.add(new CharacterHitPointPanel(c));
+		rightPanel.add(new CharacterACPanel(c));
+		rightPanel.add(new CharacterSkillsPanel(c));
+
+		panel.setLayout(new BoxLayout(panel,BoxLayout.LINE_AXIS));
+		panel.add(leftPanel);
+		panel.add(rightPanel);
+		panel.setPreferredSize(new Dimension(1000,600));
+		return panel;
+	}
+
+	public JPanel oldcreateCharacterPanel(Character c) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints a = new GridBagConstraints();

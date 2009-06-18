@@ -101,7 +101,7 @@ public class CharacterSkillsPanel extends JPanel {
 		}
 
 		public void propertyChange(PropertyChangeEvent evt) {
-			if (evt.getPropertyName().startsWith("skill")) {
+			if (evt.getPropertyName().startsWith(Character.PROPERTY_SKILL_PREFIX)) {
 				String skill = evt.getPropertyName().substring(5);
 				// TODO this search is inefficient
 				for (int i = 0; i < skills.length; i++) {
