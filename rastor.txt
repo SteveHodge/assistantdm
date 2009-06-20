@@ -1,4 +1,0 @@
-include "magic_tables.txt"
-
-procedure "Rastor's Shop"
-run("Weapons")
