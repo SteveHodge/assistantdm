@@ -1,7 +1,4 @@
 package party;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-
 
 public class Monster extends Creature {
 	int fullAC;
@@ -80,5 +77,28 @@ public class Monster extends Creature {
 		int old = this.wounds;
 		this.wounds = wounds;
         pcs.firePropertyChange(PROPERTY_WOUNDS, old, wounds);
+	}
+
+	public Object getProperty(String prop) {
+		if (prop.equals(PROPERTY_NAME)) return name;
+		if (prop.equals(PROPERTY_MAXHPS)) return maxHPs;
+		if (prop.equals(PROPERTY_WOUNDS)) return wounds;
+		if (prop.equals(PROPERTY_NONLETHAL)) return nonLethal;
+		if (prop.equals(PROPERTY_INITIATIVE)) return initMod;
+		if (prop.equals(PROPERTY_AC)) return fullAC;
+		if (prop.equals(PROPERTY_AC_FLATFOOTED)) return flatFootedAC;
+		if (prop.equals(PROPERTY_AC_TOUCH)) return touchAC;
+		return null;
+	}
+
+	public void setProperty(String prop, Object value) {
+		if (prop.equals(PROPERTY_NAME)) setName((String)value);
+		if (prop.equals(PROPERTY_MAXHPS)) setMaximumHitPoints((Integer)value);
+		if (prop.equals(PROPERTY_WOUNDS)) setWounds((Integer)value);
+		if (prop.equals(PROPERTY_NONLETHAL)) setNonLethal((Integer)value);
+		if (prop.equals(PROPERTY_INITIATIVE)) setInitiativeModifier((Integer)value);
+		if (prop.equals(PROPERTY_AC)) setAC((Integer)value);
+		if (prop.equals(PROPERTY_AC_FLATFOOTED)) setFlatFootedAC((Integer)value);
+		if (prop.equals(PROPERTY_AC_TOUCH)) setFlatFootedAC((Integer)value);
 	}
 }

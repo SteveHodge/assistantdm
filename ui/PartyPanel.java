@@ -1,4 +1,5 @@
 package ui;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -27,10 +28,10 @@ public class PartyPanel extends JPanel {
 
 		for (Character c : party) {
 			tabbedPane.addTab(c.getName(), null, createCharacterPanel(c), c.getName());
-			//JFrame window = new JFrame(c.getName());
-			//window.add(createCharacterPanel(c));
-			//window.pack();
-			//window.setVisible(true);
+			JFrame window = new JFrame(c.getName());
+			window.add(createCharacterPanel(c));
+			window.pack();
+			window.setVisible(true);
 		}
 		add(tabbedPane);
 	}
@@ -40,9 +41,7 @@ public class PartyPanel extends JPanel {
 
 		Box leftPanel = new Box(BoxLayout.PAGE_AXIS);
 		leftPanel.add(new CharacterAbilityPanel(c));
-		//leftPanel.add(Box.createRigidArea(new Dimension(0,5)));
 		leftPanel.add(new CharacterSavesPanel(c));
-		//leftPanel.add(Box.createRigidArea(new Dimension(0,5)));
 		leftPanel.add(new CharacterInitiativePanel(c));
 
 		Box rightPanel = new Box(BoxLayout.PAGE_AXIS);

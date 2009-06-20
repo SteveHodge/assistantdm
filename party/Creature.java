@@ -106,4 +106,7 @@ public abstract class Creature {
 	
 	abstract public int getFlatFootedAC();
 	abstract public void setFlatFootedAC(int ac);
+
+	abstract public Object getProperty(String prop);
+	abstract public void setProperty(String prop, Object value);
 }

@@ -11,9 +11,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.table.AbstractTableModel;
 
-import party.Character;
 import party.Party;
 import swing.ReorderableList;
 

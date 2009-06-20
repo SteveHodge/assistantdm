@@ -33,10 +33,10 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		party = p;
 		if (party != null) {
 			for (Character c : party) {
-				addEntry(new CombatEntry(c,false));
+				addEntry(new CharacterCombatEntry(c));
 			}
 		}
-		blankInit = new CombatEntry(new Monster());
+		blankInit = new MonsterCombatEntry(new Monster());
 		blankInit.addActionListener(this);
 		addEntry(blankInit);
 		sort();
@@ -47,6 +47,11 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		return list.indexOf(item);
 	}
 
+	// TODO there are at least some cases that aren't properly handled, e.g.
+	// Fitz:     0 + 8 = 8
+	// Heidi:    2 + 6 = 8
+	// Obsidian: 4 + 3 = 7
+	// dragging obsidian between fitz and heidi results in him reverting to current position.
 	public void moveTo(Object item, int index) {
 		if (!list.remove(item)) throw new NoSuchElementException();
 		CombatEntry dragged = (CombatEntry)item;
@@ -261,7 +266,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		// check if we need to add a new entry:
 		if (changed == blankInit && !changed.isBlank()) {
 //			System.out.println("Adding new entry");
-			blankInit = new CombatEntry(new Monster());
+			blankInit = new MonsterCombatEntry(new Monster());
 			blankInit.addActionListener(this);
 			addEntry(blankInit);
 			reorder = true;

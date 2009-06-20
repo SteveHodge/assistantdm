@@ -3,7 +3,6 @@ package ui;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
@@ -15,7 +14,7 @@ import party.Character;
 public class CharacterInitiativePanel extends JPanel implements PropertyChangeListener {
 	protected Character character;
 	protected JLabel dexLabel;
-	protected JFormattedTextField baseInit;
+	protected BoundIntegerField baseInit;
 	protected JLabel totLabel;
 
 	public CharacterInitiativePanel(Character c) {
@@ -28,32 +27,21 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 
 		add(new JLabel("Base:"));
 
-		baseInit = new JFormattedTextField();
-		baseInit.setValue(new Integer(character.getBaseInitiative()));
-		baseInit.setColumns(3);
-		baseInit.addPropertyChangeListener("value", new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals("value")) {
-					int total = (Integer)baseInit.getValue();
-					character.setInitiativeModifier(total);
-				}
-			}
-		});
+		baseInit = new BoundIntegerField(character, Creature.PROPERTY_INITIATIVE, 3);
 		add(baseInit);
 
 		totLabel = new JLabel("Total: "+character.getInitiativeModifier());
 		add(totLabel);
 
-		// update fields when character changes
+		// update labels when character changes
 		character.addPropertyChangeListener(this);
 	}
 
 	public void propertyChange(PropertyChangeEvent arg0) {
-		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+"Dexterity")) {
+		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+Creature.getAbilityName(Creature.ABILITY_DEXTERITY))) {
 			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(Creature.ABILITY_DEXTERITY));
 		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 			totLabel.setText("Total: "+character.getInitiativeModifier());
-			baseInit.setValue(character.getBaseInitiative());
 		}
 	}
 }

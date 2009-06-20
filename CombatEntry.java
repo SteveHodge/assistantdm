@@ -21,8 +21,6 @@ import javax.swing.JToolTip;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 
 import party.Creature;
@@ -31,9 +29,9 @@ import party.Character;
 // TODO altering initiative doesn't update character on party tab
 
 @SuppressWarnings("serial")
-public class CombatEntry extends JPanel implements PropertyChangeListener, ActionListener {
+abstract public class CombatEntry extends JPanel implements PropertyChangeListener, ActionListener {
 	protected JFormattedTextField rollField;
-	protected JFormattedTextField modifierField;
+	protected JComponent modifierComp;
 	protected JFormattedTextField tiebreakField;
 	protected JFormattedTextField maxHPsField;
 	protected JFormattedTextField dmgField;
@@ -47,23 +45,10 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 	protected JCheckBox nonLethal;
 
 	protected Creature creature;
-	protected boolean editable;
 
 	protected EventListenerList listenerList = new EventListenerList();
 	protected ChangeEvent changeEvent = null;
 	protected ActionEvent actionEvent = null;
-
-	public CombatEntry(Creature creature) {
-		this(creature,true);
-	}
-
-	public CombatEntry(Creature creature, boolean editable) {
-		this.creature = creature;
-		this.editable = editable;
-		if (!editable) blank = false;
-		creature.addPropertyChangeListener(this);
-		createPanel();
-	}
 
 	public Creature getSource() {
 		return creature;
@@ -119,7 +104,8 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 	}
 
 	// Note: marks the entry as having been changed if it was blank, and if it has the roll is 0, randomly rolls
-	protected void fireChange() {
+	// return true if it changed from blank to not-blank
+	protected boolean initBlank() {
 		if (blank) {
 			blank = false;
 			if (rollField.getValue().equals(0)) {
@@ -130,7 +116,10 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 				delete.setEnabled(true);
 			}
 		}
+		return !blank;
+	}
 
+	protected void fireChange() {
 		// Guaranteed to return a non-null array
 		Object[] listeners = listenerList.getListenerList();
 		// Process the listeners last to first, notifying
@@ -215,24 +204,7 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 		add(apply, c);
 		c.fill = GridBagConstraints.NONE;
 
-		if (editable) {
-			JFormattedTextField field = new JFormattedTextField();
-			field.setValue(new Integer(0));
-			field.setColumns(4);
-			acComp = field;
-			field = new JFormattedTextField();
-			field.setValue(new Integer(0));
-			field.setColumns(4);
-			touchACComp = field;
-			field = new JFormattedTextField();
-			field.setValue(new Integer(0));
-			field.setColumns(4);
-			flatFootedACComp = field;
-		} else {
-			acComp = new JLabel(""+creature.getAC());
-			touchACComp = new JLabel(""+creature.getTouchAC());
-			flatFootedACComp = new JLabel(""+creature.getFlatFootedAC());
-		}
+		// AC components should have been setup by subclasses
 		c.gridx = 0; c.gridy = 2;
 		c.anchor = GridBagConstraints.LINE_START;
 		add(new JLabel("AC: "), c);
@@ -258,7 +230,7 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 
 		if (creature instanceof Character) {
-			setToolTipText("has tooltip"); // the text is irrelevant as we override the JToolTip (see above). this just forces the tip to appear
+			setToolTipText("AC breakdown"); // the text is irrelevant as we override the JToolTip (see above). this just forces the tip to appear
 		}
 	}
 
@@ -274,11 +246,6 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 		rollField.setValue(new Integer(0));
 		rollField.setColumns(3);
 		rollField.addPropertyChangeListener("value", this);
-
-		modifierField = new JFormattedTextField();
-		modifierField.setValue(new Integer(0));
-		modifierField.setColumns(3);
-		modifierField.addPropertyChangeListener("value", this);
 
 		tiebreakField = new JFormattedTextField();
 		tiebreakField.setValue(new Integer(0));
@@ -304,62 +271,17 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 1.0;
 		c.anchor = GridBagConstraints.LINE_START;
-		JComponent name;
-		if (editable) {
-			name = createEditableNameSection();
-		} else {
-			onlyDM.setSelected(true); // we assume an non-editable source is a character that should be visible
-			int mod = creature.getInitiativeModifier();
-			modifierField.setValue(mod);
-			total.setText("= "+mod);
-			name = new JLabel(creature.getName());
-		}
-		section.add(name,c);
+		section.add(createNameSection(),c);
 		c.weightx = 0.0;
 		section.add(rollField, c);
 		section.add(new JLabel("+"), c);
-		section.add(modifierField, c);
+		section.add(modifierComp, c);
 		section.add(total, c);
 		section.add(tiebreakField, c);
 		return section;
 	}
 
-	protected JComponent createEditableNameSection() {
-		JPanel section = new JPanel();
-		section.setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-
-		c.gridx = 0; c.gridy = 0;
-		c.insets = new Insets(2, 3, 2, 3);
-		delete = new JButton("X");
-		delete.setMargin(new Insets(0, 4, 0, 3));
-		delete.setFocusPainted(false);
-		delete.setEnabled(false);
-		delete.addActionListener(this);
-		section.add(delete, c);
-		nameField = new JTextField(20);
-		nameField.getDocument().addDocumentListener(new DocumentListener() {
-			public void changedUpdate(DocumentEvent e) {
-				fireChange();
-			}
-
-			public void insertUpdate(DocumentEvent e) {
-				fireChange();
-			}
-
-			public void removeUpdate(DocumentEvent e) {
-				fireChange();
-			}
-			
-		});
-
-		c.gridx = GridBagConstraints.RELATIVE;
-		c.weightx = 1.0;
-		c.anchor = GridBagConstraints.LINE_START;
-		section.add(nameField, c);
-
-		return section;
-	}
+	abstract protected JComponent createNameSection();
 
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (evt.getSource() == creature) {
@@ -367,29 +289,20 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 			if (evt.getPropertyName().equals(Creature.PROPERTY_MAXHPS)) {
 				maxHPsField.setValue(new Integer(creature.getMaximumHitPoints()));
 				updateHPs();
-			} else if (evt.getPropertyName().equals(Creature.PROPERTY_AC)) {
-				if (editable) {
-					((JFormattedTextField)acComp).setValue(creature.getAC());
-					((JFormattedTextField)touchACComp).setValue(creature.getTouchAC());
-					((JFormattedTextField)flatFootedACComp).setValue(creature.getFlatFootedAC());
-				} else {
-					((JLabel)acComp).setText(""+creature.getAC());
-					((JLabel)touchACComp).setText(""+creature.getTouchAC());
-					((JLabel)flatFootedACComp).setText(""+creature.getFlatFootedAC());
-				}
 			} else if (evt.getPropertyName().equals(Creature.PROPERTY_WOUNDS)
 					|| evt.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)) {
 				updateHPs();
 			} else if (evt.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 				int mod = creature.getInitiativeModifier();
-				modifierField.setValue(mod);
 				total.setText("= "+mod);
 			}
 
 		} else if (evt.getPropertyName().equals("value")) {
 			if (evt.getSource() == maxHPsField) {
 				creature.setMaximumHitPoints((Integer)maxHPsField.getValue());
-			} else {
+				if (initBlank()) fireChange();
+			} else if (evt.getSource() == rollField
+					|| evt.getSource() == modifierComp) {
 				// one of the initiative fields has changed
 				total.setText("= "+getTotal());
 				fireChange();
@@ -405,12 +318,12 @@ public class CombatEntry extends JPanel implements PropertyChangeListener, Actio
 
 	public int getTotal() {
 		int tot = (Integer)rollField.getValue();
-		tot += (Integer)modifierField.getValue();
+		tot += creature.getInitiativeModifier();
 		return tot;
 	}
 
 	public int getModifier() {
-		return (Integer)modifierField.getValue();
+		return creature.getInitiativeModifier();
 	}
 
 	public int getTieBreak() {

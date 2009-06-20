@@ -23,8 +23,10 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 		character = c;
 
 		setBorder(new TitledBorder("Saving Throws"));
-		GroupLayout layout = new GroupLayout(this);
-		setLayout(layout);
+
+		JPanel inner = new JPanel(); 
+		GroupLayout layout = new GroupLayout(inner);
+		inner.setLayout(layout);
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 
@@ -74,6 +76,8 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 		layout.setVerticalGroup(vGroup);
 
 		character.addPropertyChangeListener(this);
+
+		add(inner);
 	}
 
 	public void propertyChange(PropertyChangeEvent evt) {
