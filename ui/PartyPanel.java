@@ -1,5 +1,4 @@
 package ui;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -7,7 +6,6 @@ import java.awt.Insets;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
@@ -28,10 +26,10 @@ public class PartyPanel extends JPanel {
 
 		for (Character c : party) {
 			tabbedPane.addTab(c.getName(), null, createCharacterPanel(c), c.getName());
-			JFrame window = new JFrame(c.getName());
-			window.add(createCharacterPanel(c));
-			window.pack();
-			window.setVisible(true);
+			//javax.swing.JFrame window = new javax.swing.JFrame(c.getName());
+			//window.add(createCharacterPanel(c));
+			//window.pack();
+			//window.setVisible(true);
 		}
 		add(tabbedPane);
 	}
