@@ -24,6 +24,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import magicitems.MagicGeneratorPanel;
+import magicitems.Shop;
+import magicitems.ShoppingPanel;
+import monsters.MonstersPanel;
+
+import camera.CameraPanel;
+
 import party.Character;
 import party.Party;
 import ui.PartyPanel;
@@ -105,6 +112,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		panel = new PartyPanel(party);
 		tabbedPane.addTab("Party", null, panel, "Character Details");
+
+		panel = new MonstersPanel();
+		tabbedPane.addTab("Monsters", null, panel, "Monsters");
 
 		List<Shop> shops = ShoppingPanel.parseShopsXML("shops.xml");
 		if (shops.size() > 0) {
@@ -320,7 +330,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	public void windowClosing(WindowEvent e) {
 		System.out.println("Exiting");
 		saveParty(file);
-		ShoppingPanel.writeShopsXML(shopPanel.shops, "shops.xml");
+		shopPanel.writeShopsXML("shops.xml");
 		System.exit(0);
 	}
 }

@@ -293,8 +293,8 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 					|| evt.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)) {
 				updateHPs();
 			} else if (evt.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
-				int mod = creature.getInitiativeModifier();
-				total.setText("= "+mod);
+				total.setText("= "+getTotal());
+				fireChange();
 			}
 
 		} else if (evt.getPropertyName().equals("value")) {
