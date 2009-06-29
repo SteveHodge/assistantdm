@@ -16,14 +16,14 @@ import org.w3c.dom.NodeList;
 import xml.XMLUtils;
 
 @SuppressWarnings("serial")
-public class MonstersTableModel extends DefaultTableModel implements FilterableTableModel<MonsterEntry> {
+public class MonstersTableModel extends DefaultTableModel {
 	protected List<MonsterEntry> monsters;
 
 	public MonstersTableModel() {
 		monsters = new ArrayList<MonsterEntry>();
 	}
 
-	public MonsterEntry getRowObject(int index) {
+	public MonsterEntry getMonsterEntry(int index) {
 		return monsters.get(index);
 	}
 
