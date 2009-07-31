@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="Monster">
+	<xs:complexType>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="url" type="xs:string" use="required"/>
+		<xs:attribute name="size" type="xs:string"/>
+		<xs:attribute name="type" type="xs:string"/>
+		<xs:attribute name="environment" type="xs:string"/>
+		<xs:attribute name="cr" type="xs:string"/>
+		<xs:attribute name="source" type="xs:string"/>
+	</xs:complexType>
+</xs:element>
+
+<!-- =========== Top-Level Structure =========== -->
+
+<xs:element name="MonsterList">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Monster" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="source" type="xs:string"/>
+	</xs:complexType>
+</xs:element>
+
+</xs:schema>
