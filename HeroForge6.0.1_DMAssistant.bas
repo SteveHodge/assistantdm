@@ -89,10 +89,16 @@ Sub ExportXML()
         If Right(str, 1) = "¹" Then
             str = Left(str, Len(str) - 1)
         End If
-        Dim tot
-        tot = (Range("CSSkillRanks" & x).Value + Range("CSSkillMiscMods" & x).Value)
-        If Len(str) > 0 And tot <> 0 Then
-            f.WriteLine (vbTab & vbTab & vbTab & "<Skill type=""" & str & """ value=""" & tot & """/>")
+        Dim ranks
+        ranks = Range("CSSkillRanks" & x).Value
+        Dim misc
+        misc = Range("CSSkillMiscMods" & x).Value
+        If Len(str) > 0 And (ranks <> 0 Or misc <> 0) Then
+            f.Write (vbTab & vbTab & vbTab & "<Skill type=""" & str & """ ranks=""" & ranks)
+            If (misc <> 0) Then
+                f.Write (""" misc=""" & misc)
+            End If
+            f.WriteLine ("""/>")
         End If
     Next x
     f.WriteLine (vbTab & vbTab & "</Skills>")

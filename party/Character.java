@@ -1,6 +1,4 @@
 package party;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +20,8 @@ public class Character extends Creature implements XML {
 	protected int[] saves = new int[3];
 	protected int[] abilities = new int[6];
 	protected int[] tempAbilities = new int[6];
-	protected Map<String,Integer> skills = new HashMap<String,Integer>();
+	protected Map<Skill,Float> skillRanks = new HashMap<Skill,Float>();
+	protected Map<Skill,Integer> skillMisc = new HashMap<Skill,Integer>();
 	protected int hps, wounds, nonLethal;
 	protected int[] ac = new int[AC_MAX_INDEX];
 
@@ -50,10 +49,9 @@ public class Character extends Creature implements XML {
         if (modDelta != 0) {
         	// skills
         	// TODO this is inefficient
-        	for (String skill : Skill.skill_ability_map.keySet()) {
-        		int ability = Skill.skill_ability_map.get(skill);
-        		if (ability == type) {
-        	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, getSkill(skill)-modDelta, getSkill(skill));
+        	for (Skill skill : Skill.skills.values()) {
+        		if (skill.ability == type) {
+        	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, getSkillTotal(skill)-modDelta, getSkillTotal(skill));
         		}
         	}
 
@@ -97,8 +95,8 @@ public class Character extends Creature implements XML {
 		}
 	}
 
-	public Set<String> getSkillNames() {
-		return new HashSet<String>(skills.keySet());
+	public Set<Skill> getSkills() {
+		return new HashSet<Skill>(skillRanks.keySet());
 	}
 
 	public int getInitiativeModifier() {
@@ -129,31 +127,45 @@ public class Character extends Creature implements XML {
 		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(save), old, total);
 	}
 
-	public int getSkill(String skill) {
+	public int getSkillTotal(Skill s) {
 		int ranks = 0;
-		if (skills.get(skill) != null) ranks = skills.get(skill);
-		int ability = Skill.getAbilityForSkill(skill);
+		if (skillRanks.get(s) != null) ranks += skillRanks.get(s);
+		if (skillMisc.get(s) != null) ranks += skillMisc.get(s);
+		int ability = s.getAbility();
 		if (ability == -1) return ranks;
 		return ranks+getAbilityModifier(ability);
 	}
 
-	public int getSkillRanks(String skill) {
-		Integer ranks = skills.get(skill);
+	public float getSkillRanks(Skill s) {
+		Float ranks = skillRanks.get(s);
 		if (ranks == null) return 0;
 		return ranks;
 	}
 
-	public void setSkill(String skill, int total) {
-		int old = 0;
-		if (skills.containsKey(skill)) old = skills.get(skill);
-		skills.put(skill,total);
-        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, old, total);
+	public int getSkillMisc(Skill s) {
+		Integer ranks = skillMisc.get(s);
+		if (ranks == null) return 0;
+		return ranks;
 	}
 
-	public void deleteSkill(String skill) {
-		if (skills.containsKey(skill)) {
-			int old = skills.get(skill);
-			skills.remove(skill);
+	public void setSkillRanks(Skill s, float ranks) {
+		float old = 0;
+		if (skillRanks.containsKey(s)) old = skillRanks.get(s);
+		skillRanks.put(s,ranks);
+        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s, old, ranks);	// TODO not actually the correct old and new values
+	}
+
+	public void setSkillMisc(Skill s, int misc) {
+		int old = 0;
+		if (skillMisc.containsKey(s)) old = skillMisc.get(s);
+		skillMisc.put(s,misc);
+        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s, old, misc);		// TODO not actually the correct old and new values
+	}
+
+	public void deleteSkill(Skill skill) {
+		if (skillRanks.containsKey(skill)) {
+			float old = skillRanks.get(skill);
+			skillRanks.remove(skill);
 	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, old, 0);
 		}
 	}
@@ -286,9 +298,12 @@ public class Character extends Creature implements XML {
 						for (int j=0; j<skills.getLength(); j++) {
 							if (!skills.item(j).getNodeName().equals("Skill")) continue;
 							Element s = (Element)skills.item(j);
-							String value = s.getAttribute("value");
+							String ranks = s.getAttribute("ranks");
 							String type = s.getAttribute("type");
-							c.setSkill(type, Integer.parseInt(value));
+							Skill skill = Skill.getSkill(type);
+							c.setSkillRanks(skill, Float.parseFloat(ranks));
+							String misc = s.getAttribute("misc");
+							if (misc != "") c.setSkillMisc(skill, Integer.parseInt(misc));
 						}
 					}
 
@@ -342,10 +357,12 @@ public class Character extends Creature implements XML {
 		}
 		b.append(i2).append("</SavingThrows>").append(nl);
 		b.append(i2).append("<Skills>").append(nl);
-		for (String s : skills.keySet()) {
-			if (getSkill(s) != 0) {
+		for (Skill s : skillRanks.keySet()) {
+			if (getSkillRanks(s) != 0 || getSkillMisc(s) != 0) {
 				b.append(i3).append("<Skill type=\"").append(s);
-				b.append("\" value=\"").append(getSkillRanks(s)).append("\"/>").append(nl);
+				b.append("\" ranks=\"").append(getSkillRanks(s));
+				if (getSkillMisc(s) != 0) b.append("\" misc=\"").append(getSkillMisc(s));
+				b.append("\"/>").append(nl);
 			}
 		}
 		b.append(i2).append("</Skills>").append(nl);
@@ -401,9 +418,9 @@ public class Character extends Creature implements XML {
 				System.out.println(PROPERTY_AC_COMPONENT_PREFIX+Creature.getACComponentName(i)+"|"+ac[i]+"|"+inChar.ac[i]);
 			}
 		}
-		HashSet<String> allSkills = new HashSet<String>(skills.keySet());
-		allSkills.addAll(inChar.skills.keySet());
-		for (String skill : allSkills) {
+		HashSet<Skill> allSkills = new HashSet<Skill>(skillRanks.keySet());
+		allSkills.addAll(inChar.skillRanks.keySet());
+		for (Skill skill : allSkills) {
 			if (getSkillRanks(skill) != inChar.getSkillRanks(skill)) {
 				System.out.println(PROPERTY_SKILL_PREFIX+skill+"|"+getSkillRanks(skill)+"|"+inChar.getSkillRanks(skill));
 			}
@@ -440,11 +457,14 @@ public class Character extends Creature implements XML {
 				diffs.add(PROPERTY_AC_COMPONENT_PREFIX+Creature.getACComponentName(i));
 			}
 		}
-		HashSet<String> allSkills = new HashSet<String>(skills.keySet());
-		allSkills.addAll(inChar.skills.keySet());
-		for (String skill : allSkills) {
+		HashSet<Skill> allSkills = new HashSet<Skill>(skillRanks.keySet());
+		allSkills.addAll(inChar.skillRanks.keySet());
+		for (Skill skill : allSkills) {
 			if (getSkillRanks(skill) != inChar.getSkillRanks(skill)) {
 				diffs.add(PROPERTY_SKILL_PREFIX+skill);
+			}
+			if (getSkillMisc(skill) != inChar.getSkillMisc(skill)) {
+				diffs.add(PROPERTY_SKILL_MISC_PREFIX+skill);
 			}
 		}
 		return diffs;
@@ -487,8 +507,16 @@ public class Character extends Creature implements XML {
 
 		if (prop.startsWith(PROPERTY_SKILL_PREFIX)) {
 			String skill = prop.substring(PROPERTY_SKILL_PREFIX.length());
-			Integer ranks = skills.get(skill);
-			if (ranks != null) return ranks;
+			Skill s = Skill.getSkill(skill);
+			Float ranks = skillRanks.get(s);
+			return ranks;
+		}
+
+		if (prop.startsWith(PROPERTY_SKILL_MISC_PREFIX)) {
+			String skill = prop.substring(PROPERTY_SKILL_MISC_PREFIX.length());
+			Skill s = Skill.getSkill(skill);
+			Integer misc = skillMisc.get(s);
+			return misc;
 		}
 
 		return null;
@@ -530,12 +558,20 @@ public class Character extends Creature implements XML {
 		}
 
 		if (prop.startsWith(PROPERTY_SKILL_PREFIX)) {
-			String skill = prop.substring(PROPERTY_SKILL_PREFIX.length());
+			String skillName = prop.substring(PROPERTY_SKILL_PREFIX.length());
+			Skill skill = Skill.getSkill(skillName);
 			if (value == null) {
+				// TODO not sure we should be deleting skills this way anymore
 				deleteSkill(skill);
 			} else {
-				setSkill(skill, (Integer)value);
+				setSkillRanks(skill, (Float)value);
 			}
+		}
+
+		if (prop.startsWith(PROPERTY_SKILL_MISC_PREFIX)) {
+			String skillName = prop.substring(PROPERTY_SKILL_MISC_PREFIX.length());
+			Skill skill = Skill.getSkill(skillName);
+			setSkillMisc(skill, (Integer)value);
 		}
 	}
 }

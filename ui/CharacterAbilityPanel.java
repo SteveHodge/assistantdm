@@ -88,7 +88,7 @@ public class CharacterAbilityPanel extends JPanel {
 		public void propertyChange(PropertyChangeEvent evt) {
 			String abilityName = evt.getPropertyName();
 			if (abilityName.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
-				abilityName = abilityName.substring(7);
+				abilityName = abilityName.substring(Creature.PROPERTY_ABILITY_PREFIX.length());
 				for (int i = 0; i < 6; i++) {
 					if (Creature.getAbilityName(i).equals(abilityName)) {
 						this.fireTableRowsUpdated(i, i);

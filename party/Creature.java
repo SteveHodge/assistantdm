@@ -36,6 +36,7 @@ public abstract class Creature {
 	public final static String PROPERTY_AC = "AC";
 	public final static String PROPERTY_AC_COMPONENT_PREFIX = "AC: ";	// not currently sent to listeners
 	public final static String PROPERTY_SKILL_PREFIX = "Skill: ";
+	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";
 
 	protected static final String[] save_names = {"Fortitude", "Reflex", "Will"};
 	protected static final String[] ability_names = {"Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"};

@@ -7,6 +7,7 @@ public class MonsterEntry {
 	String type;
 	String environment;
 	String cr;
+	String source;
 
 	public String toString() {
 		String label = "Size: "+size + ", Type: "+type+", Environment: "+environment+", CR: "+cr;

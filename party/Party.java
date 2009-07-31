@@ -44,6 +44,7 @@ public class Party implements Iterable<Character>, XML {
 			factory.setValidating(true);
 			factory.setNamespaceAware(true);
 			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaLanguage", "http://www.w3.org/2001/XMLSchema");
+			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaSource", new File("party.xsd"));
 
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 			//printNode(dom,"");

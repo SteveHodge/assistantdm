@@ -18,6 +18,7 @@ import javax.swing.table.AbstractTableModel;
 import party.Character;
 import party.Creature;
 import party.Party;
+import party.Skill;
 import swing.SpinnerCellEditor;
 
 //TODO better layout
@@ -32,9 +33,9 @@ public class RollsPanel extends JPanel {
 	public RollsPanel(Party p) {
 		party = p;
 		// build list of all skills. this should be maintained if skills are added later
-		Set<String> skills = new HashSet<String>();
+		Set<Skill> skills = new HashSet<Skill>();
 		for (Character c : party) {
-			skills.addAll(c.getSkillNames());
+			skills.addAll(c.getSkills());
 		}
 
 		final RollsTableModel model = new RollsTableModel(skills);
@@ -75,13 +76,13 @@ public class RollsPanel extends JPanel {
 	}
 
 	class RollsTableModel extends AbstractTableModel {
-		String[] skills;
+		Skill[] skills;
 		String currentRollName = "";
 		int[] currentRoll = new int[party.size()];
 		int currentRollRow = -1;
 
-		public RollsTableModel(Set<String> skills) {
-			this.skills = new String[skills.size()];
+		public RollsTableModel(Set<Skill> skills) {
+			this.skills = new Skill[skills.size()];
 			skills.toArray(this.skills);
 			Arrays.sort(this.skills);
 		}
@@ -105,8 +106,8 @@ public class RollsPanel extends JPanel {
 				party.get(columnIndex-1).setSavingThrow(rowIndex, (Integer)value);
 			} else if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
 				// TODO this should instead delete the skill from the character:
-				if (value == null) party.get(columnIndex-1).setSkill(skills[rowIndex-FIRST_SKILL_ROW], 0);
-				else party.get(columnIndex-1).setSkill(skills[rowIndex-FIRST_SKILL_ROW], (Integer)value);
+				if (value == null) party.get(columnIndex-1).setSkillRanks(skills[rowIndex-FIRST_SKILL_ROW], 0);
+				else party.get(columnIndex-1).setSkillRanks(skills[rowIndex-FIRST_SKILL_ROW], (Integer)value);
 			} else if (rowIndex == getLastSkillRowIndex()+2 && currentRollRow != -1) {
 				currentRoll[columnIndex-1] = (Integer)value;
 			} else {
@@ -164,7 +165,7 @@ public class RollsPanel extends JPanel {
 				return Creature.getSavingThrowName(rowIndex);
 			}
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
-				return skills[rowIndex-FIRST_SKILL_ROW];
+				return skills[rowIndex-FIRST_SKILL_ROW].getName();
 			}
 			if (rowIndex == getLastSkillRowIndex()+2) return "Rolled "+currentRollName;
 			if (rowIndex == getLastSkillRowIndex()+3) return "Total "+currentRollName;
@@ -183,7 +184,7 @@ public class RollsPanel extends JPanel {
 			}
 			if (rowIndex > LAST_SAVE_ROW && rowIndex < FIRST_SKILL_ROW) return null;
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
-				return party.get(columnIndex-1).getSkill(skills[rowIndex-FIRST_SKILL_ROW]);
+				return party.get(columnIndex-1).getSkillTotal(skills[rowIndex-FIRST_SKILL_ROW]);
 			}
 			if (currentRollRow != -1) {
 				if (rowIndex == getLastSkillRowIndex()+2) {

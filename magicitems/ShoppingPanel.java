@@ -255,6 +255,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 			factory.setValidating(true);
 			factory.setNamespaceAware(true);
 			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaLanguage", "http://www.w3.org/2001/XMLSchema");
+			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaSource", new File("shops.xsd"));
 
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 

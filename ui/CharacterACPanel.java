@@ -65,7 +65,7 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 	}
 
 	public void propertyChange(PropertyChangeEvent arg0) {
-		if (arg0.getPropertyName().equals("ac")) {
+		if (arg0.getPropertyName().equals(Creature.PROPERTY_AC)) {
 			totalLabel.setText("Total AC: "+character.getAC());
 			touchLabel.setText("Touch AC: "+character.getTouchAC());
 			flatLabel.setText("Flat-footed AC: "+character.getFlatFootedAC());

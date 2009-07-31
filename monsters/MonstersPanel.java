@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -46,7 +48,12 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		MonstersTableModel monsters = MonstersTableModel.parseXML(new File("html/monsters/monster_manual.xml"));
+		monsters = new MonstersTableModel();
+		// TODO remove hardcoded files here - probably best to use one global master
+		monsters.parseXML(new File("html/monsters/monster_manual.xml"));
+		monsters.parseXML(new File("html/monsters/monster_manual_ii.xml"));
+		monsters.parseXML(new File("html/monsters/monster_manual_iii.xml"));
+		monsters.parseXML(new File("html/monsters/ptolus.xml"));
 		//filterModel = new FilterTableModel<MonsterEntry>(monsters);
 		table = new JTable(monsters);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -65,7 +72,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 	    RowFilter<MonstersTableModel, Integer> rf = null;
 	    int col = filterCols.get(field);
 	    try {
-	        rf = RowFilter.regexFilter(field.getText(), col);
+	        rf = RowFilter.regexFilter("(?i)" + field.getText(), col);	// slight hack to force case insensitive matching
 	    } catch (java.util.regex.PatternSyntaxException e) {
 	    	// if the expression doesn't parse then we ignore it
 	    }
@@ -79,25 +86,29 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(3,4));
 
-		JTextField nameField = createFilterTextField(0);
+		JTextField nameField = createFilterTextField(MonstersTableModel.COLUMN_NAME);
 		panel.add(new JLabel("Name:"));
 		panel.add(nameField);
 
-		JTextField sizeField = createFilterTextField(1);
+		JTextField sizeField = createFilterTextField(MonstersTableModel.COLUMN_SIZE);
 		panel.add(new JLabel("Size:"));
 		panel.add(sizeField);
 
-		JTextField typeField = createFilterTextField(2);
+		JTextField typeField = createFilterTextField(MonstersTableModel.COLUMN_TYPE);
 		panel.add(new JLabel("Type:"));
 		panel.add(typeField);
 
-		JTextField environmentField = createFilterTextField(3);
+		JTextField environmentField = createFilterTextField(MonstersTableModel.COLUMN_ENVIRONMENT);
 		panel.add(new JLabel("Environment:"));
 		panel.add(environmentField);
 
-		JTextField crField = createFilterTextField(4);
+		JTextField crField = createFilterTextField(MonstersTableModel.COLUMN_CR);
 		panel.add(new JLabel("CR:"));
 		panel.add(crField);
+
+		JTextField sourceField = createFilterTextField(MonstersTableModel.COLUMN_SOURCE);
+		panel.add(new JLabel("Source:"));
+		panel.add(sourceField);
 
 		return panel;
 	}
@@ -130,7 +141,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 
 	public void mouseClicked(MouseEvent e) {
 		if (e.getClickCount() == 2) {
-			MonsterEntry me = monsters.getMonsterEntry(table.getSelectedRow());
+			MonsterEntry me = monsters.getMonsterEntry(table.convertRowIndexToModel(table.getSelectedRow()));
 			try {
 				URL url;
 				try {
@@ -151,6 +162,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 				frame.setSize(new Dimension(800,600));
 				frame.pack();
 				frame.setVisible(true);
+				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 			} catch (MalformedURLException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -174,13 +186,18 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		try{
 			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 				JFrame frame = new JFrame(e.getURL().toString());
-				JEditorPane p = createWebPanel(e.getURL());
-				JScrollPane sp = new JScrollPane(p);
-				sp.setSize(new Dimension(800,600));
-				sp.setPreferredSize(new Dimension(800,600));
+				JScrollPane sp;
+				if (e.getURL().getFile().endsWith(".jpg")) {
+					JLabel pic = new JLabel(new ImageIcon(e.getURL()));
+					sp = new JScrollPane(pic);
+				} else {
+					JEditorPane p = createWebPanel(e.getURL());
+					sp = new JScrollPane(p);
+					sp.setPreferredSize(new Dimension(800,600));
+				}
 				frame.add(sp);
-				frame.setSize(new Dimension(800,600));
 				frame.pack();
+				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 				frame.setVisible(true);
 			}
 		} catch(Exception ex) {
