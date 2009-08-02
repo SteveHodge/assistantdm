@@ -52,6 +52,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	JMenuItem openItem;
 	JMenuItem updateItem;
 	ShoppingPanel shopPanel;
+	CameraPanel cameraPanel;
 	JTabbedPane tabbedPane;
 
 	Party party;
@@ -130,8 +131,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		panel = new MagicGeneratorPanel();
 		tabbedPane.addTab("Random Magic", null, panel, "Generate Random Magic Items");
 
-		panel = new CameraPanel();
-		tabbedPane.addTab("Camera", null, panel, "Camera Latest Image and File Copy");
+		cameraPanel = new CameraPanel();
+		tabbedPane.addTab("Camera", null, cameraPanel, "Camera Remote Image Capture");
 
 		getContentPane().add(tabbedPane);
 		pack();
@@ -331,6 +332,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		System.out.println("Exiting");
 		saveParty(file);
 		shopPanel.writeShopsXML("shops.xml");
+		cameraPanel.disconnect();
 		System.exit(0);
 	}
 }
