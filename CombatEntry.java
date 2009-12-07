@@ -330,7 +330,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 	protected void updateStatus() {
 		int status = Status.getStatus(creature.getMaximumHitPoints(), creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
-		System.out.println("Status = "+Status.descriptions[status]);
+		//System.out.println("Status = "+Status.descriptions[status]);
 		statusPanel.setBackground(Status.colours[status]);
 		statusPanel.setToolTipText(Status.descriptions[status]);
 	}

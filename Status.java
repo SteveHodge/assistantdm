@@ -26,11 +26,11 @@ public class Status {
 	public static final String descriptions[] = {"Untouched","Lightly Wounded","Wounded","Heavily Wounded",
 		"Severely Wounded", "Critical", "Disabled", "Dying", "Dead"};
 	public static final Color colours[] = {
-		new Color(255, 255, 255),
-		new Color(0, 127, 0),
-		new Color(0, 255, 0),
+		new Color(0, 204, 51),
+		new Color(153, 204, 0),
+		new Color(204, 255, 51),
 		new Color(255, 255, 0),
-		new Color(255, 127, 0),
+		new Color(255, 204, 51),
 		new Color(255, 0, 0),
 		new Color(200, 200, 200),
 		new Color(120, 120, 120),
