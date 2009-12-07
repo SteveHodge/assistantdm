@@ -28,6 +28,7 @@ import party.Character;
 
 // TODO altering initiative doesn't update character on party tab
 
+
 @SuppressWarnings("serial")
 abstract public class CombatEntry extends JPanel implements PropertyChangeListener, ActionListener {
 	protected JFormattedTextField rollField;
@@ -43,6 +44,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	protected JLabel currentHPs;
 	protected JComponent acComp, touchACComp, flatFootedACComp;
 	protected JCheckBox nonLethal;
+	protected JPanel statusPanel = new JPanel();
 
 	protected Creature creature;
 
@@ -160,12 +162,21 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 
-		c.insets = new Insets(2, 3, 2, 3);
 		c.gridx = 0; c.gridy = 0;
+		c.gridheight = 3;
+		c.fill = GridBagConstraints.VERTICAL;
+		statusPanel.setMinimumSize(new Dimension(15,15));
+		statusPanel.setPreferredSize(new Dimension(15,15));
+		statusPanel.setMaximumSize(new Dimension(15,100));
+		updateStatus();
+		add(statusPanel,c);
+
+		c.insets = new Insets(2, 3, 2, 3);
+		c.gridx = 1; c.gridy = 0;
 		c.anchor = GridBagConstraints.LINE_START;
 		c.weightx = 1.0;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridwidth = 8;
+		c.gridwidth = 8; c.gridheight = 1;
 		add(createInitiativeSection(),c);
 
 		c.fill = GridBagConstraints.NONE;
@@ -205,7 +216,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		c.fill = GridBagConstraints.NONE;
 
 		// AC components should have been setup by subclasses
-		c.gridx = 0; c.gridy = 2;
+		c.gridx = 1; c.gridy = 2;
 		c.anchor = GridBagConstraints.LINE_START;
 		add(new JLabel("AC: "), c);
 		c.gridx = GridBagConstraints.RELATIVE;
@@ -314,6 +325,14 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		String hps = ""+(creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
 		if (creature.getNonLethal() != 0) hps += " ("+creature.getNonLethal()+")";
 		currentHPs.setText(hps);
+		updateStatus();
+	}
+
+	protected void updateStatus() {
+		int status = Status.getStatus(creature.getMaximumHitPoints(), creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
+		System.out.println("Status = "+Status.descriptions[status]);
+		statusPanel.setBackground(Status.colours[status]);
+		statusPanel.setToolTipText(Status.descriptions[status]);
 	}
 
 	public int getTotal() {
