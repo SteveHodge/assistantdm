@@ -2,7 +2,9 @@ package monsters;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -10,11 +12,14 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Vector;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -36,8 +41,8 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 	JTable table;
 	MonstersTableModel monsters;
 	TableRowSorter<MonstersTableModel> sorter;
-	Map<JTextField,RowFilter<MonstersTableModel,Integer>> filters = new HashMap<JTextField,RowFilter<MonstersTableModel,Integer>>();
-	Map<JTextField,Integer>filterCols = new HashMap<JTextField,Integer>();
+	Map<JComponent,RowFilter<MonstersTableModel,Integer>> filters = new HashMap<JComponent,RowFilter<MonstersTableModel,Integer>>();
+	Map<JComponent,Integer>filterCols = new HashMap<JComponent,Integer>();
 	URL baseURL;
 
 	public MonstersPanel() {
@@ -66,6 +71,8 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		setLayout(new BorderLayout());
 		add(scrollpane,BorderLayout.CENTER);
 		add(createFilterPanel(),BorderLayout.NORTH);
+
+		System.out.println("MonstersPanel preferred size = "+getPreferredSize());
 	}
 
 	protected void newFilter(JTextField field) {
@@ -82,37 +89,94 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 	    sorter.setRowFilter(RowFilter.andFilter(set));
 	}
 
+	protected void newFilter(JComboBox combo) {
+		if (combo.getSelectedItem().toString().equals("")) {
+			filters.remove(combo);
+		} else {
+			RowFilter<MonstersTableModel, Integer> rf = null;
+		    int col = filterCols.get(combo);
+		    try {
+		        rf = RowFilter.regexFilter("^"+combo.getSelectedItem().toString()+"$", col);	// TODO slight hack to force exact matching - could implement a more efficient filter
+		    } catch (java.util.regex.PatternSyntaxException e) {
+		    	// if the expression doesn't parse then we ignore it
+		    }
+		    filters.put(combo, rf);
+		}
+	    HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<RowFilter<MonstersTableModel, Integer>>(filters.values());
+	    if (set.contains(null)) set.remove(null);
+	    sorter.setRowFilter(RowFilter.andFilter(set));
+
+	}
+
 	protected JPanel createFilterPanel() {
 		JPanel panel = new JPanel();
-		panel.setLayout(new GridLayout(3,4));
+		panel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0; c.gridy = 0;
+		c.insets = new Insets(2, 3, 2, 3);
+		c.weightx = 1.0;
+		c.anchor = GridBagConstraints.LINE_START;
 
 		JTextField nameField = createFilterTextField(MonstersTableModel.COLUMN_NAME);
-		panel.add(new JLabel("Name:"));
-		panel.add(nameField);
+		panel.add(new JLabel("Name:"),c);
+		c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(nameField,c);
 
-		JTextField sizeField = createFilterTextField(MonstersTableModel.COLUMN_SIZE);
-		panel.add(new JLabel("Size:"));
-		panel.add(sizeField);
+//		JTextField sizeField = createFilterTextField(MonstersTableModel.COLUMN_SIZE);
+		JComboBox sizeField = createFilterCombo(MonstersTableModel.COLUMN_SIZE);
+		c.gridx = 2; c.fill = GridBagConstraints.NONE;
+		panel.add(new JLabel("Size:"),c);
+		c.gridx = 3; c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(sizeField,c);
 
 		JTextField typeField = createFilterTextField(MonstersTableModel.COLUMN_TYPE);
-		panel.add(new JLabel("Type:"));
-		panel.add(typeField);
+		c.gridx = 0; c.gridy = 1; c.fill = GridBagConstraints.NONE;
+		panel.add(new JLabel("Type:"),c);
+		c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(typeField,c);
 
 		JTextField environmentField = createFilterTextField(MonstersTableModel.COLUMN_ENVIRONMENT);
-		panel.add(new JLabel("Environment:"));
-		panel.add(environmentField);
+//		JComboBox environmentField = createFilterCombo(MonstersTableModel.COLUMN_ENVIRONMENT);
+		c.gridx = 2; c.fill = GridBagConstraints.NONE;
+		panel.add(new JLabel("Environment:"),c);
+		c.gridx = 3; c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(environmentField,c);
 
-		JTextField crField = createFilterTextField(MonstersTableModel.COLUMN_CR);
-		panel.add(new JLabel("CR:"));
-		panel.add(crField);
+//		JTextField crField = createFilterTextField(MonstersTableModel.COLUMN_CR);
+		JComboBox crField = createFilterCombo(MonstersTableModel.COLUMN_CR);
+		c.gridx = 0; c.gridy = 2; c.fill = GridBagConstraints.NONE;
+		panel.add(new JLabel("CR:"),c);
+		c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(crField,c);
 
-		JTextField sourceField = createFilterTextField(MonstersTableModel.COLUMN_SOURCE);
-		panel.add(new JLabel("Source:"));
-		panel.add(sourceField);
+//		JTextField sourceField = createFilterTextField(MonstersTableModel.COLUMN_SOURCE);
+		JComboBox sourceField = createFilterCombo(MonstersTableModel.COLUMN_SOURCE);
+		c.gridx = 2; c.fill = GridBagConstraints.NONE;
+		panel.add(new JLabel("Source:"),c);
+		c.gridx = 3; c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(sourceField,c);
 
 		return panel;
 	}
 
+	protected JComboBox createFilterCombo(int col) {
+		HashSet<String> optionSet = new HashSet<String>();
+		for (int row = 0; row < monsters.getRowCount(); row++) {
+			optionSet.add(monsters.getValueAt(row, col).toString());
+		}
+		optionSet.add(new String());
+		Vector<String> options = new Vector<String>(optionSet);
+		Collections.sort(options);
+		final JComboBox combo = new JComboBox(options);
+		filterCols.put(combo,col);
+		combo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				newFilter(combo);
+			}
+		});
+		return combo;
+	}
+	
 	protected JTextField createFilterTextField(int col) {
 		final JTextField field = new JTextField(30);
 		filterCols.put(field,col);
