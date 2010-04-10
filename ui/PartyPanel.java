@@ -3,6 +3,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -11,27 +13,43 @@ import javax.swing.JTabbedPane;
 
 import party.Character;
 import party.Party;
+import party.PartyListener;
 
 // TODO better layout of characters
 // TODO would be nice to be able to pop characters out to windows and pop them back in to tabs
+// TODO might be worth caching tabs of removed characters and reusing them if they are re-added (currently just create a new tab)
 
 @SuppressWarnings("serial")
-public class PartyPanel extends JPanel {
+public class PartyPanel extends JPanel implements PartyListener {
 	Party party;
+	JTabbedPane tabbedPane;
+	Map<Character,JPanel> tabs;
 
 	public PartyPanel(Party party) {
 		this.party = party;
+		this.party.addPartyListener(this);
 
-		JTabbedPane tabbedPane = new JTabbedPane();
-
+		tabbedPane = new JTabbedPane();
+		tabs = new HashMap<Character,JPanel>();
 		for (Character c : party) {
-			tabbedPane.addTab(c.getName(), null, createCharacterPanel(c), c.getName());
-			//javax.swing.JFrame window = new javax.swing.JFrame(c.getName());
-			//window.add(createCharacterPanel(c));
-			//window.pack();
-			//window.setVisible(true);
+			characterAdded(c);
 		}
 		add(tabbedPane);
+	}
+
+	public void characterAdded(Character c) {
+		JPanel tab = createCharacterPanel(c);
+		tabs.put(c, tab);
+		tabbedPane.addTab(c.getName(), null, tab, c.getName());
+	}
+
+	public void characterRemoved(Character c) {
+		JPanel tab = tabs.get(c);
+		if (tab != null) {
+			int i = tabbedPane.indexOfComponent(tab);
+			if (i > -1) tabbedPane.removeTabAt(i);
+			tabs.remove(tab);
+		}
 	}
 
 	public JPanel createCharacterPanel(Character c) {

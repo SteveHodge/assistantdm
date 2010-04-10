@@ -17,10 +17,11 @@ import javax.swing.event.ListDataListener;
 import party.Character;
 import party.Monster;
 import party.Party;
+import party.PartyListener;
 import swing.ReorderableListModel;
 
 
-public class InitiativeListModel implements ReorderableListModel, ActionListener, ChangeListener {
+public class InitiativeListModel implements ReorderableListModel, ActionListener, ChangeListener, PartyListener {
 	Party party;
 	List<CombatEntry> list = new ArrayList<CombatEntry>();
 
@@ -31,6 +32,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 
 	public InitiativeListModel(Party p) {
 		party = p;
+		p.addPartyListener(this);
 		if (party != null) {
 			for (Character c : party) {
 				addEntry(new CharacterCombatEntry(c));
@@ -41,6 +43,22 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		addEntry(blankInit);
 		sort();
 		writeHTML();
+	}
+
+	public void characterAdded(Character c) {
+		addEntry(new CharacterCombatEntry(c));
+		sort();
+	}
+
+	public void characterRemoved(Character c) {
+		CombatEntry toRemove = null;
+		for (CombatEntry e : list) {
+			if (e.getSource() == c) {
+				toRemove = e;
+				break;
+			}
+		}
+		if (toRemove != null) removeEntry(toRemove);
 	}
 
 	public int indexOf(Object item) {

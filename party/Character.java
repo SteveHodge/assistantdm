@@ -22,12 +22,16 @@ public class Character extends Creature implements XML {
 	protected int[] tempAbilities = new int[6];
 	protected Map<Skill,Float> skillRanks = new HashMap<Skill,Float>();
 	protected Map<Skill,Integer> skillMisc = new HashMap<Skill,Integer>();
-	protected int hps, wounds, nonLethal;
+	protected int hps, wounds, nonLethal, xp = 0, level = 1;
 	protected int[] ac = new int[AC_MAX_INDEX];
 
 	public Character(String n) {
 		name = n;
 		for (int i=0; i<6; i++) tempAbilities[i] = -1;
+	}
+
+	public String toString() {
+		return name;
 	}
 
 	public int getAbilityScore(int type) {
@@ -239,6 +243,22 @@ public class Character extends Creature implements XML {
 	public void setTouchAC(int ac) {}
 	public void setFlatFootedAC(int ac) {}
 	public void setName(String name) {}
+
+	public int getXP() {
+		return xp;
+	}
+
+	public void setXP(int xp) {
+		this.xp = xp;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int l) {
+		level = l;
+	}
 
 	public static Character parseDOM(Node node) {
 		if (!node.getNodeName().equals("Character")) return null;

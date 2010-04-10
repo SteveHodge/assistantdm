@@ -120,12 +120,26 @@
 	</xs:complexType>
 </xs:element>
 
-<!-- =========== Top-Level Structure =========== -->
-
+<!-- =========== Party structure =========== -->
 <xs:element name="Party">
 	<xs:complexType>
 		<xs:sequence>
+			<xs:element name="Member" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attribute name="name" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+<!-- =========== Top-Level Structure =========== -->
+
+<xs:element name="Characters">
+	<xs:complexType>
+		<xs:sequence>
 			<xs:element ref="Character" maxOccurs="unbounded"/>
+			<xs:element ref="Party" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
 </xs:element>

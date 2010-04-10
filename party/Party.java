@@ -2,12 +2,15 @@ package party;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -15,14 +18,37 @@ import xml.XML;
 import xml.XMLUtils;
 
 public class Party implements Iterable<Character>, XML {
-	List<Character> characters;
+	protected List<Character> characters;
+	protected List<PartyListener> listeners = new ArrayList<PartyListener>();
 
 	public Party() {
 		characters = new ArrayList<Character>();
 	}
 
+	public void addPartyListener(PartyListener l) {
+		listeners.add(l);
+	}
+
+	public void removePartyListener(PartyListener l) {
+		listeners.remove(l);
+	}
+
 	public void add(Character c) {
+		if (characters.contains(c)) return;
 		characters.add(c);
+		for (PartyListener l : listeners) l.characterAdded(c);
+	}
+
+	public boolean remove(Character c) {
+		if (characters.remove(c)) {
+			for (PartyListener l : listeners) l.characterRemoved(c);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean contains(Character c) {
+		return characters.contains(c);
 	}
 
 	public Character get(int i) {
@@ -37,6 +63,7 @@ public class Party implements Iterable<Character>, XML {
 		return characters.iterator();
 	}
 
+	// TODO move to CharacterLibrary (except Party block)?
 	public static Party parseXML(File xmlFile) {
 		Party p = new Party();
 		try {
@@ -47,19 +74,44 @@ public class Party implements Iterable<Character>, XML {
 			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaSource", new File("party.xsd"));
 
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
-			//printNode(dom,"");
+			//XMLUtils.printNode(dom, "");
 
-			Node node = XMLUtils.findNode(dom,"Party");
+			Map<String,Character> charMap = new HashMap<String,Character>();
+			Node node = XMLUtils.findNode(dom,"Characters");
 			if (node != null) {
 				NodeList children = node.getChildNodes();
 				if (children != null) {
 					for (int i=0; i<children.getLength(); i++) {
 						if (children.item(i).getNodeName().equals("Character")) {
 							Character c = Character.parseDOM(children.item(i));
-							if (c != null) p.add(c);
+							if (c != null) {
+								CharacterLibrary.add(c);
+								charMap.put(c.getName(),c);
+							}
 						}
 					}
 				}
+			}
+
+			node = XMLUtils.findNode(node, "Party");
+			if (node != null) {
+				System.out.println("Found Party");
+				NodeList children = node.getChildNodes();
+				if (children != null) {
+					for (int i=0; i<children.getLength(); i++) {
+						if (children.item(i).getNodeName().equals("Member")) {
+							Element m = (Element)children.item(i);
+							System.out.println("Party member: "+m.getAttribute("name"));
+							Character c = charMap.get(m.getAttribute("name"));
+							if (c != null) {
+								System.out.println("...found");
+								p.add(c);
+							}
+						}
+					}
+				}
+			} else {
+				System.out.println("Party not found");
 			}
 
 		} catch (Exception e) {
@@ -72,16 +124,22 @@ public class Party implements Iterable<Character>, XML {
 		return getXML("", "    ");
 	}
 
+	// TODO move to CharacterLibrary (except Party block)?
 	public String getXML(String indent, String nextIndent) {
 		StringBuilder b = new StringBuilder();
 		String nl = System.getProperty("line.separator");
 		b.append(indent);
-		b.append("<Party xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"party.xsd\">");
+		b.append("<Characters xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"party.xsd\">");
 		b.append(nl);
-		for (Character c : characters) {
+		for (Character c : CharacterLibrary.characters) {
 			b.append(c.getXML(indent+nextIndent,nextIndent));
 		}
-		b.append(indent).append("</Party>").append(nl);
+		b.append(indent+nextIndent+"<Party>"+nl);
+		for (Character c : characters) {
+			b.append(indent+nextIndent+nextIndent+"<Member name=\""+c.getName()+"\"/>"+nl);
+		}
+		b.append(indent+nextIndent+"</Party>"+nl);
+		b.append(indent).append("</Characters>").append(nl);
 		return b.toString();
 	}
 }

@@ -1,3 +1,9 @@
+import java.awt.Dimension;
+import java.awt.DisplayMode;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -11,7 +17,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -34,9 +42,12 @@ import camera.CameraPanel;
 import party.Character;
 import party.Party;
 import ui.PartyPanel;
+import ui.PartySelectPanel;
 import ui.RollsPanel;
 import ui.SelectDiffsDialog;
+import ui.SelectPartyDialog;
 import ui.UpdateCharacterDialog;
+import ui.XPEntryPanel;
 
 //TODO would be nice to have a library of creatures that could be selected for the combat panel
 //TODO allow ac components that are not currently included. will probably need to allow multiples of each component 
@@ -51,6 +62,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	JMenuItem saveAsItem;
 	JMenuItem openItem;
 	JMenuItem updateItem;
+	JMenuItem selectPartyItem;
 	ShoppingPanel shopPanel;
 	CameraPanel cameraPanel;
 	JTabbedPane tabbedPane;
@@ -77,7 +89,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	public AssistantDM() {
 		file = new File("party.xml");
 
-		setTitle("Assistant DM");
+		setTitle("Assistant DM - "+file.getName());
 		addWindowListener(this);
 
 		menuBar = new JMenuBar();
@@ -92,10 +104,13 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		openItem = new JMenuItem("Open...", KeyEvent.VK_O);
 		openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		openItem.addActionListener(this);
-		updateItem = new JMenuItem("Update Party...");
+		updateItem = new JMenuItem("Update Characters...");
 		updateItem.addActionListener(this);
+		selectPartyItem = new JMenuItem("Select Party...");
+		selectPartyItem.addActionListener(this);
 		fileMenu.add(openItem);
 		fileMenu.add(updateItem);
+		fileMenu.add(selectPartyItem);
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAsItem);
 		setJMenuBar(menuBar);
@@ -113,6 +128,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		panel = new PartyPanel(party);
 		tabbedPane.addTab("Party", null, panel, "Character Details");
+		
+		panel = new XPEntryPanel(party);
+		tabbedPane.addTab("XP", null, panel, "XP");
 
 		panel = new MonstersPanel();
 		tabbedPane.addTab("Monsters", null, panel, "Monsters");
@@ -135,7 +153,38 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		tabbedPane.addTab("Camera", null, cameraPanel, "Camera Remote Image Capture");
 
 		getContentPane().add(tabbedPane);
+
 		pack();
+
+		// resize the frame back to the size of the default monitor if it is larger
+		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		Rectangle b = getBounds();
+		Dimension newSize = b.getSize();
+		if (b.width > screen.width) newSize.width = screen.width;
+		if (b.height > screen.height) newSize.height = screen.height;
+		if (newSize.width != b.width || newSize.height != b.height) {
+			System.out.println("Bounds = "+b);
+			System.out.println("Resizing to "+newSize);
+			setSize(newSize);
+		}
+	}
+
+	public void selectParty() {
+		SelectPartyDialog partyDialog = new SelectPartyDialog(this,party);
+		partyDialog.setVisible(true);
+		if (!partyDialog.isCancelled()) {
+			List<Character> newParty = partyDialog.getSelectedCharacters();
+			Set<Character> changes = new HashSet<Character>();
+			for (Character c : party) {
+				if (!newParty.contains(c)) changes.add(c);
+			}
+			for (Character c : changes) party.remove(c);
+			changes = new HashSet<Character>();
+			for (Character c : newParty) {
+				if (!party.contains(c)) changes.add(c);
+			}
+			for (Character c : changes) party.add(c);
+		}
 	}
 
 	public void updateParty() {
@@ -187,12 +236,14 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		if (returnVal != JFileChooser.APPROVE_OPTION) return;
 
 		file = fc.getSelectedFile();
+		setTitle("Assistant DM - "+file.getName());
        	System.out.println("Opening "+file.getAbsolutePath());
 
        	party = Party.parseXML(file);
 
        	int selected = tabbedPane.getSelectedIndex();
 
+       	// TODO this is a messy way of resetting - fix it
        	tabbedPane.removeTabAt(0);	// combat
 		tabbedPane.removeTabAt(0);	// rolls
 		tabbedPane.removeTabAt(0);	// party
@@ -219,6 +270,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		int returnVal = fc.showSaveDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
         	File file = fc.getSelectedFile();
+    		setTitle("Assistant DM - "+file.getName());
         	System.out.println("Saving to "+file.getAbsolutePath());
         	saveParty(file);
 		}
@@ -312,6 +364,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		} else if(e.getSource() == updateItem) {
 			updateParty();
+
+		} else if(e.getSource() == selectPartyItem) {
+			selectParty();
 
 		} else if(e.getSource() == openItem) {
 			openParty();

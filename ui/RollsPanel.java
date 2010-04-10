@@ -18,13 +18,14 @@ import javax.swing.table.AbstractTableModel;
 import party.Character;
 import party.Creature;
 import party.Party;
+import party.PartyListener;
 import party.Skill;
 import swing.SpinnerCellEditor;
 
 //TODO better layout
 
 @SuppressWarnings("serial")
-public class RollsPanel extends JPanel {
+public class RollsPanel extends JPanel implements PartyListener {
 	static final int LAST_SAVE_ROW = 2;
 	static final int FIRST_SKILL_ROW = 4;
 
@@ -32,6 +33,13 @@ public class RollsPanel extends JPanel {
 
 	public RollsPanel(Party p) {
 		party = p;
+		party.addPartyListener(this);
+		reset();
+	}
+
+	protected void reset() {
+		this.removeAll();
+
 		// build list of all skills. this should be maintained if skills are added later
 		Set<Skill> skills = new HashSet<Skill>();
 		for (Character c : party) {
@@ -73,6 +81,14 @@ public class RollsPanel extends JPanel {
 		setLayout(new BorderLayout());
 		add(scrollpane);
 		add(buttonPanel,"South");
+	}
+
+	public void characterAdded(Character c) {
+		reset();
+	}
+
+	public void characterRemoved(Character c) {
+		reset();
 	}
 
 	class RollsTableModel extends AbstractTableModel {
