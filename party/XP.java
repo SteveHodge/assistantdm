@@ -1,11 +1,12 @@
 package party;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 
 public class XP {
-	public static void main(String[] args) {
-/*		System.out.print("\t  ");
+/*	public static void main(String[] args) {
+		System.out.print("\t  ");
 		for (int cr = 1; cr <= 20; cr++) {
 			System.out.print("\t"+cr);
 		}
@@ -16,8 +17,8 @@ public class XP {
 				System.out.print("\t"+getAward(level,cr));
 			}
 			System.out.println();
-		}*/
-
+		}
+*/
 /*		HashSet<CR> crs = new HashSet<CR>();
 		crs.add(new CR(1));
 		crs.add(new CR(2));
@@ -35,16 +36,57 @@ public class XP {
 		crs.add(new CR(2));
 		crs.add(new CR(3));
 		System.out.println("Third = "+(getXP(1,5,crs)));
-		*/
 	}
+		*/
 
 	public static class CR {
 		public int cr;
 		public boolean inverted = false;	// true if cr should be inverted, i.e. actual cr = 1 / cr
+
 		public CR(int cr) {this.cr = cr;}
+
 		public CR(int cr, boolean inv) {this.cr = cr; inverted = inv;}
+
+		public CR(String text) {
+			try {
+				cr = Integer.parseInt(text);
+				return;
+			} catch (NumberFormatException e) {
+				if (text.startsWith("1/")) {
+					inverted = true;
+					cr = Integer.parseInt(text.substring(2));
+					return;
+				}
+			}
+			throw new NumberFormatException();
+		}
+
+		public String toString() {
+			if (inverted) return "1/"+cr;
+			return ""+cr;
+		}
 	}
 
+	public static class Challenge {
+		public CR cr;
+		public int number;
+		public String comment;
+	}
+
+	public static int getXP(int level, int members, Collection<Challenge> challenges) {
+		int xp = 0;
+		for (Challenge c : challenges) {
+			if (c.cr == null || c.cr.cr == 0 || c.number == 0) continue;
+			int award = getAward(level, c.cr.cr) * c.number;
+			if (c.cr.inverted) {
+				award = Math.round(getAward(level,1) * c.number / c.cr.cr);
+			}
+			award = Math.round((float)award / members);
+			xp += award;
+		}
+		return xp;
+	}
+/*
 	public static int getXP(int level, int members, Set<CR> crs) {
 		int xp = 0;
 		for (CR cr : crs) {
@@ -57,7 +99,7 @@ public class XP {
 		}
 		return xp;
 	}
-
+*/
 	/* this array holds the base xp values. in most cases a character of level 'L'
 	 * defeating an opponent of CR 'C' will receive xp = baseXP[C-L+7]*L/2
 	 */
@@ -72,13 +114,7 @@ public class XP {
 		if (cr == 1 && xp > 300) xp = 300;	// can't get more than 300 for a cr 1
 		if (level == 4 && cr >= 5 && cr % 2 == 1) {
 			// level 4 for cr 5, 7, 9, 11 is different
-			xp = 1600;	// xp for cr 5 - it doubles for each increase of 2 in the cr
-			switch (cr) {
-			// intentional drop through here...
-			case 11: xp += xp;
-			case 9: xp += xp;
-			case 7: xp += xp;
-			}
+			xp = 1600 * (1 << (cr-5)/2);
 		}
 		return xp;
 	}

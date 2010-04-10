@@ -22,7 +22,7 @@
 <xs:element name="AbilityScores">
 	<xs:complexType>
 		<xs:sequence>
-			<xs:element ref="AbilityScore" maxOccurs="6"/>
+			<xs:element ref="AbilityScore" minOccurs="0" maxOccurs="6"/>
 		</xs:sequence>
 	</xs:complexType>
 </xs:element>
@@ -45,9 +45,7 @@
 <xs:element name="SavingThrows">
 	<xs:complexType>
 		<xs:sequence>
-			<xs:element ref="Save"/>
-			<xs:element ref="Save"/>
-			<xs:element ref="Save"/>
+			<xs:element ref="Save" minOccurs="0" maxOccurs="3"/>
 		</xs:sequence>
 	</xs:complexType>
 </xs:element>
@@ -63,7 +61,7 @@
 <xs:element name="Skills">
 	<xs:complexType>
 		<xs:sequence>
-			<xs:element ref="Skill" maxOccurs="unbounded"/>
+			<xs:element ref="Skill" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 </xs:element>
@@ -91,31 +89,37 @@
 <xs:element name="AC">
 	<xs:complexType>
 		<xs:sequence>
-			<xs:element ref="ACComponent" maxOccurs="unbounded"/>
+			<xs:element ref="ACComponent" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 </xs:element>
 
 <xs:element name="Character">
 	<xs:complexType>
-		<xs:sequence>
-			<xs:element ref="AbilityScores" maxOccurs="1"/>
-			<xs:element name="HitPoints" maxOccurs="1">
+		<xs:all>
+			<xs:element name="Level" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="level" type="xs:int" use="required"/>
+					<xs:attribute name="xp" type="xs:int" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element ref="AbilityScores" minOccurs="0"/>
+			<xs:element name="HitPoints" minOccurs="0">
 				<xs:complexType>
 					<xs:attribute name="maximum" type="xs:int" use="required"/>
 					<xs:attribute name="wounds" type="xs:int"/>
 					<xs:attribute name="non-lethal" type="xs:int"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="Initiative" maxOccurs="1">
+			<xs:element name="Initiative" minOccurs="0">
 				<xs:complexType>
 					<xs:attribute name="value" type="xs:int" use="required"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element ref="SavingThrows" maxOccurs="1"/>
-			<xs:element ref="Skills" maxOccurs="1"/>
-			<xs:element ref="AC" maxOccurs="1"/>
-		</xs:sequence>
+			<xs:element ref="SavingThrows" minOccurs="0"/>
+			<xs:element ref="Skills" minOccurs="0"/>
+			<xs:element ref="AC" minOccurs="0"/>
+		</xs:all>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 	</xs:complexType>
 </xs:element>
@@ -139,7 +143,7 @@
 	<xs:complexType>
 		<xs:sequence>
 			<xs:element ref="Character" maxOccurs="unbounded"/>
-			<xs:element ref="Party" maxOccurs="1"/>
+			<xs:element ref="Party" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
 </xs:element>

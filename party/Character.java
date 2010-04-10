@@ -13,6 +13,7 @@ import org.w3c.dom.NodeList;
 import xml.XML;
 import xml.XMLUtils;
 
+//FIXME need to store history of xp changes
 
 public class Character extends Creature implements XML {
 	protected String name;
@@ -280,6 +281,10 @@ public class Character extends Creature implements XML {
 					String value = e.getAttribute("value");
 					if (value != null) c.setInitiativeModifier(Integer.parseInt(value));
 
+				} else if (tag.equals("Level")) {
+					c.setLevel(Integer.parseInt(e.getAttribute("level")));
+					c.setXP(Integer.parseInt(e.getAttribute("xp")));
+
 				} else if (tag.equals("AbilityScores")) {
 					NodeList abilities = e.getChildNodes();
 					if (abilities != null) {
@@ -359,6 +364,7 @@ public class Character extends Creature implements XML {
 		String i2 = indent + nextIndent;
 		String i3 = i2 + nextIndent;
 		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
+		b.append(i2).append("<Level level=\"").append(getLevel()).append("\" xp=\"").append(getXP()).append("\"/>").append(nl);
 		b.append(i2).append("<AbilityScores>").append(nl);
 		for (int i=0; i<ability_names.length; i++) {
 			b.append(i3).append("<AbilityScore type=\"").append(ability_names[i]);

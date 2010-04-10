@@ -46,7 +46,7 @@ import ui.RollsPanel;
 import ui.SelectDiffsDialog;
 import ui.SelectPartyDialog;
 import ui.UpdateCharacterDialog;
-import ui.XPEntryPanel;
+import ui.XPEntryDialog;
 
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
 //TODO allow ac components that are not currently included. will probably need to allow multiples of each component 
@@ -56,12 +56,9 @@ import ui.XPEntryPanel;
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
 	JMenuBar menuBar;
-	JMenu fileMenu;
-	JMenuItem saveItem;
-	JMenuItem saveAsItem;
-	JMenuItem openItem;
-	JMenuItem updateItem;
-	JMenuItem selectPartyItem;
+	JMenu fileMenu, partyMenu;
+	JMenuItem saveItem, saveAsItem, openItem, updateItem;
+	JMenuItem selectPartyItem, xpItem;
 	ShoppingPanel shopPanel;
 	CameraPanel cameraPanel;
 	JTabbedPane tabbedPane;
@@ -105,13 +102,20 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		openItem.addActionListener(this);
 		updateItem = new JMenuItem("Update Characters...");
 		updateItem.addActionListener(this);
-		selectPartyItem = new JMenuItem("Select Party...");
-		selectPartyItem.addActionListener(this);
 		fileMenu.add(openItem);
 		fileMenu.add(updateItem);
-		fileMenu.add(selectPartyItem);
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAsItem);
+		// TODO add exit menu option
+		partyMenu = new JMenu("Party");
+		partyMenu.setMnemonic(KeyEvent.VK_P);
+		menuBar.add(partyMenu);
+		selectPartyItem = new JMenuItem("Select Party...");
+		selectPartyItem.addActionListener(this);
+		xpItem = new JMenuItem("Calculate XP...");
+		xpItem.addActionListener(this);
+		partyMenu.add(selectPartyItem);
+		partyMenu.add(xpItem);
 		setJMenuBar(menuBar);
 
 		tabbedPane = new JTabbedPane();
@@ -127,9 +131,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		panel = new PartyPanel(party);
 		tabbedPane.addTab("Party", null, panel, "Character Details");
-		
-		panel = new XPEntryPanel(party);
-		tabbedPane.addTab("XP", null, panel, "XP");
 
 		panel = new MonstersPanel();
 		tabbedPane.addTab("Monsters", null, panel, "Monsters");
@@ -183,6 +184,15 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 				if (!party.contains(c)) changes.add(c);
 			}
 			for (Character c : changes) party.add(c);
+		}
+	}
+
+	//FIXME need to apply history of challenges to character
+	public void calculateXP() {
+		XPEntryDialog dialog = new XPEntryDialog(this, party);
+		dialog.setVisible(true);
+		if (!dialog.isCancelled()) {
+			dialog.applyXPEarned();
 		}
 	}
 
@@ -369,6 +379,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		} else if(e.getSource() == openItem) {
 			openParty();
+
+		} else if(e.getSource() == xpItem) {
+			calculateXP();
 
 		} else {
 			System.err.println("ActionEvent from unknown source: "+e);
