@@ -30,6 +30,8 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	String lastOutput = "";
 	CombatEntry blankInit = null;
 
+	boolean noSort = false;		// set to true to block sorting while we reorder entries
+
 	public InitiativeListModel(Party p) {
 		party = p;
 		p.addPartyListener(this);
@@ -65,13 +67,10 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		return list.indexOf(item);
 	}
 
-	// TODO there are at least some cases that aren't properly handled, e.g.
-	// Fitz:     0 + 8 = 8
-	// Heidi:    2 + 6 = 8
-	// Obsidian: 4 + 3 = 7
-	// dragging obsidian between fitz and heidi results in him reverting to current position.
+	// TODO use of noSort flag to prevent sorts is a bit hackish, but probably the simpilest solution
 	public void moveTo(Object item, int index) {
 		if (!list.remove(item)) throw new NoSuchElementException();
+		noSort = true;	// disable sort while we reorganise (because adjustRoll() in moveEntries() will cause a sort otherwise
 		CombatEntry dragged = (CombatEntry)item;
 		list.add(index,dragged);
 
@@ -82,6 +81,13 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 				return o1.getY() - o2.getY();
 			}
 		});
+
+		// Store the required order and details so we can check everything worked
+		String reqOrder = "", preDetails = "";
+		for (CombatEntry e : list) {
+			reqOrder += e.getCreatureName()+",";
+			preDetails += e + "\n";
+		}
 
 		// next check the new prev and next entries against the dragEntry
 		//System.out.println("Index of dragged entry = "+index);
@@ -166,7 +172,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 				// 3. A > B > C - move next down or dragEntry and prev up
 				// If 2 or 3 apply then we need to test both options for moving and choose
 				// the one that results in the least amount of movement.
-				// TODO: There is one special case: if all the modifiers are equal then we could manipulate the tiebreak scores.
+				// TODO There is one special case: if all the modifiers are equal then we could manipulate the tiebreak scores.
 				dragged.setRoll(prev.getTotal() - dragged.getModifier());
 				int a_c = CombatEntry.compareInitiatives(prev, dragged);
 				int c_b = CombatEntry.compareInitiatives(dragged, next);
@@ -207,10 +213,25 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			}
 		}
 
+		// Store the required order and details so we can check everything worked
+		String postOrder = "", postDetails = "";
+		for (CombatEntry e : list) {
+			postOrder += e.getCreatureName()+",";
+			postDetails += e + "\n";
+		}
+		if (!reqOrder.equals(postOrder)) {
+			System.err.println("Initiative reorder failed. Required order: "+reqOrder);
+			System.err.println("Final order: "+postOrder);
+			System.err.println("Initial state: "+preDetails);
+			System.err.println("Final state: "+postDetails);
+		}
+
+		noSort = false;	// re-enable sort
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
 	public void sort() {
+		if (noSort) return;
 		Collections.sort(list,new Comparator<CombatEntry>() {
 			public int compare(CombatEntry ie1, CombatEntry ie2) {
 				return CombatEntry.compareInitiatives(ie1,ie2);
@@ -220,6 +241,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	}
 
 	public void sort(Comparator<Object> c) {
+		if (noSort) return;
 		Collections.sort(list,c);
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
@@ -372,15 +394,18 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	// start is the index of the entry to start from
 	// dir is the direction: -1 is down (total will be lower), +1 is up (total will be higher)
 	protected void moveEntries(int start, int dir) {
+		//System.out.println("Moving entries from "+start+" in "+dir);
 		int i = start;
 		while (i >= 0 && i <= list.size()-1) {
 			CombatEntry current = list.get(i);
+			//System.out.println("Moving "+i+": "+current);
 			if (!current.isBlank()) {
 				current.adjustRoll(dir);
 			}
 			if (i == 0 || i == list.size()-1) break;
 			// only proceed if there is a next element
 			CombatEntry next = list.get(i-dir);
+			//System.out.println("Next: "+next);
 			if (!next.isBlank()) {
 				// two real entries
 				int comp = CombatEntry.compareInitiatives(current,next);

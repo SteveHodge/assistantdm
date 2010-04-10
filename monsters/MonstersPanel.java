@@ -71,8 +71,6 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		setLayout(new BorderLayout());
 		add(scrollpane,BorderLayout.CENTER);
 		add(createFilterPanel(),BorderLayout.NORTH);
-
-		System.out.println("MonstersPanel preferred size = "+getPreferredSize());
 	}
 
 	protected void newFilter(JTextField field) {

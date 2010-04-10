@@ -42,14 +42,13 @@ import camera.CameraPanel;
 import party.Character;
 import party.Party;
 import ui.PartyPanel;
-import ui.PartySelectPanel;
 import ui.RollsPanel;
 import ui.SelectDiffsDialog;
 import ui.SelectPartyDialog;
 import ui.UpdateCharacterDialog;
 import ui.XPEntryPanel;
 
-//TODO would be nice to have a library of creatures that could be selected for the combat panel
+//WISH would be nice to have a library of creatures that could be selected for the combat panel
 //TODO allow ac components that are not currently included. will probably need to allow multiples of each component 
 //TODO refactor classes that should be in ui package
 //TODO most/all character properties should all "override" values
@@ -243,7 +242,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
        	int selected = tabbedPane.getSelectedIndex();
 
-       	// TODO this is a messy way of resetting - fix it
+       	// FIXME this is a messy way of resetting - fix it
        	tabbedPane.removeTabAt(0);	// combat
 		tabbedPane.removeTabAt(0);	// rolls
 		tabbedPane.removeTabAt(0);	// party

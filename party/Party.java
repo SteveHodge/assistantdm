@@ -95,16 +95,13 @@ public class Party implements Iterable<Character>, XML {
 
 			node = XMLUtils.findNode(node, "Party");
 			if (node != null) {
-				System.out.println("Found Party");
 				NodeList children = node.getChildNodes();
 				if (children != null) {
 					for (int i=0; i<children.getLength(); i++) {
 						if (children.item(i).getNodeName().equals("Member")) {
 							Element m = (Element)children.item(i);
-							System.out.println("Party member: "+m.getAttribute("name"));
 							Character c = charMap.get(m.getAttribute("name"));
 							if (c != null) {
-								System.out.println("...found");
 								p.add(c);
 							}
 						}
