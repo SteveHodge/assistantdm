@@ -117,10 +117,27 @@
 	</xs:complexType>
 </xs:element>
 
+<xs:element name="XPChange">
+	<xs:complexType>
+		<xs:attribute name="xp" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="XPLevelChange">
+	<xs:complexType>
+		<xs:attribute name="old" type="xs:int" use="required"/>
+		<xs:attribute name="new" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
 <xs:element name="Level">
 	<xs:complexType>
 		<xs:sequence>
-			<xs:element ref="XPAward" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="XPAward"/>
+				<xs:element ref="XPChange"/>
+				<xs:element ref="XPLevelChange"/>
+			</xs:choice>
 		</xs:sequence>
 		<xs:attribute name="level" type="xs:int" use="required"/>
 		<xs:attribute name="xp" type="xs:int" use="required"/>

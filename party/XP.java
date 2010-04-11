@@ -1,15 +1,22 @@
 package party;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import party.Character.XPChangeChallenges;
 
-
+/* This class contains static methods and classes used to calculate and record xp.
+ * Classes are:
+ * CR - a challenge rating which may be an integer (should be > 0) or a fraction in the form of 1/X.
+ * Challenge - a record of a group of one or more identical CRs, with a comment. E.g. 3 Goblins or CR 1/3
+ * XPChange - base class for records of xp related change
+ * XPChangeAdhoc - a record of an adhoc change to xp
+ * XPChangeLevel - a record of a change from one level to another
+ * XPChangeChallenges - a record of xp earned by defeating a group of Challenges. contains all info needed to recalculate the xp earned
+ */
 public class XP {
 /*	public static void main(String[] args) {
 		System.out.print("\t  ");
@@ -99,6 +106,119 @@ public class XP {
 			c.number = Integer.parseInt(e.getAttribute("number"));
 			c.comment = e.getTextContent();
 			return c;
+		}
+	}
+
+	public abstract static class XPChange {
+		//TODO comments
+		//TODO date
+		public abstract String getXML(String indent, String nextIndent);
+	}
+
+	public static class XPChangeChallenges extends XPChange {
+		int xp;	// xp earned from challenges
+		int level;	// level when meeting challenges
+		int partyCount;	// number of party members meeting challenges
+		int penalty;	// % penalty applied to xp
+		List<Challenge> challenges = new ArrayList<Challenge>();
+	
+		public String getXML(String indent, String nextIndent) {
+			StringBuilder b = new StringBuilder();
+			String nl = System.getProperty("line.separator");
+			b.append(indent).append("<XPAward xp=\"").append(xp);
+			b.append("\" level=\"").append(level);
+			b.append("\" party=\"").append(partyCount);
+			b.append("\" penalty=\"").append(penalty);
+			b.append("\">").append(nl);
+			for (Challenge c : challenges) {
+				b.append(c.getXML(indent+nextIndent,nextIndent));
+			}
+			b.append(indent).append("</XPAward>").append(nl);
+			return b.toString();
+		}
+	
+		public static XPChangeChallenges parseDOM(Element e) {
+			if (!e.getNodeName().equals("XPAward")) return null;
+			XPChangeChallenges c = new XPChangeChallenges();
+			c.xp = Integer.parseInt(e.getAttribute("xp"));
+			c.level = Integer.parseInt(e.getAttribute("level"));
+			c.partyCount = Integer.parseInt(e.getAttribute("party"));
+			if (e.hasAttribute("penalty")) c.penalty = Integer.parseInt(e.getAttribute("penalty"));
+	
+			NodeList nodes = e.getChildNodes();
+			if (nodes != null) {
+				for (int i=0; i<nodes.getLength(); i++) {
+					if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+					Element child = (Element)nodes.item(i);
+					String tag = child.getTagName();
+	
+					if (tag.equals("XPChallenge")) {
+						Challenge chal = Challenge.parseDOM(child);
+						c.challenges.add(chal);
+					}
+				}
+			}
+			return c;
+		}
+	
+		public String toString() {
+			StringBuilder b = new StringBuilder();
+			String nl = System.getProperty("line.separator");
+			b.append("XP = ").append(xp).append(" (earned at level ");
+			b.append(level).append(" in party of ").append(partyCount);
+			if (penalty != 0) b.append(" with a penalty of ").append(penalty).append("%");
+			b.append("). Challenges: ").append(nl);
+			for (Challenge c : challenges) {
+				b.append("\t").append(c).append(nl);
+			}
+			return b.toString();
+		}
+	}
+
+	public static class XPChangeAdhoc extends XPChange {
+		int xp;
+	
+		public XPChangeAdhoc(int d) {
+			xp = d;
+		}
+	
+		public String getXML(String indent, String nextIndent) {
+			return indent+"<XPChange xp=\""+xp+"\"/>"+System.getProperty("line.separator");
+		}
+	
+		public static XPChangeAdhoc parseDOM(Element e) {
+			if (!e.getNodeName().equals("XPChange")) return null;
+			return new XPChangeAdhoc(Integer.parseInt(e.getAttribute("xp")));
+		}
+	
+		public String toString() {
+			return "Adhoc change of "+xp;
+		}
+	}
+
+	public static class XPChangeLevel extends XPChange {
+		int oldLevel;
+		int newLevel;
+	
+		public XPChangeLevel(int o, int n) {
+			oldLevel = o;
+			newLevel = n;
+		}
+	
+		public String getXML(String indent, String nextIndent) {
+			return indent+"<XPLevelChange old=\""+oldLevel+"\" new=\""+newLevel+"\"/>"+System.getProperty("line.separator");
+		}
+	
+		public static XPChangeLevel parseDOM(Element e) {
+			if (!e.getNodeName().equals("XPLevelChange")) return null;
+			return new XPChangeLevel(
+					Integer.parseInt(e.getAttribute("old")),
+					Integer.parseInt(e.getAttribute("new"))
+			);
+		}
+	
+		public String toString() {
+			return "Changed level from "+oldLevel+" to "+newLevel;
 		}
 	}
 

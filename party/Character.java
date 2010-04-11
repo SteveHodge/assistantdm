@@ -25,68 +25,7 @@ public class Character extends Creature implements XML {
 	protected Map<Skill,Integer> skillMisc = new HashMap<Skill,Integer>();
 	protected int hps, wounds, nonLethal, xp = 0, level = 1;
 	protected int[] ac = new int[AC_MAX_INDEX];
-	protected List<XPChange> xpChanges = new ArrayList<XPChange>();
-
-	public static class XPChange {
-		//TODO comments
-		//TODO date
-	}
-
-	public static class XPChangeChallenges extends XPChange {
-		int xp;	// xp earned from challenges
-		int level;	// level when meeting challenges
-		int partyCount;	// number of party members meeting challenges
-		int penalty;	// % penalty applied to xp
-		List<Challenge> challenges = new ArrayList<Challenge>();
-
-		public String getXML(String indent, String nextIndent) {
-			StringBuilder b = new StringBuilder();
-			String nl = System.getProperty("line.separator");
-			b.append(indent).append("<XPAward xp=\"").append(xp);
-			b.append("\" level=\"").append(level);
-			b.append("\" party=\"").append(partyCount);
-			b.append("\" penalty=\"").append(penalty);
-			b.append("\">").append(nl);
-			for (Challenge c : challenges) {
-				b.append(c.getXML(indent+nextIndent,nextIndent));
-			}
-			b.append(indent).append("</XPAward>").append(nl);
-			return b.toString();
-		}
-
-		public static XPChangeChallenges parseDOM(Element e) {
-			if (!e.getNodeName().equals("XPAward")) return null;
-			XPChangeChallenges c = new XPChangeChallenges();
-			c.xp = Integer.parseInt(e.getAttribute("xp"));
-			c.level = Integer.parseInt(e.getAttribute("level"));
-			c.partyCount = Integer.parseInt(e.getAttribute("party"));
-			if (e.hasAttribute("penalty")) c.penalty = Integer.parseInt(e.getAttribute("penalty"));
-
-			NodeList nodes = e.getChildNodes();
-			if (nodes != null) {
-				for (int i=0; i<nodes.getLength(); i++) {
-					if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-					Element child = (Element)nodes.item(i);
-					String tag = child.getTagName();
-
-					if (tag.equals("XPChallenge")) {
-						Challenge chal = Challenge.parseDOM(child);
-						c.challenges.add(chal);
-					}
-				}
-			}
-			return c;
-		}
-	}
-
-	public static class XPChangeAdhoc extends XPChange {
-		int xp;
-	}
-
-	public class XPChangeLevel extends XPChange {
-		int oldLevel;
-		int newLevel;
-	}
+	protected List<XP.XPChange> xpChanges = new ArrayList<XP.XPChange>();
 
 	public Character(String n) {
 		name = n;
@@ -95,17 +34,6 @@ public class Character extends Creature implements XML {
 
 	public String toString() {
 		return name;
-	}
-
-	public void addXPChallenges(int count, int penalty, Collection<Challenge> challenges) {
-		XPChangeChallenges change = new XPChangeChallenges();
-		change.level = level;
-		change.partyCount = count;
-		change.penalty = penalty;
-		change.xp = XP.getXP(level, count, penalty, challenges);
-		change.challenges.addAll(challenges);
-		xpChanges.add(change);
-		xp += change.xp;	//TODO fire property change
 	}
 
 	public int getAbilityScore(int type) {
@@ -339,18 +267,50 @@ public class Character extends Creature implements XML {
 		return xp;
 	}
 
-	// TODO remove when other methods allow full control
-	public void setXP(int xp) {
-		this.xp = xp;
+	public int getRequiredXP() {
+		return XP.getXPRequired(level+1);
+	}
+
+	// TODO eventually replace this with a real history facility
+	public String getXPHistory() {
+		StringBuilder b = new StringBuilder();
+		for (XP.XPChange change : xpChanges) {
+			b.append(change);
+			b.append(System.getProperty("line.separator"));
+		}
+		return b.toString();
+	}
+	
+	public void addXPChallenges(int count, int penalty, Collection<Challenge> challenges) {
+		XP.XPChangeChallenges change = new XP.XPChangeChallenges();
+		change.level = level;
+		change.partyCount = count;
+		change.penalty = penalty;
+		change.xp = XP.getXP(level, count, penalty, challenges);
+		change.challenges.addAll(challenges);
+		xpChanges.add(change);
+		int old = xp;
+		xp += change.xp;
+        pcs.firePropertyChange(PROPERTY_XP, old, xp);
+	}
+
+	public void addXPAdhocChange(int delta) {
+		xpChanges.add(new XP.XPChangeAdhoc(delta));
+		int old = xp;
+		xp += delta;
+        pcs.firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public int getLevel() {
 		return level;
 	}
 
-	// TODO remove when other methods allow full control?
 	public void setLevel(int l) {
+		if (level == l) return;
+		xpChanges.add(new XP.XPChangeLevel(level,l));
+		int old = level;
 		level = l;
+		pcs.firePropertyChange(PROPERTY_LEVEL, old, level);
 	}
 
 	public static Character parseDOM(Element el) {
@@ -365,23 +325,29 @@ public class Character extends Creature implements XML {
 				String tag = e.getTagName();
 
 				if (tag.equals("HitPoints")) {
-					c.setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
-					if (e.hasAttribute("wounds")) c.setWounds(Integer.parseInt(e.getAttribute("wounds")));
-					if (e.hasAttribute("non-lethal")) c.setNonLethal(Integer.parseInt(e.getAttribute("non-lethal")));
+					c.hps = Integer.parseInt(e.getAttribute("maximum"));
+					if (e.hasAttribute("wounds")) c.wounds = Integer.parseInt(e.getAttribute("wounds"));
+					if (e.hasAttribute("non-lethal")) c.nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
 
 				} else if (tag.equals("Initiative")) {
 					String value = e.getAttribute("value");
-					if (value != null) c.setInitiativeModifier(Integer.parseInt(value));
+					if (value != null) c.initModifier = Integer.parseInt(value);
 
 				} else if (tag.equals("Level")) {
-					c.setLevel(Integer.parseInt(e.getAttribute("level")));
-					c.setXP(Integer.parseInt(e.getAttribute("xp")));
+					c.level = Integer.parseInt(e.getAttribute("level"));
+					c.xp = Integer.parseInt(e.getAttribute("xp"));
 					NodeList awards = e.getChildNodes();
 					if (awards != null) {
 						for (int j=0; j<awards.getLength(); j++) {
-							if (!awards.item(j).getNodeName().equals("XPAward")) continue;
-							XPChangeChallenges chal = XPChangeChallenges.parseDOM((Element)awards.item(j));
-							if (chal != null) c.xpChanges.add(chal);
+							XP.XPChange change = null;
+							if (awards.item(j).getNodeName().equals("XPAward")) {
+								change = XP.XPChangeChallenges.parseDOM((Element)awards.item(j));
+							} else if (awards.item(j).getNodeName().equals("XPChange")) {
+								change = XP.XPChangeAdhoc.parseDOM((Element)awards.item(j));
+							} else if (awards.item(j).getNodeName().equals("XPLevelChange")) {
+								change = XP.XPChangeLevel.parseDOM((Element)awards.item(j));
+							}
+							if (change != null) c.xpChanges.add(change);
 						}
 					}
 					
@@ -396,7 +362,7 @@ public class Character extends Creature implements XML {
 							String type = s.getAttribute("type");
 							for (int k=0; k<ability_names.length; k++) {
 								if (ability_names[k].equals(type)) {
-									c.setAbilityScore(k, Integer.parseInt(value));
+									c.abilities[k] = Integer.parseInt(value);
 								}
 							}
 						}
@@ -412,7 +378,7 @@ public class Character extends Creature implements XML {
 							String type = s.getAttribute("type");
 							for (int k=0; k<save_names.length; k++) {
 								if (save_names[k].equals(type)) {
-									c.setSavingThrow(k, Integer.parseInt(value));
+									c.saves[k] = Integer.parseInt(value);
 								}
 							}
 						}
@@ -427,9 +393,9 @@ public class Character extends Creature implements XML {
 							String ranks = s.getAttribute("ranks");
 							String type = s.getAttribute("type");
 							Skill skill = Skill.getSkill(type);
-							c.setSkillRanks(skill, Float.parseFloat(ranks));
+							c.skillRanks.put(skill,Float.parseFloat(ranks));
 							String misc = s.getAttribute("misc");
-							if (misc != "") c.setSkillMisc(skill, Integer.parseInt(misc));
+							if (misc != "") c.skillMisc.put(skill, Integer.parseInt(misc));
 						}
 					}
 
@@ -443,7 +409,7 @@ public class Character extends Creature implements XML {
 							String type = s.getAttribute("type");
 							for (int k=0; k<ac_names.length; k++) {
 								if (ac_names[k].equals(type)) {
-									c.setACComponent(k, Integer.parseInt(value));
+									c.ac[k] = Integer.parseInt(value);
 								}
 							}
 						}
@@ -466,9 +432,9 @@ public class Character extends Creature implements XML {
 		String i3 = i2 + nextIndent;
 		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
 		b.append(i2).append("<Level level=\"").append(getLevel()).append("\" xp=\"").append(getXP()).append("\">").append(nl);
-		for (XPChange c : xpChanges) {
-			if (c instanceof XPChangeChallenges) {
-				XPChangeChallenges cc = (XPChangeChallenges)c;
+		for (XP.XPChange c : xpChanges) {
+			if (c instanceof XP.XPChange) {
+				XP.XPChange cc = (XP.XPChange)c;
 				b.append(cc.getXML(i3, nextIndent));
 			}
 		}
@@ -513,6 +479,7 @@ public class Character extends Creature implements XML {
 	}
 
 	// Prints the differences between this and inChar
+	// XXX does not include level or xp
 	public void showDiffs(Character inChar) {
 		if (!name.equals(inChar.name)) {
 			// new attribute
@@ -571,6 +538,8 @@ public class Character extends Creature implements XML {
 		if (wounds != inChar.wounds) diffs.add(PROPERTY_WOUNDS);
 		if (nonLethal != inChar.nonLethal) diffs.add(PROPERTY_NONLETHAL);
 		if (initModifier != inChar.initModifier) diffs.add(PROPERTY_INITIATIVE);
+		//if (xp != inChar.xp) diffs.add(PROPERTY_XP);	// TODO not sure we should include this
+		//if (level != inChar.level) diffs.add(PROPERTY_LEVEL);	// TODO not sure we should include this
 		for (int i=0; i<6; i++) {
 			if (abilities[i] != inChar.abilities[i]) {
 				diffs.add(PROPERTY_ABILITY_PREFIX+getAbilityName(i));
@@ -610,6 +579,8 @@ public class Character extends Creature implements XML {
 		if (prop.equals(PROPERTY_WOUNDS)) return wounds;
 		if (prop.equals(PROPERTY_NONLETHAL)) return nonLethal;
 		if (prop.equals(PROPERTY_INITIATIVE)) return initModifier;
+		if (prop.equals(PROPERTY_LEVEL)) return level;
+		if (prop.equals(PROPERTY_XP)) return xp;
 		
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
@@ -662,7 +633,9 @@ public class Character extends Creature implements XML {
 		if (prop.equals(PROPERTY_WOUNDS)) setWounds((Integer)value);
 		if (prop.equals(PROPERTY_NONLETHAL)) setNonLethal((Integer)value);
 		if (prop.equals(PROPERTY_INITIATIVE)) setInitiativeModifier((Integer)value);
-		
+		if (prop.equals(PROPERTY_LEVEL)) setLevel((Integer)value);
+		//if (prop.equals(PROPERTY_XP)) setXP((Integer)value);	// TODO should this be permitted as an adhoc change?
+
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
 			for (int i=0; i<6; i++) {

@@ -18,7 +18,6 @@ import party.PartyListener;
 // TODO better layout of characters
 // TODO would be nice to be able to pop characters out to windows and pop them back in to tabs
 // TODO might be worth caching tabs of removed characters and reusing them if they are re-added (currently just create a new tab)
-// FIXME characters should show XP and level and allow adhoc xp changes to be applied
 
 @SuppressWarnings("serial")
 public class PartyPanel extends JPanel implements PartyListener {
@@ -57,6 +56,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 		JPanel panel = new JPanel();
 
 		Box leftPanel = new Box(BoxLayout.PAGE_AXIS);
+		leftPanel.add(new CharacterXPPanel(c));
 		leftPanel.add(new CharacterAbilityPanel(c));
 		leftPanel.add(new CharacterSavesPanel(c));
 		leftPanel.add(new CharacterInitiativePanel(c));
