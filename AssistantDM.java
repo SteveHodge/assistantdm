@@ -26,6 +26,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -40,6 +41,7 @@ import monsters.MonstersPanel;
 import camera.CameraPanel;
 
 import party.Character;
+import party.CharacterLibrary;
 import party.Party;
 import ui.PartyPanel;
 import ui.RollsPanel;
@@ -58,7 +60,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	JMenuBar menuBar;
 	JMenu fileMenu, partyMenu;
 	JMenuItem saveItem, saveAsItem, openItem, updateItem;
-	JMenuItem selectPartyItem, xpItem;
+	JMenuItem selectPartyItem, xpItem, newCharacterItem;
 	ShoppingPanel shopPanel;
 	CameraPanel cameraPanel;
 	JTabbedPane tabbedPane;
@@ -110,10 +112,13 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		partyMenu = new JMenu("Party");
 		partyMenu.setMnemonic(KeyEvent.VK_P);
 		menuBar.add(partyMenu);
+		newCharacterItem = new JMenuItem("New Character...");
+		newCharacterItem.addActionListener(this);
 		selectPartyItem = new JMenuItem("Select Party...");
 		selectPartyItem.addActionListener(this);
 		xpItem = new JMenuItem("Calculate XP...");
 		xpItem.addActionListener(this);
+		partyMenu.add(newCharacterItem);
 		partyMenu.add(selectPartyItem);
 		partyMenu.add(xpItem);
 		setJMenuBar(menuBar);
@@ -169,6 +174,17 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		}
 	}
 
+	// WISH provide checkbox on dialog to add new character to party (default:checked) 
+	public void newCharacter() {
+		Object[] possibilities = {"ham", "spam", "yam"};
+		String s = (String)JOptionPane.showInputDialog(this,"Enter the new character's name:","Add New Character",JOptionPane.PLAIN_MESSAGE);
+		if ((s != null) && (s.length() > 0)) {
+			Character newc = new Character(s);
+			CharacterLibrary.add(newc);
+			party.add(newc);	// by default we add the new character to the party
+		}
+	}
+
 	public void selectParty() {
 		SelectPartyDialog partyDialog = new SelectPartyDialog(this,party);
 		partyDialog.setVisible(true);
@@ -187,7 +203,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		}
 	}
 
-	//FIXME need to apply history of challenges to character
 	public void calculateXP() {
 		XPEntryDialog dialog = new XPEntryDialog(this, party);
 		dialog.setVisible(true);
@@ -382,6 +397,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		} else if(e.getSource() == xpItem) {
 			calculateXP();
+
+		} else if(e.getSource() == newCharacterItem) {
+			newCharacter();
 
 		} else {
 			System.err.println("ActionEvent from unknown source: "+e);

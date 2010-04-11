@@ -93,17 +93,9 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 	public void applyXPEarned() {
 		int i = 0;
 		for (party.Character c : party) {
-			int xp = getXPEarned(c,i);
-			System.out.println(c.getName()+" earned "+xp);
-			c.setXP(c.getXP() + xp);
+			c.addXPChallenges(party.size(), penalties[i], challenges);
 			i++;
 		}
-	}
-
-	protected int getXPEarned(party.Character c, int i) {
-		int xp = XP.getXP(c.getLevel(), party.size(), challenges);
-		if (penalties[i] != 0) xp = (int)(xp * (100-penalties[i]) / 100);
-		return xp; // earned - integer
 	}
 
 	protected class XPEntryTableModel extends AbstractTableModel {
@@ -112,7 +104,12 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		public static final int COLUMN_NUMBER = 2;
 		public static final int COLUMN_COUNT = 3;
 
-		protected Challenge entry = new Challenge();
+		protected Challenge entry;
+
+		public XPEntryTableModel() {
+			entry = new Challenge();
+			entry.number = 1;
+		}
 
 		public int getColumnCount() {
 			return COLUMN_COUNT;
@@ -183,6 +180,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 				// setup new blank row
 				challenges.add(c);
 				entry = new Challenge();
+				entry.number = 1;
 				fireTableRowsInserted(challenges.size(), challenges.size());
 			} else {
 				fireTableCellUpdated(row, col);
@@ -218,9 +216,10 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 			case COLUMN_XP:
 				return c.getXP();	// xp - integer
 			case COLUMN_EARNED:
-				return getXPEarned(c,row); // earned - integer
+				return XP.getXP(c.getLevel(), party.size(), penalties[row], challenges); // earned - integer
 			case COLUMN_TOGO:
-				return 100.0f*(c.getXP()+getXPEarned(c,row))/XP.getXPRequired(c.getLevel()+1);	// % through level - float
+				int xp = c.getXP()+XP.getXP(c.getLevel(), party.size(), penalties[row], challenges);
+				return 100.0f*xp/XP.getXPRequired(c.getLevel()+1);	// % through level - float
 			case COLUMN_PENALTY:
 				return penalties[row];	// % penalty - float
 			default:

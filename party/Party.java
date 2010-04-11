@@ -83,7 +83,7 @@ public class Party implements Iterable<Character>, XML {
 				if (children != null) {
 					for (int i=0; i<children.getLength(); i++) {
 						if (children.item(i).getNodeName().equals("Character")) {
-							Character c = Character.parseDOM(children.item(i));
+							Character c = Character.parseDOM((Element)children.item(i));
 							if (c != null) {
 								CharacterLibrary.add(c);
 								charMap.put(c.getName(),c);

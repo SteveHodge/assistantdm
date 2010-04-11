@@ -1,5 +1,6 @@
 package party;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,10 +11,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import xml.XML;
-import xml.XMLUtils;
+import party.XP.Challenge;
 
-//FIXME need to store history of xp changes
+import xml.XML;
 
 public class Character extends Creature implements XML {
 	protected String name;
@@ -25,6 +25,68 @@ public class Character extends Creature implements XML {
 	protected Map<Skill,Integer> skillMisc = new HashMap<Skill,Integer>();
 	protected int hps, wounds, nonLethal, xp = 0, level = 1;
 	protected int[] ac = new int[AC_MAX_INDEX];
+	protected List<XPChange> xpChanges = new ArrayList<XPChange>();
+
+	public static class XPChange {
+		//TODO comments
+		//TODO date
+	}
+
+	public static class XPChangeChallenges extends XPChange {
+		int xp;	// xp earned from challenges
+		int level;	// level when meeting challenges
+		int partyCount;	// number of party members meeting challenges
+		int penalty;	// % penalty applied to xp
+		List<Challenge> challenges = new ArrayList<Challenge>();
+
+		public String getXML(String indent, String nextIndent) {
+			StringBuilder b = new StringBuilder();
+			String nl = System.getProperty("line.separator");
+			b.append(indent).append("<XPAward xp=\"").append(xp);
+			b.append("\" level=\"").append(level);
+			b.append("\" party=\"").append(partyCount);
+			b.append("\" penalty=\"").append(penalty);
+			b.append("\">").append(nl);
+			for (Challenge c : challenges) {
+				b.append(c.getXML(indent+nextIndent,nextIndent));
+			}
+			b.append(indent).append("</XPAward>").append(nl);
+			return b.toString();
+		}
+
+		public static XPChangeChallenges parseDOM(Element e) {
+			if (!e.getNodeName().equals("XPAward")) return null;
+			XPChangeChallenges c = new XPChangeChallenges();
+			c.xp = Integer.parseInt(e.getAttribute("xp"));
+			c.level = Integer.parseInt(e.getAttribute("level"));
+			c.partyCount = Integer.parseInt(e.getAttribute("party"));
+			if (e.hasAttribute("penalty")) c.penalty = Integer.parseInt(e.getAttribute("penalty"));
+
+			NodeList nodes = e.getChildNodes();
+			if (nodes != null) {
+				for (int i=0; i<nodes.getLength(); i++) {
+					if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+					Element child = (Element)nodes.item(i);
+					String tag = child.getTagName();
+
+					if (tag.equals("XPChallenge")) {
+						Challenge chal = Challenge.parseDOM(child);
+						c.challenges.add(chal);
+					}
+				}
+			}
+			return c;
+		}
+	}
+
+	public static class XPChangeAdhoc extends XPChange {
+		int xp;
+	}
+
+	public class XPChangeLevel extends XPChange {
+		int oldLevel;
+		int newLevel;
+	}
 
 	public Character(String n) {
 		name = n;
@@ -33,6 +95,17 @@ public class Character extends Creature implements XML {
 
 	public String toString() {
 		return name;
+	}
+
+	public void addXPChallenges(int count, int penalty, Collection<Challenge> challenges) {
+		XPChangeChallenges change = new XPChangeChallenges();
+		change.level = level;
+		change.partyCount = count;
+		change.penalty = penalty;
+		change.xp = XP.getXP(level, count, penalty, challenges);
+		change.challenges.addAll(challenges);
+		xpChanges.add(change);
+		xp += change.xp;	//TODO fire property change
 	}
 
 	public int getAbilityScore(int type) {
@@ -240,15 +313,33 @@ public class Character extends Creature implements XML {
 		return getAC() - ac[AC_ARMOR] - ac[AC_SHIELD] - ac[AC_NATURAL];
 	}
 
-	public void setAC(int ac) {}
-	public void setTouchAC(int ac) {}
-	public void setFlatFootedAC(int ac) {}
-	public void setName(String name) {}
+	
+	// FIXME these next four methods are from Creature - we shouldn't have them here
+	public void setAC(int ac) {
+		System.out.println("Setting AC");
+		throw new UnsupportedOperationException();
+	}
+
+	public void setTouchAC(int ac) {
+		System.out.println("Setting Touch AC");
+		throw new UnsupportedOperationException();
+	}
+
+	public void setFlatFootedAC(int ac) {
+		System.out.println("Setting Flat Footed AC");
+		throw new UnsupportedOperationException();
+	}
+
+	public void setName(String name) {
+		System.out.println("Setting Name");
+		throw new UnsupportedOperationException();
+	}
 
 	public int getXP() {
 		return xp;
 	}
 
+	// TODO remove when other methods allow full control
 	public void setXP(int xp) {
 		this.xp = xp;
 	}
@@ -257,15 +348,16 @@ public class Character extends Creature implements XML {
 		return level;
 	}
 
+	// TODO remove when other methods allow full control?
 	public void setLevel(int l) {
 		level = l;
 	}
 
-	public static Character parseDOM(Node node) {
-		if (!node.getNodeName().equals("Character")) return null;
-		Character c = new Character(XMLUtils.getAttribute(node, "name"));
+	public static Character parseDOM(Element el) {
+		if (!el.getNodeName().equals("Character")) return null;
+		Character c = new Character(el.getAttribute("name"));
 
-		NodeList nodes = node.getChildNodes();
+		NodeList nodes = el.getChildNodes();
 		if (nodes != null) {
 			for (int i=0; i<nodes.getLength(); i++) {
 				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
@@ -284,6 +376,15 @@ public class Character extends Creature implements XML {
 				} else if (tag.equals("Level")) {
 					c.setLevel(Integer.parseInt(e.getAttribute("level")));
 					c.setXP(Integer.parseInt(e.getAttribute("xp")));
+					NodeList awards = e.getChildNodes();
+					if (awards != null) {
+						for (int j=0; j<awards.getLength(); j++) {
+							if (!awards.item(j).getNodeName().equals("XPAward")) continue;
+							XPChangeChallenges chal = XPChangeChallenges.parseDOM((Element)awards.item(j));
+							if (chal != null) c.xpChanges.add(chal);
+						}
+					}
+					
 
 				} else if (tag.equals("AbilityScores")) {
 					NodeList abilities = e.getChildNodes();
@@ -364,7 +465,14 @@ public class Character extends Creature implements XML {
 		String i2 = indent + nextIndent;
 		String i3 = i2 + nextIndent;
 		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
-		b.append(i2).append("<Level level=\"").append(getLevel()).append("\" xp=\"").append(getXP()).append("\"/>").append(nl);
+		b.append(i2).append("<Level level=\"").append(getLevel()).append("\" xp=\"").append(getXP()).append("\">").append(nl);
+		for (XPChange c : xpChanges) {
+			if (c instanceof XPChangeChallenges) {
+				XPChangeChallenges cc = (XPChangeChallenges)c;
+				b.append(cc.getXML(i3, nextIndent));
+			}
+		}
+		b.append(i2).append("</Level>").append(nl);
 		b.append(i2).append("<AbilityScores>").append(nl);
 		for (int i=0; i<ability_names.length; i++) {
 			b.append(i3).append("<AbilityScore type=\"").append(ability_names[i]);

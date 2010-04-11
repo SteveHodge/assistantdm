@@ -294,7 +294,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		e.removeChangeListener(this);
 		e.removeActionListener(this);
 		int pos = list.indexOf(e);
-		System.out.println("remove entry "+e+" at "+pos);
+		//System.out.println("remove entry "+e+" at "+pos);
 		list.remove(e);
 		fireListDataEvent(ListDataEvent.INTERVAL_REMOVED,pos,pos);
 	}

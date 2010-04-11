@@ -3,6 +3,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import party.Character.XPChangeChallenges;
+
 
 public class XP {
 /*	public static void main(String[] args) {
@@ -71,9 +77,32 @@ public class XP {
 		public CR cr;
 		public int number;
 		public String comment;
+
+		public String toString() {
+			if (number == 1) return comment + " CR " + cr;
+			return comment + " " + number + " x CR " + cr;
+		}
+
+		public String getXML(String indent, String nextIndent) {
+			StringBuilder b = new StringBuilder();
+			String nl = System.getProperty("line.separator");
+			b.append(indent).append("<XPChallenge cr=\"").append(cr);
+			b.append("\" number=\"").append(number);
+			b.append("\">").append(comment).append("</XPChallenge>").append(nl);
+			return b.toString();
+		}
+
+		public static Challenge parseDOM(Element e) {
+			if (!e.getNodeName().equals("XPChallenge")) return null;
+			Challenge c = new Challenge();
+			c.cr = new CR(e.getAttribute("cr"));
+			c.number = Integer.parseInt(e.getAttribute("number"));
+			c.comment = e.getTextContent();
+			return c;
+		}
 	}
 
-	public static int getXP(int level, int members, Collection<Challenge> challenges) {
+	public static int getXP(int level, int members, int penalty, Collection<Challenge> challenges) {
 		int xp = 0;
 		for (Challenge c : challenges) {
 			if (c.cr == null || c.cr.cr == 0 || c.number == 0) continue;
@@ -84,6 +113,7 @@ public class XP {
 			award = Math.round((float)award / members);
 			xp += award;
 		}
+		if (penalty != 0) xp = (int)(xp * (100-penalty) / 100);
 		return xp;
 	}
 /*
