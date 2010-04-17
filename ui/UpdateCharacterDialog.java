@@ -16,8 +16,6 @@ import javax.swing.JPanel;
 import party.Character;
 import party.Party;
 
-// TODO would be nice to set dropdowns to likely correct options
-
 @SuppressWarnings("serial")
 public class UpdateCharacterDialog extends JDialog implements ActionListener {
 	boolean returnOk = false;
@@ -51,6 +49,11 @@ public class UpdateCharacterDialog extends JDialog implements ActionListener {
 			Character c = newparty.get(i);
 			selectPanel.add(new JLabel(c.getName()));
 			JComboBox combo = new JComboBox(options);
+			for (int j = 1; j < options.length; j++) {
+				if (c.getName().equalsIgnoreCase(options[j].toString())) {
+					combo.setSelectedIndex(j);
+				}
+			}
 			dropdownMap.put(c, combo);
 			selectPanel.add(combo);
 		}
