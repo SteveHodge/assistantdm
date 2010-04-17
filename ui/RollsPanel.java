@@ -2,8 +2,9 @@ package ui;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
@@ -23,30 +24,38 @@ import party.Skill;
 import swing.SpinnerCellEditor;
 
 //TODO better layout
+//TODO reset is a bit ugly - implement party changes and skill additions in a better way
+
+// note that setting skills in the table modifies to skill to the newly specified total by changing the number
+// of ranks. Setting the skill to 0 sets the ranks to 0.
 
 @SuppressWarnings("serial")
-public class RollsPanel extends JPanel implements PartyListener {
+public class RollsPanel extends JPanel implements PartyListener, PropertyChangeListener {
 	static final int LAST_SAVE_ROW = 2;
 	static final int FIRST_SKILL_ROW = 4;
 
 	Party party;
+	RollsTableModel model;
 
 	public RollsPanel(Party p) {
 		party = p;
 		party.addPartyListener(this);
+		for (Character c : party) {
+			c.addPropertyChangeListener(this);
+		}
 		reset();
 	}
 
 	protected void reset() {
-		this.removeAll();
+		removeAll();
 
 		// build list of all skills. this should be maintained if skills are added later
-		Set<Skill> skills = new HashSet<Skill>();
+		Set<Skill> skills = Skill.getUntrainedSkills();
 		for (Character c : party) {
 			skills.addAll(c.getSkills());
 		}
 
-		final RollsTableModel model = new RollsTableModel(skills);
+		model = new RollsTableModel(skills);
 		final JTable table = new JTable(model);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.getColumnModel().getColumn(0).setPreferredWidth(200);
@@ -84,11 +93,28 @@ public class RollsPanel extends JPanel implements PartyListener {
 	}
 
 	public void characterAdded(Character c) {
+		c.addPropertyChangeListener(this);
 		reset();
 	}
 
 	public void characterRemoved(Character c) {
+		c.removePropertyChangeListener(this);
 		reset();
+	}
+
+	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getPropertyName().startsWith(Creature.PROPERTY_SKILL_PREFIX)) {
+			String skill = e.getPropertyName().substring(Creature.PROPERTY_SKILL_PREFIX.length());
+			Skill s = Skill.getSkill(skill);
+			if (!model.skillChange(s)) reset();
+		} else if (e.getPropertyName().startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
+			String save = e.getPropertyName().substring(Creature.PROPERTY_SAVE_PREFIX.length());
+			for (int i = 0; i < 3; i++) {
+				if (save.equals(Creature.getSavingThrowName(i))) {
+					model.saveChange(i);
+				}
+			}
+		}
 	}
 
 	class RollsTableModel extends AbstractTableModel {
@@ -101,6 +127,21 @@ public class RollsPanel extends JPanel implements PartyListener {
 			this.skills = new Skill[skills.size()];
 			skills.toArray(this.skills);
 			Arrays.sort(this.skills);
+		}
+
+		public boolean skillChange(Skill s) {
+			boolean found = false;
+			for (int i = FIRST_SKILL_ROW; i < getLastSkillRowIndex(); i++) {
+				if (skills[i-FIRST_SKILL_ROW] == s) {
+					found = true;
+					fireTableRowsUpdated(i, i);
+				}
+			}
+			return found;
+		}
+
+		public void saveChange(int s) {
+			fireTableRowsUpdated(s, s);
 		}
 
 		public Class<?> getColumnClass(int columnIndex) {
@@ -121,9 +162,8 @@ public class RollsPanel extends JPanel implements PartyListener {
 				if (value == null) value = new Integer(0);
 				party.get(columnIndex-1).setSavingThrow(rowIndex, (Integer)value);
 			} else if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
-				// TODO this should instead delete the skill from the character:
 				if (value == null) party.get(columnIndex-1).setSkillRanks(skills[rowIndex-FIRST_SKILL_ROW], 0);
-				else party.get(columnIndex-1).setSkillRanks(skills[rowIndex-FIRST_SKILL_ROW], (Integer)value);
+				else party.get(columnIndex-1).setSkillTotal(skills[rowIndex-FIRST_SKILL_ROW], (Integer)value);
 			} else if (rowIndex == getLastSkillRowIndex()+2 && currentRollRow != -1) {
 				currentRoll[columnIndex-1] = (Integer)value;
 			} else {
@@ -146,9 +186,14 @@ public class RollsPanel extends JPanel implements PartyListener {
 
 			currentRollRow = rowIndex;
 			currentRollName = getValueAt(rowIndex,0).toString();
+			Skill s = skills[rowIndex-FIRST_SKILL_ROW];
 			Random r = new Random();
 			for (int i=0; i<currentRoll.length; i++) {
-				currentRoll[i] = r.nextInt(20)+1;
+				if (s.isTrainedOnly() && party.get(i).getSkillRanks(s) == 0) {
+					currentRoll[i] = 0;
+				} else {
+					currentRoll[i] = r.nextInt(20)+1;
+				}
 			}
 			// +2 is the row after the gap row, i.e. the roll row, +3 is the total row
 			fireTableRowsUpdated(getLastSkillRowIndex()+2, getLastSkillRowIndex()+3); 
@@ -200,13 +245,21 @@ public class RollsPanel extends JPanel implements PartyListener {
 			}
 			if (rowIndex > LAST_SAVE_ROW && rowIndex < FIRST_SKILL_ROW) return null;
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
-				return party.get(columnIndex-1).getSkillTotal(skills[rowIndex-FIRST_SKILL_ROW]);
+				Skill s = skills[rowIndex-FIRST_SKILL_ROW];
+				if (s.isTrainedOnly() && party.get(columnIndex-1).getSkillRanks(s) == 0) {
+					// trained skill with no ranks
+					return null;
+				} else {
+					return party.get(columnIndex-1).getSkillTotal(s);
+				}
 			}
 			if (currentRollRow != -1) {
 				if (rowIndex == getLastSkillRowIndex()+2) {
+					if (currentRoll[columnIndex-1] == 0) return null;
 					return currentRoll[columnIndex-1];
 				}
 				if (rowIndex == getLastSkillRowIndex()+3) {
+					if (currentRoll[columnIndex-1] == 0) return null;
 					Integer stat = (Integer)getValueAt(currentRollRow,columnIndex);
 					if (stat == null) return currentRoll[columnIndex-1];
 					return currentRoll[columnIndex-1] + stat;
