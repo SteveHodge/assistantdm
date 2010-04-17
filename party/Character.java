@@ -15,6 +15,14 @@ import party.XP.Challenge;
 
 import xml.XML;
 
+/* TODO:
+ * Modifying dex should alter ac - but we need to know the max dex modifier
+ * Should allow temporary hitpoints - will require careful consideration of how wounds work
+ */
+/**
+ * @author Steve
+ *
+ */
 public class Character extends Creature implements XML {
 	protected String name;
 	protected int initModifier = 0;
@@ -25,6 +33,8 @@ public class Character extends Creature implements XML {
 	protected Map<Skill,Integer> skillMisc = new HashMap<Skill,Integer>();
 	protected int hps, wounds, nonLethal, xp = 0, level = 1;
 	protected int[] ac = new int[AC_MAX_INDEX];
+	protected int tempAC, tempTouch, tempFF;	// ac overrides
+	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 	protected List<XP.XPChange> xpChanges = new ArrayList<XP.XPChange>();
 
 	public Character(String n) {
@@ -36,19 +46,89 @@ public class Character extends Creature implements XML {
 		return name;
 	}
 
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		System.out.println("Setting Name");
+		throw new UnsupportedOperationException();
+	}
+
+//--------------- Ability Scores -------------------
+// Ability scores have a base value and can have an override value
+
+   /**
+	* Returns the current score of the specified ability. The current score
+	* is the temporary score if one has been set by setTemporaryAbility,
+	* otherwise it is base ability score
+	* 
+	* @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
+	* @return      the current score of the specified ability
+	*/
 	public int getAbilityScore(int type) {
 		if (tempAbilities[type] != -1) return tempAbilities[type];
 		return abilities[type];
 	}
 
+   /**
+    * Returns the base score of the specified ability. 
+    * 
+    * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
+    * @return      the base score of the specified ability
+    */
 	public int getBaseAbilityScore(int type) {
 		return abilities[type];
 	}
 
+   /**
+    * Returns the modifier calculated from the specified ability's current score.
+    * 
+    * @param type  the ability score to get the modifier of: one of the ABILITY constants from {@link Creature}
+    * @return      the modifier calculated from the current score of the specified ability
+    */
 	public int getAbilityModifier(int type) {
 		return getModifier(getAbilityScore(type));
 	}
 
+   /**
+    * Sets the base score of the specified ability
+    * 
+    * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
+    * @param value the value to set the score to
+    */
+	public void setAbilityScore(int type, int value) {
+		int old = abilities[type];
+		abilities[type] = value;
+		fireAbilityChange(type,old,value);
+	}
+
+   /**
+    * Sets the temporary score of the specified ability. When a temporary score is set,
+    * <code>getAbilityScore</code> will return it rather than the base score and
+    * <code>getAbilityModifier</code> will calculate the modifier using the temporary
+    * score rather than the base score.
+    * <p>
+    * The temporary score can be removed by setting it to -1 or to the base score of
+    * the specified ability.
+    *  
+    * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
+    * @param value the value to set as the temporary score
+    */
+	public void setTemporaryAbility(int type, int value) {
+		int old = tempAbilities[type];
+		if (old == -1) old = abilities[type];
+		if (value == abilities[type] || value == -1) {
+			// reseting to normal score
+			tempAbilities[type] = -1;
+			fireAbilityChange(type,old,abilities[type]);
+		} else {
+			tempAbilities[type] = value;
+			fireAbilityChange(type,old,value);
+		}
+	}
+
+	// fires the property change for the ability and for any dependent stats
 	protected void fireAbilityChange(int type, int old, int value) {
         pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+ability_names[type], old, value);
         int modDelta = Creature.getModifier(value) - Creature.getModifier(old);
@@ -78,32 +158,94 @@ public class Character extends Creature implements XML {
         			);
         	}
 
-        	// TODO other properties
+        	// hit points
+        	if (type == Creature.ABILITY_CONSTITUTION) {
+        		int oldhps = getMaximumHitPoints();
+        		int oldmod = Creature.getModifier(old);
+        		int newmod = Creature.getModifier(value);
+        		int newhps = oldhps + (level * (newmod - oldmod));
+        		if (newhps < level) newhps = level;	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
+        		System.out.println("changing max hps from "+oldhps+" to "+newhps);
+        		setMaximumHitPoints(newhps);
+        	}
+
+        	// TODO other properties: ac
         }
 	}
 
-	public void setAbilityScore(int type, int value) {
-		int old = abilities[type];
-		abilities[type] = value;
-		fireAbilityChange(type,old,value);
+//--------------- Skills -------------------
+// Skills have a total value, ranks, misc bonus, and are modified by ability scores
+
+	/**
+	 * Returns the set of all skills that this character can perform, that is all
+	 * untrained skills and all skills that this characters has at least one rank in.
+	 */
+	public Set<Skill> getSkills() {
+		Set<Skill> set = new HashSet<Skill>(skillRanks.keySet());
+		set.addAll(Skill.getUntrainedSkills());
+		return set;
 	}
 
-	public void setTemporaryAbility(int type, int value) {
-		int old = tempAbilities[type];
-		if (old == -1) old = abilities[type];
-		if (value == abilities[type] || value == -1) {
-			// reseting to normal score
-			tempAbilities[type] = -1;
-			fireAbilityChange(type,old,abilities[type]);
-		} else {
-			tempAbilities[type] = value;
-			fireAbilityChange(type,old,value);
+   /**
+    * Sets the specified skill to the specified total. Ranks in the skill are adjusted
+    * to achieve this.
+    * 
+    * @param skill  the skill to set
+    * @param value  the total value to set the skill to
+    */
+	public void setSkillTotal(Skill skill, int value) {
+		int old = getSkillTotal(skill);
+		float ranks = getSkillRanks(skill) + value - old;
+		if (ranks < 0) ranks = 0;
+		setSkillRanks(skill, ranks);
+	}
+
+	public int getSkillTotal(Skill s) {
+		int ranks = 0;
+		if (skillRanks.containsKey(s)) ranks += skillRanks.get(s);
+		if (skillMisc.containsKey(s)) ranks += skillMisc.get(s);
+		int ability = s.getAbility();
+		if (ability == -1) return ranks;
+		return ranks+getAbilityModifier(ability);
+	}
+
+	public float getSkillRanks(Skill s) {
+		Float ranks = skillRanks.get(s);
+		if (ranks == null) return 0;
+		return ranks;
+	}
+
+	public int getSkillMisc(Skill s) {
+		Integer misc = skillMisc.get(s);
+		if (misc == null) return 0;
+		return misc;
+	}
+
+	public void setSkillRanks(Skill s, float ranks) {
+		float old = 0;
+		if (skillRanks.containsKey(s)) old = skillRanks.get(s);
+		skillRanks.put(s,ranks);
+        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s, old, ranks);	// TODO not actually the correct old and new values
+	}
+
+	public void setSkillMisc(Skill s, int misc) {
+		int old = 0;
+		if (skillMisc.containsKey(s)) old = skillMisc.get(s);
+		skillMisc.put(s,misc);
+		System.out.println("Set "+s+" to "+misc);
+        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s, old, misc);		// TODO not actually the correct old and new values
+	}
+
+	public void deleteSkill(Skill skill) {
+		if (skillRanks.containsKey(skill)) {
+			float old = skillRanks.get(skill);
+			skillRanks.remove(skill);
+	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, old, 0);
 		}
 	}
 
-	public Set<Skill> getSkills() {
-		return new HashSet<Skill>(skillRanks.keySet());
-	}
+//--------------- Initiative -------------------
+// Initiative has a total value, a base value and is modified by dexterity
 
 	public int getInitiativeModifier() {
 		return initModifier+getAbilityModifier(Creature.ABILITY_DEXTERITY);
@@ -119,66 +261,41 @@ public class Character extends Creature implements XML {
 		pcs.firePropertyChange(PROPERTY_INITIATIVE, old, i);
 	}
 
+//--------------- Saving Throws -------------------
+// Saves have a total, a base values and are modified by ability scores
+// TODO saves should also have a misc mod
+// XXX Note that the property change sets old and new to the base scores for setSavingThrowBase and the total scores for setSavingThrow
+
 	public int getSavingThrow(int save) {
 		return saves[save]+getAbilityModifier(Creature.getSaveAbility(save));
 	}
 
-	public int getBaseSavingThrow(int save) {
+	public int getSavingThrowBase(int save) {
 		return saves[save];
 	}
 
-	public void setSavingThrow(int save, int total) {
+	public void setSavingThrowBase(int save, int total) {
 		int old = saves[save];
 		saves[save] = total;
 		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(save), old, total);
 	}
 
-	public int getSkillTotal(Skill s) {
-		int ranks = 0;
-		if (skillRanks.get(s) != null) ranks += skillRanks.get(s);
-		if (skillMisc.get(s) != null) ranks += skillMisc.get(s);
-		int ability = s.getAbility();
-		if (ability == -1) return ranks;
-		return ranks+getAbilityModifier(ability);
+   /**
+    * Sets the saving throw total by modifying the base value.
+    * 
+    * @param save   the saving throw to set
+    * @param total  the total required
+    */
+	public void setSavingThrow(int save, int total) {
+		int old = getSavingThrow(save);
+		saves[save] = total-getAbilityModifier(Creature.getSaveAbility(save));
+		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(save), old, total);
 	}
-
-	public float getSkillRanks(Skill s) {
-		Float ranks = skillRanks.get(s);
-		if (ranks == null) return 0;
-		return ranks;
-	}
-
-	public int getSkillMisc(Skill s) {
-		Integer ranks = skillMisc.get(s);
-		if (ranks == null) return 0;
-		return ranks;
-	}
-
-	public void setSkillRanks(Skill s, float ranks) {
-		float old = 0;
-		if (skillRanks.containsKey(s)) old = skillRanks.get(s);
-		skillRanks.put(s,ranks);
-        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s, old, ranks);	// TODO not actually the correct old and new values
-	}
-
-	public void setSkillMisc(Skill s, int misc) {
-		int old = 0;
-		if (skillMisc.containsKey(s)) old = skillMisc.get(s);
-		skillMisc.put(s,misc);
-        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s, old, misc);		// TODO not actually the correct old and new values
-	}
-
-	public void deleteSkill(Skill skill) {
-		if (skillRanks.containsKey(skill)) {
-			float old = skillRanks.get(skill);
-			skillRanks.remove(skill);
-	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, old, 0);
-		}
-	}
-
-	public String getName() {
-		return name;
-	}
+//--------------- Hit Points -------------------
+// Hit points have a maximum value, wounds taken, non-lethal taken and a calculated
+// current value
+// TODO hit points should also have a temporary bonus value
+// TODO hit points should be modified by con
 
 	public int getMaximumHitPoints() {
 		return hps;
@@ -214,6 +331,13 @@ public class Character extends Creature implements XML {
 		return hps - wounds - nonLethal;
 	}
 
+//--------------- Armor Class -------------------
+// AC has a total value, a touch value and a flat footed value
+// it is made up of a number of different components
+// TODO dex changes should apply (need to know max dex bonus)
+// XXX modification methods always fire a PROPERTY_AC change to listeners but the
+// values set depend on exactly what has changed: they may be the old and new values
+// of just the modified component or of the full ac or of the touch ac etc. 
 	public void setACComponent(int type, int value) {
 		int oldValue = ac[type];
 		ac[type] = value;
@@ -224,45 +348,127 @@ public class Character extends Creature implements XML {
 		return ac[type];
 	}
 
+   /**
+    * Returns the temporary ac if there is one, otherwise calculates the total ac
+    * from the ac components
+    * 
+    * @return current total ac
+    */
 	public int getAC() {
+		return getAC(true);
+	}
+
+	protected int getAC(boolean allowTemp) {
+		if (allowTemp && hasTempAC) return tempAC;
+		int totAC = 10;
+		for (int i = 0; i < AC_MAX_INDEX; i++) totAC += ac[i];
+		return totAC;
+	}
+
+   /**
+    * Returns the temporary flat-footed ac if there is one, otherwise calculates the
+    * flat-footed ac from the ac components with any positive dexterity modifier
+    * ignored.
+    * 
+    * @return current flat-footed ac
+    */
+	public int getFlatFootedAC() {
+		return getFlatFootedAC(true);
+	}
+
+	protected int getFlatFootedAC(boolean allowTemp) {
+		if (allowTemp && hasTempFF) return tempFF;
 		int totAC = 10;
 		for (int i = 0; i < AC_MAX_INDEX; i++) {
-			totAC += ac[i];
+			if (i != AC_DEX || ac[AC_DEX] < 1) {
+				totAC += ac[i];
+			}
 		}
 		return totAC;
 	}
 
-	public int getFlatFootedAC() {
-		if (ac[AC_DEX] < 1) return getAC();
-		return getAC() - ac[AC_DEX];
-	}
-
+   /**
+    * Returns the temporary touch ac if there is one, otherwise calculates the touch
+    * ac from the ac components with all armor, shield and natural armor bonuses
+    * ignored.
+    * 
+    * @return current touch ac
+    */
 	public int getTouchAC() {
-		return getAC() - ac[AC_ARMOR] - ac[AC_SHIELD] - ac[AC_NATURAL];
+		return getTouchAC(true);
 	}
 
-	
-	// FIXME these next four methods are from Creature - we shouldn't have them here
-	public void setAC(int ac) {
-		System.out.println("Setting AC");
-		throw new UnsupportedOperationException();
+	protected int getTouchAC(boolean allowTemp) {
+		if (allowTemp && hasTempTouch) return tempTouch;
+		int totAC = 10;
+		for (int i = AC_DEX; i < AC_MAX_INDEX; i++) totAC += ac[i];
+		return totAC;
 	}
 
-	public void setTouchAC(int ac) {
-		System.out.println("Setting Touch AC");
-		throw new UnsupportedOperationException();
+   /**
+    * Sets a temporary full ac score. Setting this to the normal value will remove
+    * the temporary score (as will <code>clearTemporaryAC()</code>
+    * 
+    * @param ac the score to set the full ac to
+    */
+	public void setAC(int tempac) {
+		if (hasTempTouch) {
+			int totAC = getAC(false);
+			if (totAC == tempac) {
+				hasTempAC = false;
+				pcs.firePropertyChange(PROPERTY_AC, tempAC, totAC);
+				return;
+			}
+		}
+		int old = getAC();
+		tempAC = tempac;
+		hasTempAC = true;
+		pcs.firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
-	public void setFlatFootedAC(int ac) {
-		System.out.println("Setting Flat Footed AC");
-		throw new UnsupportedOperationException();
+   /**
+    * Sets a temporary touch ac score. Setting this to the normal value will remove
+    * the temporary score (as will <code>clearTemporaryTouchAC()</code>
+    * 
+    * @param ac the score to set the touch ac to
+    */
+	public void setTouchAC(int tempac) {
+		if (hasTempTouch) {
+			int totAC = getTouchAC(false);
+			if (totAC == tempac) {
+				hasTempTouch = false;
+				pcs.firePropertyChange(PROPERTY_AC, tempTouch, totAC);
+				return;
+			}
+		}
+		int old = getTouchAC();
+		tempTouch = tempac;
+		hasTempTouch = true;
+		pcs.firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
-	public void setName(String name) {
-		System.out.println("Setting Name");
-		throw new UnsupportedOperationException();
+   /**
+    * Sets a temporary flat-footed ac score. Setting this to the normal value will
+    * remove the temporary score (as will <code>clearTemporaryFlatFootedAC()</code>
+    * 
+    * @param ac the score to set the flat-footed ac to
+    */
+	public void setFlatFootedAC(int tempac) {
+		if (hasTempFF) {
+			int totAC = getFlatFootedAC(false);
+			if (totAC == tempac) {
+				hasTempFF = false;
+				pcs.firePropertyChange(PROPERTY_AC, tempFF, totAC);
+				return;
+			}
+		}
+		int old = getFlatFootedAC();
+		tempFF = tempac;
+		hasTempFF = true;
+		pcs.firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
+//--------------- XP and level -------------------
 	public int getXP() {
 		return xp;
 	}
@@ -271,7 +477,7 @@ public class Character extends Creature implements XML {
 		return XP.getXPRequired(level+1);
 	}
 
-	// TODO eventually replace this with a real history facility
+	// WISH eventually replace this with a real history facility
 	public String getXPHistory() {
 		StringBuilder b = new StringBuilder();
 		for (XP.XPChange change : xpChanges) {
@@ -313,6 +519,7 @@ public class Character extends Creature implements XML {
 		pcs.firePropertyChange(PROPERTY_LEVEL, old, level);
 	}
 
+//--------------- Import/Export and other methods -------------------
 	public static Character parseDOM(Element el) {
 		if (!el.getNodeName().equals("Character")) return null;
 		Character c = new Character(el.getAttribute("name"));
@@ -453,11 +660,13 @@ public class Character extends Creature implements XML {
 		b.append(i2).append("<SavingThrows>").append(nl);
 		for (int i=0; i<save_names.length; i++) {
 			b.append(i3).append("<Save type=\"").append(save_names[i]);
-			b.append("\" value=\"").append(getBaseSavingThrow(i)).append("\"/>").append(nl);
+			b.append("\" value=\"").append(getSavingThrowBase(i)).append("\"/>").append(nl);
 		}
 		b.append(i2).append("</SavingThrows>").append(nl);
 		b.append(i2).append("<Skills>").append(nl);
-		for (Skill s : skillRanks.keySet()) {
+		Set<Skill> set = new HashSet<Skill>(skillRanks.keySet());
+		set.addAll(skillMisc.keySet());
+		for (Skill s : set) {
 			if (getSkillRanks(s) != 0 || getSkillMisc(s) != 0) {
 				b.append(i3).append("<Skill type=\"").append(s);
 				b.append("\" ranks=\"").append(getSkillRanks(s));
