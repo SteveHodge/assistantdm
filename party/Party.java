@@ -63,12 +63,22 @@ public class Party implements Iterable<Character>, XML {
 		return characters.iterator();
 	}
 
-	// TODO move to CharacterLibrary (except Party block)?
-	// If the file has a <Party> block then the characters are all added to the CharacterLibrary and the
-	// new Party is set up to contain only those characters specified in the <Party> block.
-	// If the file does not contain a <Party> block then all characters in the file are added to the Party,
-	// but they are not added to CharacterLibrary (this case is used for updates)
 	public static Party parseXML(File xmlFile) {
+		return parseXML(xmlFile, false);
+	}
+
+    /**
+	 * Reads the supplied xml file are builds a party of characters from it. All
+	 * characters in the file are added to the <code>CharacterLibrary</code> unless
+	 * <code>update</code> is true. If the file has a &lt;Party&gt; block then the
+	 * new <code>Party</code> is set up to conatin just those characters, otherwise
+	 * it is set up with all the characters from the file.
+	 * 
+	 * @param xmlFile  the File to parse
+	 * @param update   if true then the incomming characters are not added to the CharacterLibrary 
+	 * @return         the new Party
+	 */
+	public static Party parseXML(File xmlFile, boolean update) {
 		Party p = new Party();
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -89,6 +99,7 @@ public class Party implements Iterable<Character>, XML {
 						if (children.item(i).getNodeName().equals("Character")) {
 							Character c = Character.parseDOM((Element)children.item(i));
 							if (c != null) {
+								if (!update) CharacterLibrary.add(c);
 								charMap.put(c.getName(),c);
 							}
 						}
@@ -110,14 +121,9 @@ public class Party implements Iterable<Character>, XML {
 						}
 					}
 				}
-				// Add characters to CharacterLibrary:
-				for (Character c: charMap.values()) {
-					CharacterLibrary.add(c);
-				}
 
 			} else {
 				System.out.println("Party not found");
-				// Add all characters to the party but not the library:
 				for (Character c: charMap.values()) {
 					p.add(c);
 				}

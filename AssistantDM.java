@@ -51,9 +51,8 @@ import ui.XPEntryDialog;
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
 //TODO allow ac components that are not currently included. will probably need to allow multiples of each component 
 //WISH refactor classes that should be in ui package
-//TODO most/all character properties should all "override" values
-//TODO saves and skills need base value and bonus value separated
 //WISH change xml output code to build a DOM and then write it out using library methods - then we don't have so much identing and rubbish to do
+//TODO add new party menu option, ask to save modified file
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
 	JMenuBar menuBar;
@@ -102,10 +101,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		openItem = new JMenuItem("Open...", KeyEvent.VK_O);
 		openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		openItem.addActionListener(this);
-		updateItem = new JMenuItem("Update Characters...");
-		updateItem.addActionListener(this);
 		fileMenu.add(openItem);
-		fileMenu.add(updateItem);
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAsItem);
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {public void actionPerformed(ActionEvent arg0) {exit();}}));
@@ -118,7 +114,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		selectPartyItem.addActionListener(this);
 		xpItem = new JMenuItem("Calculate XP...");
 		xpItem.addActionListener(this);
+		updateItem = new JMenuItem("Import Characters...");
+		updateItem.addActionListener(this);
 		partyMenu.add(newCharacterItem);
+		partyMenu.add(updateItem);
 		partyMenu.add(selectPartyItem);
 		partyMenu.add(xpItem);
 		setJMenuBar(menuBar);
@@ -222,7 +221,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		System.out.println("Updating party from "+newfile.getAbsolutePath());
 
 		// Load file into new party
-		Party newparty = Party.parseXML(newfile);
+		Party newparty = Party.parseXML(newfile,true);
 
 		// Match characters
 		UpdateCharacterDialog dialog = new UpdateCharacterDialog(this,party,newparty);
@@ -233,9 +232,14 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		for (Character inChar : newparty) {
 			Character oldChar = dialog.getSelectedCharacter(inChar);
 			if (oldChar == null) {
-				System.out.println("No character selected for "+inChar.getName());
+				//System.out.println("No character selected for "+inChar.getName());
+				int n = JOptionPane.showConfirmDialog(this,"Do you want to add "+inChar.getName()+"?","Add New Character",JOptionPane.YES_NO_OPTION);
+				if (n == JOptionPane.YES_OPTION) {
+					CharacterLibrary.add(inChar);
+					party.add(inChar);	// by default we add the new character to the party
+				}
 			} else {
-				System.out.println("Selected character for "+inChar.getName()+" = "+oldChar.getName());
+				//System.out.println("Selected character for "+inChar.getName()+" = "+oldChar.getName());
 				SelectDiffsDialog diffsDialog = new SelectDiffsDialog(this,oldChar,inChar);
 				diffsDialog.setVisible(true);
 				if (!diffsDialog.isCancelled()) {
@@ -261,6 +265,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		setTitle("Assistant DM - "+file.getName());
        	System.out.println("Opening "+file.getAbsolutePath());
 
+       	CharacterLibrary.characters.clear();
        	party = Party.parseXML(file);
 
        	int selected = tabbedPane.getSelectedIndex();
@@ -291,7 +296,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		fc.setSelectedFile(file);
 		int returnVal = fc.showSaveDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-        	File file = fc.getSelectedFile();
+        	file = fc.getSelectedFile();
     		setTitle("Assistant DM - "+file.getName());
         	System.out.println("Saving to "+file.getAbsolutePath());
         	saveParty(file);

@@ -38,10 +38,11 @@ public abstract class Creature {
 	public final static String PROPERTY_ABILITY_PREFIX = "Ability: ";
 	public final static String PROPERTY_ABILITY_OVERRIDE_PREFIX = "Temporary Ability: ";	// not currently sent to listeners
 	public final static String PROPERTY_SAVE_PREFIX = "Save: ";
+	public final static String PROPERTY_SAVE_MISC_PREFIX = "Save (misc mod): ";	// not currently sent to listeners
 	public final static String PROPERTY_AC = "AC";
 	public final static String PROPERTY_AC_COMPONENT_PREFIX = "AC: ";	// not currently sent to listeners
 	public final static String PROPERTY_SKILL_PREFIX = "Skill: ";
-	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";
+	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";	// not currently sent to listeners
 	public final static String PROPERTY_LEVEL = "Level";
 	public final static String PROPERTY_XP = "XP";
 

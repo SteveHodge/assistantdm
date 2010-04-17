@@ -15,9 +15,10 @@ import party.Character;
 @SuppressWarnings("serial")
 public class CharacterSavesPanel extends JPanel implements PropertyChangeListener {
 	protected Character character;
-	protected JLabel[] modLabels = new JLabel[4];
-	protected JLabel[] totalLabels = new JLabel[4];
+	protected JLabel[] modLabels = new JLabel[3];
+	protected JLabel[] totalLabels = new JLabel[3];
 	protected JFormattedTextField baseSaveFields[] = new JFormattedTextField[3];
+	protected JFormattedTextField miscSaveFields[] = new JFormattedTextField[3];
 
 	public CharacterSavesPanel(Character c) {
 		character = c;
@@ -30,12 +31,13 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 
-		JLabel[] titleLabels = new JLabel[4];
+		JLabel[] titleLabels = new JLabel[5];
 		titleLabels[0] = new JLabel();
 		titleLabels[1] = new JLabel("Base");
-		titleLabels[2] = new JLabel("Mod");
-		titleLabels[3] = new JLabel("Total");
-		JLabel[] saveLabels = new JLabel[4];
+		titleLabels[2] = new JLabel("Misc");
+		titleLabels[3] = new JLabel("Mod");
+		titleLabels[4] = new JLabel("Total");
+		JLabel[] saveLabels = new JLabel[3];
 
 		GroupLayout.SequentialGroup vGroup = layout.createSequentialGroup();
 		vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
@@ -43,9 +45,10 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 				.addComponent(titleLabels[1])
 				.addComponent(titleLabels[2])
 				.addComponent(titleLabels[3])
+				.addComponent(titleLabels[4])
 			);
-		GroupLayout.ParallelGroup[] hGroups = new GroupLayout.ParallelGroup[4];
-		for (int i=0; i<4; i++) {
+		GroupLayout.ParallelGroup[] hGroups = new GroupLayout.ParallelGroup[5];
+		for (int i=0; i<5; i++) {
 			hGroups[i] = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
 			hGroups[i].addComponent(titleLabels[i]);
 		}
@@ -55,23 +58,30 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 			baseSaveFields[type].setValue(new Integer(character.getSavingThrowBase(type)));
 			baseSaveFields[type].setColumns(3);
 			baseSaveFields[type].addPropertyChangeListener("value", new BaseFieldPropertyListener(type));
+			miscSaveFields[type] = new JFormattedTextField();
+			miscSaveFields[type].setValue(new Integer(character.getSavingThrowMisc(type)));
+			miscSaveFields[type].setColumns(3);
+			miscSaveFields[type].addPropertyChangeListener("value", new MiscFieldPropertyListener(type));
 			modLabels[type] = new JLabel(""+character.getAbilityModifier(Creature.getSaveAbility(type)));
 			totalLabels[type] = new JLabel(""+character.getSavingThrow(type));
 			vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 					.addComponent(saveLabels[type])
 					.addComponent(baseSaveFields[type])
+					.addComponent(miscSaveFields[type])
 					.addComponent(modLabels[type])
 					.addComponent(totalLabels[type])
 				);
 			hGroups[0].addComponent(saveLabels[type]);
 			hGroups[1].addComponent(baseSaveFields[type], GroupLayout.PREFERRED_SIZE,
 					GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-			hGroups[2].addComponent(modLabels[type]);
-			hGroups[3].addComponent(totalLabels[type]);
+			hGroups[2].addComponent(miscSaveFields[type], GroupLayout.PREFERRED_SIZE,
+					GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+			hGroups[3].addComponent(modLabels[type]);
+			hGroups[4].addComponent(totalLabels[type]);
 		}
 
 		GroupLayout.SequentialGroup hGroup = layout.createSequentialGroup();
-		for (int i=0; i<4; i++) hGroup.addGroup(hGroups[i]);
+		for (int i=0; i<5; i++) hGroup.addGroup(hGroups[i]);
 		layout.setHorizontalGroup(hGroup);
 		layout.setVerticalGroup(vGroup);
 
@@ -113,6 +123,21 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)baseSaveFields[type].getValue();
 				character.setSavingThrowBase(type, total);
+			}
+		}
+	}
+
+	protected class MiscFieldPropertyListener implements PropertyChangeListener {
+		int type;
+
+		public MiscFieldPropertyListener(int t) {
+			type = t;
+		}
+
+		public void propertyChange(PropertyChangeEvent evt) {
+			if (evt.getPropertyName().equals("value")) {
+				int total = (Integer)miscSaveFields[type].getValue();
+				character.setSavingThrowMisc(type, total);
 			}
 		}
 	}
