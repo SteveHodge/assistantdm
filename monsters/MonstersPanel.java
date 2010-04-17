@@ -94,7 +94,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 			RowFilter<MonstersTableModel, Integer> rf = null;
 		    int col = filterCols.get(combo);
 		    try {
-		        rf = RowFilter.regexFilter("^"+combo.getSelectedItem().toString()+"$", col);	// TODO slight hack to force exact matching - could implement a more efficient filter
+		        rf = RowFilter.regexFilter("^"+combo.getSelectedItem().toString()+"$", col);	// XXX slight hack to force exact matching - could implement a more efficient filter
 		    } catch (java.util.regex.PatternSyntaxException e) {
 		    	// if the expression doesn't parse then we ignore it
 		    }
