@@ -19,8 +19,7 @@ import party.Skill;
 
 import swing.SpinnerCellEditor;
 
-// TODO this doesn't update when characters get updated (which could add or remove skills)
-// TODO should allow setting of ability
+// TODO should allow adding of new skills and setting the ability
 
 @SuppressWarnings("serial")
 public class CharacterSkillsPanel extends JPanel {
@@ -112,11 +111,20 @@ public class CharacterSkillsPanel extends JPanel {
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().startsWith(Creature.PROPERTY_SKILL_PREFIX)) {
 				String skill = evt.getPropertyName().substring(Creature.PROPERTY_SKILL_PREFIX.length());
-				// TODO this search is inefficient
+				// XXX this search is inefficient - we know that skills is sorted so could use a binary search
+				boolean found = false;
 				for (int i = 0; i < skills.length; i++) {
-					if (skills[i].equals(skill)) {
-						this.fireTableRowsUpdated(i, i);
+					if (skills[i].getName().equals(skill)) {
+						fireTableRowsUpdated(i, i);
+						found = true;
 					}
+				}
+				if (!found) {
+					Skill[] newList = Arrays.copyOf(skills, skills.length+1);
+					newList[skills.length] = Skill.getSkill(skill);
+					skills = newList;
+					Arrays.sort(skills);
+					this.fireTableDataChanged();
 				}
 			}
 		}
