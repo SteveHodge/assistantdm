@@ -75,7 +75,7 @@
 		<xs:enumeration value="Natural"/>
 		<xs:enumeration value="Deflect"/>
 		<xs:enumeration value="Dodge"/>
-		<xs:enumeration value="Other"/>
+		<xs:enumeration value="Misc"/>
 	</xs:restriction>
 </xs:simpleType>
 
