@@ -52,7 +52,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 		for (int type=0; type<3; type++) {
 			saveLabels[type] = new JLabel(Creature.getSavingThrowName(type));
 			baseSaveFields[type] = new JFormattedTextField();
-			baseSaveFields[type].setValue(new Integer(character.getBaseSavingThrow(type)));
+			baseSaveFields[type].setValue(new Integer(character.getSavingThrowBase(type)));
 			baseSaveFields[type].setColumns(3);
 			baseSaveFields[type].addPropertyChangeListener("value", new BaseFieldPropertyListener(type));
 			modLabels[type] = new JLabel(""+character.getAbilityModifier(Creature.getSaveAbility(type)));
@@ -95,7 +95,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 			prop = prop.substring(Creature.PROPERTY_SAVE_PREFIX.length());
 			for (int i = 0; i < 3; i++) {
 				if (prop.equals(Creature.getSavingThrowName(i))) {
-					baseSaveFields[i].setValue(new Integer(character.getBaseSavingThrow(i)));
+					baseSaveFields[i].setValue(new Integer(character.getSavingThrowBase(i)));
 					totalLabels[i].setText(""+character.getSavingThrow(i));
 				}
 			}
@@ -112,7 +112,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)baseSaveFields[type].getValue();
-				character.setSavingThrow(type, total);
+				character.setSavingThrowBase(type, total);
 			}
 		}
 	}

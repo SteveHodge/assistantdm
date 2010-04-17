@@ -64,6 +64,10 @@ public class Party implements Iterable<Character>, XML {
 	}
 
 	// TODO move to CharacterLibrary (except Party block)?
+	// If the file has a <Party> block then the characters are all added to the CharacterLibrary and the
+	// new Party is set up to contain only those characters specified in the <Party> block.
+	// If the file does not contain a <Party> block then all characters in the file are added to the Party,
+	// but they are not added to CharacterLibrary (this case is used for updates)
 	public static Party parseXML(File xmlFile) {
 		Party p = new Party();
 		try {
@@ -85,7 +89,6 @@ public class Party implements Iterable<Character>, XML {
 						if (children.item(i).getNodeName().equals("Character")) {
 							Character c = Character.parseDOM((Element)children.item(i));
 							if (c != null) {
-								CharacterLibrary.add(c);
 								charMap.put(c.getName(),c);
 							}
 						}
@@ -107,8 +110,17 @@ public class Party implements Iterable<Character>, XML {
 						}
 					}
 				}
+				// Add characters to CharacterLibrary:
+				for (Character c: charMap.values()) {
+					CharacterLibrary.add(c);
+				}
+
 			} else {
 				System.out.println("Party not found");
+				// Add all characters to the party but not the library:
+				for (Character c: charMap.values()) {
+					p.add(c);
+				}
 			}
 
 		} catch (Exception e) {

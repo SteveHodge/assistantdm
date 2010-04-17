@@ -26,7 +26,7 @@ public class BoundIntegerField extends JFormattedTextField {
 		creature.addPropertyChangeListener(property, new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent evt) {
 				//TODO some type checking should be done
-				//it's ok to do this even if this change event it due to an update from this control
+				//it's ok to do this even if this change event is due to an update from this control
 				//because setValue will not fire a change event if the property isn't actually changing
 				setValue(creature.getProperty(property));
 			}

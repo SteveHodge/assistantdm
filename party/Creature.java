@@ -6,16 +6,20 @@ public abstract class Creature {
 	public static final int SAVE_FORTITUDE = 0;
 	public static final int SAVE_REFLEX = 1;
 	public static final int SAVE_WILL = 2;
+	protected static final String[] save_names = {"Fortitude", "Reflex", "Will"};
 
+	// note that Character.getTouchAC() requires the order of constants here (more specifically it assumes that
+	// all components less than AC_DEX are to be excluded from touch ac).
 	public static final int AC_ARMOR = 0;
 	public static final int AC_SHIELD = 1;
-	public static final int AC_DEX = 2;
-	public static final int AC_SIZE = 3;
-	public static final int AC_NATURAL = 4;
+	public static final int AC_NATURAL = 2;
+	public static final int AC_DEX = 3;
+	public static final int AC_SIZE = 4;
 	public static final int AC_DEFLECTION = 5;
 	public static final int AC_DODGE = 6;
 	public static final int AC_OTHER = 7;
 	public static final int AC_MAX_INDEX = 8;
+	protected static final String[] ac_names = {"Armor","Shield","Natural","Dex","Size","Deflect","Dodge","Misc"};
 
 	public static final int ABILITY_STRENGTH = 0;
 	public static final int ABILITY_DEXTERITY = 1;
@@ -23,6 +27,7 @@ public abstract class Creature {
 	public static final int ABILITY_INTELLIGENCE = 3;
 	public static final int ABILITY_WISDOM = 4;
 	public static final int ABILITY_CHARISMA = 5;
+	protected static final String[] ability_names = {"Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"};
 
 	// properties
 	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
@@ -39,10 +44,6 @@ public abstract class Creature {
 	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";
 	public final static String PROPERTY_LEVEL = "Level";
 	public final static String PROPERTY_XP = "XP";
-
-	protected static final String[] save_names = {"Fortitude", "Reflex", "Will"};
-	protected static final String[] ability_names = {"Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"};
-	protected static final String[] ac_names = {"Armor","Shield","Dex","Size","Natural","Deflect","Dodge","Other"};
 
 	public static int getModifier(int score) {
 		return score/2-5;

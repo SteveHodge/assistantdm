@@ -1,6 +1,5 @@
 package ui;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -17,13 +16,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 
 import party.Character;
 import party.CharacterLibrary;
-import party.Creature;
 import party.Party;
 
 @SuppressWarnings("serial")
@@ -126,7 +122,6 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (columnIndex != 2) return;
-			// TODO implement
 			Character c = list.get(rowIndex);
 			selected.put(c, (Boolean)value);
 		}

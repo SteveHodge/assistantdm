@@ -1,7 +1,4 @@
 import java.awt.Dimension;
-import java.awt.DisplayMode;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -21,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -52,9 +50,10 @@ import ui.XPEntryDialog;
 
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
 //TODO allow ac components that are not currently included. will probably need to allow multiples of each component 
-//TODO refactor classes that should be in ui package
+//WISH refactor classes that should be in ui package
 //TODO most/all character properties should all "override" values
 //TODO saves and skills need base value and bonus value separated
+//WISH change xml output code to build a DOM and then write it out using library methods - then we don't have so much identing and rubbish to do
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
 	JMenuBar menuBar;
@@ -90,6 +89,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		setTitle("Assistant DM - "+file.getName());
 		addWindowListener(this);
 
+		// TODO convert to Actions where sensible
 		menuBar = new JMenuBar();
 		fileMenu = new JMenu("File");
 		fileMenu.setMnemonic(KeyEvent.VK_F);
@@ -108,7 +108,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		fileMenu.add(updateItem);
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAsItem);
-		// TODO add exit menu option
+		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {public void actionPerformed(ActionEvent arg0) {exit();}}));
 		partyMenu = new JMenu("Party");
 		partyMenu.setMnemonic(KeyEvent.VK_P);
 		menuBar.add(partyMenu);
@@ -176,7 +176,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 	// WISH provide checkbox on dialog to add new character to party (default:checked) 
 	public void newCharacter() {
-		Object[] possibilities = {"ham", "spam", "yam"};
 		String s = (String)JOptionPane.showInputDialog(this,"Enter the new character's name:","Add New Character",JOptionPane.PLAIN_MESSAGE);
 		if ((s != null) && (s.length() > 0)) {
 			Character newc = new Character(s);
@@ -249,7 +248,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		}
 	}
 
-	// TODO rebuilding the ui is ugly - should be able to just replace the party
 	// TODO open should ask to save modified parties
 	public void openParty() {
 		JFileChooser fc = new JFileChooser();
@@ -267,7 +265,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
        	int selected = tabbedPane.getSelectedIndex();
 
-       	// FIXME this is a messy way of resetting - fix it
+    	// FIXME rebuilding the ui is ugly - should be able to just replace the party
        	tabbedPane.removeTabAt(0);	// combat
 		tabbedPane.removeTabAt(0);	// rolls
 		tabbedPane.removeTabAt(0);	// party
@@ -414,6 +412,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	public void windowOpened(WindowEvent e) {}
 
 	public void windowClosing(WindowEvent e) {
+		exit();
+	}
+
+	public void exit() {
 		System.out.println("Exiting");
 		saveParty(file);
 		shopPanel.writeShopsXML("shops.xml");

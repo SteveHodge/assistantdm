@@ -67,7 +67,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		return list.indexOf(item);
 	}
 
-	// TODO use of noSort flag to prevent sorts is a bit hackish, but probably the simpilest solution
+	// XXX use of noSort flag to prevent sorts is a bit hackish, but probably the simpilest solution
 	public void moveTo(Object item, int index) {
 		if (!list.remove(item)) throw new NoSuchElementException();
 		noSort = true;	// disable sort while we reorganise (because adjustRoll() in moveEntries() will cause a sort otherwise

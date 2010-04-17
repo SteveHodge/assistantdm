@@ -16,7 +16,7 @@ import party.Party;
 import swing.ReorderableList;
 
 // TODO consider moving initiative reset and next round buttons out of their current panels
-// TODO consider removing ability to edit max hitpoints and initiative modifier once these are editable on the character tab. Maybe have modifications on this tab be temporary
+// TODO consider removing ability to edit max hitpoints. Maybe have modifications on this tab be temporary
 @SuppressWarnings("serial")
 public class CombatPanel extends JPanel {
 	Party party;

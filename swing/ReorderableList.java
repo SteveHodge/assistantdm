@@ -13,8 +13,6 @@ import javax.swing.JLayeredPane;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-// TODO this should probably use a renderer rather than expecting all added entries to be ReorderableListEntries
-
 @SuppressWarnings("serial")
 public class ReorderableList extends JLayeredPane implements MouseMotionListener, MouseListener, ListDataListener {
 	private static final double DRAG_START_DISTANCE = 3;

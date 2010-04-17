@@ -26,9 +26,6 @@ import javax.swing.event.EventListenerList;
 import party.Creature;
 import party.Character;
 
-// TODO altering initiative doesn't update character on party tab
-
-
 @SuppressWarnings("serial")
 abstract public class CombatEntry extends JPanel implements PropertyChangeListener, ActionListener {
 	protected JFormattedTextField rollField;
