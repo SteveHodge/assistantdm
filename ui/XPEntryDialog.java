@@ -5,15 +5,20 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -34,6 +39,8 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 	XPPartyTableModel partyModel;
 	XPEntryTableModel entryModel;
 	boolean returnOk = false;
+	JTextField commentsField;
+	JFormattedTextField dateField;
 
 	public XPEntryDialog(JFrame frame, Party p) {
 		super(frame, "Enter challenges", true);
@@ -73,9 +80,21 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		buttons.add(okButton);
 		buttons.add(cancelButton);
 
+		JPanel commentsPanel = new JPanel();
+		commentsField = new JTextField(95);
+		commentsPanel.add(new JLabel("Comment: "));
+		commentsPanel.add(commentsField);
+		dateField = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+		dateField.setToolTipText("Expects date as 'yyyy-mm-dd'");
+		dateField.setValue(new Date());
+		commentsPanel.add(new JLabel("Date: "));
+		commentsPanel.add(dateField);
+
+		add(commentsPanel,"North");
 		add(panel);
 		add(buttons,"South");
 		pack();
+		setLocationRelativeTo(frame);
 	}
 
 	public boolean isCancelled() {
@@ -93,7 +112,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 	public void applyXPEarned() {
 		int i = 0;
 		for (party.Character c : party) {
-			c.addXPChallenges(party.size(), penalties[i], challenges);
+			c.addXPChallenges(party.size(), penalties[i], challenges, commentsField.getText(), (Date)dateField.getValue());
 			i++;
 		}
 	}

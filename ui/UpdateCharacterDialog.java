@@ -67,6 +67,7 @@ public class UpdateCharacterDialog extends JDialog implements ActionListener {
 		add(selectPanel);
 		add(buttons,"South");
 		pack();
+		setLocationRelativeTo(frame);
 	}
 
 	public boolean isCancelled() {

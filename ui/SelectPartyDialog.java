@@ -58,6 +58,7 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 		add(scrollpane);
 		add(buttons,"South");
 		pack();
+		setLocationRelativeTo(frame);
 	}
 
 	public boolean isCancelled() {

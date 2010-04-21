@@ -59,6 +59,7 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 		add(diffsScrollPane);
 		add(buttons,"South");
 		pack();
+		setLocationRelativeTo(frame);
 	}
 
 	public boolean isCancelled() {

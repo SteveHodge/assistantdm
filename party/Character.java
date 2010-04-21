@@ -2,6 +2,7 @@ package party;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,10 +17,8 @@ import party.XP.Challenge;
 
 import xml.XML;
 
-/* TODO:
- * Modifying dex should alter ac - but we need to know the max dex modifier
- * Should allow temporary hitpoints - will require careful consideration of how wounds work
- */
+ // TODO Modifying dex should alter ac - but we need to know the max dex modifier
+ // TODO Should allow temporary hitpoints - will require careful consideration of how wounds work
 /**
  * @author Steve
  *
@@ -256,7 +255,6 @@ public class Character extends Creature implements XML {
 
 //------------------- Saving Throws -------------------
 // Saves have a total, a base values and are modified by ability scores
-// TODO saves should also have a misc mod
 // XXX Note that the property change sets old and new to the base scores for setSavingThrowBase and the total scores for setSavingThrow
 
 	public int getSavingThrow(int save) {
@@ -298,7 +296,6 @@ public class Character extends Creature implements XML {
 // Hit points have a maximum value, wounds taken, non-lethal taken and a calculated
 // current value
 // TODO hit points should also have a temporary bonus value
-// TODO hit points should be modified by con
 
 	public int getMaximumHitPoints() {
 		return hps;
@@ -490,8 +487,8 @@ public class Character extends Creature implements XML {
 		return b.toString();
 	}
 	
-	public void addXPChallenges(int count, int penalty, Collection<Challenge> challenges) {
-		XP.XPChangeChallenges change = new XP.XPChangeChallenges();
+	public void addXPChallenges(int count, int penalty, Collection<Challenge> challenges, String comment, Date d) {
+		XP.XPChangeChallenges change = new XP.XPChangeChallenges(comment, d);
 		change.level = level;
 		change.partyCount = count;
 		change.penalty = penalty;
@@ -503,8 +500,8 @@ public class Character extends Creature implements XML {
         pcs.firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
-	public void addXPAdhocChange(int delta) {
-		xpChanges.add(new XP.XPChangeAdhoc(delta));
+	public void addXPAdhocChange(int delta, String comment, Date d) {
+		xpChanges.add(new XP.XPChangeAdhoc(delta, comment, d));
 		int old = xp;
 		xp += delta;
         pcs.firePropertyChange(PROPERTY_XP, old, xp);
@@ -514,9 +511,9 @@ public class Character extends Creature implements XML {
 		return level;
 	}
 
-	public void setLevel(int l) {
+	public void setLevel(int l, String comment, Date d) {
 		if (level == l) return;
-		xpChanges.add(new XP.XPChangeLevel(level,l));
+		xpChanges.add(new XP.XPChangeLevel(level, l, comment, d));
 		int old = level;
 		level = l;
 		pcs.firePropertyChange(PROPERTY_LEVEL, old, level);
@@ -861,7 +858,7 @@ public class Character extends Creature implements XML {
 		if (prop.equals(PROPERTY_WOUNDS)) setWounds((Integer)value);
 		if (prop.equals(PROPERTY_NONLETHAL)) setNonLethal((Integer)value);
 		if (prop.equals(PROPERTY_INITIATIVE)) setInitiativeModifier((Integer)value);
-		if (prop.equals(PROPERTY_LEVEL)) setLevel((Integer)value);
+		if (prop.equals(PROPERTY_LEVEL)) setLevel((Integer)value,null,null);
 		//if (prop.equals(PROPERTY_XP)) setXP((Integer)value);	// TODO should this be permitted as an adhoc change?
 
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {

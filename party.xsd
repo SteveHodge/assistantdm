@@ -109,25 +109,29 @@
 <xs:element name="XPAward">
 	<xs:complexType>
 		<xs:sequence>
+			<xs:element name="Comment" type="xs:string" minOccurs="0" maxOccurs="1"/>
 			<xs:element ref="XPChallenge" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="xp" type="xs:int" use="required"/>
 		<xs:attribute name="level" type="xs:int" use="required"/>
 		<xs:attribute name="party" type="xs:int" use="required"/>
 		<xs:attribute name="penalty" type="xs:int"/>
+		<xs:attribute name="date" type="xs:date"/>
 	</xs:complexType>
 </xs:element>
 
 <xs:element name="XPChange">
-	<xs:complexType>
+	<xs:complexType mixed="true">
 		<xs:attribute name="xp" type="xs:int" use="required"/>
+		<xs:attribute name="date" type="xs:date"/>
 	</xs:complexType>
 </xs:element>
 
 <xs:element name="XPLevelChange">
-	<xs:complexType>
+	<xs:complexType mixed="true">
 		<xs:attribute name="old" type="xs:int" use="required"/>
 		<xs:attribute name="new" type="xs:int" use="required"/>
+		<xs:attribute name="date" type="xs:date"/>
 	</xs:complexType>
 </xs:element>
 
