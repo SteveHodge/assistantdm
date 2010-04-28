@@ -23,12 +23,15 @@ import javax.swing.border.TitledBorder;
 
 import party.Character;
 import party.Creature;
+import party.XP;
 
 // TODO better history dialog
+// FIXME: changing the level directly doesn't apply the comments or date
 @SuppressWarnings("serial")
 public class CharacterXPPanel extends JPanel implements PropertyChangeListener, ActionListener {
 	protected Character character;
 	JLabel xpLabel;
+	JLabel percentage;
 	JButton adhocButton, historyButton, levelButton;
 	JTextField commentsField;
 	JFormattedTextField adhocField;
@@ -38,6 +41,7 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 		character = chr;
 
 		xpLabel = new JLabel(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
+		percentage = new JLabel(String.format("%.2f%%",	((float)character.getXP()-XP.getXPRequired(character.getLevel()))/(character.getLevel()*10)));
 		historyButton = new JButton("History");
 		historyButton.addActionListener(this);
 		levelButton = new JButton("Level Up");
@@ -79,7 +83,7 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 
 		c.gridx = 4;
 		c.weightx = 0.0;
-		add(levelButton,c);
+		add(percentage,c);
 
 		c.gridx = 5;
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -104,8 +108,12 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 		c.gridx = 3;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0;
-		c.gridwidth = 2;
+		c.gridwidth = 1;
 		add(dateField,c);
+
+		c.gridx = 4;
+		c.weightx = 0.0;
+		add(levelButton,c);
 
 		c.gridx = 5;
 		c.anchor = GridBagConstraints.LINE_END;
@@ -132,6 +140,7 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 		if (e.getPropertyName().equals(Creature.PROPERTY_LEVEL)
 				|| e.getPropertyName().equals(Creature.PROPERTY_XP)) {
 			xpLabel.setText(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
+			percentage.setText(String.format("%.2f%%",	((float)character.getXP()-XP.getXPRequired(character.getLevel()))/(character.getLevel()*10)));
 			levelButton.setEnabled(character.getXP() >= character.getRequiredXP());
 		}
 	}
@@ -147,12 +156,14 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 			commentsField.setText(null);
 
 		} else if (e.getSource() == historyButton) {
-			JTextArea area = new JTextArea(character.getXPHistory());
-			JScrollPane scroll = new JScrollPane(area);
+			//JTextArea area = new JTextArea(character.getXPHistory());
+			//JScrollPane scroll = new JScrollPane(area);
 			
+			XPHistoryPanel panel = new XPHistoryPanel(character.xpChanges);
 			JFrame popup = new JFrame(character.getName()+" XP History");
 			popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-			popup.getContentPane().add(scroll);
+			//popup.getContentPane().add(scroll);
+			popup.getContentPane().add(panel);
 			popup.pack();
 			popup.setLocationRelativeTo(this);
 			popup.setVisible(true);

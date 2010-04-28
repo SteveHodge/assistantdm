@@ -89,6 +89,12 @@ public class XP {
 			date = d;
 		}
 
+		public abstract int getXP();	// returns the change in xp - some classes will always return 0 (eg. XPChangeLevel)
+
+		public Date getDate() {return date;}
+
+		public String getComment() {return comment;}
+
 		public String toString() {
 			if (comment != null && comment.length() > 0) {
 				if (date != null) {
@@ -112,10 +118,14 @@ public class XP {
 		int level;	// level when meeting challenges
 		int partyCount;	// number of party members meeting challenges
 		int penalty;	// % penalty applied to xp
-		List<Challenge> challenges = new ArrayList<Challenge>();
+		public List<Challenge> challenges = new ArrayList<Challenge>();
 
 		public XPChangeChallenges(String c, Date d) {
 			super(c,d);
+		}
+
+		public int getXP() {
+			return xp;
 		}
 
 		public String getXML(String indent, String nextIndent) {
@@ -197,6 +207,10 @@ public class XP {
 			this.xp = xp;
 		}
 	
+		public int getXP() {
+			return xp;
+		}
+
 		public String getXML(String indent, String nextIndent) {
 			String xml =indent+"<XPChange xp=\""+xp+"\"";
 			if (date != null) {
@@ -235,6 +249,10 @@ public class XP {
 			super(c,d);
 			oldLevel = o;
 			newLevel = n;
+		}
+
+		public int getXP() {
+			return 0;
 		}
 	
 		public String getXML(String indent, String nextIndent) {

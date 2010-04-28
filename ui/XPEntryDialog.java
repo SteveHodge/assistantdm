@@ -41,6 +41,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 	boolean returnOk = false;
 	JTextField commentsField;
 	JFormattedTextField dateField;
+	static Date lastDate = new Date();
 
 	public XPEntryDialog(JFrame frame, Party p) {
 		super(frame, "Enter challenges", true);
@@ -86,7 +87,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		commentsPanel.add(commentsField);
 		dateField = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
 		dateField.setToolTipText("Expects date as 'yyyy-mm-dd'");
-		dateField.setValue(new Date());
+		dateField.setValue(lastDate);
 		commentsPanel.add(new JLabel("Date: "));
 		commentsPanel.add(dateField);
 
@@ -111,8 +112,9 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 
 	public void applyXPEarned() {
 		int i = 0;
+		lastDate = (Date)dateField.getValue();
 		for (party.Character c : party) {
-			c.addXPChallenges(party.size(), penalties[i], challenges, commentsField.getText(), (Date)dateField.getValue());
+			c.addXPChallenges(party.size(), penalties[i], challenges, commentsField.getText(), lastDate);
 			i++;
 		}
 	}
@@ -238,7 +240,9 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 				return XP.getXP(c.getLevel(), party.size(), penalties[row], challenges); // earned - integer
 			case COLUMN_TOGO:
 				int xp = c.getXP()+XP.getXP(c.getLevel(), party.size(), penalties[row], challenges);
-				return 100.0f*xp/XP.getXPRequired(c.getLevel()+1);	// % through level - float
+//				int levelXP = XP.getXPRequired(c.getLevel());
+//				return 100.0f*(xp-levelXP)/(XP.getXPRequired(c.getLevel()+1)-levelXP);	// % through level - float
+				return ((float)xp-XP.getXPRequired(c.getLevel()))/(c.getLevel()*10);	// % through level - float
 			case COLUMN_PENALTY:
 				return penalties[row];	// % penalty - float
 			default:

@@ -36,7 +36,7 @@ public class Character extends Creature implements XML {
 	protected int[] ac = new int[AC_MAX_INDEX];
 	protected int tempAC, tempTouch, tempFF;	// ac overrides
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
-	protected List<XP.XPChange> xpChanges = new ArrayList<XP.XPChange>();
+	public List<XP.XPChange> xpChanges = new ArrayList<XP.XPChange>();	//FIXME revert to protected
 
 	public Character(String n) {
 		name = n;
@@ -480,9 +480,15 @@ public class Character extends Creature implements XML {
 	// WISH eventually replace this with a real history facility
 	public String getXPHistory() {
 		StringBuilder b = new StringBuilder();
+		int total = 0;
 		for (XP.XPChange change : xpChanges) {
+			b.append(total);
+			b.append("\t");
+			b.append(change.getXP());
+			b.append("\t");
 			b.append(change);
 			b.append(System.getProperty("line.separator"));
+			total += change.getXP();
 		}
 		return b.toString();
 	}
