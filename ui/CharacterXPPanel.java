@@ -159,7 +159,7 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 			//JTextArea area = new JTextArea(character.getXPHistory());
 			//JScrollPane scroll = new JScrollPane(area);
 			
-			XPHistoryPanel panel = new XPHistoryPanel(character.xpChanges);
+			XPHistoryPanel panel = new XPHistoryPanel(character);
 			JFrame popup = new JFrame(character.getName()+" XP History");
 			popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 			//popup.getContentPane().add(scroll);

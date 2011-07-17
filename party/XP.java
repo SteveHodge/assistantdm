@@ -287,6 +287,14 @@ public class XP {
 			if (c != "") txt += " ("+c+")";
 			return txt;
 		}
+
+		public int getOldLevel() {
+			return oldLevel;
+		}
+
+		public int getNewLevel() {
+			return newLevel;
+		}
 	}
 
 	public static int getXP(int level, int members, int penalty, Collection<Challenge> challenges) {

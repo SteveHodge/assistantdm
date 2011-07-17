@@ -14,6 +14,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import party.XP.Challenge;
+import party.XP.XPChangeLevel;
 
 import xml.XML;
 
@@ -36,7 +37,69 @@ public class Character extends Creature implements XML {
 	protected int[] ac = new int[AC_MAX_INDEX];
 	protected int tempAC, tempTouch, tempFF;	// ac overrides
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
-	public List<XP.XPChange> xpChanges = new ArrayList<XP.XPChange>();	//FIXME revert to protected
+	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();	//FIXME revert to protected
+
+	// TODO consider moving these methods to the Character class 
+	public class XPHistoryItem {
+		protected XP.XPChange xpChange;
+		protected int total;
+		protected int index;
+
+		public int getTotal() {
+			return total;
+		}
+
+		public int getXP() {
+			return xpChange.getXP();
+		}
+
+		public Date getDate() {
+			return xpChange.getDate();
+		}
+
+		public String getComment() {
+			return xpChange.getComment();
+		}
+
+		public int getLevel() {
+			for (int i = index; i >= 0; i--) {
+				XPHistoryItem item = xpChanges.get(i);
+				if (item.xpChange instanceof XPChangeLevel) {
+					return ((XPChangeLevel)item.xpChange).getNewLevel();
+				}
+			}
+			return 1;
+		}
+
+		public int getOldLevel() {
+			if (xpChange instanceof XPChangeLevel) {
+				return ((XPChangeLevel)xpChange).getOldLevel();
+			}
+			return getLevel();
+		}
+
+		public boolean isLevelChange() {
+			return (xpChange instanceof XPChangeLevel);
+		}
+
+		public List<Challenge> getChallenges() {
+			if (xpChange instanceof XP.XPChangeChallenges) {
+				return ((XP.XPChangeChallenges)xpChange).challenges;
+			} else {
+				return new ArrayList<Challenge>();
+			}
+		}
+
+		// returns false if the latest level is too high for the current XP
+		public boolean isValidLevel() {
+			return XP.getXPRequired(getLevel()) <= total;
+		}
+
+		// returns true if the total xp exceeds the requirements for the next level
+		public boolean canLevelUp() {
+			return XP.getXPRequired(getLevel()+1) <= total;
+		}
+	}
 
 	public Character(String n) {
 		name = n;
@@ -477,11 +540,18 @@ public class Character extends Creature implements XML {
 		return XP.getXPRequired(level+1);
 	}
 
-	// WISH eventually replace this with a real history facility
+	// TODO maybe just provide facility to reset xp based on history and/or handle changes to history in this class
+	public void setXP(int newXP) {
+		int old = xp;
+		xp = newXP;
+        pcs.firePropertyChange(PROPERTY_XP, old, xp);
+	}
+
 	public String getXPHistory() {
 		StringBuilder b = new StringBuilder();
 		int total = 0;
-		for (XP.XPChange change : xpChanges) {
+		for (XPHistoryItem item : xpChanges) {
+			XP.XPChange change = item.xpChange;
 			b.append(total);
 			b.append("\t");
 			b.append(change.getXP());
@@ -500,14 +570,14 @@ public class Character extends Creature implements XML {
 		change.penalty = penalty;
 		change.xp = XP.getXP(level, count, penalty, challenges);
 		change.challenges.addAll(challenges);
-		xpChanges.add(change);
+		addXPChange(change);
 		int old = xp;
 		xp += change.xp;
         pcs.firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public void addXPAdhocChange(int delta, String comment, Date d) {
-		xpChanges.add(new XP.XPChangeAdhoc(delta, comment, d));
+		addXPChange(new XP.XPChangeAdhoc(delta, comment, d));
 		int old = xp;
 		xp += delta;
         pcs.firePropertyChange(PROPERTY_XP, old, xp);
@@ -519,10 +589,62 @@ public class Character extends Creature implements XML {
 
 	public void setLevel(int l, String comment, Date d) {
 		if (level == l) return;
-		xpChanges.add(new XP.XPChangeLevel(level, l, comment, d));
+		addXPChange(new XP.XPChangeLevel(level, l, comment, d));
 		int old = level;
 		level = l;
 		pcs.firePropertyChange(PROPERTY_LEVEL, old, level);
+	}
+
+//------------------- XP History ------------------
+	// TODO enhancements: flag invalid levelups, flag available levelups?, allow reordering
+	protected void addXPChange(XP.XPChange change) {
+		XPHistoryItem item = new XPHistoryItem();
+		item.index = xpChanges.size();
+		item.xpChange = change;
+		item.total = change.getXP();
+		if (item.index > 0) {
+			item.total += xpChanges.get(item.index-1).total;
+		}
+		xpChanges.add(item);
+	}
+
+	public int getXPHistoryCount() {
+		return xpChanges.size();
+	}
+
+	public XPHistoryItem getXPHistory(int index) {
+		return xpChanges.get(index);
+	}
+
+	public void deleteXPHistory(int index) {
+		XPHistoryItem removed = xpChanges.remove(index);
+		for (int i = index; i < xpChanges.size(); i++) {
+			XPHistoryItem item = xpChanges.get(i);
+			item.total -= removed.xpChange.getXP();
+			item.index--;
+		}
+		int old = xp;
+		if (xpChanges.size() > 0) {
+			xp = xpChanges.get(xpChanges.size()-1).total;
+		} else {
+			xp = 0;
+		}
+        pcs.firePropertyChange(PROPERTY_XP, old, xp);
+	}
+
+	public void moveXPHistory(int from, int to) {
+		XPHistoryItem removed = xpChanges.remove(from);
+		xpChanges.add(to, removed);
+		int low = Math.min(from, to);
+		int high = Math.max(from, to);
+		int total = 0;
+		if (low > 0) total = xpChanges.get(low-1).total;
+		for (int i = low; i <= high; i++) {
+			XPHistoryItem item = xpChanges.get(i);
+			total = total + item.xpChange.getXP();
+			item.total = total;
+			item.index = i;
+		}
 	}
 
 //------------------- Import/Export and other methods -------------------
@@ -560,7 +682,7 @@ public class Character extends Creature implements XML {
 							} else if (awards.item(j).getNodeName().equals("XPLevelChange")) {
 								change = XP.XPChangeLevel.parseDOM((Element)awards.item(j));
 							}
-							if (change != null) c.xpChanges.add(change);
+							if (change != null) c.addXPChange(change);
 						}
 					}
 					
@@ -647,11 +769,9 @@ public class Character extends Creature implements XML {
 		String i3 = i2 + nextIndent;
 		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
 		b.append(i2).append("<Level level=\"").append(getLevel()).append("\" xp=\"").append(getXP()).append("\">").append(nl);
-		for (XP.XPChange c : xpChanges) {
-			if (c instanceof XP.XPChange) {
-				XP.XPChange cc = (XP.XPChange)c;
-				b.append(cc.getXML(i3, nextIndent));
-			}
+		for (XPHistoryItem i : xpChanges) {
+			XP.XPChange cc = i.xpChange;
+			b.append(cc.getXML(i3, nextIndent));
 		}
 		b.append(i2).append("</Level>").append(nl);
 		b.append(i2).append("<AbilityScores>").append(nl);
