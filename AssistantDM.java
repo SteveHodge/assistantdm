@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -21,32 +22,36 @@ import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.TableModel;
 
 import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
 import magicitems.ShoppingPanel;
 import monsters.MonstersPanel;
-
-import camera.CameraPanel;
-
 import party.Character;
 import party.CharacterLibrary;
 import party.Party;
+import swing.JTableWithToolTips;
 import ui.PartyPanel;
 import ui.RollsPanel;
 import ui.SelectDiffsDialog;
 import ui.SelectPartyDialog;
 import ui.UpdateCharacterDialog;
 import ui.XPEntryDialog;
+import camera.CameraPanel;
 
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
 //TODO allow ac components that are not currently included. will probably need to allow multiples of each component 
@@ -58,7 +63,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	JMenuBar menuBar;
 	JMenu fileMenu, partyMenu;
 	JMenuItem saveItem, saveAsItem, openItem, updateItem;
-	JMenuItem selectPartyItem, xpItem, newCharacterItem;
+	JMenuItem selectPartyItem, xpItem, xpHistoryItem, newCharacterItem;
 	ShoppingPanel shopPanel;
 	CameraPanel cameraPanel = null;
 	JTabbedPane tabbedPane;
@@ -114,12 +119,15 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		selectPartyItem.addActionListener(this);
 		xpItem = new JMenuItem("Calculate XP...");
 		xpItem.addActionListener(this);
+		xpHistoryItem = new JMenuItem("XP History...");
+		xpHistoryItem.addActionListener(this);
 		updateItem = new JMenuItem("Import Characters...");
 		updateItem.addActionListener(this);
 		partyMenu.add(newCharacterItem);
 		partyMenu.add(updateItem);
 		partyMenu.add(selectPartyItem);
 		partyMenu.add(xpItem);
+		partyMenu.add(xpHistoryItem);
 		setJMenuBar(menuBar);
 
 		tabbedPane = new JTabbedPane();
@@ -390,22 +398,46 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			if (file != null) saveParty(file);
 			else saveAsParty();
 
-		} else if(e.getSource() == saveAsItem) {
+		} else if (e.getSource() == saveAsItem) {
 			saveAsParty();
 
-		} else if(e.getSource() == updateItem) {
+		} else if (e.getSource() == updateItem) {
 			updateParty();
 
-		} else if(e.getSource() == selectPartyItem) {
+		} else if (e.getSource() == selectPartyItem) {
 			selectParty();
 
-		} else if(e.getSource() == openItem) {
+		} else if (e.getSource() == openItem) {
 			openParty();
 
-		} else if(e.getSource() == xpItem) {
+		} else if (e.getSource() == xpItem) {
 			calculateXP();
 
-		} else if(e.getSource() == newCharacterItem) {
+		} else if (e.getSource() == xpHistoryItem) {
+			/*for (CharacterLibrary.PartyXPItem item : CharacterLibrary.getXPHistory()) {
+				System.out.println(item);
+			}*/
+			TableModel model = CharacterLibrary.getXPHistoryTableModel();
+			JTable table = new JTableWithToolTips(model);
+			//table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			table.getColumnModel().getColumn(0).setPreferredWidth(100);
+			table.getColumnModel().getColumn(1).setPreferredWidth(500);
+			for (int i = 2; i < model.getColumnCount(); i++) {
+				table.getColumnModel().getColumn(i).setPreferredWidth(80);
+			}
+			JScrollPane scrollpane = new JScrollPane(table);
+			JPanel panel = new JPanel();
+			panel.setLayout(new BorderLayout());
+			panel.add(scrollpane);
+			JFrame popup = new JFrame("Party XP History");
+			popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			//popup.getContentPane().add(scroll);
+			popup.getContentPane().add(panel);
+			popup.pack();
+			popup.setLocationRelativeTo(this);
+			popup.setVisible(true);
+
+		} else if (e.getSource() == newCharacterItem) {
 			newCharacter();
 
 		} else {

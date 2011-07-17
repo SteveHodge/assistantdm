@@ -150,7 +150,8 @@ public class XPHistoryPanel extends JPanel implements ListSelectionListener, Act
 		}
 
 		public Class<?> getColumnClass(int col) {
-			if (col < 2) return Integer.class;
+			if (col == COLUMN_EARNED || col == COLUMN_TOTAL || col == COLUMN_LEVEL) return Integer.class;
+			if (col == COLUMN_LVL_OK || col == COLUMN_LVL_UP) return Boolean.class;
 			return String.class;
 		}
 

@@ -49,6 +49,12 @@ public class XP {
 			if (inverted) return "1/"+cr;
 			return ""+cr;
 		}
+
+		public boolean equals(Object obj) {
+			if (!(obj instanceof CR)) return false;
+			CR o = (CR)obj;
+			return o.cr == cr && o.inverted == inverted;
+		}
 	}
 
 	public static class Challenge {
@@ -77,6 +83,15 @@ public class XP {
 			c.number = Integer.parseInt(e.getAttribute("number"));
 			c.comment = e.getTextContent();
 			return c;
+		}
+
+		public boolean equals(Object obj) {
+			if (!(obj instanceof Challenge)) return false;
+			Challenge o = (Challenge)obj;
+			if (o.number != number) return false;
+			if (!o.comment.equals(comment)) return false;
+			if (!o.cr.equals(cr)) return false;
+			return true;
 		}
 	}
 

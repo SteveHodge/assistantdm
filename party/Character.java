@@ -14,6 +14,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import party.XP.Challenge;
+import party.XP.XPChange;
+import party.XP.XPChangeChallenges;
 import party.XP.XPChangeLevel;
 
 import xml.XML;
@@ -41,7 +43,7 @@ public class Character extends Creature implements XML {
 
 	// TODO consider moving these methods to the Character class 
 	public class XPHistoryItem {
-		protected XP.XPChange xpChange;
+		protected XPChange xpChange;
 		protected int total;
 		protected int index;
 
@@ -84,9 +86,17 @@ public class Character extends Creature implements XML {
 
 		public List<Challenge> getChallenges() {
 			if (xpChange instanceof XP.XPChangeChallenges) {
-				return ((XP.XPChangeChallenges)xpChange).challenges;
+				return ((XPChangeChallenges)xpChange).challenges;
 			} else {
 				return new ArrayList<Challenge>();
+			}
+		}
+
+		public int getPartyCount() {
+			if (xpChange instanceof XP.XPChangeChallenges) {
+				return ((XPChangeChallenges)xpChange).partyCount;
+			} else {
+				return 0;
 			}
 		}
 
@@ -540,14 +550,7 @@ public class Character extends Creature implements XML {
 		return XP.getXPRequired(level+1);
 	}
 
-	// TODO maybe just provide facility to reset xp based on history and/or handle changes to history in this class
-	public void setXP(int newXP) {
-		int old = xp;
-		xp = newXP;
-        pcs.firePropertyChange(PROPERTY_XP, old, xp);
-	}
-
-	public String getXPHistory() {
+	/*public String getXPHistory() {
 		StringBuilder b = new StringBuilder();
 		int total = 0;
 		for (XPHistoryItem item : xpChanges) {
@@ -561,7 +564,7 @@ public class Character extends Creature implements XML {
 			total += change.getXP();
 		}
 		return b.toString();
-	}
+	}*/
 	
 	public void addXPChallenges(int count, int penalty, Collection<Challenge> challenges, String comment, Date d) {
 		XP.XPChangeChallenges change = new XP.XPChangeChallenges(comment, d);
@@ -596,7 +599,6 @@ public class Character extends Creature implements XML {
 	}
 
 //------------------- XP History ------------------
-	// TODO enhancements: flag invalid levelups, flag available levelups?, allow reordering
 	protected void addXPChange(XP.XPChange change) {
 		XPHistoryItem item = new XPHistoryItem();
 		item.index = xpChanges.size();
