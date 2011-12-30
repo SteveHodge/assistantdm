@@ -51,10 +51,10 @@ import canon.cdsdk.SourceInfo;
 // TODO may be fixed: controls stop responding if you hit stop during a transfer
 @SuppressWarnings("serial")
 public class CameraPanel extends JPanel implements ReleaseEventHandler, ActionListener, ChangeListener, ItemListener, PropertyChangeListener {
-	static final String DESTINATION = "m:\\webcam\\capture2.jpg";
+	static final String DESTINATION = "m:\\webcam\\ftp\\images\\capture2.jpg";
 
 	long defaultDelay = 10000;
-	int defaultImageSize = Constants.IMAGE_SIZE_SMALL;
+	int defaultImageSize = Constants.IMAGE_SIZE_MEDIUM2;
 	int defaultImageQuality = Constants.COMP_QUALITY_NORMAL;
 	int defaultWhiteBalance = 3;
 
@@ -113,7 +113,7 @@ public void createAndShowGUI() {
 	controls.add(buttons);
 
 	frequencyField = new JFormattedTextField();
-	frequencyField.setValue(new Integer(5));
+	frequencyField.setValue(new Integer((int) (defaultDelay/1000)));
 	frequencyField.setColumns(5);
 	frequencyField.addPropertyChangeListener("value", this);
 	Dimension maxSize = frequencyField.getMaximumSize();
@@ -209,7 +209,6 @@ public void connect(boolean noWarning) {
 
 			source.enterReleaseControl(this);
 			getCameraOptions();
-
 			setControls(true);
 
 			handle.release();
@@ -236,6 +235,9 @@ public void getCameraOptions() {
 	zoomSlider.setValue(source.getZoomPosition());
 
 	// Image formats
+	// removing all existing items will trigger an ActionEvent which would cause the camera option to be updated (to an invalid
+	// option) so we temporarily suspend ActionEvent processing while we rebuild the list
+	imageFormatCombo.removeActionListener(this); 
 	imageFormatCombo.removeAllItems();
 	Enum<ImageFormat> formats = source.getImageFormatEnum();
 	boolean foundDefault = false;
@@ -246,10 +248,14 @@ public void getCameraOptions() {
 			imageFormatCombo.addItem(new ImageFormatOption(f));
 	}
 	formats.release();
+	imageFormatCombo.addActionListener(this);
 	if (foundDefault) source.setImageFormat(defaultImageQuality, defaultImageSize);
 	imageFormatCombo.setSelectedItem(new ImageFormatOption(source.getImageFormat()));
 
 	// White balance
+	// removing all existing items will trigger an ActionEvent which would cause the camera option to be updated (to an invalid
+	// option) so we temporarily suspend ActionEvent processing while we rebuild the list
+	whiteBalanceCombo.removeActionListener(this);
 	whiteBalanceCombo.removeAllItems();
 	Enum<Integer> modes = source.getWhiteBalanceEnum();
 	foundDefault = false;
@@ -261,6 +267,7 @@ public void getCameraOptions() {
 		}
 	}
 	modes.release();
+	whiteBalanceCombo.addActionListener(this);
 	if (foundDefault) source.setWhiteBalance(defaultWhiteBalance);
 	whiteBalanceCombo.setSelectedIndex(source.getWhiteBalance());
 }
