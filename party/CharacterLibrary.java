@@ -47,6 +47,7 @@ public class CharacterLibrary {
 		}
 	};
 
+	// TODO still issues with order here
 	public static List<PartyXPItem> getXPHistory() {
 		// try to combine history from each character into a single narrative
 		List<PartyXPItem> items = null;
@@ -169,7 +170,7 @@ public class CharacterLibrary {
 		}
 
 		public int getColumnCount() {
-			return chars.size()+2;
+			return chars.size()*2+2;
 		}
 
 		public int getRowCount() {
@@ -192,7 +193,7 @@ public class CharacterLibrary {
 				}
 				return comment;
 
-			} else {
+			} else if (col > 1 && col < chars.size()+2) {
 				Character c = chars.get(col-2);
 				if (item.changes.containsKey(c)) {
 					XPHistoryItem i = item.changes.get(c);
@@ -202,14 +203,28 @@ public class CharacterLibrary {
 						return i.getXP();
 					}
 				}
+
+			} else {
+				Character c = chars.get(col-2-chars.size());
+				// TODO need to backtrack if there is no entry for this character
+				while (row >= 0) {
+					item = history.get(row);
+					if (item.changes.containsKey(c)) {
+						XPHistoryItem i = item.changes.get(c);
+						return i.getTotal();
+					}
+					row--;
+				}
 			}
 			return null;
 		}
 
 		public String getToolTipAt(int row, int col) {
+			int index = col-2;
+			if (index >= chars.size()) index -= chars.size();
 			if (col > 1) {
 				PartyXPItem item = history.get(row);
-				Character c = chars.get(col-2);
+				Character c = chars.get(index);
 				if (item.changes.containsKey(c)) {
 					XPHistoryItem i = item.changes.get(c);
 					if (item.type == XP.XPChangeLevel.class) {
@@ -236,7 +251,8 @@ public class CharacterLibrary {
 		public String getColumnName(int column) {
 			if (column == 0) return "Date";
 			if (column == 1) return "Comment";
-			return chars.get(column-2).getName();
+			if (column < chars.size()+2) return chars.get(column-2).getName();
+			return chars.get(column-2-chars.size()).getName();
 		}
 	}
 }
