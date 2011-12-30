@@ -22,6 +22,8 @@ import swing.ReorderableListModel;
 
 
 public class InitiativeListModel implements ReorderableListModel, ActionListener, ChangeListener, PartyListener {
+	static final String DESTINATION = "m:\\webcam\\ftp\\images\\initiative.txt";
+
 	Party party;
 	List<CombatEntry> list = new ArrayList<CombatEntry>();
 
@@ -350,7 +352,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			//System.out.println(output);
 			lastOutput = output;
 			try {
-				FileWriter file = new FileWriter("M:\\webcam\\initiative.txt");
+				FileWriter file = new FileWriter(DESTINATION);
 				file.write(output);
 				file.close();
 			} catch (IOException e1) {
