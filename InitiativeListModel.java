@@ -43,7 +43,6 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			}
 		}
 		blankInit = new MonsterCombatEntry(new Monster());
-		blankInit.addActionListener(this);
 		addEntry(blankInit);
 		sort();
 		writeHTML();
@@ -309,7 +308,6 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		if (changed == blankInit && !changed.isBlank()) {
 //			System.out.println("Adding new entry");
 			blankInit = new MonsterCombatEntry(new Monster());
-			blankInit.addActionListener(this);
 			addEntry(blankInit);
 			reorder = true;
 		}
@@ -331,8 +329,13 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			}
 		}
 
-		if (reorder) sort();
-
+		if (reorder) {
+			sort();
+		} else {
+			// firing this in case a name or other property that is used elsewhere has changed.
+			fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
+		}
+		
 		writeHTML();
 	}
 

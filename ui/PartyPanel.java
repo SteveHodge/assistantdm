@@ -1,4 +1,5 @@
 package ui;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -26,6 +27,8 @@ public class PartyPanel extends JPanel implements PartyListener {
 	Map<Character,JPanel> tabs;
 
 	public PartyPanel(Party party) {
+		setLayout(new BorderLayout());
+
 		this.party = party;
 		this.party.addPartyListener(this);
 
@@ -34,7 +37,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 		for (Character c : party) {
 			characterAdded(c);
 		}
-		add(tabbedPane);
+		add(tabbedPane, BorderLayout.CENTER);
 	}
 
 	public void characterAdded(Character c) {

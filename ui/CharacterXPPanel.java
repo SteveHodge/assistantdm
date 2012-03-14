@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -17,6 +18,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 import party.Character;
@@ -160,10 +162,15 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 			XPHistoryPanel panel = new XPHistoryPanel(character);
 			JFrame popup = new JFrame(character.getName()+" XP History");
 			popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-			//popup.getContentPane().add(scroll);
 			popup.getContentPane().add(panel);
-			popup.pack();
-			popup.setLocationRelativeTo(this);
+			// size the popup to be 80% of the parent window's bounds:
+			Rectangle bounds = SwingUtilities.windowForComponent(this).getBounds();
+			System.out.println("Bounds = "+bounds);
+			bounds.x += bounds.width*.1;
+			bounds.y += bounds.height*.1;
+			bounds.width *= .8;
+			bounds.height *= .8;
+			popup.setBounds(bounds);
 			popup.setVisible(true);
 		}
 	}

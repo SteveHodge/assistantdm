@@ -46,16 +46,19 @@ public class MonsterCombatEntry extends CombatEntry {
 		nameField.getDocument().addDocumentListener(new DocumentListener() {
 			public void changedUpdate(DocumentEvent e) {
 				initBlank();
+				creature.setName(nameField.getText());
 				fireChange();
 			}
 
 			public void insertUpdate(DocumentEvent e) {
 				initBlank();
+				creature.setName(nameField.getText());
 				fireChange();
 			}
 
 			public void removeUpdate(DocumentEvent e) {
 				initBlank();
+				creature.setName(nameField.getText());
 				fireChange();
 			}
 			

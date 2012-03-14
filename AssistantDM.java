@@ -431,10 +431,14 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			panel.add(scrollpane);
 			JFrame popup = new JFrame("Party XP History");
 			popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-			//popup.getContentPane().add(scroll);
 			popup.getContentPane().add(panel);
-			popup.pack();
-			popup.setLocationRelativeTo(this);
+			// size the popup to be 80% of the parent window's bounds:
+			Rectangle bounds = this.getBounds();
+			bounds.x += bounds.width*.1;
+			bounds.y += bounds.height*.1;
+			bounds.width *= .8;
+			bounds.height *= .8;
+			popup.setBounds(bounds);
 			popup.setVisible(true);
 
 		} else if (e.getSource() == newCharacterItem) {
