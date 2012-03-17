@@ -55,6 +55,13 @@ public class Party implements Iterable<Character>, XML {
 		return characters.get(i);
 	}
 
+	public Character get(String name) {
+		for (Character c : characters) {
+			if (c.getName().equals(name)) return c;
+		}
+		return null;
+	}
+
 	public int size() {
 		return characters.size();
 	}

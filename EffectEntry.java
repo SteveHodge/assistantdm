@@ -10,6 +10,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
+import org.w3c.dom.Element;
+
 @SuppressWarnings("serial")
 public class EffectEntry extends JPanel implements ActionListener {
 	protected JButton delete;
@@ -75,5 +77,24 @@ public class EffectEntry extends JPanel implements ActionListener {
 			return ""+(duration / 10)+" Minutes";
 		}
 		return ""+duration+" Rounds";
+	}
+
+	public static EffectEntry parseDOM(EffectListModel model, Element el) {
+		if (!el.getNodeName().equals("EffectEntry")) return null;
+		EffectEntry c = new EffectEntry(model, el.getAttribute("effect"), el.getAttribute("source"),
+				Integer.parseInt(el.getAttribute("initiative")),
+				Integer.parseInt(el.getAttribute("duration"))
+				);
+		return c;
+	}
+
+	public String getXML(String indent, String nextIndent) {
+		StringBuilder b = new StringBuilder();
+		b.append(indent).append("<EffectEntry effect=\"").append(effect);
+		b.append("\" source=\"").append(source);
+		b.append("\" initiative=\"").append(initiative);
+		b.append("\" duration=\"").append(duration);
+		b.append("\"/>").append(System.getProperty("line.separator"));
+		return b.toString();
 	}
 }

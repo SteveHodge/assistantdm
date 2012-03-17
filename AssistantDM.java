@@ -65,6 +65,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	JMenuItem saveItem, saveAsItem, openItem, updateItem;
 	JMenuItem selectPartyItem, xpItem, xpHistoryItem, newCharacterItem;
 	ShoppingPanel shopPanel;
+	CombatPanel combatPanel;
 	CameraPanel cameraPanel = null;
 	JTabbedPane tabbedPane;
 
@@ -135,8 +136,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		party = Party.parseXML(file);
 
 		JComponent panel; 
-		panel = new CombatPanel(party);
-		tabbedPane.addTab("Combat", null, panel, "Initiative and Combat");
+		combatPanel = new CombatPanel(party);
+		File f = new File("combat.xml");
+        if (f.exists()) combatPanel.parseXML(f);
+		tabbedPane.addTab("Combat", null, combatPanel, "Initiative and Combat");
 
 		panel = new RollsPanel(party);
 		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
@@ -379,6 +382,29 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		return panel;
 	}
 
+	public void saveCombat() {
+		String filename = "combat.xml";
+        FileWriter outputStream = null;
+
+        try {
+			outputStream = new FileWriter(filename);
+			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+			outputStream.write(System.getProperty("line.separator"));
+			outputStream.write(System.getProperty("line.separator"));
+			outputStream.write(combatPanel.getXML("", "    "));
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} finally {
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		}
+	}
+
 	public void saveShops() {
 		String filename = "shops.ser";
 		FileOutputStream fos = null;
@@ -464,6 +490,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		System.out.println("Exiting");
 		saveParty(file);
 		shopPanel.writeShopsXML("shops.xml");
+		saveCombat();
 		if (cameraPanel != null) cameraPanel.disconnect();
 		System.exit(0);
 	}

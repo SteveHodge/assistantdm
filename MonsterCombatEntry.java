@@ -10,8 +10,12 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.w3c.dom.Element;
+
+import party.Character;
 import party.Creature;
 import party.Monster;
+import party.Party;
 import ui.BoundIntegerField;
 
 @SuppressWarnings("serial")
@@ -77,5 +81,37 @@ public class MonsterCombatEntry extends CombatEntry {
 		if (evt.getPropertyName().equals("value")) {
 			if (initBlank()) fireChange();
 		}
+	}
+
+	public static MonsterCombatEntry parseDOM(Element el) {
+		if (!el.getNodeName().equals("MonsterEntry")) return null;
+		MonsterCombatEntry c = new MonsterCombatEntry(new Monster());
+		c.nameField.setText(el.getAttribute("name"));
+		c.rollField.setValue(Integer.parseInt(el.getAttribute("roll")));
+		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));
+		c.creature.setInitiativeModifier(Integer.parseInt(el.getAttribute("initMod")));
+		c.creature.setMaximumHitPoints(Integer.parseInt(el.getAttribute("maxHPs")));
+		c.creature.setWounds(Integer.parseInt(el.getAttribute("wounds")));
+		c.creature.setNonLethal(Integer.parseInt(el.getAttribute("nonLethal")));
+		c.creature.setAC(Integer.parseInt(el.getAttribute("fullAC")));
+		c.creature.setTouchAC(Integer.parseInt(el.getAttribute("touchAC")));
+		c.creature.setFlatFootedAC(Integer.parseInt(el.getAttribute("flatFootedAC")));
+		return c;
+	}
+
+	public String getXML(String indent, String nextIndent) {
+		StringBuilder b = new StringBuilder();
+		b.append(indent).append("<MonsterEntry name=\"").append(creature.getName());
+		b.append("\" roll=\"").append(getRoll());
+		b.append("\" tieBreak=\"").append(getTieBreak());
+		b.append("\" initMod=\"").append(creature.getInitiativeModifier());
+		b.append("\" maxHPs=\"").append(creature.getMaximumHitPoints());
+		b.append("\" wounds=\"").append(creature.getWounds());
+		b.append("\" nonLethal=\"").append(creature.getNonLethal());
+		b.append("\" fullAC=\"").append(creature.getAC());
+		b.append("\" touchAC=\"").append(creature.getTouchAC());
+		b.append("\" flatFootedAC=\"").append(creature.getFlatFootedAC());
+		b.append("\"/>").append(System.getProperty("line.separator"));
+		return b.toString();
 	}
 }

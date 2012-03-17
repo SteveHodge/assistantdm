@@ -14,6 +14,10 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import party.Character;
 import party.Monster;
 import party.Party;
@@ -459,6 +463,42 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		for (CombatEntry e : toReset) {
 			e.setRoll(0);
 		}
+	}
+
+	public void parseDOM(Element el) {
+		if (!el.getNodeName().equals("InitiativeList")) return;
+		reset();
+		NodeList nodes = el.getChildNodes();
+		if (nodes != null) {
+			for (int i=0; i<nodes.getLength(); i++) {
+				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+				Element e = (Element)nodes.item(i);
+				String tag = e.getTagName();
+				if (tag.equals("CharacterEntry")) {
+					String name = e.getAttribute("name");
+					for (CombatEntry ce : list) {
+						if (ce instanceof CharacterCombatEntry && name.equals(ce.getCreatureName())) {
+							ce.setRoll(Integer.parseInt(e.getAttribute("roll")));
+							ce.setTieBreak(Integer.parseInt(e.getAttribute("tieBreak")));
+						}
+					}
+				} else if (tag.equals("MonsterEntry")) {
+					MonsterCombatEntry m = MonsterCombatEntry.parseDOM(e);
+					addEntry(m);
+				}
+			}
+		}
+	}
+
+	public String getXML(String indent, String nextIndent) {
+		StringBuilder b = new StringBuilder();
+		String nl = System.getProperty("line.separator");
+		b.append(indent).append("<InitiativeList>").append(nl);
+		for(CombatEntry e : list) {
+			if (e != blankInit) b.append(e.getXML(indent+nextIndent,nextIndent));
+		}
+		b.append(indent).append("</InitiativeList>").append(nl);
+		return b.toString();
 	}
 }
 

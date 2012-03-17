@@ -354,6 +354,10 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		rollField.setValue(roll);
 	}
 
+	public void setTieBreak(int roll) {
+		tiebreakField.setValue(roll);
+	}
+
 	public void adjustRoll(int delta) {
 		rollField.setValue(getRoll()+delta);
 	}
@@ -395,5 +399,9 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		if (ie1.isBlank()) return 1;
 		return compareInitiatives(ie1.getTotal(), ie1.getModifier(), ie1.getTieBreak(),
 				ie2.getTotal(), ie2.getModifier(), ie2.getTieBreak());
+	}
+
+	public String getXML(String indent, String nextIndent) {
+		return "";
 	}
 }

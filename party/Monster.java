@@ -99,6 +99,6 @@ public class Monster extends Creature {
 		if (prop.equals(PROPERTY_INITIATIVE)) setInitiativeModifier((Integer)value);
 		if (prop.equals(PROPERTY_AC)) setAC((Integer)value);
 		if (prop.equals(PROPERTY_AC_FLATFOOTED)) setFlatFootedAC((Integer)value);
-		if (prop.equals(PROPERTY_AC_TOUCH)) setFlatFootedAC((Integer)value);
+		if (prop.equals(PROPERTY_AC_TOUCH)) setTouchAC((Integer)value);
 	}
 }

@@ -4,6 +4,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -11,21 +14,33 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import party.Character;
+import party.CharacterLibrary;
 import party.Party;
 import swing.ReorderableList;
+import xml.XML;
+import xml.XMLUtils;
 
 // TODO consider moving initiative reset and next round buttons out of their current panels
 // TODO consider removing ability to edit max hitpoints. Maybe have modifications on this tab be temporary
 @SuppressWarnings("serial")
-public class CombatPanel extends JPanel {
+public class CombatPanel extends JPanel implements XML {
 	Party party;
+	InitiativeListModel initiativeListModel;
+	EffectListModel effectsListModel;
 
 	public CombatPanel(Party p) {
 		party = p;
 
-		final InitiativeListModel ilm = new InitiativeListModel(party);
-		JLayeredPane initiativeList = new ReorderableList(ilm);
+		initiativeListModel = new InitiativeListModel(party);
+		JLayeredPane initiativeList = new ReorderableList(initiativeListModel);
 		JScrollPane listScroller = new JScrollPane(initiativeList);
 
 		JPanel initiativePanel = new JPanel();
@@ -39,7 +54,7 @@ public class CombatPanel extends JPanel {
 		JButton resetInitButton = new JButton("Reset");
 		resetInitButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				ilm.reset();
+				initiativeListModel.reset();
 			}
 		});
 		initiativePanel.add(resetInitButton, c);
@@ -49,8 +64,8 @@ public class CombatPanel extends JPanel {
 		c.fill = GridBagConstraints.BOTH;
 		initiativePanel.add(listScroller, c);
 
-		EffectListModel m = new EffectListModel();
-		ReorderableList effectsList = new ReorderableList(m);
+		effectsListModel = new EffectListModel();
+		ReorderableList effectsList = new ReorderableList(effectsListModel);
 		JScrollPane effectsScroller = new JScrollPane(effectsList);
 
 		JPanel effectsPanel = new JPanel();
@@ -61,7 +76,7 @@ public class CombatPanel extends JPanel {
 		c.insets = new Insets(2, 3, 2, 3);
 		c.weightx = 1.0;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		effectsPanel.add(new NewEffectPanel(p, m, ilm), c);
+		effectsPanel.add(new NewEffectPanel(p, effectsListModel, initiativeListModel), c);
 
 		c.gridy = 1;
 		c.weighty = 1.0;
@@ -188,4 +203,49 @@ public class CombatPanel extends JPanel {
 //			return null;
 //		}
 //	}
+
+	public void parseXML(File xmlFile) {
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setValidating(true);
+			factory.setNamespaceAware(true);
+			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaLanguage", "http://www.w3.org/2001/XMLSchema");
+			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaSource", new File("combat.xsd"));
+
+			Document dom = factory.newDocumentBuilder().parse(xmlFile);
+			//XMLUtils.printNode(dom, "");
+
+			Node node = XMLUtils.findNode(dom,"Combat");
+			if (node != null) {
+				NodeList children = node.getChildNodes();
+				if (children != null) {
+					for (int i=0; i<children.getLength(); i++) {
+						if (children.item(i).getNodeName().equals("InitiativeList")) {
+							initiativeListModel.parseDOM((Element)children.item(i));
+						} else if (children.item(i).getNodeName().equals("EffectList")) {
+							effectsListModel.parseDOM((Element)children.item(i));
+						}
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	public String getXML() {
+		return getXML("","    ");
+	}
+
+	public String getXML(String indent, String nextIndent) {
+		StringBuilder b = new StringBuilder();
+		String nl = System.getProperty("line.separator");
+		b.append(indent).append("<Combat>").append(nl);
+		b.append(initiativeListModel.getXML(nextIndent,nextIndent));
+		b.append(effectsListModel.getXML(nextIndent,nextIndent));
+		b.append(indent).append("</Combat>").append(nl);
+		return b.toString();
+	}
 }

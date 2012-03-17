@@ -8,6 +8,10 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import swing.ReorderableListModel;
 
 
@@ -95,5 +99,38 @@ public class EffectListModel implements ReorderableListModel {
 
 	public int indexOf(Object item) {
 		return list.indexOf(item);
+	}
+
+	public void parseDOM(Element el) {
+		if (!el.getNodeName().equals("EffectList")) return;
+		clear();
+		int oldSize = list.size();
+
+		NodeList nodes = el.getChildNodes();
+		if (nodes != null) {
+			for (int i=0; i<nodes.getLength(); i++) {
+				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+				Element e = (Element)nodes.item(i);
+				String tag = e.getTagName();
+				if (tag.equals("EffectEntry")) {
+					EffectEntry m = EffectEntry.parseDOM(this,e);
+					list.add(m);
+				}
+			}
+		}
+		if (list.size() != oldSize) {
+			fireListDataEvent(ListDataEvent.INTERVAL_ADDED,oldSize,list.size()-1);
+		}
+	}
+
+	public String getXML(String indent, String nextIndent) {
+		StringBuilder b = new StringBuilder();
+		String nl = System.getProperty("line.separator");
+		b.append(indent).append("<EffectList>").append(nl);
+		for(EffectEntry e : list) {
+			b.append(e.getXML(indent+nextIndent,nextIndent));
+		}
+		b.append(indent).append("</EffectList>").append(nl);
+		return b.toString();
 	}
 }

@@ -93,6 +93,7 @@ public abstract class Creature {
 //	abstract public int getAbilityScoreModifier(int score);
 
 	abstract public int getInitiativeModifier();
+	abstract public void setInitiativeModifier(int init);
 
 	abstract public int getMaximumHitPoints();
 	abstract public void setMaximumHitPoints(int ac);
