@@ -8,8 +8,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
-import party.CharacterLibrary;
-
 @SuppressWarnings("serial")
 public class JTableWithToolTips extends JTable {
 	public JTableWithToolTips() {

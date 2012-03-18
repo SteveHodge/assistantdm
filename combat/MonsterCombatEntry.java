@@ -13,10 +13,8 @@ import javax.swing.event.DocumentListener;
 
 import org.w3c.dom.Element;
 
-import party.Character;
 import party.Creature;
 import party.Monster;
-import party.Party;
 import ui.BoundIntegerField;
 
 @SuppressWarnings("serial")

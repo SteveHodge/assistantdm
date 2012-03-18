@@ -1,4 +1,5 @@
 package combat;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,11 +16,16 @@ import org.w3c.dom.NodeList;
 
 import swing.ReorderableListModel;
 
-
 public class EffectListModel implements ReorderableListModel {
 	List<EffectEntry> list = new ArrayList<EffectEntry>();
 
 	EventListenerList listenerList = new EventListenerList();
+
+	// these members track the maximum preferred/minimum sizes for the labels in the EffectEntrys
+	int effectWidth = 0;
+	int sourceWidth = 0;
+	int initiativeWidth = 0;
+	int durationWidth = 0;
 
 	public void moveTo(Object item, int newPos) {
 		if (!list.remove(item)) throw new NoSuchElementException();
@@ -53,8 +59,71 @@ public class EffectListModel implements ReorderableListModel {
 
 	public void addEntry(String effect, String source, int initiative, int duration) {
 		EffectEntry e = new EffectEntry(this, effect, source, initiative, duration);
-		list.add(e);
+		addEntry(e);
 		fireListDataEvent(ListDataEvent.INTERVAL_ADDED,list.size()-1,list.size()-1);
+	}
+
+	protected void addEntry(EffectEntry e) {
+		list.add(e);
+		Dimension d = e.effectLabel.getPreferredSize();
+		if (d.width > effectWidth) {
+			//System.out.println("Larger effect width: "+d.width);
+			effectWidth = d.width;
+			for (EffectEntry ent : list) {
+				d = ent.effectLabel.getPreferredSize();
+				d.width = effectWidth;
+				ent.effectLabel.setPreferredSize(d);
+				ent.invalidate();
+			}
+		} else {
+			d.width = effectWidth;
+			e.effectLabel.setPreferredSize(d);
+		}
+
+		d = e.sourceLabel.getPreferredSize();
+		if (d.width > sourceWidth) {
+			//System.out.println("Larger source width: "+d.width);
+			sourceWidth = d.width;
+			for (EffectEntry ent : list) {
+				d = ent.sourceLabel.getPreferredSize();
+				d.width = sourceWidth;
+				ent.sourceLabel.setPreferredSize(d);
+				ent.invalidate();
+			}
+		} else {
+			d.width = sourceWidth;
+			e.sourceLabel.setPreferredSize(d);
+		}
+
+		d = e.initiativeLabel.getPreferredSize();
+		if (d.width > initiativeWidth) {
+			//System.out.println("Larger initiative width: "+d.width);
+			initiativeWidth = d.width;
+			for (EffectEntry ent : list) {
+				d = ent.initiativeLabel.getPreferredSize();
+				d.width = initiativeWidth;
+				ent.initiativeLabel.setPreferredSize(d);
+				ent.invalidate();
+			}
+		} else {
+			d.width = initiativeWidth;
+			e.initiativeLabel.setPreferredSize(d);
+		}
+
+		d = e.durationLabel.getPreferredSize();
+		if (d.width > durationWidth) {
+			//System.out.println("Larger duration width: "+d.width);
+			durationWidth = d.width;
+			for (EffectEntry ent : list) {
+				d = ent.durationLabel.getPreferredSize();
+				d.width = durationWidth;
+				ent.durationLabel.setPreferredSize(d);
+				ent.invalidate();
+			}
+		} else {
+			d.width = durationWidth;
+			e.durationLabel.setPreferredSize(d);
+		}
 	}
 
 	public void clear() {
@@ -114,8 +183,7 @@ public class EffectListModel implements ReorderableListModel {
 				Element e = (Element)nodes.item(i);
 				String tag = e.getTagName();
 				if (tag.equals("EffectEntry")) {
-					EffectEntry m = EffectEntry.parseDOM(this,e);
-					list.add(m);
+					addEntry(EffectEntry.parseDOM(this,e));
 				}
 			}
 		}

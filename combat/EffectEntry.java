@@ -13,10 +13,15 @@ import javax.swing.border.EtchedBorder;
 
 import org.w3c.dom.Element;
 
+// TODO deletes should be handled by passing an event on to listeners
+
 @SuppressWarnings("serial")
 public class EffectEntry extends JPanel implements ActionListener {
 	protected JButton delete;
 	protected JLabel durationLabel;
+	protected JLabel effectLabel;
+	protected JLabel sourceLabel;
+	protected JLabel initiativeLabel;
 
 	String effect;
 	String source;
@@ -38,21 +43,22 @@ public class EffectEntry extends JPanel implements ActionListener {
 		delete.setFocusPainted(false);
 		delete.addActionListener(this);
 
-		JLabel e = new JLabel(effect);
+		effectLabel = new JLabel(effect);
 		durationLabel = new JLabel(getDurationString());
-		JLabel s = new JLabel(source);
-		JLabel in = new JLabel("("+initiative+")");
+		sourceLabel = new JLabel(source);
+		initiativeLabel = new JLabel("("+initiative+")");
 
 		GridBagConstraints c = new GridBagConstraints();
-		c.gridx = 0; c.gridy = 0;
+		c.gridx = 0; c.gridy = 0; c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(2, 3, 2, 3);
+		c.anchor = GridBagConstraints.LINE_START;
 		add(delete, c);
 		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 1.0;
-		add(e, c);
+		add(effectLabel, c);
 		c.weightx = 0.5;
-		add(s, c);
-		add(in, c);
+		add(sourceLabel, c);
+		add(initiativeLabel, c);
 		c.anchor = GridBagConstraints.LINE_END;
 		add(durationLabel, c);
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));

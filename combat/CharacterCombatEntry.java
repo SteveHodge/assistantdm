@@ -1,22 +1,11 @@
 package combat;
 
 import java.beans.PropertyChangeEvent;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import party.Character;
 import party.Creature;
-import party.Party;
-import party.Skill;
-import party.XP;
-import party.Character.XPHistoryItem;
 
 @SuppressWarnings("serial")
 public class CharacterCombatEntry extends CombatEntry {

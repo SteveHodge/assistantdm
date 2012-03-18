@@ -6,8 +6,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -22,8 +20,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import party.Character;
-import party.CharacterLibrary;
 import party.Party;
 import swing.ReorderableList;
 import xml.XML;
@@ -31,6 +27,11 @@ import xml.XMLUtils;
 
 // TODO consider moving initiative reset and next round buttons out of their current panels
 // TODO consider removing ability to edit max hitpoints. Maybe have modifications on this tab be temporary
+// TODO consider replacing effects ReorderableList with a JTable 
+// replacing the effects ReorderableList with a JTable would simplify layout (wouldn't need to keep component
+// sizes in sync) and make editing easy. would lose the ability to reorder the list but since it is a sorted list 
+// anyway this is probably not an issue
+
 @SuppressWarnings("serial")
 public class CombatPanel extends JPanel implements XML {
 	Party party;
