@@ -1,3 +1,4 @@
+package combat;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
