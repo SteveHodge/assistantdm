@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
@@ -24,13 +25,18 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.SchemaFactory;
 
 import magicgenerator.Item;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.sun.org.apache.xerces.internal.impl.PropertyManager;
 
 import xml.XMLUtils;
 
@@ -227,7 +233,8 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			outputStream.write(System.getProperty("line.separator"));
 			outputStream.write(System.getProperty("line.separator"));
-			outputStream.write("<Shops xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"shops.xsd\">");
+			//outputStream.write("<Shops xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"shops.xsd\">");
+			outputStream.write("<Shops>");
 			outputStream.write(System.getProperty("line.separator"));
 			for (Shop s : shops) {
 				outputStream.write(s.getXML("    ", "    "));
@@ -252,11 +259,8 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 		File xmlFile = new File(filename);
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setValidating(true);
-			factory.setNamespaceAware(true);
-			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaLanguage", "http://www.w3.org/2001/XMLSchema");
-			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaSource", new File("shops.xsd"));
-
+			InputStream is = Shop.class.getClassLoader().getResourceAsStream("shops.xsd"); 
+			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 
 			Node node = XMLUtils.findNode(dom,"Shops");

@@ -1,13 +1,21 @@
 package party;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -89,11 +97,8 @@ public class Party implements Iterable<Character>, XML {
 		Party p = new Party();
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setValidating(true);
-			factory.setNamespaceAware(true);
-			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaLanguage", "http://www.w3.org/2001/XMLSchema");
-			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaSource", new File("party.xsd"));
-
+			InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd"); 
+			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 			//XMLUtils.printNode(dom, "");
 
@@ -151,7 +156,8 @@ public class Party implements Iterable<Character>, XML {
 		StringBuilder b = new StringBuilder();
 		String nl = System.getProperty("line.separator");
 		b.append(indent);
-		b.append("<Characters xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"party.xsd\">");
+		//b.append("<Characters xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"party.xsd\">");
+		b.append("<Characters>");
 		b.append(nl);
 		for (Character c : CharacterLibrary.characters) {
 			b.append(c.getXML(indent+nextIndent,nextIndent));
