@@ -22,6 +22,7 @@ import party.Character;
 import party.CharacterLibrary;
 import party.Party;
 
+//TODO figure out how to position the dialog so it is centered on the frame
 @SuppressWarnings("serial")
 public class SelectPartyDialog extends JDialog implements ActionListener {
 	protected LibraryTableModel libraryModel;

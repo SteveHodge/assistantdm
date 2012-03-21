@@ -13,6 +13,7 @@ import javax.swing.border.EtchedBorder;
 
 import org.w3c.dom.Element;
 
+//Class no longer used
 // TODO deletes should be handled by passing an event on to listeners
 
 @SuppressWarnings("serial")

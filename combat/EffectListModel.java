@@ -16,6 +16,7 @@ import org.w3c.dom.NodeList;
 
 import swing.ReorderableListModel;
 
+// Class no longer used
 public class EffectListModel implements ReorderableListModel {
 	List<EffectEntry> list = new ArrayList<EffectEntry>();
 
@@ -73,7 +74,7 @@ public class EffectListModel implements ReorderableListModel {
 				d = ent.effectLabel.getPreferredSize();
 				d.width = effectWidth;
 				ent.effectLabel.setPreferredSize(d);
-				ent.invalidate();
+				ent.revalidate();
 			}
 		} else {
 			d.width = effectWidth;
@@ -88,7 +89,7 @@ public class EffectListModel implements ReorderableListModel {
 				d = ent.sourceLabel.getPreferredSize();
 				d.width = sourceWidth;
 				ent.sourceLabel.setPreferredSize(d);
-				ent.invalidate();
+				ent.revalidate();
 			}
 		} else {
 			d.width = sourceWidth;
@@ -103,7 +104,7 @@ public class EffectListModel implements ReorderableListModel {
 				d = ent.initiativeLabel.getPreferredSize();
 				d.width = initiativeWidth;
 				ent.initiativeLabel.setPreferredSize(d);
-				ent.invalidate();
+				ent.revalidate();
 			}
 		} else {
 			d.width = initiativeWidth;
@@ -118,7 +119,7 @@ public class EffectListModel implements ReorderableListModel {
 				d = ent.durationLabel.getPreferredSize();
 				d.width = durationWidth;
 				ent.durationLabel.setPreferredSize(d);
-				ent.invalidate();
+				ent.revalidate();
 			}
 		} else {
 			d.width = durationWidth;

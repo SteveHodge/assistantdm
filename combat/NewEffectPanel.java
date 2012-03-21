@@ -9,13 +9,13 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.event.ListDataListener;
 
-import party.Party;
-
-// TODO either have minute/hour increment or allow editing remaining duration of entries
+// TODO consider moving into CombatPanel class
 
 @SuppressWarnings("serial")
 public class NewEffectPanel extends JPanel implements ActionListener {
@@ -27,10 +27,14 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 	protected JButton addButton;
 	protected JButton resetButton;
 	protected JButton nextButton;
+	protected JButton deleteButton;
 
-	protected EffectListModel model;
+	//protected EffectListModel model;
+	protected EffectTableModel model;
 	protected SourceModel sourceModel;
+	protected JTable table;
 
+	// TODO if editing is performed then the selected item should be reset
 	public class SourceModel implements ComboBoxModel {
 		InitiativeListModel initiativeModel;
 		String selected = "";
@@ -69,8 +73,9 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		}
 	}
 
-	public NewEffectPanel(Party p, EffectListModel m, InitiativeListModel im) {
+	public NewEffectPanel(JTable t, EffectTableModel m, InitiativeListModel im) {
 		model = m;
+		table = t;
 		sourceModel = new SourceModel(im);
 
 		effectField = new JTextField();
@@ -97,33 +102,40 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		resetButton.addActionListener(this);
 		nextButton = new JButton("Next Round");
 		nextButton.addActionListener(this);
+		deleteButton = new JButton("Delete");
+		deleteButton.addActionListener(this);
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0; c.gridy = 0;
 		c.insets = new Insets(2, 3, 2, 3);
+		add(new JLabel("Effect:"),c);
+		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 1.0;
-		c.gridwidth = 3;
+		c.gridwidth = 2;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		add(effectField, c);
 		c.gridwidth = 1;
-		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 0.0;
-		c.fill = GridBagConstraints.NONE;
+		//c.fill = GridBagConstraints.NONE;
+		add(new JLabel("Duration:"),c);
 		add(durationField, c);
 		add(unitsField, c);
 
 		c.gridy = 1;
+		c.gridx = 0;
+		add(new JLabel("Source:"),c);
+		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 1.0;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		add(sourceField, c);
-		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 0.0;
 		c.fill = GridBagConstraints.NONE;
+		add(new JLabel("Initiative:"),c);
 		add(initField, c);
+		c.fill = GridBagConstraints.HORIZONTAL;
 		add(addButton, c);
-		add(resetButton, c);
-		add(nextButton, c);
+		add(deleteButton, c);
 	}
 
 	public void actionPerformed(ActionEvent arg0) {
@@ -134,24 +146,21 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 			
 			model.addEntry(effectField.getText(), sourceField.getSelectedItem().toString(),
 					(Integer)initField.getValue(), d);
-			model.sort();
-
-		} else if (arg0.getSource() == resetButton) {
-			model.clear();
-			
-		} else if (arg0.getSource() == nextButton) {
-			// work from last to first to avoid issues when we remove entries
-			for (int i=model.getSize()-1; i >= 0; i--) {
-				EffectEntry e = (EffectEntry)model.getElementAt(i);
-				e.setDuration(e.getDuration()-1);
-				if (e.getDuration() < 0) model.removeEntry(e);
-			}
+			//model.sort();
 
 		} else if (arg0.getSource() == sourceField) {
 			int index = sourceField.getSelectedIndex();
 			if (index != -1) {
 				initField.setValue(new Integer(sourceModel.getInitiative(index)));
 			}
+
+		} else if (arg0.getSource() == deleteButton) {
+			int selected = table.getSelectedRow();
+			while (selected > -1) {
+				model.removeEntry(selected);
+				selected = table.getSelectedRow();
+			}
 		}
+		
 	}
 }
