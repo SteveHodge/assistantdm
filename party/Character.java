@@ -39,7 +39,7 @@ public class Character extends Creature implements XML {
 	protected int[] ac = new int[AC_MAX_INDEX];
 	protected int tempAC, tempTouch, tempFF;	// ac overrides
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
-	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();	//FIXME revert to protected
+	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
 
 	// TODO consider moving these methods to the Character class 
 	public class XPHistoryItem {

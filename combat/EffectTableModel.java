@@ -9,7 +9,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-// TODO display durations better, better editing
 // TODO check args, particular index/row args
 @SuppressWarnings("serial")
 public class EffectTableModel extends AbstractTableModel {

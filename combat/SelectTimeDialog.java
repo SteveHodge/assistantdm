@@ -12,31 +12,25 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 
 //TODO figure out how to position the dialog properly
 @SuppressWarnings("serial")
 public class SelectTimeDialog extends JDialog implements ActionListener {
 	boolean returnOk = false;
-	JFormattedTextField rounds;
-	JFormattedTextField minutes;
-	JFormattedTextField hours;
-	JFormattedTextField days;
+	JSpinner rounds;
+	JSpinner minutes;
+	JSpinner hours;
+	JSpinner days;
 
 	public SelectTimeDialog(Window owner) {
 		super(owner, "Select time", Dialog.ModalityType.APPLICATION_MODAL);
 
-		rounds = new JFormattedTextField();
-		rounds.setValue(new Integer(0));
-		rounds.setColumns(new Integer(5));
-		minutes = new JFormattedTextField();
-		minutes.setValue(new Integer(0));
-		minutes.setColumns(new Integer(5));
-		hours = new JFormattedTextField();
-		hours.setValue(new Integer(0));
-		hours.setColumns(new Integer(5));
-		days = new JFormattedTextField();
-		days.setValue(new Integer(0));
-		days.setColumns(new Integer(5));
+		rounds = new JSpinner(new SpinnerNumberModel(0,0,9999,1));
+		minutes = new JSpinner(new SpinnerNumberModel(0,0,9999,1));
+		hours = new JSpinner(new SpinnerNumberModel(0,0,9999,1));
+		days = new JSpinner(new SpinnerNumberModel(0,0,9999,1));
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(4,2));

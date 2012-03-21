@@ -17,9 +17,13 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -29,18 +33,18 @@ import party.XP;
 import party.XP.CR;
 import party.XP.Challenge;
 
-// TODO do we need an override for total party members?
-
 @SuppressWarnings("serial")
 public class XPEntryDialog extends JDialog implements ActionListener {
 	Party party;
 	List<Challenge> challenges = new ArrayList<Challenge>();
 	int[] penalties;	// note this is in party order
+	boolean[] exclude;	// note this is in party order
 	XPPartyTableModel partyModel;
 	XPEntryTableModel entryModel;
 	boolean returnOk = false;
 	JTextField commentsField;
 	JFormattedTextField dateField;
+	SpinnerNumberModel partySizeModel;
 	static Date lastDate = new Date();
 
 	public XPEntryDialog(JFrame frame, Party p) {
@@ -48,11 +52,12 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 
 		party = p;
 		penalties = new int[party.size()];
+		exclude = new boolean[party.size()];
 
 		partyModel = new XPPartyTableModel();
 		JTable table = new JTable(partyModel);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//		table.getColumnModel().getColumn(0).setPreferredWidth(200);
+		table.getColumnModel().getColumn(0).setPreferredWidth(200);
 //		table.setDefaultEditor(Integer.class, new SpinnerCellEditor());
 		JScrollPane partyScrollpane = new JScrollPane(table);
 
@@ -90,6 +95,14 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		dateField.setValue(lastDate);
 		commentsPanel.add(new JLabel("Date: "));
 		commentsPanel.add(dateField);
+		partySizeModel = new SpinnerNumberModel(party.size(),party.size(),99,1);
+		partySizeModel.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				partyModel.fireTableDataChanged();
+			}
+		});
+		commentsPanel.add(new JLabel("Party Size:"));
+		commentsPanel.add(new JSpinner(partySizeModel));
 
 		add(commentsPanel,"North");
 		add(panel);
@@ -110,11 +123,17 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		setVisible(false);
 	}
 
+	public int getPartySize() {
+		return partySizeModel.getNumber().intValue();
+	}
+
 	public void applyXPEarned() {
 		int i = 0;
 		lastDate = (Date)dateField.getValue();
 		for (party.Character c : party) {
-			c.addXPChallenges(party.size(), penalties[i], challenges, commentsField.getText(), lastDate);
+			if (!exclude[i]) {
+				c.addXPChallenges(getPartySize(), penalties[i], challenges, commentsField.getText(), lastDate);
+			}
 			i++;
 		}
 	}
@@ -216,7 +235,9 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		public static final int COLUMN_EARNED = 3;
 		public static final int COLUMN_TOGO = 4;
 		public static final int COLUMN_PENALTY = 5;
-		public static final int COLUMN_COUNT = 6;
+		public static final int COLUMN_EXCLUDE = 6;
+
+		public static final int COLUMN_COUNT = 7;
 
 		public int getColumnCount() {
 			return COLUMN_COUNT;
@@ -237,14 +258,18 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 			case COLUMN_XP:
 				return c.getXP();	// xp - integer
 			case COLUMN_EARNED:
-				return XP.getXP(c.getLevel(), party.size(), penalties[row], challenges); // earned - integer
+				if (exclude[row]) return 0;
+				return XP.getXP(c.getLevel(), getPartySize(), penalties[row], challenges); // earned - integer
 			case COLUMN_TOGO:
-				int xp = c.getXP()+XP.getXP(c.getLevel(), party.size(), penalties[row], challenges);
+				int xp = c.getXP();
+				if (!exclude[row]) xp += XP.getXP(c.getLevel(), getPartySize(), penalties[row], challenges);
 //				int levelXP = XP.getXPRequired(c.getLevel());
 //				return 100.0f*(xp-levelXP)/(XP.getXPRequired(c.getLevel()+1)-levelXP);	// % through level - float
 				return ((float)xp-XP.getXPRequired(c.getLevel()))/(c.getLevel()*10);	// % through level - float
 			case COLUMN_PENALTY:
 				return penalties[row];	// % penalty - float
+			case COLUMN_EXCLUDE:
+				return exclude[row];
 			default:
 				return null;
 			}
@@ -253,6 +278,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		public Class<?> getColumnClass(int col) {
 			if (col == COLUMN_NAME) return String.class;
 			if (col == COLUMN_TOGO) return Float.class;
+			if (col == COLUMN_EXCLUDE) return Boolean.class;
 			return Integer.class;
 		}
 
@@ -270,6 +296,8 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 				return "% through level";
 			case COLUMN_PENALTY:
 				return "% penalty";
+			case COLUMN_EXCLUDE:
+				return "Exclude";
 			default:
 				return super.getColumnName(col);
 			}
@@ -280,15 +308,32 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		}
 
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			if (columnIndex == COLUMN_PENALTY) return true;
+			if (columnIndex == COLUMN_PENALTY || columnIndex == COLUMN_EXCLUDE) return true;
 			return false;
 		}
 
 		public void setValueAt(Object value, int row, int col) {
-			if (value == null) penalties[row] = 0;
-			else penalties[row] = (Integer)value;
-			this.fireTableCellUpdated(row, COLUMN_EARNED);
-			this.fireTableCellUpdated(row, COLUMN_TOGO);
+			if (col == COLUMN_PENALTY) {
+				if (value == null) penalties[row] = 0;
+				else penalties[row] = (Integer)value;
+				this.fireTableCellUpdated(row, COLUMN_EARNED);
+				this.fireTableCellUpdated(row, COLUMN_TOGO);
+			} else if (col == COLUMN_EXCLUDE) {
+				if (value == null) value = false;
+				boolean newVal = (Boolean)value;
+
+				int delta = 0;
+				if (exclude[row] && !newVal) delta = 1;
+				if (!exclude[row] && newVal) delta = -1;
+
+				exclude[row] = newVal;
+
+				// adjust the minimum and current values of the party size spinner to match the change is party size:
+				partySizeModel.setValue(new Integer(partySizeModel.getNumber().intValue()+delta));
+				partySizeModel.setMinimum(new Integer(((Number)partySizeModel.getMinimum()).intValue()+delta));
+
+				this.fireTableDataChanged();
+			}
 		}
 	}
 }

@@ -60,7 +60,7 @@ public class XP {
 	public static class Challenge {
 		public CR cr;
 		public int number;
-		public String comment;
+		public String comment = "";
 
 		public String toString() {
 			if (number == 1) return comment + " CR " + cr;
@@ -96,7 +96,7 @@ public class XP {
 	}
 
 	public abstract static class XPChange {
-		String comment;
+		String comment = "";
 		Date date;
 
 		public XPChange(String c, Date d) {
