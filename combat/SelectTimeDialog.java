@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -55,6 +54,7 @@ public class SelectTimeDialog extends JDialog implements ActionListener {
 		add(panel);
 		add(buttons,"South");
 		pack();
+		setLocationRelativeTo(owner);	// FIXME this works on laptop but not on desktop (due to multiple screens?)
 	}
 
 	public boolean isCancelled() {

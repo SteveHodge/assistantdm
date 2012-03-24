@@ -108,7 +108,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		add(panel);
 		add(buttons,"South");
 		pack();
-		setLocationRelativeTo(frame);
+		setLocationRelativeTo(frame);	// FIXME this works on laptop but not on desktop (due to multiple screens?)
 	}
 
 	public boolean isCancelled() {

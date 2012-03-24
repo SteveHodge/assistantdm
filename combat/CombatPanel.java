@@ -21,6 +21,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.table.TableColumn;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,6 +41,7 @@ import xml.XML;
 import xml.XMLUtils;
 
 // TODO consider removing ability to edit max hitpoints. Maybe have modifications on this tab be temporary
+// TODO provide events when the combat state changes (round or initiative list), then file updater can just register as listener
 
 @SuppressWarnings("serial")
 public class CombatPanel extends JPanel implements XML {
@@ -47,11 +50,26 @@ public class CombatPanel extends JPanel implements XML {
 	EffectListModel effectsListModel;
 	EffectTableModel effectsTableModel;
 	int round = 0;
+	InitiativeFileUpdater fileUpdater = new InitiativeFileUpdater();
 
 	public CombatPanel(Party p) {
 		party = p;
 
 		initiativeListModel = new InitiativeListModel(party);
+		initiativeListModel.addListDataListener(new ListDataListener() {
+			public void contentsChanged(ListDataEvent arg0) {
+				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+			}
+
+			public void intervalAdded(ListDataEvent arg0) {
+				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+			}
+
+			public void intervalRemoved(ListDataEvent arg0) {
+				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+			}
+			
+		});
 		JLayeredPane initiativeList = new ReorderableList(initiativeListModel);
 		JScrollPane listScroller = new JScrollPane(initiativeList);
 
@@ -104,6 +122,7 @@ public class CombatPanel extends JPanel implements XML {
 				initiativeListModel.reset();
 				round = 0;
 				roundsLabel.setText("Round "+round);
+				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
 			}
 		});
 
@@ -116,6 +135,7 @@ public class CombatPanel extends JPanel implements XML {
 				}
 				round++;
 				roundsLabel.setText("Round "+round);
+				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
 			}
 		});
 
@@ -132,6 +152,7 @@ public class CombatPanel extends JPanel implements XML {
 					}
 					round+= value;
 					roundsLabel.setText("Round "+round);
+					fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
 				}
 			}
 		});

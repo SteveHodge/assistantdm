@@ -1,8 +1,6 @@
 package combat;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,7 +17,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-
 import party.Character;
 import party.Monster;
 import party.Party;
@@ -28,14 +25,11 @@ import swing.ReorderableListModel;
 
 
 public class InitiativeListModel implements ReorderableListModel, ActionListener, ChangeListener, PartyListener {
-	static final String DESTINATION = "m:\\webcam\\ftp\\images\\initiative.txt";
-
 	Party party;
 	List<CombatEntry> list = new ArrayList<CombatEntry>();
 
 	EventListenerList listenerList = new EventListenerList();
 
-	String lastOutput = "";
 	CombatEntry blankInit = null;
 
 	boolean noSort = false;		// set to true to block sorting while we reorder entries
@@ -51,7 +45,6 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		blankInit = new MonsterCombatEntry(new Monster());
 		addEntry(blankInit);
 		sort();
-		writeHTML();
 	}
 
 	public void characterAdded(Character c) {
@@ -341,12 +334,10 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			// firing this in case a name or other property that is used elsewhere has changed.
 			fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 		}
-		
-		writeHTML();
 	}
 
-	private void writeHTML() {
-		String output = "round=1\n";
+	public String getInitiativeText() {
+		String output = "";
 		int i = 0;
 		for (CombatEntry e : list) {
 			if (!e.isDMOnly()) {
@@ -357,17 +348,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			}
 		}
 		output = "lastindex="+i+"\n"+output;
-		if (!output.equals(lastOutput)) {
-			//System.out.println(output);
-			lastOutput = output;
-			try {
-				FileWriter file = new FileWriter(DESTINATION);
-				file.write(output);
-				file.close();
-			} catch (IOException e1) {
-				System.out.println("Exception writing initiative file: "+e1);
-			}
-		}
+		return output;
 	}
 
 	// returns the number of entries moved
@@ -434,9 +415,6 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		if (arg0.getActionCommand().equals("delete")) {
 			CombatEntry e = (CombatEntry)arg0.getSource();
 			removeEntry(e);
-// should we sort here? (shouldn't be necessary I think)
-//			reorderList();
-			writeHTML();
 		}
 	}
 
