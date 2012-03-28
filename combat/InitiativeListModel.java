@@ -287,7 +287,11 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		list.add(e);
 		e.addChangeListener(this);
 		e.addActionListener(this);
-		fireListDataEvent(ListDataEvent.INTERVAL_ADDED,list.size()-1,list.size()-1);
+		if (e.isBlank()) {
+			fireListDataEvent(ListDataEvent.INTERVAL_ADDED,list.size()-1,list.size()-1);
+		} else {
+			sort();
+		}
 	}
 
 	protected void removeEntry(CombatEntry e) {

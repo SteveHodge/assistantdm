@@ -4,7 +4,9 @@ import java.beans.PropertyChangeEvent;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JToolTip;
 
+import party.Character;
 import party.Creature;
 
 @SuppressWarnings("serial")
@@ -20,6 +22,29 @@ public class CharacterCombatEntry extends CombatEntry {
 
 		creature.addPropertyChangeListener(this);
 		createPanel();
+		setToolTipText("AC breakdown"); // the text is irrelevant as we override the JToolTip (see below). this just forces the tip to appear
+	}
+
+	public JToolTip createToolTip() {
+		JToolTip tip = new JToolTip() {
+			public String getTipText() {
+				if (creature instanceof Character) {
+					Character c = (Character)creature;
+					// get the AC components
+					String components = "<html>Base AC: 10<br>";
+					for (int i = 0; i < Creature.AC_MAX_INDEX; i++) {
+						int v = c.getACComponent(i);
+						if (v != 0) {
+							components += Creature.getACComponentName(i) + ": " + v + "<br>";
+						}
+					}
+					return components+"</html>";
+				}
+				return null;
+			}
+		};
+        tip.setComponent(this);
+        return tip;
 	}
 
 	protected JComponent createNameSection() {

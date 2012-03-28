@@ -29,6 +29,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 
+import monsters.StatisticsBlock;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,6 +47,8 @@ import xml.XMLUtils;
 
 @SuppressWarnings("serial")
 public class CombatPanel extends JPanel implements XML {
+	static CombatPanel combatPanel; 
+	
 	Party party;
 	InitiativeListModel initiativeListModel;
 	EffectListModel effectsListModel;
@@ -53,6 +57,7 @@ public class CombatPanel extends JPanel implements XML {
 	InitiativeFileUpdater fileUpdater = new InitiativeFileUpdater();
 
 	public CombatPanel(Party p) {
+		combatPanel = this;
 		party = p;
 
 		initiativeListModel = new InitiativeListModel(party);
@@ -178,6 +183,10 @@ public class CombatPanel extends JPanel implements XML {
 
 	public String getCharacterName(int index) {
 		return party.get(index).getName();
+	}
+
+	public static void addMonster(StatisticsBlock monster) {
+		combatPanel.initiativeListModel.addEntry(new MonsterCombatEntry(monster));
 	}
 
 	public void parseXML(File xmlFile) {

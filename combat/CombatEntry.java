@@ -18,14 +18,12 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.JToolTip;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 
 import party.Creature;
-import party.Character;
 
 @SuppressWarnings("serial")
 abstract public class CombatEntry extends JPanel implements PropertyChangeListener, ActionListener {
@@ -134,28 +132,6 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		}
 	}
 
-	public JToolTip createToolTip() {
-		JToolTip tip = new JToolTip() {
-			public String getTipText() {
-				if (creature instanceof Character) {
-					Character c = (Character)creature;
-					// get the AC components
-					String components = "<html>Base AC: 10<br>";
-					for (int i = 0; i < Creature.AC_MAX_INDEX; i++) {
-						int v = c.getACComponent(i);
-						if (v != 0) {
-							components += Creature.getACComponentName(i) + ": " + v + "<br>";
-						}
-					}
-					return components+"</html>";
-				}
-				return null;
-			}
-		};
-        tip.setComponent(this);
-        return tip;
-	}
-
 	protected void createPanel() {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -237,10 +213,6 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		add(healAll, c);
 
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-
-		if (creature instanceof Character) {
-			setToolTipText("AC breakdown"); // the text is irrelevant as we override the JToolTip (see above). this just forces the tip to appear
-		}
 	}
 
 	protected JComponent createInitiativeSection() {

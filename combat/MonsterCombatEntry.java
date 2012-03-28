@@ -11,17 +11,38 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import monsters.StatisticsBlock;
+
 import org.w3c.dom.Element;
 
 import party.Creature;
 import party.Monster;
 import ui.BoundIntegerField;
 
+//TODO tooltips get lost on reload - the connection to the stat block is not stored in the xml file
+
 @SuppressWarnings("serial")
 public class MonsterCombatEntry extends CombatEntry {
 	public MonsterCombatEntry(Creature creature) {
 		this.creature = creature;
+		createEntry();
+	}
 
+	public MonsterCombatEntry(StatisticsBlock monster) {
+		creature = new Monster();
+		creature.setName(monster.getName());
+		int[] ac = monster.getACs();
+		creature.setAC(ac[0]);
+		creature.setTouchAC(ac[1]);
+		creature.setFlatFootedAC(ac[2]);
+		creature.setMaximumHitPoints(monster.getDefaultHPs());
+		creature.setInitiativeModifier(monster.getInitiativeModifier());
+		createEntry();
+		setToolTipText(monster.getHTML());
+		initBlank();
+	}
+
+	protected void createEntry() {
 		acComp = new BoundIntegerField(creature, Monster.PROPERTY_AC, 4);
 		touchACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_TOUCH, 4);
 		flatFootedACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_FLATFOOTED, 4);
@@ -46,6 +67,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		delete.addActionListener(this);
 		section.add(delete, c);
 		nameField = new JTextField(20);
+		nameField.setText(creature.getName());
 		nameField.getDocument().addDocumentListener(new DocumentListener() {
 			public void changedUpdate(DocumentEvent e) {
 				initBlank();
