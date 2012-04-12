@@ -697,9 +697,11 @@ public class Character extends Creature implements XML {
 							Element s = (Element)abilities.item(j);
 							String value = s.getAttribute("value");
 							String type = s.getAttribute("type");
+							String temp = s.getAttribute("temp");
 							for (int k=0; k<ability_names.length; k++) {
 								if (ability_names[k].equals(type)) {
 									c.abilities[k] = Integer.parseInt(value);
+									if (temp != "") c.tempAbilities[k] = Integer.parseInt(temp);
 								}
 							}
 						}
@@ -779,7 +781,11 @@ public class Character extends Creature implements XML {
 		b.append(i2).append("<AbilityScores>").append(nl);
 		for (int i=0; i<ability_names.length; i++) {
 			b.append(i3).append("<AbilityScore type=\"").append(ability_names[i]);
-			b.append("\" value=\"").append(getBaseAbilityScore(i)).append("\"/>").append(nl);
+			b.append("\" value=\"").append(getBaseAbilityScore(i));
+			if (getAbilityScore(i) != getBaseAbilityScore(i)) {
+				b.append("\" temp=\"").append(getAbilityScore(i));
+			}
+			b.append("\"/>").append(nl);
 		}
 		b.append(i2).append("</AbilityScores>").append(nl);
 		b.append(i2).append("<HitPoints maximum=\"").append(getMaximumHitPoints()).append("\"");

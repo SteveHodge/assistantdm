@@ -1,6 +1,7 @@
 package ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -28,7 +29,15 @@ public class CharacterAbilityPanel extends JPanel {
 		JTable abilityTable = new JTable(abilityModel);
 		abilityTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		abilityTable.getColumnModel().getColumn(0).setPreferredWidth(200);
-		abilityTable.setDefaultEditor(Integer.class, new SpinnerCellEditor());
+		abilityTable.setDefaultEditor(Integer.class, new SpinnerCellEditor() {
+			public Component getTableCellEditorComponent(JTable table,
+					Object value, boolean isSelected, int row, int column) {
+				if (value == null) {
+					value = table.getValueAt(row, column-1);	// this is fragile - it'll break if the column order in the model changes
+				}
+				return super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			}
+		});
 		JScrollPane abilityScrollpane = new JScrollPane(abilityTable);
 
 		setLayout(new BorderLayout());

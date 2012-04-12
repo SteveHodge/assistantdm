@@ -197,7 +197,7 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		} else if (e.getSource() == deleteButton) {
 			int selected = table.getSelectedRow();
 			while (selected > -1) {
-				model.removeEntry(selected);
+				model.removeEntry(table.convertRowIndexToModel(selected));
 				selected = table.getSelectedRow();
 			}
 		}

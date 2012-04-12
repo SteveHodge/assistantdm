@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -15,6 +16,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import xml.LocalEntityResolver;
 
 public class StatisticsBlock {
 	public final static String PROPERTY_NAME = "Name:";
@@ -47,6 +50,7 @@ public class StatisticsBlock {
 
 	static final String STATBLOCKCLASS = "statBlock";
 
+	protected Source source;
 	protected Map<String,String> properties  = new HashMap<String,String>();
 
 	public String get(String key) {
@@ -55,6 +59,52 @@ public class StatisticsBlock {
 
 	public String getName() {
 		return get(PROPERTY_NAME);
+	}
+
+	// type of the creature
+	// property has format "<Size> <Type> [(Subtypes)]"
+	public String getType() {
+		String sizeType = get(PROPERTY_SIZE_TYPE);
+		if (sizeType == null || sizeType.indexOf(' ') < 1) return sizeType;
+		sizeType = sizeType.substring(sizeType.indexOf(' ')+1);
+		if (sizeType.indexOf('(') > 1) {
+			return sizeType.substring(0, sizeType.indexOf('(')).trim();
+		}
+		return sizeType;
+	}
+
+	public String[] getSubtypes() {
+		String sizeType = get(PROPERTY_SIZE_TYPE);
+		if (sizeType == null || sizeType.indexOf('(') < 0) return null;
+		sizeType = sizeType.substring(sizeType.indexOf('(') + 1);
+		if (sizeType.indexOf(')') >= 0) {
+			sizeType = sizeType.substring(0,sizeType.indexOf(')'));
+		}
+		return sizeType.split("\\s*,\\s*");
+	}
+
+	// first word of size/type property
+	// TODO could verify size is valid
+	public String getSize() {
+		String sizeType = get(PROPERTY_SIZE_TYPE);
+		if (sizeType == null || sizeType.indexOf(' ') < 1) return sizeType;
+		return sizeType.substring(0, sizeType.indexOf(' '));
+	}
+
+	// format of property is:
+	// Str 25, Dex 10, Con —, Int 1, Wis 11, Cha 1
+	// returns -1 for a missing ability
+	// TODO should throw exceptions for invalid formats (or at least return -1)
+	public int getAbilityScore(int ability) {
+		String abilitiesStr = get(PROPERTY_ABILITIES);
+		String[] abilities = abilitiesStr.split("\\s*,\\s*");
+		String a = abilities[ability].substring(abilities[ability].indexOf(' ')+1);
+		if (a.equals("-") || a.equals("—") || a.equals("Ø")) return -1;
+		return Integer.parseInt(a);
+	}
+
+	public Source getSource() {
+		return source;
 	}
 
 	public int getInitiativeModifier() {
@@ -79,20 +129,14 @@ public class StatisticsBlock {
 	// multiple dice rolls can be separated by " plus "
 	// hitdice section ends with " (# hp)"
 	// first number may be "½ "
-	public String getHitDice() {
+	public HitDice getHitDice() {
 		String hd = get(PROPERTY_HITDICE);
 		if (hd == null || hd.indexOf(" (") < 0) {
 			System.out.println("WARN: "+getName()+" has no default hp ending hitdice");
 			return null;
 		}
 		hd = hd.substring(0,hd.indexOf(" ("));
-		String[] rolls = hd.split(" plus ");
-		for (String roll : rolls) {
-			System.out.print("|"+roll);
-			// should split the roll into dice number, dice type, modifier and fix fractional dice number
-		}
-		System.out.println("|");
-		return hd;
+		return HitDice.parse(hd);
 	}
 
 	// parse default hitpoints:
@@ -162,12 +206,19 @@ public class StatisticsBlock {
 		return acs;
 	}
 
+	// TODO remove this version - source should always be required
 	public static List<StatisticsBlock> parseFile(File file) {
+		return parseFile(null, file);
+	}
+
+	public static List<StatisticsBlock> parseFile(Source source, File file) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		Document dom;
 		List<StatisticsBlock> blocks = new ArrayList<StatisticsBlock>();
 		try {
-			dom = factory.newDocumentBuilder().parse(file);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			builder.setEntityResolver(new LocalEntityResolver());
+			dom = builder.parse(file);
 	
 			NodeList htmlBodies = dom.getElementsByTagName("body");
 			if (htmlBodies.getLength() != 1) {
@@ -183,7 +234,11 @@ public class StatisticsBlock {
 					Element child = (Element)children.item(i);
 					if (child.getTagName().equals("h1")) {
 						name = child.getTextContent();
-						url = "monster_manual\\"+file.getName();
+						if (source != null) {
+							url = source.getLocation()+"\\"+file.getName();
+						} else {
+							url = file.getName();
+						}
 						//System.out.println("h1 name = "+name);
 						
 					} else if (child.getTagName().equals("h2")) {
@@ -192,7 +247,11 @@ public class StatisticsBlock {
 						if (anchors.getLength() > 0) {
 							name = child.getTextContent();
 							Element a = (Element)anchors.item(0);
-							url = "monster_manual\\"+file.getName()+"#"+a.getAttribute("name");
+							if (source != null) {
+								url = source.getLocation()+"\\"+file.getName()+"#"+a.getAttribute("name");
+							} else {
+								url = file.getName()+"#"+a.getAttribute("name");
+							}
 							//System.out.println("h2 name = "+name);
 						}
 	
@@ -200,6 +259,7 @@ public class StatisticsBlock {
 						String classString = child.getAttribute("class");
 						if (classString != null && classString.contains(STATBLOCKCLASS)) {
 							for (StatisticsBlock block : parseStatBlock(child, name, url)) {
+								block.source = source;
 								blocks.add(block);
 							}
 						}
@@ -228,6 +288,10 @@ public class StatisticsBlock {
 	
 		// fetch the rows...
 		NodeList rows = table.getElementsByTagName("tr");
+		if (rows.getLength() > 23) {
+			// note this check is not precise - some block have fewer than 22 rows so even 23 or 23 could mean extra rows
+			System.out.println("WARN: extra rows found in "+url);
+		}
 		for (int j = 0; j < rows.getLength(); j++) {
 			Element row = (Element)rows.item(j);
 			// row children...
@@ -240,20 +304,21 @@ public class StatisticsBlock {
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
 					Element el = (Element)node;
 					if (el.getTagName().equals("th") || el.getTagName().equals("td")) {
-						//System.out.println("Found data: "+el.getTextContent());
+						//System.out.println("Found data: "+el.getTextContent().trim());
 						if (col == 0) {
-							stat = el.getTextContent();
+							stat = el.getTextContent().trim();
 						} else {
 							while (col > statsBlock.size()) {
 								StatisticsBlock block = new StatisticsBlock();
 								block.properties.put(PROPERTY_NAME,defaultName);
 								block.properties.put(PROPERTY_URL, url);
 								statsBlock.add(block);
-								//System.out.println("Added map for "+col);
+								//System.out.println("Added block for "+col);
 							}
 							StatisticsBlock block = statsBlock.get(col-1);
 							if (stat.equals("")) {
-								block.properties.put(PROPERTY_NAME,el.getTextContent());
+								block.properties.put(PROPERTY_NAME,el.getTextContent().trim());
+								//System.out.println("Set name to "+block.properties.get(PROPERTY_NAME));
 							} else {
 								block.properties.put(stat,el.getTextContent().trim());
 								//System.out.println(""+col+": "+stat+" = "+el.getTextContent());
@@ -296,6 +361,35 @@ public class StatisticsBlock {
 		s.append(PROPERTY_ALIGNMENT).append("</td><td>").append(get(PROPERTY_ALIGNMENT)).append("</td></tr><tr><td>");
 		s.append(PROPERTY_ADVANCEMENT).append("</td><td>").append(get(PROPERTY_ADVANCEMENT)).append("</td></tr><tr><td>");
 		s.append(PROPERTY_LEVEL_ADJUSTMENT).append("</td><td>").append(get(PROPERTY_LEVEL_ADJUSTMENT)).append("</td></tr><tr><td>");
+		return s.toString();
+	}
+
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		String nl = System.getProperty("line.separator");
+		s.append(getName()).append(nl);
+		s.append(PROPERTY_SIZE_TYPE).append(" ").append(get(PROPERTY_SIZE_TYPE)).append(nl);
+		s.append(PROPERTY_HITDICE).append(" ").append(get(PROPERTY_HITDICE)).append(nl);
+		s.append(PROPERTY_INITIATIVE).append(" ").append(get(PROPERTY_INITIATIVE)).append(nl);
+		s.append(PROPERTY_SPEED).append(" ").append(get(PROPERTY_SPEED)).append(nl);
+		s.append(PROPERTY_AC).append(" ").append(get(PROPERTY_AC)).append(nl);
+		s.append(PROPERTY_BASE_ATTACK_GRAPPLE).append(" ").append(get(PROPERTY_BASE_ATTACK_GRAPPLE)).append(nl);
+		s.append(PROPERTY_ATTACK).append(" ").append(get(PROPERTY_ATTACK)).append(nl);
+		s.append(PROPERTY_FULL_ATTACK).append(" ").append(get(PROPERTY_FULL_ATTACK)).append(nl);
+		s.append(PROPERTY_SPACE_REACH).append(" ").append(get(PROPERTY_SPACE_REACH)).append(nl);
+		s.append(PROPERTY_SPECIAL_ATTACKS).append(" ").append(get(PROPERTY_SPECIAL_ATTACKS)).append(nl);
+		s.append(PROPERTY_SPECIAL_QUALITIES).append(" ").append(get(PROPERTY_SPECIAL_QUALITIES)).append(nl);
+		s.append(PROPERTY_SAVES).append(" ").append(get(PROPERTY_SAVES)).append(nl);
+		s.append(PROPERTY_ABILITIES).append(" ").append(get(PROPERTY_ABILITIES)).append(nl);
+		s.append(PROPERTY_SKILLS).append(" ").append(get(PROPERTY_SKILLS)).append(nl);
+		s.append(PROPERTY_FEATS).append(" ").append(get(PROPERTY_FEATS)).append(nl);
+		s.append(PROPERTY_ENVIRONMENT).append(" ").append(get(PROPERTY_ENVIRONMENT)).append(nl);
+		s.append(PROPERTY_ORGANIZATION).append(" ").append(get(PROPERTY_ORGANIZATION)).append(nl);
+		s.append(PROPERTY_CR).append(" ").append(get(PROPERTY_CR)).append(nl);
+		s.append(PROPERTY_TREASURE).append(" ").append(get(PROPERTY_TREASURE)).append(nl);
+		s.append(PROPERTY_ALIGNMENT).append(" ").append(get(PROPERTY_ALIGNMENT)).append(nl);
+		s.append(PROPERTY_ADVANCEMENT).append(" ").append(get(PROPERTY_ADVANCEMENT)).append(nl);
+		s.append(PROPERTY_LEVEL_ADJUSTMENT).append(" ").append(get(PROPERTY_LEVEL_ADJUSTMENT)).append(nl);
 		return s.toString();
 	}
 }
