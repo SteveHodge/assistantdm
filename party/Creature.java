@@ -3,19 +3,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 public abstract class Creature {
-	// note that Character.getTouchAC() requires the order of constants here (more specifically it assumes that
-	// all components less than AC_DEX are to be excluded from touch ac).
-	public static final int AC_ARMOR = 0;
-	public static final int AC_SHIELD = 1;
-	public static final int AC_NATURAL = 2;
-	public static final int AC_DEX = 3;
-	public static final int AC_SIZE = 4;
-	public static final int AC_DEFLECTION = 5;
-	public static final int AC_DODGE = 6;
-	public static final int AC_OTHER = 7;
-	public static final int AC_MAX_INDEX = 8;
-	protected static final String[] ac_names = {"Armor","Shield","Natural","Dex","Size","Deflect","Dodge","Misc"};
-
 	// properties
 	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
 	public final static String PROPERTY_MAXHPS = "Hit Points";
@@ -32,10 +19,6 @@ public abstract class Creature {
 	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";	// not currently sent to listeners
 	public final static String PROPERTY_LEVEL = "Level";
 	public final static String PROPERTY_XP = "XP";
-
-	public static String getACComponentName(int type) {
-		return ac_names[type];
-	}
 
 	// ************************* Non static members and methods **************************
 

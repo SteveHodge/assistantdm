@@ -1,5 +1,7 @@
 package ui;
 
+import gamesystem.AC;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -102,11 +104,11 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 		}
 
 		public int getRowCount() {
-			return Creature.AC_MAX_INDEX;
+			return AC.AC_MAX_INDEX;
 		}
 
 		public Object getValueAt(int row, int column) {
-			if (column == 0) return Creature.getACComponentName(row);
+			if (column == 0) return AC.getACComponentName(row);
 			return character.getACComponent(row);
 		}
 

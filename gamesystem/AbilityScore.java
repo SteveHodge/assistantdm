@@ -15,6 +15,8 @@ public class AbilityScore extends Statistic {
 
 	protected final Modifier modifier;
 
+	protected int type; 
+
 	public static int getModifier(int score) {
 		return score/2-5;
 	}
@@ -62,7 +64,12 @@ public class AbilityScore extends Statistic {
 	// TODO bounds checking
 	public AbilityScore(int type) {
 		super(ability_names[type]);
+		this.type = type;
 		modifier = new AbilityModifier(this); 
+	}
+
+	public int getType() {
+		return type;
 	}
 
 	public Modifier getModifier() {

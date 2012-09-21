@@ -38,6 +38,10 @@ public class Statistic {
 		baseValue = base;
 	}
 
+	public String getName() {
+		return name;
+	}
+
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
 	}
@@ -82,11 +86,17 @@ public class Statistic {
 		return baseValue + getModifiersTotal();
 	}
 
+	// returns the total of all active modifiers
 	public int getModifiersTotal() {
+		return getModifiersTotal(null);
+	}
+
+	// returns the total active modifiers of the type specified. if type is null then the total of all modifiers is returned
+	public int getModifiersTotal(String type) {
 		int total = 0;
 		Map<Modifier,Boolean> map = getModifiers();
 		for (Modifier m : map.keySet()) {
-			if (map.get(m)) {
+			if (map.get(m) && (type == null || type.equals(m.getType()))) {
 				total += m.getModifier();
 			}
 		}

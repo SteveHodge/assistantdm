@@ -71,10 +71,12 @@
 <xs:simpleType name="ACComponentType">
 	<xs:restriction base="xs:string">
 		<xs:enumeration value="Dex"/>
+		<xs:enumeration value="Dexterity"/>
 		<xs:enumeration value="Armor"/>
 		<xs:enumeration value="Shield"/>
 		<xs:enumeration value="Size"/>
 		<xs:enumeration value="Natural"/>
+		<xs:enumeration value="Natural Armor"/>
 		<xs:enumeration value="Deflect"/>
 		<xs:enumeration value="Dodge"/>
 		<xs:enumeration value="Misc"/>

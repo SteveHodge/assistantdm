@@ -1,5 +1,7 @@
 package combat;
 
+import gamesystem.AC;
+
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.JComponent;
@@ -32,10 +34,10 @@ public class CharacterCombatEntry extends CombatEntry {
 					Character c = (Character)creature;
 					// get the AC components
 					String components = "<html>Base AC: 10<br>";
-					for (int i = 0; i < Creature.AC_MAX_INDEX; i++) {
+					for (int i = 0; i < AC.AC_MAX_INDEX; i++) {
 						int v = c.getACComponent(i);
 						if (v != 0) {
-							components += Creature.getACComponentName(i) + ": " + v + "<br>";
+							components += AC.getACComponentName(i) + ": " + v + "<br>";
 						}
 					}
 					return components+"</html>";

@@ -1,4 +1,5 @@
 package party;
+import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
@@ -49,7 +50,8 @@ public class Character extends Creature implements XML {
 	protected Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();
 	protected Map<SkillType,Modifier> skillMisc = new HashMap<SkillType,Modifier>();
 	protected int hps, wounds, nonLethal, xp = 0, level = 1;
-	protected int[] ac = new int[AC_MAX_INDEX];
+	protected AC ac;
+	protected Modifier[] acMods = new Modifier[AC.AC_MAX_INDEX];
 	protected int tempAC, tempTouch, tempFF;	// ac overrides
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
@@ -131,12 +133,18 @@ public class Character extends Creature implements XML {
 			if (evt.getSource() == initiative) {
 				//System.out.println("Inititative change event: "+getName()+" old = "+evt.getOldValue()+", new = "+evt.getNewValue());
 				pcs.firePropertyChange(PROPERTY_INITIATIVE, evt.getOldValue(), evt.getNewValue());
-			} else {
-				for (int i = 0; i < 6; i++) {
-					if (evt.getSource() == abilities[i]) {
-						fireAbilityChange(i, (Integer)evt.getOldValue(), (Integer)evt.getNewValue());
-					}
-				}
+
+			} else if (evt.getSource() instanceof AbilityScore) {
+				AbilityScore score = (AbilityScore)evt.getSource();
+		        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+score.getName(), evt.getOldValue(), evt.getNewValue());
+				fireAbilityChange(score.getType(), (Integer)evt.getOldValue(), (Integer)evt.getNewValue());
+
+			} else if (evt.getSource() instanceof Skill) {
+				Skill s = (Skill)evt.getSource();
+				pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), evt.getOldValue(), evt.getNewValue());
+
+			} else if (evt.getSource() == ac) {
+				pcs.firePropertyChange(PROPERTY_AC, evt.getOldValue(), evt.getNewValue());
 			}
 		
 		}
@@ -156,6 +164,10 @@ public class Character extends Creature implements XML {
 		for (int i=0; i<3; i++) {
 			saves[i] = new SavingThrow(i,abilities[SavingThrow.getSaveAbility(i)]);
 		}
+
+		ac = new AC(abilities[AbilityScore.ABILITY_DEXTERITY]);
+		ac.addPropertyChangeListener(statListener);
+		
 	}
 
 	public String toString() {
@@ -242,15 +254,15 @@ public class Character extends Creature implements XML {
 		}
 	}
 
+	// TODO we still need this for temporary abilities. so current that will be broken for things we've removed from here (skill with ranks, initiative)
 	// fires the property change for the ability and for any dependent stats
 	protected void fireAbilityChange(int type, int old, int value) {
-        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(type), old, value);
         int modDelta = AbilityScore.getModifier(value) - AbilityScore.getModifier(old);
         if (modDelta != 0) {
         	// skills
-        	// TODO this is inefficient
+        	// TODO remove. this is needed because skills with 0 ranks have no Skill instance
         	for (SkillType skill : SkillType.skills.values()) {
-        		if (skill.ability == type) {
+        		if (!skills.containsKey(skill) && skill.ability == type) {
         	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, getSkillTotal(skill)-modDelta, getSkillTotal(skill));
         		}
         	}
@@ -265,8 +277,6 @@ public class Character extends Creature implements XML {
         		System.out.println("changing max hps from "+oldhps+" to "+newhps);
         		setMaximumHitPoints(newhps);
         	}
-
-        	// TODO other properties: ac
         }
 	}
 
@@ -320,33 +330,28 @@ public class Character extends Creature implements XML {
 	}
 
 	public void setSkillRanks(SkillType s, float ranks) {
-		float old = 0;
 		Skill skill = skills.get(s);
-		if (skill != null) {
-			old = skill.getValue();
-		} else {
+		if (skill == null) {
 			skill = new Skill(s, abilities[s.getAbility()]);
+			skill.addPropertyChangeListener(statListener);
 			skills.put(s, skill);
 		}
 		skill.setRanks(ranks);
-        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s, old, skill.getValue());
 	}
 
 	public void setSkillMisc(SkillType s, int misc) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
 			skill = new Skill(s, abilities[s.getAbility()]);
+			skill.addPropertyChangeListener(statListener);
 			skills.put(s, skill);
 		}
-		int old = skill.getValue();
 
 		Modifier m = skillMisc.get(s);
 		if (m != null) skill.removeModifier(m);
 		m = new ImmutableModifier(misc);
 		skillMisc.put(s,m);
 		skill.addModifier(m);
-
-		pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s, old, skill.getValue());
 	}
 
 //------------------- Initiative -------------------
@@ -457,18 +462,16 @@ public class Character extends Creature implements XML {
 //------------------- Armor Class -------------------
 // AC has a total value, a touch value and a flat footed value
 // it is made up of a number of different components
-// TODO dex changes should apply (need to know max dex bonus)
-// XXX modification methods always fire a PROPERTY_AC change to listeners but the
-// values set depend on exactly what has changed: they may be the old and new values
-// of just the modified component or of the full ac or of the touch ac etc. 
+	// TODO dex modifier should be filtered by armor/sheild max dex bonus
 	public void setACComponent(int type, int value) {
-		int oldValue = ac[type];
-		ac[type] = value;
-		pcs.firePropertyChange(PROPERTY_AC, oldValue, value);
+		if (type == AC.AC_DEX) return;	// TODO temporary hack to filter out dex because it is added automatically
+		if (acMods[type] != null) ac.removeModifier(acMods[type]);
+		acMods[type] = new ImmutableModifier(value,AC.getACComponentName(type));
+		ac.addModifier(acMods[type]);
 	}
 
 	public int getACComponent(int type) {
-		return ac[type];
+		return ac.getModifiersTotal(AC.getACComponentName(type));
 	}
 
    /**
@@ -483,9 +486,7 @@ public class Character extends Creature implements XML {
 
 	protected int getAC(boolean allowTemp) {
 		if (allowTemp && hasTempAC) return tempAC;
-		int totAC = 10;
-		for (int i = 0; i < AC_MAX_INDEX; i++) totAC += ac[i];
-		return totAC;
+		return ac.getValue();
 	}
 
    /**
@@ -501,13 +502,7 @@ public class Character extends Creature implements XML {
 
 	protected int getFlatFootedAC(boolean allowTemp) {
 		if (allowTemp && hasTempFF) return tempFF;
-		int totAC = 10;
-		for (int i = 0; i < AC_MAX_INDEX; i++) {
-			if (i != AC_DEX || ac[AC_DEX] < 1) {
-				totAC += ac[i];
-			}
-		}
-		return totAC;
+		return ac.getFlatFooted();
 	}
 
    /**
@@ -523,9 +518,7 @@ public class Character extends Creature implements XML {
 
 	protected int getTouchAC(boolean allowTemp) {
 		if (allowTemp && hasTempTouch) return tempTouch;
-		int totAC = 10;
-		for (int i = AC_DEX; i < AC_MAX_INDEX; i++) totAC += ac[i];
-		return totAC;
+		return ac.getTouch();
 	}
 
    /**
@@ -799,9 +792,14 @@ public class Character extends Creature implements XML {
 							Element s = (Element)acs.item(j);
 							String value = s.getAttribute("value");
 							String type = s.getAttribute("type");
-							for (int k=0; k<ac_names.length; k++) {
-								if (ac_names[k].equals(type)) {
-									c.ac[k] = Integer.parseInt(value);
+							// TODO hacks to change type:
+							if (type.equals("Dex")) type = AC.getACComponentName(AC.AC_DEX);
+							if (type.equals("Natural")) type = AC.getACComponentName(AC.AC_NATURAL);
+							if (!type.equals(AC.getACComponentName(AC.AC_DEX))) {	// TODO ignore dex component when loading
+								for (int k=0; k<AC.AC_MAX_INDEX; k++) {
+									if (AC.getACComponentName(k).equals(type)) {
+										c.setACComponent(k, Integer.parseInt(value));
+									}
 								}
 							}
 						}
@@ -865,9 +863,9 @@ public class Character extends Creature implements XML {
 		}
 		b.append(i2).append("</Skills>").append(nl);
 		b.append(i2).append("<AC>").append(nl);
-		for (int i=0; i<ac_names.length; i++) {
+		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
 			if (getACComponent(i) != 0) {
-				b.append(i3).append("<ACComponent type=\"").append(ac_names[i]);
+				b.append(i3).append("<ACComponent type=\"").append(AC.getACComponentName(i));
 				b.append("\" value=\"").append(getACComponent(i)).append("\"/>").append(nl);
 			}
 		}
@@ -911,10 +909,10 @@ public class Character extends Creature implements XML {
 				System.out.println(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(i)+"|"+saves[i]+"|"+inChar.saves[i]);
 			}
 		}
-		for (int i=0; i<AC_MAX_INDEX; i++) {
-			if (ac[i] != inChar.ac[i]) {
+		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
+			if (getACComponent(i) != inChar.getACComponent(i)) {
 				// new attribute
-				System.out.println(PROPERTY_AC_COMPONENT_PREFIX+Creature.getACComponentName(i)+"|"+ac[i]+"|"+inChar.ac[i]);
+				System.out.println(PROPERTY_AC_COMPONENT_PREFIX+AC.getACComponentName(i)+"|"+getACComponent(i)+"|"+inChar.getACComponent(i));
 			}
 		}
 		HashSet<SkillType> allSkills = new HashSet<SkillType>(skills.keySet());
@@ -956,9 +954,9 @@ public class Character extends Creature implements XML {
 				diffs.add(PROPERTY_SAVE_MISC_PREFIX+SavingThrow.getSavingThrowName(i));
 			}
 		}
-		for (int i=0; i<AC_MAX_INDEX; i++) {
-			if (ac[i] != inChar.ac[i]) {
-				diffs.add(PROPERTY_AC_COMPONENT_PREFIX+Creature.getACComponentName(i));
+		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
+			if (getACComponent(i) != inChar.getACComponent(i)) {
+				diffs.add(PROPERTY_AC_COMPONENT_PREFIX+AC.getACComponentName(i));
 			}
 		}
 		HashSet<SkillType> allSkills = new HashSet<SkillType>(skills.keySet());
@@ -1015,8 +1013,8 @@ public class Character extends Creature implements XML {
 
 		if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
 			String comp = prop.substring(PROPERTY_AC_COMPONENT_PREFIX.length());
-			for (int i=0; i<Creature.AC_MAX_INDEX; i++) {
-				if (comp.equals(Creature.getACComponentName(i))) return ac[i];
+			for (int i=0; i<AC.AC_MAX_INDEX; i++) {
+				if (comp.equals(AC.getACComponentName(i))) return getACComponent(i);
 			}
 		}
 
@@ -1078,8 +1076,8 @@ public class Character extends Creature implements XML {
 
 		if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
 			String comp = prop.substring(PROPERTY_AC_COMPONENT_PREFIX.length());
-			for (int i=0; i<Creature.AC_MAX_INDEX; i++) {
-				if (comp.equals(Creature.getACComponentName(i))) setACComponent(i, (Integer)value);
+			for (int i=0; i<AC.AC_MAX_INDEX; i++) {
+				if (comp.equals(AC.getACComponentName(i))) setACComponent(i, (Integer)value);
 			}
 		}
 
