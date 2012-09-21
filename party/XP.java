@@ -1,4 +1,6 @@
 package party;
+import gamesystem.CR;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,40 +24,6 @@ import org.w3c.dom.NodeList;
  */
 public class XP {
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-	public static class CR {
-		public int cr;
-		public boolean inverted = false;	// true if cr should be inverted, i.e. actual cr = 1 / cr
-
-		public CR(int cr) {this.cr = cr;}
-
-		public CR(int cr, boolean inv) {this.cr = cr; inverted = inv;}
-
-		public CR(String text) {
-			try {
-				cr = Integer.parseInt(text);
-				return;
-			} catch (NumberFormatException e) {
-				if (text.startsWith("1/")) {
-					inverted = true;
-					cr = Integer.parseInt(text.substring(2));
-					return;
-				}
-			}
-			throw new NumberFormatException();
-		}
-
-		public String toString() {
-			if (inverted) return "1/"+cr;
-			return ""+cr;
-		}
-
-		public boolean equals(Object obj) {
-			if (!(obj instanceof CR)) return false;
-			CR o = (CR)obj;
-			return o.cr == cr && o.inverted == inverted;
-		}
-	}
 
 	public static class Challenge {
 		public CR cr;

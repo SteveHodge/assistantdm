@@ -1,5 +1,7 @@
 package ui;
 
+import gamesystem.CR;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -30,7 +32,6 @@ import javax.swing.table.AbstractTableModel;
 
 import party.Party;
 import party.XP;
-import party.XP.CR;
 import party.XP.Challenge;
 
 @SuppressWarnings("serial")

@@ -1,5 +1,7 @@
 package monsters;
 
+import gamesystem.CR;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
 
 import xml.LocalEntityResolver;
 
@@ -101,6 +104,20 @@ public class StatisticsBlock {
 		String a = abilities[ability].substring(abilities[ability].indexOf(' ')+1);
 		if (a.equals("-") || a.equals("—") || a.equals("Ø")) return -1;
 		return Integer.parseInt(a);
+	}
+
+	public CR getCR() {
+		String s = get(PROPERTY_CR);
+		if (s.equals("¼")) s = "1/4";
+		if (s.equals("½")) s = "1/2";
+		try {
+			return new CR(s);
+		} catch (NumberFormatException e) {
+			// failed to parse, generally this means there was a note in the CR field
+			// we could try to parse the initial number, but for now we'll just return null
+			//System.out.println("Failed to parse '"+s+"' as CR");
+			return null;
+		}
 	}
 
 	public Source getSource() {
