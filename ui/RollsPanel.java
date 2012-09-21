@@ -1,6 +1,6 @@
 package ui;
 import gamesystem.SavingThrow;
-import gamesystem.Skill;
+import gamesystem.SkillType;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -52,7 +52,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 		removeAll();
 
 		// build list of all skills. this should be maintained if skills are added later
-		Set<Skill> skills = Skill.getUntrainedSkills();
+		Set<SkillType> skills = SkillType.getUntrainedSkills();
 		for (Character c : party) {
 			skills.addAll(c.getSkills());
 		}
@@ -107,7 +107,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getPropertyName().startsWith(Creature.PROPERTY_SKILL_PREFIX)) {
 			String skill = e.getPropertyName().substring(Creature.PROPERTY_SKILL_PREFIX.length());
-			Skill s = Skill.getSkill(skill);
+			SkillType s = SkillType.getSkill(skill);
 			if (!model.skillChange(s)) reset();
 		} else if (e.getPropertyName().startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
 			String save = e.getPropertyName().substring(Creature.PROPERTY_SAVE_PREFIX.length());
@@ -120,18 +120,18 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 	}
 
 	class RollsTableModel extends AbstractTableModel {
-		Skill[] skills;
+		SkillType[] skills;
 		String currentRollName = "";
 		int[] currentRoll = new int[party.size()];
 		int currentRollRow = -1;
 
-		public RollsTableModel(Set<Skill> skills) {
-			this.skills = new Skill[skills.size()];
+		public RollsTableModel(Set<SkillType> skills) {
+			this.skills = new SkillType[skills.size()];
 			skills.toArray(this.skills);
 			Arrays.sort(this.skills);
 		}
 
-		public boolean skillChange(Skill s) {
+		public boolean skillChange(SkillType s) {
 			boolean found = false;
 			for (int i = FIRST_SKILL_ROW; i < getLastSkillRowIndex(); i++) {
 				if (skills[i-FIRST_SKILL_ROW] == s) {
@@ -188,7 +188,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 
 			currentRollRow = rowIndex;
 			currentRollName = getValueAt(rowIndex,0).toString();
-			Skill s = skills[rowIndex-FIRST_SKILL_ROW];
+			SkillType s = skills[rowIndex-FIRST_SKILL_ROW];
 			Random r = new Random();
 			for (int i=0; i<currentRoll.length; i++) {
 				if (s.isTrainedOnly() && party.get(i).getSkillRanks(s) == 0) {
@@ -247,7 +247,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 			}
 			if (rowIndex > LAST_SAVE_ROW && rowIndex < FIRST_SKILL_ROW) return null;
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
-				Skill s = skills[rowIndex-FIRST_SKILL_ROW];
+				SkillType s = skills[rowIndex-FIRST_SKILL_ROW];
 				if (s.isTrainedOnly() && party.get(columnIndex-1).getSkillRanks(s) == 0) {
 					// trained skill with no ranks
 					return null;

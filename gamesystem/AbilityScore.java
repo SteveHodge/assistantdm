@@ -39,7 +39,7 @@ public class AbilityScore extends Statistic {
 		}
 
 		public int getModifier() {
-			return getValue()/2-5;
+			return AbilityScore.getModifier(getValue());
 		}
 
 		public String getType() {
@@ -67,5 +67,9 @@ public class AbilityScore extends Statistic {
 
 	public Modifier getModifier() {
 		return modifier;
+	}
+
+	public int getModifierValue() {
+		return modifier.getModifier();
 	}
 }

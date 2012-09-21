@@ -1,135 +1,25 @@
 package gamesystem;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+public class Skill extends Statistic {
+	protected SkillType skillType;
+	protected float ranks = 0;
 
-import party.Creature;
-
-public class Skill implements Comparable<Skill> {
-	public static Map<String,Skill> skills;
-
-	protected String name;
-	public int ability;
-	protected boolean trainedOnly;
-
-	private Skill(String name, int ability, boolean trained) {
-		this.name = name;
-		this.ability = ability;
-		trainedOnly = trained;
+	public Skill(SkillType type, AbilityScore ability) {
+		super(type.getName());
+		skillType = type;
+		addModifier(ability.getModifier());
 	}
 
-	public String toString() {
-		return name;
+	public float getRanks() {
+		return ranks;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public int getAbility() {
-		return ability;
-	}
-
-	public boolean isTrainedOnly() {
-		return trainedOnly;
-	}
-
-	public static int getAbilityForSkill(String skill) {
-		Skill s = getSkill(skill);
-		if (s != null) return s.ability;
-		return -1;
-	}
-
-	public static Skill getSkill(String n) {
-		Skill s = skills.get(n.toLowerCase());
-		if (s == null) s = addSkill(n);
-		return s;
-	}
-
-	public static Skill addSkill(String name) {
-		int ability = -1;
-		if (name.startsWith("Profession")) ability = AbilityScore.ABILITY_WISDOM;
-		else if (name.startsWith("Craft")) ability = AbilityScore.ABILITY_INTELLIGENCE;
-		else if (name.startsWith("Knowledge")) ability = AbilityScore.ABILITY_INTELLIGENCE;
-		return addSkill(name,ability,true);
-	}
-
-	public static Skill addSkill(String name, int ability, boolean trained) {
-		Skill s = new Skill(name, ability, trained);
-		skills.put(s.name.toLowerCase(), s);
-		return s;
-	}
-
-	public int compareTo(Skill arg0) {
-		return name.compareToIgnoreCase(arg0.name);
-	}
-
-	public static Iterator<Skill> iterator() {
-		List<Skill> s = new ArrayList<Skill>(skills.values());
-		Collections.sort(s);
-		return s.iterator();
-	}
-
-	public static Set<Skill> getUntrainedSkills() {
-		Set<Skill> u = new HashSet<Skill>();
-		for (Skill s : skills.values()) {
-			if (!s.trainedOnly) u.add(s);
-		}
-		return u;
-	}
-
-	static {
-		skills = new HashMap<String,Skill>();
-		addSkill("Appraise",AbilityScore.ABILITY_INTELLIGENCE,false);
-		addSkill("Balance",AbilityScore.ABILITY_DEXTERITY,false);
-		addSkill("Bluff",AbilityScore.ABILITY_CHARISMA,false);
-		addSkill("Climb",AbilityScore.ABILITY_STRENGTH,false);
-		addSkill("Concentration",AbilityScore.ABILITY_CONSTITUTION,false);
-		addSkill("Craft",AbilityScore.ABILITY_INTELLIGENCE,false);
-		addSkill("Decipher Script",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Diplomacy",AbilityScore.ABILITY_CHARISMA,false);
-		addSkill("Disable Device",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Disguise",AbilityScore.ABILITY_CHARISMA,false);
-		addSkill("Escape Artist",AbilityScore.ABILITY_DEXTERITY,false);
-		addSkill("Forgery",AbilityScore.ABILITY_INTELLIGENCE,false);
-		addSkill("Gather Information",AbilityScore.ABILITY_CHARISMA,false);
-		addSkill("Handle Animal",AbilityScore.ABILITY_CHARISMA,true);
-		addSkill("Heal",AbilityScore.ABILITY_WISDOM,false);
-		addSkill("Hide",AbilityScore.ABILITY_DEXTERITY,false);
-		addSkill("Intimidate",AbilityScore.ABILITY_CHARISMA,false);
-		addSkill("Jump",AbilityScore.ABILITY_STRENGTH,false);
-		addSkill("Knowledge (Arcana)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (Arch and Eng)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (Dungeoneering)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (Geography)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (History)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (Local)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (Nature)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (Nobility)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (Machinery)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (Religion)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Knowledge (The Planes)",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Listen",AbilityScore.ABILITY_WISDOM,false);
-		addSkill("Move Silently",AbilityScore.ABILITY_DEXTERITY,false);
-		addSkill("Open Lock",AbilityScore.ABILITY_DEXTERITY,true);
-		addSkill("Perform",AbilityScore.ABILITY_CHARISMA,false);
-		addSkill("Profession",AbilityScore.ABILITY_WISDOM,true);
-		addSkill("Ride",AbilityScore.ABILITY_DEXTERITY,false);
-		addSkill("Search",AbilityScore.ABILITY_INTELLIGENCE,false);
-		addSkill("Sense Motive",AbilityScore.ABILITY_WISDOM,false);
-		addSkill("Sleight of Hand",AbilityScore.ABILITY_DEXTERITY,true);
-		addSkill("Spellcraft",AbilityScore.ABILITY_INTELLIGENCE,true);
-		addSkill("Spot",AbilityScore.ABILITY_WISDOM,false);
-		addSkill("Survival",AbilityScore.ABILITY_WISDOM,false);
-		addSkill("Swim",AbilityScore.ABILITY_STRENGTH,false);
-		addSkill("Tumble",AbilityScore.ABILITY_DEXTERITY,true);
-		addSkill("Use Magic Device",AbilityScore.ABILITY_CHARISMA,true);
-		addSkill("Use Rope",AbilityScore.ABILITY_DEXTERITY,false);
+	public void setRanks(float r) {
+		int oldValue = getValue();
+		ranks = r;
+		baseValue = (int)r;
+		int newValue = getValue();
+		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
+		if (oldValue != newValue) pcs.firePropertyChange("value", oldValue, newValue);
 	}
 }

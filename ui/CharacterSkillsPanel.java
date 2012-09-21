@@ -1,7 +1,7 @@
 package ui;
 
 import gamesystem.AbilityScore;
-import gamesystem.Skill;
+import gamesystem.SkillType;
 
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
@@ -43,10 +43,10 @@ public class CharacterSkillsPanel extends JPanel {
 	}
 
 	protected class SkillsTableModel extends AbstractTableModel implements PropertyChangeListener {
-		Skill[] skills;
+		SkillType[] skills;
 
 		public SkillsTableModel() {
-			skills = new Skill[character.getSkills().size()];
+			skills = new SkillType[character.getSkills().size()];
 			character.getSkills().toArray(this.skills);
 			character.addPropertyChangeListener(this);
 			Arrays.sort(skills);
@@ -122,8 +122,8 @@ public class CharacterSkillsPanel extends JPanel {
 					}
 				}
 				if (!found) {
-					Skill[] newList = Arrays.copyOf(skills, skills.length+1);
-					newList[skills.length] = Skill.getSkill(skill);
+					SkillType[] newList = Arrays.copyOf(skills, skills.length+1);
+					newList[skills.length] = SkillType.getSkill(skill);
 					skills = newList;
 					Arrays.sort(skills);
 					this.fireTableDataChanged();

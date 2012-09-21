@@ -79,7 +79,11 @@ public class Statistic {
 	}
 
 	public int getValue() {
-		int total = baseValue;
+		return baseValue + getModifiersTotal();
+	}
+
+	public int getModifiersTotal() {
+		int total = 0;
 		Map<Modifier,Boolean> map = getModifiers();
 		for (Modifier m : map.keySet()) {
 			if (map.get(m)) {
