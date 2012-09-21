@@ -1,5 +1,7 @@
 package ui;
 
+import gamesystem.XP.Challenge;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,7 +18,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import party.Character.XPHistoryItem;
-import party.XP.Challenge;
 import party.Character;
 
 @SuppressWarnings("serial")

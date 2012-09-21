@@ -1,5 +1,4 @@
-package party;
-import gamesystem.CR;
+package gamesystem;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -97,10 +96,10 @@ public class XP {
 	}
 
 	public static class XPChangeChallenges extends XPChange {
-		int xp;	// xp earned from challenges
-		int level;	// level when meeting challenges
-		int partyCount;	// number of party members meeting challenges
-		int penalty;	// % penalty applied to xp
+		public int xp;	// xp earned from challenges
+		public int level;	// level when meeting challenges
+		public int partyCount;	// number of party members meeting challenges
+		public int penalty;	// % penalty applied to xp
 		public List<Challenge> challenges = new ArrayList<Challenge>();
 
 		public XPChangeChallenges(String c, Date d) {

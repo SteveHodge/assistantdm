@@ -1,5 +1,7 @@
 package ui;
 
+import gamesystem.XP;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -23,7 +25,6 @@ import javax.swing.border.TitledBorder;
 
 import party.Character;
 import party.Creature;
-import party.XP;
 
 // TODO better history dialog
 // FIXME: changing the level directly doesn't apply the comments or date

@@ -1,5 +1,8 @@
 package party;
 
+import gamesystem.XP;
+import gamesystem.XP.Challenge;
+
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,7 +19,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import party.Character.XPHistoryItem;
-import party.XP.Challenge;
 import swing.TableModelWithToolTips;
 
 public class CharacterLibrary {

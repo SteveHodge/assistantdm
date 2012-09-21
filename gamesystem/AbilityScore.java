@@ -15,6 +15,14 @@ public class AbilityScore extends Statistic {
 
 	protected final Modifier modifier;
 
+	public static int getModifier(int score) {
+		return score/2-5;
+	}
+
+	public static String getAbilityName(int type) {
+		return ability_names[type];
+	}
+
 	protected class AbilityModifier implements Modifier {
 		final PropertyChangeSupport modpcs = new PropertyChangeSupport(this);
 

@@ -2,6 +2,12 @@ package party;
 import gamesystem.AbilityScore;
 import gamesystem.InitiativeModifier;
 import gamesystem.SavingThrow;
+import gamesystem.Skill;
+import gamesystem.XP;
+import gamesystem.XP.Challenge;
+import gamesystem.XP.XPChange;
+import gamesystem.XP.XPChangeChallenges;
+import gamesystem.XP.XPChangeLevel;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -19,10 +25,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import party.XP.Challenge;
-import party.XP.XPChange;
-import party.XP.XPChangeChallenges;
-import party.XP.XPChangeLevel;
 
 import xml.XML;
 
@@ -147,11 +149,11 @@ public class Character extends Creature implements XML {
 			abilities[i].addPropertyChangeListener(statListener);
 		}
 
-		initiative = new InitiativeModifier(abilities[ABILITY_DEXTERITY]);
+		initiative = new InitiativeModifier(abilities[AbilityScore.ABILITY_DEXTERITY]);
 		initiative.addPropertyChangeListener(statListener);
 
 		for (int i=0; i<3; i++) {
-			saves[i] = new SavingThrow(i,abilities[getSaveAbility(i)]);
+			saves[i] = new SavingThrow(i,abilities[SavingThrow.getSaveAbility(i)]);
 		}
 	}
 
@@ -201,7 +203,7 @@ public class Character extends Creature implements XML {
     * @return      the modifier calculated from the current score of the specified ability
     */
 	public int getAbilityModifier(int type) {
-		return getModifier(getAbilityScore(type));
+		return AbilityScore.getModifier(getAbilityScore(type));
 	}
 
    /**
@@ -241,8 +243,8 @@ public class Character extends Creature implements XML {
 
 	// fires the property change for the ability and for any dependent stats
 	protected void fireAbilityChange(int type, int old, int value) {
-        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+ability_names[type], old, value);
-        int modDelta = Creature.getModifier(value) - Creature.getModifier(old);
+        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(type), old, value);
+        int modDelta = AbilityScore.getModifier(value) - AbilityScore.getModifier(old);
         if (modDelta != 0) {
         	// skills
         	// TODO this is inefficient
@@ -253,10 +255,10 @@ public class Character extends Creature implements XML {
         	}
 
         	// hit points
-        	if (type == Creature.ABILITY_CONSTITUTION) {
+        	if (type == AbilityScore.ABILITY_CONSTITUTION) {
         		int oldhps = getMaximumHitPoints();
-        		int oldmod = Creature.getModifier(old);
-        		int newmod = Creature.getModifier(value);
+        		int oldmod = AbilityScore.getModifier(old);
+        		int newmod = AbilityScore.getModifier(value);
         		int newhps = oldhps + (level * (newmod - oldmod));
         		if (newhps < level) newhps = level;	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
         		System.out.println("changing max hps from "+oldhps+" to "+newhps);
@@ -364,7 +366,7 @@ public class Character extends Creature implements XML {
 	public void setSavingThrowBase(int save, int v) {
 		int old = saves[save].getValue();
 		saves[save].setBaseValue(v);
-		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(save), old, saves[save].getValue());
+		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(save), old, saves[save].getValue());
 	}
 
 	public void setSavingThrowMisc(int save, int misc) {
@@ -372,7 +374,7 @@ public class Character extends Creature implements XML {
 		saveMisc[save] = misc;
 		int now = getSavingThrow(save);
 		if (old != now) {
-			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(save), old, now);
+			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(save), old, now);
 		}
 	}
 
@@ -384,10 +386,10 @@ public class Character extends Creature implements XML {
     */
 	public void setSavingThrow(int save, int total) {
 		int old = getSavingThrow(save);
-		saves[save].setBaseValue(total-getAbilityModifier(Creature.getSaveAbility(save))-saveMisc[save]);
+		saves[save].setBaseValue(total-getAbilityModifier(SavingThrow.getSaveAbility(save))-saveMisc[save]);
 		int now = getSavingThrow(save);
 		if (old != now) {
-			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(save), old, now);
+			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(save), old, now);
 		}
 	}
 
@@ -724,8 +726,8 @@ public class Character extends Creature implements XML {
 							String value = s.getAttribute("value");
 							String type = s.getAttribute("type");
 							String temp = s.getAttribute("temp");
-							for (int k=0; k<ability_names.length; k++) {
-								if (ability_names[k].equals(type)) {
+							for (int k=0; k<6; k++) {
+								if (AbilityScore.getAbilityName(k).equals(type)) {
 									c.abilities[k].setBaseValue(Integer.parseInt(value));
 									if (temp != "") c.tempAbilities[k] = Integer.parseInt(temp);
 								}
@@ -742,8 +744,8 @@ public class Character extends Creature implements XML {
 							String value = s.getAttribute("base");
 							String type = s.getAttribute("type");
 							String misc = s.getAttribute("misc");
-							for (int k=0; k<save_names.length; k++) {
-								if (save_names[k].equals(type)) {
+							for (int k=0; k<3; k++) {
+								if (SavingThrow.getSavingThrowName(k).equals(type)) {
 									c.saves[k].setBaseValue(Integer.parseInt(value));
 									if (misc != "") c.saveMisc[k] = Integer.parseInt(misc);
 								}
@@ -805,8 +807,8 @@ public class Character extends Creature implements XML {
 		}
 		b.append(i2).append("</Level>").append(nl);
 		b.append(i2).append("<AbilityScores>").append(nl);
-		for (int i=0; i<ability_names.length; i++) {
-			b.append(i3).append("<AbilityScore type=\"").append(ability_names[i]);
+		for (int i=0; i<6; i++) {
+			b.append(i3).append("<AbilityScore type=\"").append(AbilityScore.getAbilityName(i));
 			b.append("\" value=\"").append(getBaseAbilityScore(i));
 			if (getAbilityScore(i) != getBaseAbilityScore(i)) {
 				b.append("\" temp=\"").append(getAbilityScore(i));
@@ -820,8 +822,8 @@ public class Character extends Creature implements XML {
 		b.append("/>").append(nl);
 		b.append(i2).append("<Initiative value=\"").append(getBaseInitiative()).append("\"/>").append(nl);
 		b.append(i2).append("<SavingThrows>").append(nl);
-		for (int i=0; i<save_names.length; i++) {
-			b.append(i3).append("<Save type=\"").append(save_names[i]);
+		for (int i=0; i<3; i++) {
+			b.append(i3).append("<Save type=\"").append(SavingThrow.getSavingThrowName(i));
 			b.append("\" base=\"").append(getSavingThrowBase(i));
 			if (getSavingThrowMisc(i) != 0) b.append("\" misc=\"").append(getSavingThrowMisc(i));
 			b.append("\"/>").append(nl);
@@ -872,18 +874,18 @@ public class Character extends Creature implements XML {
 		}
 		for (int i=0; i<6; i++) {
 			if (abilities[i] != inChar.abilities[i]) {
-				System.out.println(PROPERTY_ABILITY_PREFIX+ability_names[i]+"|"+abilities[i]+"|"+inChar.abilities[i]);
+				System.out.println(PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(i)+"|"+abilities[i]+"|"+inChar.abilities[i]);
 			}
 		}
 		for (int i=0; i<6; i++) {
 			if (tempAbilities[i] != inChar.tempAbilities[i]) {
 				// new attribute
-				System.out.println(PROPERTY_ABILITY_OVERRIDE_PREFIX+getAbilityName(i)+"|"+tempAbilities[i]+"|"+inChar.tempAbilities[i]);
+				System.out.println(PROPERTY_ABILITY_OVERRIDE_PREFIX+AbilityScore.getAbilityName(i)+"|"+tempAbilities[i]+"|"+inChar.tempAbilities[i]);
 			}
 		}
 		for (int i=0; i<3; i++) {
 			if (saves[i] != inChar.saves[i]) {
-				System.out.println(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(i)+"|"+saves[i]+"|"+inChar.saves[i]);
+				System.out.println(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(i)+"|"+saves[i]+"|"+inChar.saves[i]);
 			}
 		}
 		for (int i=0; i<AC_MAX_INDEX; i++) {
@@ -915,20 +917,20 @@ public class Character extends Creature implements XML {
 		//if (level != inChar.level) diffs.add(PROPERTY_LEVEL);	// TODO not sure we should include this
 		for (int i=0; i<6; i++) {
 			if (abilities[i] != inChar.abilities[i]) {
-				diffs.add(PROPERTY_ABILITY_PREFIX+getAbilityName(i));
+				diffs.add(PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(i));
 			}
 		}
 		for (int i=0; i<6; i++) {
 			if (tempAbilities[i] != inChar.tempAbilities[i]) {
-				diffs.add(PROPERTY_ABILITY_OVERRIDE_PREFIX+getAbilityName(i));
+				diffs.add(PROPERTY_ABILITY_OVERRIDE_PREFIX+AbilityScore.getAbilityName(i));
 			}
 		}
 		for (int i=0; i<3; i++) {
 			if (saves[i] != inChar.saves[i]) {
-				diffs.add(PROPERTY_SAVE_PREFIX+Creature.getSavingThrowName(i));
+				diffs.add(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(i));
 			}
 			if (saveMisc[i] != inChar.saveMisc[i]) {
-				diffs.add(PROPERTY_SAVE_MISC_PREFIX+Creature.getSavingThrowName(i));
+				diffs.add(PROPERTY_SAVE_MISC_PREFIX+SavingThrow.getSavingThrowName(i));
 			}
 		}
 		for (int i=0; i<AC_MAX_INDEX; i++) {
@@ -963,28 +965,28 @@ public class Character extends Creature implements XML {
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
 			for (int i=0; i<6; i++) {
-				if (ability.equals(Creature.getAbilityName(i))) return abilities[i];
+				if (ability.equals(AbilityScore.getAbilityName(i))) return abilities[i];
 			}
 		}
 
 		if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
 			for (int i=0; i<6; i++) {
-				if (ability.equals(Creature.getAbilityName(i))) return tempAbilities[i];
+				if (ability.equals(AbilityScore.getAbilityName(i))) return tempAbilities[i];
 			}
 		}
 
 		if (prop.startsWith(PROPERTY_SAVE_PREFIX)) {
 			String save = prop.substring(PROPERTY_SAVE_PREFIX.length());
 			for (int i=0; i<3; i++) {
-				if (save.equals(Creature.getSavingThrowName(i))) return saves[i];
+				if (save.equals(SavingThrow.getSavingThrowName(i))) return saves[i];
 			}
 		}
 
 		if (prop.startsWith(PROPERTY_SAVE_MISC_PREFIX)) {
 			String save = prop.substring(PROPERTY_SAVE_MISC_PREFIX.length());
 			for (int i=0; i<3; i++) {
-				if (save.equals(Creature.getSavingThrowName(i))) return saveMisc[i];
+				if (save.equals(SavingThrow.getSavingThrowName(i))) return saveMisc[i];
 			}
 		}
 
@@ -1024,28 +1026,28 @@ public class Character extends Creature implements XML {
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
 			for (int i=0; i<6; i++) {
-				if (ability.equals(Creature.getAbilityName(i))) setAbilityScore(i, (Integer)value);
+				if (ability.equals(AbilityScore.getAbilityName(i))) setAbilityScore(i, (Integer)value);
 			}
 		}
 
 		if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
 			for (int i=0; i<6; i++) {
-				if (ability.equals(Creature.getAbilityName(i))) setTemporaryAbility(i, (Integer)value);
+				if (ability.equals(AbilityScore.getAbilityName(i))) setTemporaryAbility(i, (Integer)value);
 			}
 		}
 
 		if (prop.startsWith(PROPERTY_SAVE_PREFIX)) {
 			String save = prop.substring(PROPERTY_SAVE_PREFIX.length());
 			for (int i=0; i<3; i++) {
-				if (save.equals(Creature.getSavingThrowName(i))) setSavingThrowBase(i, (Integer)value);
+				if (save.equals(SavingThrow.getSavingThrowName(i))) setSavingThrowBase(i, (Integer)value);
 			}
 		}
 
 		if (prop.startsWith(PROPERTY_SAVE_MISC_PREFIX)) {
 			String save = prop.substring(PROPERTY_SAVE_MISC_PREFIX.length());
 			for (int i=0; i<3; i++) {
-				if (save.equals(Creature.getSavingThrowName(i))) setSavingThrowMisc(i, (Integer)value);
+				if (save.equals(SavingThrow.getSavingThrowName(i))) setSavingThrowMisc(i, (Integer)value);
 			}
 		}
 

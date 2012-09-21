@@ -1,4 +1,7 @@
 package ui;
+import gamesystem.SavingThrow;
+import gamesystem.Skill;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,7 +23,6 @@ import party.Character;
 import party.Creature;
 import party.Party;
 import party.PartyListener;
-import party.Skill;
 import swing.SpinnerCellEditor;
 
 //TODO better layout
@@ -110,7 +112,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 		} else if (e.getPropertyName().startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
 			String save = e.getPropertyName().substring(Creature.PROPERTY_SAVE_PREFIX.length());
 			for (int i = 0; i < 3; i++) {
-				if (save.equals(Creature.getSavingThrowName(i))) {
+				if (save.equals(SavingThrow.getSavingThrowName(i))) {
 					model.saveChange(i);
 				}
 			}
@@ -223,7 +225,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 
 		protected String getRowName(int rowIndex) {
 			if (rowIndex <= LAST_SAVE_ROW) {
-				return Creature.getSavingThrowName(rowIndex);
+				return SavingThrow.getSavingThrowName(rowIndex);
 			}
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
 				return skills[rowIndex-FIRST_SKILL_ROW].getName();

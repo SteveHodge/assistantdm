@@ -1,6 +1,8 @@
 package ui;
 
 import gamesystem.CR;
+import gamesystem.XP;
+import gamesystem.XP.Challenge;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -31,8 +33,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
 import party.Party;
-import party.XP;
-import party.XP.Challenge;
 
 @SuppressWarnings("serial")
 public class XPEntryDialog extends JDialog implements ActionListener {

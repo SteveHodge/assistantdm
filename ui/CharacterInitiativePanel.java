@@ -1,5 +1,7 @@
 package ui;
 
+import gamesystem.AbilityScore;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -22,7 +24,7 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 
 		setBorder(new TitledBorder("Initiative"));
 
-		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifier(Creature.ABILITY_DEXTERITY));
+		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifier(AbilityScore.ABILITY_DEXTERITY));
 		add(dexLabel);
 
 		add(new JLabel("Base:"));
@@ -38,8 +40,8 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 	}
 
 	public void propertyChange(PropertyChangeEvent arg0) {
-		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+Creature.getAbilityName(Creature.ABILITY_DEXTERITY))) {
-			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(Creature.ABILITY_DEXTERITY));
+		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(AbilityScore.ABILITY_DEXTERITY))) {
+			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(AbilityScore.ABILITY_DEXTERITY));
 		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 			totLabel.setText("Total: "+character.getInitiativeModifier());
 		}

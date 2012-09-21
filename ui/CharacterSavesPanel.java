@@ -1,5 +1,8 @@
 package ui;
 
+import gamesystem.AbilityScore;
+import gamesystem.SavingThrow;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -53,7 +56,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 			hGroups[i].addComponent(titleLabels[i]);
 		}
 		for (int type=0; type<3; type++) {
-			saveLabels[type] = new JLabel(Creature.getSavingThrowName(type));
+			saveLabels[type] = new JLabel(SavingThrow.getSavingThrowName(type));
 			baseSaveFields[type] = new JFormattedTextField();
 			baseSaveFields[type].setValue(new Integer(character.getSavingThrowBase(type)));
 			baseSaveFields[type].setColumns(3);
@@ -62,7 +65,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 			miscSaveFields[type].setValue(new Integer(character.getSavingThrowMisc(type)));
 			miscSaveFields[type].setColumns(3);
 			miscSaveFields[type].addPropertyChangeListener("value", new MiscFieldPropertyListener(type));
-			modLabels[type] = new JLabel(""+character.getAbilityModifier(Creature.getSaveAbility(type)));
+			modLabels[type] = new JLabel(""+character.getAbilityModifier(SavingThrow.getSaveAbility(type)));
 			totalLabels[type] = new JLabel(""+character.getSavingThrow(type));
 			vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 					.addComponent(saveLabels[type])
@@ -95,16 +98,16 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 		if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
 			prop = prop.substring(Creature.PROPERTY_ABILITY_PREFIX.length());
 			for (int i = 0; i < 3; i++) {
-				if (prop.equals(Creature.getAbilityName(Creature.getSaveAbility(i)))) {
+				if (prop.equals(AbilityScore.getAbilityName(SavingThrow.getSaveAbility(i)))) {
 					//System.out.println("Ability "+prop+" modified for save "+Creature.getSavingThrowName(i));
-					modLabels[i].setText(""+character.getAbilityModifier(Creature.getSaveAbility(i)));
+					modLabels[i].setText(""+character.getAbilityModifier(SavingThrow.getSaveAbility(i)));
 					totalLabels[i].setText(""+character.getSavingThrow(i));
 				}
 			}
 		} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
 			prop = prop.substring(Creature.PROPERTY_SAVE_PREFIX.length());
 			for (int i = 0; i < 3; i++) {
-				if (prop.equals(Creature.getSavingThrowName(i))) {
+				if (prop.equals(SavingThrow.getSavingThrowName(i))) {
 					baseSaveFields[i].setValue(new Integer(character.getSavingThrowBase(i)));
 					totalLabels[i].setText(""+character.getSavingThrow(i));
 				}

@@ -1,5 +1,8 @@
 package ui;
 
+import gamesystem.AbilityScore;
+import gamesystem.Skill;
+
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -15,7 +18,6 @@ import javax.swing.table.TableModel;
 
 import party.Creature;
 import party.Character;
-import party.Skill;
 
 import swing.SpinnerCellEditor;
 
@@ -63,7 +65,7 @@ public class CharacterSkillsPanel extends JPanel {
 			if (col == 1) {
 				int ability = skills[row].getAbility();
 				if (ability == -1) return null;
-				return Creature.getAbilityName(ability);
+				return AbilityScore.getAbilityName(ability);
 			}
 			if (col == 2) return character.getSkillRanks(skills[row]);
 			if (col == 3) {
