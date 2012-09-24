@@ -7,6 +7,7 @@ import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Skill;
 import gamesystem.SkillType;
+import gamesystem.Statistic;
 import gamesystem.XP;
 import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChange;
@@ -32,31 +33,57 @@ import org.w3c.dom.NodeList;
 
 import xml.XML;
 
- // TODO Modifying dex should alter ac - but we need to know the max dex modifier
- // TODO Should allow temporary hitpoints - will require careful consideration of how wounds work
- // TODO move temp ability scores to the AbilityScore class (or a superclass)
- // TODO implement setting modifiers on ability scores
+// TODO Should allow temporary hitpoints - will require careful consideration of how wounds work
+// TODO move temp ability scores to the AbilityScore class (or a superclass)
+// TODO implement setting modifiers on ability scores
+// TODO AC temp scores. allow multiple bonuses of each type
+// TODO convert ui classes that listen to Character to listen to the specific Statistics instead
+
+/* Things to implement:
+ *  Ability score checks
+ *  Class levels
+ *  Spell lists / spells per day
+ *  Temporary hitpoints
+ *  Damage reduction
+ *  Spell resistance
+ *  Base attack bonus
+ *  Grapple modifier
+ *  Weapons/attacks
+ *  Armor
+ *  Magic items slots
+ *  Weight/encumberance
+ *  Feats
+ *  Skill synergies
+ *  Skill named versions (Crafting, Profession etc)
+ */
+
 /**
  * @author Steve
  *
  */
 public class Character extends Creature implements XML {
 	protected String name;
+
 	protected InitiativeModifier initiative;
+
 	protected SavingThrow[] saves = new SavingThrow[3];
 	protected Modifier[] saveMisc = new Modifier[3];
+	
 	protected AbilityScore[] abilities = new AbilityScore[6];
 	protected int[] tempAbilities = new int[6];
+	
 	protected Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();
 	protected Map<SkillType,Modifier> skillMisc = new HashMap<SkillType,Modifier>();
+	
 	protected int hps, wounds, nonLethal, xp = 0, level = 1;
+
 	protected AC ac;
 	protected Modifier[] acMods = new Modifier[AC.AC_MAX_INDEX];
 	protected int tempAC, tempTouch, tempFF;	// ac overrides
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
+
 	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
 
-	// TODO consider moving these methods to the Character class 
 	public class XPHistoryItem {
 		protected XPChange xpChange;
 		protected int total;
@@ -143,6 +170,10 @@ public class Character extends Creature implements XML {
 				Skill s = (Skill)evt.getSource();
 				pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), evt.getOldValue(), evt.getNewValue());
 
+			} else if (evt.getSource() instanceof SavingThrow) {
+				SavingThrow save = (SavingThrow)evt.getSource();
+				pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.getName(), evt.getOldValue(), evt.getNewValue());
+
 			} else if (evt.getSource() == ac) {
 				pcs.firePropertyChange(PROPERTY_AC, evt.getOldValue(), evt.getNewValue());
 			}
@@ -163,6 +194,7 @@ public class Character extends Creature implements XML {
 
 		for (int i=0; i<3; i++) {
 			saves[i] = new SavingThrow(i,abilities[SavingThrow.getSaveAbility(i)]);
+			saves[i].addPropertyChangeListener(statListener);
 		}
 
 		ac = new AC(abilities[AbilityScore.ABILITY_DEXTERITY]);
@@ -196,7 +228,7 @@ public class Character extends Creature implements XML {
 	*/
 	public int getAbilityScore(int type) {
 		if (tempAbilities[type] != -1) return tempAbilities[type];
-		return abilities[type].getBaseValue();
+		return abilities[type].getValue();
 	}
 
    /**
@@ -693,6 +725,37 @@ public class Character extends Creature implements XML {
 	}
 
 //------------------- Import/Export and other methods -------------------
+	public Statistic getStatistic(String name) {
+		if (name.equals(STATISTIC_STRENGTH)) {
+			return abilities[AbilityScore.ABILITY_STRENGTH];
+		} else if (name.equals(STATISTIC_INTELLIGENCE)) {
+			return abilities[AbilityScore.ABILITY_INTELLIGENCE];
+		} else if (name.equals(STATISTIC_WISDOM)) {
+			return abilities[AbilityScore.ABILITY_WISDOM];
+		} else if (name.equals(STATISTIC_DEXTERITY)) {
+			return abilities[AbilityScore.ABILITY_DEXTERITY];
+		} else if (name.equals(STATISTIC_CONSTITUTION)) {
+			return abilities[AbilityScore.ABILITY_CONSTITUTION];
+		} else if (name.equals(STATISTIC_CHARISMA)) {
+			return abilities[AbilityScore.ABILITY_CHARISMA];
+		} else if (name.equals(STATISTIC_FORTITUDE_SAVE)) {
+			return saves[SavingThrow.SAVE_FORTITUDE];
+		} else if (name.equals(STATISTIC_WILL_SAVE)) {
+			return saves[SavingThrow.SAVE_WILL];
+		} else if (name.equals(STATISTIC_REFLEX_SAVE)) {
+			return saves[SavingThrow.SAVE_REFLEX];
+		} else if (name.equals(STATISTIC_AC)) {
+			return ac;
+		} else if (name.equals(STATISTIC_INITIATIVE)) {
+			return initiative;
+		} else if (name.equals(STATISTIC_SAVING_THROWS) || name.equals(STATISTIC_SKILLS)) {
+			return null;
+		} else {
+			System.out.println("Unknown statistic "+name);
+			return null;
+		}
+	}
+
 	public static Character parseDOM(Element el) {
 		if (!el.getNodeName().equals("Character")) return null;
 		Character c = new Character(el.getAttribute("name"));
@@ -795,6 +858,7 @@ public class Character extends Creature implements XML {
 							// TODO hacks to change type:
 							if (type.equals("Dex")) type = AC.getACComponentName(AC.AC_DEX);
 							if (type.equals("Natural")) type = AC.getACComponentName(AC.AC_NATURAL);
+							if (type.equals("Deflect")) type = AC.getACComponentName(AC.AC_DEFLECTION);
 							if (!type.equals(AC.getACComponentName(AC.AC_DEX))) {	// TODO ignore dex component when loading
 								for (int k=0; k<AC.AC_MAX_INDEX; k++) {
 									if (AC.getACComponentName(k).equals(type)) {

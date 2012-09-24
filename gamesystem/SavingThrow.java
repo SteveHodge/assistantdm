@@ -2,6 +2,7 @@ package gamesystem;
 
 
 public class SavingThrow extends Statistic {
+	// TODO if these constants are really only applicable in relation to the array in Character then they should be defined there (and protected)
 	public static final int SAVE_FORTITUDE = 0;
 	public static final int SAVE_REFLEX = 1;
 	public static final int SAVE_WILL = 2;

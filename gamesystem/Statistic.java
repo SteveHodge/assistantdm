@@ -14,11 +14,15 @@ import java.util.Set;
  * 
  * Contains a single property "value" which is the total of the base value and the applicable modifiers.
  */
+// TODO probably better to leave baseValue to the subclasses - there are statistics such as AC where the baseValue is immutable
+// TODO might need more comprehensive reporting. specifically subclasses may which to issue a property change for baseValue seperately
+// to the property change for value (i.e. total). property change for changing modifiers even when the total is unchanged are also desirable
 public class Statistic {
 	protected String name;
 	protected int baseValue = 0;
 	protected Set<Modifier> modifiers = new HashSet<Modifier>();
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
 	protected final PropertyChangeListener listener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent evt) {
 			System.out.println("Modifier to "+name+" changed");
@@ -59,7 +63,7 @@ public class Statistic {
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
 		int newValue = getValue();
-		if (oldValue != newValue) pcs.firePropertyChange("value", oldValue, newValue);
+		pcs.firePropertyChange("value", oldValue, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
 	}
 
 	public void removeModifier(Modifier m) {
@@ -67,7 +71,7 @@ public class Statistic {
 		m.removePropertyChangeListener(listener);
 		modifiers.remove(m);
 		int newValue = getValue();
-		if (oldValue != newValue) pcs.firePropertyChange("value", oldValue, newValue);
+		pcs.firePropertyChange("value", oldValue, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
 	}
 
 	public int getBaseValue() {
@@ -79,7 +83,7 @@ public class Statistic {
 		baseValue = v;
 		int newValue = getValue();
 		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
-		if (oldValue != newValue) pcs.firePropertyChange("value", oldValue, newValue);
+		pcs.firePropertyChange("value", oldValue, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
 	}
 
 	public int getValue() {

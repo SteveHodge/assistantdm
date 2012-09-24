@@ -80,6 +80,7 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 		}
 
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
+			if (rowIndex == AC.AC_DEX) return false;
 			return true;
 		}
 

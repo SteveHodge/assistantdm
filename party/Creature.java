@@ -20,6 +20,23 @@ public abstract class Creature {
 	public final static String PROPERTY_LEVEL = "Level";
 	public final static String PROPERTY_XP = "XP";
 
+	// statistics
+	// TODO should be combined with properties
+	public final static String STATISTIC_STRENGTH = "abilities.strength";
+	public final static String STATISTIC_INTELLIGENCE = "abilities.intelligence";
+	public final static String STATISTIC_WISDOM = "abilities.wisdom";
+	public final static String STATISTIC_DEXTERITY = "abilities.dexterity";
+	public final static String STATISTIC_CONSTITUTION = "abilities.constitution";
+	public final static String STATISTIC_CHARISMA = "abilities.charisma";
+	//public final static String STATISTIC_ABILITY_CHECKS = "ability_check";
+	public final static String STATISTIC_SAVING_THROWS = "saves";
+	public final static String STATISTIC_FORTITUDE_SAVE = "saves.fortitude";
+	public final static String STATISTIC_WILL_SAVE = "saves.will";
+	public final static String STATISTIC_REFLEX_SAVE = "saves.reflex";
+	public final static String STATISTIC_SKILLS = "skills";
+	public final static String STATISTIC_AC = "ac";
+	public final static String STATISTIC_INITIATIVE = "initiative";
+
 	// ************************* Non static members and methods **************************
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);

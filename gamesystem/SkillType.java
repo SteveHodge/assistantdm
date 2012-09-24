@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import party.Creature;
-
 public class SkillType implements Comparable<SkillType> {
 	public static Map<String,SkillType> skills;
 

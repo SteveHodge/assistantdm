@@ -19,6 +19,8 @@ import party.Character;
 import party.Creature;
 import swing.SpinnerCellEditor;
 
+// TODO handle editing of temp scores better. consider adding ability check column
+
 @SuppressWarnings("serial")
 public class CharacterAbilityPanel extends JPanel {
 	protected Character character;

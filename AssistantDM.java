@@ -143,11 +143,11 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
         if (f.exists()) combatPanel.parseXML(f);
 		tabbedPane.addTab("Combat", null, combatPanel, "Initiative and Combat");
 
-		panel = new RollsPanel(party);
-		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
-
 		panel = new PartyPanel(party);
 		tabbedPane.addTab("Party", null, panel, "Character Details");
+
+		panel = new RollsPanel(party);
+		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
 
 		panel = new MonstersPanel();
 		tabbedPane.addTab("Monsters", null, panel, "Monsters");

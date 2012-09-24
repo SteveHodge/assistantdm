@@ -15,6 +15,8 @@ import javax.swing.border.TitledBorder;
 import party.Creature;
 import party.Character;
 
+//TODO update to use the saving throw's ability modifier rather than looking at the ability score's modifier directly
+//TODO change to listen to the SavingThrow itself instead of the character 
 @SuppressWarnings("serial")
 public class CharacterSavesPanel extends JPanel implements PropertyChangeListener {
 	protected Character character;

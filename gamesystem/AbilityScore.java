@@ -5,6 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 public class AbilityScore extends Statistic {
+	// TODO if these constants are really only applicable in relation to the array in Character then they should be defined there (and protected)
 	public static final int ABILITY_STRENGTH = 0;
 	public static final int ABILITY_DEXTERITY = 1;
 	public static final int ABILITY_CONSTITUTION = 2;

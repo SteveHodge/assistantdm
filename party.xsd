@@ -78,6 +78,7 @@
 		<xs:enumeration value="Natural"/>
 		<xs:enumeration value="Natural Armor"/>
 		<xs:enumeration value="Deflect"/>
+		<xs:enumeration value="Deflection"/>
 		<xs:enumeration value="Dodge"/>
 		<xs:enumeration value="Misc"/>
 	</xs:restriction>

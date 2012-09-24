@@ -15,7 +15,7 @@ public class AC extends Statistic {
 	public static final int AC_DODGE = 6;
 	public static final int AC_OTHER = 7;
 	public static final int AC_MAX_INDEX = 8;
-	protected static final String[] ac_names = {"Armor","Shield","Natural Armor","Dexterity","Size","Deflect","Dodge","Misc"};
+	protected static final String[] ac_names = {"Armor","Shield","Natural Armor","Dexterity","Size","Deflection","Dodge","Misc"};
 	// TODO some of the names need changing
 
 	public static String getACComponentName(int type) {

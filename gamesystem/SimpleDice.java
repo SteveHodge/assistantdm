@@ -1,7 +1,5 @@
 package gamesystem;
 
-
-import java.util.IllegalFormatException;
 import java.util.Random;
 
 public class SimpleDice implements Dice {
