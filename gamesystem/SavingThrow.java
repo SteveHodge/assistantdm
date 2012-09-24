@@ -8,6 +8,8 @@ public class SavingThrow extends Statistic {
 	public static final int SAVE_WILL = 2;
 	protected static final String[] save_names = {"Fortitude", "Reflex", "Will"};
 
+	protected int baseValue = 0;
+
 	public static String getSavingThrowName(int save) {
 		return save_names[save];
 	}
@@ -22,5 +24,21 @@ public class SavingThrow extends Statistic {
 	public SavingThrow(int type, AbilityScore ability) {
 		super(save_names[type]);
 		addModifier(ability.getModifier());
+	}
+
+	public int getValue() {
+		return baseValue + super.getValue();
+	}
+
+	public int getBaseValue() {
+		return baseValue;
+	}
+
+	public void setBaseValue(int v) {
+		//int oldValue = getValue();
+		baseValue = v;
+		int newValue = getValue();
+		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
+		pcs.firePropertyChange("value", null, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
 	}
 }

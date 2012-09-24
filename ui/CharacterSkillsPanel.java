@@ -22,6 +22,8 @@ import party.Character;
 import swing.SpinnerCellEditor;
 
 // TODO should allow adding of new skills and setting the ability
+// TODO need to add named skills (profession, craft, etc)
+// TODO should have column with other modifiers
 
 @SuppressWarnings("serial")
 public class CharacterSkillsPanel extends JPanel {

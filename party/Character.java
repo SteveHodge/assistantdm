@@ -7,6 +7,7 @@ import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Skill;
 import gamesystem.SkillType;
+import gamesystem.Skills;
 import gamesystem.Statistic;
 import gamesystem.XP;
 import gamesystem.XP.Challenge;
@@ -21,7 +22,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +32,13 @@ import org.w3c.dom.NodeList;
 
 
 import xml.XML;
+
+// TODO priorities:
+// ui for adding adhoc modifiers
+// buffs improvements - conditional modifiers, caster level based modifiers
+// attack bonus statistics
+// move hp to statistic, implement temporary hitpoints
+// equipment, particularly magic item slots, armor, weapons
 
 // TODO Should allow temporary hitpoints - will require careful consideration of how wounds work
 // TODO move temp ability scores to the AbilityScore class (or a superclass)
@@ -55,6 +62,7 @@ import xml.XML;
  *  Feats
  *  Skill synergies
  *  Skill named versions (Crafting, Profession etc)
+ *  Size
  */
 
 /**
@@ -71,8 +79,9 @@ public class Character extends Creature implements XML {
 	
 	protected AbilityScore[] abilities = new AbilityScore[6];
 	protected int[] tempAbilities = new int[6];
-	
-	protected Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();
+
+	protected Skills skills;
+	//protected Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();
 	protected Map<SkillType,Modifier> skillMisc = new HashMap<SkillType,Modifier>();
 	
 	protected int hps, wounds, nonLethal, xp = 0, level = 1;
@@ -170,6 +179,16 @@ public class Character extends Creature implements XML {
 				Skill s = (Skill)evt.getSource();
 				pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), evt.getOldValue(), evt.getNewValue());
 
+			} else if (evt.getSource() instanceof Skills) {
+				if (evt.getPropertyName().equals("value")) {
+					// change to global modifiers or ability modifiers - update all skills
+					for (SkillType s : getSkills()) {
+						pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), null, null);
+					}
+				} else {
+					pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+				}
+
 			} else if (evt.getSource() instanceof SavingThrow) {
 				SavingThrow save = (SavingThrow)evt.getSource();
 				pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.getName(), evt.getOldValue(), evt.getNewValue());
@@ -199,7 +218,9 @@ public class Character extends Creature implements XML {
 
 		ac = new AC(abilities[AbilityScore.ABILITY_DEXTERITY]);
 		ac.addPropertyChangeListener(statListener);
-		
+
+		skills = new Skills(abilities);
+		skills.addPropertyChangeListener(statListener);
 	}
 
 	public String toString() {
@@ -286,19 +307,11 @@ public class Character extends Creature implements XML {
 		}
 	}
 
-	// TODO we still need this for temporary abilities. so current that will be broken for things we've removed from here (skill with ranks, initiative)
+	// TODO we still need this for temporary abilities. so current that will be broken for everything except hps
 	// fires the property change for the ability and for any dependent stats
 	protected void fireAbilityChange(int type, int old, int value) {
         int modDelta = AbilityScore.getModifier(value) - AbilityScore.getModifier(old);
         if (modDelta != 0) {
-        	// skills
-        	// TODO remove. this is needed because skills with 0 ranks have no Skill instance
-        	for (SkillType skill : SkillType.skills.values()) {
-        		if (!skills.containsKey(skill) && skill.ability == type) {
-        	        pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+skill, getSkillTotal(skill)-modDelta, getSkillTotal(skill));
-        		}
-        	}
-
         	// hit points
         	if (type == AbilityScore.ABILITY_CONSTITUTION) {
         		int oldhps = getMaximumHitPoints();
@@ -320,7 +333,7 @@ public class Character extends Creature implements XML {
 	 * untrained skills and all skills that this characters has at least one rank in.
 	 */
 	public Set<SkillType> getSkills() {
-		Set<SkillType> set = new HashSet<SkillType>(skills.keySet());
+		Set<SkillType> set = skills.getTrainedSkills();
 		set.addAll(SkillType.getUntrainedSkills());
 		return set;
 	}
@@ -340,19 +353,11 @@ public class Character extends Creature implements XML {
 	}
 
 	public int getSkillTotal(SkillType s) {
-		if (skills.containsKey(s)) {
-			return skills.get(s).getValue();
-		} else {
-			int ability = s.getAbility();
-			if (ability != -1) return getAbilityModifier(ability);
-		}
-		return 0;
+		return skills.getValue(s);
 	}
 
-	public float getSkillRanks(SkillType st) {
-		Skill s = skills.get(st);
-		if (s == null) return 0;
-		return s.getRanks();
+	public float getSkillRanks(SkillType s) {
+		return skills.getRanks(s);
 	}
 
 	public int getSkillMisc(SkillType s) {
@@ -362,28 +367,15 @@ public class Character extends Creature implements XML {
 	}
 
 	public void setSkillRanks(SkillType s, float ranks) {
-		Skill skill = skills.get(s);
-		if (skill == null) {
-			skill = new Skill(s, abilities[s.getAbility()]);
-			skill.addPropertyChangeListener(statListener);
-			skills.put(s, skill);
-		}
-		skill.setRanks(ranks);
+		skills.setRanks(s, ranks);
 	}
 
 	public void setSkillMisc(SkillType s, int misc) {
-		Skill skill = skills.get(s);
-		if (skill == null) {
-			skill = new Skill(s, abilities[s.getAbility()]);
-			skill.addPropertyChangeListener(statListener);
-			skills.put(s, skill);
-		}
-
 		Modifier m = skillMisc.get(s);
-		if (m != null) skill.removeModifier(m);
+		if (m != null) skills.removeModifier(s, m);
 		m = new ImmutableModifier(misc);
 		skillMisc.put(s,m);
-		skill.addModifier(m);
+		skills.addModifier(s, m);
 	}
 
 //------------------- Initiative -------------------
@@ -748,7 +740,9 @@ public class Character extends Creature implements XML {
 			return ac;
 		} else if (name.equals(STATISTIC_INITIATIVE)) {
 			return initiative;
-		} else if (name.equals(STATISTIC_SAVING_THROWS) || name.equals(STATISTIC_SKILLS)) {
+		} else if (name.equals(STATISTIC_SKILLS)) {
+			return skills;
+		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
 			return null;
 		} else {
 			System.out.println("Unknown statistic "+name);
@@ -915,7 +909,7 @@ public class Character extends Creature implements XML {
 		}
 		b.append(i2).append("</SavingThrows>").append(nl);
 		b.append(i2).append("<Skills>").append(nl);
-		Set<SkillType> set = new HashSet<SkillType>(skills.keySet());
+		Set<SkillType> set = skills.getTrainedSkills();
 		set.addAll(skillMisc.keySet());
 		for (SkillType s : set) {
 			if (getSkillRanks(s) != 0 || getSkillMisc(s) != 0) {
@@ -979,8 +973,8 @@ public class Character extends Creature implements XML {
 				System.out.println(PROPERTY_AC_COMPONENT_PREFIX+AC.getACComponentName(i)+"|"+getACComponent(i)+"|"+inChar.getACComponent(i));
 			}
 		}
-		HashSet<SkillType> allSkills = new HashSet<SkillType>(skills.keySet());
-		allSkills.addAll(inChar.skills.keySet());
+		Set<SkillType> allSkills = skills.getTrainedSkills();
+		allSkills.addAll(inChar.skills.getTrainedSkills());
 		for (SkillType skill : allSkills) {
 			if (getSkillRanks(skill) != inChar.getSkillRanks(skill)) {
 				System.out.println(PROPERTY_SKILL_PREFIX+skill+"|"+getSkillRanks(skill)+"|"+inChar.getSkillRanks(skill));
@@ -1023,8 +1017,8 @@ public class Character extends Creature implements XML {
 				diffs.add(PROPERTY_AC_COMPONENT_PREFIX+AC.getACComponentName(i));
 			}
 		}
-		HashSet<SkillType> allSkills = new HashSet<SkillType>(skills.keySet());
-		allSkills.addAll(inChar.skills.keySet());
+		Set<SkillType> allSkills = skills.getTrainedSkills();
+		allSkills.addAll(inChar.skills.getTrainedSkills());
 		List<SkillType> skillList = new ArrayList<SkillType>(allSkills);
 		Collections.sort(skillList);
 		for (SkillType skill : skillList) {
@@ -1086,7 +1080,7 @@ public class Character extends Creature implements XML {
 			Float ranks = 0.0f;
 			String skill = prop.substring(PROPERTY_SKILL_PREFIX.length());
 			SkillType s = SkillType.getSkill(skill);
-			if (s != null) ranks = skills.get(s).getRanks();
+			if (s != null) ranks = skills.getRanks(s);
 			return ranks;
 		}
 

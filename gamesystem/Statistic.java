@@ -10,16 +10,18 @@ import java.util.Map;
 import java.util.Set;
 
 /*
- * Statistic - a value that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
+ * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
+ * In many cases there is a base value that the modifiers are applied to. But the base value may not be editable so it's implementation
+ * is left to the subclasses. 
  * 
- * Contains a single property "value" which is the total of the base value and the applicable modifiers.
+ * Reports a single property "value" which is the total of the base value and the applicable modifiers.
  */
-// TODO probably better to leave baseValue to the subclasses - there are statistics such as AC where the baseValue is immutable
-// TODO might need more comprehensive reporting. specifically subclasses may which to issue a property change for baseValue seperately
+// TODO might need more comprehensive reporting. specifically subclasses may wish to issue a property change for baseValue separately
 // to the property change for value (i.e. total). property change for changing modifiers even when the total is unchanged are also desirable
+// TODO if the value doesn't change the pcs.firePropertyChange won't actually send an event. So that changes to modifiers that don't affect the
+// total are reported we always report the old value as null. Probably best to change to a customer Event/Listener implementation
 public class Statistic {
 	protected String name;
-	protected int baseValue = 0;
 	protected Set<Modifier> modifiers = new HashSet<Modifier>();
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -35,11 +37,6 @@ public class Statistic {
 
 	public Statistic(String name) {
 		this.name = name;
-	}
-
-	public Statistic(String name, int base) {
-		this.name = name;
-		baseValue = base;
 	}
 
 	public String getName() {
@@ -59,46 +56,38 @@ public class Statistic {
 	}
 
 	public void addModifier(Modifier m) {
-		int oldValue = getValue();
+		//int oldValue = getValue();
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
 		int newValue = getValue();
-		pcs.firePropertyChange("value", oldValue, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
+		pcs.firePropertyChange("value", null, newValue); 
 	}
 
 	public void removeModifier(Modifier m) {
-		int oldValue = getValue();
-		m.removePropertyChangeListener(listener);
+		//int oldValue = getValue();
 		modifiers.remove(m);
+		m.removePropertyChangeListener(listener);
 		int newValue = getValue();
-		pcs.firePropertyChange("value", oldValue, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
-	}
-
-	public int getBaseValue() {
-		return baseValue;
-	}
-
-	public void setBaseValue(int v) {
-		int oldValue = getValue();
-		baseValue = v;
-		int newValue = getValue();
-		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
-		pcs.firePropertyChange("value", oldValue, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
+		pcs.firePropertyChange("value", null, newValue);
 	}
 
 	public int getValue() {
-		return baseValue + getModifiersTotal();
+		return getModifiersTotal();
 	}
 
 	// returns the total of all active modifiers
 	public int getModifiersTotal() {
-		return getModifiersTotal(null);
+		return getModifiersTotal(modifiers , null);
 	}
 
 	// returns the total active modifiers of the type specified. if type is null then the total of all modifiers is returned
 	public int getModifiersTotal(String type) {
+		return getModifiersTotal(modifiers, type);
+	}
+
+	protected static int getModifiersTotal(Set<Modifier> mods, String type) {
 		int total = 0;
-		Map<Modifier,Boolean> map = getModifiers();
+		Map<Modifier,Boolean> map = getModifiers(mods);
 		for (Modifier m : map.keySet()) {
 			if (map.get(m) && (type == null || type.equals(m.getType()))) {
 				total += m.getModifier();
@@ -107,11 +96,15 @@ public class Statistic {
 		return total;
 	}
 
+	public Map<Modifier,Boolean> getModifiers() {
+		return getModifiers(modifiers);
+	}
+
 	/* returns all current modifiers mapped to a boolean indicating whether or not each modifier is counted in the total
 	 * never returns null, though may return an empty map
 	 */
 	// TODO inefficient implementation
-	public Map<Modifier,Boolean> getModifiers() {
+	public static Map<Modifier,Boolean> getModifiers(Set<Modifier> modifiers) {
 		// go through all the modifiers
 		// if the modifier source is the same as another modifier source then only the highest bonus or lowest penalty counts
 		// else {

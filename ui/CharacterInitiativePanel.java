@@ -1,9 +1,13 @@
 package ui;
 
 import gamesystem.AbilityScore;
+import gamesystem.InitiativeModifier;
+import gamesystem.Modifier;
+import gamesystem.Statistic;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -35,8 +39,27 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 		totLabel = new JLabel("Total: "+character.getInitiativeModifier());
 		add(totLabel);
 
+		updateToolTip();
+
 		// update labels when character changes
 		character.addPropertyChangeListener(this);
+	}
+
+	protected void updateToolTip() {
+		StringBuilder text = new StringBuilder();
+		text.append("<html><body>");
+		InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
+		text.append("Base = "+stat.getBaseValue()).append("<br/>");
+		Map<Modifier, Boolean> mods = stat.getModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (!mods.get(m)) text.append("<s>");
+			text.append(m);
+			if (!mods.get(m)) text.append("</s>");
+			text.append("<br/>");
+		}
+		text.append("Total = "+character.getInitiativeModifier());
+		text.append("</body></html>");
+		totLabel.setToolTipText(text.toString());
 	}
 
 	public void propertyChange(PropertyChangeEvent arg0) {
@@ -44,6 +67,7 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(AbilityScore.ABILITY_DEXTERITY));
 		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 			totLabel.setText("Total: "+character.getInitiativeModifier());
+			updateToolTip();
 		}
 	}
 }

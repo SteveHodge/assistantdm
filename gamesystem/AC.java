@@ -24,8 +24,11 @@ public class AC extends Statistic {
 
 	public AC(AbilityScore dex) {
 		super("AC");
-		baseValue = 10;
 		addModifier(dex.getModifier());
+	}
+
+	public int getValue() {
+		return 10 + super.getValue();
 	}
 
 	public int getTouch() {
@@ -50,9 +53,5 @@ public class AC extends Statistic {
 			}
 		}
 		return ac;
-	}
-
-	// The base AC value of 10 is immutable so setBaseValue is overridden to be a no-op
-	public void setBaseValue(int v) {
 	}
 }

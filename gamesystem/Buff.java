@@ -85,8 +85,10 @@ public class Buff {
 	public static Buff[] buffs = {
 		(new Buff("Shield Other"))
 			.addEffect("ac","Deflection",1)
+			//.addEffect("initiative","Luck",3)
 			.addEffect("saves","Resistence",1),
 		(new Buff("Resistance"))
+			//.addEffect("initiative","Luck",2)
 			.addEffect("saves","Resistence",1),
 		(new Buff("Mage Armor"))
 			.addEffect("ac","Armor",4),
@@ -115,6 +117,59 @@ public class Buff {
 		(new Buff("Owl's Wisdom"))
 			.addEffect("abilities.wisdom","Enhancement",4),
 		(new Buff("Shield"))
-			.addEffect("ac","Shield",4)
+			.addEffect("ac","Shield",4),
+		(new Buff("Haste"))
+			//.addEffect("attacks",null,1)
+			.addEffect("ac","Dodge",1)
+			.addEffect("saves.reflex","Dodge",1),
+		(new Buff("Slow"))
+			//.addEffect("attacks",null,1)
+			//.addEffect("ac",null,-1)	// TODO causes a crash in AC.getTouchAC 
+			.addEffect("saves.reflex",null,-1),
+		(new Buff("Heroism"))
+			//.addEffect("attacks","morale",2)
+			.addEffect("saves","morale",2)
+			.addEffect("skills","morale",2),
+		(new Buff("Greater Heroism"))
+			//.addEffect("attacks","morale",4)
+			// +CL (max +20) temp hps
+			.addEffect("saves","morale",4)
+			.addEffect("skills","morale",4),
+		(new Buff("Hero's Feast"))
+			//.addEffect("attacks","morale",1)
+			// 1d8 + 1 per 2 CL (max +10) temp hps
+			.addEffect("saves.will","morale",1),
+		(new Buff("Iron Body"))
+			.addEffect("abilities.strength","Enhancement",6)
+			// -8 armor check penalty
+			.addEffect("abilities.dexterity",null,-6),	// TODO to minimum of 1
+
+// needs caster level:
+			//Divine Favor		yes, CL	+1 luck on attack, dmg per 3 cl (max +3)
+			//Aid	character		+1 morale to attack, saves vs fear; 1d8+cl temporary hps (cl max +10)
+			//Barkskin	character	yes, CL	+2 enhancement to na, +1 per 3 levels to max of +5
+			//Shield of Faith			+2 deflections bonus to ac +1/6 levels (max +5 at 18th)
+			//False Life			1d10 + 1 per cl (max +10) temp hps
+
+// character level:
+			//Tenser's Transformation		yes, bab	+4 enhancement to str, con, dex, +4 na to ac, +5 competence to fort, bab equals character level (20 max)
+			//Divine Power			+6 enhancement to str, 1 temp hp per cl, base attack becomes character level (+20 max)
+
+// conditional modifiers:
+			//Bane	character		-1 to attack, -1 save v fear
+			//Bless			+1 morale to attack, +1 morale to save v fear
+			//Rage			+2 morale bonus to str, con, +1 morale to will saves,  -2 pen to ac
+
+// multiple optional effects:
+			//Prayer			+1 luck bonus on attack, dmg, saves, skills, -1 penalty on same
+			//Bestow Curse			-6 decrease to ability, or -4 penalty to attacks, saves, ability checks, skill checks
+
+// size change:
+			//Animal Growth	monster		increase size one category, +8 size to str, +4 size to con, -2 size to dex, na +2, +4 resist to saves
+			//Enlarge Person			increase size one category, +8 size to str, +4 size to con, -2 size to dex, na +2, +4 resist to saves
+			//Righteous Might			increase size one category, +8 size to str, +4 size to con, -2 size to dex, na +2, +4 resist to saves, ac and attacks modified for new size
+			//Reduce Animal	monsters		one category smaller, +2 size bonus to dex, -2 size penalty to str, +1 bonus to attacks and ac
+			//Reduce Person			one category smaller, +2 size bonus to dex, -2 size penalty to str, +1 bonus to attacks and ac
+
 	};
 }

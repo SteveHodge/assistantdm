@@ -15,8 +15,8 @@ public class AbilityScore extends Statistic {
 	protected static final String[] ability_names = {"Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"};
 
 	protected final Modifier modifier;
-
-	protected int type; 
+	protected int type;
+	protected int baseValue = 0;
 
 	public static int getModifier(int score) {
 		return score/2-5;
@@ -60,6 +60,13 @@ public class AbilityScore extends Statistic {
 		public void removePropertyChangeListener(PropertyChangeListener listener) {
 			modpcs.removePropertyChangeListener(listener);
 		}
+
+		public String toString() {
+			StringBuilder s = new StringBuilder();
+			if (getModifier() >= 0) s.append("+");
+			s.append(getModifier()).append(" ").append(getAbilityName(type)).append(" modifier ");
+			return s.toString();
+		}
 	};
 
 	// TODO bounds checking
@@ -67,6 +74,22 @@ public class AbilityScore extends Statistic {
 		super(ability_names[type]);
 		this.type = type;
 		modifier = new AbilityModifier(this); 
+	}
+
+	public int getValue() {
+		return baseValue + super.getValue();
+	}
+
+	public int getBaseValue() {
+		return baseValue;
+	}
+
+	public void setBaseValue(int v) {
+		int oldValue = getValue();
+		baseValue = v;
+		int newValue = getValue();
+		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
+		pcs.firePropertyChange("value", oldValue, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
 	}
 
 	public int getType() {
