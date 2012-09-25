@@ -43,6 +43,16 @@ public class AC extends Statistic {
 		return ac;
 	}
 
+	public Map<Modifier,Boolean> getTouchModifiers() {
+		Map<Modifier,Boolean> map = getModifiers();
+		for (Modifier m : modifiers) {
+			if (m.getType().equals("Armor") || m.getType().equals("Shield") || m.getType().equals("Natural")) {
+				map.remove(m);
+			}
+		}
+		return map;
+	}
+
 	public int getFlatFooted() {
 		int ac = getValue();
 
@@ -53,5 +63,15 @@ public class AC extends Statistic {
 			}
 		}
 		return ac;
+	}
+
+	public Map<Modifier,Boolean> getFlatFootedModifiers() {
+		Map<Modifier,Boolean> map = getModifiers();
+		for (Modifier m : modifiers) {
+			if (m.getType().equals("Dexterity") || m.getType().equals("Dodge")) {
+				map.remove(m);
+			}
+		}
+		return map;
 	}
 }

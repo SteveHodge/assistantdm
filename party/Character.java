@@ -41,10 +41,9 @@ import xml.XML;
 // equipment, particularly magic item slots, armor, weapons
 
 // TODO Should allow temporary hitpoints - will require careful consideration of how wounds work
-// TODO move temp ability scores to the AbilityScore class (or a superclass)
-// TODO implement setting modifiers on ability scores
 // TODO AC temp scores. allow multiple bonuses of each type
 // TODO convert ui classes that listen to Character to listen to the specific Statistics instead
+// TODO need to review how properties work on Character and BoundIntegerField
 
 /* Things to implement:
  *  Ability score checks
@@ -78,7 +77,7 @@ public class Character extends Creature implements XML {
 	protected Modifier[] saveMisc = new Modifier[3];
 	
 	protected AbilityScore[] abilities = new AbilityScore[6];
-	protected int[] tempAbilities = new int[6];
+	//protected int[] tempAbilities = new int[6];
 
 	protected Skills skills;
 	//protected Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();
@@ -173,7 +172,18 @@ public class Character extends Creature implements XML {
 			} else if (evt.getSource() instanceof AbilityScore) {
 				AbilityScore score = (AbilityScore)evt.getSource();
 		        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+score.getName(), evt.getOldValue(), evt.getNewValue());
-				fireAbilityChange(score.getType(), (Integer)evt.getOldValue(), (Integer)evt.getNewValue());
+
+		        // TODO currently broken - we can't get the old modifier
+//	        	if (score.getType() == AbilityScore.ABILITY_CONSTITUTION) {
+//		        	// hit points
+//	        		int oldhps = getMaximumHitPoints();
+//	        		int oldmod = AbilityScore.getModifier(evt.getOldValue());
+//	        		int newmod = AbilityScore.getModifier(evt.getNewValue());
+//	        		int newhps = oldhps + (level * (newmod - oldmod));
+//	        		if (newhps < level) newhps = level;	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
+//	        		System.out.println("changing max hps from "+oldhps+" to "+newhps);
+//	        		setMaximumHitPoints(newhps);
+//				}
 
 			} else if (evt.getSource() instanceof Skill) {
 				Skill s = (Skill)evt.getSource();
@@ -203,7 +213,6 @@ public class Character extends Creature implements XML {
 	public Character(String n) {
 		name = n;
 		for (int i=0; i<6; i++) {
-			tempAbilities[i] = -1;
 			abilities[i] = new AbilityScore(i);
 			abilities[i].addPropertyChangeListener(statListener);
 		}
@@ -248,7 +257,6 @@ public class Character extends Creature implements XML {
 	* @return      the current score of the specified ability
 	*/
 	public int getAbilityScore(int type) {
-		if (tempAbilities[type] != -1) return tempAbilities[type];
 		return abilities[type].getValue();
 	}
 
@@ -295,36 +303,16 @@ public class Character extends Creature implements XML {
     * @param value the value to set as the temporary score
     */
 	public void setTemporaryAbility(int type, int value) {
-		int old = tempAbilities[type];
-		if (old == -1) old = abilities[type].getBaseValue();
-		if (value == abilities[type].getBaseValue() || value == -1) {
-			// reseting to normal score
-			tempAbilities[type] = -1;
-			fireAbilityChange(type,old,abilities[type].getBaseValue());
+		if (value != abilities[type].getBaseValue() && value >= 0) {
+			abilities[type].setOverride(value);
 		} else {
-			tempAbilities[type] = value;
-			fireAbilityChange(type,old,value);
+			abilities[type].clearOverride();
 		}
 	}
 
-	// TODO we still need this for temporary abilities. so current that will be broken for everything except hps
-	// fires the property change for the ability and for any dependent stats
-	protected void fireAbilityChange(int type, int old, int value) {
-        int modDelta = AbilityScore.getModifier(value) - AbilityScore.getModifier(old);
-        if (modDelta != 0) {
-        	// hit points
-        	if (type == AbilityScore.ABILITY_CONSTITUTION) {
-        		int oldhps = getMaximumHitPoints();
-        		int oldmod = AbilityScore.getModifier(old);
-        		int newmod = AbilityScore.getModifier(value);
-        		int newhps = oldhps + (level * (newmod - oldmod));
-        		if (newhps < level) newhps = level;	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
-        		System.out.println("changing max hps from "+oldhps+" to "+newhps);
-        		setMaximumHitPoints(newhps);
-        	}
-        }
+	public int getTemporaryAbility(int type) {
+		return abilities[type].getOverride();
 	}
-
 //------------------- Skills -------------------
 // Skills have a total value, ranks, misc bonus, and are modified by ability scores
 
@@ -801,7 +789,7 @@ public class Character extends Creature implements XML {
 							for (int k=0; k<6; k++) {
 								if (AbilityScore.getAbilityName(k).equals(type)) {
 									c.abilities[k].setBaseValue(Integer.parseInt(value));
-									if (temp != "") c.tempAbilities[k] = Integer.parseInt(temp);
+									if (temp != "") c.abilities[k].setOverride(Integer.parseInt(temp));
 								}
 							}
 						}
@@ -957,9 +945,9 @@ public class Character extends Creature implements XML {
 			}
 		}
 		for (int i=0; i<6; i++) {
-			if (tempAbilities[i] != inChar.tempAbilities[i]) {
+			if (abilities[i].getOverride() != inChar.abilities[i].getOverride()) {
 				// new attribute
-				System.out.println(PROPERTY_ABILITY_OVERRIDE_PREFIX+AbilityScore.getAbilityName(i)+"|"+tempAbilities[i]+"|"+inChar.tempAbilities[i]);
+				System.out.println(PROPERTY_ABILITY_OVERRIDE_PREFIX+AbilityScore.getAbilityName(i)+"|"+abilities[i].getOverride()+"|"+inChar.abilities[i].getOverride());
 			}
 		}
 		for (int i=0; i<3; i++) {
@@ -1000,7 +988,7 @@ public class Character extends Creature implements XML {
 			}
 		}
 		for (int i=0; i<6; i++) {
-			if (tempAbilities[i] != inChar.tempAbilities[i]) {
+			if (abilities[i].getOverride() != inChar.abilities[i].getOverride()) {
 				diffs.add(PROPERTY_ABILITY_OVERRIDE_PREFIX+AbilityScore.getAbilityName(i));
 			}
 		}
@@ -1032,6 +1020,7 @@ public class Character extends Creature implements XML {
 		return diffs;
 	}
 
+	// TODO not sure this is right for ability scores. probably needs reimplementing now
 	public Object getProperty(String prop) {
 		if (prop.equals(PROPERTY_NAME)) return name;
 		if (prop.equals(PROPERTY_MAXHPS)) return hps;
@@ -1044,14 +1033,14 @@ public class Character extends Creature implements XML {
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
 			for (int i=0; i<6; i++) {
-				if (ability.equals(AbilityScore.getAbilityName(i))) return abilities[i];
+				if (ability.equals(AbilityScore.getAbilityName(i))) return abilities[i].getValue();
 			}
 		}
 
 		if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
 			for (int i=0; i<6; i++) {
-				if (ability.equals(AbilityScore.getAbilityName(i))) return tempAbilities[i];
+				if (ability.equals(AbilityScore.getAbilityName(i))) return abilities[i].getOverride();
 			}
 		}
 

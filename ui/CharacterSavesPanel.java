@@ -1,10 +1,11 @@
 package ui;
 
-import gamesystem.AbilityScore;
+import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Map;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFormattedTextField;
@@ -91,22 +92,43 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 		layout.setVerticalGroup(vGroup);
 
 		character.addPropertyChangeListener(this);
+		updateToolTips();
 
 		add(inner);
 	}
 
+	protected void updateToolTips() {
+		for (int i = 0; i < totalLabels.length; i++) {
+			StringBuilder text = new StringBuilder();
+			text.append("<html><body>");
+			SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[i]);
+			text.append(stat.getBaseValue()).append(" base<br/>");
+			Map<Modifier, Boolean> mods = stat.getModifiers();
+			for (Modifier m : mods.keySet()) {
+				if (!mods.get(m)) text.append("<s>");
+				text.append(m);
+				if (!mods.get(m)) text.append("</s>");
+				text.append("<br/>");
+			}
+			text.append(character.getInitiativeModifier()).append(" total");
+			text.append("</body></html>");
+			totalLabels[i].setToolTipText(text.toString());
+		}
+	}
+
 	public void propertyChange(PropertyChangeEvent evt) {
 		String prop = evt.getPropertyName();
-		if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
-			prop = prop.substring(Creature.PROPERTY_ABILITY_PREFIX.length());
-			for (int i = 0; i < 3; i++) {
-				if (prop.equals(AbilityScore.getAbilityName(SavingThrow.getSaveAbility(i)))) {
-					//System.out.println("Ability "+prop+" modified for save "+Creature.getSavingThrowName(i));
-					modLabels[i].setText(""+character.getAbilityModifier(SavingThrow.getSaveAbility(i)));
-					totalLabels[i].setText(""+character.getSavingThrow(i));
-				}
-			}
-		} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
+//		if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
+//			prop = prop.substring(Creature.PROPERTY_ABILITY_PREFIX.length());
+//			for (int i = 0; i < 3; i++) {
+//				if (prop.equals(AbilityScore.getAbilityName(SavingThrow.getSaveAbility(i)))) {
+//					//System.out.println("Ability "+prop+" modified for save "+Creature.getSavingThrowName(i));
+//					modLabels[i].setText(""+character.getAbilityModifier(SavingThrow.getSaveAbility(i)));
+//					totalLabels[i].setText(""+character.getSavingThrow(i));
+//				}
+//			}
+//		} else 
+		if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
 			prop = prop.substring(Creature.PROPERTY_SAVE_PREFIX.length());
 			for (int i = 0; i < 3; i++) {
 				if (prop.equals(SavingThrow.getSavingThrowName(i))) {
@@ -114,6 +136,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 					totalLabels[i].setText(""+character.getSavingThrow(i));
 				}
 			}
+			updateToolTips();
 		}
 	}
 

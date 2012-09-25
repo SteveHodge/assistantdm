@@ -38,6 +38,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	protected JButton delete, apply, healAll;
 	protected boolean blank = true;
 	protected JLabel currentHPs;
+	protected JLabel acLabel, touchACLabel, flatFootedACLabel;
 	protected JComponent acComp, touchACComp, flatFootedACComp;
 	protected JCheckBox nonLethal;
 	protected JPanel statusPanel = new JPanel();
@@ -190,18 +191,21 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		c.fill = GridBagConstraints.NONE;
 
 		// AC components should have been setup by subclasses
+		acLabel = new JLabel("AC: ");
+		touchACLabel = new JLabel("Touch: ");
+		flatFootedACLabel = new JLabel("Flat Footed:"); 
 		c.gridx = 1; c.gridy = 2;
 		c.anchor = GridBagConstraints.LINE_START;
-		add(new JLabel("AC: "), c);
+		add(acLabel, c);
 		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 1.0;
 		add(acComp, c);
 		c.weightx = 0.0;
-		add(new JLabel("Touch: "), c);
+		add(touchACLabel, c);
 		c.weightx = 1.0;
 		add(touchACComp, c);
 		c.weightx = 0.0;
-		add(new JLabel("Flat Footed:"), c);
+		add(flatFootedACLabel, c);
 		c.weightx = 1.0;
 		c.gridwidth = 2;
 		add(flatFootedACComp, c);

@@ -37,6 +37,11 @@ public abstract class Creature {
 	public final static String STATISTIC_AC = "ac";
 	public final static String STATISTIC_INITIATIVE = "initiative";
 
+	// The order of these needs to be the same as the ability constants in AbilityScore
+	public final static String[] STATISTIC_ABILITY = {STATISTIC_STRENGTH,STATISTIC_DEXTERITY,STATISTIC_CONSTITUTION,STATISTIC_INTELLIGENCE,STATISTIC_WISDOM,STATISTIC_CHARISMA};
+	// The order of these needs to be the same as the save constants in SavingThrow
+	public final static String[] STATISTIC_SAVING_THROW = {STATISTIC_FORTITUDE_SAVE,STATISTIC_REFLEX_SAVE,STATISTIC_WILL_SAVE}; 
+
 	// ************************* Non static members and methods **************************
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);

@@ -1,11 +1,13 @@
 package ui;
 
 import gamesystem.AbilityScore;
+import gamesystem.Modifier;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -17,7 +19,9 @@ import javax.swing.table.TableModel;
 
 import party.Character;
 import party.Creature;
+import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
+import swing.TableModelWithToolTips;
 
 // TODO handle editing of temp scores better. consider adding ability check column
 
@@ -30,14 +34,14 @@ public class CharacterAbilityPanel extends JPanel {
 		character = c;
 		abilityModel = new AbilityTableModel();
 
-		JTable abilityTable = new JTable(abilityModel);
+		JTable abilityTable = new JTableWithToolTips(abilityModel);
 		abilityTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		abilityTable.getColumnModel().getColumn(0).setPreferredWidth(200);
 		abilityTable.setDefaultEditor(Integer.class, new SpinnerCellEditor() {
 			public Component getTableCellEditorComponent(JTable table,
 					Object value, boolean isSelected, int row, int column) {
 				if (value == null) {
-					value = table.getValueAt(row, column-1);	// this is fragile - it'll break if the column order in the model changes
+					value = character.getAbilityScore(row);
 				}
 				return super.getTableCellEditorComponent(table, value, isSelected, row, column);
 			}
@@ -49,7 +53,7 @@ public class CharacterAbilityPanel extends JPanel {
 		setBorder(new TitledBorder("Ability Scores"));
 	}
 
-	protected class AbilityTableModel extends AbstractTableModel implements PropertyChangeListener {
+	protected class AbilityTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelWithToolTips {
 		public AbilityTableModel() {
 			character.addPropertyChangeListener(this);
 		}
@@ -74,13 +78,14 @@ public class CharacterAbilityPanel extends JPanel {
 		public String getColumnName(int column) {
 			if (column == 0) return "Ability";
 			if (column == 1) return "Score";
-			if (column == 2) return "Current";
-			if (column == 3) return "Mod";
+			if (column == 2) return "Override";
+			if (column == 3) return "Current";
+			if (column == 4) return "Mod";
 			return super.getColumnName(column);
 		}
 
 		public int getColumnCount() {
-			return 4;
+			return 5;
 		}
 
 		public int getRowCount() {
@@ -91,10 +96,11 @@ public class CharacterAbilityPanel extends JPanel {
 			if (column == 0) return AbilityScore.getAbilityName(row);
 			if (column == 1) return character.getBaseAbilityScore(row);
 			if (column == 2) {
-				if (character.getAbilityScore(row) == character.getBaseAbilityScore(row)) return null;
+				if (character.getTemporaryAbility(row) == -1) return null;
 				return character.getAbilityScore(row);
 			}
-			if (column == 3) return character.getAbilityModifier(row);
+			if (column == 3) return character.getAbilityScore(row);
+			if (column == 4) return character.getAbilityModifier(row);
 			return null;
 		}
 
@@ -108,6 +114,29 @@ public class CharacterAbilityPanel extends JPanel {
 					}
 				}
 			}
+		}
+
+		public String getToolTipAt(int row, int col) {
+			System.out.println("getToolTipAt("+row+",...)");
+			AbilityScore s = (AbilityScore)character.getStatistic(Creature.STATISTIC_ABILITY[row]);
+			StringBuilder text = new StringBuilder();
+			text.append("<html><body>");
+			if (s.getOverride() > 0) text.append("<s>");
+			text.append(s.getBaseValue()).append(" base<br/>");
+			Map<Modifier, Boolean> mods = s.getModifiers();
+			for (Modifier m : mods.keySet()) {
+				if (!mods.get(m)) text.append("<s>");
+				text.append(m);
+				if (!mods.get(m)) text.append("</s>");
+				text.append("<br/>");
+			}
+			text.append(s.getValue()).append(" total ").append(s.getName());
+			if (s.getOverride() > 0) {
+				text.append("</s><br/>").append(s.getOverride()).append(" current ").append(s.getName()).append(" (override)");
+			}
+			text.append("<br/><br/>").append(s.getModifierValue()).append(" ").append(s.getName()).append(" modifier");
+			text.append("</body></html>");
+			return text.toString();
 		}
 	}
 }

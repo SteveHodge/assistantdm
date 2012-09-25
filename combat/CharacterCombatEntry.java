@@ -1,12 +1,14 @@
 package combat;
 
 import gamesystem.AC;
+import gamesystem.InitiativeModifier;
+import gamesystem.Modifier;
 
 import java.beans.PropertyChangeEvent;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JToolTip;
 
 import party.Character;
 import party.Creature;
@@ -24,10 +26,12 @@ public class CharacterCombatEntry extends CombatEntry {
 
 		creature.addPropertyChangeListener(this);
 		createPanel();
-		setToolTipText("AC breakdown"); // the text is irrelevant as we override the JToolTip (see below). this just forces the tip to appear
+		updateInitToolTip();
+		updateACToolTips();
+		//setToolTipText("AC breakdown"); // the text is irrelevant as we override the JToolTip (see below). this just forces the tip to appear
 	}
 
-	public JToolTip createToolTip() {
+/*	public JToolTip createToolTip() {
 		JToolTip tip = new JToolTip() {
 			public String getTipText() {
 				if (creature instanceof Character) {
@@ -47,6 +51,70 @@ public class CharacterCombatEntry extends CombatEntry {
 		};
         tip.setComponent(this);
         return tip;
+	}*/
+
+	protected void updateInitToolTip() {
+		if (!(creature instanceof Character)) return;
+		InitiativeModifier stat = (InitiativeModifier)((Character)creature).getStatistic(Creature.STATISTIC_INITIATIVE);
+
+		StringBuilder text = new StringBuilder();
+		text.append("<html><body>");
+		text.append(stat.getBaseValue()).append(" base<br/>");
+		Map<Modifier, Boolean> mods = stat.getModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (!mods.get(m)) text.append("<s>");
+			text.append(m);
+			if (!mods.get(m)) text.append("</s>");
+			text.append("<br/>");
+		}
+		text.append(((Character)creature).getInitiativeModifier()).append(" total");
+		text.append("</body></html>");
+		modifierComp.setToolTipText(text.toString());
+	}
+
+	protected void updateACToolTips() {
+		if (!(creature instanceof Character)) return;
+		Character character = (Character)creature; 
+		AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
+
+		StringBuilder text = new StringBuilder();
+		text.append("<html><body>10 base<br/>");
+		Map<Modifier, Boolean> mods = ac.getModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (!mods.get(m)) text.append("<s>");
+			text.append(m);
+			if (!mods.get(m)) text.append("</s>");
+			text.append("<br/>");
+		}
+		text.append(character.getAC()).append(" total</body></html>");
+		acLabel.setToolTipText(text.toString());
+		acComp.setToolTipText(text.toString());
+
+		text = new StringBuilder();
+		text.append("<html><body>10 base<br/>");
+		mods = ac.getTouchModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (!mods.get(m)) text.append("<s>");
+			text.append(m);
+			if (!mods.get(m)) text.append("</s>");
+			text.append("<br/>");
+		}
+		text.append(character.getTouchAC()).append(" total</body></html>");
+		touchACLabel.setToolTipText(text.toString());
+		touchACComp.setToolTipText(text.toString());
+
+		text = new StringBuilder();
+		text.append("<html><body>10 base<br/>");
+		mods = ac.getFlatFootedModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (!mods.get(m)) text.append("<s>");
+			text.append(m);
+			if (!mods.get(m)) text.append("</s>");
+			text.append("<br/>");
+		}
+		text.append(character.getFlatFootedAC()).append(" total</body></html>");
+		flatFootedACLabel.setToolTipText(text.toString());
+		flatFootedACComp.setToolTipText(text.toString());
 	}
 
 	protected JComponent createNameSection() {
@@ -65,8 +133,10 @@ public class CharacterCombatEntry extends CombatEntry {
 				((JLabel)acComp).setText(""+creature.getAC());
 				((JLabel)touchACComp).setText(""+creature.getTouchAC());
 				((JLabel)flatFootedACComp).setText(""+creature.getFlatFootedAC());
+				updateACToolTips();
 			} else if (evt.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 				((JLabel)modifierComp).setText("" + creature.getInitiativeModifier());
+				updateInitToolTip();
 			}
 		}
 	}

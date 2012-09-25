@@ -1,12 +1,14 @@
 package ui;
 
 import gamesystem.AC;
+import gamesystem.Modifier;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -42,6 +44,7 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 		totalLabel = new JLabel("Total AC: "+c.getAC());
 		touchLabel = new JLabel("Touch AC: "+c.getTouchAC());
 		flatLabel = new JLabel("Flat-footed AC: "+c.getFlatFootedAC());
+		updateToolTips();
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints a = new GridBagConstraints();
@@ -71,7 +74,48 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 			totalLabel.setText("Total AC: "+character.getAC());
 			touchLabel.setText("Touch AC: "+character.getTouchAC());
 			flatLabel.setText("Flat-footed AC: "+character.getFlatFootedAC());
+			updateToolTips();
 		}
+	}
+
+	protected void updateToolTips() {
+		AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
+
+		StringBuilder text = new StringBuilder();
+		text.append("<html><body>10 base<br/>");
+		Map<Modifier, Boolean> mods = ac.getModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (!mods.get(m)) text.append("<s>");
+			text.append(m);
+			if (!mods.get(m)) text.append("</s>");
+			text.append("<br/>");
+		}
+		text.append(character.getAC()).append(" total</body></html>");
+		totalLabel.setToolTipText(text.toString());
+
+		text = new StringBuilder();
+		text.append("<html><body>10 base<br/>");
+		mods = ac.getTouchModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (!mods.get(m)) text.append("<s>");
+			text.append(m);
+			if (!mods.get(m)) text.append("</s>");
+			text.append("<br/>");
+		}
+		text.append(character.getTouchAC()).append(" total</body></html>");
+		touchLabel.setToolTipText(text.toString());
+
+		text = new StringBuilder();
+		text.append("<html><body>10 base<br/>");
+		mods = ac.getFlatFootedModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (!mods.get(m)) text.append("<s>");
+			text.append(m);
+			if (!mods.get(m)) text.append("</s>");
+			text.append("<br/>");
+		}
+		text.append(character.getFlatFootedAC()).append(" total</body></html>");
+		flatLabel.setToolTipText(text.toString());
 	}
 
 	protected class ACTableModel extends AbstractTableModel implements PropertyChangeListener {
