@@ -69,6 +69,15 @@ public class Skills extends Statistic {
 		}
 	}
 
+	// returns true if this has an active conditional modifier
+	public boolean hasConditionalModifier(SkillType s) {
+		Map<Modifier,Boolean> mods = getModifiers(s);
+		for (Modifier m : mods.keySet()) {
+			if (mods.get(m) && m.getCondition() != null) return true;
+		}
+		return false;
+	}
+
 	public Map<Modifier,Boolean> getModifiers(SkillType s) {
 		Skill skill = skills.get(s);
 		Set<Modifier> mods = new HashSet<Modifier>(modifiers);

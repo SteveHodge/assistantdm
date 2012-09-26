@@ -34,8 +34,6 @@ import org.w3c.dom.NodeList;
 import xml.XML;
 
 // TODO priorities:
-// ui indication that conditions exist
-// tooltips for skills
 // ui for adding adhoc modifiers
 // buffs improvements - caster level based modifiers
 // attack bonus statistics
@@ -517,7 +515,7 @@ public class Character extends Creature implements XML {
 
 	protected int getFlatFootedAC(boolean allowTemp) {
 		if (allowTemp && hasTempFF) return tempFF;
-		return ac.getFlatFooted();
+		return ac.getFlatFootedAC().getValue();
 	}
 
    /**
@@ -533,7 +531,7 @@ public class Character extends Creature implements XML {
 
 	protected int getTouchAC(boolean allowTemp) {
 		if (allowTemp && hasTempTouch) return tempTouch;
-		return ac.getTouch();
+		return ac.getTouchAC().getValue();
 	}
 
    /**

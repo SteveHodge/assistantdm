@@ -1,12 +1,16 @@
 package ui;
 
 import gamesystem.AbilityScore;
+import gamesystem.Modifier;
 import gamesystem.SkillType;
+import gamesystem.Skills;
+import gamesystem.Statistic;
 
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -19,7 +23,9 @@ import javax.swing.table.TableModel;
 import party.Creature;
 import party.Character;
 
+import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
+import swing.TableModelWithToolTips;
 
 // TODO should allow adding of new skills and setting the ability
 // TODO need to add named skills (profession, craft, etc)
@@ -33,7 +39,7 @@ public class CharacterSkillsPanel extends JPanel {
 		character = c;
 
 		TableModel model = new SkillsTableModel();
-		JTable table = new JTable(model);
+		JTable table = new JTableWithToolTips(model);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.getColumnModel().getColumn(0).setPreferredWidth(200);
 		table.setDefaultEditor(Integer.class, new SpinnerCellEditor());
@@ -44,7 +50,7 @@ public class CharacterSkillsPanel extends JPanel {
 		setBorder(new TitledBorder("Skills"));
 	}
 
-	protected class SkillsTableModel extends AbstractTableModel implements PropertyChangeListener {
+	protected class SkillsTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelWithToolTips {
 		SkillType[] skills;
 
 		public SkillsTableModel() {
@@ -76,7 +82,10 @@ public class CharacterSkillsPanel extends JPanel {
 				return character.getAbilityModifier(ability);
 			}
 			if (col == 4) return character.getSkillMisc(skills[row]);
-			if (col == 5) return character.getSkillTotal(skills[row]);
+			if (col == 5) {
+				Skills s = (Skills)character.getStatistic(Creature.STATISTIC_SKILLS);
+				return character.getSkillTotal(skills[row])+(s.hasConditionalModifier()?"*":"");
+			}
 			return null;
 		}
 
@@ -131,6 +140,20 @@ public class CharacterSkillsPanel extends JPanel {
 					this.fireTableDataChanged();
 				}
 			}
+		}
+
+		public String getToolTipAt(int row, int col) {
+			Skills s = (Skills)character.getStatistic(Creature.STATISTIC_SKILLS);
+			StringBuilder text = new StringBuilder();
+			text.append("<html><body>");
+			text.append(s.getRanks(skills[row])).append(" base<br/>");
+			Map<Modifier, Boolean> mods = s.getModifiers(skills[row]);
+			text.append(Statistic.getModifiersHTML(mods));
+			text.append(s.getValue(skills[row])).append(" total ").append(skills[row].getName()).append("<br/>");
+			String conds = Statistic.getModifiersHTML(mods, true);
+			if (conds.length() > 0) text.append("<br/>").append(conds);
+			text.append("</body></html>");
+			return text.toString();
 		}
 	}
 }

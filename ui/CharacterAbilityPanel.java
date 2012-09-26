@@ -25,6 +25,7 @@ import swing.SpinnerCellEditor;
 import swing.TableModelWithToolTips;
 
 // TODO handle editing of temp scores better. consider adding ability check column
+// TODO modifier column should show "+" for non-negative modifiers
 
 @SuppressWarnings("serial")
 public class CharacterAbilityPanel extends JPanel {
@@ -100,7 +101,10 @@ public class CharacterAbilityPanel extends JPanel {
 				if (character.getTemporaryAbility(row) == -1) return null;
 				return character.getAbilityScore(row);
 			}
-			if (column == 3) return character.getAbilityScore(row);
+			if (column == 3) {
+				AbilityScore s = (AbilityScore)character.getStatistic(Creature.STATISTIC_ABILITY[row]);
+				return s.getValue()+((s.hasConditionalModifier() && s.getOverride() == 0)?"*":"");
+			}
 			if (column == 4) return character.getAbilityModifier(row);
 			return null;
 		}
@@ -125,15 +129,17 @@ public class CharacterAbilityPanel extends JPanel {
 			text.append(s.getBaseValue()).append(" base<br/>");
 			Map<Modifier, Boolean> mods = s.getModifiers();
 			text.append(Statistic.getModifiersHTML(mods));
-			text.append(s.getValue()).append(" total ").append(s.getName());
+			text.append(s.getValue()).append(" total ").append(s.getName()).append("<br/>");
 			String conds = Statistic.getModifiersHTML(mods, true);
-			if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+			if (conds.length() > 0) text.append("<br/>").append(conds);
 
 			if (s.getOverride() > 0) {
 				text.append("</s><br/>").append(s.getOverride()).append(" current ").append(s.getName()).append(" (override)");
 			}
 			
-			text.append("<br/><br/>").append(s.getModifierValue()).append(" ").append(s.getName()).append(" modifier");
+			text.append("<br/>");
+			if (s.getModifierValue() >= 0) text.append("+");
+			text.append(s.getModifierValue()).append(" ").append(s.getName()).append(" modifier");
 			text.append("</body></html>");
 			return text.toString();
 		}

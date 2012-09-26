@@ -36,7 +36,8 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 		baseInit = new BoundIntegerField(character, Creature.PROPERTY_INITIATIVE, 3);
 		add(baseInit);
 
-		totLabel = new JLabel("Total: "+character.getInitiativeModifier());
+		InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
+		totLabel = new JLabel("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 		add(totLabel);
 
 		updateToolTip();
@@ -63,7 +64,8 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(AbilityScore.ABILITY_DEXTERITY))) {
 			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(AbilityScore.ABILITY_DEXTERITY));
 		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
-			totLabel.setText("Total: "+character.getInitiativeModifier());
+			InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
+			totLabel.setText("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 			updateToolTip();
 		}
 	}

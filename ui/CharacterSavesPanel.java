@@ -70,7 +70,8 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 			miscSaveFields[type].setColumns(3);
 			miscSaveFields[type].addPropertyChangeListener("value", new MiscFieldPropertyListener(type));
 			modLabels[type] = new JLabel(""+character.getAbilityModifier(SavingThrow.getSaveAbility(type)));
-			totalLabels[type] = new JLabel(""+character.getSavingThrow(type));
+			SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[type]);
+			totalLabels[type] = new JLabel(""+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 			vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 					.addComponent(saveLabels[type])
 					.addComponent(baseSaveFields[type])
@@ -131,7 +132,8 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 			for (int i = 0; i < 3; i++) {
 				if (prop.equals(SavingThrow.getSavingThrowName(i))) {
 					baseSaveFields[i].setValue(new Integer(character.getSavingThrowBase(i)));
-					totalLabels[i].setText(""+character.getSavingThrow(i));
+					SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[i]);
+					totalLabels[i].setText(""+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 				}
 			}
 			updateToolTips();

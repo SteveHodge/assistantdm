@@ -75,6 +75,15 @@ public class Statistic {
 		return getModifiersTotal();
 	}
 
+	// returns true if this has an active conditional modifier
+	public boolean hasConditionalModifier() {
+		Map<Modifier,Boolean> mods = getModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (mods.get(m) && m.getCondition() != null) return true;
+		}
+		return false;
+	}
+
 	// returns the total of all active modifiers
 	public int getModifiersTotal() {
 		return getModifiersTotal(modifiers , null);
@@ -106,40 +115,40 @@ public class Statistic {
 	 * never returns null, though may return an empty map
 	 */
 	// TODO inefficient implementation
-	// TODO conditional modifiers should be marked as active if they are larger than all non-conditional modifiers of the same type
 	public static Map<Modifier,Boolean> getModifiers(Set<Modifier> modifiers) {
 		// go through all the modifiers
-		// if the modifier source is the same as another modifier source then only the highest bonus or lowest penalty counts
-		// else {
-		//	if the modifier type is dodge or circumstance then it counts
-		//	if the modifier type is null then it counts
-		//	if the modifier type is the same as another modifier type then only the highest bonus or lowest penalty count
-		// }
-		HashMap<Modifier,Boolean> map = new HashMap<Modifier,Boolean>();
-		HashSet<Modifier> conditionals = new HashSet<Modifier>();
-		for (Modifier m : modifiers) {
-			if (m.getCondition() != null) {
-				// conditional modifiers are handled last
-				conditionals.add(m);
-				continue;
-			}
+		// non-conditional modifiers should be active unless
+		// 1. there is a modifier from the same source that is better
+		// 2. there is a modifier with the same type that is better (and the type is not dodge, circumstance, or untyped)
+		// conditional modifiers should be active unless:
+		// 1. there is a modifier with no condition or the same condition that is from the same source and is better
+		// 2. there is a modifier with no condition or the same condition of the same type that is better (and the type is not dodge, circumstance, or untyped)
 
+		HashMap<Modifier,Boolean> map = new HashMap<Modifier,Boolean>();
+		for (Modifier m : modifiers) {
 			boolean include = true;
-			// if the modifier is 0 then it doesn't count
+
+			// if the modifier is 0 then exlcude it
 			if (m.getModifier() == 0) include = false;
 
 			// check if there are modifiers with the same source and sign (we assume that two modifiers from the same source on the same target will always have the same type)
 			if (include && m.getSource() != null) {
 				for (Modifier a : map.keySet()) {
-					if (m.getSource().equals(a.getSource()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())) {
-						if (Math.abs(m.getModifier()) <= Math.abs(a.getModifier())) {
-							// m is a smaller modifer so exclude it
-							include = false;
-							break;
+					if (map.get(a) && m.getSource().equals(a.getSource()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())) {
+						// 'a' is an existing active modifier with the same source and sign
+						if (Math.abs(m.getModifier()) < Math.abs(a.getModifier())) {
+							// m is a smaller modifier so exclude it unless 'a' has a different condition
+							if (a.getCondition() == null || a.getCondition().equals(m.getCondition())) {
+								include = false;
+								break;
+							}
 						} else {
-							// m is a larger modifier so exclude the old modifier
+							// m is equal or larger modifier
+							// we should exclude 'a' if m has no condition or m and a have the same condition
 							// note this could cause problem if a later modifier in the set invalidates this modifier but that shouldn't happen
-							map.put(a, false);
+							if (m.getCondition() == null || m.getCondition().equals(a.getCondition())) {
+								map.put(a, false);
+							}
 						}
 					}
 				}
@@ -148,78 +157,28 @@ public class Statistic {
 			// check if there are modifiers with the same type and sign (but not dodge, circumstance of untyped modifiers as they always count)
 			if (include && m.getType() != null && !m.getType().equals("dodge") && !m.getType().equals("circumstance")) {
 				for (Modifier a : map.keySet()) {
-					if (m.getType().equals(a.getType()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())) {
-						if (Math.abs(m.getModifier()) <= Math.abs(a.getModifier())) {
-							// m is a smaller modifer so exclude it
-							include = false;
-							break;
-						} else {
-							// m is a larger modifier so exclude the old modifier
-							// note this could cause problem if a later modifier in the set invalidates this modifier but that shouldn't happen
-							map.put(a, false);
-						}
-					}
-				}
-			}
-
-			map.put(m, include);
-		}
-
-		// now we do conditional modifiers
-		// conditional modifiers should be active unless:
-		// 1. there is a modifier with no condition or the same condition that is from the same source and is better
-		// 2. there is a modifier with no condition or the same condition of the same type that is better (and the type is not dodge, circumstance, or untyped)
-		// TODO i think conditionals can be processed at the same time as non-conditionals 
-		for (Modifier m : conditionals) {
-			boolean include = true;
-
-			// if the modifier is 0 then it doesn't count
-			if (m.getModifier() == 0) include = false;
-
-			// check if there are modifiers with the same source and sign
-			if (include && m.getSource() != null) {
-				for (Modifier a : map.keySet()) {
-					if (map.get(a) && m.getSource().equals(a.getSource()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())) {
-						// 'a' is an existing active modifier with the same source and sign
-						if (Math.abs(m.getModifier()) <= Math.abs(a.getModifier())) {
-							// m is a smaller modifier so exclude it
-							include = false;
-							break;
-						} else {
-							// m is a larger modifier
-							// if a has the same condition as m then we exclude it
-							// note this could cause problem if a later modifier in the set invalidates this modifier but that shouldn't happen 
-							if (a.getCondition() != null && m.getCondition().equals(a.getCondition())) {
-								map.put(a, false);
-							}
-						}
-					}
-				}
-			}
-
-			if (include && m.getType() != null && !m.getType().equals("dodge") && !m.getType().equals("circumstance")) {
-				for (Modifier a : map.keySet()) {
 					if (map.get(a) && m.getType().equals(a.getType()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())) {
-						// 'a' is an existing active modifier of same type and sign
-						if (Math.abs(m.getModifier()) <= Math.abs(a.getModifier())) {
-							// m has a smaller modifier
+						if (Math.abs(m.getModifier()) < Math.abs(a.getModifier())) {
+							// m is a smaller modifier so exclude it unless 'a' has a different condition
 							if (a.getCondition() == null || a.getCondition().equals(m.getCondition())) {
-								// a has no condition or it has the same condition as m, so exclude m
 								include = false;
 								break;
 							}
 						} else {
-							// m is a larger modifier
-							// if a has the same condition as m then we exclude it
-							if (a.getCondition() != null && m.getCondition().equals(a.getCondition())) {
+							// m is equal or larger modifier
+							// we should exclude 'a' if m has no condition or m and a have the same condition
+							// note this could cause problem if a later modifier in the set invalidates this modifier but that shouldn't happen
+							if (m.getCondition() == null || m.getCondition().equals(a.getCondition())) {
 								map.put(a, false);
 							}
 						}
 					}
 				}
 			}
+
 			map.put(m, include);
 		}
+
 		return map;
 	}
 

@@ -92,10 +92,10 @@ public class Buff {
 	public static Buff[] buffs = {
 		(new Buff("Shield Other"))
 			.addEffect("ac","Deflection",1)
-			//.addEffect("initiative","Luck",3)
 			.addEffect("saves","Resistence",1),
 		(new Buff("Resistance"))
-			//.addEffect("initiative","Luck",2)
+			//.addEffect("initiative","Luck",2,"vs evil")
+			//.addEffect("ac","Dodge",2,"vs evil")
 			.addEffect("saves","Resistence",1),
 		(new Buff("Mage Armor"))
 			.addEffect("ac","Armor",4),
@@ -161,9 +161,6 @@ public class Buff {
 			.addEffect("abilities.constitution", "morale", 2)
 			.addEffect("saves.will", "morale", 1)
 			.addEffect("ac", null, -2),
-			(new Buff("Bless2"))
-			//.addEffect("attacks","morale",1)
-			.addEffect("saves", "morale", 3, "vs evil"),
 
 // needs caster level:
 			//Divine Favor		yes, CL	+1 luck on attack, dmg per 3 cl (max +3)

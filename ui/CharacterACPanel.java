@@ -24,6 +24,7 @@ import party.Character;
 import party.Creature;
 import swing.SpinnerCellEditor;
 
+// TODO flag conditional modifiers for touch and flatfooted
 @SuppressWarnings("serial")
 public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 	protected Character character;
@@ -42,9 +43,10 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 		acTable.setDefaultEditor(Integer.class, new SpinnerCellEditor());
 		JScrollPane acScrollpane = new JScrollPane(acTable);
 
-		totalLabel = new JLabel("Total AC: "+c.getAC());
-		touchLabel = new JLabel("Touch AC: "+c.getTouchAC());
-		flatLabel = new JLabel("Flat-footed AC: "+c.getFlatFootedAC());
+		AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
+		totalLabel = new JLabel("Total AC: "+ac.getValue()+(ac.hasConditionalModifier()?"*":""));
+		touchLabel = new JLabel("Touch AC: "+ac.getTouchAC().getValue()+(ac.getTouchAC().hasConditionalModifier()?"*":""));
+		flatLabel = new JLabel("Flat-footed AC: "+ac.getFlatFootedAC().getValue()+(ac.getFlatFootedAC().hasConditionalModifier()?"*":""));
 		updateToolTips();
 
 		setLayout(new GridBagLayout());
@@ -72,9 +74,10 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 
 	public void propertyChange(PropertyChangeEvent arg0) {
 		if (arg0.getPropertyName().equals(Creature.PROPERTY_AC)) {
-			totalLabel.setText("Total AC: "+character.getAC());
-			touchLabel.setText("Touch AC: "+character.getTouchAC());
-			flatLabel.setText("Flat-footed AC: "+character.getFlatFootedAC());
+			AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
+			totalLabel.setText("Total AC: "+ac.getValue()+(ac.hasConditionalModifier()?"*":""));
+			touchLabel.setText("Touch AC: "+ac.getTouchAC().getValue()+(ac.getTouchAC().hasConditionalModifier()?"*":""));
+			flatLabel.setText("Flat-footed AC: "+ac.getFlatFootedAC().getValue()+(ac.getFlatFootedAC().hasConditionalModifier()?"*":""));
 			updateToolTips();
 		}
 	}
@@ -92,7 +95,7 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 		text.append("</body></html>");
 		totalLabel.setToolTipText(text.toString());
 
-		mods = ac.getTouchModifiers();
+		mods = ac.getTouchAC().getModifiers();
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
@@ -102,7 +105,7 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 		text.append("</body></html>");
 		touchLabel.setToolTipText(text.toString());
 
-		mods = ac.getFlatFootedModifiers();
+		mods = ac.getFlatFootedAC().getModifiers();
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
