@@ -2,6 +2,7 @@ package ui;
 
 import gamesystem.AC;
 import gamesystem.Modifier;
+import gamesystem.Statistic;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -81,40 +82,34 @@ public class CharacterACPanel extends JPanel implements PropertyChangeListener {
 	protected void updateToolTips() {
 		AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
 
+		Map<Modifier, Boolean> mods = ac.getModifiers();
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
-		Map<Modifier, Boolean> mods = ac.getModifiers();
-		for (Modifier m : mods.keySet()) {
-			if (!mods.get(m)) text.append("<s>");
-			text.append(m);
-			if (!mods.get(m)) text.append("</s>");
-			text.append("<br/>");
-		}
-		text.append(character.getAC()).append(" total</body></html>");
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(character.getAC()).append(" total");
+		String conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		text.append("</body></html>");
 		totalLabel.setToolTipText(text.toString());
 
+		mods = ac.getTouchModifiers();
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
-		mods = ac.getTouchModifiers();
-		for (Modifier m : mods.keySet()) {
-			if (!mods.get(m)) text.append("<s>");
-			text.append(m);
-			if (!mods.get(m)) text.append("</s>");
-			text.append("<br/>");
-		}
-		text.append(character.getTouchAC()).append(" total</body></html>");
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(character.getTouchAC()).append(" total");
+		conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		text.append("</body></html>");
 		touchLabel.setToolTipText(text.toString());
 
+		mods = ac.getFlatFootedModifiers();
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
-		mods = ac.getFlatFootedModifiers();
-		for (Modifier m : mods.keySet()) {
-			if (!mods.get(m)) text.append("<s>");
-			text.append(m);
-			if (!mods.get(m)) text.append("</s>");
-			text.append("<br/>");
-		}
-		text.append(character.getFlatFootedAC()).append(" total</body></html>");
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(character.getFlatFootedAC()).append(" total");
+		conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		text.append("</body></html>");
 		flatLabel.setToolTipText(text.toString());
 	}
 

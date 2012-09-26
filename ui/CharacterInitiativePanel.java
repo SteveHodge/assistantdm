@@ -3,6 +3,7 @@ package ui;
 import gamesystem.AbilityScore;
 import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
+import gamesystem.Statistic;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -50,13 +51,10 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 		InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
 		text.append(stat.getBaseValue()).append(" base<br/>");
 		Map<Modifier, Boolean> mods = stat.getModifiers();
-		for (Modifier m : mods.keySet()) {
-			if (!mods.get(m)) text.append("<s>");
-			text.append(m);
-			if (!mods.get(m)) text.append("</s>");
-			text.append("<br/>");
-		}
-		text.append(character.getInitiativeModifier()).append(" total");
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(stat.getValue()).append(" total");
+		String conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
 		totLabel.setToolTipText(text.toString());
 	}

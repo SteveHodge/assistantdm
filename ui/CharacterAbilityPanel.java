@@ -2,6 +2,7 @@ package ui;
 
 import gamesystem.AbilityScore;
 import gamesystem.Modifier;
+import gamesystem.Statistic;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -117,23 +118,21 @@ public class CharacterAbilityPanel extends JPanel {
 		}
 
 		public String getToolTipAt(int row, int col) {
-			System.out.println("getToolTipAt("+row+",...)");
 			AbilityScore s = (AbilityScore)character.getStatistic(Creature.STATISTIC_ABILITY[row]);
 			StringBuilder text = new StringBuilder();
 			text.append("<html><body>");
 			if (s.getOverride() > 0) text.append("<s>");
 			text.append(s.getBaseValue()).append(" base<br/>");
 			Map<Modifier, Boolean> mods = s.getModifiers();
-			for (Modifier m : mods.keySet()) {
-				if (!mods.get(m)) text.append("<s>");
-				text.append(m);
-				if (!mods.get(m)) text.append("</s>");
-				text.append("<br/>");
-			}
+			text.append(Statistic.getModifiersHTML(mods));
 			text.append(s.getValue()).append(" total ").append(s.getName());
+			String conds = Statistic.getModifiersHTML(mods, true);
+			if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+
 			if (s.getOverride() > 0) {
 				text.append("</s><br/>").append(s.getOverride()).append(" current ").append(s.getName()).append(" (override)");
 			}
+			
 			text.append("<br/><br/>").append(s.getModifierValue()).append(" ").append(s.getName()).append(" modifier");
 			text.append("</body></html>");
 			return text.toString();

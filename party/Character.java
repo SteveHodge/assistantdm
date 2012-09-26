@@ -34,15 +34,18 @@ import org.w3c.dom.NodeList;
 import xml.XML;
 
 // TODO priorities:
+// ui indication that conditions exist
+// tooltips for skills
 // ui for adding adhoc modifiers
-// buffs improvements - conditional modifiers, caster level based modifiers
+// buffs improvements - caster level based modifiers
 // attack bonus statistics
 // move hp to statistic, implement temporary hitpoints
 // equipment, particularly magic item slots, armor, weapons
 
 // TODO Should allow temporary hitpoints - will require careful consideration of how wounds work
-// TODO AC temp scores. allow multiple bonuses of each type
-// TODO convert ui classes that listen to Character to listen to the specific Statistics instead
+// TODO rework ac ui: list all bonuses, allow multiple bonuses of each type, AC temp scores?
+// TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
+// that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
 // TODO need to review how properties work on Character and BoundIntegerField
 
 /* Things to implement:

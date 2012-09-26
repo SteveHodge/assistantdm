@@ -68,6 +68,10 @@ public class AbilityScore extends Statistic {
 			s.append(getModifier()).append(" ").append(getAbilityName(type)).append(" modifier ");
 			return s.toString();
 		}
+
+		public String getCondition() {
+			return null;
+		}
 	};
 
 	// TODO bounds checking

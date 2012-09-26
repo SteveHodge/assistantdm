@@ -36,7 +36,7 @@ public class AC extends Statistic {
 
 		Map<Modifier,Boolean> map = getModifiers();
 		for (Modifier m : map.keySet()) {
-			if (map.get(m) && (	m.getType().equals("Armor") || m.getType().equals("Shield") || m.getType().equals("Natural"))) {
+			if (map.get(m) && m.getType() != null && (m.getType().equals("Armor") || m.getType().equals("Shield") || m.getType().equals("Natural"))) {
 				ac -= m.getModifier();
 			}
 		}
@@ -46,7 +46,7 @@ public class AC extends Statistic {
 	public Map<Modifier,Boolean> getTouchModifiers() {
 		Map<Modifier,Boolean> map = getModifiers();
 		for (Modifier m : modifiers) {
-			if (m.getType().equals("Armor") || m.getType().equals("Shield") || m.getType().equals("Natural")) {
+			if (m.getType() != null && (m.getType().equals("Armor") || m.getType().equals("Shield") || m.getType().equals("Natural"))) {
 				map.remove(m);
 			}
 		}
@@ -58,7 +58,7 @@ public class AC extends Statistic {
 
 		Map<Modifier,Boolean> map = getModifiers();
 		for (Modifier m : map.keySet()) {
-			if (map.get(m) && (	m.getType().equals("Dexterity") || m.getType().equals("Dodge"))) {
+			if (map.get(m) && m.getType() != null && (m.getType().equals("Dexterity") || m.getType().equals("Dodge"))) {
 				ac -= m.getModifier();
 			}
 		}
@@ -68,7 +68,7 @@ public class AC extends Statistic {
 	public Map<Modifier,Boolean> getFlatFootedModifiers() {
 		Map<Modifier,Boolean> map = getModifiers();
 		for (Modifier m : modifiers) {
-			if (m.getType().equals("Dexterity") || m.getType().equals("Dodge")) {
+			if (m.getType() != null && (m.getType().equals("Dexterity") || m.getType().equals("Dodge"))) {
 				map.remove(m);
 			}
 		}

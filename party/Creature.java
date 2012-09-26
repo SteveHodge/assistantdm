@@ -1,6 +1,12 @@
 package party;
+import gamesystem.AbilityScore;
+import gamesystem.SavingThrow;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class Creature {
 	// properties
@@ -41,6 +47,25 @@ public abstract class Creature {
 	public final static String[] STATISTIC_ABILITY = {STATISTIC_STRENGTH,STATISTIC_DEXTERITY,STATISTIC_CONSTITUTION,STATISTIC_INTELLIGENCE,STATISTIC_WISDOM,STATISTIC_CHARISMA};
 	// The order of these needs to be the same as the save constants in SavingThrow
 	public final static String[] STATISTIC_SAVING_THROW = {STATISTIC_FORTITUDE_SAVE,STATISTIC_REFLEX_SAVE,STATISTIC_WILL_SAVE}; 
+
+	public final static Map<String,String> STATISTIC_DESC;
+	static {
+		HashMap<String,String> map = new HashMap<String,String>();
+		map.put(STATISTIC_STRENGTH, AbilityScore.getAbilityName(AbilityScore.ABILITY_STRENGTH));
+		map.put(STATISTIC_INTELLIGENCE, AbilityScore.getAbilityName(AbilityScore.ABILITY_INTELLIGENCE));
+		map.put(STATISTIC_WISDOM, AbilityScore.getAbilityName(AbilityScore.ABILITY_WISDOM));
+		map.put(STATISTIC_DEXTERITY, AbilityScore.getAbilityName(AbilityScore.ABILITY_DEXTERITY));
+		map.put(STATISTIC_CONSTITUTION, AbilityScore.getAbilityName(AbilityScore.ABILITY_CONSTITUTION));
+		map.put(STATISTIC_CHARISMA, AbilityScore.getAbilityName(AbilityScore.ABILITY_CHARISMA));
+		map.put(STATISTIC_SAVING_THROWS, "saves");
+		map.put(STATISTIC_FORTITUDE_SAVE, SavingThrow.getSavingThrowName(SavingThrow.SAVE_FORTITUDE)+" save");
+		map.put(STATISTIC_WILL_SAVE, SavingThrow.getSavingThrowName(SavingThrow.SAVE_WILL)+" save");
+		map.put(STATISTIC_REFLEX_SAVE, SavingThrow.getSavingThrowName(SavingThrow.SAVE_REFLEX)+" save");
+		map.put(STATISTIC_SKILLS, "skills");
+		map.put(STATISTIC_AC, "AC");
+		map.put(STATISTIC_INITIATIVE, "Initiative");		
+		STATISTIC_DESC = Collections.unmodifiableMap(map);
+	}
 
 	// ************************* Non static members and methods **************************
 
