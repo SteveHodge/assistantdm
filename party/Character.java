@@ -1,8 +1,11 @@
 package party;
 import gamesystem.AC;
 import gamesystem.AbilityScore;
+import gamesystem.Attacks;
+import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
+import gamesystem.Level;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Skill;
@@ -34,10 +37,10 @@ import org.w3c.dom.NodeList;
 import xml.XML;
 
 // TODO priorities:
+// review Statistics vs Properties
 // ui for adding adhoc modifiers
-// buffs improvements - caster level based modifiers
-// attack bonus statistics
-// move hp to statistic, implement temporary hitpoints
+// implement temporary hitpoints
+// size
 // equipment, particularly magic item slots, armor, weapons
 
 // TODO Should allow temporary hitpoints - will require careful consideration of how wounds work
@@ -84,12 +87,16 @@ public class Character extends Creature implements XML {
 	//protected Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();
 	protected Map<SkillType,Modifier> skillMisc = new HashMap<SkillType,Modifier>();
 	
-	protected int hps, wounds, nonLethal, xp = 0, level = 1;
+	protected HPs hps;
+	protected Level level; 
+	protected int xp = 0;
 
 	protected AC ac;
 	protected Modifier[] acMods = new Modifier[AC.AC_MAX_INDEX];
 	protected int tempAC, tempTouch, tempFF;	// ac overrides
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
+
+	protected Attacks attacks;
 
 	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
 
@@ -164,7 +171,13 @@ public class Character extends Creature implements XML {
 
 	protected PropertyChangeListener statListener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent evt) {
-			if (!evt.getPropertyName().equals("value")) return;	// only care about "value" updates
+			if (evt.getSource() == hps) {
+				pcs.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+				return;
+			}
+
+			// only care about "value" updates from other statistics...
+			if (!evt.getPropertyName().equals("value")) return;
 
 			if (evt.getSource() == initiative) {
 				//System.out.println("Inititative change event: "+getName()+" old = "+evt.getOldValue()+", new = "+evt.getNewValue());
@@ -173,18 +186,6 @@ public class Character extends Creature implements XML {
 			} else if (evt.getSource() instanceof AbilityScore) {
 				AbilityScore score = (AbilityScore)evt.getSource();
 		        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+score.getName(), evt.getOldValue(), evt.getNewValue());
-
-		        // TODO currently broken - we can't get the old modifier
-//	        	if (score.getType() == AbilityScore.ABILITY_CONSTITUTION) {
-//		        	// hit points
-//	        		int oldhps = getMaximumHitPoints();
-//	        		int oldmod = AbilityScore.getModifier(evt.getOldValue());
-//	        		int newmod = AbilityScore.getModifier(evt.getNewValue());
-//	        		int newhps = oldhps + (level * (newmod - oldmod));
-//	        		if (newhps < level) newhps = level;	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
-//	        		System.out.println("changing max hps from "+oldhps+" to "+newhps);
-//	        		setMaximumHitPoints(newhps);
-//				}
 
 			} else if (evt.getSource() instanceof Skill) {
 				Skill s = (Skill)evt.getSource();
@@ -206,6 +207,12 @@ public class Character extends Creature implements XML {
 
 			} else if (evt.getSource() == ac) {
 				pcs.firePropertyChange(PROPERTY_AC, evt.getOldValue(), evt.getNewValue());
+
+			} else if (evt.getSource() == attacks) {
+				pcs.firePropertyChange(PROPERTY_BAB, evt.getOldValue(), evt.getNewValue());
+
+			} else {
+				System.out.println("Unknown property change event: "+evt);
 			}
 		
 		}
@@ -231,6 +238,14 @@ public class Character extends Creature implements XML {
 
 		skills = new Skills(abilities);
 		skills.addPropertyChangeListener(statListener);
+
+		level = new Level();
+
+		hps = new HPs(abilities[AbilityScore.ABILITY_CONSTITUTION], level);
+		hps.addPropertyChangeListener(statListener);
+
+		attacks = new Attacks(abilities[AbilityScore.ABILITY_STRENGTH]);
+		attacks.addPropertyChangeListener(statListener);
 	}
 
 	public String toString() {
@@ -439,37 +454,31 @@ public class Character extends Creature implements XML {
 // TODO hit points should also have a temporary bonus value
 
 	public int getMaximumHitPoints() {
-		return hps;
+		return hps.getMaximumHitPoints();
 	}
 
 	public void setMaximumHitPoints(int hp) {
-		int old = hps;
-		hps = hp;
-        pcs.firePropertyChange(PROPERTY_MAXHPS, old, hp);
+		hps.setMaximumHitPoints(hp);
 	}		
 
 	public int getWounds() {
-		return wounds;
+		return hps.getWounds();
 	}
 
 	public void setWounds(int i) {
-		int old = wounds;
-		wounds = i;
-		pcs.firePropertyChange(PROPERTY_WOUNDS, old, i);
+		hps.setWounds(i);
 	}
 
 	public int getNonLethal() {
-		return nonLethal;
+		return hps.getNonLethal();
 	}
 
 	public void setNonLethal(int i) {
-		int old = nonLethal;
-		nonLethal = i;
-		pcs.firePropertyChange(PROPERTY_NONLETHAL, old, i);
+		hps.setNonLethal(i);
 	}
 
 	public int getHPs() {
-		return hps - wounds - nonLethal;
+		return hps.getHPs();
 	}
 
 //------------------- Armor Class -------------------
@@ -603,7 +612,7 @@ public class Character extends Creature implements XML {
 	}
 
 	public int getRequiredXP() {
-		return XP.getXPRequired(level+1);
+		return XP.getXPRequired(level.getLevel()+1);
 	}
 
 	/*public String getXPHistory() {
@@ -624,10 +633,10 @@ public class Character extends Creature implements XML {
 	
 	public void addXPChallenges(int count, int penalty, Collection<Challenge> challenges, String comment, Date d) {
 		XP.XPChangeChallenges change = new XP.XPChangeChallenges(comment, d);
-		change.level = level;
+		change.level = level.getLevel();
 		change.partyCount = count;
 		change.penalty = penalty;
-		change.xp = XP.getXP(level, count, penalty, challenges);
+		change.xp = XP.getXP(level.getLevel(), count, penalty, challenges);
 		change.challenges.addAll(challenges);
 		addXPChange(change);
 		int old = xp;
@@ -643,15 +652,15 @@ public class Character extends Creature implements XML {
 	}
 
 	public int getLevel() {
-		return level;
+		return level.getLevel();
 	}
 
 	public void setLevel(int l, String comment, Date d) {
-		if (level == l) return;
-		addXPChange(new XP.XPChangeLevel(level, l, comment, d));
-		int old = level;
-		level = l;
-		pcs.firePropertyChange(PROPERTY_LEVEL, old, level);
+		if (level.getLevel() == l) return;
+		addXPChange(new XP.XPChangeLevel(level.getLevel(), l, comment, d));
+		int old = level.getLevel();
+		level.setLevel(l);
+		pcs.firePropertyChange(PROPERTY_LEVEL, old, level.getLevel());
 	}
 
 //------------------- XP History ------------------
@@ -732,7 +741,14 @@ public class Character extends Creature implements XML {
 		} else if (name.equals(STATISTIC_SKILLS)) {
 			return skills;
 		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
+			// TODO implement?
 			return null;
+		} else if (name.equals(STATISTIC_LEVEL)) {
+			return level;
+		} else if (name.equals(STATISTIC_HPS)) {
+			return hps;
+		} else if (name.equals(STATISTIC_ATTACKS)) {
+			return attacks;
 		} else {
 			System.out.println("Unknown statistic "+name);
 			return null;
@@ -751,16 +767,16 @@ public class Character extends Creature implements XML {
 				String tag = e.getTagName();
 
 				if (tag.equals("HitPoints")) {
-					c.hps = Integer.parseInt(e.getAttribute("maximum"));
-					if (e.hasAttribute("wounds")) c.wounds = Integer.parseInt(e.getAttribute("wounds"));
-					if (e.hasAttribute("non-lethal")) c.nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
+					c.setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
+					if (e.hasAttribute("wounds")) c.setWounds(Integer.parseInt(e.getAttribute("wounds")));
+					if (e.hasAttribute("non-lethal")) c.setNonLethal(Integer.parseInt(e.getAttribute("non-lethal")));
 
 				} else if (tag.equals("Initiative")) {
 					String value = e.getAttribute("value");
 					if (value != null) c.initiative.setBaseValue(Integer.parseInt(value));
 
 				} else if (tag.equals("Level")) {
-					c.level = Integer.parseInt(e.getAttribute("level"));
+					c.level.setLevel(Integer.parseInt(e.getAttribute("level")));
 					c.xp = Integer.parseInt(e.getAttribute("xp"));
 					NodeList awards = e.getChildNodes();
 					if (awards != null) {
@@ -923,19 +939,20 @@ public class Character extends Creature implements XML {
 
 	// Prints the differences between this and inChar
 	// XXX does not include level or xp
+	// TODO add attacks and other new statistcs here
 	public void showDiffs(Character inChar) {
 		if (!name.equals(inChar.name)) {
 			// new attribute
 			System.out.println(PROPERTY_NAME+"|"+name+"|"+inChar.name);
 		}
-		if (hps != inChar.hps) {
+		if (hps.getMaximumHitPoints() != inChar.hps.getMaximumHitPoints()) {
 			System.out.println(PROPERTY_MAXHPS+"|"+hps+"|"+inChar.hps);
 		}
-		if (wounds != inChar.wounds) {
-			System.out.println(PROPERTY_WOUNDS+"|"+wounds+"|"+inChar.wounds);
+		if (hps.getWounds() != inChar.hps.getWounds()) {
+			System.out.println(PROPERTY_WOUNDS+"|"+hps.getWounds()+"|"+inChar.hps.getWounds());
 		}
-		if (nonLethal != inChar.nonLethal) {
-			System.out.println(PROPERTY_NONLETHAL+"|"+nonLethal+"|"+inChar.nonLethal);
+		if (hps.getNonLethal() != inChar.hps.getNonLethal()) {
+			System.out.println(PROPERTY_NONLETHAL+"|"+hps.getNonLethal()+"|"+inChar.hps.getNonLethal());
 		}
 		if (initiative.getBaseValue() != inChar.initiative.getBaseValue()) {
 			System.out.println(PROPERTY_INITIATIVE+"|"+initiative.getBaseValue()+"|"+inChar.initiative.getBaseValue());
@@ -977,9 +994,9 @@ public class Character extends Creature implements XML {
 		List<String> diffs = new ArrayList<String>();
 
 		if (!name.equals(inChar.name)) diffs.add(PROPERTY_NAME);
-		if (hps != inChar.hps) diffs.add(PROPERTY_MAXHPS);
-		if (wounds != inChar.wounds) diffs.add(PROPERTY_WOUNDS);
-		if (nonLethal != inChar.nonLethal) diffs.add(PROPERTY_NONLETHAL);
+		if (hps.getMaximumHitPoints() != inChar.hps.getMaximumHitPoints()) diffs.add(PROPERTY_MAXHPS);
+		if (hps.getWounds() != inChar.hps.getWounds()) diffs.add(PROPERTY_WOUNDS);
+		if (hps.getNonLethal() != inChar.hps.getNonLethal()) diffs.add(PROPERTY_NONLETHAL);
 		if (initiative.getBaseValue() != inChar.initiative.getBaseValue()) diffs.add(PROPERTY_INITIATIVE);
 		//if (xp != inChar.xp) diffs.add(PROPERTY_XP);	// TODO not sure we should include this
 		//if (level != inChar.level) diffs.add(PROPERTY_LEVEL);	// TODO not sure we should include this
@@ -1024,12 +1041,13 @@ public class Character extends Creature implements XML {
 	// TODO not sure this is right for ability scores. probably needs reimplementing now
 	public Object getProperty(String prop) {
 		if (prop.equals(PROPERTY_NAME)) return name;
-		if (prop.equals(PROPERTY_MAXHPS)) return hps;
-		if (prop.equals(PROPERTY_WOUNDS)) return wounds;
-		if (prop.equals(PROPERTY_NONLETHAL)) return nonLethal;
+		if (prop.equals(PROPERTY_MAXHPS)) return hps.getMaximumHitPoints();
+		if (prop.equals(PROPERTY_WOUNDS)) return hps.getWounds();
+		if (prop.equals(PROPERTY_NONLETHAL)) return hps.getNonLethal();
 		if (prop.equals(PROPERTY_INITIATIVE)) return initiative.getBaseValue();
-		if (prop.equals(PROPERTY_LEVEL)) return level;
+		if (prop.equals(PROPERTY_LEVEL)) return level.getLevel();
 		if (prop.equals(PROPERTY_XP)) return xp;
+		if (prop.equals(PROPERTY_BAB)) return attacks.getBAB();
 		
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
@@ -1093,6 +1111,7 @@ public class Character extends Creature implements XML {
 		if (prop.equals(PROPERTY_INITIATIVE)) setInitiativeModifier((Integer)value);
 		if (prop.equals(PROPERTY_LEVEL)) setLevel((Integer)value,null,null);
 		//if (prop.equals(PROPERTY_XP)) setXP((Integer)value);	// TODO should this be permitted as an adhoc change?
+		if (prop.equals(PROPERTY_BAB)) attacks.setBAB((Integer)value);
 
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());

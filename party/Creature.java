@@ -25,6 +25,7 @@ public abstract class Creature {
 	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";	// not currently sent to listeners
 	public final static String PROPERTY_LEVEL = "Level";
 	public final static String PROPERTY_XP = "XP";
+	public final static String PROPERTY_BAB = "BAB";
 
 	// statistics
 	// TODO should be combined with properties
@@ -42,6 +43,9 @@ public abstract class Creature {
 	public final static String STATISTIC_SKILLS = "skills";
 	public final static String STATISTIC_AC = "ac";
 	public final static String STATISTIC_INITIATIVE = "initiative";
+	public final static String STATISTIC_HPS = "hps";
+	public final static String STATISTIC_LEVEL = "level";
+	public final static String STATISTIC_ATTACKS = "attacks";
 
 	// The order of these needs to be the same as the ability constants in AbilityScore
 	public final static String[] STATISTIC_ABILITY = {STATISTIC_STRENGTH,STATISTIC_DEXTERITY,STATISTIC_CONSTITUTION,STATISTIC_INTELLIGENCE,STATISTIC_WISDOM,STATISTIC_CHARISMA};
@@ -63,7 +67,8 @@ public abstract class Creature {
 		map.put(STATISTIC_REFLEX_SAVE, SavingThrow.getSavingThrowName(SavingThrow.SAVE_REFLEX)+" save");
 		map.put(STATISTIC_SKILLS, "skills");
 		map.put(STATISTIC_AC, "AC");
-		map.put(STATISTIC_INITIATIVE, "Initiative");		
+		map.put(STATISTIC_INITIATIVE, "Initiative");
+		map.put(STATISTIC_ATTACKS, "attack rolls");
 		STATISTIC_DESC = Collections.unmodifiableMap(map);
 	}
 

@@ -67,6 +67,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 		Box rightPanel = new Box(BoxLayout.PAGE_AXIS);
 		rightPanel.add(new CharacterInitiativePanel(c));
+		rightPanel.add(new CharacterAttacksPanel(c));
 		rightPanel.add(new CharacterACPanel(c));
 		rightPanel.add(new CharacterSkillsPanel(c));
 
