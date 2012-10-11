@@ -125,8 +125,14 @@ public class BuffFactory {
 			StringBuilder s = new StringBuilder();
 
 			if (type != null) s.append(" ").append(type);
-			s.append(" bonus of +");
-			s.append(baseMod).append(" + 1 per ").append(perCL).append(" caster levels");
+			s.append(" bonus of");
+			if (baseMod > 0) s.append(" +").append(baseMod);
+			s.append(" + 1 per ");
+			if (perCL == 1) {
+				s.append(" caster level");
+			} else {
+				s.append(perCL).append(" caster levels");
+			}
 			
 			s.append(" to ").append(Creature.STATISTIC_DESC.get(target));
 			if (condition != null) s.append(" ").append(condition);
@@ -182,9 +188,9 @@ public class BuffFactory {
 			.addEffect("skills","Morale",2),
 		(new BuffFactory("Greater Heroism"))
 			.addEffect("attacks","Morale",4)
-			// +1/CL (max +20) temp hps
 			.addEffect("saves","Morale",4)
-			.addEffect("skills","Morale",4),
+			.addEffect("skills","Morale",4)
+			.addEffectCL("hps", null, 0, 1, 20),		// +1/CL (max +20) temp hps
 		(new BuffFactory("Hero's Feast"))
 			.addEffect("attacks","Morale",1)
 			// 1d8 + 1/2 CL (max +10) temp hps

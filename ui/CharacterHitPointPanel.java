@@ -32,7 +32,9 @@ public class CharacterHitPointPanel extends JPanel implements PropertyChangeList
 			public void propertyChange(PropertyChangeEvent evt) {
 				if (evt.getPropertyName().equals("value")) {
 					int total = (Integer)currHP.getValue();
-					character.setWounds(character.getMaximumHitPoints()-character.getNonLethal()-total);
+					if (total != character.getHPs()) {
+						character.setWounds(character.getMaximumHitPoints()-character.getNonLethal()-total);
+					}
 				}
 			}
 		});
@@ -52,7 +54,8 @@ public class CharacterHitPointPanel extends JPanel implements PropertyChangeList
 	public void propertyChange(PropertyChangeEvent arg0) {
 		if (arg0.getPropertyName().equals(Creature.PROPERTY_MAXHPS)
 				|| arg0.getPropertyName().equals(Creature.PROPERTY_WOUNDS)
-				|| arg0.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)) {
+				|| arg0.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)
+				|| arg0.getPropertyName().equals(Creature.PROPERTY_HPS)) {
 			currHP.setValue(new Integer(character.getHPs()));
 		}
 	}

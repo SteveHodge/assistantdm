@@ -14,6 +14,7 @@ public abstract class Creature {
 	public final static String PROPERTY_MAXHPS = "Hit Points";
 	public final static String PROPERTY_WOUNDS = "Wounds";
 	public final static String PROPERTY_NONLETHAL = "Non Lethal Damage";
+	public final static String PROPERTY_HPS = "Current Hit Points";
 	public final static String PROPERTY_INITIATIVE = "Initiative";
 	public final static String PROPERTY_ABILITY_PREFIX = "Ability: ";
 	public final static String PROPERTY_ABILITY_OVERRIDE_PREFIX = "Temporary Ability: ";	// not currently sent to listeners
@@ -69,6 +70,7 @@ public abstract class Creature {
 		map.put(STATISTIC_AC, "AC");
 		map.put(STATISTIC_INITIATIVE, "Initiative");
 		map.put(STATISTIC_ATTACKS, "attack rolls");
+		map.put(STATISTIC_HPS,"temporary hit points");
 		STATISTIC_DESC = Collections.unmodifiableMap(map);
 	}
 

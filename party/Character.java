@@ -37,13 +37,13 @@ import org.w3c.dom.NodeList;
 import xml.XML;
 
 // TODO priorities:
+// dice rolling for buffs
+// clean up handling of HPs, wounds, healing etc
 // review Statistics vs Properties
 // ui for adding adhoc modifiers
-// implement temporary hitpoints
 // size
 // equipment, particularly magic item slots, armor, weapons
 
-// TODO Should allow temporary hitpoints - will require careful consideration of how wounds work
 // TODO rework ac ui: list all bonuses, allow multiple bonuses of each type, AC temp scores?
 // TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
 // that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
@@ -244,7 +244,7 @@ public class Character extends Creature implements XML {
 		hps = new HPs(abilities[AbilityScore.ABILITY_CONSTITUTION], level);
 		hps.addPropertyChangeListener(statListener);
 
-		attacks = new Attacks(abilities[AbilityScore.ABILITY_STRENGTH]);
+		attacks = new Attacks(abilities[AbilityScore.ABILITY_STRENGTH], abilities[AbilityScore.ABILITY_DEXTERITY]);
 		attacks.addPropertyChangeListener(statListener);
 	}
 

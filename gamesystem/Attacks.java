@@ -2,24 +2,31 @@ package gamesystem;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashSet;
+import java.util.Set;
 
-// TODO ranged attack
 // TODO damage
 // TODO multiple attacks
 
 public class Attacks extends Statistic {
 	int BAB = 0;
+	Modifier strMod;
+	Modifier dexMod;
 
-	public Attacks(AbilityScore str) {
+	final PropertyChangeListener listener = new PropertyChangeListener() {
+		public void propertyChange(PropertyChangeEvent evt) {
+			pcs.firePropertyChange("value", null, getValue());
+		}
+	};
+
+	public Attacks(AbilityScore str, AbilityScore dex) {
 		super("Attacks");
 
-		Modifier strMod = str.getModifier();
-		strMod.addPropertyChangeListener(new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent evt) {
-				pcs.firePropertyChange("value", null, getValue());
-			}
-		});
-		addModifier(strMod);
+		strMod = str.getModifier();
+		strMod.addPropertyChangeListener(listener);
+
+		dexMod = dex.getModifier();
+		dexMod.addPropertyChangeListener(listener);
 	}
 
 	public int getBAB() {
@@ -31,7 +38,18 @@ public class Attacks extends Statistic {
 		pcs.firePropertyChange("value", null, getValue());
 	}
 
+	// returns the str-modified ("melee") statistic
 	public int getValue() {
-		return BAB + getModifiersTotal();
+		Set<Modifier> mods = new HashSet<Modifier>();
+		mods.addAll(modifiers);
+		mods.add(strMod);
+		return BAB + getModifiersTotal(mods,null);
+	}
+
+	public int getRangedValue() {
+		Set<Modifier> mods = new HashSet<Modifier>();
+		mods.addAll(modifiers);
+		mods.add(dexMod);
+		return BAB + getModifiersTotal(mods,null);
 	}
 }
