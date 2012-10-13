@@ -21,6 +21,10 @@ public class BuffFactory {
 		return b;
 	}
 
+	public String toString() {
+		return name;
+	}
+
 	public String getDescription() {
 		StringBuilder s = new StringBuilder();
 		s.append("<html><body>");

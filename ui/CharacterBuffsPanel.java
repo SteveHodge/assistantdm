@@ -13,16 +13,17 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -30,31 +31,126 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import party.Character;
+import swing.JListWithToolTips;
+import swing.ListModelWithToolTips;
+
+// TODO have caster level selected with the max/empower check boxes?
 
 @SuppressWarnings("serial")
-public class CharacterBuffsPanel extends JPanel implements ItemListener {
+public class CharacterBuffsPanel extends JPanel {
 	Character character;
-
-	protected class BuffCheckBox extends JCheckBox {
-		BuffFactory buffFactory;
-		Buff buff;
-
-		BuffCheckBox(BuffFactory bf) {
-			super(bf.name);
-			buffFactory = bf;
-			setToolTipText(bf.getDescription());
-		}
-	}
+	JCheckBox empCheckBox;
+	JCheckBox maxCheckBox;
 
 	public CharacterBuffsPanel(Character c) {
 		character = c;
-		
 		setBorder(new TitledBorder("Buffs / Penalties"));
-		setLayout(new GridLayout(0,3));
-		for (BuffFactory bf : BuffFactory.buffs) {
-			JCheckBox cb = new BuffCheckBox(bf);
-			cb.addItemListener(this);
-			add(cb);
+		setLayout(new GridLayout(0,2));
+
+		BuffListModel bfModel = new BuffListModel(BuffFactory.buffs);
+		final JListWithToolTips buffs = new JListWithToolTips(bfModel);
+		buffs.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		buffs.setVisibleRowCount(20);
+
+		final BuffListModel model = new BuffListModel();
+		final JListWithToolTips applied = new JListWithToolTips(model);
+		applied.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		applied.setVisibleRowCount(8);
+
+		JButton apply = new JButton("Apply");
+		apply.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// need to invoke this code later since it involves a modal dialog
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						BuffFactory bf = (BuffFactory)buffs.getSelectedValue();
+						Buff buff = applyBuff(bf);
+						model.addElement(buff);
+					}
+				});
+			}
+		});
+
+		JButton remove = new JButton("Remove");
+		remove.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Object[] buffs = applied.getSelectedValues();
+				for (Object b : buffs) {
+					((Buff)b).removeBuff(character);
+					model.removeElement(b);
+				}
+			}
+		});
+
+		JScrollPane scroller = new JScrollPane(buffs);
+		//scroller.setPreferredSize(preferredSize);
+		add(scroller);
+
+		JPanel right = new JPanel();
+		right.setLayout(new BoxLayout(right, BoxLayout.PAGE_AXIS));
+		empCheckBox = new JCheckBox("Empowered");
+		right.add(empCheckBox);
+		maxCheckBox = new JCheckBox("Maximized");
+		right.add(maxCheckBox);
+
+		JPanel buttons = new JPanel();
+		buttons.add(apply);
+		buttons.add(remove);
+		right.add(buttons);
+
+		scroller = new JScrollPane(applied);
+		scroller.setBorder(new TitledBorder("Currently Applied:"));
+		right.add(scroller);
+		add(right);
+	}
+
+	protected Buff applyBuff(BuffFactory bf) {
+		Buff buff = bf.getBuff();
+		buff.maximized = maxCheckBox.isSelected();
+		buff.empowered = empCheckBox.isSelected();
+		if (buff.requiresCasterLevel()) {
+			// TODO add cancel button?
+			final JDialog dialog = new JDialog((JDialog)null, "Enter caster level...", true);
+			dialog.add(new BuffOptionPanel(buff));
+
+			JButton ok = new JButton("Ok");
+			ok.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					// TODO confirm editing of clSpinner?
+					dialog.setVisible(false);
+				}
+			});
+			JPanel buttonPanel = new JPanel();
+			buttonPanel.add(ok);
+			dialog.add(buttonPanel, BorderLayout.PAGE_END);
+
+			dialog.pack();
+			dialog.setVisible(true);
+		}
+		buff.applyBuff(character);
+		return buff;
+	}
+
+	protected class BuffListModel extends DefaultListModel implements ListModelWithToolTips {
+		public BuffListModel() {
+			super();
+		}
+
+		public BuffListModel(BuffFactory[] buffs) {
+			super();
+			for (BuffFactory bf : buffs) {
+				addElement(bf);
+			}
+		}
+
+		public String getToolTipAt(int index) {
+			Object o = get(index);
+			if (o instanceof BuffFactory) {
+				return ((BuffFactory)o).getDescription();
+			} else if (o instanceof Buff) {
+				return ((Buff)o).getDescription();
+			}
+			return null;
 		}
 	}
 
@@ -94,7 +190,9 @@ public class CharacterBuffsPanel extends JPanel implements ItemListener {
 				c.fill = GridBagConstraints.NONE;
 
 				final Dice d = e.getDice();
-				if (d != null) {
+				if (d != null && !buff.maximized || buff.empowered) {
+					// if the buff is maximized but not empowered then we don't need to roll
+
 					int roll = d.roll();
 					buff.setRoll(d, roll);
 					diceModels[i] = new SpinnerNumberModel(roll, d.getMinimum(), d.getMaximum(), 1);
@@ -144,39 +242,4 @@ public class CharacterBuffsPanel extends JPanel implements ItemListener {
 		}
 	}
 
-	public void itemStateChanged(ItemEvent e) {
-		if (!(e.getSource() instanceof BuffCheckBox)) return;
-		final BuffCheckBox cb = (BuffCheckBox)e.getSource();
-		if (e.getStateChange() == ItemEvent.SELECTED) {
-			// need to invoke this code later since it involves a modal dialog
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					cb.buff = cb.buffFactory.getBuff();
-					if (cb.buff.requiresCasterLevel()) {
-						// TODO add cancel button?
-						final JDialog dialog = new JDialog((JDialog)null, "Enter caster level...", true);
-						dialog.add(new BuffOptionPanel(cb.buff));
-
-						JButton ok = new JButton("Ok");
-						ok.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent arg0) {
-								// TODO confirm editing of clSpinner?
-								dialog.setVisible(false);
-							}
-						});
-						JPanel buttonPanel = new JPanel();
-						buttonPanel.add(ok);
-						dialog.add(buttonPanel, BorderLayout.PAGE_END);
-
-						dialog.pack();
-						dialog.setVisible(true);
-					}
-					cb.buff.applyBuff(character);
-				}
-			});
-		} else {
-			cb.buff.removeBuff(character);
-			cb.buff = null;
-		}
-	}
 }

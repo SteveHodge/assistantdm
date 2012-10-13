@@ -21,12 +21,18 @@ public class Buff {
 	Map<Modifier,String> modifiers = new HashMap<Modifier,String>();
 	int casterLevel = 0;
 	Map<Dice,Integer> rolls = new HashMap<Dice,Integer>();
+	public boolean maximized = false;
+	public boolean empowered = false;
 
 	public boolean requiresCasterLevel() {
 		for (Effect e : effects) {
 			if (e instanceof CLEffect) return true;
 		}
 		return false;
+	}
+
+	public String toString() {
+		return name;
 	}
 
 	public int getCasterLevel() {
@@ -130,10 +136,17 @@ public class Buff {
 				if (baseMod instanceof Integer) {
 					mod += (Integer)baseMod;
 				} else if (baseMod instanceof Dice) {
+					int roll;
 					if (b.rolls.containsKey(baseMod)) {
-						mod += b.rolls.get(baseMod);
+						roll = b.rolls.get(baseMod);
 					} else {
-						mod += ((Dice)baseMod).roll();
+						roll = ((Dice)baseMod).roll();
+					}
+					if (b.empowered) mod += (mod + roll)/2;
+					if (b.maximized) {
+						mod += ((Dice)baseMod).getMaximum();
+					} else {
+						mod += roll;
 					}
 				}
 			}
