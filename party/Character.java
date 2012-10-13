@@ -37,7 +37,7 @@ import org.w3c.dom.NodeList;
 import xml.XML;
 
 // TODO priorities:
-// dice rolling for buffs
+// xml for modifiers/buffs
 // clean up handling of HPs, wounds, healing etc
 // review Statistics vs Properties
 // ui for adding adhoc modifiers

@@ -27,4 +27,20 @@ public class DiceAdder implements Dice {
 		}
 		return s;
 	}
+
+	public int getMinimum() {
+		int min = 0;
+		for (Dice d : dice) {
+			min += d.getMinimum();
+		}
+		return min;
+	}
+
+	public int getMaximum() {
+		int max = 0;
+		for (Dice d : dice) {
+			max += d.getMaximum();
+		}
+		return max;
+	}
 }

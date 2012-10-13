@@ -85,4 +85,12 @@ public class SimpleDice implements Dice {
 		}
 		return new SimpleDice(n, t, m);
 	}
+
+	public int getMinimum() {
+		return 1;
+	}
+
+	public int getMaximum() {
+		return type;
+	}
 }
