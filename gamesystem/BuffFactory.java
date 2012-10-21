@@ -40,8 +40,7 @@ public class BuffFactory {
 	}
 
 	protected BuffFactory addEffect(String target, String type, int modifier) {
-		addEffect(target,type,modifier,null);
-		return this;
+		return addEffect(target,type,modifier,null);
 	}
 
 	protected BuffFactory addEffect(String target, String type, int modifier, String condition) {
@@ -54,17 +53,39 @@ public class BuffFactory {
 		return this;
 	}
 
-	// basic formula is: modifier = baseMod + 1/perCL
-	// 1/perCL is limited to max
-	// the total modifier must be at least 1
-	// baseMod should be either an Integer or a Dice
-	protected BuffFactory addEffectCL(String target, String type, Object baseMod, int perCL, int max) {
+	protected BuffFactory addPenalty(String target, String type, Object baseMod, int perCL, int max) {
+		return addPenalty(target, type, baseMod, perCL, max, null);
+	}
+
+	protected BuffFactory addPenalty(String target, String type, Object baseMod, int perCL, int max, String condition) {
 		Buff.CLEffect e = new Buff.CLEffect();
 		e.target = target;
 		e.type = type;
 		e.baseMod = baseMod;
 		e.perCL = perCL;
 		e.maxPerCL = max;
+		e.condition = condition;
+		e.penalty = true;
+		effects.add(e);
+		return this;
+	}
+
+	protected BuffFactory addBonus(String target, String type, Object baseMod, int perCL, int max) {
+		return addBonus(target, type, baseMod, perCL, max, null);
+	}
+
+	// basic formula is: modifier = baseMod + 1/perCL
+	// 1/perCL is limited to max
+	// the total modifier must be at least 1
+	// baseMod should be either an Integer or a Dice
+	protected BuffFactory addBonus(String target, String type, Object baseMod, int perCL, int max, String condition) {
+		Buff.CLEffect e = new Buff.CLEffect();
+		e.target = target;
+		e.type = type;
+		e.baseMod = baseMod;
+		e.perCL = perCL;
+		e.maxPerCL = max;
+		e.condition = condition;
 		effects.add(e);
 		return this;
 	}
@@ -119,10 +140,10 @@ public class BuffFactory {
 			.addEffect("attacks","Morale",4)
 			.addEffect("saves","Morale",4)
 			.addEffect("skills","Morale",4)
-			.addEffectCL("hps", null, 0, 1, 20),					// +1/CL (max +20) temp hps
+			.addBonus("hps", null, 0, 1, 20),					// +1/CL (max +20) temp hps
 		(new BuffFactory("Hero's Feast"))
 			.addEffect("attacks","Morale",1)
-			.addEffectCL("hps", null, new SimpleDice(8), 2, 10)		// 1d8 + 1/2 CL (max +10) temp hps
+			.addBonus("hps", null, new SimpleDice(8), 2, 10)		// 1d8 + 1/2 CL (max +10) temp hps
 			.addEffect("saves.will","Morale",1),
 		(new BuffFactory("Iron Body"))
 			.addEffect("abilities.strength","Enhancement",6)
@@ -140,17 +161,75 @@ public class BuffFactory {
 			.addEffect("saves.will", "Morale", 1)
 			.addEffect("ac", null, -2),
 		(new BuffFactory("Shield of Faith"))
-			.addEffectCL("ac", "Deflection", 2, 6, 3),				// 2+CL/6 deflection bonus to ac (max +5 at 18th)
+			.addBonus("ac", "Deflection", 2, 6, 3),				// 2+CL/6 deflection bonus to ac (max +5 at 18th)
 		(new BuffFactory("Divine Favor"))
-			.addEffectCL("attacks", "Luck", 0, 3, 3),				// CL/3 luck on attack, dmg (min 1, max 3)
+			.addBonus("attacks", "Luck", 0, 3, 3),				// CL/3 luck on attack, dmg (min 1, max 3)
 		(new BuffFactory("Aid"))
 			.addEffect("attacks","Morale",1)
-			.addEffectCL("hps", null, new SimpleDice(8), 1, 10)		// 1d8+CL temporary hps (cl max +10)
+			.addBonus("hps", null, new SimpleDice(8), 1, 10)		// 1d8+CL temporary hps (cl max +10)
 			.addEffect("saves.will","Morale",1,"vs fear"),
 		(new BuffFactory("False Life"))
-			.addEffectCL("hps", null, new SimpleDice(10), 1, 10)	// 1d10+CL (max +10) temp hps
-		//(new BuffFactory("Ray of Enfeeblement"))
-			//.addEffectCL("abilities.strength", null, new SimpleDice(6), 2, 5)	// TODO needs to penalty, min of 1
+			.addBonus("hps", null, new SimpleDice(10), 1, 10),	// 1d10+CL (max +10) temp hps
+		(new BuffFactory("Death Knell"))
+			.addEffect("abilities.strength",null,2)
+			//effective caster lvl +1
+			.addBonus("hps", null, new SimpleDice(8), 0, 0),
+		(new BuffFactory("Dispel Evil"))
+			.addEffect("ac", "Deflection", 4, "vs evil"),
+		(new BuffFactory("Dispel Good"))
+			.addEffect("ac", "Deflection", 4, "vs good"),
+		//(new BuffFactory("Find Traps"))
+			//.addEffectCL("skills.search", "Insight", 0, 2, 10),		//(for traps)
+		(new BuffFactory("Foresight"))
+			.addEffect("ac", "Insight", 2)
+			.addEffect("saves.reflex", "Insight", 2),				//(lost when flat footed)
+		(new BuffFactory("Protection from Evil"))
+			.addEffect("ac", "Deflection", 2, "vs evil")
+			.addEffect("saves", "Resistance", 2, "vs evil"),
+		(new BuffFactory("Protection from Good"))
+			.addEffect("ac", "Deflection", 2, "vs good")
+			.addEffect("saves", "Resistance", 2, "vs good"),
+		(new BuffFactory("Protection from Chaos"))
+			.addEffect("ac", "Deflection", 2, "vs chaotic")
+			.addEffect("saves", "Resistance", 2, "vs chaotic"),
+		(new BuffFactory("Protection from Law"))
+			.addEffect("ac", "Deflection", 2, "vs lawful")
+			.addEffect("saves", "Resistance", 2, "vs lawful"),
+		(new BuffFactory("Magic Circle against Evil"))
+			.addEffect("ac", "Deflection", 2, "vs evil")
+			.addEffect("saves", "Resistance", 2, "vs evil"),
+		(new BuffFactory("Magic Circle against Good"))
+			.addEffect("ac", "Deflection", 2, "vs good")
+			.addEffect("saves", "Resistance", 2, "vs good"),
+		(new BuffFactory("Magic Circle against Chaos"))
+			.addEffect("ac", "Deflection", 2, "vs chaotic")
+			.addEffect("saves", "Resistance", 2, "vs chaotic"),
+		(new BuffFactory("Magic Circle against Law"))
+			.addEffect("ac", "Deflection", 2, "vs lawful")
+			.addEffect("saves", "Resistance", 2, "vs lawful"),
+		(new BuffFactory("Mind Fog"))
+			//-10 comptence penalty to wisdom checks
+			.addEffect("saves.will", "Competence", -10),
+		(new BuffFactory("Otto's Irresistable Dance"))
+			.addEffect("ac", null, -4)
+			//negate ac bonus of shield
+			.addEffect("saves.reflex", null, -10),
+		(new BuffFactory("Protection from Spells"))
+			.addEffect("saves", "Resistance", 8, "vs spells and spell-like effects"),
+		(new BuffFactory("Remove Fear"))
+			.addEffect("saves", "Morale", 4, "vs fear"),
+		(new BuffFactory("Ray of Enfeeblement"))
+			.addPenalty("abilities.strength", null, new SimpleDice(6), 2, 5),	// to min str of 1
+
+			//Good Hope		+2 morale bonus to saves, attacks, ability checks, skill checks, weapon damage
+			//Crushing Dispair -2 penalty to saves, attacks, ability checks, skill checks, weapon damage
+			//Glibness		+30 bonus to bluff (to convince another of the truth of your words)
+			//Glitterdust	-40 penalty to hide
+			//Jump			+10 enhancement bonus to jump, +20 at cl 5, +30 at cl 9
+			//Longstrider	+10ft enhancement bonus to speed
+			//Tree Shape	+10 natural armor bonus, effective dex of 0, spped of 0
+			//Touch of Idiocy	1d6 penalty to wisdom, intelligence, charisma (to minimum 1)
+			//Symbol of Pain	-4 penalty to attack rolls, skill checks, ability checks
 
 // needs caster level:
 			//Barkskin	1+CL/3 enhancement to na, (min +2, max of +5) * note enhancement to NA bonus, i.e NA is a Statistic (much like armor bonus, shield bonus). but can treat as type "Natural Armor Ehancement"
@@ -169,28 +248,5 @@ public class BuffFactory {
 			//Righteous Might			increase size one category, +8 size to str, +4 size to con, -2 size to dex, na +2, +4 resist to saves, ac and attacks modified for new size
 			//Reduce Animal	monsters		one category smaller, +2 size bonus to dex, -2 size penalty to str, +1 bonus to attacks and ac
 			//Reduce Person			one category smaller, +2 size bonus to dex, -2 size penalty to str, +1 bonus to attacks and ac
-
-
-//Death Knell	+2 bonus to Str, 1d8 temp hps, effective caster lvl +1
-//Dispel Evil	+4 deflection bonus to AC by evil
-//Dispel Good	+4 deflection bonus to AC by good
-//Find Traps	+1/2 cl insight bonus to Search (for traps)
-//Foresight		+2 insight to AC and reflex (lost when flat footed)
-//Glibness		+30 bonus to bluff (to convince another of the truth of your words)
-//Glitterdust	-40 penalty to hide
-//Good Hope		+2 morale bonus to saves, attacks, ability checks, skill checks, weapon damage
-//Crushing Dispair -2 penalty to saves, attacks, ability checks, skill checks, weapon damage
-//Jump			+10 enhancement bonus to jump, +20 at cl 5, +30 at cl 9
-//Longstrider	+10ft enhancement bonus to speed
-//Protection from Evil/Good/Chaos/Law			+2 deflection bonus to ac vs evil, +2 resistence bonus on saves vs evil
-//Magic Circle against Evil/Good/Chaos/Law		+2 deflection bonus to ac vs evil, +2 resistence bonus on saves vs evil
-//Mind Fog		-10 comptence penalty to wisdom checks, will saves
-//Otto's Irresistable Dance		-4 penalty to ac, -10 penalty to reflex saves, negate ac bonus of shield
-//Protection from Spells	+8 resistence bonus to saves vs spells and spell-like effects
-//Remove Fear	+4 morale bonus to saves vs fear
-//Tree Shape	+10 natural armor bonus, effective dex of 0, spped of 0
-//Touch of Idiocy	1d6 penalty to wisdom, intelligence, charisma (to minimum 1)
-//Symbol of Pain	-4 penalty to attack rolls, skill checks, ability checks
-
 	};
 }

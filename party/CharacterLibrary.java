@@ -45,6 +45,12 @@ public class CharacterLibrary {
 			}
 			XPHistoryItem x1 = c1.getXPHistory(0);
 			XPHistoryItem x2 = c2.getXPHistory(0);
+			// null date is considered earlier than any date
+			if (x1.getDate() == null) {
+				return (x2.getDate() == null ? 0 : -1);
+			} else {
+				if (x2.getDate() == null) return 1;
+			}
 			return x1.getDate().compareTo(x2.getDate());
 		}
 	};
@@ -78,7 +84,7 @@ public class CharacterLibrary {
 							pi.changes.put(c, xpItem);
 							found = true;
 							break;
-						} else if (!ci.date.before(pi.date)) {
+						} else if (pi.date == null || (ci.date != null && !ci.date.before(pi.date))) {	// added null tests
 							datePos = j;
 						}
 					}
@@ -182,6 +188,7 @@ public class CharacterLibrary {
 		public Object getValueAt(int row, int col) {
 			PartyXPItem item = history.get(row);
 			if (col == 0) {
+				if (item.date == null) return null;
 				return format.format(item.date);
 
 			} else if (col == 1) {

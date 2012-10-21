@@ -1,5 +1,8 @@
 package gamesystem;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 //TODO this is statistic for the listener stuff but it doesn't really need modifiers so perhaps refactor
 
 // TODO class levels
@@ -19,5 +22,17 @@ public class Level extends Statistic {
 
 	public void setLevel(int l) {
 		level = l;
+	}
+
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("Level");
+		e.setAttribute("level", ""+level);
+		return e;
+	}
+
+	// TODO notify listeners?
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals("Level")) return;
+		level = Integer.parseInt(e.getAttribute("level"));
 	}
 }

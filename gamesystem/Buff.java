@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import party.Character;
 import party.Creature;
 
@@ -128,9 +132,11 @@ public class Buff {
 		Object baseMod;
 		int perCL;
 		int maxPerCL;
+		boolean penalty = false;
 
 		public Modifier getModifier(Buff b) {
-			int mod = b.casterLevel/perCL;
+			int mod = 0;
+			if (perCL > 0) mod = b.casterLevel/perCL;
 			if (mod > maxPerCL) mod = maxPerCL;
 			if (baseMod != null) {
 				if (baseMod instanceof Integer) {
@@ -151,24 +157,34 @@ public class Buff {
 				}
 			}
 			if (mod < 1) mod = 1;
+			if (penalty) mod = -mod;
 			return new ImmutableModifier(mod, type, b.name, condition);
 		}
 
-		// TODO this assumes caster level based stuff is always a bonus
 		public String toString() {
 			StringBuilder s = new StringBuilder();
 	
 			if (type != null) s.append(" ").append(type);
-			s.append(" bonus of ");
+			if (penalty) {
+				s.append(" penalty of ");
+			} else {
+				s.append(" bonus of ");
+			}
 			if (baseMod != null) {
-				if (baseMod instanceof Integer && ((Integer) baseMod).intValue() > 0) s.append("+").append(baseMod);
+				if (baseMod instanceof Integer && ((Integer) baseMod).intValue() > 0) {
+					if (penalty) s.append("-");
+					else s.append("+");
+					s.append(baseMod);
+				}
 				if (baseMod instanceof Dice) s.append(baseMod);
 			}
-			s.append(" + 1 per ");
-			if (perCL == 1) {
-				s.append(" caster level");
-			} else {
-				s.append(perCL).append(" caster levels");
+			if (perCL > 0) {
+				s.append(" + 1 per ");
+				if (perCL == 1) {
+					s.append(" caster level");
+				} else {
+					s.append(perCL).append(" caster levels");
+				}
 			}
 			
 			s.append(" to ").append(Creature.STATISTIC_DESC.get(target));
@@ -211,4 +227,45 @@ public class Buff {
 		}
 	}
 
+	/*
+	 * If the Buff has not been applied to the character then this returns null
+	 */
+	public Element getElement(Document doc) {
+		if (modifiers.size() == 0) return null;
+
+		Element e = doc.createElement("Buff");
+		e.setAttribute("name", name);
+		e.setAttribute("caster_level", ""+casterLevel);
+
+		for (Modifier m : modifiers.keySet()) {
+			Element me = doc.createElement("Modifier");
+			if (m.getType() != null) me.setAttribute("type", m.getType());
+			if (m.getCondition() != null) me.setAttribute("condition", m.getCondition());
+			me.setAttribute("value", ""+m.getModifier());
+			me.setAttribute("target", modifiers.get(m));		// WISH this should probably be XML relevant, i.e. an XPath
+			e.appendChild(me);
+		}
+
+		return e;
+	}
+
+	public static Buff parseDOM(Element b) {
+		if (!b.getTagName().equals("Buff")) return null;
+		Buff buff = new Buff();
+		buff.casterLevel = Integer.parseInt(b.getAttribute("caster_level"));
+		buff.name = b.getAttribute("name");
+		NodeList mods = b.getChildNodes();
+		if (mods != null) {
+			for (int k=0; k<mods.getLength(); k++) {
+				if (!mods.item(k).getNodeName().equals("Modifier")) continue;
+				Element m = (Element)mods.item(k);
+				String target = m.getAttribute("target");
+				int value = Integer.parseInt(m.getAttribute("value"));
+				String type = m.getAttribute("type");
+				Modifier mod = new ImmutableModifier(value, type, buff.name);
+				buff.modifiers.put(mod,target);
+			}
+		}
+		return buff;
+	}
 }

@@ -259,7 +259,6 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		JPanel topPanel = new JPanel();

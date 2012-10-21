@@ -3,6 +3,9 @@ package party;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -155,7 +158,15 @@ public class Party implements Iterable<Character>, XML {
 		//b.append("<Characters xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"party.xsd\">");
 		b.append("<Characters>");
 		b.append(nl);
-		for (Character c : CharacterLibrary.characters) {
+
+		Character[] allCharacters = new Character[CharacterLibrary.characters.size()];
+		allCharacters = CharacterLibrary.characters.toArray(allCharacters);
+		Arrays.sort(allCharacters, new Comparator<Character> () {
+			public int compare(Character arg0, Character arg1) {
+				return arg0.getName().compareTo(arg1.getName());
+			}
+		});
+		for (Character c : allCharacters) {
 			b.append(c.getXML(indent+nextIndent,nextIndent));
 		}
 		b.append(indent+nextIndent+"<Party>"+nl);
@@ -165,5 +176,27 @@ public class Party implements Iterable<Character>, XML {
 		b.append(indent+nextIndent+"</Party>"+nl);
 		b.append(indent).append("</Characters>").append(nl);
 		return b.toString();
+	}
+
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("Characters");
+		Character[] allCharacters = new Character[CharacterLibrary.characters.size()];
+		allCharacters = CharacterLibrary.characters.toArray(allCharacters);
+		Arrays.sort(allCharacters, new Comparator<Character> () {
+			public int compare(Character arg0, Character arg1) {
+				return arg0.getName().compareTo(arg1.getName());
+			}
+		});
+		for (Character c : allCharacters) {
+			e.appendChild(c.getElement(doc));
+		}
+		Element p = doc.createElement("Party");
+		for (Character c : characters) {
+			Element m = doc.createElement("Member");
+			m.setAttribute("name", c.getName());
+			p.appendChild(m);
+		}
+		e.appendChild(p);
+		return e;
 	}
 }

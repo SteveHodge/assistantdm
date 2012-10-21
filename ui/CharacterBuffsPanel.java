@@ -49,11 +49,10 @@ public class CharacterBuffsPanel extends JPanel {
 
 		BuffListModel bfModel = new BuffListModel(BuffFactory.buffs);
 		final JListWithToolTips buffs = new JListWithToolTips(bfModel);
-		buffs.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		buffs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		buffs.setVisibleRowCount(20);
 
-		final BuffListModel model = new BuffListModel();
-		final JListWithToolTips applied = new JListWithToolTips(model);
+		final JListWithToolTips applied = new JListWithToolTips(character.buffs);
 		applied.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		applied.setVisibleRowCount(8);
 
@@ -65,7 +64,7 @@ public class CharacterBuffsPanel extends JPanel {
 					public void run() {
 						BuffFactory bf = (BuffFactory)buffs.getSelectedValue();
 						Buff buff = applyBuff(bf);
-						model.addElement(buff);
+						character.buffs.addElement(buff);
 					}
 				});
 			}
@@ -77,7 +76,7 @@ public class CharacterBuffsPanel extends JPanel {
 				Object[] buffs = applied.getSelectedValues();
 				for (Object b : buffs) {
 					((Buff)b).removeBuff(character);
-					model.removeElement(b);
+					character.buffs.removeElement(b);
 				}
 			}
 		});
@@ -131,7 +130,7 @@ public class CharacterBuffsPanel extends JPanel {
 		return buff;
 	}
 
-	protected class BuffListModel extends DefaultListModel implements ListModelWithToolTips {
+	public static class BuffListModel extends DefaultListModel implements ListModelWithToolTips {
 		public BuffListModel() {
 			super();
 		}
@@ -144,6 +143,7 @@ public class CharacterBuffsPanel extends JPanel {
 		}
 
 		public String getToolTipAt(int index) {
+			if (index < 0) return null;
 			Object o = get(index);
 			if (o instanceof BuffFactory) {
 				return ((BuffFactory)o).getDescription();

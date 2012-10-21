@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import party.Creature;
 
 // TODO consider refactoring to not make temp hps Modifiers
@@ -45,7 +48,7 @@ import party.Creature;
 public class HPs extends Statistic {
 	protected Level level;
 	protected Modifier conMod;
-	protected int oldMod;
+	protected int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
 	protected int hps, wounds, nonLethal;
 	protected List<TempHPs> tempHPs = new ArrayList<TempHPs>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
 	protected Map<Modifier,TempHPs> modMap = new HashMap<Modifier,TempHPs>();
@@ -332,5 +335,23 @@ public class HPs extends Statistic {
 		hps.applyDamage(5);
 		System.out.println("Total HPs = "+hps.getHPs());	// should be 16
 		printTempHPs(hps.tempHPs);
+	}
+
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("HitPoints");
+		e.setAttribute("maximum", ""+hps);
+		if (wounds != 0) e.setAttribute("wounds", ""+wounds);
+		if (nonLethal != 0) e.setAttribute("non-lethal" ,""+nonLethal);
+		return e;
+	}
+
+	// TODO notify listeners?
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals("HitPoints")) return;
+		hps = Integer.parseInt(e.getAttribute("maximum"));
+		if (e.hasAttribute("wounds")) wounds = Integer.parseInt(e.getAttribute("wounds"));
+		if (e.hasAttribute("non-lethal")) nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
+		oldMod = conMod.getModifier();	// we need to set the oldMod so that any future con changes are correctly calculated
+		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
 	}
 }

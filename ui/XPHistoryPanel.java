@@ -128,7 +128,8 @@ public class XPHistoryPanel extends JPanel implements ListSelectionListener, Act
 			} else if (col == COLUMN_LVL_UP) {
 				return xpItem.canLevelUp();
 			} else if (col == COLUMN_DATE) {
-				return format.format(xpItem.getDate());
+				if (xpItem.getDate() != null) return format.format(xpItem.getDate());
+				return null;
 			} else if (col == COLUMN_COMMENTS) {
 				String comment = xpItem.getComment();
 				for (Challenge c : xpItem.getChallenges()) {

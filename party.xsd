@@ -153,26 +153,51 @@
 	</xs:complexType>
 </xs:element>
 
+<xs:element name="Modifier">
+	<xs:complexType>
+		<xs:attribute name="target" type="xs:string" use="required"/>
+		<xs:attribute name="value" type="xs:int" use="required"/>
+		<xs:attribute name="type" type="xs:string"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Buff">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Modifier" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="caster_level" type="xs:int" use="required"/>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+	</xs:complexType>
+</xs:element>
+
 <xs:element name="Character">
 	<xs:complexType>
-		<xs:all>
-			<xs:element ref="Level" minOccurs="0"/>
-			<xs:element ref="AbilityScores" minOccurs="0"/>
-			<xs:element name="HitPoints" minOccurs="0">
+		<xs:all minOccurs="0">
+			<xs:element ref="Level"/>
+			<xs:element ref="AbilityScores"/>
+			<xs:element name="HitPoints">
 				<xs:complexType>
 					<xs:attribute name="maximum" type="xs:int" use="required"/>
 					<xs:attribute name="wounds" type="xs:int"/>
 					<xs:attribute name="non-lethal" type="xs:int"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="Initiative" minOccurs="0">
+			<xs:element name="Initiative">
 				<xs:complexType>
 					<xs:attribute name="value" type="xs:int" use="required"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element ref="SavingThrows" minOccurs="0"/>
-			<xs:element ref="Skills" minOccurs="0"/>
-			<xs:element ref="AC" minOccurs="0"/>
+			<xs:element ref="SavingThrows"/>
+			<xs:element ref="Skills"/>
+			<xs:element ref="AC"/>
+			<xs:element name="Buffs">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element ref="Buff" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
 		</xs:all>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 	</xs:complexType>

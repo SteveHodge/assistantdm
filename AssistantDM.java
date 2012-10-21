@@ -36,6 +36,18 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableModel;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
 
 import combat.CombatPanel;
 
@@ -56,9 +68,7 @@ import ui.XPEntryDialog;
 import camera.CameraPanel;
 
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
-//TODO allow ac components that are not currently included. will probably need to allow multiples of each component 
 //WISH refactor classes that should be in ui package
-//WISH change xml output code to build a DOM and then write it out using library methods - then we don't have so much identing and rubbish to do
 //TODO add new party menu option, ask to save modified file
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
@@ -343,13 +353,36 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
         }
 
         try {
-			outputStream = new FileWriter(f);
-			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-			outputStream.write(System.getProperty("line.separator"));
-			outputStream.write(System.getProperty("line.separator"));
-			outputStream.write(party.getXML("", "    "));
-		} catch (IOException ex) {
+//        	// old output implementation
+//        	outputStream = new FileWriter(f);
+//			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+//			outputStream.write(System.getProperty("line.separator"));
+//			outputStream.write(System.getProperty("line.separator"));
+//			outputStream.write(party.getXML("", "    "));
+//			outputStream.close();
+//			outputStream = null;
+//
+//			// new DOM based output
+//    		f = new File(f.getParent(), "party_new.xml");
+        	Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        	doc.appendChild(party.getElement(doc));
+        	doc.setXmlStandalone(true);
+        	Transformer trans = TransformerFactory.newInstance().newTransformer();
+        	trans.setOutputProperty(OutputKeys.INDENT, "yes");
+        	trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        	outputStream = new FileWriter(f);
+        	trans.transform(new DOMSource(doc), new StreamResult(outputStream));
+
+        } catch (IOException ex) {
 			ex.printStackTrace();
+		} catch (TransformerConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerFactoryConfigurationError e) {
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			e.printStackTrace();
 		} finally {
 			if (outputStream != null) {
 				try {

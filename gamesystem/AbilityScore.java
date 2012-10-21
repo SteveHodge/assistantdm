@@ -4,6 +4,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 // TODO overrides are a bit unintuituve - they ignore modifiers, which is fine, but the modifiers are reapplied once the override is removed (which at the moment happens if the override is set to the baseValue in the ui) 
 public class AbilityScore extends Statistic {
 	// TODO if these constants are really only applicable in relation to the array in Character then they should be defined there (and protected)
@@ -129,5 +133,22 @@ public class AbilityScore extends Statistic {
 
 	public int getModifierValue() {
 		return modifier.getModifier();
+	}
+
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("AbilityScore");
+		e.setAttribute("type", getAbilityName(type));
+		e.setAttribute("value", ""+baseValue);
+		if (override != -1) e.setAttribute("temp", ""+override);
+		return e;
+	}
+
+	// TODO notify listeners?
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals("AbilityScore")) return;
+		if (!e.getAttribute("type").equals(getAbilityName(type))) return;
+		
+		baseValue = Integer.parseInt(e.getAttribute("value"));
+		if (e.hasAttribute("temp")) override = Integer.parseInt(e.getAttribute("temp"));
 	}
 }

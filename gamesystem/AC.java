@@ -3,6 +3,9 @@ package gamesystem;
 import java.beans.PropertyChangeListener;
 import java.util.Map;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 public class AC extends Statistic {
 	// TODO these constants should become unnecessary eventually
 	public static final int AC_ARMOR = 0;
@@ -35,6 +38,19 @@ public class AC extends Statistic {
 
 	public Statistic getFlatFootedAC() {
 		return flatFootedAC;
+	}
+
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("AC");
+		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
+			if (getModifiersTotal(AC.getACComponentName(i)) != 0) {
+				Element comp = doc.createElement("ACComponent");
+				comp.setAttribute("type", AC.getACComponentName(i));
+				comp.setAttribute("value", ""+getModifiersTotal(AC.getACComponentName(i)));
+				e.appendChild(comp);
+			}
+		}
+		return e;
 	}
 
 	// note that listener requests are forwarded to the outer AC instance. this means the source of events will be the AC instance,

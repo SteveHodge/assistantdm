@@ -2,6 +2,7 @@ package party;
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
+import gamesystem.Buff;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
@@ -23,20 +24,23 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 
+import ui.CharacterBuffsPanel.BuffListModel;
 import xml.XML;
 
 // TODO priorities:
+// change xml output code. objects should create DOM fragments which can then be output in any way
+// buff specific skills. buffs to ability checks
 // xml for modifiers/buffs
 // clean up handling of HPs, wounds, healing etc
 // review Statistics vs Properties
@@ -44,6 +48,7 @@ import xml.XML;
 // size
 // equipment, particularly magic item slots, armor, weapons
 
+// TODO how to handle xml for buffs that provide temporary hitpoints?
 // TODO rework ac ui: list all bonuses, allow multiple bonuses of each type, AC temp scores?
 // TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
 // that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
@@ -53,10 +58,8 @@ import xml.XML;
  *  Ability score checks
  *  Class levels
  *  Spell lists / spells per day
- *  Temporary hitpoints
  *  Damage reduction
  *  Spell resistance
- *  Base attack bonus
  *  Grapple modifier
  *  Weapons/attacks
  *  Armor
@@ -66,6 +69,7 @@ import xml.XML;
  *  Skill synergies
  *  Skill named versions (Crafting, Profession etc)
  *  Size
+ *  Speed
  */
 
 /**
@@ -81,11 +85,8 @@ public class Character extends Creature implements XML {
 	protected Modifier[] saveMisc = new Modifier[3];
 	
 	protected AbilityScore[] abilities = new AbilityScore[6];
-	//protected int[] tempAbilities = new int[6];
 
 	protected Skills skills;
-	//protected Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();
-	protected Map<SkillType,Modifier> skillMisc = new HashMap<SkillType,Modifier>();
 	
 	protected HPs hps;
 	protected Level level; 
@@ -97,6 +98,8 @@ public class Character extends Creature implements XML {
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 
 	protected Attacks attacks;
+
+	public BuffListModel buffs = new BuffListModel();	// TODO reimplement for better encapsulation
 
 	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
 
@@ -365,9 +368,7 @@ public class Character extends Creature implements XML {
 	}
 
 	public int getSkillMisc(SkillType s) {
-		Modifier misc = skillMisc.get(s);
-		if (misc == null) return 0;
-		return misc.getModifier();
+		return skills.getMisc(s);
 	}
 
 	public void setSkillRanks(SkillType s, float ranks) {
@@ -375,11 +376,7 @@ public class Character extends Creature implements XML {
 	}
 
 	public void setSkillMisc(SkillType s, int misc) {
-		Modifier m = skillMisc.get(s);
-		if (m != null) skills.removeModifier(s, m);
-		m = new ImmutableModifier(misc);
-		skillMisc.put(s,m);
-		skills.addModifier(s, m);
+		skills.setMisc(s, misc);
 	}
 
 //------------------- Initiative -------------------
@@ -451,7 +448,6 @@ public class Character extends Creature implements XML {
 //------------------- Hit Points -------------------
 // Hit points have a maximum value, wounds taken, non-lethal taken and a calculated
 // current value
-// TODO hit points should also have a temporary bonus value
 
 	public int getMaximumHitPoints() {
 		return hps.getMaximumHitPoints();
@@ -760,112 +756,129 @@ public class Character extends Creature implements XML {
 		Character c = new Character(el.getAttribute("name"));
 
 		NodeList nodes = el.getChildNodes();
-		if (nodes != null) {
-			for (int i=0; i<nodes.getLength(); i++) {
-				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-				Element e = (Element)nodes.item(i);
-				String tag = e.getTagName();
+		if (nodes == null)  return c;
 
-				if (tag.equals("HitPoints")) {
-					c.setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
-					if (e.hasAttribute("wounds")) c.setWounds(Integer.parseInt(e.getAttribute("wounds")));
-					if (e.hasAttribute("non-lethal")) c.setNonLethal(Integer.parseInt(e.getAttribute("non-lethal")));
+		for (int i=0; i<nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element)nodes.item(i);
+			String tag = e.getTagName();
 
-				} else if (tag.equals("Initiative")) {
-					String value = e.getAttribute("value");
-					if (value != null) c.initiative.setBaseValue(Integer.parseInt(value));
+			if (tag.equals("HitPoints")) {
+				c.hps.parseDOM(e);
+//				c.setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
+//				if (e.hasAttribute("wounds")) c.setWounds(Integer.parseInt(e.getAttribute("wounds")));
+//				if (e.hasAttribute("non-lethal")) c.setNonLethal(Integer.parseInt(e.getAttribute("non-lethal")));
 
-				} else if (tag.equals("Level")) {
-					c.level.setLevel(Integer.parseInt(e.getAttribute("level")));
-					c.xp = Integer.parseInt(e.getAttribute("xp"));
-					NodeList awards = e.getChildNodes();
-					if (awards != null) {
-						for (int j=0; j<awards.getLength(); j++) {
-							XP.XPChange change = null;
-							if (awards.item(j).getNodeName().equals("XPAward")) {
-								change = XP.XPChangeChallenges.parseDOM((Element)awards.item(j));
-							} else if (awards.item(j).getNodeName().equals("XPChange")) {
-								change = XP.XPChangeAdhoc.parseDOM((Element)awards.item(j));
-							} else if (awards.item(j).getNodeName().equals("XPLevelChange")) {
-								change = XP.XPChangeLevel.parseDOM((Element)awards.item(j));
-							}
-							if (change != null) c.addXPChange(change);
+			} else if (tag.equals("Initiative")) {
+				c.initiative.parseDOM(e);
+//				String value = e.getAttribute("value");
+//				if (value != null) c.initiative.setBaseValue(Integer.parseInt(value));
+
+			} else if (tag.equals("Level")) {
+//				c.level.setLevel(Integer.parseInt(e.getAttribute("level")));
+				c.level.parseDOM(e);
+				c.xp = Integer.parseInt(e.getAttribute("xp"));
+				NodeList awards = e.getChildNodes();
+				if (awards != null) {
+					for (int j=0; j<awards.getLength(); j++) {
+						XP.XPChange change = null;
+						if (awards.item(j).getNodeName().equals("XPAward")) {
+							change = XP.XPChangeChallenges.parseDOM((Element)awards.item(j));
+						} else if (awards.item(j).getNodeName().equals("XPChange")) {
+							change = XP.XPChangeAdhoc.parseDOM((Element)awards.item(j));
+						} else if (awards.item(j).getNodeName().equals("XPLevelChange")) {
+							change = XP.XPChangeLevel.parseDOM((Element)awards.item(j));
 						}
+						if (change != null) c.addXPChange(change);
 					}
+				}
 					
 
-				} else if (tag.equals("AbilityScores")) {
-					NodeList abilities = e.getChildNodes();
-					if (abilities != null) {
-						for (int j=0; j<abilities.getLength(); j++) {
-							if (!abilities.item(j).getNodeName().equals("AbilityScore")) continue;
-							Element s = (Element)abilities.item(j);
-							String value = s.getAttribute("value");
-							String type = s.getAttribute("type");
-							String temp = s.getAttribute("temp");
-							for (int k=0; k<6; k++) {
-								if (AbilityScore.getAbilityName(k).equals(type)) {
-									c.abilities[k].setBaseValue(Integer.parseInt(value));
-									if (temp != "") c.abilities[k].setOverride(Integer.parseInt(temp));
+			} else if (tag.equals("AbilityScores")) {
+				NodeList abilities = e.getChildNodes();
+				if (abilities != null) {
+					for (int j=0; j<abilities.getLength(); j++) {
+						if (!abilities.item(j).getNodeName().equals("AbilityScore")) continue;
+						Element s = (Element)abilities.item(j);
+//						String value = s.getAttribute("value");
+						String type = s.getAttribute("type");
+//						String temp = s.getAttribute("temp");
+						for (int k=0; k<6; k++) {
+							if (AbilityScore.getAbilityName(k).equals(type)) {
+								c.abilities[k].parseDOM(s);
+//								c.abilities[k].setBaseValue(Integer.parseInt(value));
+//								if (temp != "") c.abilities[k].setOverride(Integer.parseInt(temp));
+							}
+						}
+					}
+				}
+
+			} else if (tag.equals("SavingThrows")) {
+				NodeList saves = e.getChildNodes();
+				if (saves != null) {
+					for (int j=0; j<saves.getLength(); j++) {
+						if (!saves.item(j).getNodeName().equals("Save")) continue;
+						Element s = (Element)saves.item(j);
+//						String value = s.getAttribute("base");
+						String type = s.getAttribute("type");
+						String misc = s.getAttribute("misc");
+						for (int k=0; k<3; k++) {
+							if (SavingThrow.getSavingThrowName(k).equals(type)) {
+								c.saves[k].parseDOM(s);
+//								c.saves[k].setBaseValue(Integer.parseInt(value));
+								if (misc != "") c.setSavingThrowMisc(k, Integer.parseInt(misc));
+							}
+						}
+					}
+				}
+
+			} else if (tag.equals("Skills")) {
+				c.skills.parseDOM(e);
+//				NodeList skills = e.getChildNodes();
+//				if (skills != null) {
+//					for (int j=0; j<skills.getLength(); j++) {
+//						if (!skills.item(j).getNodeName().equals("Skill")) continue;
+//						Element s = (Element)skills.item(j);
+//						String ranks = s.getAttribute("ranks");
+//						String type = s.getAttribute("type");
+//						SkillType skill = SkillType.getSkill(type);
+//						c.setSkillRanks(skill, Float.parseFloat(ranks));
+//						//c.skillRanks.put(skill,Float.parseFloat(ranks));
+//						String misc = s.getAttribute("misc");
+//						if (misc != "") c.setSkillMisc(skill, Integer.parseInt(misc));
+//					}
+//				}
+
+			} else if (tag.equals("AC")) {
+				NodeList acs = e.getChildNodes();
+				if (acs != null) {
+					for (int j=0; j<acs.getLength(); j++) {
+						if (!acs.item(j).getNodeName().equals("ACComponent")) continue;
+						Element s = (Element)acs.item(j);
+						String value = s.getAttribute("value");
+						String type = s.getAttribute("type");
+						// TODO hacks to change type:
+						if (type.equals("Dex")) type = AC.getACComponentName(AC.AC_DEX);
+						if (type.equals("Natural")) type = AC.getACComponentName(AC.AC_NATURAL);
+						if (type.equals("Deflect")) type = AC.getACComponentName(AC.AC_DEFLECTION);
+						if (!type.equals(AC.getACComponentName(AC.AC_DEX))) {	// TODO ignore dex component when loading
+							for (int k=0; k<AC.AC_MAX_INDEX; k++) {
+								if (AC.getACComponentName(k).equals(type)) {
+									c.setACComponent(k, Integer.parseInt(value));
 								}
 							}
 						}
 					}
+				}
 
-				} else if (tag.equals("SavingThrows")) {
-					NodeList saves = e.getChildNodes();
-					if (saves != null) {
-						for (int j=0; j<saves.getLength(); j++) {
-							if (!saves.item(j).getNodeName().equals("Save")) continue;
-							Element s = (Element)saves.item(j);
-							String value = s.getAttribute("base");
-							String type = s.getAttribute("type");
-							String misc = s.getAttribute("misc");
-							for (int k=0; k<3; k++) {
-								if (SavingThrow.getSavingThrowName(k).equals(type)) {
-									c.saves[k].setBaseValue(Integer.parseInt(value));
-									if (misc != "") c.setSavingThrowMisc(k, Integer.parseInt(misc));
-								}
-							}
-						}
-					}
-
-				} else if (tag.equals("Skills")) {
-					NodeList skills = e.getChildNodes();
-					if (skills != null) {
-						for (int j=0; j<skills.getLength(); j++) {
-							if (!skills.item(j).getNodeName().equals("Skill")) continue;
-							Element s = (Element)skills.item(j);
-							String ranks = s.getAttribute("ranks");
-							String type = s.getAttribute("type");
-							SkillType skill = SkillType.getSkill(type);
-							c.setSkillRanks(skill, Float.parseFloat(ranks));
-							//c.skillRanks.put(skill,Float.parseFloat(ranks));
-							String misc = s.getAttribute("misc");
-							if (misc != "") c.setSkillMisc(skill, Integer.parseInt(misc));
-						}
-					}
-
-				} else if (tag.equals("AC")) {
-					NodeList acs = e.getChildNodes();
-					if (acs != null) {
-						for (int j=0; j<acs.getLength(); j++) {
-							if (!acs.item(j).getNodeName().equals("ACComponent")) continue;
-							Element s = (Element)acs.item(j);
-							String value = s.getAttribute("value");
-							String type = s.getAttribute("type");
-							// TODO hacks to change type:
-							if (type.equals("Dex")) type = AC.getACComponentName(AC.AC_DEX);
-							if (type.equals("Natural")) type = AC.getACComponentName(AC.AC_NATURAL);
-							if (type.equals("Deflect")) type = AC.getACComponentName(AC.AC_DEFLECTION);
-							if (!type.equals(AC.getACComponentName(AC.AC_DEX))) {	// TODO ignore dex component when loading
-								for (int k=0; k<AC.AC_MAX_INDEX; k++) {
-									if (AC.getACComponentName(k).equals(type)) {
-										c.setACComponent(k, Integer.parseInt(value));
-									}
-								}
-							}
-						}
+			} else if (tag.equals("Buffs")) {
+				NodeList buffs = e.getChildNodes();
+				if (buffs != null) { 
+					for (int j=0; j<buffs.getLength(); j++) {
+						if (!buffs.item(j).getNodeName().equals("Buff")) continue;
+						Buff b = Buff.parseDOM((Element)buffs.item(j));
+						b.applyBuff(c);
+						c.buffs.addElement(b);
 					}
 				}
 			}
@@ -914,8 +927,12 @@ public class Character extends Creature implements XML {
 		}
 		b.append(i2).append("</SavingThrows>").append(nl);
 		b.append(i2).append("<Skills>").append(nl);
-		Set<SkillType> set = skills.getTrainedSkills();
-		set.addAll(skillMisc.keySet());
+		ArrayList<SkillType> set = new ArrayList<SkillType>(skills.skills.keySet());
+		Collections.sort(set, new Comparator<SkillType>() {
+			public int compare(SkillType o1, SkillType o2) {
+				return o1.getName().compareTo(o2.getName());
+			}
+		});
 		for (SkillType s : set) {
 			if (getSkillRanks(s) != 0 || getSkillMisc(s) != 0) {
 				b.append(i3).append("<Skill type=\"").append(s);
@@ -1085,18 +1102,16 @@ public class Character extends Creature implements XML {
 		}
 
 		if (prop.startsWith(PROPERTY_SKILL_PREFIX)) {
-			Float ranks = 0.0f;
 			String skill = prop.substring(PROPERTY_SKILL_PREFIX.length());
 			SkillType s = SkillType.getSkill(skill);
-			if (s != null) ranks = skills.getRanks(s);
-			return ranks;
+			if (s != null) return skills.getRanks(s);
+			return 0f;
 		}
 
 		if (prop.startsWith(PROPERTY_SKILL_MISC_PREFIX)) {
 			String skill = prop.substring(PROPERTY_SKILL_MISC_PREFIX.length());
 			SkillType s = SkillType.getSkill(skill);
-			Modifier m = skillMisc.get(s);
-			if (m != null) return m.getModifier();
+			if (s != null) return skills.getMisc(s);
 			return 0;
 		}
 
@@ -1163,5 +1178,45 @@ public class Character extends Creature implements XML {
 			SkillType skill = SkillType.getSkill(skillName);
 			setSkillMisc(skill, (Integer)value);
 		}
+	}
+
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("Character");
+		e.setAttribute("name", name);
+
+		Element l = level.getElement(doc);
+		l.setAttribute("xp", ""+xp);
+		for (XPHistoryItem i : xpChanges) {
+			XP.XPChange cc = i.xpChange;
+			l.appendChild(cc.getElement(doc));
+		}
+		e.appendChild(l);
+		l = doc.createElement("AbilityScores");
+		for (AbilityScore s : abilities) {
+			l.appendChild(s.getElement(doc));
+		}
+		e.appendChild(l);
+		e.appendChild(hps.getElement(doc));
+		e.appendChild(initiative.getElement(doc));
+		l = doc.createElement("SavingThrows");
+		for (int i = 0; i < saves.length; i++) {
+			SavingThrow s = saves[i];
+			Element saveEl = s.getElement(doc);
+			if (saveMisc[i] != null) {
+				saveEl.setAttribute("misc", ""+saveMisc[i].getModifier());
+			}
+			l.appendChild(saveEl);
+		}
+		e.appendChild(l);
+		e.appendChild(skills.getElement(doc));
+		e.appendChild(ac.getElement(doc));
+
+		l = doc.createElement("Buffs");
+		for (int i = 0; i < buffs.getSize(); i++) {
+			Buff b = (Buff)buffs.get(i);
+			l.appendChild(b.getElement(doc));
+		}
+		e.appendChild(l);
+		return e;
 	}
 }

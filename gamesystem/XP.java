@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -60,6 +61,14 @@ public class XP {
 			if (!o.cr.equals(cr)) return false;
 			return true;
 		}
+
+		public Element getElement(Document doc) {
+			Element e = doc.createElement("XPChallenge");
+			e.setAttribute("cr", cr.toString());
+			e.setAttribute("number", ""+number);
+			e.setTextContent(comment);
+			return e;
+		}
 	}
 
 	public abstract static class XPChange {
@@ -93,6 +102,8 @@ public class XP {
 		}
 
 		public abstract String getXML(String indent, String nextIndent);
+
+		public abstract Element getElement(Document doc);
 	}
 
 	public static class XPChangeChallenges extends XPChange {
@@ -179,6 +190,26 @@ public class XP {
 			}
 			return b.toString();
 		}
+
+		public Element getElement(Document doc) {
+			Element e = doc.createElement("XPAward");
+			e.setAttribute("xp", ""+xp);
+			e.setAttribute("level", ""+level);
+			e.setAttribute("party", ""+partyCount);
+			e.setAttribute("penalty", ""+penalty);
+			if (date != null) {
+				e.setAttribute("date",dateFormat.format(date));
+			}
+			if (comment != null && comment.length() > 0) {
+				Element c = doc.createElement("Comment");
+				c.setTextContent(comment);
+				e.appendChild(c);
+			}
+			for (Challenge c : challenges) {
+				e.appendChild(c.getElement(doc));
+			}
+			return e;
+		}
 	}
 
 	public static class XPChangeAdhoc extends XPChange {
@@ -220,6 +251,18 @@ public class XP {
 			String c = super.toString();
 			if (c != "") txt += " ("+c+")";
 			return txt;
+		}
+
+		public Element getElement(Document doc) {
+			Element e = doc.createElement("XPChange");
+			e.setAttribute("xp", ""+xp);
+			if (date != null) {
+				e.setAttribute("date",dateFormat.format(date));
+			}
+			if (comment != null && comment.length() > 0) {
+				e.setTextContent(comment);
+			}
+			return e;
 		}
 	}
 
@@ -276,6 +319,19 @@ public class XP {
 
 		public int getNewLevel() {
 			return newLevel;
+		}
+
+		public Element getElement(Document doc) {
+			Element e = doc.createElement("XPLevelChange");
+			e.setAttribute("old", ""+oldLevel);
+			e.setAttribute("new", ""+newLevel);
+			if (date != null) {
+				e.setAttribute("date",dateFormat.format(date));
+			}
+			if (comment != null && comment.length() > 0) {
+				e.setTextContent(comment);
+			}
+			return e;
 		}
 	}
 

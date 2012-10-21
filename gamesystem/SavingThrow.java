@@ -1,5 +1,8 @@
 package gamesystem;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 
 public class SavingThrow extends Statistic {
 	// TODO if these constants are really only applicable in relation to the array in Character then they should be defined there (and protected)
@@ -40,5 +43,21 @@ public class SavingThrow extends Statistic {
 		int newValue = getValue();
 		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
 		pcs.firePropertyChange("value", null, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
+	}
+
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("Save");
+		e.setAttribute("type", name);
+		e.setAttribute("base", ""+baseValue);
+		return e;
+	}
+
+	// TODO notify listeners?
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals("Save")) return;
+		if (!e.getAttribute("type").equals(name)) return;
+		
+		baseValue = Integer.parseInt(e.getAttribute("base"));
+		// TODO misc
 	}
 }
