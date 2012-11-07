@@ -6,23 +6,21 @@ import java.beans.PropertyChangeListener;
 import javax.swing.BoxLayout;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
 
 import party.Character;
 import party.Creature;
 
 @SuppressWarnings("serial")
-public class CharacterHitPointPanel extends JPanel implements PropertyChangeListener {
-	protected Character character;
+public class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChangeListener {
 	JFormattedTextField currHP;
 
 	public CharacterHitPointPanel(Character c) {
-		character = c;
+		super(c);
 
 		setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
-		setBorder(new TitledBorder("Hit Points"));
+		summary = ""+character.getHPs()+" / "+character.getMaximumHitPoints();
+
 		add(new JLabel(" Current Hitpoints: "));
 
 		currHP = new JFormattedTextField();
@@ -57,6 +55,7 @@ public class CharacterHitPointPanel extends JPanel implements PropertyChangeList
 				|| arg0.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)
 				|| arg0.getPropertyName().equals(Creature.PROPERTY_HPS)) {
 			currHP.setValue(new Integer(character.getHPs()));
+			updateSummaries(""+character.getHPs()+" / "+character.getMaximumHitPoints());
 		}
 	}
 }

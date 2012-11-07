@@ -29,30 +29,31 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
+import org.w3c.dom.ProcessingInstruction;
 
 import ui.CharacterBuffsPanel.BuffListModel;
-import xml.XML;
+import util.Updater;
 
 // TODO priorities:
-// change xml output code. objects should create DOM fragments which can then be output in any way
 // buff specific skills. buffs to ability checks
-// xml for modifiers/buffs
-// clean up handling of HPs, wounds, healing etc
+// clean up handling of HPs, wounds, healing etc, particularly ui
 // review Statistics vs Properties
 // ui for adding adhoc modifiers
 // size
 // equipment, particularly magic item slots, armor, weapons
 
-// TODO how to handle xml for buffs that provide temporary hitpoints?
+// TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only)
 // TODO rework ac ui: list all bonuses, allow multiple bonuses of each type, AC temp scores?
 // TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
 // that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
 // TODO need to review how properties work on Character and BoundIntegerField
+// TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
 
 /* Things to implement:
  *  Ability score checks
@@ -76,8 +77,27 @@ import xml.XML;
  * @author Steve
  *
  */
-public class Character extends Creature implements XML {
+public class Character extends Creature {
 	protected String name;
+	protected String classDescription;
+	protected String player;
+	protected String region;
+	protected String race;
+	protected String gender;
+	protected String alignment;
+	protected String deity;
+	protected String size;
+	protected String type;
+	protected String age;
+	protected String height;
+	protected String weight;
+	protected String eyeColour;
+	protected String hairColour;
+	protected String speed;
+	protected String damageReduction;
+	protected String spellResistance;
+	protected String arcaneSpellFailure;
+	protected String actionPoints;
 
 	protected InitiativeModifier initiative;
 
@@ -710,6 +730,141 @@ public class Character extends Creature implements XML {
 		}
 	}
 
+//------------ getters and setters for informational fields -------------
+	public String getPlayer() {return player;}
+	public String getRegion() {return region;}
+	public String getRace() {return race;}
+	public String getGender() {return gender;}
+	public String getAlignment() {return alignment;}
+	public String getDeity() {return deity;}
+	public String getSize() {return size;}
+	public String getType() {return type;}
+	public String getAge() {return age;}
+	public String getHeight() {return height;}
+	public String getWeight() {return weight;}
+	public String getEyeColour() {return eyeColour;}
+	public String getHairColour() {return hairColour;}
+	public String getSpeed() {return speed;}
+	public String getDamageReduction() {return damageReduction;}
+	public String getSpellResistance() {return spellResistance;}
+	public String getArcaneSpellFailure() {return arcaneSpellFailure;}
+	public String getActionPoints() {return actionPoints;}
+	public String getClassDescription() {return classDescription;}
+
+	public void setPlayer(String s) {
+		String old = player;
+		player = s;
+		pcs.firePropertyChange(PROPERTY_PLAYER, old, s);
+	}
+
+	public void setRegion(String s) {
+		String old = region;
+		region = s;
+		pcs.firePropertyChange(PROPERTY_REGION, old, s);
+	}
+	
+	public void setRace(String s) {
+		String old = race;
+		race = s;
+		pcs.firePropertyChange(PROPERTY_RACE, old, s);
+	}
+	
+	public void setGender(String s) {
+		String old = gender;
+		gender = s;
+		pcs.firePropertyChange(PROPERTY_GENDER, old, s);
+	}
+	
+	public void setAlignment(String s) {
+		String old = alignment;
+		alignment = s;
+		pcs.firePropertyChange(PROPERTY_ALIGNMENT, old, s);
+	}
+	
+	public void setDeity(String s) {
+		String old = deity;
+		deity = s;
+		pcs.firePropertyChange(PROPERTY_DEITY, old, s);
+	}
+	
+	public void setSize(String s) {
+		String old = size;
+		size = s;
+		pcs.firePropertyChange(PROPERTY_SIZE, old, s);
+	}
+	
+	public void setType(String s) {
+		String old = type;
+		type = s;
+		pcs.firePropertyChange(PROPERTY_TYPE, old, s);
+	}
+	
+	public void setAge(String s) {
+		String old = age;
+		age = s;
+		pcs.firePropertyChange(PROPERTY_AGE, old, s);
+	}
+	
+	public void setHeight(String s) {
+		String old = height;
+		height = s;
+		pcs.firePropertyChange(PROPERTY_HEIGHT, old, s);
+	}
+
+	public void setWeight(String s) {
+		String old = weight;
+		weight = s;
+		pcs.firePropertyChange(PROPERTY_WEIGHT, old, s);
+	}
+	
+	public void setEyeColour(String s) {
+		String old = eyeColour;
+		eyeColour = s;
+		pcs.firePropertyChange(PROPERTY_EYE_COLOUR, old, s);
+	}
+	
+	public void setHairColour(String s) {
+		String old = hairColour;
+		hairColour = s;
+		pcs.firePropertyChange(PROPERTY_HAIR_COLOUR, old, s);
+	}
+	
+	public void setSpeed(String s) {
+		String old = speed;
+		speed = s;
+		pcs.firePropertyChange(PROPERTY_SPEED, old, s);
+	}
+	
+	public void setDamageReduction(String s) {
+		String old = damageReduction;
+		damageReduction = s;
+		pcs.firePropertyChange(PROPERTY_DAMAGE_REDUCTION, old, s);
+	}
+	
+	public void setSpellResistance(String s) {
+		String old = spellResistance;
+		spellResistance = s;
+		pcs.firePropertyChange(PROPERTY_SPELL_RESISTANCE, old, s);
+	}
+	
+	public void setArcaneSpellFailure(String s) {
+		String old = arcaneSpellFailure;
+		arcaneSpellFailure = s;
+		pcs.firePropertyChange(PROPERTY_ARCANE_SPELL_FAILURE, old, s);
+	}
+
+	public void setActionPoints(String s) {
+		String old = actionPoints;
+		actionPoints = s;
+		pcs.firePropertyChange(PROPERTY_ACTION_POINTS, old, s);
+	}
+
+	public void setClassDescription(String s) {
+		String old = classDescription;
+		classDescription = s;
+		pcs.firePropertyChange(PROPERTY_CLASS, old, s);
+	}
+
 //------------------- Import/Export and other methods -------------------
 	public Statistic getStatistic(String name) {
 		if (name.equals(STATISTIC_STRENGTH)) {
@@ -754,6 +909,26 @@ public class Character extends Creature implements XML {
 	public static Character parseDOM(Element el) {
 		if (!el.getNodeName().equals("Character")) return null;
 		Character c = new Character(el.getAttribute("name"));
+		c.player = el.getAttribute("player");
+		c.region = el.getAttribute("region");
+		c.race = el.getAttribute("race");
+		c.gender = el.getAttribute("gender");
+		c.alignment = el.getAttribute("alignment");
+		c.deity = el.getAttribute("deity");
+		c.size = el.getAttribute("size");
+		c.type = el.getAttribute("type");
+		c.age = el.getAttribute("age");
+		c.height = el.getAttribute("height");
+		c.weight = el.getAttribute("weight");
+		c.eyeColour = el.getAttribute("eye-colour");
+		c.hairColour = el.getAttribute("hair-colour");
+		c.speed = el.getAttribute("speed");
+		c.damageReduction = el.getAttribute("damage-reduction");
+		c.spellResistance = el.getAttribute("spell-resistance");
+		c.arcaneSpellFailure = el.getAttribute("arcane-spell-failure");
+		c.actionPoints = el.getAttribute("action-points");
+		
+		Element hpElement = null;
 
 		NodeList nodes = el.getChildNodes();
 		if (nodes == null)  return c;
@@ -764,10 +939,8 @@ public class Character extends Creature implements XML {
 			String tag = e.getTagName();
 
 			if (tag.equals("HitPoints")) {
-				c.hps.parseDOM(e);
-//				c.setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
-//				if (e.hasAttribute("wounds")) c.setWounds(Integer.parseInt(e.getAttribute("wounds")));
-//				if (e.hasAttribute("non-lethal")) c.setNonLethal(Integer.parseInt(e.getAttribute("non-lethal")));
+				// processing hitpoints is deferred as it relies on con being already set and buffs being already loaded
+				hpElement = e;
 
 			} else if (tag.equals("Initiative")) {
 				c.initiative.parseDOM(e);
@@ -826,7 +999,9 @@ public class Character extends Creature implements XML {
 							if (SavingThrow.getSavingThrowName(k).equals(type)) {
 								c.saves[k].parseDOM(s);
 //								c.saves[k].setBaseValue(Integer.parseInt(value));
-								if (misc != "") c.setSavingThrowMisc(k, Integer.parseInt(misc));
+								if (misc != "" && !misc.equals("0")) {
+									c.setSavingThrowMisc(k, Integer.parseInt(misc));
+								}
 							}
 						}
 					}
@@ -882,6 +1057,13 @@ public class Character extends Creature implements XML {
 					}
 				}
 			}
+		}
+
+		if (hpElement != null) {
+			c.hps.parseDOM(hpElement);
+//			c.setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
+//			if (e.hasAttribute("wounds")) c.setWounds(Integer.parseInt(e.getAttribute("wounds")));
+//			if (e.hasAttribute("non-lethal")) c.setNonLethal(Integer.parseInt(e.getAttribute("non-lethal")));
 		}
 
 		return c;
@@ -1058,6 +1240,26 @@ public class Character extends Creature implements XML {
 	// TODO not sure this is right for ability scores. probably needs reimplementing now
 	public Object getProperty(String prop) {
 		if (prop.equals(PROPERTY_NAME)) return name;
+		if (prop.equals(PROPERTY_PLAYER)) return player;
+		if (prop.equals(PROPERTY_CLASS)) return classDescription;
+		if (prop.equals(PROPERTY_REGION)) return region;
+		if (prop.equals(PROPERTY_RACE)) return race;
+		if (prop.equals(PROPERTY_GENDER)) return gender;
+		if (prop.equals(PROPERTY_ALIGNMENT)) return alignment;
+		if (prop.equals(PROPERTY_DEITY)) return deity;
+		if (prop.equals(PROPERTY_SIZE)) return size;
+		if (prop.equals(PROPERTY_TYPE)) return type;
+		if (prop.equals(PROPERTY_AGE)) return age;
+		if (prop.equals(PROPERTY_HEIGHT)) return height;
+		if (prop.equals(PROPERTY_WEIGHT)) return weight;
+		if (prop.equals(PROPERTY_EYE_COLOUR)) return eyeColour;
+		if (prop.equals(PROPERTY_HAIR_COLOUR)) return hairColour;
+		if (prop.equals(PROPERTY_SPEED)) return speed;
+		if (prop.equals(PROPERTY_DAMAGE_REDUCTION)) return damageReduction;
+		if (prop.equals(PROPERTY_SPELL_RESISTANCE)) return spellResistance;
+		if (prop.equals(PROPERTY_ARCANE_SPELL_FAILURE)) return arcaneSpellFailure;
+		if (prop.equals(PROPERTY_ACTION_POINTS)) return actionPoints;
+
 		if (prop.equals(PROPERTY_MAXHPS)) return hps.getMaximumHitPoints();
 		if (prop.equals(PROPERTY_WOUNDS)) return hps.getWounds();
 		if (prop.equals(PROPERTY_NONLETHAL)) return hps.getNonLethal();
@@ -1120,6 +1322,26 @@ public class Character extends Creature implements XML {
 
 	public void setProperty(String prop, Object value) {
 		if (prop.equals(PROPERTY_NAME)) setName((String)value);
+		if (prop.equals(PROPERTY_PLAYER)) setPlayer((String)value);
+		if (prop.equals(PROPERTY_CLASS)) setClassDescription((String)value);
+		if (prop.equals(PROPERTY_REGION)) setRegion((String)value);
+		if (prop.equals(PROPERTY_RACE)) setRace((String)value);
+		if (prop.equals(PROPERTY_GENDER)) setGender((String)value);
+		if (prop.equals(PROPERTY_ALIGNMENT)) setAlignment((String)value);
+		if (prop.equals(PROPERTY_DEITY)) setDeity((String)value);
+		if (prop.equals(PROPERTY_SIZE)) setSize((String)value);
+		if (prop.equals(PROPERTY_TYPE)) setType((String)value);
+		if (prop.equals(PROPERTY_AGE)) setAge((String)value);
+		if (prop.equals(PROPERTY_HEIGHT)) setHeight((String)value);
+		if (prop.equals(PROPERTY_WEIGHT)) setWeight((String)value);
+		if (prop.equals(PROPERTY_EYE_COLOUR)) setEyeColour((String)value);
+		if (prop.equals(PROPERTY_HAIR_COLOUR)) setHairColour((String)value);
+		if (prop.equals(PROPERTY_SPEED)) setSpeed((String)value);
+		if (prop.equals(PROPERTY_DAMAGE_REDUCTION)) setDamageReduction((String)value);
+		if (prop.equals(PROPERTY_SPELL_RESISTANCE)) setSpellResistance((String)value);
+		if (prop.equals(PROPERTY_ARCANE_SPELL_FAILURE)) setArcaneSpellFailure((String)value);
+		if (prop.equals(PROPERTY_ACTION_POINTS)) setActionPoints((String)value);
+
 		if (prop.equals(PROPERTY_MAXHPS)) setMaximumHitPoints((Integer)value);
 		if (prop.equals(PROPERTY_WOUNDS)) setWounds((Integer)value);
 		if (prop.equals(PROPERTY_NONLETHAL)) setNonLethal((Integer)value);
@@ -1180,43 +1402,228 @@ public class Character extends Creature implements XML {
 		}
 	}
 
-	public Element getElement(Document doc) {
+	public void saveCharacterSheet() {
+    	Document doc;
+		try {
+			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			ProcessingInstruction pi = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"CharacterSheetTemplate.xsl\"");
+			doc.appendChild(pi);
+	    	doc.appendChild(getCharacterSheet(doc));
+	    	doc.setXmlStandalone(true);
+	    	Updater.updateDocument(doc, name);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static String getModifierString(int mod) {
+		if (mod >= 0) return "+"+mod;
+		return Integer.toString(mod);
+	}
+
+	private static Element getWeapon(Document doc, String name, String total, String damage, String critical, String range, String weight, String type, String size, String properties, String ammunition) {
+		Element e = doc.createElement("Weapon");
+		e.setAttribute("name", name); 
+		e.setAttribute("total", total);
+		e.setAttribute("damage", damage);
+		e.setAttribute("critical", critical);
+		e.setAttribute("range", range);
+		e.setAttribute("weight", weight);
+		e.setAttribute("type", type);
+		e.setAttribute("size", size);
+		e.setAttribute("properties", properties);
+		e.setAttribute("ammunition", ammunition);
+		return e;
+	}
+
+	protected Element getCharacterElement(Document doc) {
 		Element e = doc.createElement("Character");
 		e.setAttribute("name", name);
+		if(player != null && player.length() > 0) e.setAttribute("player",player);
+		if(region != null && region.length() > 0) e.setAttribute("region",region);
+		if(race != null && race.length() > 0) e.setAttribute("race",race);
+		if(gender != null && gender.length() > 0) e.setAttribute("gender",gender);
+		if(alignment != null && alignment.length() > 0) e.setAttribute("alignment",alignment);
+		if(deity != null && deity.length() > 0) e.setAttribute("deity",deity);
+		if(size != null && size.length() > 0) e.setAttribute("size",size);
+		if(type != null && type.length() > 0) e.setAttribute("type",type);
+		if(age != null && age.length() > 0) e.setAttribute("age",age);
+		if(height != null && height.length() > 0) e.setAttribute("height",height);
+		if(weight != null && weight.length() > 0) e.setAttribute("weight",weight);
+		if(eyeColour != null && eyeColour.length() > 0) e.setAttribute("eye-colour",eyeColour);
+		if(hairColour != null && hairColour.length() > 0) e.setAttribute("hair-colour",hairColour);
+		if(speed != null && speed.length() > 0) e.setAttribute("speed",speed);
+		if(damageReduction != null && damageReduction.length() > 0) e.setAttribute("damage-reduction",damageReduction);
+		if(spellResistance != null && spellResistance.length() > 0) e.setAttribute("spell-resistance",spellResistance);
+		if(arcaneSpellFailure != null && arcaneSpellFailure.length() > 0) e.setAttribute("arcane-spell-failure",arcaneSpellFailure);
+		if(actionPoints != null && actionPoints.length() > 0) e.setAttribute("action-points",actionPoints);
+		return e;
+	}
 
-		Element l = level.getElement(doc);
-		l.setAttribute("xp", ""+xp);
+	public Element getCharacterSheet(Document doc) {
+		Element charEl = getCharacterElement(doc);
+
+		Element e = level.getElement(doc);
+		e.setAttribute("class", classDescription);
+		charEl.appendChild(e);
+
+		e = doc.createElement("AbilityScores");
+		for (AbilityScore s : abilities) {
+			Element e1 = doc.createElement("AbilityScore");
+			e1.setAttribute("type", AbilityScore.getAbilityName(s.getType()));
+			e1.setAttribute("total", ""+s.getRegularValue());		// this is the base value plus modifiers to the ability score
+			e1.setAttribute("modifier", getModifierString(AbilityScore.getModifier(s.getRegularValue())));
+
+			if (s.getOverride() != -1) {
+				e1.setAttribute("temp", ""+s.getOverride());
+				e1.setAttribute("temp-modifier", getModifierString(AbilityScore.getModifier(s.getOverride())));
+			}
+			e.appendChild(e1);
+		}
+		charEl.appendChild(e);
+
+		charEl.appendChild(hps.getElement(doc));
+
+		e = doc.createElement("Initiative");
+		e.setAttribute("total", getModifierString(initiative.getValue()));
+		e.setAttribute("misc", getModifierString(initiative.getValue()-abilities[AbilityScore.ABILITY_DEXTERITY].getModifierValue()));	// assumes only 1 dex modifier that will always apply
+		charEl.appendChild(e);
+
+        e = doc.createElement("SavingThrows");
+		for (int i = 0; i < saves.length; i++) {
+			SavingThrow s = saves[i];
+			Element saveEl = doc.createElement("Save");
+			saveEl.setAttribute("type", s.getName());
+			saveEl.setAttribute("base", getModifierString(s.getBaseValue()));
+			saveEl.setAttribute("total", getModifierString(s.getValue()));
+			int temp = 0;
+			if (saveMisc[i] != null) temp = saveMisc[i].getModifier();
+			if (temp != 0) saveEl.setAttribute("misc", getModifierString(temp));	// the misc/temp modifier applied through the ui
+			int misc = s.getValue() - s.getBaseValue() - abilities[SavingThrow.getSaveAbility(i)].getModifierValue() - temp;
+			if (misc != 0) saveEl.setAttribute("mods", getModifierString(misc));	// mods is the total combined modifiers other than the misc/temp modifier and the ability modifier
+			e.appendChild(saveEl);
+		}
+		charEl.appendChild(e);
+		
+		e = doc.createElement("Skills");
+		ArrayList<SkillType> set = new ArrayList<SkillType>(getSkills());
+		Collections.sort(set, new Comparator<SkillType>() {
+			public int compare(SkillType o1, SkillType o2) {
+				return o1.getName().compareTo(o2.getName());
+			}
+		});
+		for (SkillType s : set) {
+			Element se = doc.createElement("Skill");
+			se.setAttribute("type", s.getName());
+			if (skills.getRanks(s) == (int)skills.getRanks(s)) {
+				se.setAttribute("ranks", Integer.toString((int)skills.getRanks(s)));
+			} else {
+				se.setAttribute("ranks", ""+skills.getRanks(s));
+			}
+			// cross-class="true"
+			se.setAttribute("untrained", Boolean.toString(!s.isTrainedOnly()));
+			se.setAttribute("ability", AbilityScore.ability_abbreviations[s.getAbility()]);
+			se.setAttribute("ability-modifier", ""+abilities[s.getAbility()].getModifierValue());
+			se.setAttribute("total", getModifierString(skills.getValue(s)));
+			if (skills.getMisc(s) != 0) se.setAttribute("misc", ""+skills.getMisc(s));
+			e.appendChild(se);
+		}
+		charEl.appendChild(e);
+
+		e = doc.createElement("AC");
+		e.setAttribute("total", ""+ac.getValue());
+		e.setAttribute("flat-footed", ""+ac.getFlatFootedAC().getValue());
+		e.setAttribute("touch" ,""+ac.getTouchAC().getValue());
+		e.setAttribute("armor-check-penalty","");	// TODO implement
+		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
+			if (ac.getModifiersTotal(AC.getACComponentName(i)) != 0) {
+				Element comp = doc.createElement("ACComponent");
+				comp.setAttribute("type", AC.getACComponentName(i));
+				comp.setAttribute("value", getModifierString(ac.getModifiersTotal(AC.getACComponentName(i))));
+				e.appendChild(comp);
+			}
+		}
+		charEl.appendChild(e);
+
+		e = doc.createElement("Attacks");
+		e.setAttribute("base", ""+attacks.getBAB());
+		e.setAttribute("temp", "");					// TODO implement
+		e.setAttribute("size-modifier", "+0");			// TODO implement
+		Element e1 = doc.createElement("Attack");
+		e1.setAttribute("type","Grapple");
+		e1.setAttribute("total",getModifierString(attacks.getGrappleValue()));
+		e1.setAttribute("misc","+0");				// TODO implement
+		e.appendChild(e1);
+		e1 = doc.createElement("Attack");
+		e1.setAttribute("type","Melee");
+		e1.setAttribute("total",getModifierString(attacks.getValue()));
+		e1.setAttribute("misc","+0");				// TODO implement
+		e1.setAttribute("temp-modifier", "");				// TODO implement
+		e.appendChild(e1);
+		e1 = doc.createElement("Attack");
+		e1.setAttribute("type","Ranged");
+		e1.setAttribute("total",getModifierString(attacks.getRangedValue()));
+		e1.setAttribute("misc","+0");					// TODO implement
+		e1.setAttribute("temp-modifier", "");				// TODO implement
+		e.appendChild(e1);
+
+		// TODO implement:
+		e.appendChild(getWeapon(doc, "Masterwork club", "4", "1d6-1", "20/x2", "10 ft", "3 lb", "B", "Medium", "One-handed", ""));
+		e.appendChild(getWeapon(doc, "Masterwork quarterstaff", "4", "1d6-1", "20/x2", "0 ft", "4 lb", "B", "Medium", "Two-handed", ""));
+		e.appendChild(getWeapon(doc, "Sling", "7", "1d4-1", "20/x2", "50 ft", "0 lb", "B", "Medium", "Two-handed", ""));
+		e.appendChild(getWeapon(doc, "Sickle", "3", "1d6-1", "20/x2", "0 ft", "2 lb", "S", "Medium", "One-handed", ""));
+		e.appendChild(getWeapon(doc, "Sickle2", "3", "1d8-1", "20/x2", "30 ft", "2 lb", "S", "Medium", "One-handed", ""));
+		e.appendChild(getWeapon(doc, "Sickle3", "3", "1d10-1", "20/x2", "60 ft", "2 lb", "S", "Medium", "One-handed", ""));
+		charEl.appendChild(e);
+
+		// TODO move description out of the Modifier element created by Buff.getElement - should only apply to charactersheet output
+		// TODO modifiers that are not active should be flagged
+		e = doc.createElement("Buffs");
+		for (int i = 0; i < buffs.getSize(); i++) {
+			Buff b = (Buff)buffs.get(i);
+			e.appendChild(b.getElement(doc));
+		}
+		charEl.appendChild(e);
+		return charEl;
+	}
+
+	public Element getElement(Document doc) {
+		Element charEl = getCharacterElement(doc);
+
+		Element e = level.getElement(doc);
+		e.setAttribute("xp", ""+xp);
 		for (XPHistoryItem i : xpChanges) {
 			XP.XPChange cc = i.xpChange;
-			l.appendChild(cc.getElement(doc));
+			e.appendChild(cc.getElement(doc));
 		}
-		e.appendChild(l);
-		l = doc.createElement("AbilityScores");
+		charEl.appendChild(e);
+		e = doc.createElement("AbilityScores");
 		for (AbilityScore s : abilities) {
-			l.appendChild(s.getElement(doc));
+			e.appendChild(s.getElement(doc));
 		}
-		e.appendChild(l);
-		e.appendChild(hps.getElement(doc));
-		e.appendChild(initiative.getElement(doc));
-		l = doc.createElement("SavingThrows");
+		charEl.appendChild(e);
+		charEl.appendChild(hps.getElement(doc));
+		charEl.appendChild(initiative.getElement(doc));
+		e = doc.createElement("SavingThrows");
 		for (int i = 0; i < saves.length; i++) {
 			SavingThrow s = saves[i];
 			Element saveEl = s.getElement(doc);
 			if (saveMisc[i] != null) {
 				saveEl.setAttribute("misc", ""+saveMisc[i].getModifier());
 			}
-			l.appendChild(saveEl);
+			e.appendChild(saveEl);
 		}
-		e.appendChild(l);
-		e.appendChild(skills.getElement(doc));
-		e.appendChild(ac.getElement(doc));
+		charEl.appendChild(e);
+		charEl.appendChild(skills.getElement(doc));
+		charEl.appendChild(ac.getElement(doc));
 
-		l = doc.createElement("Buffs");
+		e = doc.createElement("Buffs");
 		for (int i = 0; i < buffs.getSize(); i++) {
 			Buff b = (Buff)buffs.get(i);
-			l.appendChild(b.getElement(doc));
+			e.appendChild(b.getElement(doc));
 		}
-		e.appendChild(l);
-		return e;
+		charEl.appendChild(e);
+		return charEl;
 	}
 }

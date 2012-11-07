@@ -97,7 +97,7 @@ public class Skills extends Statistic {
 			return super.getModifiersTotal(mods, null);
 		} else {
 			mods.addAll(skill.modifiers);
-			return (int)skill.ranks + getModifiersTotal(mods, null);
+			return (int)skill.ranks + getModifiersTotal(mods, null) + skill.misc;
 		}
 	}
 

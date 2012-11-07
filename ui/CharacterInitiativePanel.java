@@ -10,23 +10,19 @@ import java.beans.PropertyChangeListener;
 import java.util.Map;
 
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
 
 import party.Creature;
 import party.Character;
 
 @SuppressWarnings("serial")
-public class CharacterInitiativePanel extends JPanel implements PropertyChangeListener {
-	protected Character character;
+public class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChangeListener {
 	protected JLabel dexLabel;
 	protected BoundIntegerField baseInit;
 	protected JLabel totLabel;
 
 	public CharacterInitiativePanel(Character c) {
-		character = c;
-
-		setBorder(new TitledBorder("Initiative"));
+		super(c);
+		summary = (character.getInitiativeModifier() >= 0 ? "+" : "") + character.getInitiativeModifier();
 
 		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifier(AbilityScore.ABILITY_DEXTERITY));
 		add(dexLabel);
@@ -67,6 +63,7 @@ public class CharacterInitiativePanel extends JPanel implements PropertyChangeLi
 			InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
 			totLabel.setText("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 			updateToolTip();
+			updateSummaries((character.getInitiativeModifier() >= 0 ? "+" : "") + character.getInitiativeModifier());
 		}
 	}
 }

@@ -39,14 +39,14 @@ import org.w3c.dom.NodeList;
 import party.Party;
 import swing.ReorderableList;
 import swing.SpinnerCellEditor;
-import xml.XML;
+import util.Updater;
 import xml.XMLUtils;
 
 // TODO consider removing ability to edit max hitpoints. Maybe have modifications on this tab be temporary
 // TODO provide events when the combat state changes (round or initiative list), then file updater can just register as listener
 
 @SuppressWarnings("serial")
-public class CombatPanel extends JPanel implements XML {
+public class CombatPanel extends JPanel {
 	static CombatPanel combatPanel; 
 	
 	Party party;
@@ -54,7 +54,7 @@ public class CombatPanel extends JPanel implements XML {
 	EffectListModel effectsListModel;
 	EffectTableModel effectsTableModel;
 	int round = 0;
-	InitiativeFileUpdater fileUpdater = new InitiativeFileUpdater();
+	Updater fileUpdater = new Updater();
 
 	public CombatPanel(Party p) {
 		combatPanel = this;
@@ -63,15 +63,15 @@ public class CombatPanel extends JPanel implements XML {
 		initiativeListModel = new InitiativeListModel(party);
 		initiativeListModel.addListDataListener(new ListDataListener() {
 			public void contentsChanged(ListDataEvent arg0) {
-				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
 
 			public void intervalAdded(ListDataEvent arg0) {
-				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
 
 			public void intervalRemoved(ListDataEvent arg0) {
-				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
 			
 		});
@@ -127,7 +127,7 @@ public class CombatPanel extends JPanel implements XML {
 				initiativeListModel.reset();
 				round = 0;
 				roundsLabel.setText("Round "+round);
-				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
 		});
 
@@ -140,7 +140,7 @@ public class CombatPanel extends JPanel implements XML {
 				}
 				round++;
 				roundsLabel.setText("Round "+round);
-				fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
 		});
 
@@ -157,7 +157,7 @@ public class CombatPanel extends JPanel implements XML {
 					}
 					round+= value;
 					roundsLabel.setText("Round "+round);
-					fileUpdater.writeFile(round, initiativeListModel.getInitiativeText());
+					updateInitiative(round, initiativeListModel.getInitiativeText());
 				}
 			}
 		});
@@ -179,6 +179,17 @@ public class CombatPanel extends JPanel implements XML {
 		setLayout(new BorderLayout());
 		add(topPanel, BorderLayout.NORTH);
 		add(splitPane, BorderLayout.CENTER);
+	}
+
+	String lastInitiativeOutput = "";
+
+	public void updateInitiative(int round, String text) {
+		String output = "round="+round+"\n"+text;
+		if (!output.equals(lastInitiativeOutput)) {
+			//System.out.println(output);
+			lastInitiativeOutput = output;
+			Updater.update(Updater.INITIATIVE_FILE, output.getBytes());
+		}
 	}
 
 	public String getCharacterName(int index) {

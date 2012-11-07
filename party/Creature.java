@@ -28,6 +28,27 @@ public abstract class Creature {
 	public final static String PROPERTY_XP = "XP";
 	public final static String PROPERTY_BAB = "BAB";
 
+	// informational string properties (these are simple values that can be set/retrieved)
+	public static final String PROPERTY_PLAYER = "Player";
+	public final static String PROPERTY_CLASS = "Class";
+	public final static String PROPERTY_REGION = "Region";
+	public final static String PROPERTY_RACE = "Race";
+	public final static String PROPERTY_GENDER = "Gender";
+	public final static String PROPERTY_ALIGNMENT = "Alignment";
+	public final static String PROPERTY_DEITY = "Deity";
+	public final static String PROPERTY_SIZE = "Size";
+	public final static String PROPERTY_TYPE = "Type";
+	public final static String PROPERTY_AGE = "Age";
+	public final static String PROPERTY_HEIGHT = "Height";
+	public final static String PROPERTY_WEIGHT = "Weight";
+	public final static String PROPERTY_EYE_COLOUR = "Eye Colour";
+	public final static String PROPERTY_HAIR_COLOUR = "Hair Colour";
+	public final static String PROPERTY_SPEED = "Speed";
+	public final static String PROPERTY_DAMAGE_REDUCTION = "Damage Reduction";
+	public final static String PROPERTY_SPELL_RESISTANCE = "Spell Resistance";
+	public final static String PROPERTY_ARCANE_SPELL_FAILURE = "Arcane Spell Failure";
+	public final static String PROPERTY_ACTION_POINTS = "Action Points";
+	
 	// statistics
 	// TODO should be combined with properties
 	public final static String STATISTIC_STRENGTH = "abilities.strength";

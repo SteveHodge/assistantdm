@@ -18,10 +18,8 @@ import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
 
 import party.Character;
 import party.Creature;
@@ -29,8 +27,7 @@ import party.Creature;
 // TODO better history dialog
 // FIXME: changing the level directly doesn't apply the comments or date
 @SuppressWarnings("serial")
-public class CharacterXPPanel extends JPanel implements PropertyChangeListener, ActionListener {
-	protected Character character;
+public class CharacterXPPanel extends CharacterSubPanel implements PropertyChangeListener, ActionListener {
 	JLabel xpLabel;
 	JLabel percentage;
 	JButton adhocButton, historyButton, levelButton;
@@ -39,10 +36,13 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 	JFormattedTextField dateField;
 
 	public CharacterXPPanel(Character chr) {
-		character = chr;
+		super(chr);
 
 		xpLabel = new JLabel(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
-		percentage = new JLabel(String.format("%.2f%%",	((float)character.getXP()-XP.getXPRequired(character.getLevel()))/(character.getLevel()*10)));
+		float perc = ((float)character.getXP()-XP.getXPRequired(character.getLevel()))/(character.getLevel()*10);
+		percentage = new JLabel(String.format("%.2f%%",	perc));
+		summary = String.format("%d (%.2f%%)", character.getLevel(), perc);
+
 		historyButton = new JButton("History");
 		historyButton.addActionListener(this);
 		levelButton = new JButton("Level Up");
@@ -57,7 +57,6 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 		dateField.setValue(new Date());
 		dateField.setToolTipText("Expects date as 'yyyy-mm-dd'");
 
-		setBorder(new TitledBorder("Levels and Experience"));
 		setLayout(new GridBagLayout());
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -141,8 +140,10 @@ public class CharacterXPPanel extends JPanel implements PropertyChangeListener, 
 		if (e.getPropertyName().equals(Creature.PROPERTY_LEVEL)
 				|| e.getPropertyName().equals(Creature.PROPERTY_XP)) {
 			xpLabel.setText(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
-			percentage.setText(String.format("%.2f%%",	((float)character.getXP()-XP.getXPRequired(character.getLevel()))/(character.getLevel()*10)));
+			float perc = ((float)character.getXP()-XP.getXPRequired(character.getLevel()))/(character.getLevel()*10);
+			percentage.setText(String.format("%.2f%%", perc));
 			levelButton.setEnabled(character.getXP() >= character.getRequiredXP());
+			updateSummaries(String.format("%d (%.2f%%)", character.getLevel(), perc));
 		}
 	}
 

@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import party.Creature;
 
@@ -58,6 +59,7 @@ public class HPs extends Statistic {
 		int hps;
 		String source;
 		boolean active = true;
+		int id;
 
 		final PropertyChangeSupport modpcs = new PropertyChangeSupport(this);
 
@@ -88,6 +90,10 @@ public class HPs extends Statistic {
 
 		public void removePropertyChangeListener(PropertyChangeListener listener) {
 			modpcs.removePropertyChangeListener(listener);
+		}
+
+		public int getID() {
+			return id;
 		}
 	}
 
@@ -189,15 +195,14 @@ public class HPs extends Statistic {
 		pcs.firePropertyChange(Creature.PROPERTY_NONLETHAL, old, i);
 	}
 
-	public Modifier addTemporaryHPs(String source, int hps) {
-		TempHPs temps = new TempHPs(source, hps);
+	protected Modifier addTemporaryHPs(TempHPs temps) {
 		int old = getHPs();
 
 		// find the highest instance of this source - that instance is active, all others with the same source are inactive
 		TempHPs best = temps;
 		temps.active = false;
 		for (TempHPs t : tempHPs) {
-			if (t.source.equals(source)) {
+			if (t.source.equals(temps.source)) {
 				t.active = false;
 				if (t.hps >= best.hps) {
 					best = t;
@@ -211,7 +216,7 @@ public class HPs extends Statistic {
 		return temps;
 	}
 
-	public void removeTemporaryHPs(Modifier hps) {
+	protected void removeTemporaryHPs(Modifier hps) {
 		int old = getHPs();
 		if (tempHPs.remove(hps)) {
 			TempHPs removed = (TempHPs)hps;
@@ -245,8 +250,11 @@ public class HPs extends Statistic {
 	}
 
 	// Statistics methods
+	// TODO this should search the temphps we already have in case the temphps were already loaded by parseDOM 
 	public void addModifier(Modifier m) {
-		TempHPs hps = (TempHPs)addTemporaryHPs(m.getSource(),m.getModifier());
+		TempHPs hps = new TempHPs(m.getSource(),m.getModifier());
+		hps.id = m.getID();
+		addTemporaryHPs(hps);
 		modMap.put(m, hps);
 	}
 
@@ -292,56 +300,19 @@ public class HPs extends Statistic {
 		}
 	}
 
-	public static void main(String[] args) {
-		AbilityScore con = new AbilityScore(AbilityScore.ABILITY_CONSTITUTION);
-		Level lvl = new Level();
-		lvl.setLevel(5);
-
-		HPs hps = new HPs(con, lvl);
-		hps.setMaximumHitPoints(20);
-
-		hps.addTemporaryHPs("Aid", 15);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 35
-		hps.addTemporaryHPs("Vampiric Touch", 10);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 45
-		hps.addTemporaryHPs("Aid", 12);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 45
-		printTempHPs(hps.tempHPs);
-
-		hps.applyDamage(5);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 40
-		printTempHPs(hps.tempHPs);
-
-		hps.addTemporaryHPs("Aid", 12);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 42
-		// new Aid should be active
-		printTempHPs(hps.tempHPs);
-
-		hps.applyDamage(8);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 34
-		// should have been applied to vampiric touch
-		printTempHPs(hps.tempHPs);
-
-		hps.applyDamage(8);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 26
-		// vampiric touch should be gone and 6 points applied to aids
-		printTempHPs(hps.tempHPs);
-
-		hps.applyDamage(5);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 21
-		// oldest 2 aids expire, leaving one aid with 1hp
-		printTempHPs(hps.tempHPs);
-
-		hps.applyDamage(5);
-		System.out.println("Total HPs = "+hps.getHPs());	// should be 16
-		printTempHPs(hps.tempHPs);
-	}
-
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("HitPoints");
 		e.setAttribute("maximum", ""+hps);
 		if (wounds != 0) e.setAttribute("wounds", ""+wounds);
 		if (nonLethal != 0) e.setAttribute("non-lethal" ,""+nonLethal);
+
+		for (TempHPs t : tempHPs) {
+			Element me = doc.createElement("TempHPs");
+			me.setAttribute("hps", ""+t.hps);
+			me.setAttribute("source", t.source);
+			if (t.id > 0) me.setAttribute("id", ""+t.id);
+			e.appendChild(me);
+		}
 		return e;
 	}
 
@@ -353,5 +324,37 @@ public class HPs extends Statistic {
 		if (e.hasAttribute("non-lethal")) nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
 		oldMod = conMod.getModifier();	// we need to set the oldMod so that any future con changes are correctly calculated
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
+
+		NodeList temps = e.getChildNodes();
+		if (temps != null) {
+			for (int k=0; k<temps.getLength(); k++) {
+				if (!temps.item(k).getNodeName().equals("TempHPs")) continue;
+				Element m = (Element)temps.item(k);
+				String source = m.getAttribute("source");
+				int hps = Integer.parseInt(m.getAttribute("hps"));
+				int id = Integer.parseInt(m.getAttribute("id"));
+
+				boolean found = false;
+				if (id > 0) {
+					// see if we have a modifier to map this to. if we do then adjust the existing temp hps
+					for (TempHPs temp : tempHPs) {
+						if (temp.id == id) {
+							if (!temp.source.equals(source)) System.out.println("Temp HPs: conflicting source for ID "+id);
+							temp.hps = hps;
+							found = true;
+						}
+					}
+				}
+				if (!found) {
+					if (id > 0) {
+						// if we don't have a modifier then we set up a temp hps but we'll need to wait for the Buff to link it up
+						System.out.println("Unimplemented: parsing temporary hitpoints before buff");
+					}
+					TempHPs temp = new TempHPs(source, hps);
+					temp.id = id;
+					addTemporaryHPs(temp);
+				}
+			}
+		}
 	}
 }

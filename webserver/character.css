@@ -1,0 +1,269 @@
+td {
+	vertical-align:bottom;
+	white-space:nowrap;
+	text-align:left;
+	text-decoration:none;
+	font-family:Arial, sans-serif;
+	font-weight:normal;
+	font-size:0.8333em;
+	font-style:normal;
+	color:black;
+	border:none;
+}
+
+.B {
+	border-bottom:thin solid black;
+}
+
+.L {
+	border-left:thin solid black;
+}
+
+.T {
+	border-top:thin solid black;
+}
+
+.R {
+	border-right:thin solid black;
+}
+
+.sheet-title-class {
+	vertical-align:middle;
+	text-align:center;
+	font-weight:bold;
+	font-size:1.6667em;
+}
+
+.speed-heading-class {
+	vertical-align:middle;
+	text-align:center;
+}
+
+.equation-class {
+	vertical-align:middle;
+	text-align:center;
+	font-size:1.333em;
+}
+
+.checkbox-class {
+	vertical-align:middle;
+	text-align:center;
+	font-size:1.333em;
+}
+
+.ac-base-value-class {
+	vertical-align:middle;
+	text-align:right;
+	font-weight:bold;
+	font-size:2.1667em;
+}
+
+.weapon-ammo-label-class {
+	text-align:center;
+	font-weight:bold;
+	font-size:1em;
+}
+
+.weapon-ammo-desc-class {
+	vertical-align:middle;
+	border-bottom:thin solid black;
+}
+
+/* headings */
+
+.title-class, .subtitle-class, .weapon-subtitle-class, .title-smaller-class {
+	border:thin solid black;
+	vertical-align:middle;
+	text-align:center;
+	color:white;
+	background:black;
+}
+
+.title-class {
+	font-weight:bold;
+	font-size:1.5em;
+}
+
+.weapon-subtitle-class {
+	font-weight:bold;
+	font-size:0.8333em;
+}
+
+.title-smaller-class {
+	white-space:normal;
+	font-weight:bold;
+	font-size:1.333em;
+}
+
+/* data */
+
+.data-value-class, .data-value-important-class, .total-attack-bonus-class, .bab-class, .weapon-name-class {
+	vertical-align:middle;
+	text-align:center;
+	border:thin solid black;
+}
+
+.data-value-class {
+	font-size:1.8333em;
+}
+
+.data-value-important-class {
+	font-weight:bold;
+	font-size:1.8333em;
+}
+
+.total-attack-bonus-class {
+	font-weight:bold;
+	font-size:1.333em;
+}
+
+.bab-class {
+	font-size:1.333em;
+}
+
+.weapon-name-class {
+	white-space:normal;
+	font-size:1.5em;
+}
+
+.temp-value-class {
+	border:1.0pt dashed black;
+	vertical-align:middle;
+	text-align:center;
+	font-weight:bold;
+	font-size:1.8333em;
+}
+
+.info-value-class, .info-value-important-class, .info-value-small-class {
+	vertical-align:middle;
+	border-bottom:thin solid black;
+}
+
+.info-value-class {
+	font-size:1.8333em;
+}
+
+.info-value-important-class {
+	font-weight:bold;
+	font-size:1.8333em;
+}
+
+.info-value-small-class {
+	font-size:1.6667em;
+}
+
+/* skills headings */
+.skills-title-class, .skills-cross-class-heading, .skills-max-ranks-heading, .skills-max-ranks-value {
+	color:white;
+	background:black;
+	border-top:thin solid black;
+	border-bottom:thin solid black;
+	vertical-align:middle;
+	text-align:center;
+}
+
+.skills-title-class {
+	font-size:1.5em;
+	font-weight:bold;
+}
+
+.skills-cross-class-heading {
+	vertical-align:bottom;
+	font-size:0.5em;
+	border-left:thin solid black;
+}
+
+.skills-max-ranks-heading {
+	text-align:right;
+	font-size:1em;
+}
+
+.skills-max-ranks-value {
+	font-size:1em;
+	border-right:thin solid black;
+}
+
+/* skills sub-headings */
+.xl196 {
+	vertical-align:top;
+	text-align:center;
+	white-space:normal;
+	border:thin solid black;
+}
+
+.xl201 {
+	vertical-align:top;
+	text-align:center;
+	white-space:normal;
+	font-weight:bold;
+	font-size:0.8333em;
+	border:thin solid black;
+}
+
+.xl202 {
+	vertical-align:middle;
+	text-align:center;
+	white-space:normal;
+	font-weight:bold;
+	font-size:0.8333em;
+	border:thin solid black;
+}
+
+/* skills data */
+.skills-name-class, .skills-data-class, .skills-ability-class {
+	vertical-align:middle;
+	font-size:1.333em;
+}
+
+.skills-data-class, .skills-total-class {
+	text-align:center;
+	border-bottom:thin solid black;
+}
+
+.skills-ability-class {
+	text-align:center;
+}
+
+.skills-total-class {
+	vertical-align:middle;
+	font-weight:bold;
+	font-size:1.6667em;
+}
+
+.skills-notes-class {
+	vertical-align:top;
+	white-space:normal;
+	font-size:1.1667em;
+}
+
+/* data box descriptions */
+.data-box-desc-under-class, .data-box-desc-class, .data-box-desc-total-over-class, .data-box-desc-total-class {
+	white-space:normal;
+	text-align:center;
+}
+
+.data-box-desc-under-class {
+	vertical-align:top;
+}
+
+.data-box-desc-class {
+	vertical-align:middle;
+}
+
+.data-box-desc-total-over-class {
+	vertical-align:top;
+	font-weight:bold;
+	font-size:0.9167em;
+}
+
+.data-box-desc-total-class {
+	vertical-align:bottom;
+	font-weight:bold;
+	font-size:0.9167em;
+}
+
+.conditional-modifiers-class {
+	vertical-align:top;
+	white-space:normal;
+	font-size:1.1667em;
+}

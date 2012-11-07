@@ -16,7 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
@@ -47,7 +46,6 @@ public class CharacterSkillsPanel extends JPanel {
 
 		setLayout(new BorderLayout());
 		add(skillsScrollpane);
-		setBorder(new TitledBorder("Skills"));
 	}
 
 	protected class SkillsTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelWithToolTips {

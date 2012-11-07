@@ -37,14 +37,12 @@ import swing.ListModelWithToolTips;
 // TODO have caster level selected with the max/empower check boxes?
 
 @SuppressWarnings("serial")
-public class CharacterBuffsPanel extends JPanel {
-	Character character;
+public class CharacterBuffsPanel extends CharacterSubPanel {
 	JCheckBox empCheckBox;
 	JCheckBox maxCheckBox;
 
 	public CharacterBuffsPanel(Character c) {
-		character = c;
-		setBorder(new TitledBorder("Buffs / Penalties"));
+		super(c);
 		setLayout(new GridLayout(0,2));
 
 		BuffListModel bfModel = new BuffListModel(BuffFactory.buffs);

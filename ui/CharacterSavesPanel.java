@@ -12,7 +12,6 @@ import javax.swing.GroupLayout;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
 
 import party.Creature;
 import party.Character;
@@ -20,17 +19,15 @@ import party.Character;
 //TODO update to use the saving throw's ability modifier rather than looking at the ability score's modifier directly
 //TODO change to listen to the SavingThrow itself instead of the character 
 @SuppressWarnings("serial")
-public class CharacterSavesPanel extends JPanel implements PropertyChangeListener {
-	protected Character character;
+public class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeListener {
 	protected JLabel[] modLabels = new JLabel[3];
 	protected JLabel[] totalLabels = new JLabel[3];
 	protected JFormattedTextField baseSaveFields[] = new JFormattedTextField[3];
 	protected JFormattedTextField miscSaveFields[] = new JFormattedTextField[3];
 
 	public CharacterSavesPanel(Character c) {
-		character = c;
-
-		setBorder(new TitledBorder("Saving Throws"));
+		super(c);
+		summary = getSummary();
 
 		JPanel inner = new JPanel(); 
 		GroupLayout layout = new GroupLayout(inner);
@@ -115,6 +112,17 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 		}
 	}
 
+	protected String getSummary() {
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < 3; i++) {
+			if (i > 0) s.append("   ");
+			s.append(SavingThrow.getSavingThrowName(i)).append(" ");
+			if (character.getSavingThrow(i) >= 0) s.append("+");
+			s.append(character.getSavingThrow(i));
+		}
+		return s.toString();
+	}
+
 	public void propertyChange(PropertyChangeEvent evt) {
 		String prop = evt.getPropertyName();
 //		if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
@@ -137,6 +145,7 @@ public class CharacterSavesPanel extends JPanel implements PropertyChangeListene
 				}
 			}
 			updateToolTips();
+			updateSummaries(getSummary());
 		}
 	}
 

@@ -7,6 +7,8 @@ import javax.swing.JFormattedTextField;
 
 import party.Creature;
 
+// TODO this can be done with beans binding (JGoodies/JFace) - it's a more general solution
+
 @SuppressWarnings("serial")
 public class BoundIntegerField extends JFormattedTextField {
 	protected Creature creature;

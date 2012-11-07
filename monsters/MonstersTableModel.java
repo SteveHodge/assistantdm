@@ -14,7 +14,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import xml.XMLUtils;
@@ -81,14 +81,14 @@ public class MonstersTableModel extends DefaultTableModel {
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 			//printNode(dom,"");
 
-			Node node = XMLUtils.findNode(dom,"MonsterList");
+			Element node = XMLUtils.findNode(dom,"MonsterList");
 			if (node != null) {
-				String src = XMLUtils.getAttribute(node, "source");
+				String src = node.getAttribute("source");
 				NodeList children = node.getChildNodes();
 				if (children != null) {
 					for (int i=0; i<children.getLength(); i++) {
 						if (children.item(i).getNodeName().equals("Monster")) {
-							MonsterEntry me = parseDOM(children.item(i));
+							MonsterEntry me = parseDOM((Element)children.item(i));
 							if (me != null) {
 								me.source = src;
 								monsters.add(me);
@@ -108,15 +108,15 @@ public class MonstersTableModel extends DefaultTableModel {
 		}
 	}
 
-	public static MonsterEntry parseDOM(Node node) {
+	public static MonsterEntry parseDOM(Element node) {
 		if (!node.getNodeName().equals("Monster")) return null;
 		MonsterEntry me = new MonsterEntry();
-		me.name = XMLUtils.getAttribute(node, "name");
-		me.url = XMLUtils.getAttribute(node, "url");
-		me.size = XMLUtils.getAttribute(node, "size");
-		me.type = XMLUtils.getAttribute(node, "type");
-		me.environment = XMLUtils.getAttribute(node, "environment");
-		me.cr = XMLUtils.getAttribute(node, "cr");
+		me.name = node.getAttribute("name");
+		me.url = node.getAttribute("url");
+		me.size = node.getAttribute("size");
+		me.type = node.getAttribute("type");
+		me.environment = node.getAttribute("environment");
+		me.cr = node.getAttribute("cr");
 		return me;
 	}
 }

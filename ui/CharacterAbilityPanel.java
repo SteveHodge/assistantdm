@@ -6,15 +6,14 @@ import gamesystem.Statistic;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Map;
 
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
@@ -28,12 +27,22 @@ import swing.TableModelWithToolTips;
 // TODO modifier column should show "+" for non-negative modifiers
 
 @SuppressWarnings("serial")
-public class CharacterAbilityPanel extends JPanel {
-	protected Character character;
+public class CharacterAbilityPanel extends CharacterSubPanel {
 	protected TableModel abilityModel;
 
 	public CharacterAbilityPanel(Character c) {
-		character = c;
+		super(c);
+		summary = getSummary();
+
+		character.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent evt) {
+				String abilityName = evt.getPropertyName();
+				if (abilityName.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
+					updateSummaries(getSummary());
+				}
+			}
+		});
+
 		abilityModel = new AbilityTableModel();
 
 		JTable abilityTable = new JTableWithToolTips(abilityModel);
@@ -52,7 +61,20 @@ public class CharacterAbilityPanel extends JPanel {
 
 		setLayout(new BorderLayout());
 		add(abilityScrollpane);
-		setBorder(new TitledBorder("Ability Scores"));
+
+		setPreferredSize(new Dimension(450,130));
+	}
+
+	protected String getSummary() {
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < 6; i++) {
+			if (i > 0) s.append("   ");
+			s.append(AbilityScore.ability_abbreviations[i]);
+			s.append(" ");
+			if (character.getAbilityModifier(i) >= 0) s.append("+");
+			s.append(character.getAbilityModifier(i));
+		}
+		return s.toString();
 	}
 
 	protected class AbilityTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelWithToolTips {

@@ -11,6 +11,7 @@ public class ImmutableModifier implements Modifier {
 	public String type;
 	public String source;
 	public String condition;
+	public int id;
 
 	public ImmutableModifier(int m) {
 		this(m, null, null, null);
@@ -59,6 +60,10 @@ public class ImmutableModifier implements Modifier {
 
 	public String getCondition() {
 		return condition;
+	}
+
+	public int getID() {
+		return id;
 	}
 
 	// ImmutableModifiers never change so we can ignore listeners

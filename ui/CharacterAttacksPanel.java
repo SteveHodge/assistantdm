@@ -13,15 +13,12 @@ import java.beans.PropertyChangeListener;
 import java.util.Map;
 
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
 
 import party.Creature;
 import party.Character;
 
 @SuppressWarnings("serial")
-public class CharacterAttacksPanel extends JPanel implements PropertyChangeListener {
-	protected Character character;
+public class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeListener {
 	protected BoundIntegerField BAB;
 	protected JLabel strLabel = new JLabel();
 	protected JLabel dexLabel = new JLabel();
@@ -29,10 +26,10 @@ public class CharacterAttacksPanel extends JPanel implements PropertyChangeListe
 	protected JLabel rangedLabel = new JLabel();
 
 	public CharacterAttacksPanel(Character chr) {
-		super(new GridBagLayout());
-		character = chr;
+		super(chr);
+		summary = getSummary();
 
-		setBorder(new TitledBorder("Attacks"));
+		setLayout(new GridBagLayout());
 
 		BAB = new BoundIntegerField(character, Creature.PROPERTY_BAB, 3);
 		updateLabels();
@@ -98,6 +95,38 @@ public class CharacterAttacksPanel extends JPanel implements PropertyChangeListe
 		meleeLabel.setToolTipText(text.toString());
 	}
 
+	protected String getSummary() {
+		StringBuilder s = new StringBuilder();
+		s.append("Melee ");
+		Attacks stat = (Attacks)character.getStatistic(Creature.STATISTIC_ATTACKS);
+		int v = stat.getValue();
+		if (v >= 0) s.append("+");
+		s.append(v);
+		int b = stat.getBAB() - 5;
+		while (b >= 1) {
+			s.append("/");
+			v -= 5;
+			if (v >= 0) s.append("+");
+			s.append(v);
+			b -= 5;
+		}
+
+		s.append("   Ranged ");
+		v = stat.getRangedValue();
+		if (v >= 0) s.append("+");
+		s.append(v);
+		b = stat.getBAB() - 5;
+		while (b >= 1) {
+			s.append("/");
+			v -= 5;
+			if (v >= 0) s.append("+");
+			s.append(v);
+			b -= 5;
+		}
+
+		return s.toString();
+	}
+
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(AbilityScore.ABILITY_STRENGTH))
 				|| e.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(AbilityScore.ABILITY_DEXTERITY))
@@ -105,6 +134,7 @@ public class CharacterAttacksPanel extends JPanel implements PropertyChangeListe
 				) {
 			updateLabels();
 			updateToolTip();
+			updateSummaries(getSummary());
 		}
 	}
 

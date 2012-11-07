@@ -158,6 +158,7 @@
 		<xs:attribute name="target" type="xs:string" use="required"/>
 		<xs:attribute name="value" type="xs:int" use="required"/>
 		<xs:attribute name="type" type="xs:string"/>
+		<xs:attribute name="condition" type="xs:string"/>
 	</xs:complexType>
 </xs:element>
 
@@ -168,21 +169,34 @@
 		</xs:sequence>
 		<xs:attribute name="caster_level" type="xs:int" use="required"/>
 		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="id" type="xs:int" use="required"/>
 	</xs:complexType>
 </xs:element>
+
+<xs:element name="HitPoints">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element name="TempHPs" minOccurs="0" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attribute name="hps" type="xs:int"/>
+					<xs:attribute name="source" type="xs:string"/>
+					<xs:attribute name="id" type="xs:int"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="maximum" type="xs:int" use="required"/>
+		<xs:attribute name="wounds" type="xs:int"/>
+		<xs:attribute name="non-lethal" type="xs:int"/>
+	</xs:complexType>
+</xs:element>
+
 
 <xs:element name="Character">
 	<xs:complexType>
 		<xs:all minOccurs="0">
 			<xs:element ref="Level"/>
 			<xs:element ref="AbilityScores"/>
-			<xs:element name="HitPoints">
-				<xs:complexType>
-					<xs:attribute name="maximum" type="xs:int" use="required"/>
-					<xs:attribute name="wounds" type="xs:int"/>
-					<xs:attribute name="non-lethal" type="xs:int"/>
-				</xs:complexType>
-			</xs:element>
+			<xs:element ref="HitPoints"/>
 			<xs:element name="Initiative">
 				<xs:complexType>
 					<xs:attribute name="value" type="xs:int" use="required"/>
@@ -200,6 +214,24 @@
 			</xs:element>
 		</xs:all>
 		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="action-points" type="xs:string"/>
+		<xs:attribute name="age" type="xs:string"/>
+		<xs:attribute name="alignment" type="xs:string"/>
+		<xs:attribute name="arcane-spell-failure" type="xs:string"/>
+		<xs:attribute name="damage-reduction" type="xs:string"/>
+		<xs:attribute name="deity" type="xs:string"/>
+		<xs:attribute name="eye-colour" type="xs:string"/>
+		<xs:attribute name="gender" type="xs:string"/>
+		<xs:attribute name="hair-colour" type="xs:string"/>
+		<xs:attribute name="height" type="xs:string"/>
+		<xs:attribute name="player" type="xs:string"/>
+		<xs:attribute name="race" type="xs:string"/>
+		<xs:attribute name="region" type="xs:string"/>
+		<xs:attribute name="size" type="xs:string"/>
+		<xs:attribute name="speed" type="xs:string"/>
+		<xs:attribute name="spell-resistance" type="xs:string"/>
+		<xs:attribute name="type" type="xs:string"/>
+		<xs:attribute name="weight" type="xs:string"/>
 	</xs:complexType>
 </xs:element>
 

@@ -55,8 +55,9 @@ import java.beans.PropertyChangeListener;
 public interface Modifier {
 	public int getModifier();
 	public String getType();
-	public String getSource();	// returns null if no specific source (typically source is only necessary for magic spells
+	public String getSource();		// returns null if no specific source (typically source is only necessary for magic spells
 	public String getCondition();	// returns null if no condition
 	public void addPropertyChangeListener(PropertyChangeListener listener);
 	public void removePropertyChangeListener(PropertyChangeListener listener);
+	public int getID(); 
 }

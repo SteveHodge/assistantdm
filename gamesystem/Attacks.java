@@ -7,6 +7,7 @@ import java.util.Set;
 
 // TODO damage
 // TODO multiple attacks
+// TODO implement modifier particular to one attack mode (ranged/grapple etc) (note that grapple size modifier is different from regular attack size modifier)
 
 public class Attacks extends Statistic {
 	int BAB = 0;
@@ -51,5 +52,9 @@ public class Attacks extends Statistic {
 		mods.addAll(modifiers);
 		mods.add(dexMod);
 		return BAB + getModifiersTotal(mods,null);
+	}
+
+	public int getGrappleValue() {
+		return getValue();
 	}
 }

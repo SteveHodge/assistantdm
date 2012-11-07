@@ -17,9 +17,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import xml.XML;
-import xml.XMLUtils;
-
 /*
  * Average inventory can be calculated as follows. Given:
  * average number of new items per day (avgNew)
@@ -35,7 +32,7 @@ import xml.XMLUtils;
  * Therefore need to add on average 0.15 major, 0.7 medium, 2 minor per day
  */
 @SuppressWarnings("serial")
-public class Shop extends AbstractListModel implements XML, ItemTarget {
+public class Shop extends AbstractListModel implements ItemTarget {
 	List<Item> inventory;
 
 	int day = 0;
@@ -213,11 +210,11 @@ public class Shop extends AbstractListModel implements XML, ItemTarget {
 		return s.toString();
 	}
 
-	public static Shop parseDOM(Node node) {
+	public static Shop parseDOM(Element node) {
 		if (!node.getNodeName().equals("Shop")) return null;
-		String script = XMLUtils.getAttribute(node, "scriptName");
-		String proc = XMLUtils.getAttribute(node, "procName");
-		int day = Integer.parseInt(XMLUtils.getAttribute(node, "day"));
+		String script = node.getAttribute("scriptName");
+		String proc = node.getAttribute("procName");
+		int day = Integer.parseInt(node.getAttribute("day"));
 		int majorChance = 0, majorNumber = 0, mediumChance = 0;
 		int mediumNumber = 0, minorChance = 0, minorNumber = 0;
 		int majorSell = -99, mediumSell = -99, minorSell = -99;

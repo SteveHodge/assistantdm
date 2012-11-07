@@ -9,9 +9,6 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,6 +33,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import swing.ImagePanel;
+import util.Updater;
 import canon.cdsdk.CDSDK;
 import canon.cdsdk.Constants;
 import canon.cdsdk.Enum;
@@ -51,8 +49,6 @@ import canon.cdsdk.SourceInfo;
 // TODO may be fixed: controls stop responding if you hit stop during a transfer
 @SuppressWarnings("serial")
 public class CameraPanel extends JPanel implements ReleaseEventHandler, ActionListener, ChangeListener, ItemListener, PropertyChangeListener {
-	static final String DESTINATION = "m:\\webcam\\ftp\\images\\capture2.jpg";
-
 	long defaultDelay = 10000;
 	int defaultImageSize = Constants.IMAGE_SIZE_MEDIUM2;
 	int defaultImageQuality = Constants.COMP_QUALITY_NORMAL;
@@ -425,17 +421,8 @@ public class ImageTransfer extends SwingWorker<BufferedImage,BufferedImage> impl
 	    	//System.out.println(" Size = "+relinfo.size);
 	//		System.out.println("Buffer size = "+buffer.length);
 			ByteArrayInputStream is = new ByteArrayInputStream(buffer);
-			FileOutputStream out = null;
-			try {
-				out = new FileOutputStream(DESTINATION);
-				out.write(buffer);
-			} catch (FileNotFoundException e) {
-				logMessage("Couldn't open "+DESTINATION+": "+e.getMessage());
-			} catch (IOException e) {
-				logMessage("Couldn't save image to "+DESTINATION+": "+e.getMessage());
-			} finally {
-				if (out != null) out.close();
-			}
+			String msg = Updater.update(Updater.MAP_IMAGE, buffer);
+			if (msg != null) logMessage(msg);
 			image = ImageIO.read(is);
 			return image;
 		} catch (Exception e) {

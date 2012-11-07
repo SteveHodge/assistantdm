@@ -9,11 +9,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import xml.XML;
-import xml.XMLUtils;
-
 // contains information about a specific item
-public class Item implements Serializable, XML {
+public class Item implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public final static int CLASS_MINOR = 0;
@@ -139,7 +136,7 @@ public class Item implements Serializable, XML {
 
 	public static Item parseItemDOM(Element node) {
 		if (!node.getNodeName().equals("Item")) return null;
-		int cat = Integer.parseInt(XMLUtils.getAttribute(node, "category"));
+		int cat = Integer.parseInt(node.getAttribute("category"));
 
 		Item item = new Item(cat);
 

@@ -6,7 +6,6 @@ import java.beans.PropertyChangeSupport;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 // TODO overrides are a bit unintuituve - they ignore modifiers, which is fine, but the modifiers are reapplied once the override is removed (which at the moment happens if the override is set to the baseValue in the ui) 
 public class AbilityScore extends Statistic {
@@ -18,6 +17,7 @@ public class AbilityScore extends Statistic {
 	public static final int ABILITY_WISDOM = 4;
 	public static final int ABILITY_CHARISMA = 5;
 	protected static final String[] ability_names = {"Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"};
+	public static final String[] ability_abbreviations = {"STR","DEX","CON","INT","WIS","CHA"}; 
 
 	protected final Modifier modifier;
 	protected int type;
@@ -76,6 +76,10 @@ public class AbilityScore extends Statistic {
 		public String getCondition() {
 			return null;
 		}
+
+		public int getID() {
+			return 0;
+		}
 	};
 
 	// TODO bounds checking
@@ -95,6 +99,12 @@ public class AbilityScore extends Statistic {
 
 	public int getBaseValue() {
 		return baseValue;
+	}
+
+	// returns the "normal" value of the ability score (the base value + any modifiers that apply)
+	// if no override is set then this will be equal to getValue()
+	public int getRegularValue() {
+		return baseValue + super.getValue();
 	}
 
 	public void setBaseValue(int v) {

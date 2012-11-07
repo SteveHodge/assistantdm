@@ -33,10 +33,9 @@ import javax.xml.validation.SchemaFactory;
 import magicgenerator.Item;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import com.sun.org.apache.xerces.internal.impl.PropertyManager;
 
 import xml.XMLUtils;
 
@@ -269,7 +268,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 				if (children != null) {
 					for (int i=0; i<children.getLength(); i++) {
 						if (children.item(i).getNodeName().equals("Shop")) {
-							Shop s = Shop.parseDOM(children.item(i));
+							Shop s = Shop.parseDOM((Element)children.item(i));
 							if (s != null) shops.add(s);
 						}
 					}

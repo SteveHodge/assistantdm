@@ -1,5 +1,6 @@
 package xml;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -7,13 +8,13 @@ import org.w3c.dom.NodeList;
 final public class XMLUtils {
 	private XMLUtils() {};
 
-	public static Node findNode(Node parent, String name) {
+	public static Element findNode(Node parent, String name) {
 		NodeList nodes = parent.getChildNodes();
 		if (nodes != null) {
 			for (int i=0; i<nodes.getLength(); i++) {
 				Node node = nodes.item(i);
 				if (node.getNodeName().equals(name)) {
-					return node;
+					return (Element)node;
 				}
 			}
 		}
@@ -58,20 +59,5 @@ final public class XMLUtils {
 				System.out.print(node.getNodeValue());
 				break;
 		}
-	}
-
-	public static String getAttribute(Node node, String name) {
-		return getAttribute(node.getAttributes(), name, null);
-	}
-
-	public static String getAttribute(NamedNodeMap attributes, String name) {
-		return getAttribute(attributes, name, null);
-	}
-
-	// elementName is used only in exception messages - it is safe to pass empty string or null
-	public static String getAttribute( NamedNodeMap attributes, String name, String elementName ) {
-		Node attribute = attributes.getNamedItem(name);
-		if( attribute == null ) System.err.println(name+" attribute is required in element "+elementName);
-		return attribute.getNodeValue();
 	}
 }

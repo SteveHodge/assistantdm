@@ -27,6 +27,12 @@ public class Buff {
 	Map<Dice,Integer> rolls = new HashMap<Dice,Integer>();
 	public boolean maximized = false;
 	public boolean empowered = false;
+	int id;
+	private static int nextid = 1;	// TODO not threadsafe
+
+	public Buff() {
+		id = nextid++;
+	}
 
 	public boolean requiresCasterLevel() {
 		for (Effect e : effects) {
@@ -158,7 +164,9 @@ public class Buff {
 			}
 			if (mod < 1) mod = 1;
 			if (penalty) mod = -mod;
-			return new ImmutableModifier(mod, type, b.name, condition);
+			ImmutableModifier m = new ImmutableModifier(mod, type, b.name, condition);
+			m.id = b.id;
+			return m;
 		}
 
 		public String toString() {
@@ -206,7 +214,9 @@ public class Buff {
 		int modifier;
 	
 		public Modifier getModifier(Buff b) {
-			return new ImmutableModifier(modifier, type, b.name, condition);
+			ImmutableModifier m = new ImmutableModifier(modifier, type, b.name, condition);
+			m.id = b.id;
+			return m;
 		}
 	
 		public String toString() {
@@ -236,13 +246,16 @@ public class Buff {
 		Element e = doc.createElement("Buff");
 		e.setAttribute("name", name);
 		e.setAttribute("caster_level", ""+casterLevel);
+		e.setAttribute("id", ""+id);
 
 		for (Modifier m : modifiers.keySet()) {
 			Element me = doc.createElement("Modifier");
 			if (m.getType() != null) me.setAttribute("type", m.getType());
 			if (m.getCondition() != null) me.setAttribute("condition", m.getCondition());
 			me.setAttribute("value", ""+m.getModifier());
-			me.setAttribute("target", modifiers.get(m));		// WISH this should probably be XML relevant, i.e. an XPath
+			String target = modifiers.get(m);
+			me.setAttribute("target", target);		// WISH this can be XML relevant, i.e. an XPath
+			me.setAttribute("description", Creature.STATISTIC_DESC.get(target)+": "+m.toString());		// TODO this is needed only for the character sheet
 			e.appendChild(me);
 		}
 
@@ -254,6 +267,7 @@ public class Buff {
 		Buff buff = new Buff();
 		buff.casterLevel = Integer.parseInt(b.getAttribute("caster_level"));
 		buff.name = b.getAttribute("name");
+		buff.id = Integer.parseInt(b.getAttribute("id"));
 		NodeList mods = b.getChildNodes();
 		if (mods != null) {
 			for (int k=0; k<mods.getLength(); k++) {
@@ -262,7 +276,14 @@ public class Buff {
 				String target = m.getAttribute("target");
 				int value = Integer.parseInt(m.getAttribute("value"));
 				String type = m.getAttribute("type");
-				Modifier mod = new ImmutableModifier(value, type, buff.name);
+				String condition = m.getAttribute("condition");
+				ImmutableModifier mod;
+				if (condition != null && condition.length() > 0) {
+					mod = new ImmutableModifier(value, type, buff.name, condition);
+				} else {
+					mod = new ImmutableModifier(value, type, buff.name);
+				}
+				mod.id = buff.id;
 				buff.modifiers.put(mod,target);
 			}
 		}

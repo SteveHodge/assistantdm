@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,10 +20,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import xml.XML;
 import xml.XMLUtils;
 
-public class Party implements Iterable<Character>, XML {
+public class Party implements Iterable<Character> {
 	protected List<Character> characters;
 	protected List<PartyListener> listeners = new ArrayList<PartyListener>();
 
