@@ -10,12 +10,10 @@ final public class XMLUtils {
 
 	public static Element findNode(Node parent, String name) {
 		NodeList nodes = parent.getChildNodes();
-		if (nodes != null) {
-			for (int i=0; i<nodes.getLength(); i++) {
-				Node node = nodes.item(i);
-				if (node.getNodeName().equals(name)) {
-					return (Element)node;
-				}
+		for (int i=0; i<nodes.getLength(); i++) {
+			Node node = nodes.item(i);
+			if (node.getNodeName().equals(name)) {
+				return (Element)node;
 			}
 		}
 		return null;
@@ -27,10 +25,8 @@ final public class XMLUtils {
 				System.out.println("<xml version=\"1.0\">\n");
 				// recurse on each child
 				NodeList nodes = node.getChildNodes();
-				if (nodes != null) {
-					for (int i=0; i<nodes.getLength(); i++) {
-						printNode(nodes.item(i), "");
-					}
+				for (int i=0; i<nodes.getLength(); i++) {
+					printNode(nodes.item(i), "");
 				}
 				break;
 				
@@ -46,10 +42,8 @@ final public class XMLUtils {
 				
 				// recurse on each child
 				NodeList children = node.getChildNodes();
-				if (children != null) {
-					for (int i=0; i<children.getLength(); i++) {
-						printNode(children.item(i), indent + "  ");
-					}
+				for (int i=0; i<children.getLength(); i++) {
+					printNode(children.item(i), indent + "  ");
 				}
 				
 				System.out.print("</" + name + ">");

@@ -326,34 +326,32 @@ public class HPs extends Statistic {
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
 
 		NodeList temps = e.getChildNodes();
-		if (temps != null) {
-			for (int k=0; k<temps.getLength(); k++) {
-				if (!temps.item(k).getNodeName().equals("TempHPs")) continue;
-				Element m = (Element)temps.item(k);
-				String source = m.getAttribute("source");
-				int hps = Integer.parseInt(m.getAttribute("hps"));
-				int id = Integer.parseInt(m.getAttribute("id"));
+		for (int k=0; k<temps.getLength(); k++) {
+			if (!temps.item(k).getNodeName().equals("TempHPs")) continue;
+			Element m = (Element)temps.item(k);
+			String source = m.getAttribute("source");
+			int hps = Integer.parseInt(m.getAttribute("hps"));
+			int id = Integer.parseInt(m.getAttribute("id"));
 
-				boolean found = false;
+			boolean found = false;
+			if (id > 0) {
+				// see if we have a modifier to map this to. if we do then adjust the existing temp hps
+				for (TempHPs temp : tempHPs) {
+					if (temp.id == id) {
+						if (!temp.source.equals(source)) System.out.println("Temp HPs: conflicting source for ID "+id);
+						temp.hps = hps;
+						found = true;
+					}
+				}
+			}
+			if (!found) {
 				if (id > 0) {
-					// see if we have a modifier to map this to. if we do then adjust the existing temp hps
-					for (TempHPs temp : tempHPs) {
-						if (temp.id == id) {
-							if (!temp.source.equals(source)) System.out.println("Temp HPs: conflicting source for ID "+id);
-							temp.hps = hps;
-							found = true;
-						}
-					}
+					// if we don't have a modifier then we set up a temp hps but we'll need to wait for the Buff to link it up
+					System.out.println("Unimplemented: parsing temporary hitpoints before buff");
 				}
-				if (!found) {
-					if (id > 0) {
-						// if we don't have a modifier then we set up a temp hps but we'll need to wait for the Buff to link it up
-						System.out.println("Unimplemented: parsing temporary hitpoints before buff");
-					}
-					TempHPs temp = new TempHPs(source, hps);
-					temp.id = id;
-					addTemporaryHPs(temp);
-				}
+				TempHPs temp = new TempHPs(source, hps);
+				temp.id = id;
+				addTemporaryHPs(temp);
 			}
 		}
 	}

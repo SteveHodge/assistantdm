@@ -156,18 +156,16 @@ public class XP {
 			if (e.hasAttribute("penalty")) c.penalty = Integer.parseInt(e.getAttribute("penalty"));
 	
 			NodeList nodes = e.getChildNodes();
-			if (nodes != null) {
-				for (int i=0; i<nodes.getLength(); i++) {
-					if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-					Element child = (Element)nodes.item(i);
-					String tag = child.getTagName();
-	
-					if (tag.equals("XPChallenge")) {
-						Challenge chal = Challenge.parseDOM(child);
-						c.challenges.add(chal);
-					} else if (tag.equals("Comment")) {
-						c.comment = child.getTextContent();
-					}
+			for (int i=0; i<nodes.getLength(); i++) {
+				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+				Element child = (Element)nodes.item(i);
+				String tag = child.getTagName();
+
+				if (tag.equals("XPChallenge")) {
+					Challenge chal = Challenge.parseDOM(child);
+					c.challenges.add(chal);
+				} else if (tag.equals("Comment")) {
+					c.comment = child.getTextContent();
 				}
 			}
 			return c;

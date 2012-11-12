@@ -24,7 +24,7 @@ public class CharacterInitiativePanel extends CharacterSubPanel implements Prope
 		super(c);
 		summary = (character.getInitiativeModifier() >= 0 ? "+" : "") + character.getInitiativeModifier();
 
-		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifier(AbilityScore.ABILITY_DEXTERITY));
+		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifier(AbilityScore.Type.DEXTERITY));
 		add(dexLabel);
 
 		add(new JLabel("Base:"));
@@ -57,8 +57,8 @@ public class CharacterInitiativePanel extends CharacterSubPanel implements Prope
 	}
 
 	public void propertyChange(PropertyChangeEvent arg0) {
-		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(AbilityScore.ABILITY_DEXTERITY))) {
-			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(AbilityScore.ABILITY_DEXTERITY));
+		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.Type.DEXTERITY)) {
+			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(AbilityScore.Type.DEXTERITY));
 		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 			InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
 			totLabel.setText("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));

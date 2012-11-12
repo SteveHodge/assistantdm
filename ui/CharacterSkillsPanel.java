@@ -69,14 +69,14 @@ public class CharacterSkillsPanel extends JPanel {
 		public Object getValueAt(int row, int col) {
 			if (col == 0) return skills[row];
 			if (col == 1) {
-				int ability = skills[row].getAbility();
-				if (ability == -1) return null;
-				return AbilityScore.getAbilityName(ability);
+				AbilityScore.Type ability = skills[row].getAbility();
+				if (ability == null) return null;
+				return ability.toString();
 			}
 			if (col == 2) return character.getSkillRanks(skills[row]);
 			if (col == 3) {
-				int ability = skills[row].getAbility();
-				if (ability == -1) return null;
+				AbilityScore.Type ability = skills[row].getAbility();
+				if (ability == null) return null;
 				return character.getAbilityModifier(ability);
 			}
 			if (col == 4) return character.getSkillMisc(skills[row]);

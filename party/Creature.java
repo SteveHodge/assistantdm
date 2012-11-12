@@ -77,16 +77,16 @@ public abstract class Creature {
 	public final static Map<String,String> STATISTIC_DESC;
 	static {
 		HashMap<String,String> map = new HashMap<String,String>();
-		map.put(STATISTIC_STRENGTH, AbilityScore.getAbilityName(AbilityScore.ABILITY_STRENGTH));
-		map.put(STATISTIC_INTELLIGENCE, AbilityScore.getAbilityName(AbilityScore.ABILITY_INTELLIGENCE));
-		map.put(STATISTIC_WISDOM, AbilityScore.getAbilityName(AbilityScore.ABILITY_WISDOM));
-		map.put(STATISTIC_DEXTERITY, AbilityScore.getAbilityName(AbilityScore.ABILITY_DEXTERITY));
-		map.put(STATISTIC_CONSTITUTION, AbilityScore.getAbilityName(AbilityScore.ABILITY_CONSTITUTION));
-		map.put(STATISTIC_CHARISMA, AbilityScore.getAbilityName(AbilityScore.ABILITY_CHARISMA));
+		map.put(STATISTIC_STRENGTH, AbilityScore.Type.STRENGTH.toString());
+		map.put(STATISTIC_INTELLIGENCE, AbilityScore.Type.INTELLIGENCE.toString());
+		map.put(STATISTIC_WISDOM, AbilityScore.Type.WISDOM.toString());
+		map.put(STATISTIC_DEXTERITY, AbilityScore.Type.DEXTERITY.toString());
+		map.put(STATISTIC_CONSTITUTION, AbilityScore.Type.CONSTITUTION.toString());
+		map.put(STATISTIC_CHARISMA, AbilityScore.Type.CHARISMA.toString());
 		map.put(STATISTIC_SAVING_THROWS, "saves");
-		map.put(STATISTIC_FORTITUDE_SAVE, SavingThrow.getSavingThrowName(SavingThrow.SAVE_FORTITUDE)+" save");
-		map.put(STATISTIC_WILL_SAVE, SavingThrow.getSavingThrowName(SavingThrow.SAVE_WILL)+" save");
-		map.put(STATISTIC_REFLEX_SAVE, SavingThrow.getSavingThrowName(SavingThrow.SAVE_REFLEX)+" save");
+		map.put(STATISTIC_FORTITUDE_SAVE, SavingThrow.Type.FORTITUDE+" save");
+		map.put(STATISTIC_WILL_SAVE, SavingThrow.Type.WILL+" save");
+		map.put(STATISTIC_REFLEX_SAVE, SavingThrow.Type.REFLEX+" save");
 		map.put(STATISTIC_SKILLS, "skills");
 		map.put(STATISTIC_AC, "AC");
 		map.put(STATISTIC_INITIATIVE, "Initiative");

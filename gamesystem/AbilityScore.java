@@ -9,27 +9,38 @@ import org.w3c.dom.Element;
 
 // TODO overrides are a bit unintuituve - they ignore modifiers, which is fine, but the modifiers are reapplied once the override is removed (which at the moment happens if the override is set to the baseValue in the ui) 
 public class AbilityScore extends Statistic {
-	// TODO if these constants are really only applicable in relation to the array in Character then they should be defined there (and protected)
-	public static final int ABILITY_STRENGTH = 0;
-	public static final int ABILITY_DEXTERITY = 1;
-	public static final int ABILITY_CONSTITUTION = 2;
-	public static final int ABILITY_INTELLIGENCE = 3;
-	public static final int ABILITY_WISDOM = 4;
-	public static final int ABILITY_CHARISMA = 5;
-	protected static final String[] ability_names = {"Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"};
-	public static final String[] ability_abbreviations = {"STR","DEX","CON","INT","WIS","CHA"}; 
+	public enum Type {
+		STRENGTH ("Strength", "STR"),
+		DEXTERITY("Dexterity", "DEX"),
+		CONSTITUTION("Constitution", "CON"),
+		INTELLIGENCE("Intelligence", "INT"),
+		WISDOM("Wisdom", "WIS"),
+		CHARISMA("Charisma", "CHA");
+
+		private Type(String d, String a) {description = d; abbreviation = a;}
+
+		public String toString() {return description;}
+
+		public String getAbbreviation() {return abbreviation;}
+
+		// XXX brute force implementation - could keep a map
+		public static Type getAbilityType(String d) {
+			for (Type t : values()) {
+				if (t.description.equals(d)) return t;
+			}
+			return null;	// TODO probably better to throw an exception 
+		}
+
+		private final String description, abbreviation;
+	}
 
 	protected final Modifier modifier;
-	protected int type;
+	protected Type type;
 	protected int baseValue = 0;
 	protected int override = -1;
 
 	public static int getModifier(int score) {
 		return score/2-5;
-	}
-
-	public static String getAbilityName(int type) {
-		return ability_names[type];
 	}
 
 	protected class AbilityModifier implements Modifier {
@@ -69,7 +80,7 @@ public class AbilityScore extends Statistic {
 		public String toString() {
 			StringBuilder s = new StringBuilder();
 			if (getModifier() >= 0) s.append("+");
-			s.append(getModifier()).append(" ").append(getAbilityName(type)).append(" modifier ");
+			s.append(getModifier()).append(" ").append(type).append(" modifier ");
 			return s.toString();
 		}
 
@@ -82,11 +93,14 @@ public class AbilityScore extends Statistic {
 		}
 	};
 
-	// TODO bounds checking
-	public AbilityScore(int type) {
-		super(ability_names[type]);
+	public AbilityScore(Type type) {
+		super(type.toString());
 		this.type = type;
 		modifier = new AbilityModifier(this); 
+	}
+
+	public Type getType() {
+		return type;
 	}
 
 	public int getValue() {
@@ -133,10 +147,6 @@ public class AbilityScore extends Statistic {
 		}
 	}
 
-	public int getType() {
-		return type;
-	}
-
 	public Modifier getModifier() {
 		return modifier;
 	}
@@ -147,7 +157,7 @@ public class AbilityScore extends Statistic {
 
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("AbilityScore");
-		e.setAttribute("type", getAbilityName(type));
+		e.setAttribute("type", type.toString());
 		e.setAttribute("value", ""+baseValue);
 		if (override != -1) e.setAttribute("temp", ""+override);
 		return e;
@@ -156,7 +166,7 @@ public class AbilityScore extends Statistic {
 	// TODO notify listeners?
 	public void parseDOM(Element e) {
 		if (!e.getTagName().equals("AbilityScore")) return;
-		if (!e.getAttribute("type").equals(getAbilityName(type))) return;
+		if (!e.getAttribute("type").equals(type.toString())) return;
 		
 		baseValue = Integer.parseInt(e.getAttribute("value"));
 		if (e.hasAttribute("temp")) override = Integer.parseInt(e.getAttribute("temp"));

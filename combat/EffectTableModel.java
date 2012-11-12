@@ -160,19 +160,17 @@ public class EffectTableModel extends AbstractTableModel {
 		int oldSize = list.size();
 
 		NodeList nodes = el.getChildNodes();
-		if (nodes != null) {
-			for (int i=0; i<nodes.getLength(); i++) {
-				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-				Element e = (Element)nodes.item(i);
-				String tag = e.getTagName();
-				if (tag.equals("EffectEntry")) {
-					Effect c = new Effect(e.getAttribute("effect"),
-							e.getAttribute("source"),
-							Integer.parseInt(e.getAttribute("initiative")),
-							Integer.parseInt(e.getAttribute("duration"))
-							);
-					addEntry(c);
-				}
+		for (int i=0; i<nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element)nodes.item(i);
+			String tag = e.getTagName();
+			if (tag.equals("EffectEntry")) {
+				Effect c = new Effect(e.getAttribute("effect"),
+						e.getAttribute("source"),
+						Integer.parseInt(e.getAttribute("initiative")),
+						Integer.parseInt(e.getAttribute("duration"))
+						);
+				addEntry(c);
 			}
 		}
 		if (list.size() != oldSize) {

@@ -34,9 +34,13 @@ public class Statistic {
 			// problem here is that we know what the old value of the modifier is (from the event),
 			// but we can't easily use that old value to calculate the old total
 			// TODO could store old values locally
-			pcs.firePropertyChange("value", null, getValue());
+			firePropertyChange("value", null, getValue());
 		}
 	};
+
+	protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
+		pcs.firePropertyChange(prop, oldVal, newVal);
+	}
 
 	public Statistic(String name) {
 		this.name = name;
@@ -63,7 +67,7 @@ public class Statistic {
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
 		int newValue = getValue();
-		pcs.firePropertyChange("value", null, newValue); 
+		firePropertyChange("value", null, newValue); 
 	}
 
 	public void removeModifier(Modifier m) {
@@ -71,7 +75,7 @@ public class Statistic {
 		modifiers.remove(m);
 		m.removePropertyChangeListener(listener);
 		int newValue = getValue();
-		pcs.firePropertyChange("value", null, newValue);
+		firePropertyChange("value", null, newValue);
 	}
 
 	public int getValue() {
@@ -87,15 +91,26 @@ public class Statistic {
 		return false;
 	}
 
+	// getModifiers() and the getModifiersTotal() methods should all be overridden if a subclasses 
+	// does any manipulation filtering of modifiers
+	protected Set<Modifier> getModifierSet() {
+		return modifiers;
+	}
+
+	// returns the map of active modifiers
+	public Map<Modifier,Boolean> getModifiers() {
+		return getModifiers(getModifierSet());
+	}
+
 	// returns the total of all active modifiers
 	public int getModifiersTotal() {
-		return getModifiersTotal(modifiers , null);
+		return getModifiersTotal(getModifierSet(), null);
 	}
 
 	// returns the total active modifiers of the type specified. if type is null then the total of all modifiers is returned
 	// conditional modifiers are not included
 	public int getModifiersTotal(String type) {
-		return getModifiersTotal(modifiers, type);
+		return getModifiersTotal(getModifierSet(), type);
 	}
 
 	// conditional modifiers are not included
@@ -108,10 +123,6 @@ public class Statistic {
 			}
 		}
 		return total;
-	}
-
-	public Map<Modifier,Boolean> getModifiers() {
-		return getModifiers(modifiers);
 	}
 
 	/* returns all current modifiers mapped to a boolean indicating whether or not each modifier is counted in the total
@@ -158,7 +169,7 @@ public class Statistic {
 			}
 
 			// check if there are modifiers with the same type and sign (but not dodge, circumstance of untyped modifiers as they always count)
-			if (include && m.getType() != null && !m.getType().equals("dodge") && !m.getType().equals("circumstance")) {
+			if (include && m.getType() != null && !m.getType().equals("Dodge") && !m.getType().equals("Circumstance")) {
 				for (Modifier a : map.keySet()) {
 					if (map.get(a) && m.getType().equals(a.getType()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())) {
 						if (Math.abs(m.getModifier()) < Math.abs(a.getModifier())) {

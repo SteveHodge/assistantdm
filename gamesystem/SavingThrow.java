@@ -5,27 +5,35 @@ import org.w3c.dom.Element;
 
 
 public class SavingThrow extends Statistic {
-	// TODO if these constants are really only applicable in relation to the array in Character then they should be defined there (and protected)
-	public static final int SAVE_FORTITUDE = 0;
-	public static final int SAVE_REFLEX = 1;
-	public static final int SAVE_WILL = 2;
-	protected static final String[] save_names = {"Fortitude", "Reflex", "Will"};
+	public enum Type {
+		FORTITUDE("Fortitude", AbilityScore.Type.CONSTITUTION),
+		REFLEX("Reflex", AbilityScore.Type.DEXTERITY),
+		WILL("Will", AbilityScore.Type.WISDOM);
 
+		private Type(String d, AbilityScore.Type a) {description = d; ability = a;}
+	
+		public String toString() {return description;}
+
+		public AbilityScore.Type getAbilityType() {return ability;}
+
+		public static Type getSavingThrowType(String d) {
+			for (Type t : values()) {
+				if (t.description.equals(d)) return t;
+			}
+			return null;	// TODO probably better to throw an exception 
+		}
+
+		private final String description;
+		private final AbilityScore.Type ability;
+	}
+
+	protected Type type;
 	protected int baseValue = 0;
 
-	public static String getSavingThrowName(int save) {
-		return save_names[save];
-	}
-
-	public static int getSaveAbility(int save) {
-		if (save == SAVE_FORTITUDE) return AbilityScore.ABILITY_CONSTITUTION;
-		if (save == SAVE_REFLEX) return AbilityScore.ABILITY_DEXTERITY;
-		if (save == SAVE_WILL) return AbilityScore.ABILITY_WISDOM;
-		return -1;
-	}
-
-	public SavingThrow(int type, AbilityScore ability) {
-		super(save_names[type]);
+	// TODO verify that the ability is the correct one. alternatively pass all ability scores
+	public SavingThrow(Type type, AbilityScore ability) {
+		super(type.toString());
+		this.type = type;
 		addModifier(ability.getModifier());
 	}
 
@@ -47,7 +55,7 @@ public class SavingThrow extends Statistic {
 
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("Save");
-		e.setAttribute("type", name);
+		e.setAttribute("type", type.toString());
 		e.setAttribute("base", ""+baseValue);
 		return e;
 	}
@@ -55,7 +63,7 @@ public class SavingThrow extends Statistic {
 	// TODO notify listeners?
 	public void parseDOM(Element e) {
 		if (!e.getTagName().equals("Save")) return;
-		if (!e.getAttribute("type").equals(name)) return;
+		if (!e.getAttribute("type").equals(type.toString())) return;
 		
 		baseValue = Integer.parseInt(e.getAttribute("base"));
 		// TODO misc

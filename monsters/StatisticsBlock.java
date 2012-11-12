@@ -1,5 +1,6 @@
 package monsters;
 
+import gamesystem.AbilityScore.Type;
 import gamesystem.CR;
 
 import java.io.File;
@@ -98,10 +99,10 @@ public class StatisticsBlock {
 	// Str 25, Dex 10, Con —, Int 1, Wis 11, Cha 1
 	// returns -1 for a missing ability
 	// TODO should throw exceptions for invalid formats (or at least return -1)
-	public int getAbilityScore(int ability) {
+	public int getAbilityScore(Type strength) {
 		String abilitiesStr = get(PROPERTY_ABILITIES);
 		String[] abilities = abilitiesStr.split("\\s*,\\s*");
-		String a = abilities[ability].substring(abilities[ability].indexOf(' ')+1);
+		String a = abilities[strength.ordinal()].substring(abilities[strength.ordinal()].indexOf(' ')+1);
 		if (a.equals("-") || a.equals("—") || a.equals("Ø")) return -1;
 		return Integer.parseInt(a);
 	}

@@ -27,6 +27,7 @@ import swing.SpinnerCellEditor;
 
 //TODO better layout
 //TODO reset is a bit ugly - implement party changes and skill additions in a better way
+//TODO review for change to enum SavingThrow.Type
 
 // note that setting skills in the table modifies to skill to the newly specified total by changing the number
 // of ranks. Setting the skill to 0 sets the ranks to 0.
@@ -112,7 +113,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 		} else if (e.getPropertyName().startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
 			String save = e.getPropertyName().substring(Creature.PROPERTY_SAVE_PREFIX.length());
 			for (int i = 0; i < 3; i++) {
-				if (save.equals(SavingThrow.getSavingThrowName(i))) {
+				if (save.equals(SavingThrow.Type.values()[i].toString())) {
 					model.saveChange(i);
 				}
 			}
@@ -162,7 +163,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (rowIndex >= 0 && rowIndex <= LAST_SAVE_ROW) {
 				if (value == null) value = new Integer(0);
-				party.get(columnIndex-1).setSavingThrow(rowIndex, (Integer)value);
+				party.get(columnIndex-1).setSavingThrow(SavingThrow.Type.values()[rowIndex], (Integer)value);
 			} else if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
 				if (value == null) party.get(columnIndex-1).setSkillRanks(skills[rowIndex-FIRST_SKILL_ROW], 0);
 				else party.get(columnIndex-1).setSkillTotal(skills[rowIndex-FIRST_SKILL_ROW], (Integer)value);
@@ -225,7 +226,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 
 		protected String getRowName(int rowIndex) {
 			if (rowIndex <= LAST_SAVE_ROW) {
-				return SavingThrow.getSavingThrowName(rowIndex);
+				return SavingThrow.Type.values()[rowIndex].toString();
 			}
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
 				return skills[rowIndex-FIRST_SKILL_ROW].getName();
@@ -243,7 +244,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 			if (columnIndex == 0) return getRowName(rowIndex);
 
 			if (rowIndex <= LAST_SAVE_ROW) {
-				return party.get(columnIndex-1).getSavingThrow(rowIndex);
+				return party.get(columnIndex-1).getSavingThrow(SavingThrow.Type.values()[rowIndex]);
 			}
 			if (rowIndex > LAST_SAVE_ROW && rowIndex < FIRST_SKILL_ROW) return null;
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {

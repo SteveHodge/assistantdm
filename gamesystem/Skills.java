@@ -3,8 +3,10 @@ package gamesystem;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,7 +27,7 @@ import org.w3c.dom.NodeList;
 // TODO reimplement misc as Modifier
 public class Skills extends Statistic {
 	public Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();	// TODO public for Character.getXML. change when no longer required
-	Modifier[] abilityMods;
+	EnumMap<AbilityScore.Type,Modifier> abilityMods = new EnumMap<AbilityScore.Type,Modifier>(AbilityScore.Type.class);
 
 	PropertyChangeListener abilityListener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent evt) {
@@ -34,19 +36,18 @@ public class Skills extends Statistic {
 		}
 	};
 
-	public Skills(AbilityScore[] abilities) {
+	public Skills(Collection<AbilityScore> abilities) {
 		super("Skills");
-		abilityMods = new Modifier[abilities.length];
-		for (int i = 0; i < abilities.length; i++) {
-			abilityMods[i] = abilities[i].getModifier();
-			abilityMods[i].addPropertyChangeListener(abilityListener);
+		for (AbilityScore a : abilities) {
+			abilityMods.put(a.type, a.getModifier());
+			a.getModifier().addPropertyChangeListener(abilityListener);
 		}
 	}
 
 	public void setRanks(SkillType s, float r) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
-			skill = new Skill(s,abilityMods[s.ability]);
+			skill = new Skill(s,abilityMods.get(s.ability));
 			skills.put(s,skill);
 		}
 		if (skill.ranks != r) {
@@ -69,7 +70,7 @@ public class Skills extends Statistic {
 	public void setMisc(SkillType s, int m) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
-			skill = new Skill(s,abilityMods[s.ability]);
+			skill = new Skill(s,abilityMods.get(s.ability));
 			skills.put(s,skill);
 		}
 		if (skill.misc != m) {
@@ -93,7 +94,7 @@ public class Skills extends Statistic {
 		Skill skill = skills.get(s);
 		Set<Modifier> mods = new HashSet<Modifier>(modifiers);
 		if (skill == null) {
-			mods.add(abilityMods[s.ability]);
+			mods.add(abilityMods.get(s.ability));
 			return super.getModifiersTotal(mods, null);
 		} else {
 			mods.addAll(skill.modifiers);
@@ -114,7 +115,7 @@ public class Skills extends Statistic {
 		Skill skill = skills.get(s);
 		Set<Modifier> mods = new HashSet<Modifier>(modifiers);
 		if (skill == null) {
-			mods.add(abilityMods[s.ability]);
+			mods.add(abilityMods.get(s.ability));
 		} else {
 			mods.addAll(skill.modifiers);
 		}
@@ -124,7 +125,7 @@ public class Skills extends Statistic {
 	public void addModifier(SkillType s, Modifier m) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
-			skill = new Skill(s,abilityMods[s.ability]);
+			skill = new Skill(s,abilityMods.get(s.ability));
 			skills.put(s,skill);
 		}
 
@@ -138,7 +139,7 @@ public class Skills extends Statistic {
 	public void removeModifier(SkillType s, Modifier m) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
-			skill = new Skill(s,abilityMods[s.ability]);
+			skill = new Skill(s,abilityMods.get(s.ability));
 			skills.put(s,skill);
 		}
 
@@ -183,17 +184,15 @@ public class Skills extends Statistic {
 		if (!e.getTagName().equals("Skills")) return;
 
 		NodeList skills = e.getChildNodes();
-		if (skills != null) {
-			for (int j=0; j<skills.getLength(); j++) {
-				if (!skills.item(j).getNodeName().equals("Skill")) continue;
-				Element s = (Element)skills.item(j);
-				String ranks = s.getAttribute("ranks");
-				String type = s.getAttribute("type");
-				SkillType skill = SkillType.getSkill(type);
-				setRanks(skill, Float.parseFloat(ranks));
-				String misc = s.getAttribute("misc");
-				if (misc != "") setMisc(skill, Integer.parseInt(misc));
-			}
+		for (int j=0; j<skills.getLength(); j++) {
+			if (!skills.item(j).getNodeName().equals("Skill")) continue;
+			Element s = (Element)skills.item(j);
+			String ranks = s.getAttribute("ranks");
+			String type = s.getAttribute("type");
+			SkillType skill = SkillType.getSkill(type);
+			setRanks(skill, Float.parseFloat(ranks));
+			String misc = s.getAttribute("misc");
+			if (misc != "") setMisc(skill, Integer.parseInt(misc));
 		}
 	}
 }

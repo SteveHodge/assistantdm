@@ -103,14 +103,12 @@ public class Party implements Iterable<Character> {
 			Node node = XMLUtils.findNode(dom,"Characters");
 			if (node != null) {
 				NodeList children = node.getChildNodes();
-				if (children != null) {
-					for (int i=0; i<children.getLength(); i++) {
-						if (children.item(i).getNodeName().equals("Character")) {
-							Character c = Character.parseDOM((Element)children.item(i));
-							if (c != null) {
-								if (!update) CharacterLibrary.add(c);
-								charMap.put(c.getName(),c);
-							}
+				for (int i=0; i<children.getLength(); i++) {
+					if (children.item(i).getNodeName().equals("Character")) {
+						Character c = Character.parseDOM((Element)children.item(i));
+						if (c != null) {
+							if (!update) CharacterLibrary.add(c);
+							charMap.put(c.getName(),c);
 						}
 					}
 				}
@@ -119,14 +117,12 @@ public class Party implements Iterable<Character> {
 			node = XMLUtils.findNode(node, "Party");
 			if (node != null) {
 				NodeList children = node.getChildNodes();
-				if (children != null) {
-					for (int i=0; i<children.getLength(); i++) {
-						if (children.item(i).getNodeName().equals("Member")) {
-							Element m = (Element)children.item(i);
-							Character c = charMap.get(m.getAttribute("name"));
-							if (c != null) {
-								p.add(c);
-							}
+				for (int i=0; i<children.getLength(); i++) {
+					if (children.item(i).getNodeName().equals("Member")) {
+						Element m = (Element)children.item(i);
+						Character c = charMap.get(m.getAttribute("name"));
+						if (c != null) {
+							p.add(c);
 						}
 					}
 				}
@@ -164,9 +160,9 @@ public class Party implements Iterable<Character> {
 				return arg0.getName().compareTo(arg1.getName());
 			}
 		});
-		for (Character c : allCharacters) {
-			b.append(c.getXML(indent+nextIndent,nextIndent));
-		}
+//		for (Character c : allCharacters) {
+//			b.append(c.getXML(indent+nextIndent,nextIndent));
+//		}
 		b.append(indent+nextIndent+"<Party>"+nl);
 		for (Character c : characters) {
 			b.append(indent+nextIndent+nextIndent+"<Member name=\""+c.getName()+"\"/>"+nl);

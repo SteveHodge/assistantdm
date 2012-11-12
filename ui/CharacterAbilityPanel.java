@@ -25,6 +25,7 @@ import swing.TableModelWithToolTips;
 
 // TODO handle editing of temp scores better. consider adding ability check column
 // TODO modifier column should show "+" for non-negative modifiers
+// TODO review for change to enum AbilityScore.Type 
 
 @SuppressWarnings("serial")
 public class CharacterAbilityPanel extends CharacterSubPanel {
@@ -52,7 +53,7 @@ public class CharacterAbilityPanel extends CharacterSubPanel {
 			public Component getTableCellEditorComponent(JTable table,
 					Object value, boolean isSelected, int row, int column) {
 				if (value == null) {
-					value = character.getAbilityScore(row);
+					value = character.getAbilityScore(AbilityScore.Type.values()[row]);
 				}
 				return super.getTableCellEditorComponent(table, value, isSelected, row, column);
 			}
@@ -67,12 +68,12 @@ public class CharacterAbilityPanel extends CharacterSubPanel {
 
 	protected String getSummary() {
 		StringBuilder s = new StringBuilder();
-		for (int i = 0; i < 6; i++) {
-			if (i > 0) s.append("   ");
-			s.append(AbilityScore.ability_abbreviations[i]);
+		for (AbilityScore.Type t : AbilityScore.Type.values()) {
+			if (s.length() > 0) s.append("   ");
+			s.append(t.getAbbreviation());
 			s.append(" ");
-			if (character.getAbilityModifier(i) >= 0) s.append("+");
-			s.append(character.getAbilityModifier(i));
+			if (character.getAbilityModifier(t) >= 0) s.append("+");
+			s.append(character.getAbilityModifier(t));
 		}
 		return s.toString();
 	}
@@ -95,8 +96,8 @@ public class CharacterAbilityPanel extends CharacterSubPanel {
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (columnIndex != 1 && columnIndex != 2) return;
 			if (value == null) value = new Integer(0);
-			if (columnIndex == 1) character.setAbilityScore(rowIndex, (Integer)value);
-			else if (columnIndex == 2) character.setTemporaryAbility(rowIndex, (Integer)value);
+			if (columnIndex == 1) character.setAbilityScore(AbilityScore.Type.values()[rowIndex], (Integer)value);
+			else if (columnIndex == 2) character.setTemporaryAbility(AbilityScore.Type.values()[rowIndex], (Integer)value);
 		}
 
 		public String getColumnName(int column) {
@@ -117,17 +118,17 @@ public class CharacterAbilityPanel extends CharacterSubPanel {
 		}
 
 		public Object getValueAt(int row, int column) {
-			if (column == 0) return AbilityScore.getAbilityName(row);
-			if (column == 1) return character.getBaseAbilityScore(row);
+			if (column == 0) return AbilityScore.Type.values()[row].toString();
+			if (column == 1) return character.getBaseAbilityScore(AbilityScore.Type.values()[row]);
 			if (column == 2) {
-				if (character.getTemporaryAbility(row) == -1) return null;
-				return character.getAbilityScore(row);
+				if (character.getTemporaryAbility(AbilityScore.Type.values()[row]) == -1) return null;
+				return character.getAbilityScore(AbilityScore.Type.values()[row]);
 			}
 			if (column == 3) {
 				AbilityScore s = (AbilityScore)character.getStatistic(Creature.STATISTIC_ABILITY[row]);
 				return s.getValue()+((s.hasConditionalModifier() && s.getOverride() == 0)?"*":"");
 			}
-			if (column == 4) return character.getAbilityModifier(row);
+			if (column == 4) return character.getAbilityModifier(AbilityScore.Type.values()[row]);
 			return null;
 		}
 
@@ -136,7 +137,7 @@ public class CharacterAbilityPanel extends CharacterSubPanel {
 			if (abilityName.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
 				abilityName = abilityName.substring(Creature.PROPERTY_ABILITY_PREFIX.length());
 				for (int i = 0; i < 6; i++) {
-					if (AbilityScore.getAbilityName(i).equals(abilityName)) {
+					if (AbilityScore.Type.values()[i].toString().equals(abilityName)) {
 						this.fireTableRowsUpdated(i, i);
 					}
 				}

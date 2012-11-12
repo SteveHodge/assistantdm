@@ -141,25 +141,23 @@ public class Item implements Serializable {
 		Item item = new Item(cat);
 
 		NodeList nodes = node.getChildNodes();
-		if (nodes != null) {
-			for (int i=0; i<nodes.getLength(); i++) {
-				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-				Element e = (Element)nodes.item(i);
-				String tag = e.getTagName();
+		for (int i=0; i<nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element)nodes.item(i);
+			String tag = e.getTagName();
 
-				if (tag.equals("Field")) {
-					String name = e.getAttribute("name");
-					String value = e.getTextContent();
-					try {
-						int v = Integer.parseInt(value);
-						Field f = item.getField(name);
-						if (f == null) f = new Field(name, Field.TYPE_NUMBER);
-						item.setValue(f, v);
-					} catch(NumberFormatException ex) {
-						Field f = item.getField(name);
-						if (f == null) f = new Field(name, Field.TYPE_TEXT);
-						item.setValue(f, value);
-					}
+			if (tag.equals("Field")) {
+				String name = e.getAttribute("name");
+				String value = e.getTextContent();
+				try {
+					int v = Integer.parseInt(value);
+					Field f = item.getField(name);
+					if (f == null) f = new Field(name, Field.TYPE_NUMBER);
+					item.setValue(f, v);
+				} catch(NumberFormatException ex) {
+					Field f = item.getField(name);
+					if (f == null) f = new Field(name, Field.TYPE_TEXT);
+					item.setValue(f, value);
 				}
 			}
 		}

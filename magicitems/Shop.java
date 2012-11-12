@@ -222,45 +222,41 @@ public class Shop extends AbstractListModel implements ItemTarget {
 		Shop s = null;
 
 		NodeList nodes = node.getChildNodes();
-		if (nodes != null) {
-			for (int i=0; i<nodes.getLength(); i++) {
-				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-				Element e = (Element)nodes.item(i);
-				String tag = e.getTagName();
+		for (int i=0; i<nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element)nodes.item(i);
+			String tag = e.getTagName();
 
-				if (tag.equals("Minor")) {
-					minorChance = Integer.parseInt(e.getAttribute("newChance"));
-					minorNumber = Integer.parseInt(e.getAttribute("number"));
-					minorSell = Integer.parseInt(e.getAttribute("sellChance"));
+			if (tag.equals("Minor")) {
+				minorChance = Integer.parseInt(e.getAttribute("newChance"));
+				minorNumber = Integer.parseInt(e.getAttribute("number"));
+				minorSell = Integer.parseInt(e.getAttribute("sellChance"));
 
-				} else if (tag.equals("Medium")) {
-					mediumChance = Integer.parseInt(e.getAttribute("newChance"));
-					mediumNumber = Integer.parseInt(e.getAttribute("number"));
-					mediumSell = Integer.parseInt(e.getAttribute("sellChance"));
+			} else if (tag.equals("Medium")) {
+				mediumChance = Integer.parseInt(e.getAttribute("newChance"));
+				mediumNumber = Integer.parseInt(e.getAttribute("number"));
+				mediumSell = Integer.parseInt(e.getAttribute("sellChance"));
 
-				} else if (tag.equals("Major")) {
-					majorChance = Integer.parseInt(e.getAttribute("newChance"));
-					majorNumber = Integer.parseInt(e.getAttribute("number"));
-					majorSell = Integer.parseInt(e.getAttribute("sellChance"));
+			} else if (tag.equals("Major")) {
+				majorChance = Integer.parseInt(e.getAttribute("newChance"));
+				majorNumber = Integer.parseInt(e.getAttribute("number"));
+				majorSell = Integer.parseInt(e.getAttribute("sellChance"));
 
-				} else if (tag.equals("Items")) {
-					s = new Shop(script,proc, majorChance, majorNumber, mediumChance, mediumNumber,
-							minorChance, minorNumber);
-					s.setSellChance(Item.CLASS_MINOR, minorSell);
-					s.setSellChance(Item.CLASS_MEDIUM, mediumSell);
-					s.setSellChance(Item.CLASS_MAJOR, majorSell);
-					s.day = day;
+			} else if (tag.equals("Items")) {
+				s = new Shop(script,proc, majorChance, majorNumber, mediumChance, mediumNumber,
+						minorChance, minorNumber);
+				s.setSellChance(Item.CLASS_MINOR, minorSell);
+				s.setSellChance(Item.CLASS_MEDIUM, mediumSell);
+				s.setSellChance(Item.CLASS_MAJOR, majorSell);
+				s.day = day;
 
-					NodeList items = e.getChildNodes();
-					if (items != null) {
-						for (int j=0; j<items.getLength(); j++) {
-							if (!items.item(j).getNodeName().equals("Item")) continue;
-							Element ie = (Element)items.item(j);
-							Item item = Item.parseItemDOM(ie);
-							if (item != null) {
-								s.addItem(item);
-							}
-						}
+				NodeList items = e.getChildNodes();
+				for (int j=0; j<items.getLength(); j++) {
+					if (!items.item(j).getNodeName().equals("Item")) continue;
+					Element ie = (Element)items.item(j);
+					Item item = Item.parseItemDOM(ie);
+					if (item != null) {
+						s.addItem(item);
 					}
 				}
 			}

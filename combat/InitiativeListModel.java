@@ -453,23 +453,21 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		if (!el.getNodeName().equals("InitiativeList")) return;
 		reset();
 		NodeList nodes = el.getChildNodes();
-		if (nodes != null) {
-			for (int i=0; i<nodes.getLength(); i++) {
-				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-				Element e = (Element)nodes.item(i);
-				String tag = e.getTagName();
-				if (tag.equals("CharacterEntry")) {
-					String name = e.getAttribute("name");
-					for (CombatEntry ce : list) {
-						if (ce instanceof CharacterCombatEntry && name.equals(ce.getCreatureName())) {
-							ce.setRoll(Integer.parseInt(e.getAttribute("roll")));
-							ce.setTieBreak(Integer.parseInt(e.getAttribute("tieBreak")));
-						}
+		for (int i=0; i<nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element)nodes.item(i);
+			String tag = e.getTagName();
+			if (tag.equals("CharacterEntry")) {
+				String name = e.getAttribute("name");
+				for (CombatEntry ce : list) {
+					if (ce instanceof CharacterCombatEntry && name.equals(ce.getCreatureName())) {
+						ce.setRoll(Integer.parseInt(e.getAttribute("roll")));
+						ce.setTieBreak(Integer.parseInt(e.getAttribute("tieBreak")));
 					}
-				} else if (tag.equals("MonsterEntry")) {
-					MonsterCombatEntry m = MonsterCombatEntry.parseDOM(e);
-					addEntry(m);
 				}
+			} else if (tag.equals("MonsterEntry")) {
+				MonsterCombatEntry m = MonsterCombatEntry.parseDOM(e);
+				addEntry(m);
 			}
 		}
 	}

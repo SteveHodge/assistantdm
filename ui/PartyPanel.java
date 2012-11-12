@@ -64,8 +64,8 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 	public JComponent createCharacterPanel(final Character c) {
 		JPanel leftPanel = new JPanel();
-		leftPanel.setMinimumSize(new Dimension(400,300));
-		leftPanel.setLayout(new VerticalLayout());
+		leftPanel.setMinimumSize(new Dimension(450,300));
+		leftPanel.setLayout(new VerticalLayout(1));
 		
 		JXTaskPane actionsPane = new JXTaskPane("Actions");
 		JButton saveHTML = new JButton("Save HTML");
@@ -107,7 +107,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 		JPanel rightPanel = new JPanel();
 		rightPanel.setMinimumSize(new Dimension(300,300));
-		rightPanel.setLayout(new VerticalLayout());
+		rightPanel.setLayout(new VerticalLayout(1));
 	
 		p = new CharacterInitiativePanel(c);
 		sub = new JSubSection("Initiative", p);
@@ -135,15 +135,13 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 	public class SummaryDisplay {
 		JSubSection subSection;
-		String title;
 
 		SummaryDisplay(JSubSection sub) {
 			subSection = sub;
-			title = sub.getTitle();
 		}
 
 		public void updateSummary(String summary) {
-			subSection.setCollapsedTitle(title + ":   " + summary);
+			subSection.setInfoText(summary);
 		}
 	}
 

@@ -17,7 +17,9 @@ import party.Creature;
 import party.Character;
 
 //TODO update to use the saving throw's ability modifier rather than looking at the ability score's modifier directly
-//TODO change to listen to the SavingThrow itself instead of the character 
+//TODO change to listen to the SavingThrow itself instead of the character
+//TODO cleanup stuff surround change to enum for save types
+//TODO review for change to enum SavingThrow.Type 
 @SuppressWarnings("serial")
 public class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeListener {
 	protected JLabel[] modLabels = new JLabel[3];
@@ -57,16 +59,16 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 			hGroups[i].addComponent(titleLabels[i]);
 		}
 		for (int type=0; type<3; type++) {
-			saveLabels[type] = new JLabel(SavingThrow.getSavingThrowName(type));
+			saveLabels[type] = new JLabel(SavingThrow.Type.values()[type].toString());
 			baseSaveFields[type] = new JFormattedTextField();
-			baseSaveFields[type].setValue(new Integer(character.getSavingThrowBase(type)));
+			baseSaveFields[type].setValue(new Integer(character.getSavingThrowBase(SavingThrow.Type.values()[type])));
 			baseSaveFields[type].setColumns(3);
 			baseSaveFields[type].addPropertyChangeListener("value", new BaseFieldPropertyListener(type));
 			miscSaveFields[type] = new JFormattedTextField();
-			miscSaveFields[type].setValue(new Integer(character.getSavingThrowMisc(type)));
+			miscSaveFields[type].setValue(new Integer(character.getSavingThrowMisc(SavingThrow.Type.values()[type])));
 			miscSaveFields[type].setColumns(3);
 			miscSaveFields[type].addPropertyChangeListener("value", new MiscFieldPropertyListener(type));
-			modLabels[type] = new JLabel(""+character.getAbilityModifier(SavingThrow.getSaveAbility(type)));
+			modLabels[type] = new JLabel(""+character.getAbilityModifier(SavingThrow.Type.values()[type].getAbilityType()));
 			SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[type]);
 			totalLabels[type] = new JLabel(""+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 			vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
@@ -116,9 +118,9 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < 3; i++) {
 			if (i > 0) s.append("   ");
-			s.append(SavingThrow.getSavingThrowName(i)).append(" ");
-			if (character.getSavingThrow(i) >= 0) s.append("+");
-			s.append(character.getSavingThrow(i));
+			s.append(SavingThrow.Type.values()[i]).append(" ");
+			if (character.getSavingThrow(SavingThrow.Type.values()[i]) >= 0) s.append("+");
+			s.append(character.getSavingThrow(SavingThrow.Type.values()[i]));
 		}
 		return s.toString();
 	}
@@ -138,8 +140,8 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 		if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
 			prop = prop.substring(Creature.PROPERTY_SAVE_PREFIX.length());
 			for (int i = 0; i < 3; i++) {
-				if (prop.equals(SavingThrow.getSavingThrowName(i))) {
-					baseSaveFields[i].setValue(new Integer(character.getSavingThrowBase(i)));
+				if (prop.equals(SavingThrow.Type.values()[i].toString())) {
+					baseSaveFields[i].setValue(new Integer(character.getSavingThrowBase(SavingThrow.Type.values()[i])));
 					SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[i]);
 					totalLabels[i].setText(""+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 				}
@@ -159,7 +161,7 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)baseSaveFields[type].getValue();
-				character.setSavingThrowBase(type, total);
+				character.setSavingThrowBase(SavingThrow.Type.values()[type], total);
 			}
 		}
 	}
@@ -174,7 +176,7 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)miscSaveFields[type].getValue();
-				character.setSavingThrowMisc(type, total);
+				character.setSavingThrowMisc(SavingThrow.Type.values()[type], total);
 			}
 		}
 	}

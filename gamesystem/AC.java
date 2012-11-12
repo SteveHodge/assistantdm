@@ -1,7 +1,9 @@
 package gamesystem;
 
 import java.beans.PropertyChangeListener;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -85,14 +87,14 @@ public class AC extends Statistic {
 			return ac;
 		}
 
-		public Map<Modifier, Boolean> getModifiers() {
-			Map<Modifier,Boolean> map = AC.this.getModifiers();
+		protected Set<Modifier> getModifierSet() {
+			Set<Modifier> mods = new HashSet<Modifier>(AC.this.modifiers);
 			for (Modifier m : AC.this.modifiers) {
 				if (m.getType() != null && (m.getType().equals("Armor") || m.getType().equals("Shield") || m.getType().equals("Natural"))) {
-					map.remove(m);
+					mods.remove(m);
 				}
 			}
-			return map;
+			return mods;
 		}
 	};
 
@@ -128,14 +130,14 @@ public class AC extends Statistic {
 			return ac;
 		}
 
-		public Map<Modifier, Boolean> getModifiers() {
-			Map<Modifier,Boolean> map = AC.this.getModifiers();
+		protected Set<Modifier> getModifierSet() {
+			Set<Modifier> mods = new HashSet<Modifier>(AC.this.modifiers);
 			for (Modifier m : AC.this.modifiers) {
 				if (m.getType() != null && (m.getType().equals("Dexterity") || m.getType().equals("Dodge"))) {
-					map.remove(m);
+					mods.remove(m);
 				}
 			}
-			return map;
+			return mods;
 		}
 	};
 }

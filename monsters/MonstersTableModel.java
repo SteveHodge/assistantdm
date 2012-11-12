@@ -85,14 +85,12 @@ public class MonstersTableModel extends DefaultTableModel {
 			if (node != null) {
 				String src = node.getAttribute("source");
 				NodeList children = node.getChildNodes();
-				if (children != null) {
-					for (int i=0; i<children.getLength(); i++) {
-						if (children.item(i).getNodeName().equals("Monster")) {
-							MonsterEntry me = parseDOM((Element)children.item(i));
-							if (me != null) {
-								me.source = src;
-								monsters.add(me);
-							}
+				for (int i=0; i<children.getLength(); i++) {
+					if (children.item(i).getNodeName().equals("Monster")) {
+						MonsterEntry me = parseDOM((Element)children.item(i));
+						if (me != null) {
+							me.source = src;
+							monsters.add(me);
 						}
 					}
 				}

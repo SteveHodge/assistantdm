@@ -211,13 +211,11 @@ public class CombatPanel extends JPanel {
 			Node node = XMLUtils.findNode(dom,"Combat");
 			if (node != null) {
 				NodeList children = node.getChildNodes();
-				if (children != null) {
-					for (int i=0; i<children.getLength(); i++) {
-						if (children.item(i).getNodeName().equals("InitiativeList")) {
-							initiativeListModel.parseDOM((Element)children.item(i));
-						} else if (children.item(i).getNodeName().equals("EffectList")) {
-							effectsTableModel.parseDOM((Element)children.item(i));
-						}
+				for (int i=0; i<children.getLength(); i++) {
+					if (children.item(i).getNodeName().equals("InitiativeList")) {
+						initiativeListModel.parseDOM((Element)children.item(i));
+					} else if (children.item(i).getNodeName().equals("EffectList")) {
+						effectsTableModel.parseDOM((Element)children.item(i));
 					}
 				}
 			}

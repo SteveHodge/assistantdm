@@ -269,23 +269,21 @@ public class Buff {
 		buff.name = b.getAttribute("name");
 		buff.id = Integer.parseInt(b.getAttribute("id"));
 		NodeList mods = b.getChildNodes();
-		if (mods != null) {
-			for (int k=0; k<mods.getLength(); k++) {
-				if (!mods.item(k).getNodeName().equals("Modifier")) continue;
-				Element m = (Element)mods.item(k);
-				String target = m.getAttribute("target");
-				int value = Integer.parseInt(m.getAttribute("value"));
-				String type = m.getAttribute("type");
-				String condition = m.getAttribute("condition");
-				ImmutableModifier mod;
-				if (condition != null && condition.length() > 0) {
-					mod = new ImmutableModifier(value, type, buff.name, condition);
-				} else {
-					mod = new ImmutableModifier(value, type, buff.name);
-				}
-				mod.id = buff.id;
-				buff.modifiers.put(mod,target);
+		for (int k=0; k<mods.getLength(); k++) {
+			if (!mods.item(k).getNodeName().equals("Modifier")) continue;
+			Element m = (Element)mods.item(k);
+			String target = m.getAttribute("target");
+			int value = Integer.parseInt(m.getAttribute("value"));
+			String type = m.getAttribute("type");
+			String condition = m.getAttribute("condition");
+			ImmutableModifier mod;
+			if (condition != null && condition.length() > 0) {
+				mod = new ImmutableModifier(value, type, buff.name, condition);
+			} else {
+				mod = new ImmutableModifier(value, type, buff.name);
 			}
+			mod.id = buff.id;
+			buff.modifiers.put(mod,target);
 		}
 		return buff;
 	}

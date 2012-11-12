@@ -265,12 +265,10 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 			Node node = XMLUtils.findNode(dom,"Shops");
 			if (node != null) {
 				NodeList children = node.getChildNodes();
-				if (children != null) {
-					for (int i=0; i<children.getLength(); i++) {
-						if (children.item(i).getNodeName().equals("Shop")) {
-							Shop s = Shop.parseDOM((Element)children.item(i));
-							if (s != null) shops.add(s);
-						}
+				for (int i=0; i<children.getLength(); i++) {
+					if (children.item(i).getNodeName().equals("Shop")) {
+						Shop s = Shop.parseDOM((Element)children.item(i));
+						if (s != null) shops.add(s);
 					}
 				}
 			}

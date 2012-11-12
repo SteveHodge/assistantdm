@@ -3,6 +3,7 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Buff;
+import gamesystem.Feat;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
@@ -26,6 +27,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,6 +44,8 @@ import ui.CharacterBuffsPanel.BuffListModel;
 import util.Updater;
 
 // TODO priorities:
+// enum conversions - property and statistics types
+// damage
 // buff specific skills. buffs to ability checks
 // clean up handling of HPs, wounds, healing etc, particularly ui
 // review Statistics vs Properties
@@ -56,17 +61,17 @@ import util.Updater;
 // TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
 
 /* Things to implement:
+ *  (in progress) Weapons/attacks
+ *  (in progress) Feats
+ *  (in progress) Grapple modifier
  *  Ability score checks
  *  Class levels
  *  Spell lists / spells per day
  *  Damage reduction
  *  Spell resistance
- *  Grapple modifier
- *  Weapons/attacks
  *  Armor
  *  Magic items slots
  *  Weight/encumberance
- *  Feats
  *  Skill synergies
  *  Skill named versions (Crafting, Profession etc)
  *  Size
@@ -101,13 +106,15 @@ public class Character extends Creature {
 
 	protected InitiativeModifier initiative;
 
-	protected SavingThrow[] saves = new SavingThrow[3];
-	protected Modifier[] saveMisc = new Modifier[3];
+	protected EnumMap<SavingThrow.Type,SavingThrow> saves = new EnumMap<SavingThrow.Type,SavingThrow>(SavingThrow.Type.class);
+	protected EnumMap<SavingThrow.Type,Modifier> saveMisc = new EnumMap<SavingThrow.Type,Modifier>(SavingThrow.Type.class);
 	
-	protected AbilityScore[] abilities = new AbilityScore[6];
+	protected EnumMap<AbilityScore.Type,AbilityScore> abilities = new EnumMap<AbilityScore.Type,AbilityScore>(AbilityScore.Type.class);
 
 	protected Skills skills;
-	
+
+	protected Set<Feat> feats = new HashSet<Feat>();
+
 	protected HPs hps;
 	protected Level level; 
 	protected int xp = 0;
@@ -243,31 +250,33 @@ public class Character extends Creature {
 
 	public Character(String n) {
 		name = n;
-		for (int i=0; i<6; i++) {
-			abilities[i] = new AbilityScore(i);
-			abilities[i].addPropertyChangeListener(statListener);
+		for (AbilityScore.Type t : AbilityScore.Type.values()) {
+			AbilityScore s = new AbilityScore(t);
+			s.addPropertyChangeListener(statListener);
+			abilities.put(t, s);
 		}
 
-		initiative = new InitiativeModifier(abilities[AbilityScore.ABILITY_DEXTERITY]);
+		initiative = new InitiativeModifier(abilities.get(AbilityScore.Type.DEXTERITY));
 		initiative.addPropertyChangeListener(statListener);
 
-		for (int i=0; i<3; i++) {
-			saves[i] = new SavingThrow(i,abilities[SavingThrow.getSaveAbility(i)]);
-			saves[i].addPropertyChangeListener(statListener);
+		for (SavingThrow.Type t : SavingThrow.Type.values()) {
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()));
+			s.addPropertyChangeListener(statListener);
+			saves.put(t, s);
 		}
 
-		ac = new AC(abilities[AbilityScore.ABILITY_DEXTERITY]);
+		ac = new AC(abilities.get(AbilityScore.Type.DEXTERITY));
 		ac.addPropertyChangeListener(statListener);
 
-		skills = new Skills(abilities);
+		skills = new Skills(abilities.values());
 		skills.addPropertyChangeListener(statListener);
 
 		level = new Level();
 
-		hps = new HPs(abilities[AbilityScore.ABILITY_CONSTITUTION], level);
+		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), level);
 		hps.addPropertyChangeListener(statListener);
 
-		attacks = new Attacks(abilities[AbilityScore.ABILITY_STRENGTH], abilities[AbilityScore.ABILITY_DEXTERITY]);
+		attacks = new Attacks(abilities.get(AbilityScore.Type.STRENGTH), abilities.get(AbilityScore.Type.DEXTERITY), this);
 		attacks.addPropertyChangeListener(statListener);
 	}
 
@@ -295,8 +304,8 @@ public class Character extends Creature {
 	* @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
 	* @return      the current score of the specified ability
 	*/
-	public int getAbilityScore(int type) {
-		return abilities[type].getValue();
+	public int getAbilityScore(AbilityScore.Type type) {
+		return abilities.get(type).getValue();
 	}
 
    /**
@@ -305,8 +314,8 @@ public class Character extends Creature {
     * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
     * @return      the base score of the specified ability
     */
-	public int getBaseAbilityScore(int type) {
-		return abilities[type].getBaseValue();
+	public int getBaseAbilityScore(AbilityScore.Type type) {
+		return abilities.get(type).getBaseValue();
 	}
 
    /**
@@ -315,8 +324,8 @@ public class Character extends Creature {
     * @param type  the ability score to get the modifier of: one of the ABILITY constants from {@link Creature}
     * @return      the modifier calculated from the current score of the specified ability
     */
-	public int getAbilityModifier(int type) {
-		return abilities[type].getModifierValue();
+	public int getAbilityModifier(AbilityScore.Type type) {
+		return abilities.get(type).getModifierValue();
 	}
 
    /**
@@ -325,8 +334,8 @@ public class Character extends Creature {
     * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
     * @param value the value to set the score to
     */
-	public void setAbilityScore(int type, int value) {
-		abilities[type].setBaseValue(value);
+	public void setAbilityScore(AbilityScore.Type type, int value) {
+		abilities.get(type).setBaseValue(value);
 	}
 
    /**
@@ -341,16 +350,16 @@ public class Character extends Creature {
     * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
     * @param value the value to set as the temporary score
     */
-	public void setTemporaryAbility(int type, int value) {
-		if (value != abilities[type].getBaseValue() && value >= 0) {
-			abilities[type].setOverride(value);
+	public void setTemporaryAbility(AbilityScore.Type type, int value) {
+		if (value != abilities.get(type).getBaseValue() && value >= 0) {
+			abilities.get(type).setOverride(value);
 		} else {
-			abilities[type].clearOverride();
+			abilities.get(type).clearOverride();
 		}
 	}
 
-	public int getTemporaryAbility(int type) {
-		return abilities[type].getOverride();
+	public int getTemporaryAbility(AbilityScore.Type type) {
+		return abilities.get(type).getOverride();
 	}
 //------------------- Skills -------------------
 // Skills have a total value, ranks, misc bonus, and are modified by ability scores
@@ -418,34 +427,34 @@ public class Character extends Creature {
 // Saves have a total, a base values and are modified by ability scores
 // XXX Note that the property change sets old and new to the base scores for setSavingThrowBase and the total scores for setSavingThrow
 
-	public int getSavingThrow(int save) {
-		return saves[save].getValue();
+	public int getSavingThrow(SavingThrow.Type save) {
+		return saves.get(save).getValue();
 	}
 
-	public int getSavingThrowBase(int save) {
-		return saves[save].getBaseValue();
+	public int getSavingThrowBase(SavingThrow.Type save) {
+		return saves.get(save).getBaseValue();
 	}
 
-	public int getSavingThrowMisc(int save) {
-		if (saveMisc[save] != null) return saveMisc[save].getModifier();
+	public int getSavingThrowMisc(SavingThrow.Type save) {
+		if (saveMisc.containsKey(save)) return saveMisc.get(save).getModifier();
 		else return 0;
 	}
 
-	public void setSavingThrowBase(int save, int v) {
-		int old = saves[save].getValue();
-		saves[save].setBaseValue(v);
-		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(save), old, saves[save].getValue());
+	public void setSavingThrowBase(SavingThrow.Type save, int v) {
+		int old = saves.get(save).getValue();
+		saves.get(save).setBaseValue(v);
+		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, saves.get(save).getValue());
 	}
 
 	// TODO currently this works by removing the old modifier and adding a new one. could make the modifiers mutable instead
-	public void setSavingThrowMisc(int save, int misc) {
+	public void setSavingThrowMisc(SavingThrow.Type save, int misc) {
 		int old = getSavingThrow(save);
-		if (saveMisc[save] != null) saves[save].removeModifier(saveMisc[save]);
-		saveMisc[save] = new ImmutableModifier(misc);
-		saves[save].addModifier(saveMisc[save]);
+		if (saveMisc.containsKey(save)) saves.get(save).removeModifier(saveMisc.get(save));
+		saveMisc.put(save, new ImmutableModifier(misc));
+		saves.get(save).addModifier(saveMisc.get(save));
 		int now = getSavingThrow(save);
 		if (old != now) {
-			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(save), old, now);
+			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
 		}
 	}
 
@@ -456,12 +465,12 @@ public class Character extends Creature {
     * @param total  the total required
     */
 	// TODO this is used by RollsPanel. it should probably be removed
-	public void setSavingThrow(int save, int total) {
+	public void setSavingThrow(SavingThrow.Type save, int total) {
 		int old = getSavingThrow(save);
-		saves[save].setBaseValue(total-saves[save].getModifiersTotal());
+		saves.get(save).setBaseValue(total-saves.get(save).getModifiersTotal());
 		int now = getSavingThrow(save);
 		if (old != now) {
-			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(save), old, now);
+			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
 		}
 	}
 
@@ -730,6 +739,15 @@ public class Character extends Creature {
 		}
 	}
 
+//------------ Feats -------------
+	public boolean hasFeat(String name) {
+		return feats.contains(new Feat(name));
+	}
+
+	public void addFeat(String name) {
+		feats.add(new Feat(name));
+	}
+
 //------------ getters and setters for informational fields -------------
 	public String getPlayer() {return player;}
 	public String getRegion() {return region;}
@@ -868,23 +886,23 @@ public class Character extends Creature {
 //------------------- Import/Export and other methods -------------------
 	public Statistic getStatistic(String name) {
 		if (name.equals(STATISTIC_STRENGTH)) {
-			return abilities[AbilityScore.ABILITY_STRENGTH];
+			return abilities.get(AbilityScore.Type.STRENGTH);
 		} else if (name.equals(STATISTIC_INTELLIGENCE)) {
-			return abilities[AbilityScore.ABILITY_INTELLIGENCE];
+			return abilities.get(AbilityScore.Type.INTELLIGENCE);
 		} else if (name.equals(STATISTIC_WISDOM)) {
-			return abilities[AbilityScore.ABILITY_WISDOM];
+			return abilities.get(AbilityScore.Type.WISDOM);
 		} else if (name.equals(STATISTIC_DEXTERITY)) {
-			return abilities[AbilityScore.ABILITY_DEXTERITY];
+			return abilities.get(AbilityScore.Type.DEXTERITY);
 		} else if (name.equals(STATISTIC_CONSTITUTION)) {
-			return abilities[AbilityScore.ABILITY_CONSTITUTION];
+			return abilities.get(AbilityScore.Type.CONSTITUTION);
 		} else if (name.equals(STATISTIC_CHARISMA)) {
-			return abilities[AbilityScore.ABILITY_CHARISMA];
+			return abilities.get(AbilityScore.Type.CHARISMA);
 		} else if (name.equals(STATISTIC_FORTITUDE_SAVE)) {
-			return saves[SavingThrow.SAVE_FORTITUDE];
+			return saves.get(SavingThrow.Type.FORTITUDE);
 		} else if (name.equals(STATISTIC_WILL_SAVE)) {
-			return saves[SavingThrow.SAVE_WILL];
+			return saves.get(SavingThrow.Type.WILL);
 		} else if (name.equals(STATISTIC_REFLEX_SAVE)) {
-			return saves[SavingThrow.SAVE_REFLEX];
+			return saves.get(SavingThrow.Type.REFLEX);
 		} else if (name.equals(STATISTIC_AC)) {
 			return ac;
 		} else if (name.equals(STATISTIC_INITIATIVE)) {
@@ -931,8 +949,6 @@ public class Character extends Creature {
 		Element hpElement = null;
 
 		NodeList nodes = el.getChildNodes();
-		if (nodes == null)  return c;
-
 		for (int i=0; i<nodes.getLength(); i++) {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
 			Element e = (Element)nodes.item(i);
@@ -952,65 +968,46 @@ public class Character extends Creature {
 				c.level.parseDOM(e);
 				c.xp = Integer.parseInt(e.getAttribute("xp"));
 				NodeList awards = e.getChildNodes();
-				if (awards != null) {
-					for (int j=0; j<awards.getLength(); j++) {
-						XP.XPChange change = null;
-						if (awards.item(j).getNodeName().equals("XPAward")) {
-							change = XP.XPChangeChallenges.parseDOM((Element)awards.item(j));
-						} else if (awards.item(j).getNodeName().equals("XPChange")) {
-							change = XP.XPChangeAdhoc.parseDOM((Element)awards.item(j));
-						} else if (awards.item(j).getNodeName().equals("XPLevelChange")) {
-							change = XP.XPChangeLevel.parseDOM((Element)awards.item(j));
-						}
-						if (change != null) c.addXPChange(change);
+				for (int j=0; j<awards.getLength(); j++) {
+					XP.XPChange change = null;
+					if (awards.item(j).getNodeName().equals("XPAward")) {
+						change = XP.XPChangeChallenges.parseDOM((Element)awards.item(j));
+					} else if (awards.item(j).getNodeName().equals("XPChange")) {
+						change = XP.XPChangeAdhoc.parseDOM((Element)awards.item(j));
+					} else if (awards.item(j).getNodeName().equals("XPLevelChange")) {
+						change = XP.XPChangeLevel.parseDOM((Element)awards.item(j));
 					}
+					if (change != null) c.addXPChange(change);
 				}
 					
 
 			} else if (tag.equals("AbilityScores")) {
 				NodeList abilities = e.getChildNodes();
-				if (abilities != null) {
-					for (int j=0; j<abilities.getLength(); j++) {
-						if (!abilities.item(j).getNodeName().equals("AbilityScore")) continue;
-						Element s = (Element)abilities.item(j);
-//						String value = s.getAttribute("value");
-						String type = s.getAttribute("type");
-//						String temp = s.getAttribute("temp");
-						for (int k=0; k<6; k++) {
-							if (AbilityScore.getAbilityName(k).equals(type)) {
-								c.abilities[k].parseDOM(s);
-//								c.abilities[k].setBaseValue(Integer.parseInt(value));
-//								if (temp != "") c.abilities[k].setOverride(Integer.parseInt(temp));
-							}
-						}
-					}
+				for (int j=0; j<abilities.getLength(); j++) {
+					if (!abilities.item(j).getNodeName().equals("AbilityScore")) continue;
+					Element s = (Element)abilities.item(j);
+					AbilityScore.Type type = AbilityScore.Type.getAbilityType(s.getAttribute("type"));
+					c.abilities.get(type).parseDOM(s);
 				}
 
 			} else if (tag.equals("SavingThrows")) {
 				NodeList saves = e.getChildNodes();
-				if (saves != null) {
-					for (int j=0; j<saves.getLength(); j++) {
-						if (!saves.item(j).getNodeName().equals("Save")) continue;
-						Element s = (Element)saves.item(j);
+				for (int j=0; j<saves.getLength(); j++) {
+					if (!saves.item(j).getNodeName().equals("Save")) continue;
+					Element s = (Element)saves.item(j);
 //						String value = s.getAttribute("base");
-						String type = s.getAttribute("type");
-						String misc = s.getAttribute("misc");
-						for (int k=0; k<3; k++) {
-							if (SavingThrow.getSavingThrowName(k).equals(type)) {
-								c.saves[k].parseDOM(s);
-//								c.saves[k].setBaseValue(Integer.parseInt(value));
-								if (misc != "" && !misc.equals("0")) {
-									c.setSavingThrowMisc(k, Integer.parseInt(misc));
-								}
-							}
-						}
+					SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(s.getAttribute("type"));
+					String misc = s.getAttribute("misc");
+
+					c.saves.get(type).parseDOM(s);
+					if (misc != "" && !misc.equals("0")) {
+						c.setSavingThrowMisc(type, Integer.parseInt(misc));
 					}
 				}
 
 			} else if (tag.equals("Skills")) {
 				c.skills.parseDOM(e);
 //				NodeList skills = e.getChildNodes();
-//				if (skills != null) {
 //					for (int j=0; j<skills.getLength(); j++) {
 //						if (!skills.item(j).getNodeName().equals("Skill")) continue;
 //						Element s = (Element)skills.item(j);
@@ -1022,119 +1019,124 @@ public class Character extends Creature {
 //						String misc = s.getAttribute("misc");
 //						if (misc != "") c.setSkillMisc(skill, Integer.parseInt(misc));
 //					}
-//				}
 
 			} else if (tag.equals("AC")) {
 				NodeList acs = e.getChildNodes();
-				if (acs != null) {
-					for (int j=0; j<acs.getLength(); j++) {
-						if (!acs.item(j).getNodeName().equals("ACComponent")) continue;
-						Element s = (Element)acs.item(j);
-						String value = s.getAttribute("value");
-						String type = s.getAttribute("type");
-						// TODO hacks to change type:
-						if (type.equals("Dex")) type = AC.getACComponentName(AC.AC_DEX);
-						if (type.equals("Natural")) type = AC.getACComponentName(AC.AC_NATURAL);
-						if (type.equals("Deflect")) type = AC.getACComponentName(AC.AC_DEFLECTION);
-						if (!type.equals(AC.getACComponentName(AC.AC_DEX))) {	// TODO ignore dex component when loading
-							for (int k=0; k<AC.AC_MAX_INDEX; k++) {
-								if (AC.getACComponentName(k).equals(type)) {
-									c.setACComponent(k, Integer.parseInt(value));
-								}
+				for (int j=0; j<acs.getLength(); j++) {
+					if (!acs.item(j).getNodeName().equals("ACComponent")) continue;
+					Element s = (Element)acs.item(j);
+					String value = s.getAttribute("value");
+					String type = s.getAttribute("type");
+					// TODO hacks to change type:
+					if (type.equals("Dex")) type = AC.getACComponentName(AC.AC_DEX);
+					if (type.equals("Natural")) type = AC.getACComponentName(AC.AC_NATURAL);
+					if (type.equals("Deflect")) type = AC.getACComponentName(AC.AC_DEFLECTION);
+					if (!type.equals(AC.getACComponentName(AC.AC_DEX))) {	// TODO ignore dex component when loading
+						for (int k=0; k<AC.AC_MAX_INDEX; k++) {
+							if (AC.getACComponentName(k).equals(type)) {
+								c.setACComponent(k, Integer.parseInt(value));
 							}
 						}
 					}
 				}
 
+			} else if (tag.equals("Attacks")) {
+				c.attacks.parseDOM(e);
+
+			} else if (tag.equals("Feats")) {
+				NodeList children = e.getChildNodes();
+				for (int j=0; j<children.getLength(); j++) {
+					if (children.item(j).getNodeName().equals("Feat")) {
+						Feat f = new Feat(((Element)children.item(j)).getAttribute("name"));
+						c.feats.add(f);
+						System.out.println(c.getName() + " has feat " + f);
+					}
+				}
+
 			} else if (tag.equals("Buffs")) {
 				NodeList buffs = e.getChildNodes();
-				if (buffs != null) { 
-					for (int j=0; j<buffs.getLength(); j++) {
-						if (!buffs.item(j).getNodeName().equals("Buff")) continue;
-						Buff b = Buff.parseDOM((Element)buffs.item(j));
-						b.applyBuff(c);
-						c.buffs.addElement(b);
-					}
+				for (int j=0; j<buffs.getLength(); j++) {
+					if (!buffs.item(j).getNodeName().equals("Buff")) continue;
+					Buff b = Buff.parseDOM((Element)buffs.item(j));
+					b.applyBuff(c);
+					c.buffs.addElement(b);
 				}
 			}
 		}
 
 		if (hpElement != null) {
 			c.hps.parseDOM(hpElement);
-//			c.setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
-//			if (e.hasAttribute("wounds")) c.setWounds(Integer.parseInt(e.getAttribute("wounds")));
-//			if (e.hasAttribute("non-lethal")) c.setNonLethal(Integer.parseInt(e.getAttribute("non-lethal")));
 		}
 
 		return c;
 	}
 
-	public String getXML() {
-		return getXML("","    ");
-	}
-
-	public String getXML(String indent, String nextIndent) {
-		StringBuilder b = new StringBuilder();
-		String nl = System.getProperty("line.separator");
-		String i2 = indent + nextIndent;
-		String i3 = i2 + nextIndent;
-		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
-		b.append(i2).append("<Level level=\"").append(getLevel()).append("\" xp=\"").append(getXP()).append("\">").append(nl);
-		for (XPHistoryItem i : xpChanges) {
-			XP.XPChange cc = i.xpChange;
-			b.append(cc.getXML(i3, nextIndent));
-		}
-		b.append(i2).append("</Level>").append(nl);
-		b.append(i2).append("<AbilityScores>").append(nl);
-		for (int i=0; i<6; i++) {
-			b.append(i3).append("<AbilityScore type=\"").append(AbilityScore.getAbilityName(i));
-			b.append("\" value=\"").append(getBaseAbilityScore(i));
-			if (getAbilityScore(i) != getBaseAbilityScore(i)) {
-				b.append("\" temp=\"").append(getAbilityScore(i));
-			}
-			b.append("\"/>").append(nl);
-		}
-		b.append(i2).append("</AbilityScores>").append(nl);
-		b.append(i2).append("<HitPoints maximum=\"").append(getMaximumHitPoints()).append("\"");
-		if (getWounds() != 0) b.append(" wounds=\"").append(getWounds()).append("\"");
-		if (getNonLethal() != 0) b.append(" non-lethal=\"").append(getNonLethal()).append("\"");
-		b.append("/>").append(nl);
-		b.append(i2).append("<Initiative value=\"").append(getBaseInitiative()).append("\"/>").append(nl);
-		b.append(i2).append("<SavingThrows>").append(nl);
-		for (int i=0; i<3; i++) {
-			b.append(i3).append("<Save type=\"").append(SavingThrow.getSavingThrowName(i));
-			b.append("\" base=\"").append(getSavingThrowBase(i));
-			if (getSavingThrowMisc(i) != 0) b.append("\" misc=\"").append(getSavingThrowMisc(i));
-			b.append("\"/>").append(nl);
-		}
-		b.append(i2).append("</SavingThrows>").append(nl);
-		b.append(i2).append("<Skills>").append(nl);
-		ArrayList<SkillType> set = new ArrayList<SkillType>(skills.skills.keySet());
-		Collections.sort(set, new Comparator<SkillType>() {
-			public int compare(SkillType o1, SkillType o2) {
-				return o1.getName().compareTo(o2.getName());
-			}
-		});
-		for (SkillType s : set) {
-			if (getSkillRanks(s) != 0 || getSkillMisc(s) != 0) {
-				b.append(i3).append("<Skill type=\"").append(s);
-				b.append("\" ranks=\"").append(getSkillRanks(s));
-				if (getSkillMisc(s) != 0) b.append("\" misc=\"").append(getSkillMisc(s));
-				b.append("\"/>").append(nl);
-			}
-		}
-		b.append(i2).append("</Skills>").append(nl);
-		b.append(i2).append("<AC>").append(nl);
-		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
-			if (getACComponent(i) != 0) {
-				b.append(i3).append("<ACComponent type=\"").append(AC.getACComponentName(i));
-				b.append("\" value=\"").append(getACComponent(i)).append("\"/>").append(nl);
-			}
-		}
-		b.append(i2).append("</AC>").append(nl);
-		b.append(indent).append("</Character>").append(nl);
-		return b.toString();
-	}
+//	public String getXML() {
+//		return getXML("","    ");
+//	}
+//
+//	public String getXML(String indent, String nextIndent) {
+//		StringBuilder b = new StringBuilder();
+//		String nl = System.getProperty("line.separator");
+//		String i2 = indent + nextIndent;
+//		String i3 = i2 + nextIndent;
+//		b.append(indent).append("<Character name=\"").append(getName()).append("\">").append(nl);
+//		b.append(i2).append("<Level level=\"").append(getLevel()).append("\" xp=\"").append(getXP()).append("\">").append(nl);
+//		for (XPHistoryItem i : xpChanges) {
+//			XP.XPChange cc = i.xpChange;
+//			b.append(cc.getXML(i3, nextIndent));
+//		}
+//		b.append(i2).append("</Level>").append(nl);
+//		b.append(i2).append("<AbilityScores>").append(nl);
+//		for (AbilityScore.Type t : abilities.keySet()) {
+//			b.append(i3).append("<AbilityScore type=\"").append(t.toString());
+//			b.append("\" value=\"").append(getBaseAbilityScore(t));
+//			if (getAbilityScore(t) != getBaseAbilityScore(t)) {
+//				b.append("\" temp=\"").append(getAbilityScore(t));
+//			}
+//			b.append("\"/>").append(nl);
+//		}
+//		b.append(i2).append("</AbilityScores>").append(nl);
+//		b.append(i2).append("<HitPoints maximum=\"").append(getMaximumHitPoints()).append("\"");
+//		if (getWounds() != 0) b.append(" wounds=\"").append(getWounds()).append("\"");
+//		if (getNonLethal() != 0) b.append(" non-lethal=\"").append(getNonLethal()).append("\"");
+//		b.append("/>").append(nl);
+//		b.append(i2).append("<Initiative value=\"").append(getBaseInitiative()).append("\"/>").append(nl);
+//		b.append(i2).append("<SavingThrows>").append(nl);
+//		for (SavingThrow.Type t : saves.keySet()) {
+//			b.append(i3).append("<Save type=\"").append(t.toString());
+//			b.append("\" base=\"").append(getSavingThrowBase(t));
+//			if (getSavingThrowMisc(t) != 0) b.append("\" misc=\"").append(getSavingThrowMisc(t));
+//			b.append("\"/>").append(nl);
+//		}
+//		b.append(i2).append("</SavingThrows>").append(nl);
+//		b.append(i2).append("<Skills>").append(nl);
+//		ArrayList<SkillType> set = new ArrayList<SkillType>(skills.skills.keySet());
+//		Collections.sort(set, new Comparator<SkillType>() {
+//			public int compare(SkillType o1, SkillType o2) {
+//				return o1.getName().compareTo(o2.getName());
+//			}
+//		});
+//		for (SkillType s : set) {
+//			if (getSkillRanks(s) != 0 || getSkillMisc(s) != 0) {
+//				b.append(i3).append("<Skill type=\"").append(s);
+//				b.append("\" ranks=\"").append(getSkillRanks(s));
+//				if (getSkillMisc(s) != 0) b.append("\" misc=\"").append(getSkillMisc(s));
+//				b.append("\"/>").append(nl);
+//			}
+//		}
+//		b.append(i2).append("</Skills>").append(nl);
+//		b.append(i2).append("<AC>").append(nl);
+//		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
+//			if (getACComponent(i) != 0) {
+//				b.append(i3).append("<ACComponent type=\"").append(AC.getACComponentName(i));
+//				b.append("\" value=\"").append(getACComponent(i)).append("\"/>").append(nl);
+//			}
+//		}
+//		b.append(i2).append("</AC>").append(nl);
+//		b.append(indent).append("</Character>").append(nl);
+//		return b.toString();
+//	}
 
 	// Prints the differences between this and inChar
 	// XXX does not include level or xp
@@ -1156,20 +1158,20 @@ public class Character extends Creature {
 		if (initiative.getBaseValue() != inChar.initiative.getBaseValue()) {
 			System.out.println(PROPERTY_INITIATIVE+"|"+initiative.getBaseValue()+"|"+inChar.initiative.getBaseValue());
 		}
-		for (int i=0; i<6; i++) {
-			if (abilities[i] != inChar.abilities[i]) {
-				System.out.println(PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(i)+"|"+abilities[i]+"|"+inChar.abilities[i]);
+		for (AbilityScore.Type t : AbilityScore.Type.values()) {
+			if (abilities.get(t) != inChar.abilities.get(t)) {
+				System.out.println(PROPERTY_ABILITY_PREFIX+t.toString()+"|"+abilities.get(t)+"|"+inChar.abilities.get(t));
 			}
 		}
-		for (int i=0; i<6; i++) {
-			if (abilities[i].getOverride() != inChar.abilities[i].getOverride()) {
+		for (AbilityScore.Type t : AbilityScore.Type.values()) {
+			if (abilities.get(t).getOverride() != inChar.abilities.get(t).getOverride()) {
 				// new attribute
-				System.out.println(PROPERTY_ABILITY_OVERRIDE_PREFIX+AbilityScore.getAbilityName(i)+"|"+abilities[i].getOverride()+"|"+inChar.abilities[i].getOverride());
+				System.out.println(PROPERTY_ABILITY_OVERRIDE_PREFIX+t.toString()+"|"+abilities.get(t).getOverride()+"|"+inChar.abilities.get(t).getOverride());
 			}
 		}
-		for (int i=0; i<3; i++) {
-			if (saves[i] != inChar.saves[i]) {
-				System.out.println(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(i)+"|"+saves[i]+"|"+inChar.saves[i]);
+		for (SavingThrow.Type t : SavingThrow.Type.values()) {
+			if (saves.get(t) != inChar.saves.get(t)) {
+				System.out.println(PROPERTY_SAVE_PREFIX+t.toString()+"|"+saves.get(t)+"|"+inChar.saves.get(t));
 			}
 		}
 		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
@@ -1199,22 +1201,22 @@ public class Character extends Creature {
 		if (initiative.getBaseValue() != inChar.initiative.getBaseValue()) diffs.add(PROPERTY_INITIATIVE);
 		//if (xp != inChar.xp) diffs.add(PROPERTY_XP);	// TODO not sure we should include this
 		//if (level != inChar.level) diffs.add(PROPERTY_LEVEL);	// TODO not sure we should include this
-		for (int i=0; i<6; i++) {
-			if (abilities[i] != inChar.abilities[i]) {
-				diffs.add(PROPERTY_ABILITY_PREFIX+AbilityScore.getAbilityName(i));
+		for (AbilityScore.Type t : AbilityScore.Type.values()) {
+			if (abilities.get(t) != inChar.abilities.get(t)) {
+				diffs.add(PROPERTY_ABILITY_PREFIX+t.toString());
 			}
 		}
-		for (int i=0; i<6; i++) {
-			if (abilities[i].getOverride() != inChar.abilities[i].getOverride()) {
-				diffs.add(PROPERTY_ABILITY_OVERRIDE_PREFIX+AbilityScore.getAbilityName(i));
+		for (AbilityScore.Type t : AbilityScore.Type.values()) {
+			if (abilities.get(t).getOverride() != inChar.abilities.get(t).getOverride()) {
+				diffs.add(PROPERTY_ABILITY_OVERRIDE_PREFIX+t.toString());
 			}
 		}
-		for (int i=0; i<3; i++) {
-			if (saves[i] != inChar.saves[i]) {
-				diffs.add(PROPERTY_SAVE_PREFIX+SavingThrow.getSavingThrowName(i));
+		for (SavingThrow.Type t : SavingThrow.Type.values()) {
+			if (saves.get(t) != inChar.saves.get(t)) {
+				diffs.add(PROPERTY_SAVE_PREFIX+t.toString());
 			}
-			if (saveMisc[i] != inChar.saveMisc[i]) {
-				diffs.add(PROPERTY_SAVE_MISC_PREFIX+SavingThrow.getSavingThrowName(i));
+			if (saveMisc.get(t) != inChar.saveMisc.get(t)) {
+				diffs.add(PROPERTY_SAVE_MISC_PREFIX+t.toString());
 			}
 		}
 		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
@@ -1270,30 +1272,26 @@ public class Character extends Creature {
 		
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
-			for (int i=0; i<6; i++) {
-				if (ability.equals(AbilityScore.getAbilityName(i))) return abilities[i].getValue();
-			}
+			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
+			if (type != null) return abilities.get(type).getValue();
 		}
 
 		if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
-			for (int i=0; i<6; i++) {
-				if (ability.equals(AbilityScore.getAbilityName(i))) return abilities[i].getOverride();
-			}
+			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
+			if (type != null) return abilities.get(type).getOverride();
 		}
 
 		if (prop.startsWith(PROPERTY_SAVE_PREFIX)) {
 			String save = prop.substring(PROPERTY_SAVE_PREFIX.length());
-			for (int i=0; i<3; i++) {
-				if (save.equals(SavingThrow.getSavingThrowName(i))) return saves[i];
-			}
+			SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(save);
+			if (type != null) return saves.get(type);
 		}
 
 		if (prop.startsWith(PROPERTY_SAVE_MISC_PREFIX)) {
 			String save = prop.substring(PROPERTY_SAVE_MISC_PREFIX.length());
-			for (int i=0; i<3; i++) {
-				if (save.equals(SavingThrow.getSavingThrowName(i))) return saveMisc[i];
-			}
+			SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(save);
+			if (type != null) return saveMisc.get(type);
 		}
 
 		if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
@@ -1352,30 +1350,26 @@ public class Character extends Creature {
 
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
-			for (int i=0; i<6; i++) {
-				if (ability.equals(AbilityScore.getAbilityName(i))) setAbilityScore(i, (Integer)value);
-			}
+			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
+			if (type != null) setAbilityScore(type, (Integer)value);
 		}
 
 		if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
-			for (int i=0; i<6; i++) {
-				if (ability.equals(AbilityScore.getAbilityName(i))) setTemporaryAbility(i, (Integer)value);
-			}
+			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
+			if (type != null) setTemporaryAbility(type, (Integer)value);
 		}
 
 		if (prop.startsWith(PROPERTY_SAVE_PREFIX)) {
 			String save = prop.substring(PROPERTY_SAVE_PREFIX.length());
-			for (int i=0; i<3; i++) {
-				if (save.equals(SavingThrow.getSavingThrowName(i))) setSavingThrowBase(i, (Integer)value);
-			}
+			SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(save);
+			if (type != null) setSavingThrowBase(type, (Integer)value);
 		}
 
 		if (prop.startsWith(PROPERTY_SAVE_MISC_PREFIX)) {
 			String save = prop.substring(PROPERTY_SAVE_MISC_PREFIX.length());
-			for (int i=0; i<3; i++) {
-				if (save.equals(SavingThrow.getSavingThrowName(i))) setSavingThrowMisc(i, (Integer)value);
-			}
+			SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(save);
+			if (type != null) setSavingThrowMisc(type, (Integer)value);
 		}
 
 		if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
@@ -1422,21 +1416,6 @@ public class Character extends Creature {
 		return Integer.toString(mod);
 	}
 
-	private static Element getWeapon(Document doc, String name, String total, String damage, String critical, String range, String weight, String type, String size, String properties, String ammunition) {
-		Element e = doc.createElement("Weapon");
-		e.setAttribute("name", name); 
-		e.setAttribute("total", total);
-		e.setAttribute("damage", damage);
-		e.setAttribute("critical", critical);
-		e.setAttribute("range", range);
-		e.setAttribute("weight", weight);
-		e.setAttribute("type", type);
-		e.setAttribute("size", size);
-		e.setAttribute("properties", properties);
-		e.setAttribute("ammunition", ammunition);
-		return e;
-	}
-
 	protected Element getCharacterElement(Document doc) {
 		Element e = doc.createElement("Character");
 		e.setAttribute("name", name);
@@ -1469,9 +1448,9 @@ public class Character extends Creature {
 		charEl.appendChild(e);
 
 		e = doc.createElement("AbilityScores");
-		for (AbilityScore s : abilities) {
+		for (AbilityScore s : abilities.values()) {
 			Element e1 = doc.createElement("AbilityScore");
-			e1.setAttribute("type", AbilityScore.getAbilityName(s.getType()));
+			e1.setAttribute("type", s.getType().toString());
 			e1.setAttribute("total", ""+s.getRegularValue());		// this is the base value plus modifiers to the ability score
 			e1.setAttribute("modifier", getModifierString(AbilityScore.getModifier(s.getRegularValue())));
 
@@ -1487,20 +1466,20 @@ public class Character extends Creature {
 
 		e = doc.createElement("Initiative");
 		e.setAttribute("total", getModifierString(initiative.getValue()));
-		e.setAttribute("misc", getModifierString(initiative.getValue()-abilities[AbilityScore.ABILITY_DEXTERITY].getModifierValue()));	// assumes only 1 dex modifier that will always apply
+		e.setAttribute("misc", getModifierString(initiative.getValue()-abilities.get(AbilityScore.Type.DEXTERITY).getModifierValue()));	// assumes only 1 dex modifier that will always apply
 		charEl.appendChild(e);
 
         e = doc.createElement("SavingThrows");
-		for (int i = 0; i < saves.length; i++) {
-			SavingThrow s = saves[i];
+        for (SavingThrow.Type t : saves.keySet()) {
+        	SavingThrow s = saves.get(t);
 			Element saveEl = doc.createElement("Save");
 			saveEl.setAttribute("type", s.getName());
 			saveEl.setAttribute("base", getModifierString(s.getBaseValue()));
 			saveEl.setAttribute("total", getModifierString(s.getValue()));
 			int temp = 0;
-			if (saveMisc[i] != null) temp = saveMisc[i].getModifier();
+			if (saveMisc.get(t) != null) temp = saveMisc.get(t).getModifier();
 			if (temp != 0) saveEl.setAttribute("misc", getModifierString(temp));	// the misc/temp modifier applied through the ui
-			int misc = s.getValue() - s.getBaseValue() - abilities[SavingThrow.getSaveAbility(i)].getModifierValue() - temp;
+			int misc = s.getValue() - s.getBaseValue() - abilities.get(t.getAbilityType()).getModifierValue() - temp;
 			if (misc != 0) saveEl.setAttribute("mods", getModifierString(misc));	// mods is the total combined modifiers other than the misc/temp modifier and the ability modifier
 			e.appendChild(saveEl);
 		}
@@ -1523,8 +1502,8 @@ public class Character extends Creature {
 			}
 			// cross-class="true"
 			se.setAttribute("untrained", Boolean.toString(!s.isTrainedOnly()));
-			se.setAttribute("ability", AbilityScore.ability_abbreviations[s.getAbility()]);
-			se.setAttribute("ability-modifier", ""+abilities[s.getAbility()].getModifierValue());
+			se.setAttribute("ability", s.getAbility().getAbbreviation());
+			se.setAttribute("ability-modifier", ""+abilities.get(s.getAbility()).getModifierValue());
 			se.setAttribute("total", getModifierString(skills.getValue(s)));
 			if (skills.getMisc(s) != 0) se.setAttribute("misc", ""+skills.getMisc(s));
 			e.appendChild(se);
@@ -1546,8 +1525,7 @@ public class Character extends Creature {
 		}
 		charEl.appendChild(e);
 
-		e = doc.createElement("Attacks");
-		e.setAttribute("base", ""+attacks.getBAB());
+		e = attacks.getElement(doc);
 		e.setAttribute("temp", "");					// TODO implement
 		e.setAttribute("size-modifier", "+0");			// TODO implement
 		Element e1 = doc.createElement("Attack");
@@ -1567,14 +1545,14 @@ public class Character extends Creature {
 		e1.setAttribute("misc","+0");					// TODO implement
 		e1.setAttribute("temp-modifier", "");				// TODO implement
 		e.appendChild(e1);
+		charEl.appendChild(e);
 
-		// TODO implement:
-		e.appendChild(getWeapon(doc, "Masterwork club", "4", "1d6-1", "20/x2", "10 ft", "3 lb", "B", "Medium", "One-handed", ""));
-		e.appendChild(getWeapon(doc, "Masterwork quarterstaff", "4", "1d6-1", "20/x2", "0 ft", "4 lb", "B", "Medium", "Two-handed", ""));
-		e.appendChild(getWeapon(doc, "Sling", "7", "1d4-1", "20/x2", "50 ft", "0 lb", "B", "Medium", "Two-handed", ""));
-		e.appendChild(getWeapon(doc, "Sickle", "3", "1d6-1", "20/x2", "0 ft", "2 lb", "S", "Medium", "One-handed", ""));
-		e.appendChild(getWeapon(doc, "Sickle2", "3", "1d8-1", "20/x2", "30 ft", "2 lb", "S", "Medium", "One-handed", ""));
-		e.appendChild(getWeapon(doc, "Sickle3", "3", "1d10-1", "20/x2", "60 ft", "2 lb", "S", "Medium", "One-handed", ""));
+		e = doc.createElement("Feats");
+		for (Feat f : feats) {
+			Element fe = doc.createElement("Feat");
+			fe.setAttribute("name", f.name);
+			e.appendChild(fe);
+		}
 		charEl.appendChild(e);
 
 		// TODO move description out of the Modifier element created by Buff.getElement - should only apply to charactersheet output
@@ -1599,25 +1577,34 @@ public class Character extends Creature {
 		}
 		charEl.appendChild(e);
 		e = doc.createElement("AbilityScores");
-		for (AbilityScore s : abilities) {
+		for (AbilityScore s : abilities.values()) {
 			e.appendChild(s.getElement(doc));
 		}
 		charEl.appendChild(e);
 		charEl.appendChild(hps.getElement(doc));
 		charEl.appendChild(initiative.getElement(doc));
 		e = doc.createElement("SavingThrows");
-		for (int i = 0; i < saves.length; i++) {
-			SavingThrow s = saves[i];
+		for (SavingThrow.Type t : saves.keySet()) {
+			SavingThrow s = saves.get(t);
 			Element saveEl = s.getElement(doc);
-			if (saveMisc[i] != null) {
-				saveEl.setAttribute("misc", ""+saveMisc[i].getModifier());
+			if (saveMisc.containsKey(t)) {
+				saveEl.setAttribute("misc", ""+saveMisc.get(t).getModifier());
 			}
 			e.appendChild(saveEl);
 		}
 		charEl.appendChild(e);
 		charEl.appendChild(skills.getElement(doc));
 		charEl.appendChild(ac.getElement(doc));
+		charEl.appendChild(attacks.getElement(doc));
 
+		e = doc.createElement("Feats");
+		for (Feat f : feats) {
+			Element fe = doc.createElement("Feat");
+			fe.setAttribute("name", f.name);
+			e.appendChild(fe);
+		}
+		charEl.appendChild(e);
+		
 		e = doc.createElement("Buffs");
 		for (int i = 0; i < buffs.getSize(); i++) {
 			Buff b = (Buff)buffs.get(i);
