@@ -1,13 +1,10 @@
 package util;
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -22,9 +19,9 @@ import org.w3c.dom.Document;
 
 
 public class Updater {
-	public static final String MAP_IMAGE = "http://max/assistantdm/upload.php/photo1.jpg";
-	public static final String INITIATIVE_FILE = "http://max/assistantdm/upload.php/initiative.txt";
-	public static final String DOCUMENT_DIR = "http://max/assistantdm/upload.php/";
+	public static final String MAP_IMAGE = "http://armitage/assistantdm/upload.php/photo1.jpg";
+	public static final String INITIATIVE_FILE = "http://armitage/assistantdm/upload.php/initiative.txt";
+	public static final String DOCUMENT_DIR = "http://armitage/assistantdm/upload.php/";
 	//URL url = new URL("http://max/webcam/ftp/HTML_CharacterSheet/upload.php/"+name.replace(" ", "%20")+".xml");
 
 	//public static final String MAP_IMAGE = "m:\\webcam\\ftp\\images\\capture2.jpg";
@@ -43,7 +40,7 @@ public class Updater {
 	    	trans.transform(new DOMSource(doc), new StreamResult(writer));
 	    	byte[] bytes = writer.toString().getBytes();
 
-	    	String msg = update("http://max/assistantdm/upload.php/"+name.replace(" ", "%20")+".xml", bytes);
+	    	String msg = update(DOCUMENT_DIR+name.replace(" ", "%20")+".xml", bytes);
 	    	if (msg != null) System.out.println(msg);
 
 		} catch (Exception e) {

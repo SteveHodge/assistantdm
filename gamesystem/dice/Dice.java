@@ -1,4 +1,4 @@
-package gamesystem;
+package gamesystem.dice;
 
 public interface Dice {
 	public int roll();

@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
@@ -63,7 +64,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 	}
 
 	public JComponent createCharacterPanel(final Character c) {
-		JPanel leftPanel = new JPanel();
+		final JPanel leftPanel = new JPanel();
 		leftPanel.setMinimumSize(new Dimension(450,300));
 		leftPanel.setLayout(new VerticalLayout(1));
 		
@@ -75,6 +76,8 @@ public class PartyPanel extends JPanel implements PartyListener {
 			}
 		});
 		actionsPane.add(saveHTML);
+		JButton debug = new JButton("Debug");
+		actionsPane.add(debug);
 		leftPanel.add(actionsPane);
 
 		CharacterSubPanel p = new CharacterInfoPanel(c);
@@ -104,8 +107,11 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 		sub = new JSubSection("Buffs / Penalties", new CharacterBuffsPanel(c));
 		leftPanel.add(sub);
+		
+		sub = new JSubSection("Feats", new CharacterFeatsPanel(c));
+		leftPanel.add(sub);
 
-		JPanel rightPanel = new JPanel();
+		final JPanel rightPanel = new JPanel();
 		rightPanel.setMinimumSize(new Dimension(300,300));
 		rightPanel.setLayout(new VerticalLayout(1));
 	
@@ -127,10 +133,23 @@ public class PartyPanel extends JPanel implements PartyListener {
 		sub = new JSubSection("Skills", new CharacterSkillsPanel(c));
 		rightPanel.add(sub);
 
-		JSplitPane panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-		panel.setPreferredSize(new Dimension(1000,600));
-		panel.setDividerLocation(0.5);
-		return panel;
+		final JSplitPane panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
+		panel.setDividerLocation(500);
+		panel.setPreferredSize(new Dimension(1000,panel.getPreferredSize().height));
+
+		final JScrollPane scroller = new JScrollPane(panel);
+		scroller.setPreferredSize(new Dimension(1000,600));
+
+		debug.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("Left PreferredSize = "+leftPanel.getPreferredSize());
+				System.out.println("Right PreferredSize = "+rightPanel.getPreferredSize());
+				System.out.println("PreferredSize = "+panel.getPreferredSize());
+				System.out.println("Size = "+panel.getSize());
+			}
+		});
+
+		return scroller;
 	}
 
 	public class SummaryDisplay {

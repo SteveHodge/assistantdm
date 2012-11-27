@@ -1,7 +1,10 @@
 package gamesystem;
 
 
+import gamesystem.dice.Dice;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +32,28 @@ public class Buff {
 	public boolean empowered = false;
 	int id;
 	private static int nextid = 1;	// TODO not threadsafe
+
+	protected final static Map<String,String> TARGET_DESC;
+	static {
+		HashMap<String,String> map = new HashMap<String,String>();
+		map.put(Creature.STATISTIC_STRENGTH, AbilityScore.Type.STRENGTH.toString());
+		map.put(Creature.STATISTIC_INTELLIGENCE, AbilityScore.Type.INTELLIGENCE.toString());
+		map.put(Creature.STATISTIC_WISDOM, AbilityScore.Type.WISDOM.toString());
+		map.put(Creature.STATISTIC_DEXTERITY, AbilityScore.Type.DEXTERITY.toString());
+		map.put(Creature.STATISTIC_CONSTITUTION, AbilityScore.Type.CONSTITUTION.toString());
+		map.put(Creature.STATISTIC_CHARISMA, AbilityScore.Type.CHARISMA.toString());
+		map.put(Creature.STATISTIC_SAVING_THROWS, "saves");
+		map.put(Creature.STATISTIC_FORTITUDE_SAVE, SavingThrow.Type.FORTITUDE+" save");
+		map.put(Creature.STATISTIC_WILL_SAVE, SavingThrow.Type.WILL+" save");
+		map.put(Creature.STATISTIC_REFLEX_SAVE, SavingThrow.Type.REFLEX+" save");
+		map.put(Creature.STATISTIC_SKILLS, "skills");
+		map.put(Creature.STATISTIC_AC, "AC");
+		map.put(Creature.STATISTIC_INITIATIVE, "Initiative");
+		map.put(Creature.STATISTIC_ATTACKS, "attack rolls");
+		map.put(Creature.STATISTIC_DAMAGE, "damage");
+		map.put(Creature.STATISTIC_HPS,"temporary hit points");
+		TARGET_DESC = Collections.unmodifiableMap(map);
+	}
 
 	public Buff() {
 		id = nextid++;
@@ -96,12 +121,21 @@ public class Buff {
 				s.append(" penalty");
 			}
 			
-			s.append(" to ").append(Creature.STATISTIC_DESC.get(target));
+			s.append(" to ").append(getTargetDescription(target));
 			if (m.getCondition() != null) s.append(" ").append(m.getCondition());
 			s.append("<br/>");
 		}
 		s.append("</html></body>");
 		return s.toString();
+	}
+
+	public static String getTargetDescription(String target) {
+		String d = TARGET_DESC.get(target);
+		if (target.startsWith(Creature.STATISTIC_SKILLS+".")) {
+			return target.substring(Creature.STATISTIC_SKILLS.length()+1);
+		}
+		if (d != null) return d;
+		return target;
 	}
 
 	protected Statistic[] getTargetStats(Character c, String target) {
@@ -195,7 +229,7 @@ public class Buff {
 				}
 			}
 			
-			s.append(" to ").append(Creature.STATISTIC_DESC.get(target));
+			s.append(" to ").append(getTargetDescription(target));
 			if (condition != null) s.append(" ").append(condition);
 			return s.toString();
 		}
@@ -231,7 +265,7 @@ public class Buff {
 				s.append(" penalty");
 			}
 			
-			s.append(" to ").append(Creature.STATISTIC_DESC.get(target));
+			s.append(" to ").append(getTargetDescription(target));
 			if (condition != null) s.append(" ").append(condition);
 			return s.toString();
 		}
@@ -241,11 +275,15 @@ public class Buff {
 	 * If the Buff has not been applied to the character then this returns null
 	 */
 	public Element getElement(Document doc) {
-		if (modifiers.size() == 0) return null;
+		return getElement(doc, "Buff");
+	}
 
-		Element e = doc.createElement("Buff");
+	public Element getElement(Document doc, String tag) {
+		//if (modifiers.size() == 0) return null;
+
+		Element e = doc.createElement(tag);
 		e.setAttribute("name", name);
-		e.setAttribute("caster_level", ""+casterLevel);
+		if (casterLevel > 0) e.setAttribute("caster_level", ""+casterLevel);
 		e.setAttribute("id", ""+id);
 
 		for (Modifier m : modifiers.keySet()) {
@@ -255,7 +293,7 @@ public class Buff {
 			me.setAttribute("value", ""+m.getModifier());
 			String target = modifiers.get(m);
 			me.setAttribute("target", target);		// WISH this can be XML relevant, i.e. an XPath
-			me.setAttribute("description", Creature.STATISTIC_DESC.get(target)+": "+m.toString());		// TODO this is needed only for the character sheet
+			me.setAttribute("description", getTargetDescription(target)+": "+m.toString());		// TODO this is needed only for the character sheet
 			e.appendChild(me);
 		}
 
@@ -263,11 +301,11 @@ public class Buff {
 	}
 
 	public static Buff parseDOM(Element b) {
-		if (!b.getTagName().equals("Buff")) return null;
+		//if (!b.getTagName().equals("Buff")) return null;
 		Buff buff = new Buff();
-		buff.casterLevel = Integer.parseInt(b.getAttribute("caster_level"));
+		if (b.hasAttribute("caster_level")) buff.casterLevel = Integer.parseInt(b.getAttribute("caster_level"));
 		buff.name = b.getAttribute("name");
-		buff.id = Integer.parseInt(b.getAttribute("id"));
+		if (b.hasAttribute("id")) buff.id = Integer.parseInt(b.getAttribute("id"));
 		NodeList mods = b.getChildNodes();
 		for (int k=0; k<mods.getLength(); k++) {
 			if (!mods.item(k).getNodeName().equals("Modifier")) continue;

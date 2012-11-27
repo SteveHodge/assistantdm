@@ -3,7 +3,6 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Buff;
-import gamesystem.Feat;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
@@ -28,7 +27,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,16 +43,18 @@ import util.Updater;
 
 // TODO priorities:
 // enum conversions - property and statistics types
-// damage
-// buff specific skills. buffs to ability checks
+// feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
+// buff specific skills - skills don't seem to update correctly in ui - check listeners
+// buffs to ability checks
+// haste extra attack should be shown
 // clean up handling of HPs, wounds, healing etc, particularly ui
 // review Statistics vs Properties
 // ui for adding adhoc modifiers
 // size
 // equipment, particularly magic item slots, armor, weapons
 
-// TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only)
-// TODO rework ac ui: list all bonuses, allow multiple bonuses of each type, AC temp scores?
+// TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac
+// TODO rework ac ui: allow multiple bonuses of each type?, AC temp scores? add armor
 // TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
 // that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
 // TODO need to review how properties work on Character and BoundIntegerField
@@ -83,6 +83,24 @@ import util.Updater;
  *
  */
 public class Character extends Creature {
+	// TODO these constants should become unnecessary eventually and/or convert to enum
+	public enum ACComponentType {
+		ARMOR("Armor"),
+		SHIELD("Shield"),
+		NATURAL("Natural Armor"),
+		//DEX("Dexterity"),
+		SIZE("Size"),
+		DEFLECTION("Deflection"),
+		DODGE("Dodge"),
+		OTHER("Misc");
+		
+		public String toString() {return description;}
+
+		private ACComponentType(String d) {description = d;}
+
+		private final String description;
+	}
+
 	protected String name;
 	protected String classDescription;
 	protected String player;
@@ -113,20 +131,21 @@ public class Character extends Creature {
 
 	protected Skills skills;
 
-	protected Set<Feat> feats = new HashSet<Feat>();
+//	protected Set<Feat> feats = new HashSet<Feat>();
 
 	protected HPs hps;
 	protected Level level; 
 	protected int xp = 0;
 
 	protected AC ac;
-	protected Modifier[] acMods = new Modifier[AC.AC_MAX_INDEX];
+	protected EnumMap<ACComponentType,Modifier> acMods = new EnumMap<ACComponentType,Modifier>(ACComponentType.class); // TODO should move to AC panel
 	protected int tempAC, tempTouch, tempFF;	// ac overrides
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 
 	protected Attacks attacks;
 
 	public BuffListModel buffs = new BuffListModel();	// TODO reimplement for better encapsulation
+	public BuffListModel feats = new BuffListModel();	// TODO reimplement for better encapsulation
 
 	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
 
@@ -251,8 +270,14 @@ public class Character extends Creature {
 	public Character(String n) {
 		name = n;
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
-			AbilityScore s = new AbilityScore(t);
+			final AbilityScore s = new AbilityScore(t);
 			s.addPropertyChangeListener(statListener);
+			s.getModifier().addPropertyChangeListener(new PropertyChangeListener() {
+				public void propertyChange(PropertyChangeEvent e) {
+					//System.out.println(PROPERTY_ABILITY_PREFIX+s.getName()+": "+e.getOldValue()+" -> "+ e.getNewValue());
+			        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue());
+				}
+			});
 			abilities.put(t, s);
 		}
 
@@ -510,15 +535,22 @@ public class Character extends Creature {
 // AC has a total value, a touch value and a flat footed value
 // it is made up of a number of different components
 	// TODO dex modifier should be filtered by armor/sheild max dex bonus
-	public void setACComponent(int type, int value) {
-		if (type == AC.AC_DEX) return;	// TODO temporary hack to filter out dex because it is added automatically
-		if (acMods[type] != null) ac.removeModifier(acMods[type]);
-		acMods[type] = new ImmutableModifier(value,AC.getACComponentName(type));
-		ac.addModifier(acMods[type]);
+	public void setACComponent(ACComponentType type, int value) {
+		//if (type == ACComponentType.DEX) return;	// TODO temporary hack to filter out dex because it is added automatically
+		if (acMods.containsKey(type)) {
+			ac.removeModifier(acMods.get(type));
+			acMods.remove(type);
+		}
+		if (value != 0) {
+			acMods.put(type, new ImmutableModifier(value,type.toString(),"user set"));
+			ac.addModifier(acMods.get(type));
+		}
 	}
 
-	public int getACComponent(int type) {
-		return ac.getModifiersTotal(AC.getACComponentName(type));
+	// value of the user-set modifier, or 0 if none has been set
+	public int getACComponent(ACComponentType type) {
+		if (acMods.containsKey(type)) return acMods.get(type).getModifier();
+		return 0;
 	}
 
    /**
@@ -741,11 +773,11 @@ public class Character extends Creature {
 
 //------------ Feats -------------
 	public boolean hasFeat(String name) {
-		return feats.contains(new Feat(name));
-	}
-
-	public void addFeat(String name) {
-		feats.add(new Feat(name));
+		for (int i = 0; i < feats.size(); i++) {
+			Buff f = (Buff)feats.get(i);
+			if (f.name.equals(name)) return true;
+		}
+		return false;
 	}
 
 //------------ getters and setters for informational fields -------------
@@ -909,15 +941,20 @@ public class Character extends Creature {
 			return initiative;
 		} else if (name.equals(STATISTIC_SKILLS)) {
 			return skills;
-		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
-			// TODO implement?
-			return null;
+		} else if (name.startsWith(STATISTIC_SKILLS+".")) {
+			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length()+1));
+			return skills.getSkill(type);
+//		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
+//			// TODO implement?
+//			return null;
 		} else if (name.equals(STATISTIC_LEVEL)) {
 			return level;
 		} else if (name.equals(STATISTIC_HPS)) {
 			return hps;
 		} else if (name.equals(STATISTIC_ATTACKS)) {
 			return attacks;
+		} else if (name.equals(STATISTIC_DAMAGE)) {
+			return attacks.getDamageStatistic();
 		} else {
 			System.out.println("Unknown statistic "+name);
 			return null;
@@ -946,7 +983,8 @@ public class Character extends Creature {
 		c.arcaneSpellFailure = el.getAttribute("arcane-spell-failure");
 		c.actionPoints = el.getAttribute("action-points");
 		
-		Element hpElement = null;
+		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con
+		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise
 
 		NodeList nodes = el.getChildNodes();
 		for (int i=0; i<nodes.getLength(); i++) {
@@ -1028,28 +1066,29 @@ public class Character extends Creature {
 					String value = s.getAttribute("value");
 					String type = s.getAttribute("type");
 					// TODO hacks to change type:
-					if (type.equals("Dex")) type = AC.getACComponentName(AC.AC_DEX);
-					if (type.equals("Natural")) type = AC.getACComponentName(AC.AC_NATURAL);
-					if (type.equals("Deflect")) type = AC.getACComponentName(AC.AC_DEFLECTION);
-					if (!type.equals(AC.getACComponentName(AC.AC_DEX))) {	// TODO ignore dex component when loading
-						for (int k=0; k<AC.AC_MAX_INDEX; k++) {
-							if (AC.getACComponentName(k).equals(type)) {
-								c.setACComponent(k, Integer.parseInt(value));
+//					if (type.equals("Dex")) type = ACComponentType.DEX.toString();
+					if (type.equals("Natural")) type = ACComponentType.NATURAL.toString();
+					if (type.equals("Deflect")) type = ACComponentType.DEFLECTION.toString();
+//					if (!type.equals(ACComponentType.DEX.toString())) {	// TODO ignore dex component when loading
+						for (ACComponentType t : ACComponentType.values()) {
+							if (t.toString().equals(type)) {
+								c.setACComponent(t, Integer.parseInt(value));
 							}
 						}
-					}
+//					}
 				}
 
 			} else if (tag.equals("Attacks")) {
-				c.attacks.parseDOM(e);
+				attacksElement = e;
 
 			} else if (tag.equals("Feats")) {
 				NodeList children = e.getChildNodes();
 				for (int j=0; j<children.getLength(); j++) {
 					if (children.item(j).getNodeName().equals("Feat")) {
-						Feat f = new Feat(((Element)children.item(j)).getAttribute("name"));
-						c.feats.add(f);
-						System.out.println(c.getName() + " has feat " + f);
+						if (!children.item(j).getNodeName().equals("Feat")) continue;
+						Buff b = Buff.parseDOM((Element)children.item(j));
+						b.applyBuff(c);
+						c.feats.addElement(b);
 					}
 				}
 
@@ -1066,6 +1105,10 @@ public class Character extends Creature {
 
 		if (hpElement != null) {
 			c.hps.parseDOM(hpElement);
+		}
+
+		if (attacksElement != null) {
+			c.attacks.parseDOM(attacksElement);
 		}
 
 		return c;
@@ -1174,10 +1217,10 @@ public class Character extends Creature {
 				System.out.println(PROPERTY_SAVE_PREFIX+t.toString()+"|"+saves.get(t)+"|"+inChar.saves.get(t));
 			}
 		}
-		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
-			if (getACComponent(i) != inChar.getACComponent(i)) {
+		for (ACComponentType t: ACComponentType.values()) {
+			if (getACComponent(t) != inChar.getACComponent(t)) {
 				// new attribute
-				System.out.println(PROPERTY_AC_COMPONENT_PREFIX+AC.getACComponentName(i)+"|"+getACComponent(i)+"|"+inChar.getACComponent(i));
+				System.out.println(PROPERTY_AC_COMPONENT_PREFIX+t+"|"+getACComponent(t)+"|"+inChar.getACComponent(t));
 			}
 		}
 		Set<SkillType> allSkills = skills.getTrainedSkills();
@@ -1219,9 +1262,9 @@ public class Character extends Creature {
 				diffs.add(PROPERTY_SAVE_MISC_PREFIX+t.toString());
 			}
 		}
-		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
-			if (getACComponent(i) != inChar.getACComponent(i)) {
-				diffs.add(PROPERTY_AC_COMPONENT_PREFIX+AC.getACComponentName(i));
+		for (ACComponentType t: ACComponentType.values()) {
+			if (getACComponent(t) != inChar.getACComponent(t)) {
+				diffs.add(PROPERTY_AC_COMPONENT_PREFIX+t);
 			}
 		}
 		Set<SkillType> allSkills = skills.getTrainedSkills();
@@ -1295,9 +1338,10 @@ public class Character extends Creature {
 		}
 
 		if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
+			// TODO meaning of this has changed (from total of component type to user set value for component type)
 			String comp = prop.substring(PROPERTY_AC_COMPONENT_PREFIX.length());
-			for (int i=0; i<AC.AC_MAX_INDEX; i++) {
-				if (comp.equals(AC.getACComponentName(i))) return getACComponent(i);
+			for (ACComponentType t: ACComponentType.values()) {
+				if (comp.equals(t.toString())) return getACComponent(t);
 			}
 		}
 
@@ -1374,8 +1418,8 @@ public class Character extends Creature {
 
 		if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
 			String comp = prop.substring(PROPERTY_AC_COMPONENT_PREFIX.length());
-			for (int i=0; i<AC.AC_MAX_INDEX; i++) {
-				if (comp.equals(AC.getACComponentName(i))) setACComponent(i, (Integer)value);
+			for (ACComponentType t: ACComponentType.values()) {
+				if (comp.equals(t.toString())) setACComponent(t, (Integer)value);
 			}
 		}
 
@@ -1515,13 +1559,20 @@ public class Character extends Creature {
 		e.setAttribute("flat-footed", ""+ac.getFlatFootedAC().getValue());
 		e.setAttribute("touch" ,""+ac.getTouchAC().getValue());
 		e.setAttribute("armor-check-penalty","");	// TODO implement
-		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
-			if (ac.getModifiersTotal(AC.getACComponentName(i)) != 0) {
+		for (ACComponentType t: ACComponentType.values()) {
+			if (ac.getModifiersTotal(t.toString()) != 0) {
 				Element comp = doc.createElement("ACComponent");
-				comp.setAttribute("type", AC.getACComponentName(i));
-				comp.setAttribute("value", getModifierString(ac.getModifiersTotal(AC.getACComponentName(i))));
+				comp.setAttribute("type", t.toString());
+				comp.setAttribute("value", getModifierString(ac.getModifiersTotal(t.toString())));
 				e.appendChild(comp);
 			}
+		}
+		int dexMod = abilities.get(AbilityScore.Type.DEXTERITY).getModifier().getModifier();
+		if (dexMod != 0) {
+			Element comp = doc.createElement("ACComponent");
+			comp.setAttribute("type", "Dexterity");
+			comp.setAttribute("value", ""+getModifierString(dexMod));
+			e.appendChild(comp);
 		}
 		charEl.appendChild(e);
 
@@ -1548,10 +1599,9 @@ public class Character extends Creature {
 		charEl.appendChild(e);
 
 		e = doc.createElement("Feats");
-		for (Feat f : feats) {
-			Element fe = doc.createElement("Feat");
-			fe.setAttribute("name", f.name);
-			e.appendChild(fe);
+		for (int i = 0; i < feats.getSize(); i++) {
+			Buff b = (Buff)feats.get(i);
+			e.appendChild(b.getElement(doc, "Feat"));
 		}
 		charEl.appendChild(e);
 
@@ -1594,14 +1644,24 @@ public class Character extends Creature {
 		}
 		charEl.appendChild(e);
 		charEl.appendChild(skills.getElement(doc));
-		charEl.appendChild(ac.getElement(doc));
+
+		e = ac.getElement(doc);
+		for (Modifier m: acMods.values()) {
+			if (m.getModifier() != 0) {
+				Element comp = doc.createElement("ACComponent");
+				comp.setAttribute("type", m.getType());
+				comp.setAttribute("value", ""+m.getModifier());
+				e.appendChild(comp);
+			}
+		}
+		charEl.appendChild(e);
+
 		charEl.appendChild(attacks.getElement(doc));
 
 		e = doc.createElement("Feats");
-		for (Feat f : feats) {
-			Element fe = doc.createElement("Feat");
-			fe.setAttribute("name", f.name);
-			e.appendChild(fe);
+		for (int i = 0; i < feats.getSize(); i++) {
+			Buff b = (Buff)feats.get(i);
+			e.appendChild(b.getElement(doc, "Feat"));
 		}
 		charEl.appendChild(e);
 		

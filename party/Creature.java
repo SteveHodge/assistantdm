@@ -1,13 +1,9 @@
 package party;
-import gamesystem.AbilityScore;
-import gamesystem.SavingThrow;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
+// TODO should probably convert these constants to enums
 public abstract class Creature {
 	// properties
 	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
@@ -68,32 +64,12 @@ public abstract class Creature {
 	public final static String STATISTIC_HPS = "hps";
 	public final static String STATISTIC_LEVEL = "level";
 	public final static String STATISTIC_ATTACKS = "attacks";
+	public final static String STATISTIC_DAMAGE = "damage";
 
-	// The order of these needs to be the same as the ability constants in AbilityScore
+	// The order of these needs to be the same as the ability enum in AbilityScore
 	public final static String[] STATISTIC_ABILITY = {STATISTIC_STRENGTH,STATISTIC_DEXTERITY,STATISTIC_CONSTITUTION,STATISTIC_INTELLIGENCE,STATISTIC_WISDOM,STATISTIC_CHARISMA};
-	// The order of these needs to be the same as the save constants in SavingThrow
+	// The order of these needs to be the same as the save enum in SavingThrow
 	public final static String[] STATISTIC_SAVING_THROW = {STATISTIC_FORTITUDE_SAVE,STATISTIC_REFLEX_SAVE,STATISTIC_WILL_SAVE}; 
-
-	public final static Map<String,String> STATISTIC_DESC;
-	static {
-		HashMap<String,String> map = new HashMap<String,String>();
-		map.put(STATISTIC_STRENGTH, AbilityScore.Type.STRENGTH.toString());
-		map.put(STATISTIC_INTELLIGENCE, AbilityScore.Type.INTELLIGENCE.toString());
-		map.put(STATISTIC_WISDOM, AbilityScore.Type.WISDOM.toString());
-		map.put(STATISTIC_DEXTERITY, AbilityScore.Type.DEXTERITY.toString());
-		map.put(STATISTIC_CONSTITUTION, AbilityScore.Type.CONSTITUTION.toString());
-		map.put(STATISTIC_CHARISMA, AbilityScore.Type.CHARISMA.toString());
-		map.put(STATISTIC_SAVING_THROWS, "saves");
-		map.put(STATISTIC_FORTITUDE_SAVE, SavingThrow.Type.FORTITUDE+" save");
-		map.put(STATISTIC_WILL_SAVE, SavingThrow.Type.WILL+" save");
-		map.put(STATISTIC_REFLEX_SAVE, SavingThrow.Type.REFLEX+" save");
-		map.put(STATISTIC_SKILLS, "skills");
-		map.put(STATISTIC_AC, "AC");
-		map.put(STATISTIC_INITIATIVE, "Initiative");
-		map.put(STATISTIC_ATTACKS, "attack rolls");
-		map.put(STATISTIC_HPS,"temporary hit points");
-		STATISTIC_DESC = Collections.unmodifiableMap(map);
-	}
 
 	// ************************* Non static members and methods **************************
 

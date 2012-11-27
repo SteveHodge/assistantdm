@@ -52,11 +52,13 @@ public class JSubSection extends JPanel {
 					leftPanel.setVisible(false);
 					contentPanel.setVisible(false);
 					firePropertyChange("collapsed",false,true);	// oldvalue assumes the state has really changed
+					revalidate();
 				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
 					infoLabel.setText("");
 					leftPanel.setVisible(true);
 					contentPanel.setVisible(true);
 					firePropertyChange("collapsed",true,false);	// oldvalue assumes the state has really changed
+					revalidate();
 				}
 			}
 		});

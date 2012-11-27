@@ -5,26 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 public class AC extends Statistic {
-	// TODO these constants should become unnecessary eventually
-	public static final int AC_ARMOR = 0;
-	public static final int AC_SHIELD = 1;
-	public static final int AC_NATURAL = 2;
-	public static final int AC_DEX = 3;
-	public static final int AC_SIZE = 4;
-	public static final int AC_DEFLECTION = 5;
-	public static final int AC_DODGE = 6;
-	public static final int AC_OTHER = 7;
-	public static final int AC_MAX_INDEX = 8;
-	protected static final String[] ac_names = {"Armor","Shield","Natural Armor","Dexterity","Size","Deflection","Dodge","Misc"};
-
-	public static String getACComponentName(int type) {
-		return ac_names[type];
-	}
-
 	public AC(AbilityScore dex) {
 		super("AC");
 		addModifier(dex.getModifier());
@@ -40,19 +21,6 @@ public class AC extends Statistic {
 
 	public Statistic getFlatFootedAC() {
 		return flatFootedAC;
-	}
-
-	public Element getElement(Document doc) {
-		Element e = doc.createElement("AC");
-		for (int i=0; i<AC.AC_MAX_INDEX; i++) {
-			if (getModifiersTotal(AC.getACComponentName(i)) != 0) {
-				Element comp = doc.createElement("ACComponent");
-				comp.setAttribute("type", AC.getACComponentName(i));
-				comp.setAttribute("value", ""+getModifiersTotal(AC.getACComponentName(i)));
-				e.appendChild(comp);
-			}
-		}
-		return e;
 	}
 
 	// note that listener requests are forwarded to the outer AC instance. this means the source of events will be the AC instance,

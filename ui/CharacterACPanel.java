@@ -4,12 +4,17 @@ import gamesystem.AC;
 import gamesystem.Modifier;
 import gamesystem.Statistic;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 
 import javax.swing.JLabel;
@@ -17,6 +22,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
 import party.Character;
@@ -40,6 +46,19 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		acTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		acTable.getColumnModel().getColumn(0).setPreferredWidth(200);
 		acTable.setDefaultEditor(Integer.class, new SpinnerCellEditor());
+		acTable.setDefaultRenderer(Integer.class, new DefaultTableCellRenderer() {
+			Color old = null;
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+				Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				if (column == 1 && !acModel.isCellEditable(row, column)) {
+					if (old == null) old = cell.getBackground();
+					cell.setBackground(Color.LIGHT_GRAY);
+				} else {
+					if (old != null) cell.setBackground(old);
+				}
+				return cell;
+			}
+		});
 		JScrollPane acScrollpane = new JScrollPane(acTable);
 		acScrollpane.setPreferredSize(new Dimension(450,200));
 
@@ -124,12 +143,47 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 	}
 
 	protected class ACTableModel extends AbstractTableModel implements PropertyChangeListener {
+		// need a row for each custom modifier plus a row for each other modifier on the AC
+		Modifier[] modifiers;
+		boolean[] active;
+
 		public ACTableModel() {
 			character.addPropertyChangeListener(Creature.PROPERTY_AC, this);
+			updateModifiers();
+		}
+
+		protected void updateModifiers() {
+			AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
+			Map<Modifier, Boolean> mods = ac.getModifiers();
+			ArrayList<Modifier> list = new ArrayList<Modifier>();
+			for (Modifier m : mods.keySet()) {
+				if (m.getSource() == null || !m.getSource().equals("user set")) {
+					list.add(m);
+				}
+			}
+			modifiers = list.toArray(new Modifier[list.size()]);
+			Arrays.sort(modifiers, new Comparator<Modifier>() {
+				public int compare(Modifier a, Modifier b) {
+					// TODO should compare source and condition as well
+					String aStr = a.getType() == null ? "" : a.getType();
+					String bStr = b.getType() == null ? "" : b.getType();
+					return aStr.compareTo(bStr);
+				}
+			});
+			active = new boolean[modifiers.length];
+			for (int i=0; i<modifiers.length; i++) {
+				active[i] = mods.get(modifiers[i]);
+			}
+
+			//System.out.println("Have "+modifiers.length+" modifiers");
+
+			fireTableDataChanged();
 		}
 
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			if (rowIndex == AC.AC_DEX) return false;
+			if (columnIndex == 0) return false;
+			//if (rowIndex == Character.ACComponentType.DEX.ordinal()) return false;
+			if (rowIndex >= Character.ACComponentType.values().length) return false;
 			return true;
 		}
 
@@ -139,8 +193,9 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		}
 
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
+			if (!isCellEditable(rowIndex, columnIndex)) return;
 			if (value == null) value = new Integer(0);
-			character.setACComponent(rowIndex, (Integer)value);
+			character.setACComponent(Character.ACComponentType.values()[rowIndex], (Integer)value);
 			fireTableRowsUpdated(rowIndex, rowIndex);
 		}
 
@@ -154,17 +209,30 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		}
 
 		public int getRowCount() {
-			return AC.AC_MAX_INDEX;
+			return Character.ACComponentType.values().length + modifiers.length;
 		}
 
 		public Object getValueAt(int row, int column) {
-			if (column == 0) return AC.getACComponentName(row);
-			return character.getACComponent(row);
+			if (row < Character.ACComponentType.values().length) {
+				if (column == 0) return Character.ACComponentType.values()[row].toString();
+				return character.getACComponent(Character.ACComponentType.values()[row]);
+			} else {
+				row -= Character.ACComponentType.values().length;
+				if (column == 0) {
+					String s = modifiers[row].getType();
+					if (s == null) s = modifiers[row].getModifier() >= 0 ? "Bonus" : "Penalty";
+					if (modifiers[row].getSource() != null) s += " (from "+modifiers[row].getSource()+")";
+					if (modifiers[row].getCondition() != null) s += " ("+modifiers[row].getCondition()+")";
+					if (!active[row]) s += " (inactive)";
+					return s;
+				}
+				return modifiers[row].getModifier();
+			}
 		}
 
 		public void propertyChange(PropertyChangeEvent evt) {
 			//if (evt.getPropertyName().equals(Character.PROPERTY_AC)) {	// assumed
-				fireTableDataChanged();
+			updateModifiers();
 			//}
 		}
 	}

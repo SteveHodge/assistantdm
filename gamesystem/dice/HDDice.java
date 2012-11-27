@@ -1,32 +1,40 @@
-package gamesystem;
+package gamesystem.dice;
+
 
 import java.util.Random;
 
-public class SimpleDice implements Dice {
+// HDDice is similar to SimpleDice but designed for monster hit dice. As such it allows 1/2 and 1/4 number of dice and also can include a constant.
+public class HDDice implements Dice {
 	int number = 1;
 	int type;
-	int modifier = 0;
+	int constant = 0;
 	public static java.util.Random rand = new Random();
 
-	public SimpleDice(int type) {
+	public HDDice(int type) {
 		this.type = type;
 	}
 
 	// num of 0 means 1/2, -1 means 1/4
-	public SimpleDice(int num, int type) {
+	public HDDice(int num, int type) {
 		this.number = num;
 		this.type = type;
 	}
 
 	// num of 0 means 1/2, -1 means 1/4
-	public SimpleDice(int num, int type, int mod) {
+	public HDDice(int num, int type, int mod) {
 		this.number = num;
 		this.type = type;
-		this.modifier = mod;
+		this.constant = mod;
 	}
 
-	public int getModifier() {
-		return modifier;
+	public HDDice(HDDice s) {
+		number = s.number;
+		type = s.type;
+		constant = s.constant;
+	}
+
+	public int getConstant() {
+		return constant;
 	}
 
 	public int roll() {
@@ -40,7 +48,7 @@ public class SimpleDice implements Dice {
 				roll += rand.nextInt(type)+1;
 			}
 		}
-		return roll+modifier;
+		return roll+constant;
 	}
 
 	public String toString() {
@@ -49,13 +57,13 @@ public class SimpleDice implements Dice {
 		else if (number == 0) s += "½ ";
 		else if (number == -1) s += "¼ ";
 		s += "d"+type;
-		if (modifier > 0) s += "+"+modifier;
-		else if (modifier < 0) s += modifier;
+		if (constant > 0) s += "+"+constant;
+		else if (constant < 0) s += constant;
 		return s;
 	}
 
 	// format is [num]d<type>[+/-<mod>]. white space between components is ok. recognises 1/2 and 1/4 in num
-	public static SimpleDice parse(String s) {
+	public static HDDice parse(String s) {
 		int n = 1;
 		int t;
 		int m = 0;
@@ -83,7 +91,7 @@ public class SimpleDice implements Dice {
 		} else {
 			t = Integer.parseInt(s.trim());
 		}
-		return new SimpleDice(n, t, m);
+		return new HDDice(n, t, m);
 	}
 
 	public int getMinimum() {

@@ -27,7 +27,7 @@ import org.w3c.dom.NodeList;
 // TODO reimplement misc as Modifier
 public class Skills extends Statistic {
 	public Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();	// TODO public for Character.getXML. change when no longer required
-	EnumMap<AbilityScore.Type,Modifier> abilityMods = new EnumMap<AbilityScore.Type,Modifier>(AbilityScore.Type.class);
+	protected EnumMap<AbilityScore.Type,Modifier> abilityMods = new EnumMap<AbilityScore.Type,Modifier>(AbilityScore.Type.class);
 
 	PropertyChangeListener abilityListener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent evt) {
@@ -44,12 +44,17 @@ public class Skills extends Statistic {
 		}
 	}
 
-	public void setRanks(SkillType s, float r) {
+	public Skill getSkill(SkillType s) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
 			skill = new Skill(s,abilityMods.get(s.ability));
 			skills.put(s,skill);
 		}
+		return skill;
+	}
+
+	public void setRanks(SkillType s, float r) {
+		Skill skill = getSkill(s);
 		if (skill.ranks != r) {
 			//int oldValue = getValue(s);
 			skill.ranks = r;
@@ -68,11 +73,7 @@ public class Skills extends Statistic {
 	}
 
 	public void setMisc(SkillType s, int m) {
-		Skill skill = skills.get(s);
-		if (skill == null) {
-			skill = new Skill(s,abilityMods.get(s.ability));
-			skills.put(s,skill);
-		}
+		Skill skill = getSkill(s);
 		if (skill.misc != m) {
 			//int oldValue = getValue(s);
 			skill.misc = m;
@@ -123,11 +124,7 @@ public class Skills extends Statistic {
 	}
 
 	public void addModifier(SkillType s, Modifier m) {
-		Skill skill = skills.get(s);
-		if (skill == null) {
-			skill = new Skill(s,abilityMods.get(s.ability));
-			skills.put(s,skill);
-		}
+		Skill skill = getSkill(s);
 
 		//int oldValue = getValue(s);
 		m.addPropertyChangeListener(listener);
@@ -138,10 +135,7 @@ public class Skills extends Statistic {
 
 	public void removeModifier(SkillType s, Modifier m) {
 		Skill skill = skills.get(s);
-		if (skill == null) {
-			skill = new Skill(s,abilityMods.get(s.ability));
-			skills.put(s,skill);
-		}
+		if (skill == null) return;
 
 		//int oldValue = getValue(s);
 		skill.modifiers.remove(m);

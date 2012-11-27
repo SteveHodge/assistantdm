@@ -4,6 +4,7 @@ import gamesystem.Attacks;
 import gamesystem.Modifier;
 import gamesystem.Statistic;
 import gamesystem.Attacks.AttackForm;
+import gamesystem.dice.CombinedDice;
 import gamesystem.Size;
 
 import java.awt.GridBagConstraints;
@@ -15,8 +16,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Map;
 
+import javax.swing.InputVerifier;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -34,13 +38,14 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	JTextField rangeField = new JTextField(20);
 	JTextField weightField = new JTextField(20);
 	JTextField typeField = new JTextField(20);
-	JComboBox sizeCombo = new JComboBox(Size.SIZES);
+	JComboBox sizeCombo = new JComboBox(Size.Category.values());
 	JTextField propertiesField = new JTextField(20);
 	JTextField ammunitionField = new JTextField(20);
 	JComboBox kindCombo;
 	JComboBox usageCombo;
 
 	JLabel totalAttackLabel = new JLabel();
+	JLabel totalDamageLabel = new JLabel();
 
 	public AttackFormPanel() {
 		this(null);
@@ -76,7 +81,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		c.gridwidth = 2;
 		add(nameField,c);
 		c.gridy++;	// add attackBonus field later
-		c.gridy++; add(damageField,c);
+		c.gridy++;	// add damage field later
 		c.gridy++; add(criticalField,c);
 		c.gridy++; add(kindCombo,c);
 		c.gridy++; add(usageCombo,c);
@@ -91,21 +96,34 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		c.weightx = 0.5;
 		c.gridwidth = 1;
 		add(attackBonusField,c);
+		c.gridy++; add(damageField,c);
 
+		c.gridy = 1;
 		c.gridx = 2;
 		add(totalAttackLabel,c);
+		c.gridy++; add(totalDamageLabel,c);
+		
 		
 		setAttackForm(atk);
 
+		// the damage field uses an input verifier and applies changes on enter or losing focus
+		damageField.setInputVerifier(damageVerifier);
+		damageField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				damageVerifier.shouldYieldFocus(damageField);
+			}
+		});
+
+		// the other field do dynamic updating
 		nameField.getDocument().addDocumentListener(docListener);
 		attackBonusField.getDocument().addDocumentListener(docListener);
-		damageField.getDocument().addDocumentListener(docListener);
 		criticalField.getDocument().addDocumentListener(docListener);
 		rangeField.getDocument().addDocumentListener(docListener);
 		weightField.getDocument().addDocumentListener(docListener);
 		typeField.getDocument().addDocumentListener(docListener);
 		propertiesField.getDocument().addDocumentListener(docListener);
 		ammunitionField.getDocument().addDocumentListener(docListener);
+
 		kindCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (attack != null) {
@@ -116,7 +134,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		sizeCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (attack != null) {
-					attack.size = sizeCombo.getSelectedIndex();
+					attack.size = (Size.Category)sizeCombo.getSelectedItem();
 				}
 			}
 		});
@@ -128,6 +146,33 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			}
 		});
 	}
+
+	InputVerifier damageVerifier = new InputVerifier() {
+		public boolean shouldYieldFocus(JComponent c) {
+			if (c != damageField) return true;
+
+			if (verify(c)) {
+				attack.setBaseDamage(damageField.getText());
+				damageField.setText(attack.getBaseDamage());
+				return true;
+			} else {
+				String message = "Invalid damage value.\nPlease try again.";
+				JOptionPane.showMessageDialog(null,message,"Invalid Value",JOptionPane.WARNING_MESSAGE);
+				return false;
+			}
+		}
+
+		public boolean verify(JComponent c) {
+			if (c != damageField) return true;
+
+			try {
+				CombinedDice.parse(damageField.getText());
+			} catch (Exception e) {
+				return false;
+			}
+			return true;
+		}
+	};
 
 	DocumentListener docListener = new DocumentListener() {
 		public void changedUpdate(DocumentEvent e) {
@@ -159,8 +204,6 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 				} catch (NumberFormatException ex) {
 					// TODO do what?
 				}
-			} else if (e.getDocument() == damageField.getDocument()) {
-				attack.damage = damageField.getText();
 			} else if (e.getDocument() == criticalField.getDocument()) {
 				attack.critical = criticalField.getText();
 			} else if (e.getDocument() == rangeField.getDocument()) {
@@ -210,6 +253,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		attackBonusField.setText("");
 		totalAttackLabel.setText("");
 		damageField.setText("");
+		totalDamageLabel.setText("");
 		criticalField.setText("");
 		rangeField.setText("");
 		weightField.setText("");
@@ -244,14 +288,15 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			usageCombo.setEnabled(true);
 
 			nameField.setText(attack.getName());
-			damageField.setText(attack.damage);
+			attackBonusField.setText(""+attack.getAttackEnhancement());
+			damageField.setText(attack.getBaseDamage());
 			criticalField.setText(attack.critical);
 			rangeField.setText(""+attack.range);
 			weightField.setText(""+attack.weight);
 			typeField.setText(attack.damage_type);
 			propertiesField.setText(attack.properties);
 			ammunitionField.setText(attack.ammunition);
-			sizeCombo.setSelectedIndex(attack.size);
+			sizeCombo.setSelectedItem(attack.size);
 			kindCombo.setSelectedItem(attack.getKind());
 			usageCombo.setSelectedItem(attack.getUsage());
 			update();
@@ -259,12 +304,12 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	}
 
 	public void update() {
-		attackBonusField.setText(""+attack.getAttackEnhancement());
+		// set attacks:
 		String s = attack.getAttacksDescription();
 		if (attack.isTotalDefense()) s = "<html><body><s>"+s+"</s></body></html>";
 		totalAttackLabel.setText(s);
 
-		// set tooltip:
+		// set attack tooltip:
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>");
 		text.append(attack.getBAB()).append(" base attack bonus<br/>");
@@ -275,6 +320,21 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
 		totalAttackLabel.setToolTipText(text.toString());
+
+		// set damage:
+		totalDamageLabel.setText(attack.getDamage());
+
+		// set damage tooltip:
+		text = new StringBuilder();
+		text.append("<html><body>");
+		text.append(attack.getBaseDamage()).append(" base damage<br/>");
+		mods = attack.getDamageModifiers();
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(attack.getDamage()).append(" total damage");
+		conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		text.append("</body></html>");
+		totalDamageLabel.setToolTipText(text.toString());
 	}
 
 	public void propertyChange(PropertyChangeEvent evt) {

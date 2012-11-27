@@ -24,6 +24,7 @@ import org.xml.sax.SAXException;
 import xml.LocalEntityResolver;
 
 public class StatisticsBlock {
+	// TODO convert to enum?
 	public final static String PROPERTY_NAME = "Name:";
 	public final static String PROPERTY_URL = "URL:";
 

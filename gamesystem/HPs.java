@@ -4,6 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -47,7 +48,7 @@ import party.Creature;
  */
 
 public class HPs extends Statistic {
-	protected Level level;
+	protected Level level;	// used for applying con changes
 	protected Modifier conMod;
 	protected int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
 	protected int hps, wounds, nonLethal;
@@ -125,11 +126,39 @@ public class HPs extends Statistic {
 	public void setMaximumHitPoints(int hp) {
 		int old = hps;
 		hps = hp;
-        pcs.firePropertyChange(Creature.PROPERTY_MAXHPS, old, hp);
+        firePropertyChange(Creature.PROPERTY_MAXHPS, old, hp);
+	}
+
+	public List<Modifier> getTemporaryHPsModifiers() {
+		List<Modifier> m = Collections.<Modifier>unmodifiableList(tempHPs);
+		return m;
 	}
 
 	public int getWounds() {
 		return wounds;
+	}
+
+	public void applyHealing(int heal) {
+		int oldHPs = getHPs();
+		int oldWounds = wounds;
+		int oldNL = nonLethal;
+
+		if (nonLethal > heal) {
+			nonLethal -= heal;
+		} else {
+			nonLethal = 0;
+		}
+
+		if (wounds > heal) {
+			wounds -= heal;
+		} else {
+			wounds = 0;
+		}
+
+		// TODO clean this up. Shouldn't be firing so many events
+		firePropertyChange(Creature.PROPERTY_WOUNDS, oldWounds, wounds);
+		firePropertyChange(Creature.PROPERTY_NONLETHAL, oldNL, nonLethal);
+		firePropertyChange(Creature.PROPERTY_HPS, oldHPs, getHPs());
 	}
 
 	// dmg should be > 0
@@ -172,17 +201,24 @@ public class HPs extends Statistic {
 
 		}
 		// notify of change to temphps
-		pcs.firePropertyChange("value", oldHPs, getHPs());
+		firePropertyChange(Creature.PROPERTY_HPS, oldHPs, getHPs());
 
 		// apply any remaining damage as wounds
 		if (dmg > 0) setWounds(wounds+dmg);
+	}
+
+	// apply non-lethal damage
+	public void applyNonLethal(int d) {
+		int old = nonLethal;
+		nonLethal += d;
+		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, nonLethal);
 	}
 
 	// this directly sets the number of wounds (it bypasses temporary hitpoints)
 	public void setWounds(int i) {
 		int old = wounds;
 		wounds = i;
-		pcs.firePropertyChange(Creature.PROPERTY_WOUNDS, old, i);
+		firePropertyChange(Creature.PROPERTY_WOUNDS, old, i);
 	}
 
 	public int getNonLethal() {
@@ -192,7 +228,7 @@ public class HPs extends Statistic {
 	public void setNonLethal(int i) {
 		int old = nonLethal;
 		nonLethal = i;
-		pcs.firePropertyChange(Creature.PROPERTY_NONLETHAL, old, i);
+		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, i);
 	}
 
 	protected Modifier addTemporaryHPs(TempHPs temps) {
@@ -212,7 +248,7 @@ public class HPs extends Statistic {
 		best.active = true;
 
 		tempHPs.add(temps);
-		pcs.firePropertyChange(Creature.PROPERTY_HPS, old, getHPs());
+		firePropertyChange(Creature.PROPERTY_HPS, old, getHPs());
 		return temps;
 	}
 
@@ -231,7 +267,7 @@ public class HPs extends Statistic {
 					}
 				}
 				if (best != null) best.active = true;
-				pcs.firePropertyChange(Creature.PROPERTY_HPS, old, getHPs());
+				firePropertyChange(Creature.PROPERTY_HPS, old, getHPs());
 			}
 		}
 	}
@@ -245,6 +281,7 @@ public class HPs extends Statistic {
 		return total;
 	}
 
+	// TODO not sure this should include non-lethal
 	public int getHPs() {
 		return hps + getTemporaryHPs() - wounds - nonLethal;
 	}

@@ -2,17 +2,21 @@ package ui;
 
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
-import gamesystem.Dice;
 import gamesystem.Modifier;
 import gamesystem.Buff.Effect;
+import gamesystem.dice.Dice;
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -45,7 +49,13 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		super(c);
 		setLayout(new GridLayout(0,2));
 
-		BuffListModel bfModel = new BuffListModel(BuffFactory.buffs);
+		BuffFactory[] availableBuffs = Arrays.copyOf(BuffFactory.buffs, BuffFactory.buffs.length);
+		Arrays.sort(availableBuffs, new Comparator<BuffFactory>() {
+			public int compare(BuffFactory a, BuffFactory b) {
+				return a.name.compareTo(b.name);
+			}
+		});
+		BuffListModel bfModel = new BuffListModel(availableBuffs);
 		final JListWithToolTips buffs = new JListWithToolTips(bfModel);
 		buffs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		buffs.setVisibleRowCount(20);
@@ -107,7 +117,8 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		buff.empowered = empCheckBox.isSelected();
 		if (buff.requiresCasterLevel()) {
 			// TODO add cancel button?
-			final JDialog dialog = new JDialog((JDialog)null, "Enter caster level...", true);
+			Window parentWindow = SwingUtilities.getWindowAncestor(this);
+			final JDialog dialog = new JDialog(parentWindow, "Enter caster level...", Dialog.DEFAULT_MODALITY_TYPE);
 			dialog.add(new BuffOptionPanel(buff));
 
 			JButton ok = new JButton("Ok");
@@ -122,6 +133,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			dialog.add(buttonPanel, BorderLayout.PAGE_END);
 
 			dialog.pack();
+			dialog.setLocationRelativeTo(parentWindow);
 			dialog.setVisible(true);
 		}
 		buff.applyBuff(character);

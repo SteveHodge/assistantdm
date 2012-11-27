@@ -13,23 +13,23 @@ public class ImmutableModifier implements Modifier {
 	public String condition;
 	public int id;
 
-	public ImmutableModifier(int m) {
-		this(m, null, null, null);
+	public ImmutableModifier(int mod) {
+		this(mod, null, null, null);
 	}
 
-	public ImmutableModifier(int m, String t) {
-		this(m, t, null, null);
+	public ImmutableModifier(int mod, String type) {
+		this(mod, type, null, null);
 	}
 
-	public ImmutableModifier(int m, String t, String s) {
-		this(m,t,s,null);
+	public ImmutableModifier(int mod, String type, String source) {
+		this(mod,type,source,null);
 	}
 
-	public ImmutableModifier(int m, String t, String s, String c) {
-		modifier = m;
-		type = t;
-		source = s;
-		condition = c;
+	public ImmutableModifier(int mod, String type, String source, String condition) {
+		this.modifier = mod;
+		this.type = type;
+		this.source = source;
+		this.condition = condition;
 	}
 
 	public String toString() {

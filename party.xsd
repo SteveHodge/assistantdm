@@ -158,6 +158,7 @@
 		<xs:attribute name="target" type="xs:string" use="required"/>
 		<xs:attribute name="value" type="xs:int" use="required"/>
 		<xs:attribute name="type" type="xs:string"/>
+		<xs:attribute name="description" type="xs:string"/> <!-- attribute used only for character sheet output -->
 		<xs:attribute name="condition" type="xs:string"/>
 	</xs:complexType>
 </xs:element>
@@ -167,9 +168,19 @@
 		<xs:sequence>
 			<xs:element ref="Modifier" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
-		<xs:attribute name="caster_level" type="xs:int" use="required"/>
+		<xs:attribute name="caster_level" type="xs:int"/>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="id" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Feat">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Modifier" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="id" type="xs:int"/>
 	</xs:complexType>
 </xs:element>
 
@@ -190,6 +201,35 @@
 	</xs:complexType>
 </xs:element>
 
+<xs:element name="Attacks">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element name="AttackForm" minOccurs="0" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attribute name="name" type="xs:string" use="required"/>
+					<xs:attribute name="ammunition" type="xs:string"/>
+					<xs:attribute name="critical" type="xs:string"/>
+					<xs:attribute name="enhancement" type="xs:int"/>
+					<xs:attribute name="base_damage" type="xs:string"/>
+					<xs:attribute name="damage" type="xs:string"/>		<!-- for character sheet only -->
+					<xs:attribute name="properties" type="xs:string"/>
+					<xs:attribute name="size" type="xs:string"/>
+					<xs:attribute name="type" type="xs:string"/>
+					<xs:attribute name="total" type="xs:int"/>	<!-- for character sheet only -->
+					<xs:attribute name="range" type="xs:int"/>
+					<xs:attribute name="weight" type="xs:int"/>
+					<xs:attribute name="kind" type="xs:string"/>
+					<xs:attribute name="usage" type="xs:int"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="base" type="xs:int" use="required"/>
+ 		<xs:attribute name="combat_expertise" type="xs:int"/>
+ 		<xs:attribute name="fighting_defensively" type="xs:boolean"/>
+ 		<xs:attribute name="total_defense" type="xs:boolean"/>
+ 		<xs:attribute name="power_attack" type="xs:int"/>
+ 	</xs:complexType>
+</xs:element>
 
 <xs:element name="Character">
 	<xs:complexType>
@@ -205,6 +245,14 @@
 			<xs:element ref="SavingThrows"/>
 			<xs:element ref="Skills"/>
 			<xs:element ref="AC"/>
+			<xs:element ref="Attacks"/>
+			<xs:element name="Feats">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element ref="Feat" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
 			<xs:element name="Buffs">
 				<xs:complexType>
 					<xs:sequence>

@@ -145,10 +145,12 @@ public class Statistic {
 			// if the modifier is 0 then exlcude it
 			if (m.getModifier() == 0) include = false;
 
-			// check if there are modifiers with the same source and sign (we assume that two modifiers from the same source on the same target will always have the same type)
+			// check if there are modifiers with the same source, type and sign
 			if (include && m.getSource() != null) {
 				for (Modifier a : map.keySet()) {
-					if (map.get(a) && m.getSource().equals(a.getSource()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())) {
+					if (map.get(a) && m.getSource().equals(a.getSource()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())
+						&& (m.getType() == null && a.getType() == null || m.getType() != null && m.getType().equals(a.getType()))
+					) {
 						// 'a' is an existing active modifier with the same source and sign
 						if (Math.abs(m.getModifier()) < Math.abs(a.getModifier())) {
 							// m is a smaller modifier so exclude it unless 'a' has a different condition

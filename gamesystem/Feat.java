@@ -1,23 +1,34 @@
 package gamesystem;
 
-public class Feat {
-	public String name;
+import party.Creature;
 
-	public Feat(String name) {
-		this.name = name;
+// TODO should the Buff produced be the instance of the Feat that is applied to a character? probably...
+public class Feat extends BuffFactory {
+	public boolean repeatable = false;
+
+	protected Feat(String name) {
+		super(name);
 	}
 
-	public boolean equals(Object obj) {
-		if (!(obj instanceof Feat)) return false;
-		return name.equals(((Feat)obj).name);
+	protected Feat(String name, boolean repeat) {
+		super(name);
+		repeatable = repeat;
 	}
 
-	public int hashCode() {
-		return name.hashCode();
+	protected Feat addSkillBonuses(String skill1, String skill2) {
+		addEffect(Creature.STATISTIC_SKILLS+"."+skill1, null, 2);
+		addEffect(Creature.STATISTIC_SKILLS+"."+skill2, null, 2);
+		return this;
 	}
 
-	public String toString() {
-		return name;
+	protected Feat addBonus(String target, int modifier, String condition) {
+		addEffect(target, null, modifier, condition);
+		return this;
+	}
+
+	protected Feat addBonus(String target, int modifier) {
+		addEffect(target, null, modifier);
+		return this;
 	}
 
 	public static final String FEAT_TWO_WEAPON_FIGHTING = "Two-Weapon Fighting";
@@ -31,29 +42,29 @@ public class Feat {
 		/*
 		 * Buff-like feats:
 		 */
-		new Feat("Acrobatic"),
-		new Feat("Agile"),
-		new Feat("Alertness"),
-		new Feat("Animal Affinity"),
-		new Feat("Athletic"),
-		new Feat("Combat Casting"),
-		new Feat("Deceitful"),
-		new Feat("Deft Hands"),
-		new Feat("Diligent"),
-		new Feat("Great Fortitude"),
-		new Feat("Improved Initiative"),
-		new Feat("Investigator"),
-		new Feat("Iron Will"),
-		new Feat("Lightning Reflexes"),
-		new Feat("Magical Aptitude"),
-		new Feat("Negotiator"),
-		new Feat("Nimble Fingers"),
-		new Feat("Persuasive"),
-		new Feat("Self-Sufficient"),
-		new Feat("Skill Focus"),
-		new Feat("Stealthy"),
-		new Feat("Toughness"),
-		new Feat("Run"),
+		(new Feat("Acrobatic")).addSkillBonuses("Jump", "Tumble"),
+		(new Feat("Agile")).addSkillBonuses("Balance", "Escape Artist"),
+		(new Feat("Alertness")).addSkillBonuses("Listen", "Spot"),
+		(new Feat("Animal Affinity")).addSkillBonuses("Handle Animal", "Ride"),
+		(new Feat("Athletic")).addSkillBonuses("Climb", "Swim"),
+		new Feat("Combat Casting"),	// TODO needs ability checks
+		(new Feat("Deceitful")).addSkillBonuses("Disguise", "Forgery"),
+		(new Feat("Deft Hands")).addSkillBonuses("Slight of Hand", "Use Rope"),
+		(new Feat("Diligent")).addSkillBonuses("Appraise", "Decipher Script"),
+		(new Feat("Great Fortitude")).addBonus(Creature.STATISTIC_FORTITUDE_SAVE, 2),
+		(new Feat("Improved Initiative")).addBonus(Creature.STATISTIC_INITIATIVE, 4),
+		(new Feat("Investigator")).addSkillBonuses("Gather Information", "Search"),
+		(new Feat("Iron Will")).addBonus(Creature.STATISTIC_WILL_SAVE, 2),
+		(new Feat("Lightning Reflexes")).addBonus(Creature.STATISTIC_REFLEX_SAVE, 2),
+		(new Feat("Magical Aptitude")).addSkillBonuses("Spellcraft", "Use Magic Device"),
+		(new Feat("Negotiator")).addSkillBonuses("Diplomacy", "Sense Motive"),
+		(new Feat("Nimble Fingers")).addSkillBonuses("Disable Device", "Open Locks"),
+		(new Feat("Persuasive")).addSkillBonuses("Bluff", "Intimidate"),
+		(new Feat("Self-Sufficient")).addSkillBonuses("Heal", "Survival"),
+		new Feat("Skill Focus",true), 
+		(new Feat("Stealthy")).addSkillBonuses("Hide", "Move Silently"),
+		new Feat("Toughness",true),	// TODO modifier to HPs, but non-temporary
+		(new Feat("Run")).addBonus(Creature.STATISTIC_SKILLS+".Jump", 4, "with running start"),	// TODO also affects run speed multiplier
 		/*
 		 * combat ralated feats: 
 		 */
@@ -63,8 +74,8 @@ public class Feat {
 		new Feat("Shield Proficiency"),
 		new Feat("Tower Shield Proficiency"),
 		new Feat("Simple Weapon Proficiency"),
-		new Feat("Martial Weapon Proficiency"),
-		new Feat("Exotic Weapon Proficiency"),	// specific weapon type
+		new Feat("Martial Weapon Proficiency",true),
+		new Feat("Exotic Weapon Proficiency",true),	// specific weapon type
 
 		// attack
 		new Feat(FEAT_COMBAT_EXPERTISE),	// choose 1-5 // also affects ac
@@ -75,8 +86,8 @@ public class Feat {
 		new Feat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING),
 		new Feat(FEAT_GREATER_TWO_WEAPON_FIGHTING),
 		new Feat(FEAT_WEAPON_FINESSE),
-		new Feat("Weapon Focus"),		// specific weapon type
-		new Feat("Greater Weapon Focus"),	// specific weapon type
+		new Feat("Weapon Focus",true),		// specific weapon type
+		new Feat("Greater Weapon Focus",true),	// specific weapon type
 
 		// ac
 		new Feat("Dodge"),
@@ -84,9 +95,9 @@ public class Feat {
 		new Feat("Two-Weapon Defense"),
 
 		// damage
-		new Feat("Improved Critical"),		// specific weapon type
-		new Feat("Weapon Specialization"),	// specific weapon type
-		new Feat("Greater Weapon Specialization"),	// specific weapon type
+		new Feat("Improved Critical",true),		// specific weapon type
+		new Feat("Weapon Specialization",true),	// specific weapon type
+		new Feat("Greater Weapon Specialization",true),	// specific weapon type
 
 		// other:
 		new Feat("Improved Unarmed Strike"),	// deals lethal or non-lethal damage
@@ -127,15 +138,15 @@ public class Feat {
 		new Feat("Endurance"),
 		new Feat("Diehard Endurance"),
 		new Feat("Eschew Materials"),
-		new Feat("Extra Turning"),
+		new Feat("Extra Turning",true),
 		new Feat("Improved Counterspell"),
 		new Feat("Improved Turning"),
 		new Feat("Leadership"),
 		new Feat("Natural Spell"),
 		new Feat("Quick Draw"),
-		new Feat("Spell Focus"),
-		new Feat("Greater Spell Focus"),
-		new Feat("Spell Mastery"),
+		new Feat("Spell Focus",true),
+		new Feat("Greater Spell Focus",true),
+		new Feat("Spell Mastery",true),
 		new Feat("Spell Penetration"),
 		new Feat("Greater Spell Penetration"),
 		new Feat("Track"),

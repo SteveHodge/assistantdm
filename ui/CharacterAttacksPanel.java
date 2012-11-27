@@ -40,6 +40,8 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 	protected JLabel dexLabel = new JLabel();
 	protected JLabel meleeLabel = new JLabel();
 	protected JLabel rangedLabel = new JLabel();
+	protected JLabel powerAttackLabel = new JLabel("Power Attack: ");
+	protected JLabel combatExpertiseLabel = new JLabel("Combat Expertise: ");
 	protected JTextField powerAttack = new JTextField(10);
 	protected JTextField combatExpertise = new JTextField(10);
 	protected JCheckBox fightingDefensively = new JCheckBox("Fighting Defensively");
@@ -60,7 +62,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 
 		updateToolTip();
 		// update labels when character changes
-		character.addPropertyChangeListener(this);
+		attacks.addPropertyChangeListener(this);
 
 		powerAttack.getDocument().addDocumentListener(new DocumentListener() {
 			public void changedUpdate(DocumentEvent arg0) {
@@ -200,20 +202,36 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		panel.add(totalDefense);
 		totalDefense.setSelected(attacks.isTotalDefense());
 
+		panel.add(powerAttackLabel);
+		panel.add(powerAttack);
+		powerAttack.setText(""+attacks.getPowerAttack());
+
+		panel.add(combatExpertiseLabel);
+		panel.add(combatExpertise);
+		combatExpertise.setText(""+attacks.getCombatExpertise());
+
+		updateOptions();
+		return panel;
+	}
+
+	protected void updateOptions() {
 		if (character.hasFeat(Feat.FEAT_POWER_ATTACK)) {
-			panel.add(new JLabel("Power Attack: "));
-			panel.add(powerAttack);
-			powerAttack.setText(""+attacks.getPowerAttack());
+			powerAttackLabel.setVisible(true);
+			powerAttack.setVisible(true);
+		} else {
+			powerAttackLabel.setVisible(false);
+			powerAttack.setVisible(false);
 		}
 
 		if (character.hasFeat(Feat.FEAT_COMBAT_EXPERTISE)) {
-			panel.add(new JLabel("Combat Expertise: "));
-			panel.add(combatExpertise);
-			combatExpertise.setText(""+attacks.getCombatExpertise());
+			combatExpertiseLabel.setVisible(true);
+			combatExpertise.setVisible(true);
+		} else {
+			combatExpertiseLabel.setVisible(false);
+			combatExpertise.setVisible(false);
 		}
-
-		return panel;
 	}
+
 	protected JPanel getWeaponPanel() {
 		JPanel bottom = new JPanel();
 		bottom.setLayout(new GridBagLayout());
@@ -352,15 +370,12 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		return s.toString();
 	}
 
+	// we rely on the attack to tell us about feat and ability changes indirectly
+	// TODO maybe better to directly listen?
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.Type.STRENGTH.toString())
-				|| e.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.Type.DEXTERITY.toString())
-				|| e.getPropertyName().equals(Creature.PROPERTY_BAB)
-				) {
-			updateLabels();
-			updateToolTip();
-			updateSummaries(getSummary());
-		}
+		updateOptions();
+		updateLabels();
+		updateToolTip();
+		updateSummaries(getSummary());
 	}
-
 }

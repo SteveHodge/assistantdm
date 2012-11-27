@@ -1,10 +1,11 @@
-package gamesystem;
+package gamesystem.dice;
+
 
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiceAdder implements Dice {
+public class DiceList implements Dice {
 	List<Dice> dice = new ArrayList<Dice>();
 
 	public void add(Dice d) {
