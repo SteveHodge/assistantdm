@@ -60,6 +60,9 @@ public abstract class Creature {
 	public final static String STATISTIC_REFLEX_SAVE = "saves.reflex";
 	public final static String STATISTIC_SKILLS = "skills";
 	public final static String STATISTIC_AC = "ac";
+	public final static String STATISTIC_ARMOR = "ac.armor";
+	public final static String STATISTIC_SHIELD = "ac.shield";
+	public final static String STATISTIC_NATURAL_ARMOR = "ac.natural_armor";
 	public final static String STATISTIC_INITIATIVE = "initiative";
 	public final static String STATISTIC_HPS = "hps";
 	public final static String STATISTIC_LEVEL = "level";

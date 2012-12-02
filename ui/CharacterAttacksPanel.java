@@ -42,8 +42,8 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 	protected JLabel rangedLabel = new JLabel();
 	protected JLabel powerAttackLabel = new JLabel("Power Attack: ");
 	protected JLabel combatExpertiseLabel = new JLabel("Combat Expertise: ");
-	protected JTextField powerAttack = new JTextField(10);
-	protected JTextField combatExpertise = new JTextField(10);
+	protected JTextField powerAttack = new JTextField(4);
+	protected JTextField combatExpertise = new JTextField(4);
 	protected JCheckBox fightingDefensively = new JCheckBox("Fighting Defensively");
 	protected JCheckBox totalDefense = new JCheckBox("Total Defense");
 	protected Attacks attacks;

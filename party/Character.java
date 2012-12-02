@@ -42,9 +42,9 @@ import ui.CharacterBuffsPanel.BuffListModel;
 import util.Updater;
 
 // TODO priorities:
+// ability checks
 // enum conversions - property and statistics types
 // feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
-// buffs to ability checks
 // haste extra attack should be shown
 // clean up handling of HPs, wounds, healing etc, particularly ui
 // review Statistics vs Properties
@@ -297,7 +297,7 @@ public class Character extends Creature {
 		ac = new AC(abilities.get(AbilityScore.Type.DEXTERITY));
 		ac.addPropertyChangeListener(statListener);
 
-		skills = new Skills(abilities.values(), ac.getACPModifier());
+		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
 		skills.addPropertyChangeListener(statListener);
 
 		level = new Level();
@@ -954,6 +954,12 @@ public class Character extends Creature {
 			return saves.get(SavingThrow.Type.REFLEX);
 		} else if (name.equals(STATISTIC_AC)) {
 			return ac;
+		} else if (name.equals(STATISTIC_ARMOR)) {
+			return ac.getArmor();
+		} else if (name.equals(STATISTIC_SHIELD)) {
+			return ac.getShield();
+		} else if (name.equals(STATISTIC_NATURAL_ARMOR)) {
+			return ac.getNaturalArmor();
 		} else if (name.equals(STATISTIC_INITIATIVE)) {
 			return initiative;
 		} else if (name.equals(STATISTIC_SKILLS)) {
@@ -1493,6 +1499,16 @@ public class Character extends Creature {
 		return e;
 	}
 
+	protected static void setACComponent(Document doc, Element e, String type, int mod) { 
+		if (mod != 0) {
+			Element comp = doc.createElement("ACComponent");
+			comp.setAttribute("type", type);
+			comp.setAttribute("value", ""+getModifierString(mod));
+			e.appendChild(comp);
+		}
+	}
+
+	// TODO this should include all the same data as the regular save as well as additional stuff
 	public Element getCharacterSheet(Document doc) {
 		Element charEl = getCharacterElement(doc);
 
@@ -1567,22 +1583,16 @@ public class Character extends Creature {
 		e.setAttribute("total", ""+ac.getValue());
 		e.setAttribute("flat-footed", ""+ac.getFlatFootedAC().getValue());
 		e.setAttribute("touch" ,""+ac.getTouchAC().getValue());
-		e.setAttribute("armor-check-penalty","");	// TODO implement
-		for (ACComponentType t: ACComponentType.values()) {
-			if (ac.getModifiersTotal(t.toString()) != 0) {
-				Element comp = doc.createElement("ACComponent");
-				comp.setAttribute("type", t.toString());
-				comp.setAttribute("value", getModifierString(ac.getModifiersTotal(t.toString())));
-				e.appendChild(comp);
-			}
-		}
-		int dexMod = abilities.get(AbilityScore.Type.DEXTERITY).getModifier().getModifier();
-		if (dexMod != 0) {
-			Element comp = doc.createElement("ACComponent");
-			comp.setAttribute("type", "Dexterity");
-			comp.setAttribute("value", ""+getModifierString(dexMod));
-			e.appendChild(comp);
-		}
+		e.setAttribute("armor-check-penalty",""+ac.getArmorCheckPenalty().getModifier());
+		setACComponent(doc, e, ACComponentType.SIZE.toString(), ac.getModifiersTotal(ACComponentType.SIZE.toString()));
+		setACComponent(doc, e, ACComponentType.NATURAL.toString(), ac.getNaturalArmor().getValue());
+		setACComponent(doc, e, ACComponentType.DEFLECTION.toString(), ac.getModifiersTotal(ACComponentType.DEFLECTION.toString()));
+		int value = ac.getModifiersTotal(ACComponentType.OTHER.toString());
+		value += ac.getModifiersTotal(ACComponentType.DODGE.toString());
+		setACComponent(doc, e, ACComponentType.OTHER.toString(), value);
+		setACComponent(doc, e, "Dexterity", ac.getModifiersTotal("Dexterity"));
+		setACComponent(doc, e, "Armor", ac.getArmor().getValue());
+		setACComponent(doc, e, "Shield", ac.getShield().getValue());
 		charEl.appendChild(e);
 
 		e = attacks.getElement(doc);

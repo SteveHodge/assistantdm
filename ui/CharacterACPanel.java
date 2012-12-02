@@ -37,7 +37,7 @@ import swing.SpinnerCellEditor;
 
 // TODO flag conditional modifiers for touch and flatfooted
 // TODO integer fields should be validated or formatted
-// TODO doesn't listen to armor or shield changes - needs to be changed if there is another ui that modifies those things
+// TODO armor and shield bonus should show tooltip in table and/or show current enhancement bonus
 @SuppressWarnings("serial")
 public class CharacterACPanel extends CharacterSubPanel implements PropertyChangeListener {
 	protected TableModel acModel;
@@ -68,14 +68,21 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 	AC.Armor armor;
 	AC.Shield shield;
 
+	boolean editing = false;	// flag used to prevent updates while a field's document is changing
+
 	PropertyChangeListener armorListener = new PropertyChangeListener() {
+		// NOTE: we call this to initially populate the fields with null evt
 		public void propertyChange(PropertyChangeEvent evt) {
-			// NOTE: we call this to initially populate the fields with null evt
+			if (editing) return;
 			nameField.setText(armor.description);
 			typeField.setText(armor.type);
 			bonusField.setText(""+armor.getBonus());
 			enhancementField.setText(""+armor.getEnhancement());
-			maxDexField.setText(""+armor.getMaxDex());
+			if (armor.getMaxDex() < Integer.MAX_VALUE) {
+				maxDexField.setText(""+armor.getMaxDex());
+			} else {
+				maxDexField.setText("");
+			}
 			checkPenaltyField.setText(""+armor.getACP());
 			spellFailureField.setText(""+armor.spellFailure);
 			speedField.setText(""+armor.speed);
@@ -85,8 +92,9 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 	};
 
 	PropertyChangeListener shieldListener = new PropertyChangeListener() {
+		// NOTE: we call this to initially populate the fields with null evt
 		public void propertyChange(PropertyChangeEvent evt) {
-			// NOTE: we call this to initially populate the fields with null evt
+			if (editing) return;
 			shieldNameField.setText(shield.description);
 			shieldBonusField.setText(""+shield.getBonus());
 			shieldEnhancementField.setText(""+shield.getEnhancement());
@@ -258,6 +266,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 			if (armor == null || shield == null) return;	// shouldn't happen
 			Document d = e.getDocument();
 
+			editing = true;
 			// TODO ugly. find a better way
 			if (d == nameField.getDocument()) {
 				armor.description = nameField.getText();
@@ -272,11 +281,11 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 			} else if (d == checkPenaltyField.getDocument()) {
 				armor.setACP(getIntValue(checkPenaltyField.getText()));
 			} else if (d == spellFailureField.getDocument()) {
-				armor.spellFailure = Integer.parseInt(spellFailureField.getText());
+				armor.spellFailure = getIntValue(spellFailureField.getText());
 			} else if (d == speedField.getDocument()) {
-				armor.speed = Integer.parseInt(speedField.getText());
+				armor.speed = getIntValue(speedField.getText());
 			} else if (d == weightField.getDocument()) {
-				armor.weight = Integer.parseInt(weightField.getText());
+				armor.weight = getIntValue(weightField.getText());
 			} else if (d == propertiesField.getDocument()) {
 				armor.properties = propertiesField.getText();
 
@@ -289,12 +298,14 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 			} else if (d == shieldCheckPenaltyField.getDocument()) {
 				shield.setACP(getIntValue(shieldCheckPenaltyField.getText()));
 			} else if (d == shieldSpellFailureField.getDocument()) {
-				shield.spellFailure = Integer.parseInt(shieldSpellFailureField.getText());
+				shield.spellFailure = getIntValue(shieldSpellFailureField.getText());
 			} else if (d == shieldWeightField.getDocument()) {
-				shield.weight = Integer.parseInt(shieldWeightField.getText());
+				shield.weight = getIntValue(shieldWeightField.getText());
 			} else if (d == shieldPropertiesField.getDocument()) {
 				shield.properties = shieldPropertiesField.getText();
 			}
+
+			editing = false;
 		}
 	};
 
@@ -400,7 +411,12 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (!isCellEditable(rowIndex, columnIndex)) return;
 			if (value == null) value = new Integer(0);
-			character.setACComponent(Character.ACComponentType.values()[rowIndex], (Integer)value);
+			if (Character.ACComponentType.values()[rowIndex] == Character.ACComponentType.NATURAL) {
+				// TODO temporarily redirect NA changes - should move it out of the table
+				ac.getNaturalArmor().setBaseValue((Integer)value);
+			} else {
+				character.setACComponent(Character.ACComponentType.values()[rowIndex], (Integer)value);
+			}
 			fireTableRowsUpdated(rowIndex, rowIndex);
 		}
 
@@ -420,6 +436,10 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		public Object getValueAt(int row, int column) {
 			if (row < Character.ACComponentType.values().length) {
 				if (column == 0) return Character.ACComponentType.values()[row].toString();
+				if (Character.ACComponentType.values()[row] == Character.ACComponentType.NATURAL) {
+					// TODO temporarily redirect NA - should move it out of the table
+					return ac.getNaturalArmor().getBaseValue();
+				}
 				return character.getACComponent(Character.ACComponentType.values()[row]);
 			} else {
 				row -= Character.ACComponentType.values().length;

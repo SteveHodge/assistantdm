@@ -13,6 +13,7 @@ public class AC extends Statistic {
 	final protected ArmorCheckPenalty armorCheckPenalty = new ArmorCheckPenalty();
 	final protected Armor armor = new Armor();
 	final protected Shield shield = new Shield();
+	final protected NaturalArmor naturalArmor = new NaturalArmor();
 	protected LimitModifier dexMod;
 
 	public AC(AbilityScore dex) {
@@ -33,10 +34,6 @@ public class AC extends Statistic {
 		return flatFootedAC;
 	}
 
-	public Modifier getACPModifier() {
-		return armorCheckPenalty;
-	}
-
 	public Armor getArmor() {
 		return armor;
 	}
@@ -45,12 +42,17 @@ public class AC extends Statistic {
 		return shield;
 	}
 
+	public NaturalArmor getNaturalArmor() {
+		return naturalArmor;
+	}
+
 	public Modifier getArmorCheckPenalty() {
 		return armorCheckPenalty;
 	}
 
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("AC");
+		e.setAttribute("natural_armor", ""+naturalArmor.getBaseValue());
 		e.appendChild(armor.getElement(doc));
 		e.appendChild(shield.getElement(doc));
 		return e;
@@ -59,6 +61,7 @@ public class AC extends Statistic {
 	public void parseDOM(Element e) {
 		if (!e.getTagName().equals("AC")) return;
 
+		if (e.hasAttribute("natural_armor")) naturalArmor.setBaseValue(Integer.parseInt(e.getAttribute("natural_armor")));
 		NodeList children = e.getChildNodes();
 		for (int j=0; j<children.getLength(); j++) {
 			if (children.item(j).getNodeName().equals("Armor")) {
@@ -157,6 +160,52 @@ public class AC extends Statistic {
 		}
 	};
 
+	// TODO factor out common code in NaturalArmor and Shield?
+	public class NaturalArmor extends Statistic {
+		protected int base = 0;
+		protected Modifier modifier = null;		// the natural modifier that is applied to the AC
+
+		public NaturalArmor() {
+			super("Natural Armor");
+		}
+
+		public int getValue() {
+			return base + super.getValue();
+		}
+
+		public int getBaseValue() {
+			return base;
+		}
+
+		public void setBaseValue(int b) {
+			base = b;
+			this.firePropertyChange("value", null, getValue());
+			updateModifier();
+		}
+
+		public void addModifier(Modifier m) {
+			super.addModifier(m);
+			updateModifier();
+		}
+
+		public void removeModifier(Modifier m) {
+			super.removeModifier(m);
+			updateModifier();
+		}
+
+		protected void updateModifier() {
+			if (modifier != null) {
+				if (modifier.getModifier() == getValue()) return;	// no change
+				AC.this.removeModifier(modifier);
+				modifier = null;
+			}
+			if (getValue() != 0) {
+				modifier = new ImmutableModifier(getValue(), getName());
+				AC.this.addModifier(modifier);
+			}
+		}
+	}
+
 	public class Shield extends Statistic {
 		public String description;
 		protected int bonus = 0;
@@ -180,15 +229,19 @@ public class AC extends Statistic {
 			return bonus + super.getValue();
 		}
 
-		public int getBonus() {
-			return bonus;
+		public void addModifier(Modifier m) {
+			super.addModifier(m);
+			updateModifier();
 		}
 
-		public void setBonus(int b) {
-			if (bonus == b) return;
-			bonus = b;
+		public void removeModifier(Modifier m) {
+			super.removeModifier(m);
+			updateModifier();
+		}
 
+		protected void updateModifier() {
 			if (modifier != null) {
+				if (modifier.getModifier() == getValue()) return;	// no change
 				AC.this.removeModifier(modifier);
 				modifier = null;
 			}
@@ -196,6 +249,16 @@ public class AC extends Statistic {
 				modifier = new ImmutableModifier(getValue(), getName());
 				AC.this.addModifier(modifier);
 			}
+		}
+
+		public int getBonus() {
+			return bonus;
+		}
+
+		public void setBonus(int b) {
+			if (bonus == b) return;
+			bonus = b;
+			updateModifier();
 		}
 
 		public int getEnhancement() {
@@ -215,15 +278,7 @@ public class AC extends Statistic {
 				enhancement = new ImmutableModifier(e, "Enhancement");
 				addModifier(enhancement);
 			}
-
-			if (modifier != null) {
-				AC.this.removeModifier(modifier);
-				modifier = null;
-			}
-			if (getValue() != 0) {
-				modifier = new ImmutableModifier(getValue(), getName());
-				AC.this.addModifier(modifier);
-			}
+			updateModifier();
 		}
 
 		public int getACP() {

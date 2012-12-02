@@ -149,7 +149,7 @@ public class BuffFactory {
 			.addEffect(Creature.STATISTIC_WILL_SAVE,"Morale",1),
 		(new BuffFactory("Iron Body"))
 			.addEffect(Creature.STATISTIC_STRENGTH,"Enhancement",6)
-			// -8 armor check penalty
+			// TODO -8 armor check penalty
 			.addEffect(Creature.STATISTIC_DEXTERITY,null,-6),	// TODO to a minimum dex of 1
 		(new BuffFactory("Bless"))
 			.addEffect(Creature.STATISTIC_ATTACKS,"Morale",1)
@@ -263,7 +263,7 @@ public class BuffFactory {
 			// increase size category
 			.addEffect(Creature.STATISTIC_STRENGTH,"Size",4)
 			.addEffect(Creature.STATISTIC_CONSTITUTION,"Size",2)
-			// +2 enhancement to NA
+			.addEffect(Creature.STATISTIC_NATURAL_ARMOR,"Enhancement",2)
 			// damage reduction
 			.addEffect(Creature.STATISTIC_AC,"Size",-1)			// note: spell says use modifier for new size
 			.addEffect(Creature.STATISTIC_ATTACKS,"Size",-1),	// note: spell says use modifier for new size
@@ -277,15 +277,30 @@ public class BuffFactory {
 			.addEffect(Creature.STATISTIC_SKILLS+".Hide", null, -40),
 		(new BuffFactory("Symbol of Pain"))
 			.addEffect(Creature.STATISTIC_ATTACKS, null, -4)
-			.addEffect(Creature.STATISTIC_SKILLS, null, -4)
+			.addEffect(Creature.STATISTIC_SKILLS, null, -4),
 			//.addEffect(Creature.STATISTIC_ABILITY_CHECKS, null, -4)
+		(new BuffFactory("Magic Vestment (armor)"))
+			.addBonus(Creature.STATISTIC_ARMOR, "Enhancement", 0, 4, 5),		// +1/4 CL (max +5)
+		(new BuffFactory("Magic Vestment (shield)"))
+			.addBonus(Creature.STATISTIC_SHIELD, "Enhancement", 0, 4, 5),		// +1/4 CL (max +5)
+		(new BuffFactory("Barkskin"))
+			.addBonus(Creature.STATISTIC_NATURAL_ARMOR, "Enhancement", 1, 3, 4),	// 1+CL/3 enhancement to na, (min +2, max of +5)
 
 			//Jump			+10 enhancement bonus to jump, +20 at cl 5, +30 at cl 9
 			//Longstrider	+10ft enhancement bonus to speed
 			//Tree Shape	+10 natural armor bonus, effective dex of 0, spped of 0
 
-// needs caster level:
-			//Barkskin	1+CL/3 enhancement to na, (min +2, max of +5) * note enhancement to NA bonus, i.e NA is a Statistic (much like armor bonus, shield bonus). but can treat as type "Natural Armor Ehancement"
+// buff to items/attacks, or create new attacks:
+			//magic fang	+1 enhancement bonus to attack and dmg to one weapon (unarmed strike or natural weapon)
+			//magic weapon	+1 enhancement bonus to attack and dmg to one weapon (not unarmed strike or natural weapon except for monk)
+			//magic weapon, greater	+1/4 CL enhancement bonus to attack and dmg to one weapon (not unarmed strike or natural weapon except for monk) or to up to 50 ammo
+			//magic stone	+1 enhancement bonus to attack and dmg to up to 3 pebbles/sling bullets 1d6+1 dmg, 2d6+2 v undead (including enhancement bonus)
+			//align weapon	make weapon or up to 50 ammo lawful, good, chaotic, or evil
+			//shillelagh	+1 enhancement bonus to attack and dmg for one club or quarterstaff, plus increase damage as if 2 sizes larger 
+			//magic fang, greater	+1/4 CL enhancement bonus to weapon (unarmed strike or natural weapon) or +1 to all natural weapons
+			//spritual weapon	attack at BAB+wisdom (allows multiple attacks). feats not applied. 1d8 + 1/3CL damage
+			//bigby's hand spells
+			//bless weapon
 
 // character level:
 			//Tenser's Transformation		+4 enhancement to str, con, dex, +4 na to ac, +5 competence to fort, bab equals character level (20 max)
