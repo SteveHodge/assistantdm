@@ -26,6 +26,8 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+// TODO only attack and damage labels are updated on changes from the attack, other changes will be ignored (needs fixing if something other than this panel makes changes to the attack)
+
 @SuppressWarnings("serial")
 public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	//Attacks attacks;

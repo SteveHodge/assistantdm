@@ -2,7 +2,6 @@ package gamesystem;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,13 +55,11 @@ public class HPs extends Statistic {
 	protected Map<Modifier,TempHPs> modMap = new HashMap<Modifier,TempHPs>();
 
 	// interested parties can register listeners as with other Modifier subclasses. if damage reduces a hps to 0, the TempHPs will be removed from the HPs instance
-	protected class TempHPs implements Modifier {
+	protected class TempHPs extends AbstractModifier {
 		int hps;
 		String source;
 		boolean active = true;
 		int id;
-
-		final PropertyChangeSupport modpcs = new PropertyChangeSupport(this);
 
 		public TempHPs(String source, int hps) {
 			this.hps = hps;
@@ -73,24 +70,8 @@ public class HPs extends Statistic {
 			return hps;
 		}
 
-		public String getType() {
-			return null;
-		}
-
 		public String getSource() {
 			return source;
-		}
-
-		public String getCondition() {
-			return null;
-		}
-
-		public void addPropertyChangeListener(PropertyChangeListener listener) {
-			modpcs.addPropertyChangeListener(listener);
-		}
-
-		public void removePropertyChangeListener(PropertyChangeListener listener) {
-			modpcs.removePropertyChangeListener(listener);
 		}
 
 		public int getID() {
@@ -195,7 +176,7 @@ public class HPs extends Statistic {
 						// if any temphps are reduced to 0 remove them
 						iter.remove();
 					}
-					t.modpcs.firePropertyChange(Creature.PROPERTY_HPS, old, t.hps);
+					t.pcs.firePropertyChange(Creature.PROPERTY_HPS, old, t.hps);
 				}
 			}
 

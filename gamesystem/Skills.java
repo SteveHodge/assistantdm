@@ -23,31 +23,33 @@ import org.w3c.dom.NodeList;
  * Unlike other modifiers, this class fires property change events for each skill name (not just "value").
  * "value" property changes denote changes to global skills modifiers (or ability modifiers). All skills should be considered updated
  */
-// TODO need a way of retrieving a specific skill so it can be modified individually (or special case code for applying buffs to individual skills)
 // TODO reimplement misc as Modifier
 public class Skills extends Statistic {
-	public Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();	// TODO public for Character.getXML. change when no longer required
-	protected EnumMap<AbilityScore.Type,Modifier> abilityMods = new EnumMap<AbilityScore.Type,Modifier>(AbilityScore.Type.class);
+	final public Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();	// TODO public for Character.getXML. change when no longer required
+	final protected EnumMap<AbilityScore.Type,Modifier> abilityMods = new EnumMap<AbilityScore.Type,Modifier>(AbilityScore.Type.class);
+	final protected Modifier acp;
 
-	PropertyChangeListener abilityListener = new PropertyChangeListener() {
+	final protected PropertyChangeListener modifierListener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent evt) {
 			// for ability modifier changes. sends event to indicate all skills need updating 
 			pcs.firePropertyChange("value", null, null);
 		}
 	};
 
-	public Skills(Collection<AbilityScore> abilities) {
+	public Skills(Collection<AbilityScore> abilities, Modifier acp) {
 		super("Skills");
 		for (AbilityScore a : abilities) {
 			abilityMods.put(a.type, a.getModifier());
-			a.getModifier().addPropertyChangeListener(abilityListener);
+			a.getModifier().addPropertyChangeListener(modifierListener);
 		}
+		this.acp = acp;
+		acp.addPropertyChangeListener(modifierListener);
 	}
 
 	public Skill getSkill(SkillType s) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
-			skill = new Skill(s,abilityMods.get(s.ability));
+			skill = new Skill(s,abilityMods.get(s.ability), acp);
 			skills.put(s,skill);
 		}
 		return skill;
@@ -91,14 +93,31 @@ public class Skills extends Statistic {
 		}
 	}
 
-	public int getValue(SkillType s) {
+	protected Set<Modifier> getModifiersSet(SkillType s) {
 		Skill skill = skills.get(s);
 		Set<Modifier> mods = new HashSet<Modifier>(modifiers);
 		if (skill == null) {
 			mods.add(abilityMods.get(s.ability));
-			return super.getModifiersTotal(mods, null);
+			if (s.armorCheckPenaltyApplies) {
+				if (s.doubleACP) {
+					mods.add(new DoubleModifier(acp));
+				} else {
+					mods.add(acp);
+				}
+			}
+			return mods;
 		} else {
 			mods.addAll(skill.modifiers);
+			return mods;
+		}
+	}
+
+	public int getValue(SkillType s) {
+		Skill skill = skills.get(s);
+		Set<Modifier> mods = getModifiersSet(s);
+		if (skill == null) {
+			return super.getModifiersTotal(mods, null);
+		} else {
 			return (int)skill.ranks + getModifiersTotal(mods, null) + skill.misc;
 		}
 	}
@@ -113,13 +132,7 @@ public class Skills extends Statistic {
 	}
 
 	public Map<Modifier,Boolean> getModifiers(SkillType s) {
-		Skill skill = skills.get(s);
-		Set<Modifier> mods = new HashSet<Modifier>(modifiers);
-		if (skill == null) {
-			mods.add(abilityMods.get(s.ability));
-		} else {
-			mods.addAll(skill.modifiers);
-		}
+		Set<Modifier> mods = getModifiersSet(s);
 		return getModifiers(mods);
 	}
 

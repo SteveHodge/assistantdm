@@ -17,19 +17,27 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
+import javax.swing.text.Document;
 
 import party.Character;
 import party.Creature;
 import swing.SpinnerCellEditor;
 
 // TODO flag conditional modifiers for touch and flatfooted
+// TODO integer fields should be validated or formatted
+// TODO doesn't listen to armor or shield changes - needs to be changed if there is another ui that modifies those things
 @SuppressWarnings("serial")
 public class CharacterACPanel extends CharacterSubPanel implements PropertyChangeListener {
 	protected TableModel acModel;
@@ -37,8 +45,65 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 	protected JLabel touchLabel;
 	protected JLabel flatLabel;
 
+	JTextField nameField = new JTextField(20);
+	JTextField typeField = new JTextField(20);
+	JTextField bonusField = new JTextField(20);
+	JTextField enhancementField = new JTextField(20);
+	JTextField maxDexField = new JTextField(20);
+	JTextField checkPenaltyField = new JTextField(20);
+	JTextField spellFailureField = new JTextField(20);
+	JTextField speedField = new JTextField(20);
+	JTextField weightField = new JTextField(20);
+	JTextField propertiesField = new JTextField(20);
+
+	JTextField shieldNameField = new JTextField(20);
+	JTextField shieldBonusField = new JTextField(20);
+	JTextField shieldEnhancementField = new JTextField(20);
+	JTextField shieldCheckPenaltyField = new JTextField(20);
+	JTextField shieldSpellFailureField = new JTextField(20);
+	JTextField shieldWeightField = new JTextField(20);
+	JTextField shieldPropertiesField = new JTextField(20);
+
+	AC ac;
+	AC.Armor armor;
+	AC.Shield shield;
+
+	PropertyChangeListener armorListener = new PropertyChangeListener() {
+		public void propertyChange(PropertyChangeEvent evt) {
+			// NOTE: we call this to initially populate the fields with null evt
+			nameField.setText(armor.description);
+			typeField.setText(armor.type);
+			bonusField.setText(""+armor.getBonus());
+			enhancementField.setText(""+armor.getEnhancement());
+			maxDexField.setText(""+armor.getMaxDex());
+			checkPenaltyField.setText(""+armor.getACP());
+			spellFailureField.setText(""+armor.spellFailure);
+			speedField.setText(""+armor.speed);
+			weightField.setText(""+armor.weight);
+			propertiesField.setText(armor.properties);
+		}
+	};
+
+	PropertyChangeListener shieldListener = new PropertyChangeListener() {
+		public void propertyChange(PropertyChangeEvent evt) {
+			// NOTE: we call this to initially populate the fields with null evt
+			shieldNameField.setText(shield.description);
+			shieldBonusField.setText(""+shield.getBonus());
+			shieldEnhancementField.setText(""+shield.getEnhancement());
+			shieldCheckPenaltyField.setText(""+shield.getACP());
+			shieldSpellFailureField.setText(""+shield.spellFailure);
+			shieldWeightField.setText(""+shield.weight);
+			shieldPropertiesField.setText(shield.properties);
+		}
+	};
+
 	public CharacterACPanel(Character c) {
 		super(c);
+
+		ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
+		armor = ac.getArmor();
+		shield = ac.getShield();
+
 		summary = getSummary();
 		acModel = new ACTableModel();
 
@@ -62,7 +127,6 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		JScrollPane acScrollpane = new JScrollPane(acTable);
 		acScrollpane.setPreferredSize(new Dimension(450,200));
 
-		AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
 		totalLabel = new JLabel("Total AC: "+ac.getValue()+(ac.hasConditionalModifier()?"*":""));
 		touchLabel = new JLabel("Touch AC: "+ac.getTouchAC().getValue()+(ac.getTouchAC().hasConditionalModifier()?"*":""));
 		flatLabel = new JLabel("Flat-footed AC: "+ac.getFlatFootedAC().getValue()+(ac.getFlatFootedAC().hasConditionalModifier()?"*":""));
@@ -72,26 +136,170 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		GridBagConstraints a = new GridBagConstraints();
 
 		a.insets = new Insets(2, 3, 2, 3);
-		a.fill = GridBagConstraints.BOTH;
-		a.weightx = 1.0; a.weighty = 1.0;
-		a.gridx = 0; a.gridy = 0; a.gridheight = 4;
-		add(acScrollpane,a);
 
-		a.gridx = 1; a.gridy = 0; a.gridheight = 1;
 		a.weightx = 0.0; a.weighty = 0.0;
+		a.gridx = 0; a.gridy = 0; a.gridheight = 1;
 		a.fill = GridBagConstraints.NONE;
 		add(totalLabel,a);
-		a.gridx = 1; a.gridy = 1; a.gridheight = 1;
-		add(touchLabel,a);
-		a.gridx = 1; a.gridy = 2; a.gridheight = 1;
-		add(flatLabel,a);
+		a.gridy = 1; add(touchLabel,a);
+		a.gridy = 2; add(flatLabel,a);
+		a.fill = GridBagConstraints.BOTH;
+		a.weightx = 1.0; a.weighty = 1.0;
+		a.gridy = 3; add(acScrollpane,a);
+
+		a.gridx = 1; a.gridy = 0; a.gridheight = 4;
+		add(getArmorPanel(),a);
 
 		character.addPropertyChangeListener(this);
+		armor.addPropertyChangeListener(armorListener);
+		shield.addPropertyChangeListener(shieldListener);
+		armorListener.propertyChange(null);		// update the values of the fields - won't work if we ever use the event object
+		shieldListener.propertyChange(null);		// update the values of the fields - won't work if we ever use the event object
 	}
+
+	protected JPanel getArmorPanel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+		panel.setBorder(BorderFactory.createTitledBorder("Armor and shield"));
+
+		nameField.getDocument().addDocumentListener(docListener);
+		typeField.getDocument().addDocumentListener(docListener);
+		bonusField.getDocument().addDocumentListener(docListener);
+		enhancementField.getDocument().addDocumentListener(docListener);
+		maxDexField.getDocument().addDocumentListener(docListener);
+		checkPenaltyField.getDocument().addDocumentListener(docListener);
+		spellFailureField.getDocument().addDocumentListener(docListener);
+		speedField.getDocument().addDocumentListener(docListener);
+		weightField.getDocument().addDocumentListener(docListener);
+		propertiesField.getDocument().addDocumentListener(docListener);
+
+		shieldNameField.getDocument().addDocumentListener(docListener);
+		shieldBonusField.getDocument().addDocumentListener(docListener);
+		shieldEnhancementField.getDocument().addDocumentListener(docListener);
+		shieldCheckPenaltyField.getDocument().addDocumentListener(docListener);
+		shieldSpellFailureField.getDocument().addDocumentListener(docListener);
+		shieldWeightField.getDocument().addDocumentListener(docListener);
+		shieldPropertiesField.getDocument().addDocumentListener(docListener);
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.insets = new Insets(1,2,1,2);
+		c.fill = GridBagConstraints.HORIZONTAL;
+
+		c.gridx = 0; c.gridy = 0;
+		c.weightx = 0.5;
+		c.gridy++; panel.add(new JLabel("Description:"),c);
+		c.gridy++; panel.add(new JLabel("Type:"),c);
+		c.gridy++; panel.add(new JLabel("Bonus:"),c);
+		c.gridy++; panel.add(new JLabel("Enhancement:"),c);
+		c.gridy++; panel.add(new JLabel("Max Dex:"),c);
+		c.gridy++; panel.add(new JLabel("ACP:"),c);
+		c.gridy++; panel.add(new JLabel("Spell Failure:"),c);
+		c.gridy++; panel.add(new JLabel("Speed:"),c);
+		c.gridy++; panel.add(new JLabel("Weight (lbs):"),c);
+		c.gridy++; panel.add(new JLabel("Properties:"),c);
+
+		c.gridx = 1; c.gridy = 0;
+		c.weightx = 1.0;
+		panel.add(new JLabel("Armor", JLabel.CENTER),c);
+		c.gridy++; panel.add(nameField,c);
+		c.gridy++; panel.add(typeField,c);
+		c.gridy++; panel.add(bonusField,c);
+		c.gridy++; panel.add(enhancementField,c);
+		c.gridy++; panel.add(maxDexField,c);
+		c.gridy++; panel.add(checkPenaltyField,c);
+		c.gridy++; panel.add(spellFailureField,c);
+		c.gridy++; panel.add(speedField,c);
+		c.gridy++; panel.add(weightField,c);
+		c.gridy++; panel.add(propertiesField,c);
+
+		c.gridx = 2; c.gridy = 0;
+		panel.add(new JLabel("Shield", JLabel.CENTER),c);
+		c.gridy++; panel.add(shieldNameField,c);
+		c.gridy++;
+		c.gridy++; panel.add(shieldBonusField,c);
+		c.gridy++; panel.add(shieldEnhancementField,c);
+		c.gridy++; 
+		c.gridy++; panel.add(shieldCheckPenaltyField,c);
+		c.gridy++; panel.add(shieldSpellFailureField,c);
+		c.gridy++; 
+		c.gridy++; panel.add(shieldWeightField,c);
+		c.gridy++; panel.add(shieldPropertiesField,c);
+
+		return panel;
+	}
+	
+	DocumentListener docListener = new DocumentListener() {
+		public void changedUpdate(DocumentEvent e) {
+			updateField(e);
+		}
+
+		public void insertUpdate(DocumentEvent e) {
+			updateField(e);
+		}
+
+		public void removeUpdate(DocumentEvent e) {
+			updateField(e);
+		}
+
+		protected int getIntValue(String text) {
+			return getIntValue(text, 0);
+		}
+
+		protected int getIntValue(String text, int def) {
+			int v = def;
+			try {
+				v = Integer.parseInt(text);
+			} catch(NumberFormatException ex) {
+			}
+			return v;
+		}
+
+		protected void updateField(DocumentEvent e) {
+			if (armor == null || shield == null) return;	// shouldn't happen
+			Document d = e.getDocument();
+
+			// TODO ugly. find a better way
+			if (d == nameField.getDocument()) {
+				armor.description = nameField.getText();
+			} else if (d == typeField.getDocument()) {
+				armor.type = typeField.getText();
+			} else if (d == bonusField.getDocument()) {
+				armor.setBonus(getIntValue(bonusField.getText()));
+			} else if (d == enhancementField.getDocument()) {
+				armor.setEnhancement(getIntValue(enhancementField.getText()));
+			} else if (d == maxDexField.getDocument()) {
+				armor.setMaxDex(getIntValue(maxDexField.getText()));
+			} else if (d == checkPenaltyField.getDocument()) {
+				armor.setACP(getIntValue(checkPenaltyField.getText()));
+			} else if (d == spellFailureField.getDocument()) {
+				armor.spellFailure = Integer.parseInt(spellFailureField.getText());
+			} else if (d == speedField.getDocument()) {
+				armor.speed = Integer.parseInt(speedField.getText());
+			} else if (d == weightField.getDocument()) {
+				armor.weight = Integer.parseInt(weightField.getText());
+			} else if (d == propertiesField.getDocument()) {
+				armor.properties = propertiesField.getText();
+
+			} else if (d == shieldNameField.getDocument()) {
+				shield.description = shieldNameField.getText();
+			} else if (d == shieldBonusField.getDocument()) {
+				shield.setBonus(getIntValue(shieldBonusField.getText()));
+			} else if (d == shieldEnhancementField.getDocument()) {
+				shield.setEnhancement(getIntValue(shieldEnhancementField.getText()));
+			} else if (d == shieldCheckPenaltyField.getDocument()) {
+				shield.setACP(getIntValue(shieldCheckPenaltyField.getText()));
+			} else if (d == shieldSpellFailureField.getDocument()) {
+				shield.spellFailure = Integer.parseInt(shieldSpellFailureField.getText());
+			} else if (d == shieldWeightField.getDocument()) {
+				shield.weight = Integer.parseInt(shieldWeightField.getText());
+			} else if (d == shieldPropertiesField.getDocument()) {
+				shield.properties = shieldPropertiesField.getText();
+			}
+		}
+	};
 
 	public void propertyChange(PropertyChangeEvent arg0) {
 		if (arg0.getPropertyName().equals(Creature.PROPERTY_AC)) {
-			AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
 			totalLabel.setText("Total AC: "+ac.getValue()+(ac.hasConditionalModifier()?"*":""));
 			touchLabel.setText("Touch AC: "+ac.getTouchAC().getValue()+(ac.getTouchAC().hasConditionalModifier()?"*":""));
 			flatLabel.setText("Flat-footed AC: "+ac.getFlatFootedAC().getValue()+(ac.getFlatFootedAC().hasConditionalModifier()?"*":""));
@@ -109,8 +317,6 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 	}
 
 	protected void updateToolTips() {
-		AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
-
 		Map<Modifier, Boolean> mods = ac.getModifiers();
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
@@ -153,7 +359,6 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		}
 
 		protected void updateModifiers() {
-			AC ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
 			Map<Modifier, Boolean> mods = ac.getModifiers();
 			ArrayList<Modifier> list = new ArrayList<Modifier>();
 			for (Modifier m : mods.keySet()) {

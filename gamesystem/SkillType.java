@@ -15,11 +15,15 @@ public class SkillType implements Comparable<SkillType> {
 	protected String name;
 	public AbilityScore.Type ability;
 	protected boolean trainedOnly;
+	protected boolean armorCheckPenaltyApplies;
+	protected boolean doubleACP;
 
-	private SkillType(String name, AbilityScore.Type ability, boolean trained) {
+	private SkillType(String name, AbilityScore.Type ability, boolean trained, boolean acp, boolean doubleACP) {
 		this.name = name;
 		this.ability = ability;
 		trainedOnly = trained;
+		armorCheckPenaltyApplies = acp;
+		this.doubleACP = doubleACP;
 	}
 
 	public String toString() {
@@ -59,7 +63,15 @@ public class SkillType implements Comparable<SkillType> {
 	}
 
 	public static SkillType addSkill(String name, AbilityScore.Type ability, boolean trained) {
-		SkillType s = new SkillType(name, ability, trained);
+		return addSkill(name, ability, trained, false, false);
+	}
+
+	public static SkillType addSkill(String name, AbilityScore.Type ability, boolean trained, boolean acp) {
+		return addSkill(name, ability, trained, acp, false);
+	}
+
+	public static SkillType addSkill(String name, AbilityScore.Type ability, boolean trained, boolean acp, boolean doubleACP) {
+		SkillType s = new SkillType(name, ability, trained, acp, doubleACP);
 		skills.put(s.name.toLowerCase(), s);
 		return s;
 	}
@@ -85,23 +97,25 @@ public class SkillType implements Comparable<SkillType> {
 	static {
 		skills = new HashMap<String,SkillType>();
 		addSkill("Appraise",AbilityScore.Type.INTELLIGENCE,false);
-		addSkill("Balance",AbilityScore.Type.DEXTERITY,false);
+		addSkill("Balance",AbilityScore.Type.DEXTERITY,false,true);
 		addSkill("Bluff",AbilityScore.Type.CHARISMA,false);
-		addSkill("Climb",AbilityScore.Type.STRENGTH,false);
+		addSkill("Climb",AbilityScore.Type.STRENGTH,false,true);
 		addSkill("Concentration",AbilityScore.Type.CONSTITUTION,false);
 		addSkill("Craft",AbilityScore.Type.INTELLIGENCE,false);
+		addSkill("Craft (Armorsmithing)",AbilityScore.Type.INTELLIGENCE,false);
+		addSkill("Craft (Weaponsmithing)",AbilityScore.Type.INTELLIGENCE,false);
 		addSkill("Decipher Script",AbilityScore.Type.INTELLIGENCE,true);
 		addSkill("Diplomacy",AbilityScore.Type.CHARISMA,false);
 		addSkill("Disable Device",AbilityScore.Type.INTELLIGENCE,true);
 		addSkill("Disguise",AbilityScore.Type.CHARISMA,false);
-		addSkill("Escape Artist",AbilityScore.Type.DEXTERITY,false);
+		addSkill("Escape Artist",AbilityScore.Type.DEXTERITY,false,true);
 		addSkill("Forgery",AbilityScore.Type.INTELLIGENCE,false);
 		addSkill("Gather Information",AbilityScore.Type.CHARISMA,false);
 		addSkill("Handle Animal",AbilityScore.Type.CHARISMA,true);
 		addSkill("Heal",AbilityScore.Type.WISDOM,false);
-		addSkill("Hide",AbilityScore.Type.DEXTERITY,false);
+		addSkill("Hide",AbilityScore.Type.DEXTERITY,false,true);
 		addSkill("Intimidate",AbilityScore.Type.CHARISMA,false);
-		addSkill("Jump",AbilityScore.Type.STRENGTH,false);
+		addSkill("Jump",AbilityScore.Type.STRENGTH,false,true);
 		addSkill("Knowledge (Arcana)",AbilityScore.Type.INTELLIGENCE,true);
 		addSkill("Knowledge (Arch and Eng)",AbilityScore.Type.INTELLIGENCE,true);
 		addSkill("Knowledge (Dungeoneering)",AbilityScore.Type.INTELLIGENCE,true);
@@ -114,19 +128,19 @@ public class SkillType implements Comparable<SkillType> {
 		addSkill("Knowledge (Religion)",AbilityScore.Type.INTELLIGENCE,true);
 		addSkill("Knowledge (The Planes)",AbilityScore.Type.INTELLIGENCE,true);
 		addSkill("Listen",AbilityScore.Type.WISDOM,false);
-		addSkill("Move Silently",AbilityScore.Type.DEXTERITY,false);
+		addSkill("Move Silently",AbilityScore.Type.DEXTERITY,false,true);
 		addSkill("Open Lock",AbilityScore.Type.DEXTERITY,true);
 		addSkill("Perform",AbilityScore.Type.CHARISMA,false);
 		addSkill("Profession",AbilityScore.Type.WISDOM,true);
 		addSkill("Ride",AbilityScore.Type.DEXTERITY,false);
 		addSkill("Search",AbilityScore.Type.INTELLIGENCE,false);
 		addSkill("Sense Motive",AbilityScore.Type.WISDOM,false);
-		addSkill("Sleight of Hand",AbilityScore.Type.DEXTERITY,true);
+		addSkill("Sleight of Hand",AbilityScore.Type.DEXTERITY,true,true);
 		addSkill("Spellcraft",AbilityScore.Type.INTELLIGENCE,true);
 		addSkill("Spot",AbilityScore.Type.WISDOM,false);
 		addSkill("Survival",AbilityScore.Type.WISDOM,false);
-		addSkill("Swim",AbilityScore.Type.STRENGTH,false);
-		addSkill("Tumble",AbilityScore.Type.DEXTERITY,true);
+		addSkill("Swim",AbilityScore.Type.STRENGTH,false, true, true);
+		addSkill("Tumble",AbilityScore.Type.DEXTERITY,true,true);
 		addSkill("Use Magic Device",AbilityScore.Type.CHARISMA,true);
 		addSkill("Use Rope",AbilityScore.Type.DEXTERITY,false);
 	}

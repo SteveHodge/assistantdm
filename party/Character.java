@@ -44,7 +44,6 @@ import util.Updater;
 // TODO priorities:
 // enum conversions - property and statistics types
 // feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
-// buff specific skills - skills don't seem to update correctly in ui - check listeners
 // buffs to ability checks
 // haste extra attack should be shown
 // clean up handling of HPs, wounds, healing etc, particularly ui
@@ -61,7 +60,6 @@ import util.Updater;
 // TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
 
 /* Things to implement:
- *  (in progress) Weapons/attacks
  *  (in progress) Feats
  *  (in progress) Grapple modifier
  *  Ability score checks
@@ -69,7 +67,6 @@ import util.Updater;
  *  Spell lists / spells per day
  *  Damage reduction
  *  Spell resistance
- *  Armor
  *  Magic items slots
  *  Weight/encumberance
  *  Skill synergies
@@ -83,10 +80,10 @@ import util.Updater;
  *
  */
 public class Character extends Creature {
-	// TODO these constants should become unnecessary eventually and/or convert to enum
+	// TODO the armor component override may go away
 	public enum ACComponentType {
-		ARMOR("Armor"),
-		SHIELD("Shield"),
+		//ARMOR("Armor"),
+		//SHIELD("Shield"),
 		NATURAL("Natural Armor"),
 		//DEX("Dexterity"),
 		SIZE("Size"),
@@ -148,6 +145,8 @@ public class Character extends Creature {
 	public BuffListModel feats = new BuffListModel();	// TODO reimplement for better encapsulation
 
 	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
+
+	protected boolean autoSave = false;
 
 	public class XPHistoryItem {
 		protected XPChange xpChange;
@@ -221,49 +220,54 @@ public class Character extends Creature {
 	protected PropertyChangeListener statListener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getSource() == hps) {
-				pcs.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+				firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
 				return;
 			}
 
-			// only care about "value" updates from other statistics...
-			if (!evt.getPropertyName().equals("value")) return;
+			// only care about "value" updates from other statistics except skills
+			// TODO not sure this is what we want to do
+			if (!evt.getPropertyName().equals("value")) {
+				if (!(evt.getSource() instanceof Skills)) {
+					System.out.println("Ignoring update to "+evt.getPropertyName()+" on "+((Statistic)evt.getSource()).getName());
+					return;
+				}
+			}
 
 			if (evt.getSource() == initiative) {
 				//System.out.println("Inititative change event: "+getName()+" old = "+evt.getOldValue()+", new = "+evt.getNewValue());
-				pcs.firePropertyChange(PROPERTY_INITIATIVE, evt.getOldValue(), evt.getNewValue());
+				firePropertyChange(PROPERTY_INITIATIVE, evt.getOldValue(), evt.getNewValue());
 
 			} else if (evt.getSource() instanceof AbilityScore) {
 				AbilityScore score = (AbilityScore)evt.getSource();
-		        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+score.getName(), evt.getOldValue(), evt.getNewValue());
+		        firePropertyChange(PROPERTY_ABILITY_PREFIX+score.getName(), evt.getOldValue(), evt.getNewValue());
 
 			} else if (evt.getSource() instanceof Skill) {
 				Skill s = (Skill)evt.getSource();
-				pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), evt.getOldValue(), evt.getNewValue());
+				firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), evt.getOldValue(), evt.getNewValue());
 
 			} else if (evt.getSource() instanceof Skills) {
 				if (evt.getPropertyName().equals("value")) {
 					// change to global modifiers or ability modifiers - update all skills
 					for (SkillType s : getSkills()) {
-						pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), null, null);
+						firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), null, null);
 					}
 				} else {
-					pcs.firePropertyChange(PROPERTY_SKILL_PREFIX+evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+					firePropertyChange(PROPERTY_SKILL_PREFIX+evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
 				}
 
 			} else if (evt.getSource() instanceof SavingThrow) {
 				SavingThrow save = (SavingThrow)evt.getSource();
-				pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.getName(), evt.getOldValue(), evt.getNewValue());
+				firePropertyChange(PROPERTY_SAVE_PREFIX+save.getName(), evt.getOldValue(), evt.getNewValue());
 
 			} else if (evt.getSource() == ac) {
-				pcs.firePropertyChange(PROPERTY_AC, evt.getOldValue(), evt.getNewValue());
+				firePropertyChange(PROPERTY_AC, evt.getOldValue(), evt.getNewValue());
 
 			} else if (evt.getSource() == attacks) {
-				pcs.firePropertyChange(PROPERTY_BAB, evt.getOldValue(), evt.getNewValue());
+				firePropertyChange(PROPERTY_BAB, evt.getOldValue(), evt.getNewValue());
 
 			} else {
 				System.out.println("Unknown property change event: "+evt);
 			}
-		
 		}
 	};
 
@@ -275,7 +279,7 @@ public class Character extends Creature {
 			s.getModifier().addPropertyChangeListener(new PropertyChangeListener() {
 				public void propertyChange(PropertyChangeEvent e) {
 					//System.out.println(PROPERTY_ABILITY_PREFIX+s.getName()+": "+e.getOldValue()+" -> "+ e.getNewValue());
-			        pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue());
+			        firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue());
 				}
 			});
 			abilities.put(t, s);
@@ -293,7 +297,7 @@ public class Character extends Creature {
 		ac = new AC(abilities.get(AbilityScore.Type.DEXTERITY));
 		ac.addPropertyChangeListener(statListener);
 
-		skills = new Skills(abilities.values());
+		skills = new Skills(abilities.values(), ac.getACPModifier());
 		skills.addPropertyChangeListener(statListener);
 
 		level = new Level();
@@ -316,6 +320,21 @@ public class Character extends Creature {
 	public void setName(String name) {
 		System.out.println("Setting Name");
 		throw new UnsupportedOperationException();
+	}
+
+	public void firePropertyChange(String property, Object oldValue, Object newValue) {
+		if (autoSave) {
+			// if there has been no change we don't trigger an update (pcs.firePropertyChange() also implements this logic)
+			if (oldValue == null) {
+				if (newValue == null) return;
+			} else {
+				if (oldValue.equals(newValue)) return;
+			}
+			System.out.println("Autosave "+name+" triggered by property change on "+property);
+			saveCharacterSheet();
+		}
+
+		pcs.firePropertyChange(property, oldValue, newValue);
 	}
 
 //------------------- Ability Scores -------------------
@@ -468,7 +487,7 @@ public class Character extends Creature {
 	public void setSavingThrowBase(SavingThrow.Type save, int v) {
 		int old = saves.get(save).getValue();
 		saves.get(save).setBaseValue(v);
-		pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, saves.get(save).getValue());
+		firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, saves.get(save).getValue());
 	}
 
 	// TODO currently this works by removing the old modifier and adding a new one. could make the modifiers mutable instead
@@ -479,7 +498,7 @@ public class Character extends Creature {
 		saves.get(save).addModifier(saveMisc.get(save));
 		int now = getSavingThrow(save);
 		if (old != now) {
-			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
+			firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
 		}
 	}
 
@@ -494,9 +513,7 @@ public class Character extends Creature {
 		int old = getSavingThrow(save);
 		saves.get(save).setBaseValue(total-saves.get(save).getModifiersTotal());
 		int now = getSavingThrow(save);
-		if (old != now) {
-			pcs.firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
-		}
+		firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
 	}
 
 //------------------- Hit Points -------------------
@@ -602,7 +619,7 @@ public class Character extends Creature {
 
    /**
     * Sets a temporary full ac score. Setting this to the normal value will remove
-    * the temporary score (as will <code>clearTemporaryAC()</code>
+    * the temporary score (as will <code>clearTemporaryAC()</code>)
     * 
     * @param ac the score to set the full ac to
     */
@@ -611,14 +628,14 @@ public class Character extends Creature {
 			int totAC = getAC(false);
 			if (totAC == tempac) {
 				hasTempAC = false;
-				pcs.firePropertyChange(PROPERTY_AC, tempAC, totAC);
+				firePropertyChange(PROPERTY_AC, tempAC, totAC);
 				return;
 			}
 		}
 		int old = getAC();
 		tempAC = tempac;
 		hasTempAC = true;
-		pcs.firePropertyChange(PROPERTY_AC, old, ac);
+		firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
    /**
@@ -632,14 +649,14 @@ public class Character extends Creature {
 			int totAC = getTouchAC(false);
 			if (totAC == tempac) {
 				hasTempTouch = false;
-				pcs.firePropertyChange(PROPERTY_AC, tempTouch, totAC);
+				firePropertyChange(PROPERTY_AC, tempTouch, totAC);
 				return;
 			}
 		}
 		int old = getTouchAC();
 		tempTouch = tempac;
 		hasTempTouch = true;
-		pcs.firePropertyChange(PROPERTY_AC, old, ac);
+		firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
    /**
@@ -653,14 +670,14 @@ public class Character extends Creature {
 			int totAC = getFlatFootedAC(false);
 			if (totAC == tempac) {
 				hasTempFF = false;
-				pcs.firePropertyChange(PROPERTY_AC, tempFF, totAC);
+				firePropertyChange(PROPERTY_AC, tempFF, totAC);
 				return;
 			}
 		}
 		int old = getFlatFootedAC();
 		tempFF = tempac;
 		hasTempFF = true;
-		pcs.firePropertyChange(PROPERTY_AC, old, ac);
+		firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
 //------------------- XP and level -------------------
@@ -698,14 +715,14 @@ public class Character extends Creature {
 		addXPChange(change);
 		int old = xp;
 		xp += change.xp;
-        pcs.firePropertyChange(PROPERTY_XP, old, xp);
+        firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public void addXPAdhocChange(int delta, String comment, Date d) {
 		addXPChange(new XP.XPChangeAdhoc(delta, comment, d));
 		int old = xp;
 		xp += delta;
-        pcs.firePropertyChange(PROPERTY_XP, old, xp);
+        firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public int getLevel() {
@@ -717,7 +734,7 @@ public class Character extends Creature {
 		addXPChange(new XP.XPChangeLevel(level.getLevel(), l, comment, d));
 		int old = level.getLevel();
 		level.setLevel(l);
-		pcs.firePropertyChange(PROPERTY_LEVEL, old, level.getLevel());
+		firePropertyChange(PROPERTY_LEVEL, old, level.getLevel());
 	}
 
 //------------------- XP History ------------------
@@ -753,7 +770,7 @@ public class Character extends Creature {
 		} else {
 			xp = 0;
 		}
-        pcs.firePropertyChange(PROPERTY_XP, old, xp);
+        firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public void moveXPHistory(int from, int to) {
@@ -804,115 +821,115 @@ public class Character extends Creature {
 	public void setPlayer(String s) {
 		String old = player;
 		player = s;
-		pcs.firePropertyChange(PROPERTY_PLAYER, old, s);
+		firePropertyChange(PROPERTY_PLAYER, old, s);
 	}
 
 	public void setRegion(String s) {
 		String old = region;
 		region = s;
-		pcs.firePropertyChange(PROPERTY_REGION, old, s);
+		firePropertyChange(PROPERTY_REGION, old, s);
 	}
 	
 	public void setRace(String s) {
 		String old = race;
 		race = s;
-		pcs.firePropertyChange(PROPERTY_RACE, old, s);
+		firePropertyChange(PROPERTY_RACE, old, s);
 	}
 	
 	public void setGender(String s) {
 		String old = gender;
 		gender = s;
-		pcs.firePropertyChange(PROPERTY_GENDER, old, s);
+		firePropertyChange(PROPERTY_GENDER, old, s);
 	}
 	
 	public void setAlignment(String s) {
 		String old = alignment;
 		alignment = s;
-		pcs.firePropertyChange(PROPERTY_ALIGNMENT, old, s);
+		firePropertyChange(PROPERTY_ALIGNMENT, old, s);
 	}
 	
 	public void setDeity(String s) {
 		String old = deity;
 		deity = s;
-		pcs.firePropertyChange(PROPERTY_DEITY, old, s);
+		firePropertyChange(PROPERTY_DEITY, old, s);
 	}
 	
 	public void setSize(String s) {
 		String old = size;
 		size = s;
-		pcs.firePropertyChange(PROPERTY_SIZE, old, s);
+		firePropertyChange(PROPERTY_SIZE, old, s);
 	}
 	
 	public void setType(String s) {
 		String old = type;
 		type = s;
-		pcs.firePropertyChange(PROPERTY_TYPE, old, s);
+		firePropertyChange(PROPERTY_TYPE, old, s);
 	}
 	
 	public void setAge(String s) {
 		String old = age;
 		age = s;
-		pcs.firePropertyChange(PROPERTY_AGE, old, s);
+		firePropertyChange(PROPERTY_AGE, old, s);
 	}
 	
 	public void setHeight(String s) {
 		String old = height;
 		height = s;
-		pcs.firePropertyChange(PROPERTY_HEIGHT, old, s);
+		firePropertyChange(PROPERTY_HEIGHT, old, s);
 	}
 
 	public void setWeight(String s) {
 		String old = weight;
 		weight = s;
-		pcs.firePropertyChange(PROPERTY_WEIGHT, old, s);
+		firePropertyChange(PROPERTY_WEIGHT, old, s);
 	}
 	
 	public void setEyeColour(String s) {
 		String old = eyeColour;
 		eyeColour = s;
-		pcs.firePropertyChange(PROPERTY_EYE_COLOUR, old, s);
+		firePropertyChange(PROPERTY_EYE_COLOUR, old, s);
 	}
 	
 	public void setHairColour(String s) {
 		String old = hairColour;
 		hairColour = s;
-		pcs.firePropertyChange(PROPERTY_HAIR_COLOUR, old, s);
+		firePropertyChange(PROPERTY_HAIR_COLOUR, old, s);
 	}
 	
 	public void setSpeed(String s) {
 		String old = speed;
 		speed = s;
-		pcs.firePropertyChange(PROPERTY_SPEED, old, s);
+		firePropertyChange(PROPERTY_SPEED, old, s);
 	}
 	
 	public void setDamageReduction(String s) {
 		String old = damageReduction;
 		damageReduction = s;
-		pcs.firePropertyChange(PROPERTY_DAMAGE_REDUCTION, old, s);
+		firePropertyChange(PROPERTY_DAMAGE_REDUCTION, old, s);
 	}
 	
 	public void setSpellResistance(String s) {
 		String old = spellResistance;
 		spellResistance = s;
-		pcs.firePropertyChange(PROPERTY_SPELL_RESISTANCE, old, s);
+		firePropertyChange(PROPERTY_SPELL_RESISTANCE, old, s);
 	}
 	
 	public void setArcaneSpellFailure(String s) {
 		String old = arcaneSpellFailure;
 		arcaneSpellFailure = s;
-		pcs.firePropertyChange(PROPERTY_ARCANE_SPELL_FAILURE, old, s);
+		firePropertyChange(PROPERTY_ARCANE_SPELL_FAILURE, old, s);
 	}
 
 	public void setActionPoints(String s) {
 		String old = actionPoints;
 		actionPoints = s;
-		pcs.firePropertyChange(PROPERTY_ACTION_POINTS, old, s);
+		firePropertyChange(PROPERTY_ACTION_POINTS, old, s);
 	}
 
 	public void setClassDescription(String s) {
 		String old = classDescription;
 		classDescription = s;
-		pcs.firePropertyChange(PROPERTY_CLASS, old, s);
+		firePropertyChange(PROPERTY_CLASS, old, s);
 	}
 
 //------------------- Import/Export and other methods -------------------
@@ -1045,20 +1062,10 @@ public class Character extends Creature {
 
 			} else if (tag.equals("Skills")) {
 				c.skills.parseDOM(e);
-//				NodeList skills = e.getChildNodes();
-//					for (int j=0; j<skills.getLength(); j++) {
-//						if (!skills.item(j).getNodeName().equals("Skill")) continue;
-//						Element s = (Element)skills.item(j);
-//						String ranks = s.getAttribute("ranks");
-//						String type = s.getAttribute("type");
-//						SkillType skill = SkillType.getSkill(type);
-//						c.setSkillRanks(skill, Float.parseFloat(ranks));
-//						//c.skillRanks.put(skill,Float.parseFloat(ranks));
-//						String misc = s.getAttribute("misc");
-//						if (misc != "") c.setSkillMisc(skill, Integer.parseInt(misc));
-//					}
 
 			} else if (tag.equals("AC")) {
+				c.ac.parseDOM(e);
+
 				NodeList acs = e.getChildNodes();
 				for (int j=0; j<acs.getLength(); j++) {
 					if (!acs.item(j).getNodeName().equals("ACComponent")) continue;
@@ -1066,16 +1073,13 @@ public class Character extends Creature {
 					String value = s.getAttribute("value");
 					String type = s.getAttribute("type");
 					// TODO hacks to change type:
-//					if (type.equals("Dex")) type = ACComponentType.DEX.toString();
 					if (type.equals("Natural")) type = ACComponentType.NATURAL.toString();
 					if (type.equals("Deflect")) type = ACComponentType.DEFLECTION.toString();
-//					if (!type.equals(ACComponentType.DEX.toString())) {	// TODO ignore dex component when loading
-						for (ACComponentType t : ACComponentType.values()) {
-							if (t.toString().equals(type)) {
-								c.setACComponent(t, Integer.parseInt(value));
-							}
+					for (ACComponentType t : ACComponentType.values()) {
+						if (t.toString().equals(type)) {
+							c.setACComponent(t, Integer.parseInt(value));
 						}
-//					}
+					}
 				}
 
 			} else if (tag.equals("Attacks")) {
@@ -1111,6 +1115,10 @@ public class Character extends Creature {
 			c.attacks.parseDOM(attacksElement);
 		}
 
+		if (c.name.equals("Cain Warforger")) {
+			System.out.println("Enabling autosave on "+c.name);
+			c.autoSave = true;	// TODO temp hack
+		}
 		return c;
 	}
 
@@ -1449,6 +1457,7 @@ public class Character extends Creature {
 	    	doc.appendChild(getCharacterSheet(doc));
 	    	doc.setXmlStandalone(true);
 	    	Updater.updateDocument(doc, name);
+	    	System.out.println("Saved character sheet "+name);
 
 		} catch (Exception e) {
 			e.printStackTrace();

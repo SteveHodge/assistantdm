@@ -2,7 +2,6 @@ package gamesystem;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -43,16 +42,14 @@ public class AbilityScore extends Statistic {
 		return score/2-5;
 	}
 
-	protected class AbilityModifier implements Modifier {
-		final PropertyChangeSupport modpcs = new PropertyChangeSupport(this);
-
+	protected class AbilityModifier extends AbstractModifier {
 		public AbilityModifier(AbilityScore score) {
 			score.addPropertyChangeListener(new PropertyChangeListener() {
 				public void propertyChange(PropertyChangeEvent evt) {
 					//int oldValue = ((Integer)evt.getOldValue())/2-5;
 					//int newValue = ((Integer)evt.getNewValue())/2-5;
 					//modpcs.firePropertyChange("value", null, newValue);
-					modpcs.firePropertyChange("value", null, getModifier());
+					pcs.firePropertyChange("value", null, getModifier());
 				}
 			});
 		}
@@ -65,31 +62,11 @@ public class AbilityScore extends Statistic {
 			return name;
 		}
 
-		public String getSource() {
-			return null;
-		}
-
-		public void addPropertyChangeListener(PropertyChangeListener listener) {
-			modpcs.addPropertyChangeListener(listener);
-		}
-
-		public void removePropertyChangeListener(PropertyChangeListener listener) {
-			modpcs.removePropertyChangeListener(listener);
-		}
-
 		public String toString() {
 			StringBuilder s = new StringBuilder();
 			if (getModifier() >= 0) s.append("+");
 			s.append(getModifier()).append(" ").append(type).append(" modifier ");
 			return s.toString();
-		}
-
-		public String getCondition() {
-			return null;
-		}
-
-		public int getID() {
-			return 0;
 		}
 	};
 

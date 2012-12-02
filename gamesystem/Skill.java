@@ -7,14 +7,18 @@ public class Skill extends Statistic {
 	protected float ranks = 0;
 	protected int misc;
 
-	public Skill(SkillType type, AbilityScore ability) {
-		this(type, ability.getModifier());
-	}
+//	public Skill(SkillType type, AbilityScore ability, Modifier acp) {
+//		this(type, ability.getModifier(), acp);
+//	}
 
-	protected Skill(SkillType type, Modifier abilityMod) {
+	protected Skill(SkillType type, Modifier abilityMod, Modifier acp) {
 		super(type.getName());
 		skillType = type;
 		addModifier(abilityMod);
+		if (type.armorCheckPenaltyApplies) {
+			if (type.doubleACP) acp = new DoubleModifier(acp);
+			addModifier(acp);
+		}
 	}
 
 	public float getRanks() {

@@ -59,5 +59,5 @@ public interface Modifier {
 	public String getCondition();	// returns null if no condition
 	public void addPropertyChangeListener(PropertyChangeListener listener);
 	public void removePropertyChangeListener(PropertyChangeListener listener);
-	public int getID(); 
+	public int getID();
 }
