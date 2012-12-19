@@ -1,6 +1,8 @@
 package gamesystem;
 
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -9,21 +11,72 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+/*
+ * Natural armor is implemented as both a Statistic and also as modifiers on AC. The modifiers provide the base NA value.
+ * This does not stack, as is usual for modifiers of the same type (e.g. NA provided by race and by Tenser's Transformation).
+ * Modifiers to NA are applied to the NA Statistic. The total value of these modifiers is applied to each NA modifier on
+ * AC, if there is none then one is created. Note this will give incorrect results if there are multiple active NA modifiers
+ * on AC, but that should never happen.
+ * A alternative implementation would be to treat enhancements to NA as a modifiers to AC (e.g. "Enhancement to NA" becomes
+ * "NA Enhancement to AC"). This would be a simplier implementation and should achieve the same results, but is not according
+ * to the rules as written. It also means using "non-standard" modifier types. 
+ */
+// TODO proficiencies - acp to attacks when not proficient
 public class AC extends Statistic {
 	final protected ArmorCheckPenalty armorCheckPenalty = new ArmorCheckPenalty();
 	final protected Armor armor = new Armor();
 	final protected Shield shield = new Shield();
-	final protected NaturalArmor naturalArmor = new NaturalArmor();
+	final protected Statistic naturalArmor = new Statistic("Natural Armor");	// statistic that captures modifiers to NA
 	protected LimitModifier dexMod;
 
 	public AC(AbilityScore dex) {
 		super("AC");
 		dexMod = new LimitModifier(dex.getModifier());
 		addModifier(dexMod);
+
+		naturalArmor.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent e) {
+				firePropertyChange("value", null, getValue());
+			}
+		});
 	}
 
 	public int getValue() {
 		return 10 + super.getValue();
+	}
+
+	public Map<Modifier, Boolean> getModifiers() {
+		Map<Modifier, Boolean> mods = super.getModifiers();
+		if (naturalArmor.getValue() != 0) {
+			ArrayList<Modifier> toFix = new ArrayList<Modifier>();	// the mods we will change
+			for (Modifier m : mods.keySet()) {
+				if (m.getType() != null && m.getType().equals("Natural Armor")) {
+					toFix.add(m);	// we modify all NA mods to add the enhancement value. if there is more than one active NA modifier then this will be incorrect but that should never happen
+				}
+			}
+			for (Modifier m : toFix) {
+				boolean active = mods.remove(m);
+				Modifier newMod = new ImmutableModifier(m.getModifier()+naturalArmor.getValue(), m.getType(), m.getSource(), m.getCondition());
+				mods.put(newMod, active);
+			}
+			if (toFix.size() == 0) {
+				// no NA bonus was found so we need to add one
+				mods.put(new ImmutableModifier(naturalArmor.getValue(), "Natural Armor"), true);
+			}
+		}
+		return mods;
+	}
+
+	public int getModifiersTotal() {
+		return getModifiersTotal(getModifierSet(), null) + naturalArmor.getValue();
+	}
+
+	public int getModifiersTotal(String type) {
+		int total = getModifiersTotal(getModifierSet(), type);
+		if (type != null && type.equals("Natural Armor")) {
+			total += naturalArmor.getValue();
+		}
+		return total;
 	}
 
 	public Statistic getTouchAC() {
@@ -42,7 +95,7 @@ public class AC extends Statistic {
 		return shield;
 	}
 
-	public NaturalArmor getNaturalArmor() {
+	public Statistic getNaturalArmor() {
 		return naturalArmor;
 	}
 
@@ -52,7 +105,6 @@ public class AC extends Statistic {
 
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("AC");
-		e.setAttribute("natural_armor", ""+naturalArmor.getBaseValue());
 		e.appendChild(armor.getElement(doc));
 		e.appendChild(shield.getElement(doc));
 		return e;
@@ -61,7 +113,6 @@ public class AC extends Statistic {
 	public void parseDOM(Element e) {
 		if (!e.getTagName().equals("AC")) return;
 
-		if (e.hasAttribute("natural_armor")) naturalArmor.setBaseValue(Integer.parseInt(e.getAttribute("natural_armor")));
 		NodeList children = e.getChildNodes();
 		for (int j=0; j<children.getLength(); j++) {
 			if (children.item(j).getNodeName().equals("Armor")) {
@@ -159,52 +210,6 @@ public class AC extends Statistic {
 			return mods;
 		}
 	};
-
-	// TODO factor out common code in NaturalArmor and Shield?
-	public class NaturalArmor extends Statistic {
-		protected int base = 0;
-		protected Modifier modifier = null;		// the natural modifier that is applied to the AC
-
-		public NaturalArmor() {
-			super("Natural Armor");
-		}
-
-		public int getValue() {
-			return base + super.getValue();
-		}
-
-		public int getBaseValue() {
-			return base;
-		}
-
-		public void setBaseValue(int b) {
-			base = b;
-			this.firePropertyChange("value", null, getValue());
-			updateModifier();
-		}
-
-		public void addModifier(Modifier m) {
-			super.addModifier(m);
-			updateModifier();
-		}
-
-		public void removeModifier(Modifier m) {
-			super.removeModifier(m);
-			updateModifier();
-		}
-
-		protected void updateModifier() {
-			if (modifier != null) {
-				if (modifier.getModifier() == getValue()) return;	// no change
-				AC.this.removeModifier(modifier);
-				modifier = null;
-			}
-			if (getValue() != 0) {
-				modifier = new ImmutableModifier(getValue(), getName());
-				AC.this.addModifier(modifier);
-			}
-		}
-	}
 
 	public class Shield extends Statistic {
 		public String description;

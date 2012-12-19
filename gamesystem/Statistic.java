@@ -62,6 +62,17 @@ public class Statistic {
 		pcs.removePropertyChangeListener(listener);
 	}
 
+	// set a specific property on the statistic. this default implementation doesn't implement any properties
+	// it is intended that generally when a property is set the old value is remembered and restored when the
+	// property is reset. for the tracking of set values "key" should be a unique object/value. this key is used
+	// to remove the set value via resetProperty. "source" can be used in cases where multiple values are combined
+	// - usually in these cases only one value for each source is included
+	public void setProperty(String property, Object value, String source, Object key) {
+	}
+
+	public void resetProperty(String property, Object key) {
+	}
+	
 	public void addModifier(Modifier m) {
 		//int oldValue = getValue();
 		m.addPropertyChangeListener(listener);

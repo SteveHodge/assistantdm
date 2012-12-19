@@ -421,7 +421,7 @@ public class ImageTransfer extends SwingWorker<BufferedImage,BufferedImage> impl
 	    	//System.out.println(" Size = "+relinfo.size);
 	//		System.out.println("Buffer size = "+buffer.length);
 			ByteArrayInputStream is = new ByteArrayInputStream(buffer);
-			String msg = Updater.update(Updater.MAP_IMAGE, buffer);
+			String msg = Updater.updateURL(Updater.MAP_IMAGE, buffer);
 			if (msg != null) logMessage(msg);
 			image = ImageIO.read(is);
 			return image;

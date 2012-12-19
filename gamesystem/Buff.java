@@ -25,13 +25,21 @@ import party.Creature;
 public class Buff {
 	public String name;
 	public List<Effect> effects = new ArrayList<Effect>();
-	Map<Modifier,String> modifiers = new HashMap<Modifier,String>();
+	boolean realised = false;	// set to true once the effects have been fixed
+	Map<Modifier,String> modifiers = new HashMap<Modifier,String>();	// map of modifier to the target it will be applied to
+	Map<PropertyChange,String> propertyChanges = new HashMap<PropertyChange,String>();	// map of property changes to the target
 	int casterLevel = 0;
 	Map<Dice,Integer> rolls = new HashMap<Dice,Integer>();
 	public boolean maximized = false;
 	public boolean empowered = false;
 	int id;
 	private static int nextid = 1;	// TODO not threadsafe
+
+	protected class PropertyChange {
+		String property;
+		Object value;
+		String description;
+	}
 
 	protected final static Map<String,String> TARGET_DESC;
 	static {
@@ -48,6 +56,9 @@ public class Buff {
 		map.put(Creature.STATISTIC_REFLEX_SAVE, SavingThrow.Type.REFLEX+" save");
 		map.put(Creature.STATISTIC_SKILLS, "skills");
 		map.put(Creature.STATISTIC_AC, "AC");
+		map.put(Creature.STATISTIC_ARMOR, "armor");
+		map.put(Creature.STATISTIC_SHIELD, "shield");
+		map.put(Creature.STATISTIC_NATURAL_ARMOR, "natural_armor");
 		map.put(Creature.STATISTIC_INITIATIVE, "Initiative");
 		map.put(Creature.STATISTIC_ATTACKS, "attack rolls");
 		map.put(Creature.STATISTIC_DAMAGE, "damage");
@@ -61,7 +72,7 @@ public class Buff {
 
 	public boolean requiresCasterLevel() {
 		for (Effect e : effects) {
-			if (e instanceof CLEffect) return true;
+			if (e.requiresCasterLevel()) return true;
 		}
 		return false;
 	}
@@ -83,10 +94,18 @@ public class Buff {
 	}
 
 	public void applyBuff(Character c) {
-		if (modifiers.size() == 0) {
-			// create modifiers for each Effect. this will fixed the specifics of the Effects
+		if (!realised) {
+			// create modifiers/properties for each Effect. this will fix the specifics of the Effects
 			for (Effect e : effects) {
-				modifiers.put(e.getModifier(this),e.target);
+				if (e instanceof ModifierEffect) {
+					modifiers.put(((ModifierEffect)e).getModifier(this), e.target);
+				} else if (e instanceof PropertyEffect) {
+					PropertyChange change = new PropertyChange();
+					change.property = ((PropertyEffect)e).property;
+					change.value = ((PropertyEffect)e).value;
+					change.description = ((PropertyEffect)e).description;
+					propertyChanges.put(change, e.target);
+				}
 			}
 		}
 
@@ -96,6 +115,11 @@ public class Buff {
 				s.addModifier(m);
 			}
 		}
+		for (PropertyChange p : propertyChanges.keySet()) {
+			for (Statistic s : getTargetStats(c, propertyChanges.get(p))) {
+				s.setProperty(p.property, p.value, name, id);
+			}
+		}
 	}
 
 	public void removeBuff(Character c) {
@@ -103,6 +127,11 @@ public class Buff {
 			// remove modifier from target stat
 			for (Statistic s : getTargetStats(c, modifiers.get(m))) {
 				s.removeModifier(m);
+			}
+		}
+		for (PropertyChange p : propertyChanges.keySet()) {
+			for (Statistic s : getTargetStats(c, propertyChanges.get(p))) {
+				s.resetProperty(p.property, id);
 			}
 		}
 	}
@@ -123,6 +152,11 @@ public class Buff {
 			
 			s.append(" to ").append(getTargetDescription(target));
 			if (m.getCondition() != null) s.append(" ").append(m.getCondition());
+			s.append("<br/>");
+		}
+		for (PropertyChange p : propertyChanges.keySet()) {
+			String target = propertyChanges.get(p);
+			s.append(p.description).append(" to ").append(getTargetDescription(target));
 			s.append("<br/>");
 		}
 		s.append("</html></body>");
@@ -154,10 +188,6 @@ public class Buff {
 
 	public abstract static class Effect {
 		String target;
-		String type;
-		String condition;
-	
-		public abstract Modifier getModifier(Buff b);
 
 		public boolean requiresCasterLevel() {
 			return false;
@@ -168,7 +198,24 @@ public class Buff {
 		}
 	}
 
-	protected static class CLEffect extends Effect {
+	public static class PropertyEffect extends Effect {
+		String property;
+		Object value;
+		String description;
+
+		public String toString() {
+			return description;
+		}
+	}
+
+	public abstract static class ModifierEffect extends Effect {
+		String type;
+		String condition;
+	
+		public abstract Modifier getModifier(Buff b);
+	}
+
+	protected static class CLEffect extends ModifierEffect {
 		Object baseMod;
 		int perCL;
 		int maxPerCL;
@@ -244,7 +291,7 @@ public class Buff {
 		}
 	}
 
-	protected static class FixedEffect extends Effect {
+	protected static class FixedEffect extends ModifierEffect {
 		int modifier;
 	
 		public Modifier getModifier(Buff b) {
@@ -297,6 +344,16 @@ public class Buff {
 			e.appendChild(me);
 		}
 
+		for (PropertyChange p : propertyChanges.keySet()) {
+			Element pe = doc.createElement("PropertyChange");
+			pe.setAttribute("description", p.description);	// TODO might need to be more useful for the character sheet
+			pe.setAttribute("property", p.property);
+			pe.setAttribute("value", p.value.toString());
+			String target = propertyChanges.get(p);
+			pe.setAttribute("target", target);		// WISH this can be XML relevant, i.e. an XPath
+			e.appendChild(pe);
+		}
+
 		return e;
 	}
 
@@ -308,20 +365,32 @@ public class Buff {
 		if (b.hasAttribute("id")) buff.id = Integer.parseInt(b.getAttribute("id"));
 		NodeList mods = b.getChildNodes();
 		for (int k=0; k<mods.getLength(); k++) {
-			if (!mods.item(k).getNodeName().equals("Modifier")) continue;
-			Element m = (Element)mods.item(k);
-			String target = m.getAttribute("target");
-			int value = Integer.parseInt(m.getAttribute("value"));
-			String type = m.getAttribute("type");
-			String condition = m.getAttribute("condition");
-			ImmutableModifier mod;
-			if (condition != null && condition.length() > 0) {
-				mod = new ImmutableModifier(value, type, buff.name, condition);
-			} else {
-				mod = new ImmutableModifier(value, type, buff.name);
+			if (mods.item(k).getNodeName().equals("Modifier")) {
+				Element m = (Element)mods.item(k);
+				String target = m.getAttribute("target");
+				int value = Integer.parseInt(m.getAttribute("value"));
+				String type = m.getAttribute("type");
+				String condition = m.getAttribute("condition");
+				ImmutableModifier mod;
+				if (condition != null && condition.length() > 0) {
+					mod = new ImmutableModifier(value, type, buff.name, condition);
+				} else {
+					mod = new ImmutableModifier(value, type, buff.name);
+				}
+				mod.id = buff.id;
+				buff.modifiers.put(mod,target);
+
+			} else if (mods.item(k).getNodeName().equals("PropertyChange")) {
+				Element m = (Element)mods.item(k);
+				String target = m.getAttribute("target");
+				int value = Integer.parseInt(m.getAttribute("value"));
+				PropertyChange p = buff.new PropertyChange();
+				p.description = m.getAttribute("description");
+				p.property = m.getAttribute("property");
+				p.value = value;
+				buff.propertyChanges.put(p,target);
+				
 			}
-			mod.id = buff.id;
-			buff.modifiers.put(mod,target);
 		}
 		return buff;
 	}

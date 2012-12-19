@@ -53,7 +53,6 @@ import util.Updater;
 // equipment, particularly magic item slots, armor, weapons
 
 // TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac
-// TODO rework ac ui: allow multiple bonuses of each type?, AC temp scores? add armor
 // TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
 // that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
 // TODO need to review how properties work on Character and BoundIntegerField
@@ -1463,7 +1462,7 @@ public class Character extends Creature {
 	    	doc.appendChild(getCharacterSheet(doc));
 	    	doc.setXmlStandalone(true);
 	    	Updater.updateDocument(doc, name);
-	    	System.out.println("Saved character sheet "+name);
+	    	//System.out.println("Saved character sheet "+name);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1585,7 +1584,7 @@ public class Character extends Creature {
 		e.setAttribute("touch" ,""+ac.getTouchAC().getValue());
 		e.setAttribute("armor-check-penalty",""+ac.getArmorCheckPenalty().getModifier());
 		setACComponent(doc, e, ACComponentType.SIZE.toString(), ac.getModifiersTotal(ACComponentType.SIZE.toString()));
-		setACComponent(doc, e, ACComponentType.NATURAL.toString(), ac.getNaturalArmor().getValue());
+		setACComponent(doc, e, ACComponentType.NATURAL.toString(), ac.getModifiersTotal(ACComponentType.NATURAL.toString()));
 		setACComponent(doc, e, ACComponentType.DEFLECTION.toString(), ac.getModifiersTotal(ACComponentType.DEFLECTION.toString()));
 		int value = ac.getModifiersTotal(ACComponentType.OTHER.toString());
 		value += ac.getModifiersTotal(ACComponentType.DODGE.toString());

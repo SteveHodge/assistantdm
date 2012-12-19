@@ -324,13 +324,13 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 
 	protected void updateLabels() {
 		strLabel.setText(""+character.getAbilityModifier(AbilityScore.Type.STRENGTH));
-		String melee = attacks.getValue()+(attacks.hasConditionalModifier()?"*":"");
+		String melee = attacks.getAttacksDescription(attacks.getValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {
 			melee = "<html><body><s>"+melee+"</s></body></html>";
 		}
 		meleeLabel.setText(melee);
 		dexLabel.setText(""+character.getAbilityModifier(AbilityScore.Type.DEXTERITY));
-		String ranged = attacks.getRangedValue()+(attacks.hasConditionalModifier()?"*":"");
+		String ranged = attacks.getAttacksDescription(attacks.getRangedValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {
 			ranged = "<html><body><s>"+ranged+"</s></body></html>";
 		}

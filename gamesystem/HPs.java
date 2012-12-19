@@ -15,7 +15,7 @@ import org.w3c.dom.NodeList;
 
 import party.Creature;
 
-// TODO consider refactoring to not make temp hps Modifiers
+// TODO change temp hitpoints to a property
 // TODO there are difference in how damage and healing are handled (particularly with temporary hitpoints). going to need undo
 
 /* Temporary hit points rules

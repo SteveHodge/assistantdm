@@ -65,6 +65,7 @@ import ui.SelectDiffsDialog;
 import ui.SelectPartyDialog;
 import ui.UpdateCharacterDialog;
 import ui.XPEntryDialog;
+import util.Updater;
 import camera.CameraPanel;
 
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
@@ -527,6 +528,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		shopPanel.writeShopsXML("shops.xml");
 		saveCombat();
 		if (cameraPanel != null) cameraPanel.disconnect();
+		Updater.updaterThread.quit();
 		System.exit(0);
 	}
 }

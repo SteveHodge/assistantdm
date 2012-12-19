@@ -1,9 +1,10 @@
 package ui;
 
 import gamesystem.Buff;
+import gamesystem.Buff.Effect;
 import gamesystem.BuffFactory;
 import gamesystem.Modifier;
-import gamesystem.Buff.Effect;
+import gamesystem.Buff.ModifierEffect;
 import gamesystem.dice.Dice;
 
 import java.awt.BorderLayout;
@@ -240,14 +241,16 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		protected void updateEffects() {
 			int i = 0;
 			for (Effect e : buff.effects) {
-				if (e.requiresCasterLevel()) {
-					StringBuilder s = new StringBuilder("(");
-					Modifier m = e.getModifier(buff);
-					if (m.getModifier() >= 0) s.append("+");
-					s.append(m.getModifier()).append(")");
-					effectLabels[i].setText(s.toString());
+				if (e instanceof ModifierEffect) {
+					if (e.requiresCasterLevel()) {
+						StringBuilder s = new StringBuilder("(");
+						Modifier m = ((ModifierEffect)e).getModifier(buff);
+						if (m.getModifier() >= 0) s.append("+");
+						s.append(m.getModifier()).append(")");
+						effectLabels[i].setText(s.toString());
+					}
+					i++;
 				}
-				i++;
 			}
 		}
 	}

@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -28,6 +32,79 @@ public class Updater {
 	//public static final String INITIATIVE_FILE = "m:\\webcam\\ftp\\images\\initiative.txt";
 	//public static final String DOCUMENT_DIR = "";
 
+	protected static class Update {
+		String url;
+		byte[] bytes;
+	}
+
+	protected static List<Update> pending = Collections.synchronizedList(new ArrayList<Update>());
+
+	public static class UpdaterThread extends Thread {
+		protected volatile boolean quit = false;
+
+		public void run() {
+			while (!quit) {
+				// wait 5 seconds
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					if (quit) return;
+				}
+
+				Update update;
+				do {
+					update = null;
+
+					synchronized(pending) {
+						Iterator<Update> i = pending.iterator();
+						if (i.hasNext()) {
+							// take the first update from the list
+							update = i.next();
+							i.remove();
+							
+							// search the list of any other updates with the same url - we use the bytes for the last matching update
+							while (i.hasNext()) {
+								Update u = i.next();
+								if (update.url.equals(u.url)) {
+									update = u;
+									i.remove();
+								}
+							}
+						}
+					}
+	
+					if (update != null) {
+						System.out.println("Updating "+update.url);
+						String msg = updateURL(update.url, update.bytes);
+						if (msg != null) {
+							System.out.println(msg);
+						}
+					}
+				} while (update != null);
+			}
+		}
+
+		public void quit() {
+			quit = true;
+			interrupt();
+		}
+	};
+
+	public static UpdaterThread updaterThread = new UpdaterThread();
+
+	static {
+		updaterThread.start();
+	}
+
+	// Note: the buffer is not copied - it should not be changed after being passed to this method
+	public static void update(String dest, byte[] buffer) {
+		Update update = new Update();
+		update.url = dest;
+		update.bytes = buffer;
+		System.out.println("Queued "+dest+" for update");
+		pending.add(update);
+	}
+
 	public static void updateDocument(Document doc, String name) {
 		try {
 	    	Transformer trans = TransformerFactory.newInstance().newTransformer();
@@ -40,20 +117,15 @@ public class Updater {
 	    	trans.transform(new DOMSource(doc), new StreamResult(writer));
 	    	byte[] bytes = writer.toString().getBytes();
 
-	    	String msg = update(DOCUMENT_DIR+name.replace(" ", "%20")+".xml", bytes);
-	    	if (msg != null) System.out.println(msg);
+	    	update(DOCUMENT_DIR+name.replace(" ", "%20")+".xml", bytes);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static String update(String dest, byte[] buffer) {
-		return updateURL(dest, buffer);
-	}
-
-	// TODO probably should prograte exceptions upwards, and consider wrapping reponses in exceptions too
-	protected static String updateURL(String dest, byte[] bytes) {
+	// TODO probably should propagate exceptions upwards, and consider wrapping responses in exceptions too
+	public static String updateURL(String dest, byte[] bytes) {
     	HttpURLConnection connection = null;
 		try {
 	    	// PUT it to the webserver
@@ -101,7 +173,7 @@ public class Updater {
 		}
 	}
 	
-	// TODO probably should prograte exceptions upwards 
+	// TODO probably should propagate exceptions upwards 
 	protected static String updateFile(String dest, byte[] buffer) {
 		String message = null;
 		FileOutputStream out = null;

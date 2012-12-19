@@ -411,12 +411,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (!isCellEditable(rowIndex, columnIndex)) return;
 			if (value == null) value = new Integer(0);
-			if (Character.ACComponentType.values()[rowIndex] == Character.ACComponentType.NATURAL) {
-				// TODO temporarily redirect NA changes - should move it out of the table
-				ac.getNaturalArmor().setBaseValue((Integer)value);
-			} else {
-				character.setACComponent(Character.ACComponentType.values()[rowIndex], (Integer)value);
-			}
+			character.setACComponent(Character.ACComponentType.values()[rowIndex], (Integer)value);
 			fireTableRowsUpdated(rowIndex, rowIndex);
 		}
 
@@ -436,10 +431,6 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		public Object getValueAt(int row, int column) {
 			if (row < Character.ACComponentType.values().length) {
 				if (column == 0) return Character.ACComponentType.values()[row].toString();
-				if (Character.ACComponentType.values()[row] == Character.ACComponentType.NATURAL) {
-					// TODO temporarily redirect NA - should move it out of the table
-					return ac.getNaturalArmor().getBaseValue();
-				}
 				return character.getACComponent(Character.ACComponentType.values()[row]);
 			} else {
 				row -= Character.ACComponentType.values().length;

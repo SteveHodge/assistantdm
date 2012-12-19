@@ -92,6 +92,16 @@ public class BuffFactory {
 		return this;
 	}
 
+	protected BuffFactory addPropertyChange(String target, String property, Object value, String description) {
+		Buff.PropertyEffect e = new Buff.PropertyEffect();
+		e.target = target;
+		e.property = property;
+		e.value = value;
+		e.description = description;
+		effects.add(e);
+		return this;
+	}
+
 	public static BuffFactory[] buffs = {
 		(new BuffFactory("Shield Other"))
 			.addEffect(Creature.STATISTIC_AC,"Deflection",1)
@@ -128,6 +138,7 @@ public class BuffFactory {
 			.addEffect(Creature.STATISTIC_AC,"Shield",4),
 		(new BuffFactory("Haste"))
 			.addEffect(Creature.STATISTIC_ATTACKS,null,1)
+			.addPropertyChange(Creature.STATISTIC_ATTACKS,"extra_attacks",1,"one extra attack at highest bonus")
 			.addEffect(Creature.STATISTIC_AC,"Dodge",1)
 			.addEffect(Creature.STATISTIC_REFLEX_SAVE,"Dodge",1),
 		(new BuffFactory("Slow"))
@@ -285,10 +296,18 @@ public class BuffFactory {
 			.addBonus(Creature.STATISTIC_SHIELD, "Enhancement", 0, 4, 5),		// +1/4 CL (max +5)
 		(new BuffFactory("Barkskin"))
 			.addBonus(Creature.STATISTIC_NATURAL_ARMOR, "Enhancement", 1, 3, 4),	// 1+CL/3 enhancement to na, (min +2, max of +5)
+		(new BuffFactory("Tenser's Transformation"))
+			.addEffect(Creature.STATISTIC_STRENGTH, "Enhancement", 4)
+			.addEffect(Creature.STATISTIC_CONSTITUTION, "Enhancement", 4)
+			.addEffect(Creature.STATISTIC_DEXTERITY, "Enhancement", 4)
+			.addEffect(Creature.STATISTIC_FORTITUDE_SAVE, "Competence", 5)
+			// bab equals character level (20 max), also proficiency with simple and martial weapons
+			.addEffect(Creature.STATISTIC_AC, "Natural Armor", 4),	// TODO it's not clear if this should stack with existing NA or not. it's not clear if enhancements to NA should apply to Tenser's Transformation if other NA is not present...
+			// I think TT NA bonus should overlap with other NA bonus (such as racial NA), and should be enhanceable. this would perhaps be easiest to implement as a temp score on NA  
 
 			//Jump			+10 enhancement bonus to jump, +20 at cl 5, +30 at cl 9
 			//Longstrider	+10ft enhancement bonus to speed
-			//Tree Shape	+10 natural armor bonus, effective dex of 0, spped of 0
+			//Tree Shape	+10 natural armor bonus, effective dex of 0, speed of 0
 
 // buff to items/attacks, or create new attacks:
 			//magic fang	+1 enhancement bonus to attack and dmg to one weapon (unarmed strike or natural weapon)
@@ -302,14 +321,28 @@ public class BuffFactory {
 			//bigby's hand spells
 			//bless weapon
 
-// character level:
-			//Tenser's Transformation		+4 enhancement to str, con, dex, +4 na to ac, +5 competence to fort, bab equals character level (20 max)
-
 // multiple optional effects:
 			//Bestow Curse			-6 decrease to ability, or -4 penalty to attacks, saves, ability checks, skill checks
 
 // size change:
 			//Animal Growth	monster		increase size one category, +8 size to str, +4 size to con, -2 size to dex, na +2, +4 resist to saves
 			//Reduce Animal	monsters		one category smaller, +2 size bonus to dex, -2 size penalty to str, +1 bonus to attacks and ac
+
+//conditions
+//blinded -2 ac, lose dex bonus to ac, move at half speed, -4 to search and most strength and dex skills, visual skills fail automatically (spot, reading etc)
+//cowering -2 ac, lose dex bonus to ac
+//dazzled -1 attack, search, spot
+//deafened -4 initiative fail listen, 20% chance of spell failure for verbal spells
+//energy drain (per level) -1 attack, saves, skills, ability checks, loss of 5 hp, -1 effective level, spell lose
+//entangled move at half speed, -2 to attack, -4 to dex, can't run or charge
+//exhausted move at half speed, -6 str and dex
+//fascinated -4 spot, listen
+//fatigued -2 str, dex. can't run or charge
+//flat-footed lose dex to ac
+//frightened -2 attack, save, skills, ability checks
+//panicked -2 saves, skills, ability checks
+//shaken -2 attack, saves, skills, ability checks
+//skickened -2 attack, damage, saves, skills, ability checks
+//stunned -2 to ac, lose dex bonus to ac
 	};
 }

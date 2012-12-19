@@ -5,7 +5,9 @@ import gamesystem.dice.CombinedDice;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,6 +126,53 @@ public class Attacks extends Statistic {
 			// TODO source will be wrong...
 			a.pcs.firePropertyChange("value", null, getValue());
 		}
+	}
+
+	protected class ExtraAttacks {
+		Object key;
+		String source;
+		int attacks;
+	}
+
+	protected List<ExtraAttacks> extraAttacks = new ArrayList<ExtraAttacks>(); 
+
+	public int getExtraAttacks() {
+		HashMap<String,Integer> attacks = new HashMap<String,Integer>();
+		for (ExtraAttacks atk : extraAttacks) {
+			attacks.put(atk.source, atk.attacks);
+		}
+
+		int total = 0;
+		for (Integer v : attacks.values()) {
+			total += v;
+		}
+		return total;
+	}
+
+	// "extra_attacks" - integer value - number of extra attacks at the highest base attack bonus
+	public void setProperty(String property, Object value, String source, Object key) {
+		if (property == null || !property.equals("extra_attacks")) return;
+		//int old = getExtraAttacks();
+		ExtraAttacks atk = new ExtraAttacks();
+		atk.key = key;
+		atk.source = source;
+		atk.attacks = (Integer)value;
+		extraAttacks.add(atk);
+		//firePropertyChange(property, old, getExtraAttacks());
+		firePropertyChange("value", null, getValue());
+	}
+
+	public void resetProperty(String property, Object key) {
+		if (property == null || !property.equals("extra_attacks")) return;
+		int old = getExtraAttacks();
+		Iterator<ExtraAttacks> iter = extraAttacks.iterator();
+		while (iter.hasNext()) {
+			ExtraAttacks atk = iter.next();
+			if (atk.key.equals(key)) {
+				iter.remove();
+			}
+		}
+		firePropertyChange(property, old, getExtraAttacks());
 	}
 
 	public int getBAB() {
@@ -390,6 +439,13 @@ public class Attacks extends Statistic {
 		StringBuilder s = new StringBuilder();
 		if (total >= 0) s.append("+");
 		s.append(total);
+
+		for (int i = 0; i < getExtraAttacks(); i++) {
+			s.append("/");
+			if (total >= 0) s.append("+");
+			s.append(total);
+		}
+
 		int bab = getBAB() - 5;
 		while (bab >= 1) {
 			s.append("/");
@@ -664,6 +720,11 @@ public class Attacks extends Statistic {
 			s.append(total);
 
 			// TODO insert extra attacks for rapid shot or flurry of blows
+			for (int i = 0; i < getExtraAttacks(); i++) {
+				s.append("/");
+				if (total >= 0) s.append("+");
+				s.append(total);
+			}
 
 			int max = 3;	// limit for PHB rules is BAB of 20 which gives 4 attacks
 			if (usage == Usage.SECONDARY) {
