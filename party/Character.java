@@ -42,10 +42,10 @@ import ui.CharacterBuffsPanel.BuffListModel;
 import util.Updater;
 
 // TODO priorities:
+// properties for statistics: bab, convert temp hps
 // ability checks
 // enum conversions - property and statistics types
 // feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
-// haste extra attack should be shown
 // clean up handling of HPs, wounds, healing etc, particularly ui
 // review Statistics vs Properties
 // ui for adding adhoc modifiers

@@ -30,6 +30,15 @@ import party.Creature;
 // TODO think about grapple - most modifier to attack shouldn't apply...
 // TODO consider if it is worth including situational modifiers (e.g. flanking, squeezing, higher, shooting into combat etc)
 
+/*
+ * Statistics provided:
+ * Attacks - the melee attack statistic
+ * .AttackForm - a particular attack mode  
+ * Properties provided:
+ * extra_attacks - additional attacks at top attack bonus
+ * base_attack_bonus - TODO
+ */
+
 public class Attacks extends Statistic {
 	public enum Usage {
 		ONE_HANDED("One-handed"),
