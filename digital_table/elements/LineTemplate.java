@@ -10,6 +10,8 @@ import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+import digital_table.server.MapCanvas.Order;
+
 public class LineTemplate extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -35,6 +37,10 @@ public class LineTemplate extends MapElement {
 		targetY = ty;
 	}
 	
+	public Order getDefaultOrder() {
+		return Order.BelowGrid;
+	}
+
 	public void paint(Graphics2D g) {
 		if (canvas == null || !visible) return;
 

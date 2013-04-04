@@ -13,6 +13,7 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import digital_table.elements.Grid;
 import digital_table.elements.MapElement;
 
 /*
@@ -26,7 +27,15 @@ public class MapCanvas implements ListDataListener {
 	ListModel model;
 	protected Color bgColor;
 	List<RepaintListener> listeners = new ArrayList<RepaintListener>();
+	Grid grid;	// used to position other element above or below the grid
 
+	public enum Order {
+		Top,		// use for popups, informational elements
+		AboveGrid,	// use for creatures
+		BelowGrid,	// use for templates
+		Bottom;		// use for backgrounds images 
+	}
+	
 	public MapCanvas() {
 		setModel(new DefaultListModel());
 	}
@@ -53,13 +62,35 @@ public class MapCanvas implements ListDataListener {
 
 	public void addElement(MapElement element) {
 		element.setMapCanvas(this);
-		((DefaultListModel)model).add(0, element);
+		if (element instanceof Grid) grid = (Grid)element;
+		int pos = 0;
+		switch (element.getDefaultOrder()) {
+		case Top:
+			pos = 0;
+			break;
+		case AboveGrid:
+			pos = getIndexOf(grid);
+			break;
+		case BelowGrid:
+			pos = getIndexOf(grid)+1;
+			break;
+		case Bottom:
+			pos = model.getSize();
+		}
+		((DefaultListModel)model).add(pos, element);
+	}
+	
+	protected int getIndexOf(MapElement el) {
+		for (int i = 0; i < model.getSize(); i++) {
+			if (model.getElementAt(i) == grid) return i;
+		}
+		return 0;
 	}
 	
 	public void paint(Graphics2D g) {
 		Rectangle bounds = g.getClipBounds();
 		g.clearRect(bounds.x, bounds.y, bounds.width, bounds.height);
-		for (int i = 0; i < model.getSize(); i++) {
+		for (int i = model.getSize()-1; i >= 0; i--) {
 			MapElement r = (MapElement)model.getElementAt(i);
 			if (r != null) {
 				//System.out.println("Painting "+r);

@@ -15,9 +15,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javafx.application.Platform;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -67,6 +71,8 @@ import ui.UpdateCharacterDialog;
 import ui.XPEntryDialog;
 import util.Updater;
 import camera.CameraPanel;
+import digital_table.controller.MonitorConfigFrame;
+import digital_table.server.TableDisplay;
 
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
 //WISH refactor classes that should be in ui package
@@ -76,11 +82,13 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	JMenuBar menuBar;
 	JMenu fileMenu, partyMenu;
 	JMenuItem saveItem, saveAsItem, openItem, updateItem;
+	JMenuItem tableItem;
 	JMenuItem selectPartyItem, xpItem, xpHistoryItem, newCharacterItem;
 	ShoppingPanel shopPanel;
 	CombatPanel combatPanel;
 	CameraPanel cameraPanel = null;
 	JTabbedPane tabbedPane;
+	TableDisplay tableDisplay;
 
 	Party party;
 	File file;
@@ -92,6 +100,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			e.printStackTrace();
 	    }
 
+		if (System.getSecurityManager() == null) {
+			System.setSecurityManager(new SecurityManager());
+		}
+
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				AssistantDM inst = new AssistantDM();
@@ -100,7 +112,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			}
 		});
 	}
-	
+
 	public AssistantDM() {
 		file = new File("party.xml");
 
@@ -120,9 +132,13 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		openItem = new JMenuItem("Open...", KeyEvent.VK_O);
 		openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		openItem.addActionListener(this);
+		tableItem = new JMenuItem("Digital table controller...", KeyEvent.VK_T);
+		tableItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
+		tableItem.addActionListener(this);
 		fileMenu.add(openItem);
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAsItem);
+		fileMenu.add(tableItem);
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {public void actionPerformed(ActionEvent arg0) {exit();}}));
 		partyMenu = new JMenu("Party");
 		partyMenu.setMnemonic(KeyEvent.VK_P);
@@ -198,6 +214,22 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			System.out.println("Bounds = "+b);
 			System.out.println("Resizing to "+newSize);
 			setSize(newSize);
+		}
+	}
+
+	public void showDigitalTableController() {
+		try {
+			String name = "TableDisplay";
+			Registry registry = LocateRegistry.getRegistry("corto");
+			tableDisplay = (TableDisplay) registry.lookup(name);
+		} catch (Exception e) {
+			System.err.println("TableDisplay exception:" + e.getMessage());
+			e.printStackTrace();
+		}
+
+		if (tableDisplay != null) {
+            Platform.setImplicitExit(false);
+			new MonitorConfigFrame(tableDisplay);
 		}
 	}
 
@@ -471,6 +503,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		} else if (e.getSource() == openItem) {
 			openParty();
+
+		} else if (e.getSource() == tableItem) {
+			showDigitalTableController();
 
 		} else if (e.getSource() == xpItem) {
 			calculateXP();

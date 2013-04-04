@@ -21,6 +21,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import digital_table.server.MapCanvas.Order;
+
 public class Browser extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -46,6 +48,10 @@ public class Browser extends MapElement {
     public Browser() {
     }
     
+	public Order getDefaultOrder() {
+		return Order.Top;
+	}
+
 	public void paint(Graphics2D g) {
 		if (panel != null) {
 			panel.repaint();	// without this the underlying map will often get painted ontop of the panel. with this there can still be flickering

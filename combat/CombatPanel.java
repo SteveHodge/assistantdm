@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -55,7 +56,13 @@ public class CombatPanel extends JPanel {
 	EffectTableModel effectsTableModel;
 	int round = 0;
 	Updater fileUpdater = new Updater();
+	List<InitiativeListener> listeners = new ArrayList<InitiativeListener>();
 
+	// TODO need to remove this static instance
+	public static CombatPanel getCombatPanel() {
+		return combatPanel;
+	}
+	
 	public CombatPanel(Party p) {
 		combatPanel = this;
 		party = p;
@@ -189,7 +196,19 @@ public class CombatPanel extends JPanel {
 			//System.out.println(output);
 			lastInitiativeOutput = output;
 			Updater.update(Updater.INITIATIVE_FILE, output.getBytes());
+			for (InitiativeListener l : listeners) {
+				l.initiativeUpdated(output);
+			}
 		}
+	}
+
+	public void addInitiativeListener(InitiativeListener l) {
+		listeners.add(l);
+		l.initiativeUpdated(lastInitiativeOutput);
+	}
+
+	public void removeInitiativeListener(InitiativeListener l) {
+		listeners.remove(l);
 	}
 
 	public String getCharacterName(int index) {

@@ -15,6 +15,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import digital_table.server.MapCanvas.Order;
+
 // TODO cache scaled image for performance
 
 public class MapImage extends MapElement {
@@ -43,6 +45,10 @@ public class MapImage extends MapElement {
 		fileName = f;
 	}
 	
+	public Order getDefaultOrder() {
+		return Order.Bottom;
+	}
+
 	protected void createRotatedImage() {
 		if (sourceImage == null) {
 			try {

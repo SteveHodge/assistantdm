@@ -99,6 +99,9 @@ public class GridOptionsPanel extends OptionsPanel {
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
 				
+			} else if (e.getPropertyName().equals(Grid.PROPERTY_BACKGROUND_COLOR)) {
+				bgColorPanel.setBackground((Color)e.getNewValue());
+
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_RULER_ROW)) {
 				rulerRowField.setText(e.getNewValue().toString());
 				

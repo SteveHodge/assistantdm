@@ -30,9 +30,13 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
+import combat.CombatPanel;
+import combat.InitiativeListener;
+
 import digital_table.server.TableDisplay;
 import digital_table.elements.Browser;
 import digital_table.elements.Grid;
+import digital_table.elements.Initiative;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
@@ -192,6 +196,7 @@ public class ControllerFrame extends JFrame {
 				}
 			}
 		});
+
 		JButton addBrowserButton = new JButton("Add Browser");
 		addBrowserButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -209,6 +214,32 @@ public class ControllerFrame extends JFrame {
 			}
 		});
 		
+		JButton addInitiativeButton = new JButton("Add Initiative");
+		addInitiativeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					final Initiative init = new Initiative();
+					display.addElement(init);
+					init.setVisible(true);
+					CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
+						public void initiativeUpdated(String text) {
+							init.setText(text);
+							try {
+								display.setElementProperty(init.getID(), Initiative.PROPERTY_TEXT, text);
+							} catch (RemoteException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+					miniMapPanel.addElement(init);
+					optionPanels.put(init, new InitiativeOptionsPanel(init, display));
+					elementList.setSelectedValue(init, true);
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+
 		JButton hideImageButton = new JButton("Remove");
 		hideImageButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -269,12 +300,13 @@ public class ControllerFrame extends JFrame {
 		});
 
 		JPanel buttonPanel = new JPanel();
-		buttonPanel.setLayout(new GridLayout(2,3));
+		buttonPanel.setLayout(new GridLayout(0,3));
 		buttonPanel.add(hideImageButton);
 		buttonPanel.add(showImageButton);
 		buttonPanel.add(addTemplateButton);
 		buttonPanel.add(addLineButton);
 		buttonPanel.add(addBrowserButton);
+		buttonPanel.add(addInitiativeButton);
 		buttonPanel.add(upButton);
 		buttonPanel.add(downButton);
 		buttonPanel.add(quitButton);

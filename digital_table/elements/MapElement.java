@@ -7,6 +7,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 
 import digital_table.server.MapCanvas;
+import digital_table.server.MapCanvas.Order;
 import digital_table.server.ScreenManager;
 
 /*
@@ -104,5 +105,9 @@ public abstract class MapElement implements Serializable {
 	 * @param p a Point2D specifying the new location for this element
 	 */
 	public void setLocation(Point2D p) {
+	}
+
+	public Order getDefaultOrder() {
+		return Order.Bottom;
 	}
 }

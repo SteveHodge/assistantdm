@@ -7,6 +7,8 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 
+import digital_table.server.MapCanvas.Order;
+
 // TODO convert PROPERTY constants to enum?
 
 public class SpreadTemplate extends MapElement {
@@ -68,6 +70,10 @@ public class SpreadTemplate extends MapElement {
 		calculateSpread();
 	}
 	
+	public Order getDefaultOrder() {
+		return Order.BelowGrid;
+	}
+
 	protected void calculateSpread() {
 		affected = new boolean[radius][radius];
 
