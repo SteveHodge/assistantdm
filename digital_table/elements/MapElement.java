@@ -84,17 +84,23 @@ public abstract class MapElement implements Serializable {
 		}
 	}
 	
-	public boolean isDraggable() {
-		return false;
+	/**
+	 * If this MapElement is draggable then this will return an object that identifies the aspect that is being dragged
+	 * @param gridLocation location of the mouse in the grid when dragging commenced. Should be serialisable
+	 * @return an Object that identifies what is being dragged
+	 */
+	public Object getDragTarget(Point2D gridLocation) {
+		return null;
 	}
 
 	/**
 	 * Get the location of the element in grid coordinates.
 	 * Currently this is only used by the minimap dragging code. If a subclass returns true for isDraggable()
 	 * then it must override and implement this method otherwise it does not need to.
-	 * @return a Point2D containing the location of the element
+	 * @param target the Object identifying the aspect of the element to get the location of
+	 * @return a Point2D containing the location of the specified target. null if the target is not recognised
 	 */
-	public Point2D getLocation() {
+	public Point2D getLocation(Object target) {
 		return null;
 	}
 
@@ -103,9 +109,10 @@ public abstract class MapElement implements Serializable {
 	 * element may round the coordinates in p however they choose.
 	 * Currently this is only used by the minimap dragging code. If a subclass returns true for isDraggable()
 	 * then it must override and implement this method otherwise it does not need to.
+	 * @param target the Object identifying the aspect of the element to be moved
 	 * @param p a Point2D specifying the new location for this element
 	 */
-	public void setLocation(Point2D p) {
+	public void setLocation(Object target, Point2D p) {
 	}
 
 	public Order getDefaultOrder() {

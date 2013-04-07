@@ -306,16 +306,31 @@ public class LineTemplate extends MapElement {
 		if (canvas != null) canvas.repaint();
 	}
 
-	public boolean isDraggable() {
-		return true;
+	public Object getDragTarget(Point2D gridLocation) {
+		if (gridLocation.distance(originX, originY) < 2.0d
+				&& gridLocation.distance(originX, originY) < gridLocation.distance(targetX, targetY)) {
+			return "ORIGIN";
+		} else {
+			return "TARGET";
+		}
 	}
 
-	public Point2D getLocation() {
-		return new Point(targetX,targetY);
+	public Point2D getLocation(Object target) {
+		if (target.equals("ORIGIN")) {
+			return new Point(originX,originY);
+		} else if (target.equals("TARGET")) {
+			return new Point(targetX,targetY);
+		}
+		return null;
 	}
-	
-	public void setLocation(Point2D p) {
-		setX((int)p.getX());
-		setY((int)p.getY());
+
+	public void setLocation(Object target, Point2D p) {
+		if (target.equals("ORIGIN")) {
+			setOriginX((int)p.getX());
+			setOriginY((int)p.getY());
+		} else if (target.equals("TARGET")) {
+			setX((int)p.getX());
+			setY((int)p.getY());
+		}
 	}
 }

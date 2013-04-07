@@ -44,11 +44,11 @@ import digital_table.elements.Initiative;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
+import digital_table.elements.ScreenBounds;
 import digital_table.elements.SpreadTemplate;
 
 /*
  * Create chooser for adding elements
- * Multiple drag points within elements (e.g. origin and target)
  * Alternate button dragging (e.g. resize)
  * Shapable template
  * Add MapElement method that is called on remove - use for cleanup
@@ -77,30 +77,33 @@ public class ControllerFrame extends JFrame {
 
 	MouseInputListener dragAndDrop = new MouseInputListener() {
 		boolean dragging = false;
-		//Point offset = null;
 		Point2D offset = null;	// initial offset of the mouse pointer from the location of the element in grid coordinates
-		MapElement target = null;
+		MapElement element = null;
+		Object target;
 
 		public void mousePressed(MouseEvent e) {
 			MapElement el = (MapElement)elementList.getSelectedValue();
-			if (el != null && el.isDraggable()) {
-				target = el;
-				dragging = true;
-				Point2D mouse = miniMapPanel.getGridCoordinates(e.getX(), e.getY());
-				offset = new Point2D.Double(mouse.getX()-target.getLocation().getX(), mouse.getY()-target.getLocation().getY());
-			}
+			if (el == null) return;
+			Point2D mouse = miniMapPanel.getGridCoordinates(e.getX(), e.getY());
+			Object t = el.getDragTarget(mouse);
+			if (t == null) return;
+			element = el;
+			target = t;
+			dragging = true;
+			Point2D targetLoc = element.getLocation(target);
+			offset = new Point2D.Double(mouse.getX()-targetLoc.getX(), mouse.getY()-targetLoc.getY());
 		}
 
 		public void mouseReleased(MouseEvent e) {
 			if (dragging) {
 				Point2D p = miniMapPanel.getGridCoordinates(e.getX(), e.getY());
 				p = new Point2D.Double(p.getX() - offset.getX(), p.getY() - offset.getY());
-				if (optionPanels.get(target).snapToGrid()) {
+				if (optionPanels.get(element).snapToGrid()) {
 					p.setLocation((int)p.getX(),(int)p.getY());
 				}
-				target.setLocation(p);
+				element.setLocation(target, p);
 				try {
-					display.setElementPosition(target.getID(), p);
+					display.setElementLocation(element.getID(), target, p);
 				} catch (RemoteException e1) {
 					e1.printStackTrace();
 				}
@@ -112,10 +115,10 @@ public class ControllerFrame extends JFrame {
 			if (dragging) {
 				Point2D p = miniMapPanel.getGridCoordinates(e.getX(), e.getY());
 				p = new Point2D.Double(p.getX() - offset.getX(), p.getY() - offset.getY());
-				if (optionPanels.get(target).snapToGrid()) {
+				if (optionPanels.get(element).snapToGrid()) {
 					p.setLocation((int)p.getX(),(int)p.getY());
 				}
-				target.setLocation(p);
+				element.setLocation(target, p);
 			}
 		}
 
@@ -273,6 +276,23 @@ public class ControllerFrame extends JFrame {
 			}
 		});
 
+		JButton addBoundsButton = new JButton("Add Screens");
+		addBoundsButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					ScreenBounds bounds = new ScreenBounds();
+					display.addElement(bounds);
+					bounds.setVisible(true);
+					miniMapPanel.addElement(bounds);
+					optionPanels.put(bounds, new BoundsOptionsPanel(bounds, display));
+					elementList.setSelectedValue(bounds, true);
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		
+		
 		JButton hideImageButton = new JButton("Remove");
 		hideImageButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -340,6 +360,7 @@ public class ControllerFrame extends JFrame {
 		buttonPanel.add(addLineButton);
 		buttonPanel.add(addBrowserButton);
 		buttonPanel.add(addInitiativeButton);
+		buttonPanel.add(addBoundsButton);
 		buttonPanel.add(upButton);
 		buttonPanel.add(downButton);
 		buttonPanel.add(quitButton);

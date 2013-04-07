@@ -230,10 +230,10 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		}
 	}
 
-	public void setElementPosition(int id, Point2D point) throws RemoteException {
+	public void setElementLocation(int id, Object target, Point2D point) throws RemoteException {
 		MapElement e = canvas.getElement(id);
 		if (e != null) {
-			e.setLocation(point);
+			e.setLocation(target, point);
 		}
 	}
 

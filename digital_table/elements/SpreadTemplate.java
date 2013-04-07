@@ -539,16 +539,21 @@ public class SpreadTemplate extends MapElement {
 		}
 	}
 
-	public boolean isDraggable() {
-		return true;
+	public Object getDragTarget(Point2D gridLocation) {
+		return "TARGET";
 	}
 
-	public Point2D getLocation() {
-		return new Point(x,y);
+	public Point2D getLocation(Object target) {
+		if (target.equals("TARGET")) {
+			return new Point(x,y);
+		}
+		return null;
 	}
-	
-	public void setLocation(Point2D p) {
-		setX((int)p.getX());
-		setY((int)p.getY());
+
+	public void setLocation(Object target, Point2D p) {
+		if (target.equals("TARGET")) {
+			setX((int)p.getX());
+			setY((int)p.getY());
+		}
 	}
 }
