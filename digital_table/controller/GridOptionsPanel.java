@@ -67,6 +67,7 @@ public class GridOptionsPanel extends OptionsPanel {
 		alphaSlider = this.createSliderControl(grid, Grid.PROPERTY_ALPHA);
 		
 		JCheckBox visibleCheck = createVisibilityControl(grid);
+		visibleCheck.setSelected(true);
 		
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();

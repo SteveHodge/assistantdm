@@ -9,6 +9,7 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -27,7 +28,6 @@ import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 
 import digital_table.elements.MapElement;
 
@@ -35,10 +35,9 @@ import digital_table.elements.MapElement;
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
 public class DigitalTable implements TableDisplay, ScreenManager {
-	static final String imageFile = "D:\\Ptolus\\Maps\\DeluxeCityMap\\Ptolus_1px_to_5ft.png";
-	//static final String imageFile = "c:\\Ptolus\\Maps\\DeluxeCityMap\\Ptolus_1px_to_5ft.png";
+    static final String SERVICE_NAME = "TableDisplay";
 
-	static final int[] xOffsets = {65, 1421, 64, 1425, 63, 1421};	// relative x location of each screen
+    static final int[] xOffsets = {65, 1421, 64, 1425, 63, 1421};	// relative x location of each screen
 	//static final int[] yOffsets = {0, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
 	static final int[] yOffsets = {250, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
 
@@ -48,6 +47,8 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	Map<Integer,List<JComponent>> components = new HashMap<Integer,List<JComponent>>();
 	MapCanvas canvas = new MapCanvas();
 
+	Registry registry = null;
+	
     public DigitalTable() {
         super();
     }
@@ -57,11 +58,11 @@ public class DigitalTable implements TableDisplay, ScreenManager {
             System.setSecurityManager(new SecurityManager());
         }
         try {
-            String name = "TableDisplay";
             TableDisplay engine = new DigitalTable();
-            TableDisplay stub = (TableDisplay) UnicastRemoteObject.exportObject(engine, 0);
-            Registry registry = LocateRegistry.getRegistry();
-            registry.rebind(name, stub);
+            TableDisplay stub = (TableDisplay)UnicastRemoteObject.exportObject(engine, 0);
+            //Registry registry = LocateRegistry.getRegistry();
+            Registry registry = LocateRegistry.createRegistry(1099);
+            registry.rebind(SERVICE_NAME, stub);
             System.out.println("DigitalTable bound");
             Platform.setImplicitExit(false);
         } catch (Exception e) {
@@ -154,14 +155,36 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		}
 	}
 
-	public void quit() throws RemoteException {
-		// need to use invokeLater so this method has a chance to return (otherwise we'll get an exception on the client)
-		SwingUtilities.invokeLater(new Runnable() {
+	public void requestExit() throws RemoteException {
+		hideIDs();
+		for (int i = 0; i < screens.length; i++) {
+			if (screens[i] != null) {
+				screens[i].setVisible(false);
+				screens[i].dispose();
+				screens[i] = null;
+			}
+		}		
+		Platform.exit();
+
+		new Thread() {
 			public void run() {
-				Platform.exit();
+				try {
+					sleep(2000);
+					System.out.println("Shutting down");
+			        Registry registry = LocateRegistry.getRegistry();
+					try {
+						registry.unbind(SERVICE_NAME);
+					} catch (NotBoundException e) {
+						System.out.println(e.getMessage());
+					}
+					UnicastRemoteObject.unexportObject(DigitalTable.this, false);
+				} catch (Exception e) {
+				}
 				System.exit(0);
 			}
-		});
+		}.start();
+		
+		System.out.println("Quit complete");
 	}
 
 	public void addElement(MapElement element) {
@@ -171,11 +194,13 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 
 	public void removeElement(int id) {
 		List<JComponent> comps = components.get(id);
-		for (JComponent component : comps) {
-			Container parent =  component.getParent();
-			if (parent != null) {
-				parent.remove(component);
-				parent.repaint();
+		if (comps != null) {
+			for (JComponent component : comps) {
+				Container parent =  component.getParent();
+				if (parent != null) {
+					parent.remove(component);
+					parent.repaint();
+				}
 			}
 		}
 		components.remove(id);

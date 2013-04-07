@@ -91,11 +91,41 @@
 	</xs:complexType>
 </xs:element>
 
+<xs:element name="Shield">
+	<xs:complexType>
+		<xs:attribute name="acp" type="xs:int"/>
+		<xs:attribute name="bonus" type="xs:int"/>
+		<xs:attribute name="description" type="xs:string"/>
+		<xs:attribute name="enhancement" type="xs:int"/>
+		<xs:attribute name="properties" type="xs:string"/>
+		<xs:attribute name="spell_failure" type="xs:int"/>
+		<xs:attribute name="weight" type="xs:int"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Armor">
+	<xs:complexType>
+		<xs:attribute name="acp" type="xs:int"/>
+		<xs:attribute name="bonus" type="xs:int"/>
+		<xs:attribute name="description" type="xs:string"/>
+		<xs:attribute name="enhancement" type="xs:int"/>
+		<xs:attribute name="properties" type="xs:string"/>
+		<xs:attribute name="spell_failure" type="xs:int"/>
+		<xs:attribute name="weight" type="xs:int"/>
+		<xs:attribute name="max_dex" type="xs:int"/>
+		<xs:attribute name="speed" type="xs:int"/>
+		<xs:attribute name="type" type="xs:string"/>
+	</xs:complexType>
+</xs:element>
+
 <xs:element name="AC">
 	<xs:complexType>
 		<xs:sequence>
+			<xs:element ref="Armor" minOccurs="0" maxOccurs="1"/>
+			<xs:element ref="Shield" minOccurs="0" maxOccurs="1"/>
 			<xs:element ref="ACComponent" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
+		<xs:attribute name="natural_armor" type="xs:int"/>
 	</xs:complexType>
 </xs:element>
 
@@ -163,10 +193,22 @@
 	</xs:complexType>
 </xs:element>
 
+<xs:element name="PropertyChange">
+	<xs:complexType>
+		<xs:attribute name="target" type="xs:string" use="required"/>
+		<xs:attribute name="value" type="xs:int" use="required"/>
+		<xs:attribute name="property" type="xs:string"/>
+		<xs:attribute name="description" type="xs:string"/> <!-- attribute used only for character sheet output -->
+	</xs:complexType>
+</xs:element>
+
 <xs:element name="Buff">
 	<xs:complexType>
-		<xs:sequence>
-			<xs:element ref="Modifier" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="Modifier"/>
+				<xs:element ref="PropertyChange"/>
+			</xs:choice>
 		</xs:sequence>
 		<xs:attribute name="caster_level" type="xs:int"/>
 		<xs:attribute name="name" type="xs:string" use="required"/>

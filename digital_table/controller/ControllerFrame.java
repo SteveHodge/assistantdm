@@ -11,6 +11,9 @@ import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +24,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -42,12 +46,26 @@ import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
 import digital_table.elements.SpreadTemplate;
 
-// TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
+/*
+ * Create chooser for adding elements
+ * Multiple drag points within elements (e.g. origin and target)
+ * Alternate button dragging (e.g. resize)
+ * Shapable template
+ * Add MapElement method that is called on remove - use for cleanup
+ * Fix MapImage for that rotation preseves scale
+ * Darkness mask element
+ * Make MapImage editable?
+ * Screen bounds element
+ * Zoomed view on controller
+ * Load/Save
+ * Recalibrate
+ * Auto configure - set defaults according to OS screen layout
+ */
+
+//TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
 public class ControllerFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
-
-	static final String imageFile = "D:\\Ptolus\\Maps\\DeluxeCityMap\\Ptolus_1px_to_5ft.png";
 
 	TableDisplay display;
 	MiniMapPanel miniMapPanel = new MiniMapPanel();
@@ -108,30 +126,34 @@ public class ControllerFrame extends JFrame {
 	};
 
 	public void quit() {
+		System.out.println("Requesting exit");
 		try {
-			display.quit();
+			display.requestExit();
 			Platform.exit();
-			System.exit(0);
+			removeWindowListener(windowListener);
+			dispose();
 		} catch (RemoteException e1) {
 			e1.printStackTrace();
 		}
 	}
+
+	WindowListener windowListener = new WindowListener() {
+		public void windowActivated(WindowEvent e) {}
+		public void windowClosing(WindowEvent e) {}
+		public void windowDeactivated(WindowEvent e) {}
+		public void windowDeiconified(WindowEvent e) {}
+		public void windowIconified(WindowEvent e) {}
+		public void windowOpened(WindowEvent e) {}
+
+		public void windowClosed(WindowEvent e) {
+			quit();
+		}
+	};
 	
 	public ControllerFrame(TableDisplay remote) {
 		super("DigitalTable Controller");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		this.addWindowListener(new WindowListener() {
-			public void windowActivated(WindowEvent e) {}
-			public void windowClosing(WindowEvent e) {}
-			public void windowDeactivated(WindowEvent e) {}
-			public void windowDeiconified(WindowEvent e) {}
-			public void windowIconified(WindowEvent e) {}
-			public void windowOpened(WindowEvent e) {}
-
-			public void windowClosed(WindowEvent e) {
-				quit();
-			}
-		});
+		addWindowListener(windowListener);
 
 		display = remote;
 
@@ -147,20 +169,31 @@ public class ControllerFrame extends JFrame {
 				}
 			}
 		};
-		
+
+		final JFileChooser chooser = new JFileChooser();
 		JButton showImageButton = new JButton("Add Image");
 		showImageButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-					MapImage mapImage = new MapImage(imageFile);
-					display.addElement(mapImage);
-					mapImage.setVisible(true);
-					mapImage.addPropertyChangeListener(labelListener);
-					miniMapPanel.addElement(mapImage);
-					optionPanels.put(mapImage, new ImageOptionsPanel(mapImage, display));
-					elementList.setSelectedValue(mapImage, true);
-				} catch (RemoteException e1) {
-					e1.printStackTrace();
+				if (chooser.showOpenDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
+					try {
+						File f = chooser.getSelectedFile();
+						byte bytes[] = new byte[(int)f.length()];
+						FileInputStream stream = new FileInputStream(f);
+						stream.read(bytes);
+						MapImage mapImage = new MapImage(bytes, f.getName());
+						display.addElement(mapImage);
+						mapImage.setVisible(true);
+						mapImage.addPropertyChangeListener(labelListener);
+						miniMapPanel.addElement(mapImage);
+						optionPanels.put(mapImage, new ImageOptionsPanel(mapImage, display));
+						elementList.setSelectedValue(mapImage, true);
+					} catch (RemoteException e1) {
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				} else {
+					System.out.println("Cancelled");
 				}
 			}
 		});
@@ -184,7 +217,7 @@ public class ControllerFrame extends JFrame {
 		addLineButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					LineTemplate template = new LineTemplate(18, 2, 21, 7);
+					LineTemplate template = new LineTemplate(18, 14, 21, 7);
 					display.addElement(template);
 					template.setVisible(true);
 					template.addPropertyChangeListener(labelListener);

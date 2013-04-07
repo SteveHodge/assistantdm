@@ -10,7 +10,7 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import digital_table.server.MapCanvas.Order;
 
 // TODO cache scaled image for performance
+// TODO should have some sort of persistent cache so we don't have to keep the image file bytes in memory and don't have to resend the image each time  
 
 public class MapImage extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -33,7 +34,7 @@ public class MapImage extends MapElement {
 
 	protected transient BufferedImage sourceImage = null;
 	protected transient BufferedImage rotatedImage = null;
-	protected String fileName;
+	byte[] bytes;	// used to store the raw bytes so we can be serialised  
 
 	double x, y;	// position in grid coordinate-space
 	double width, height;	// scaled dimensions in grid coordinate-space
@@ -41,8 +42,9 @@ public class MapImage extends MapElement {
 	float alpha = 1.0f;
 	String label;
 
-	public MapImage(String f) {
-		fileName = f;
+	public MapImage(byte[] b, String label) throws IOException {
+		this.label = label;
+		bytes = b;
 	}
 	
 	public Order getDefaultOrder() {
@@ -51,25 +53,29 @@ public class MapImage extends MapElement {
 
 	protected void createRotatedImage() {
 		if (sourceImage == null) {
+//			sourceImage = ImageIO.read(f);
+//			if (label == null) setLabel(f.getName());
 			try {
-				File f = new File(fileName);
-				sourceImage = ImageIO.read(f);
-				if (label == null) setLabel(f.getName());
+				ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+				sourceImage = ImageIO.read(stream);
+				// we could now drop the bytes array at the cost of no longer being serializable
 			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
+		
 		if (sourceImage != null) {
 			AffineTransform t = AffineTransform.getQuadrantRotateInstance(rotations);
 			Point p = new Point(sourceImage.getWidth(),sourceImage.getHeight());
 			t.transform(p,p);	// transform to get new dimensions
-
+	
 			rotatedImage = new BufferedImage(Math.abs(p.x), Math.abs(p.y), BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2d = (Graphics2D)rotatedImage.getGraphics();
 			g2d.rotate(Math.toRadians(rotations*90), rotatedImage.getWidth() / 2, rotatedImage.getHeight() / 2);
 			g2d.translate((rotatedImage.getWidth() - sourceImage.getWidth()) / 2, (rotatedImage.getHeight() - sourceImage.getHeight()) / 2);
 			g2d.drawImage(sourceImage, 0, 0, sourceImage.getWidth(), sourceImage.getHeight(), null);
 			g2d.dispose();
-
+	
 			// get the dimensions in grid-coordinate space of the remote display:
 			setWidth((double)rotatedImage.getWidth() * 294 / 25400);
 			setHeight((double)rotatedImage.getHeight() * 294 / 25400);

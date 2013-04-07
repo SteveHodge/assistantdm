@@ -53,6 +53,7 @@ public class MonitorConfigFrame extends JFrame {
 					}
 					display.showScreens(screenNums);
 					new ControllerFrame(display);
+					dispose();
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
 				}

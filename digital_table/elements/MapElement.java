@@ -1,5 +1,6 @@
 package digital_table.elements;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeListener;
@@ -109,5 +110,13 @@ public abstract class MapElement implements Serializable {
 
 	public Order getDefaultOrder() {
 		return Order.Bottom;
+	}
+	
+	public static Color darken(Color c) {
+		return (new Color(c.getRed()*3/5,c.getGreen()*3/5,c.getBlue()*3/5));
+	}
+	
+	public static Color lighten(Color c) {
+		return (new Color(c.getRed()/2+127,c.getGreen()/2+127,c.getBlue()/2+127));
 	}
 }

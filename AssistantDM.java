@@ -79,6 +79,7 @@ import digital_table.server.TableDisplay;
 //TODO add new party menu option, ask to save modified file
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
+	private static final String DIGITAL_TABLE_SERVER = "corto";
 	JMenuBar menuBar;
 	JMenu fileMenu, partyMenu;
 	JMenuItem saveItem, saveAsItem, openItem, updateItem;
@@ -220,7 +221,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	public void showDigitalTableController() {
 		try {
 			String name = "TableDisplay";
-			Registry registry = LocateRegistry.getRegistry("corto");
+			Registry registry = LocateRegistry.getRegistry(DIGITAL_TABLE_SERVER);
 			tableDisplay = (TableDisplay) registry.lookup(name);
 		} catch (Exception e) {
 			System.err.println("TableDisplay exception:" + e.getMessage());

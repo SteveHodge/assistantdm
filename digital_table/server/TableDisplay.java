@@ -7,7 +7,7 @@ import digital_table.elements.MapElement;
 
 
 public interface TableDisplay extends Remote {
-	public void quit() throws RemoteException;
+	public void requestExit() throws RemoteException;
 	public Object[] getScreenList() throws RemoteException;
 	public void setScreenIDsVisible(boolean visible) throws RemoteException;
 	public void showScreens(int[] screenNums) throws RemoteException;

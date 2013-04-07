@@ -8,7 +8,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
 import digital_table.server.MapCanvas.Order;
 
@@ -53,30 +52,66 @@ public class LineTemplate extends MapElement {
 		double endY = originY + range*(targetY - originY)/dist;
 		
 		// test for affected cells
-		g.setColor(new Color(color.getRed()/2+127,color.getBlue()/2+127,color.getGreen()/2+127));
-		int minX, maxX, minY, maxY;
-		minX = (int)(originX < endX ? originX : endX-1);
-		minY = (int)(originY < endY ? originY : endY-1);
-		maxX = (int)(endX < originX ? originX : endX+1);
-		maxY = (int)(endY < originY ? originY : endY+1);
-		for (int x = minX; x < maxX; x++) {
-			boolean seen = false;
-			for (int y = minY; y < maxY; y++) {
-				Rectangle2D r = new Rectangle2D.Double(x,y,1,1);
-				if (r.intersectsLine(originX, originY, endX, endY)) {
-					Point tl = canvas.getDisplayCoordinates(x, y);
-					Point br = canvas.getDisplayCoordinates(x+1, y+1);
+		g.setColor(color);
+// this version uses intersections of the line with the rectangle formed by each cell
+// it doesn't work consistently for cells that have a corner on the line. could simply special-case those
+// cells but the below implementation *should* be more efficient
+//		int minX, maxX, minY, maxY;
+//		minX = (int)(originX < endX ? originX : endX-1);
+//		minY = (int)(originY < endY ? originY : endY-1);
+//		maxX = (int)(endX < originX ? originX : endX+1);
+//		maxY = (int)(endY < originY ? originY : endY+1);
+//		for (int x = minX; x < maxX; x++) {
+//			boolean seen = false;
+//			for (int y = minY; y < maxY; y++) {
+//				Rectangle2D r = new Rectangle2D.Double(x,y,1,1);
+//				if (r.intersectsLine(originX, originY, endX, endY)) {
+//					Point tl = canvas.getDisplayCoordinates(x, y);
+//					Point br = canvas.getDisplayCoordinates(x+1, y+1);
+//					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+//					seen = true;
+//				} else if (seen) {
+//					break;	// this cell is not included so no other cells in this column can be included either
+//				}
+//			}
+//		}
+		System.out.println();
+		if (targetX == originX) {
+			int minY = originY;
+			int maxY = 1 + (int)endY;
+			if (maxY < minY) {
+				int t = minY;
+				minY = maxY - 2;
+				maxY = t ;
+			}
+			Point tl = canvas.getDisplayCoordinates(originX-1, minY);
+			Point br = canvas.getDisplayCoordinates(originX+1, maxY);
+			g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+		} else if (targetX > originX) {
+			for (int x = 0; x <= endX-originX; x++) {
+				Point range = getVerticalRange(x, targetX, endX, endY);
+				//System.out.println("x = "+x+", miny = "+range.x+", maxy = "+range.y+", endX = "+endX);
+				for (int y = range.x; y <= range.y; y++) {
+					Point tl = canvas.getDisplayCoordinates(x+originX, y);
+					Point br = canvas.getDisplayCoordinates(x+originX+1, y+1);
 					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
-					seen = true;
-				} else if (seen) {
-					break;	// this cell is not included so no other cells in this column can be included either
+				}
+			}
+		} else {
+			// targetX < originX
+			for (int x = 0; x >= endX-originX; x--) {
+				// we mirror the relevant x coordinates to calculate the range as if it were the other case
+				Point range = getVerticalRange(-x, originX*2-targetX, originX*2-endX, endY);
+				for (int y = range.x; y <= range.y; y++) {
+					Point tl = canvas.getDisplayCoordinates(x+originX-1, y);
+					Point br = canvas.getDisplayCoordinates(x+originX, y+1);
+					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 				}
 			}
 		}
-		
-		g.setColor(color);
+		g.setColor(darken(color));
 		Stroke oldStroke = g.getStroke();
-		g.setStroke(new BasicStroke(3));
+		g.setStroke(getThickStroke());
 		Point s = canvas.getDisplayCoordinates(originX, originY);
 		Point e = canvas.getDisplayCoordinates(new Point2D.Double(endX, endY));
 		g.drawLine(s.x, s.y, e.x, e.y);
@@ -85,6 +120,46 @@ public class LineTemplate extends MapElement {
 		g.setStroke(oldStroke);
 
 		g.setComposite(c);
+	}
+
+	protected Point getVerticalRange(int x, int targetX, double endX, double endY) {
+		int minY, maxY;	// the range of cells to paint for this column. note that for lines with negative gradiant minY will be larger than maxY
+		int deltaX = targetX-originX;
+		int deltaY = targetY-originY;
+		
+		if (originY > targetY) {
+			maxY = x*(deltaY)/(deltaX);
+			if ((x > 0 || targetY == originY) && maxY * deltaX == x * deltaY) {
+				// the smallest y position is an integer then include the previous cell
+				// we don't do this for the first column unless the line is horizontal
+				maxY++;
+			}
+			maxY += originY - 1;
+			if (x+1+originX > endX) {
+				//System.out.println("Using endY = "+endY);
+				minY = (int)endY;	// if the next column is past endX then use endY as the end of the range to fill
+			}
+			else minY = (x+1)*deltaY/deltaX + originY - 1;
+		} else {
+			minY = x*deltaY/deltaX;
+			if ((x > 0 || targetY == originY) && minY * deltaX == x*deltaY) {
+				// the smallest y position is an integer then include the previous cell
+				// we don't do this for the first column unless the line is horizontal
+				minY--;
+			}
+			minY += originY;
+			if (x+1+originX > endX) {
+				//System.out.println("Using endY = "+endY);
+				maxY = (int)endY;	// if the next column is past endX then use endY as the end of the range to fill
+			}
+			else maxY = (x+1)*deltaY/deltaX + originY;
+		}
+		return new Point(minY, maxY);
+	}
+	
+	protected Stroke getThickStroke() {
+		if (canvas.getColumnWidth() < 40) return new BasicStroke(3);
+		return new BasicStroke(5);
 	}
 
 	public String toString() {
