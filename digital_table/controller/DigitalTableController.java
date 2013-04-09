@@ -1,6 +1,9 @@
 package digital_table.controller;
 
 
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -29,7 +32,30 @@ public class DigitalTableController {
 
 		if (display != null) {
             Platform.setImplicitExit(false);
-			new MonitorConfigFrame(display);
+			final MonitorConfigFrame f = new MonitorConfigFrame(display);
+			f.addWindowListener(new WindowListener() {
+				public void windowClosed(WindowEvent arg0) {
+					if (f.openScreens) {
+						try {
+							for (int i = 0; i < f.screenNums.length; i++) {
+								if (f.screenNums[i] >= 0) {
+									DisplayConfig.screens.get(f.screenNums[i]).location = DisplayConfig.defaultLocations[i];
+								}
+							}
+							display.showScreens(f.screenNums,DisplayConfig.defaultLocations);
+							new ControllerFrame(display);
+						} catch (RemoteException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				public void windowActivated(WindowEvent arg0) {}
+				public void windowClosing(WindowEvent arg0) {}
+				public void windowDeactivated(WindowEvent arg0) {}
+				public void windowDeiconified(WindowEvent arg0) {}
+				public void windowIconified(WindowEvent arg0) {}
+				public void windowOpened(WindowEvent arg0) {}
+			});
 		}
 	}
 

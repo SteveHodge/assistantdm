@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.rmi.NotBoundException;
@@ -71,18 +72,18 @@ public class DigitalTable implements TableDisplay, ScreenManager {
         }
     }
 
-	public Object[] getScreenList() {
+	public Rectangle[] getScreenBounds() {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] devs = ge.getScreenDevices();
-		Object[] list = new Object[devs.length+1];
-		list[0] = "not allocated";
-		for (int i = 1; i < list.length; i++) {
-			list[i] = "" + i;
+		Rectangle[] list = new Rectangle[devs.length];
+		for (int i = 0; i < list.length; i++) {
+			GraphicsConfiguration config = devs[i].getDefaultConfiguration();
+			list[i] = config.getBounds();
 		}
 		return list;
 	}
 
-	public void showScreens(int[] screenNums) {
+	public void showScreens(int[] screenNums, Point[] offsets) {
 		hideIDs();
 
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -95,7 +96,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 				screens[i] = null;
 			}
 			if (screenNums[i] >= 0) {
-				screens[i] = makeFrame(devs[screenNums[i]].getDefaultConfiguration(), xOffsets[i], yOffsets[i]);
+				screens[i] = makeFrame(devs[screenNums[i]].getDefaultConfiguration(), offsets[i]);
 				screens[i].setVisible(true);
 			}
 		}
@@ -104,14 +105,14 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	/*
 	 * x, y define the position of the top left of the screen in the virtual space
 	 */
-	JFrame makeFrame(GraphicsConfiguration config, int x, int y) {
+	JFrame makeFrame(GraphicsConfiguration config, Point viewOffset) {
 		JFrame frame = new JFrame(config);
 		frame.setBounds(config.getBounds());
 		frame.setUndecorated(true);
 		frame.setResizable(false);
 		//JPanel p = new GridPanel(x, y);
 		//JLayeredPane layeredPane = new JLayeredPane();
-		JPanel p = new MapViewport(canvas, x, y);
+		JPanel p = new MapViewport(canvas, viewOffset.x, viewOffset.y);
 		//layeredPane.add(p);
 		frame.add(p);
 		frame.validate();

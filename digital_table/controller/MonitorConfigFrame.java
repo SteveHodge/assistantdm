@@ -13,10 +13,14 @@ import javax.swing.JPanel;
 import digital_table.server.TableDisplay;
 
 
+// TODO probably best to fold this into DisplayConfig
+
 @SuppressWarnings("serial")
 public class MonitorConfigFrame extends JFrame {
 	JComboBox[] screenCombos = new JComboBox[6];
 	TableDisplay display;
+	boolean openScreens = false;
+	int[] screenNums;
 
 	public MonitorConfigFrame(TableDisplay disp) {
 		super("Select screens");
@@ -29,11 +33,12 @@ public class MonitorConfigFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					// reset the combo boxes
-					Object[] screens = display.getScreenList();
+					DisplayConfig.getScreens(display);
 					for (int i = 0; i < screenCombos.length; i++) {
 						screenCombos[i].removeAllItems();
-						for (Object item : screens) {
-							screenCombos[i].addItem(item);
+						screenCombos[i].addItem("unassigned");
+						for (int j = 0; j < DisplayConfig.screens.size(); j++) {
+							screenCombos[i].addItem("" + (j+1));
 						}
 					}
 	
@@ -46,17 +51,12 @@ public class MonitorConfigFrame extends JFrame {
 		JButton openButton = new JButton("Open screens");
 		openButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				try {
-					int[] screenNums = new int[screenCombos.length];
-					for (int i = 0; i < screenCombos.length; i++) {
-						screenNums[i] = screenCombos[i].getSelectedIndex()-1;
-					}
-					display.showScreens(screenNums);
-					new ControllerFrame(display);
-					dispose();
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
+				screenNums = new int[screenCombos.length];
+				for (int i = 0; i < screenCombos.length; i++) {
+					screenNums[i] = screenCombos[i].getSelectedIndex()-1;
 				}
+				openScreens = true;
+				dispose();
 			}
 		});
 		
@@ -67,14 +67,17 @@ public class MonitorConfigFrame extends JFrame {
 
 		JPanel screensPanel = new JPanel();
 		screensPanel.setLayout(new GridLayout(3, 2));
-		try {
-			Object[] screens = display.getScreenList();
-			for (int i = 0; i < screenCombos.length; i++) {
-				screenCombos[i] = new JComboBox(screens);
-				screensPanel.add(screenCombos[i]);
-			}
-		} catch (RemoteException ex) {
-			ex.printStackTrace();
+
+		// make the combo boxes
+		DisplayConfig.getScreens(display);
+		Object[] options = new Object[DisplayConfig.screens.size()+1];
+		options[0] = "unassigned";
+		for (int i = 1; i <= DisplayConfig.screens.size(); i++) {
+			options[i] = ""+i;
+		}
+		for (int i = 0; i < screenCombos.length; i++) {
+			screenCombos[i] = new JComboBox(options);
+			screensPanel.add(screenCombos[i]);
 		}
 		add(screensPanel, BorderLayout.CENTER);
 

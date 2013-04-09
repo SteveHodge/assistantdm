@@ -114,6 +114,19 @@ public class MapCanvas implements ListDataListener {
 	}
 	
 	/**
+	 * Get the precise (potentially fractional) grid coordinates of the pixel (x,y) where the pixel coordinates
+	 * are in the coordinate system of the remote display
+	 * @param x the pixel's x coordinate 
+	 * @param y the pixel's y coordinate
+	 * @return a Point2D.Double containing the grid coordinates
+	 */
+	public Point2D getRemoteGridCellCoords(int x, int y) {
+		double col = (double)x * 294 / 25400;
+		double row = (double)y * 294 / 25400;
+		return new Point2D.Double(col,row);
+	}
+	
+	/**
 	 * Get the integer grid coordinates of the grid cell containing (x,y) 
 	 * @param x the pixel's x coordinate
 	 * @param y the pixel's y coordinate
@@ -132,9 +145,7 @@ public class MapCanvas implements ListDataListener {
 	 * @return a Point2D.Double containing the grid coordinates
 	 */
 	public Point2D getGridCoordinates(int x, int y) {
-		double col = (double)x * 294 / 25400;
-		double row = (double)y * 294 / 25400;
-		return new Point2D.Double(col,row);
+		return getRemoteGridCellCoords(x, y);
 	}
 	
 	/**

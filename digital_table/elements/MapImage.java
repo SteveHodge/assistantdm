@@ -77,9 +77,10 @@ public class MapImage extends MapElement {
 			g2d.dispose();
 	
 			// get the dimensions in grid-coordinate space of the remote display:
-			// TODO this conversion should not be hard-coded
-			setWidth((double)rotatedImage.getWidth() * 294 / 25400);
-			setHeight((double)rotatedImage.getHeight() * 294 / 25400);
+			// TODO strictly speaking we should calculate the bottom left corner and then use that to determine the size
+			Point2D size = canvas.getRemoteGridCellCoords(rotatedImage.getWidth(), rotatedImage.getHeight());
+			setWidth(size.getX());
+			setHeight(size.getY());
 		}
 	}
 
@@ -154,6 +155,8 @@ public class MapImage extends MapElement {
 			return getHeight();
 		} else if (property.equals(PROPERTY_ROTATIONS)) {
 			return getRotations();
+		} else if (property.equals(PROPERTY_LABEL)) {
+			return getLabel();
 		} else {
 			// throw exception?
 			return null;
@@ -173,6 +176,8 @@ public class MapImage extends MapElement {
 			setHeight((Double)value);
 		} else if (property.equals(PROPERTY_ROTATIONS)) {
 			setRotations((Integer)value);
+		} else if (property.equals(PROPERTY_LABEL)) {
+			setLabel((String)value);
 		} else {
 			// throw exception?
 		}

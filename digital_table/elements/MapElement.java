@@ -39,6 +39,12 @@ public abstract class MapElement implements Serializable {
 		id = nextID++;
 	}
 
+	// this should only be used by elements that implement separate remote and local class. it should be used
+	// to synchroise the ids of the remote and local instances
+	protected MapElement(int id) {
+		this.id = id;
+	}
+	
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
 	}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="AssistantDM/DigitalTable.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/AssistantDM/DigitalTable.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" mainClassHandleIdentifier="=AssistantDM/&lt;digital_table.server{DigitalTable.java[DigitalTable" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements{MapElement.java"/>
+        <file path="/AssistantDM/combat.xsd"/>
+        <file path="/AssistantDM/shops.xsd"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.server"/>
+        <file path="/AssistantDM/monsters.xsd"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements{Grid.java"/>
+        <file path="/AssistantDM/party.xsd"/>
+    </selectedElements>
+</jardesc>

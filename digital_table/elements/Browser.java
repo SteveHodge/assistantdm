@@ -2,8 +2,6 @@ package digital_table.elements;
 
 import static javafx.concurrent.Worker.State.FAILED;
 
-import java.awt.BorderLayout;
-import java.awt.Graphics2D;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -18,12 +16,11 @@ import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
 
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import digital_table.server.MapCanvas.Order;
 
-public class Browser extends MapElement {
+public abstract class Browser extends MapElement {
 	private static final long serialVersionUID = 1L;
 
 	public static final String PROPERTY_URL = "url";		// String
@@ -40,22 +37,18 @@ public class Browser extends MapElement {
 	int screen = 0;
 	
 	transient protected JFXPanel jfxPanel = null;
-    transient protected WebEngine engine;
-    transient protected WebView view;
-    transient protected JPanel panel = null;
-    transient protected int onScreen;
-    
-    public Browser() {
-    }
-    
-	public Order getDefaultOrder() {
-		return Order.Top;
+	transient protected WebEngine engine;
+	transient protected WebView view;
+	
+	protected Browser() {
 	}
 
-	public void paint(Graphics2D g) {
-		if (panel != null) {
-			panel.repaint();	// without this the underlying map will often get painted ontop of the panel. with this there can still be flickering
-		}
+	protected Browser(int id) {
+		super(id);
+	}
+
+	public Order getDefaultOrder() {
+		return Order.Top;
 	}
 
 	public JComponent getComponent() {
@@ -150,13 +143,11 @@ public class Browser extends MapElement {
 	public void loadURL(final String url) {
     	if (jfxPanel == null) return;
         Platform.runLater(new Runnable() {
-            @Override public void run() {
+            public void run() {
                 String tmp = toURL(url);
-
                 if (tmp == null) {
                     tmp = toURL("http://" + url);
                 }
-
                 engine.load(tmp);
             }
         });
@@ -266,43 +257,7 @@ public class Browser extends MapElement {
 		if (screen == s) return;
 		int old = screen;
 		screen = s;
-		checkScreenSetup();
 		pcs.firePropertyChange(PROPERTY_SCREEN, old, screen);
-		//if (canvas != null) canvas.repaint();
-	}
-
-	public void setVisible(boolean visible) {
-		super.setVisible(visible);
-		checkScreenSetup();
-	}
-	
-	public void checkScreenSetup() {
-		if (!visible) {
-			// make the panel not visible if it exists
-			if (panel != null) {
-				panel.setVisible(false);
-			}
-			return;
-		}
-
-		if (panel == null) {
-			// create a new panel and add it to the screen 
-			panel = new JPanel();
-			panel.setLayout(new BorderLayout());
-	        panel.add(getComponent(), BorderLayout.CENTER);
-	        if (screenManager != null) {
-	        	screenManager.addComponent(getID(), panel, screen);
-		        onScreen = screen;
-	        }
-		} else {
-			if (onScreen != screen && screenManager != null) {
-				// if the panel has changed screens then move it
-				screenManager.removeComponent(getID(), panel);
-				screenManager.addComponent(getID(), panel, screen);
-		        onScreen = screen;
-			}
-			// set it visible incase it is not visible
-			panel.setVisible(true);
-		}
+		if (canvas != null) canvas.repaint();
 	}
 }

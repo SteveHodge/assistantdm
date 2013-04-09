@@ -39,6 +39,8 @@ import combat.InitiativeListener;
 
 import digital_table.server.TableDisplay;
 import digital_table.elements.Browser;
+import digital_table.elements.BrowserLocal;
+import digital_table.elements.BrowserRemote;
 import digital_table.elements.Grid;
 import digital_table.elements.Initiative;
 import digital_table.elements.LineTemplate;
@@ -47,21 +49,21 @@ import digital_table.elements.MapImage;
 import digital_table.elements.ScreenBounds;
 import digital_table.elements.SpreadTemplate;
 
-/*
+/* TODO main priorities:
  * Create chooser for adding elements
  * Alternate button dragging (e.g. resize)
  * Shapable template
  * Add MapElement method that is called on remove - use for cleanup
  * Fix MapImage for that rotation preseves scale
  * Darkness mask element
- * Make MapImage editable?
- * Screen bounds element
+ * Make MapImage editable? other templates?
  * Zoomed view on controller
  * Load/Save
  * Recalibrate
  * Auto configure - set defaults according to OS screen layout
  */
 
+//TODO currently doesn't exit cleanly for standalone version - the Browser component keeps the VM alive
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
 public class ControllerFrame extends JFrame {
@@ -133,8 +135,18 @@ public class ControllerFrame extends JFrame {
 		try {
 			display.requestExit();
 			Platform.exit();
-			removeWindowListener(windowListener);
 			dispose();
+
+//			ThreadGroup group = Thread.currentThread().getThreadGroup();
+//			Thread[] threads = new Thread[group.activeCount()];
+//			int count = group.enumerate(threads);
+//			System.out.println("ThreadGroup: "+group);
+//			System.out.println("Parent = "+group.getParent());
+//			System.out.println("Active threads = "+count);
+//			for (int i = 0; i < count; i++) {
+//				if (threads[i] == Thread.currentThread()) System.out.print("*");
+//				System.out.println(threads[i].getName()+" ("+threads[i].getId()+")");
+//			}
 		} catch (RemoteException e1) {
 			e1.printStackTrace();
 		}
@@ -142,20 +154,19 @@ public class ControllerFrame extends JFrame {
 
 	WindowListener windowListener = new WindowListener() {
 		public void windowActivated(WindowEvent e) {}
-		public void windowClosing(WindowEvent e) {}
+		public void windowClosing(WindowEvent e) {
+			quit();			
+		}
 		public void windowDeactivated(WindowEvent e) {}
 		public void windowDeiconified(WindowEvent e) {}
 		public void windowIconified(WindowEvent e) {}
 		public void windowOpened(WindowEvent e) {}
-
-		public void windowClosed(WindowEvent e) {
-			quit();
-		}
+		public void windowClosed(WindowEvent e) {}
 	};
 	
 	public ControllerFrame(TableDisplay remote) {
 		super("DigitalTable Controller");
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(windowListener);
 
 		display = remote;
@@ -237,9 +248,9 @@ public class ControllerFrame extends JFrame {
 		addBrowserButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Browser browser = new Browser();
-					display.addElement(browser);
-					browser.setVisible(true);
+					BrowserRemote remote = new BrowserRemote();
+					display.addElement(remote);
+					Browser browser = new BrowserLocal(remote);
 					browser.addPropertyChangeListener(labelListener);
 					miniMapPanel.addElement(browser);
 					optionPanels.put(browser, new BrowserOptionsPanel(browser, display));
