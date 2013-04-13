@@ -8,6 +8,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.Point2D;
 import java.rmi.RemoteException;
 
 import javax.swing.BorderFactory;
@@ -33,9 +34,13 @@ abstract public class OptionsPanel extends JPanel {
 		remote = r;
 	}
 
-	abstract public boolean snapToGrid();
-
 	protected enum Mode {BOTH, LOCAL, REMOTE};
+
+	public enum DragMode {
+		NONE,	// no dragging
+		MOVE,	// dragging will move the element or a subelement
+		PAINT	// dragging will trigger a click event on each mouse move
+	};
 	
 	protected JTextField createIntegerControl(final MapElement element, final String property) {
 		final JTextField field = new JTextField(8);
@@ -195,4 +200,51 @@ abstract public class OptionsPanel extends JPanel {
 		});
 		return visibleCheck;
 	}
+
+
+	public DragMode getDragMode() {
+		return DragMode.NONE;
+	}
+	
+	/**
+	 * If this MapElement is draggable then this will return an object that identifies the aspect that is being dragged.
+	 * This is called when a mouse button is pressed. Returning null cancels the drag.
+	 * @param gridLocation location of the mouse in the grid when dragging commenced. Should be serialisable
+	 * @return an Object that identifies what is being dragged
+	 */
+	public Object getDragTarget(Point2D gridLocation) {
+		return null;
+	}
+
+	/**
+	 * Get the location of the element in grid coordinates.
+	 * Currently this is only used by the minimap dragging code. If a subclass returns true for isDraggable()
+	 * then it must override and implement this method otherwise it does not need to.
+	 * @param target the Object identifying the aspect of the element to get the location of
+	 * @return a Point2D containing the location of the specified target. null if the target is not recognised
+	 */
+	public Point2D getLocation(Object target) {
+		return null;
+	}
+
+	/**
+	 * Set the location of the element in grid coordinates. Some elements may support integer positions - these
+	 * element may round the coordinates in p however they choose.
+	 * Currently this is only used by the minimap dragging code. If a subclass returns true for isDraggable()
+	 * then it must override and implement this method otherwise it does not need to.
+	 * @param target the Object identifying the aspect of the element to be moved
+	 * @param p a Point2D specifying the new location for this element
+	 */
+	public void setLocation(Object target, Point2D p) {
+	}
+	
+	/**
+	 * Signals an element that the mouse has been clicked
+	 * @param mouse - grid location of the click
+	 * @param e - MouseEvent for the click  
+	 * @param dragging - true if this click was generated as part of a drag (of DragMode == PAINT)
+	 */
+	public void elementClicked(Point2D mouse, MouseEvent e, boolean dragging) {
+	}
+
 }

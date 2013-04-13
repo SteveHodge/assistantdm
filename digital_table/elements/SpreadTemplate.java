@@ -9,7 +9,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.Area;
-import java.awt.geom.Point2D;
 
 import digital_table.server.MapCanvas.Order;
 
@@ -536,28 +535,6 @@ public class SpreadTemplate extends MapElement {
 			setLabel((String)value);
 		} else {
 			// throw exception?
-		}
-	}
-
-	public DragMode getDragMode() {
-		return DragMode.MOVE;
-	}
-
-	public Object getDragTarget(Point2D gridLocation) {
-		return "TARGET";
-	}
-
-	public Point2D getLocation(Object target) {
-		if (target.equals("TARGET")) {
-			return new Point(x,y);
-		}
-		return null;
-	}
-
-	public void setLocation(Object target, Point2D p) {
-		if (target.equals("TARGET")) {
-			setX((int)p.getX());
-			setY((int)p.getY());
 		}
 	}
 }

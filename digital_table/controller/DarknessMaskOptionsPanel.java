@@ -3,8 +3,12 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -20,6 +24,8 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 	JPanel colorPanel;
 	JSlider alphaSlider;
 	
+	boolean dragClear = true;	// when dragging if true then we clear cells, otherwise we reset cells 
+
 	public DarknessMaskOptionsPanel(DarknessMask t, TableDisplay r) {
 		super(r);
 		darkness = t;
@@ -63,7 +69,48 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 		}
 	};
 
-	public boolean snapToGrid() {
-		return true;
+	public DragMode getDragMode() {
+		return DragMode.PAINT;
+	}
+
+	public void elementClicked(Point2D location, MouseEvent e, boolean dragging) {
+		if (!dragging) {
+			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getClickCount() != 1) return;
+		}
+
+		// get nearest grid intersection
+		int x = (int)location.getX();
+		int y = (int)location.getY();
+		Point p = new Point(x, y);
+		// TODO cleanup logic:
+		if (!dragging) {
+			setMasked(p, !darkness.isMasked(p));
+		} else if (dragging && dragClear) {
+			setMasked(p, false);
+		} else if (dragging && !dragClear) {
+			setMasked(p, true);
+		}
+	}
+	
+	protected void setMasked(Point p, boolean mask) {
+		darkness.setMasked(p, mask);
+		try {
+			if (mask) {
+				remote.setElementProperty(darkness.getID(), DarknessMask.PROPERTY_MASKCELL, p);
+			} else {
+				remote.setElementProperty(darkness.getID(), DarknessMask.PROPERTY_UNMASKCELL, p);
+			}
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public Object getDragTarget(Point2D location) {
+		// get nearest grid intersection
+		// if the cell is already cleared then we are reseting, otherwise clearing
+		Point p = new Point((int)location.getX(), (int)location.getY());
+		dragClear = darkness.isMasked(p);
+		return "MASK";
 	}
 }

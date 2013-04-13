@@ -3,8 +3,11 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -102,7 +105,47 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 		}
 	};
 
-	public boolean snapToGrid() {
-		return true;
+	public DragMode getDragMode() {
+		return DragMode.MOVE;
+	}
+
+	public Object getDragTarget(Point2D gridLocation) {
+		if (gridLocation.distance(template.getOriginX(), template.getOriginY()) < 2.0d
+				&& gridLocation.distance(template.getOriginX(), template.getOriginY()) < gridLocation.distance(template.getX(), template.getY())) {
+			return "ORIGIN";
+		} else {
+			return "TARGET";
+		}
+	}
+
+	public Point2D getLocation(Object target) {
+		if (target.equals("ORIGIN")) {
+			return new Point(template.getOriginX(),template.getOriginY());
+		} else if (target.equals("TARGET")) {
+			return new Point(template.getX(),template.getY());
+		}
+		return null;
+	}
+
+	public void setLocation(Object target, Point2D p) {
+		if (target.equals("ORIGIN")) {
+			try {
+				remote.setElementProperty(template.getID(), LineTemplate.PROPERTY_ORIGIN_X, (int)p.getX());
+				remote.setElementProperty(template.getID(), LineTemplate.PROPERTY_ORIGIN_Y, (int)p.getY());
+				template.setOriginX((int)p.getX());
+				template.setOriginY((int)p.getY());
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		} else if (target.equals("TARGET")) {
+			try {
+				remote.setElementProperty(template.getID(), LineTemplate.PROPERTY_X, (int)p.getX());
+				remote.setElementProperty(template.getID(), LineTemplate.PROPERTY_Y, (int)p.getY());
+				template.setX((int)p.getX());
+				template.setY((int)p.getY());
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

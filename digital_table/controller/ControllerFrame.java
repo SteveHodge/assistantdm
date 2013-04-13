@@ -55,10 +55,9 @@ import digital_table.elements.*;
  */
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
-//TODO dragging/clicking handling should be moved to optionpanel
-/* at the moment darknessmask won't reset on drag on the remote because the remote doesn't get the getDragTarget() call.
- * it would be more efficient to only send the resulting changes to the remote rather than all drag mouse events.
- * optionpanel is already used for snap to grid.
+//TODO change drag implementation to (optionally) avoid showing drag action on remote...
+/* probably best to move most of the implementation into OptionsPanel or the subclasses. could
+ * remove DragType then
  */
 
 public class ControllerFrame extends JFrame {
@@ -249,20 +248,22 @@ public class ControllerFrame extends JFrame {
 	MouseInputListener miniMapMouseListener = new MouseInputListener() {
 		boolean dragging = false;
 		Point2D offset = null;	// initial offset of the mouse pointer from the location of the element in grid coordinates
-		MapElement element = null;
 		Object target;
+		OptionsPanel options = null;
+		MapElement element;
 
 		public void mousePressed(MouseEvent e) {
-			MapElement el = (MapElement)elementList.getSelectedValue();
-			if (el == null) return;
-			if (el.getDragMode() != MapElement.DragMode.NONE) {
+			element = (MapElement)elementList.getSelectedValue();
+			if (element == null) return;
+			options = optionPanels.get(element);
+			if (options == null) return;
+			if (options.getDragMode() != OptionsPanel.DragMode.NONE) {
 				Point2D mouse = miniMapPanel.getGridCoordinates(e.getX(), e.getY());
-				Object t = el.getDragTarget(mouse);
+				Object t = options.getDragTarget(mouse);
 				if (t == null) return;
-				element = el;
 				target = t;
-				if (el.getDragMode() == MapElement.DragMode.MOVE) {
-					Point2D targetLoc = element.getLocation(target);
+				if (options.getDragMode() == OptionsPanel.DragMode.MOVE) {
+					Point2D targetLoc = options.getLocation(target);
 					offset = new Point2D.Double(mouse.getX()-targetLoc.getX(), mouse.getY()-targetLoc.getY());
 				}
 			}
@@ -270,21 +271,13 @@ public class ControllerFrame extends JFrame {
 
 		public void mouseReleased(MouseEvent e) {
 			if (dragging) {
-				if (element.getDragMode() == MapElement.DragMode.MOVE) {
+				if (options.getDragMode() == OptionsPanel.DragMode.MOVE) {
 					Point2D p = miniMapPanel.getGridCoordinates(e.getX(), e.getY());
 					p = new Point2D.Double(p.getX() - offset.getX(), p.getY() - offset.getY());
-					if (optionPanels.get(element).snapToGrid()) {
-						p.setLocation((int)p.getX(),(int)p.getY());
-					}
-					element.setLocation(target, p);
-					try {
-						display.setElementLocation(element.getID(), target, p);
-					} catch (RemoteException e1) {
-						e1.printStackTrace();
-					}
+					options.setLocation(target, p);
 
-				} else if (element.getDragMode() == MapElement.DragMode.PAINT) {
-					elementClicked(element, e, true);	// TODO check if this is superfluous. is there always a drag event for the final location?
+				} else if (options.getDragMode() == OptionsPanel.DragMode.PAINT) {
+					elementClicked(e, true);	// TODO check if this is superfluous. is there always a drag event for the final location?
 				}
 				dragging = false;
 			}
@@ -293,33 +286,25 @@ public class ControllerFrame extends JFrame {
 		public void mouseDragged(MouseEvent e) {
 			dragging = true;
 
-			if (element.getDragMode() == MapElement.DragMode.PAINT) {
-				elementClicked(element, e, true);
+			if (options.getDragMode() == OptionsPanel.DragMode.PAINT) {
+				elementClicked(e, true);
 				
-			} else if (element.getDragMode() == MapElement.DragMode.MOVE) {
+			} else if (options.getDragMode() == OptionsPanel.DragMode.MOVE) {
 				Point2D p = miniMapPanel.getGridCoordinates(e.getX(), e.getY());
 				p = new Point2D.Double(p.getX() - offset.getX(), p.getY() - offset.getY());
-				if (optionPanels.get(element).snapToGrid()) {
-					p.setLocation((int)p.getX(),(int)p.getY());
-				}
-				element.setLocation(target, p);
+				options.setLocation(target, p);
 			}
 		}
 
 		public void mouseClicked(MouseEvent e) {
 			MapElement el = (MapElement)elementList.getSelectedValue();
 			if (el == null) return;
-			elementClicked(el, e, false);
+			elementClicked(e, false);
 		}
 
-		protected void elementClicked(MapElement el, MouseEvent e, boolean dragging) {
+		protected void elementClicked(MouseEvent e, boolean dragging) {
 			Point2D mouse = miniMapPanel.getGridCoordinates(e.getX(), e.getY());
-			el.elementClicked(mouse, e, dragging);
-			try {
-				display.elementClicked(el.getID(), mouse, e, dragging);
-			} catch (RemoteException e1) {
-				e1.printStackTrace();
-			}
+			options.elementClicked(mouse, e, dragging);
 		}
 		
 		public void mouseEntered(MouseEvent e) {}

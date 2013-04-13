@@ -5,6 +5,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.rmi.RemoteException;
@@ -110,8 +111,31 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		}
 	};
 
-	public boolean snapToGrid() {
-		return false;
+	public DragMode getDragMode() {
+		return DragMode.MOVE;
+	}
+	
+	public Object getDragTarget(Point2D gridLocation) {
+		return "LOCATION";
 	}
 
+	public Point2D getLocation(Object target) {
+		if (target.equals("LOCATION")) {
+			return new Point2D.Double(initiative.getX(),initiative.getY());
+		}
+		return null;
+	}
+
+	public void setLocation(Object target, Point2D p) {
+		if (target.equals("LOCATION")) {
+			try {
+				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_X, p.getX());
+				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_Y, p.getY());
+				initiative.setX(p.getX());
+				initiative.setY(p.getY());
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

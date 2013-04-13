@@ -70,8 +70,4 @@ public class BoundsOptionsPanel extends OptionsPanel {
 			}
 		}
 	};
-
-	public boolean snapToGrid() {
-		return true;
-	}
 }

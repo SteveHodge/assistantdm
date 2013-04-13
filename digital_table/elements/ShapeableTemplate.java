@@ -8,9 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +22,8 @@ public class ShapeableTemplate extends MapElement {
 	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_MAXIMUM = "maximum";	// int - number of 10ft cubes (0 means unlimited)
 	public final static String PROPERTY_PLACED = "placed";		// readonly int - number of 10ft cubes used
+	public final static String PROPERTY_ADDCUBE = "add";	// Point - when this property is set the cube centred on the specified point will be added
+	public final static String PROPERTY_REMOVECUBE = "remove";	// Point - when this property is set the cube centred on the specified point will be removed
 	//public final static String PROPERTY_CONTIGUOUS = "contiguous";	// bool - all cubes after the first must be adjacent to at least one other cube
 	//public final static String PROPERTY_5FOOT = "5foot";	// bool - shape using 5 foot cubes
 
@@ -67,24 +67,6 @@ public class ShapeableTemplate extends MapElement {
 	protected Stroke getThickStroke() {
 		if (canvas.getColumnWidth() < 40) return new BasicStroke(3);
 		return new BasicStroke(5);
-	}
-
-	public void elementClicked(Point2D mouse, MouseEvent e, boolean dragging) {
-		if (e.getButton() != MouseEvent.BUTTON1) return;
-		if (e.getClickCount() != 1) return;
-
-		// get nearest grid intersection
-		int x = (int)(mouse.getX() + 0.5d);
-		int y = (int)(mouse.getY() + 0.5d);
-		Point p = new Point(x,y);
-		int old = squares.size();
-		if (squares.contains(p)) {
-			squares.remove(p);
-		} else {
-			squares.add(p);
-		}
-		pcs.firePropertyChange(PROPERTY_PLACED, old, squares.size());
-		canvas.repaint();
 	}
 
 	public String toString() {
@@ -155,6 +137,28 @@ public class ShapeableTemplate extends MapElement {
 //		if (canvas != null) canvas.repaint();
 //	}
 
+	public boolean contains(Point p) {
+		return squares.contains(p);
+	}
+
+	public void addCube(Point p) {
+		if (!squares.contains(p)) {
+			int old = squares.size();
+			squares.add(p);
+			pcs.firePropertyChange(PROPERTY_PLACED, old, squares.size());
+			canvas.repaint();
+		}
+	}
+	
+	public void removeCube(Point p) {
+		if (squares.contains(p)) {
+			int old = squares.size();
+			squares.remove(p);
+			pcs.firePropertyChange(PROPERTY_PLACED, old, squares.size());
+			canvas.repaint();
+		}
+	}
+
 	public Object getProperty(String property) {
 		if (property.equals(PROPERTY_COLOR)) {
 			return getColor();
@@ -183,6 +187,10 @@ public class ShapeableTemplate extends MapElement {
 			setLabel((String)value);
 		} else if (property.equals(PROPERTY_MAXIMUM)) {
 			setMaximum((Integer)value);
+		} else if (property.equals(PROPERTY_ADDCUBE)) {
+			addCube((Point)value);
+		} else if (property.equals(PROPERTY_REMOVECUBE)) {
+			removeCube((Point)value);
 //		} else if (property.equals(PROPERTY_CONTIGUOUS)) {
 //			setContiguous((Boolean)value);
 		} else {

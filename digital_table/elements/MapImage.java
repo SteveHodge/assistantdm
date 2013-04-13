@@ -103,7 +103,7 @@ public class MapImage extends MapElement {
 
 			Point2D p = new Point2D.Double(width,height);
 			Point bottomRight = canvas.getDisplayCoordinates(p);
-			Point offset = canvas.getDisplayCoordinates(getLocation("IMAGE"));
+			Point offset = canvas.getDisplayCoordinates(new Point2D.Double(x, y));
 			//System.out.println("Grid coordinates: ("+x+","+y+") x ("+p.getX()+","+p.getY()+")");
 			//System.out.println("Display coordinates: "+offset+" x "+bottomRight);
 			
@@ -255,27 +255,5 @@ public class MapImage extends MapElement {
 		rotatedImage = null;
 		pcs.firePropertyChange(PROPERTY_ROTATIONS, old, rotations);
 		if (canvas != null) canvas.repaint();
-	}
-	
-	public DragMode getDragMode() {
-		return DragMode.MOVE;
-	}
-
-	public Object getDragTarget(Point2D gridLocation) {
-		return "IMAGE";
-	}
-
-	public Point2D getLocation(Object target) {
-		if (target.equals("IMAGE")) {
-			return new Point2D.Double(x,y);
-		}
-		return null;
-	}
-
-	public void setLocation(Object target, Point2D p) {
-		if (target.equals("IMAGE")) {
-			setX(p.getX());
-			setY(p.getY());
-		}
 	}
 }

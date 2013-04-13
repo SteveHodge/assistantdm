@@ -247,26 +247,4 @@ public class Initiative extends MapElement {
 	public String getText() {
 		return text;
 	}
-	
-	public DragMode getDragMode() {
-		return DragMode.MOVE;
-	}
-	
-	public Object getDragTarget(Point2D gridLocation) {
-		return "LOCATION";
-	}
-
-	public Point2D getLocation(Object target) {
-		if (target.equals("LOCATION")) {
-			return new Point2D.Double(x,y);
-		}
-		return null;
-	}
-
-	public void setLocation(Object target, Point2D p) {
-		if (target.equals("LOCATION")) {
-			setX(p.getX());
-			setY(p.getY());
-		}
-	}
 }

@@ -114,8 +114,4 @@ public class GridOptionsPanel extends OptionsPanel {
 			}
 		}
 	};
-
-	public boolean snapToGrid() {
-		return true;
-	}
 }

@@ -9,8 +9,6 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -232,13 +230,6 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		}
 	}
 
-	public void setElementLocation(int id, Object target, Point2D point) throws RemoteException {
-		MapElement e = canvas.getElement(id);
-		if (e != null) {
-			e.setLocation(target, point);
-		}
-	}
-
 	public void addComponent(int id, JComponent component, int screen) {
 		JFrame frame = screens[screen];
 		if (frame != null) {
@@ -265,13 +256,6 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		if (parent != null && comps.remove(component)) {
 			parent.remove(component);
 			parent.repaint();
-		}
-	}
-
-	public void elementClicked(int id, Point2D mouse, MouseEvent evt, boolean dragging) {
-		MapElement e = canvas.getElement(id);
-		if (e != null) {
-			e.elementClicked(mouse, evt, dragging);
 		}
 	}
 }

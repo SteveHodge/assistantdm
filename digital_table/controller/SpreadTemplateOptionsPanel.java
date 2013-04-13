@@ -3,10 +3,13 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -116,7 +119,31 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 		}
 	};
 
-	public boolean snapToGrid() {
-		return true;
+	public DragMode getDragMode() {
+		return DragMode.MOVE;
+	}
+
+	public Object getDragTarget(Point2D gridLocation) {
+		return "TARGET";
+	}
+
+	public Point2D getLocation(Object target) {
+		if (target.equals("TARGET")) {
+			return new Point(template.getX(), template.getY());
+		}
+		return null;
+	}
+
+	public void setLocation(Object target, Point2D p) {
+		if (target.equals("TARGET")) {
+			try {
+				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_X, (int)p.getX());
+				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_Y, (int)p.getY());
+				template.setX((int)p.getX());
+				template.setY((int)p.getY());
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

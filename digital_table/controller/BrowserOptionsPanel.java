@@ -230,8 +230,4 @@ public class BrowserOptionsPanel extends OptionsPanel {
 			}
 		}
 	};
-
-	public boolean snapToGrid() {
-		return false;
-	}
 }

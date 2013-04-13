@@ -6,9 +6,7 @@ import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,11 +17,12 @@ public class DarknessMask extends MapElement {
 
 	public final static String PROPERTY_COLOR = "color";	// Color
 	public final static String PROPERTY_ALPHA = "alpha";	// float
+	public final static String PROPERTY_MASKCELL = "mask";	// Point - when this property is set the specified point will be masked
+	public final static String PROPERTY_UNMASKCELL = "unmask";	// Point - when this property is set the specified point will be cleared
 
 	Color color = Color.BLACK;
 	float alpha = 1.0f;
 	
-	boolean dragClear = true;	// when dragging if true then we clear cells, otherwise we reset cells 
 	List<Point> cleared = new ArrayList<Point>();
 	
 	public Order getDefaultOrder() {
@@ -39,7 +38,9 @@ public class DarknessMask extends MapElement {
 
 		// build the shape
 		Area area = new Area(g.getClip());
-		for (Point p : cleared) {
+		// using indexed loop instead of iterator to avoid concurrency issues
+		for (int i = 0; i < cleared.size(); i++) {
+			Point p = cleared.get(i);
 			Point tl = canvas.getDisplayCoordinates(p.x, p.y);
 			Point br = canvas.getDisplayCoordinates(p.x+1, p.y+1);
 			area.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
@@ -49,46 +50,23 @@ public class DarknessMask extends MapElement {
 		g.setComposite(c);
 	}
 
-	public void elementClicked(Point2D location, MouseEvent e, boolean dragging) {
-		if (!dragging) {
-			if (e.getButton() != MouseEvent.BUTTON1) return;
-			if (e.getClickCount() != 1) return;
-		}
-
-		// get nearest grid intersection
-		int x = (int)location.getX();
-		int y = (int)location.getY();
-		Point p = new Point(x,y);
-		// TODO cleanup logic:
-		if (!dragging) {
-			if (cleared.contains(p)) {
-				cleared.remove(p);
-			} else {
-				cleared.add(p);
-			}
-		} else if (dragging && dragClear) {
-			if (!cleared.contains(p)) cleared.add(p);
-		} else if (dragging && !dragClear) {
-			if (cleared.contains(p)) cleared.remove(p);
-		}
-		canvas.repaint();
-	}
-
-	public DragMode getDragMode() {
-		return DragMode.PAINT;
-	}
-	
-	public Object getDragTarget(Point2D location) {
-		// get nearest grid intersection
-		int x = (int)location.getX();
-		int y = (int)location.getY();
-		Point p = new Point(x,y);
-		dragClear = !cleared.contains(p);	// if the cell is already cleared then we are reseting, otherwise clearing 
-		return "MASK";
-	}
-
 	public String toString() {
 		return "Darkness ("+getID()+")";
+	}
+	
+	public boolean isMasked(Point p) {
+		if (cleared.contains(p)) return false;
+		return true;
+	}
+	
+	public void setMasked(Point p, boolean mask) {
+		if (mask) {
+			cleared.remove(p);
+			canvas.repaint();
+		} else if (!cleared.contains(p)) {
+			cleared.add(p);
+			canvas.repaint();
+		}
 	}
 	
 	public Color getColor() {
@@ -143,6 +121,10 @@ public class DarknessMask extends MapElement {
 			setColor((Color)value);
 		} else if (property.equals(PROPERTY_ALPHA)) {
 			setAlpha((Float)value);
+		} else if (property.equals(PROPERTY_MASKCELL)) {
+			setMasked((Point)value, true);
+		} else if (property.equals(PROPERTY_UNMASKCELL)) {
+			setMasked((Point)value, false);
 		} else {
 			// throw exception?
 		}
