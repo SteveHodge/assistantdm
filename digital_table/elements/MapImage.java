@@ -257,6 +257,10 @@ public class MapImage extends MapElement {
 		if (canvas != null) canvas.repaint();
 	}
 	
+	public DragMode getDragMode() {
+		return DragMode.MOVE;
+	}
+
 	public Object getDragTarget(Point2D gridLocation) {
 		return "IMAGE";
 	}

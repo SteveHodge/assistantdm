@@ -33,12 +33,14 @@ public class ScreenBounds extends MapElement {
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
 		Area area = new Area(g.getClip());
 		for (DisplayConfig.Screen screen : DisplayConfig.screens) {
-			Point2D topLeft = canvas.getRemoteGridCellCoords(screen.location.x, screen.location.y);
-			Point2D bottomRight = canvas.getRemoteGridCellCoords(screen.location.x + screen.size.width, screen.location.y + screen.size.height);
-			Point tl = canvas.getDisplayCoordinates(topLeft);
-			Point br = canvas.getDisplayCoordinates(bottomRight);
-			Area a = new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y));
-			area.subtract(a);
+			if (screen.open) {
+				Point2D topLeft = canvas.getRemoteGridCellCoords(screen.location.x, screen.location.y);
+				Point2D bottomRight = canvas.getRemoteGridCellCoords(screen.location.x + screen.size.width, screen.location.y + screen.size.height);
+				Point tl = canvas.getDisplayCoordinates(topLeft);
+				Point br = canvas.getDisplayCoordinates(bottomRight);
+				Area a = new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y));
+				area.subtract(a);
+			}
 		}
 		g.fill(area);
 		g.setComposite(c);

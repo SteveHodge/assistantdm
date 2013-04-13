@@ -35,19 +35,7 @@ public class DigitalTableController {
 			final MonitorConfigFrame f = new MonitorConfigFrame(display);
 			f.addWindowListener(new WindowListener() {
 				public void windowClosed(WindowEvent arg0) {
-					if (f.openScreens) {
-						try {
-							for (int i = 0; i < f.screenNums.length; i++) {
-								if (f.screenNums[i] >= 0) {
-									DisplayConfig.screens.get(f.screenNums[i]).location = DisplayConfig.defaultLocations[i];
-								}
-							}
-							display.showScreens(f.screenNums,DisplayConfig.defaultLocations);
-							new ControllerFrame(display);
-						} catch (RemoteException e) {
-							e.printStackTrace();
-						}
-					}
+					if (f.openScreens) openScreens(f);
 				}
 				public void windowActivated(WindowEvent arg0) {}
 				public void windowClosing(WindowEvent arg0) {}
@@ -59,6 +47,33 @@ public class DigitalTableController {
 		}
 	}
 
+	protected void openScreens(MonitorConfigFrame f) {
+		try {
+			for (int i = 0; i < f.screenNums.length; i++) {
+				if (f.screenNums[i] >= 0) {
+					DisplayConfig.Screen s = DisplayConfig.screens.get(f.screenNums[i]);
+					s.location = DisplayConfig.defaultLocations[i];
+					s.open = true;
+				}
+			}
+			display.showScreens(f.screenNums,DisplayConfig.defaultLocations);
+			ControllerFrame controller = new ControllerFrame(display);
+			controller.addWindowListener(new WindowListener() {
+				public void windowClosed(WindowEvent arg0) {
+					System.exit(0);
+				}
+				public void windowActivated(WindowEvent arg0) {}
+				public void windowClosing(WindowEvent arg0) {}
+				public void windowDeactivated(WindowEvent arg0) {}
+				public void windowDeiconified(WindowEvent arg0) {}
+				public void windowIconified(WindowEvent arg0) {}
+				public void windowOpened(WindowEvent arg0) {}
+			});
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) {
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());

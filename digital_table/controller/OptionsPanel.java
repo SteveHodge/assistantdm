@@ -35,6 +35,8 @@ abstract public class OptionsPanel extends JPanel {
 
 	abstract public boolean snapToGrid();
 
+	protected enum Mode {BOTH, LOCAL, REMOTE};
+	
 	protected JTextField createIntegerControl(final MapElement element, final String property) {
 		final JTextField field = new JTextField(8);
 		field.setText(""+element.getProperty(property));
@@ -97,6 +99,10 @@ abstract public class OptionsPanel extends JPanel {
 	}
 	
 	protected JSlider createSliderControl(final MapElement element, final String property) {
+		return createSliderControl(element, property, Mode.BOTH);
+	}
+
+	protected JSlider createSliderControl(final MapElement element, final String property, final Mode mode) {
 		JSlider alphaSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
 		alphaSlider.setValue((int)(100*(Float)element.getProperty(property)));
 		alphaSlider.addChangeListener(new ChangeListener() {
@@ -104,8 +110,8 @@ abstract public class OptionsPanel extends JPanel {
 				try {
 					JSlider slider = (JSlider)e.getSource();
 					float alpha = ((int)slider.getValue())/100f;
-					element.setProperty(property, alpha);
-					if (!slider.getValueIsAdjusting()) {
+					if (mode != Mode.REMOTE) element.setProperty(property, alpha);
+					if (!slider.getValueIsAdjusting() && mode != Mode.LOCAL) {
 						remote.setElementProperty(element.getID(), property, alpha);
 					}
 				} catch (RemoteException ex) {

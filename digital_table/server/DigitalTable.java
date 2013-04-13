@@ -9,6 +9,7 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -264,6 +265,13 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		if (parent != null && comps.remove(component)) {
 			parent.remove(component);
 			parent.repaint();
+		}
+	}
+
+	public void elementClicked(int id, Point2D mouse, MouseEvent evt, boolean dragging) {
+		MapElement e = canvas.getElement(id);
+		if (e != null) {
+			e.elementClicked(mouse, evt, dragging);
 		}
 	}
 }

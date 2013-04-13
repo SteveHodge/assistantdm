@@ -306,6 +306,10 @@ public class LineTemplate extends MapElement {
 		if (canvas != null) canvas.repaint();
 	}
 
+	public DragMode getDragMode() {
+		return DragMode.MOVE;
+	}
+
 	public Object getDragTarget(Point2D gridLocation) {
 		if (gridLocation.distance(originX, originY) < 2.0d
 				&& gridLocation.distance(originX, originY) < gridLocation.distance(targetX, targetY)) {

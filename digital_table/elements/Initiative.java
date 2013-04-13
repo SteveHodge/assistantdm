@@ -248,6 +248,10 @@ public class Initiative extends MapElement {
 		return text;
 	}
 	
+	public DragMode getDragMode() {
+		return DragMode.MOVE;
+	}
+	
 	public Object getDragTarget(Point2D gridLocation) {
 		return "LOCATION";
 	}

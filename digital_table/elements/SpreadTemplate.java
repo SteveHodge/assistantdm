@@ -539,6 +539,10 @@ public class SpreadTemplate extends MapElement {
 		}
 	}
 
+	public DragMode getDragMode() {
+		return DragMode.MOVE;
+	}
+
 	public Object getDragTarget(Point2D gridLocation) {
 		return "TARGET";
 	}

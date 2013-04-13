@@ -2,6 +2,7 @@ package digital_table.elements;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -35,6 +36,12 @@ public abstract class MapElement implements Serializable {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
+	public enum DragMode {
+		NONE,	// no dragging
+		MOVE,	// dragging will move the element or a subelement
+		PAINT	// dragging will trigger a click event on each mouse move
+	};
+	
 	protected MapElement() {
 		id = nextID++;
 	}
@@ -90,8 +97,13 @@ public abstract class MapElement implements Serializable {
 		}
 	}
 	
+	public DragMode getDragMode() {
+		return DragMode.NONE;
+	}
+	
 	/**
-	 * If this MapElement is draggable then this will return an object that identifies the aspect that is being dragged
+	 * If this MapElement is draggable then this will return an object that identifies the aspect that is being dragged.
+	 * This is called when a mouse button is pressed. Returning null cancels the drag.
 	 * @param gridLocation location of the mouse in the grid when dragging commenced. Should be serialisable
 	 * @return an Object that identifies what is being dragged
 	 */
@@ -131,5 +143,14 @@ public abstract class MapElement implements Serializable {
 	
 	public static Color lighten(Color c) {
 		return (new Color(c.getRed()/2+127,c.getGreen()/2+127,c.getBlue()/2+127));
+	}
+
+	/**
+	 * Signals an element that the mouse has been clicked
+	 * @param mouse - grid location of the click
+	 * @param e - MouseEvent for the click  
+	 * @param dragging - true if this click was generated as part of a drag (of DragMode == PAINT)
+	 */
+	public void elementClicked(Point2D mouse, MouseEvent e, boolean dragging) {
 	}
 }
