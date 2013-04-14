@@ -84,7 +84,10 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
 		add(new JPanel(), c);
+	}
 
+	public SpreadTemplate getElement() {
+		return template;
 	}
 
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
@@ -119,23 +122,16 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 		}
 	};
 
-	public DragMode getDragMode() {
-		return DragMode.MOVE;
+	public MapElementMouseListener getMouseListener() {
+		return mouseListener;
 	}
 
-	public Object getDragTarget(Point2D gridLocation) {
-		return "TARGET";
-	}
-
-	public Point2D getLocation(Object target) {
-		if (target.equals("TARGET")) {
-			return new Point(template.getX(), template.getY());
+	protected MapElementMouseListener mouseListener = new DefaultDragger() {
+		protected String getDragTarget(Point2D gridLocation) {
+			return "location";
 		}
-		return null;
-	}
-
-	public void setLocation(Object target, Point2D p) {
-		if (target.equals("TARGET")) {
+	
+		public void setTargetLocation(Point2D p) {
 			try {
 				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_X, (int)p.getX());
 				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_Y, (int)p.getY());
@@ -145,5 +141,9 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 				e.printStackTrace();
 			}
 		}
-	}
+
+		protected Point2D getTargetLocation() {
+			return new Point(template.getX(),template.getY());
+		}
+	};
 }

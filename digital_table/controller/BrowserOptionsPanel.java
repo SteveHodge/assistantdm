@@ -133,6 +133,10 @@ public class BrowserOptionsPanel extends OptionsPanel {
 		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
 	}
+
+	public Browser getElement() {
+		return browser;
+	}
 	
 	protected JFrame createFrame() {
 		JFrame frame = new JFrame();

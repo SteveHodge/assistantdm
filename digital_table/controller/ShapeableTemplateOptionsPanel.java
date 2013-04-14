@@ -63,6 +63,10 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 
 	}
 
+	public ShapeableTemplate getElement() {
+		return template;
+	}
+
 	protected void updateRemaining() {
 		int max = template.getMaximum();
 		if (max == 0) {
@@ -96,28 +100,38 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 		}
 	};
 
-	public void elementClicked(Point2D mouse, MouseEvent e, boolean dragging) {
-		if (e.getButton() != MouseEvent.BUTTON1) return;
-		if (e.getClickCount() != 1) return;
-
-		// get nearest grid intersection
-		int x = (int)(mouse.getX() + 0.5d);
-		int y = (int)(mouse.getY() + 0.5d);
-		Point p = new Point(x,y);
-		if (template.contains(p)) {
-			try {
-				remote.setElementProperty(template.getID(), ShapeableTemplate.PROPERTY_REMOVECUBE, p);
-				template.removeCube(p);
-			} catch (RemoteException e1) {
-				e1.printStackTrace();
-			} 
-		} else {
-			try {
-				remote.setElementProperty(template.getID(), ShapeableTemplate.PROPERTY_ADDCUBE, p);
-				template.addCube(p);
-			} catch (RemoteException e1) {
-				e1.printStackTrace();
-			} 
-		}
+	public MapElementMouseListener getMouseListener() {
+		return mouseListener;
 	}
+
+	protected MapElementMouseListener mouseListener = new MapElementMouseListener() {
+		public void mouseClicked(MouseEvent e, Point2D gridloc) {
+			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getClickCount() != 1) return;
+
+			// get nearest grid intersection
+			int x = (int)(gridloc.getX() + 0.5d);
+			int y = (int)(gridloc.getY() + 0.5d);
+			Point p = new Point(x,y);
+			if (template.contains(p)) {
+				try {
+					remote.setElementProperty(template.getID(), ShapeableTemplate.PROPERTY_REMOVECUBE, p);
+					template.removeCube(p);
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				} 
+			} else {
+				try {
+					remote.setElementProperty(template.getID(), ShapeableTemplate.PROPERTY_ADDCUBE, p);
+					template.addCube(p);
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				} 
+			}
+		}
+
+		public void mousePressed(MouseEvent e, Point2D gridloc) {}
+		public void mouseReleased(MouseEvent e, Point2D gridloc) {}
+		public void mouseDragged(MouseEvent e, Point2D gridloc) {}
+	};
 }

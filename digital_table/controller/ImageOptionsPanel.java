@@ -92,6 +92,10 @@ public class ImageOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
+	public MapImage getElement() {
+		return image;
+	}
+
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapImage.PROPERTY_ALPHA)) {
@@ -121,29 +125,22 @@ public class ImageOptionsPanel extends OptionsPanel {
 		}
 	};
 
-	public DragMode getDragMode() {
-		return DragMode.MOVE;
+	public MapElementMouseListener getMouseListener() {
+		return mouseListener;
 	}
 
-	public Object getDragTarget(Point2D gridLocation) {
-		return "IMAGE";
-	}
-
-	public Point2D getLocation(Object target) {
-		if (target.equals("IMAGE")) {
-			return new Point2D.Double(image.getX(), image.getY());
+	protected MapElementMouseListener mouseListener = new DefaultDragger() {
+		protected String getDragTarget(Point2D gridLocation) {
+			return "location";
 		}
-		return null;
-	}
-
-	public void setLocation(Object target, Point2D p) {
-		double x = p.getX();
-		double y = p.getY();
-		if (snapCheck.isSelected()) {
-			x = Math.floor(x);
-			y = Math.floor(y);
-		}
-		if (target.equals("IMAGE")) {
+	
+		public void setTargetLocation(Point2D p) {
+			double x = p.getX();
+			double y = p.getY();
+			if (snapCheck.isSelected()) {
+				x = Math.floor(x);
+				y = Math.floor(y);
+			}
 			try {
 				remote.setElementProperty(image.getID(), MapImage.PROPERTY_X, x);
 				remote.setElementProperty(image.getID(), MapImage.PROPERTY_Y, y);
@@ -153,5 +150,9 @@ public class ImageOptionsPanel extends OptionsPanel {
 				e.printStackTrace();
 			}
 		}
-	}
+
+		protected Point2D getTargetLocation() {
+			return new Point2D.Double(image.getX(), image.getY());
+		}
+	};
 }

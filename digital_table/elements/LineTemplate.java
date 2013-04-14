@@ -22,6 +22,8 @@ public class LineTemplate extends MapElement {
 	public final static String PROPERTY_ALPHA = "alpha";	// float
 	public final static String PROPERTY_RANGE = "range";	// int
 	public final static String PROPERTY_LABEL = "label";
+	public static final String PROPERTY_TARGET_LOCATION = "target";	// Point
+	public static final String PROPERTY_ORIGIN_LOCATION = "origin";	// Point
 
 	int originX, originY, targetX, targetY;
 	int range = 12;
@@ -75,7 +77,7 @@ public class LineTemplate extends MapElement {
 //				}
 //			}
 //		}
-		System.out.println();
+//		System.out.println();
 		if (targetX == originX) {
 			int minY = originY;
 			int maxY = 1 + (int)endY;
@@ -184,6 +186,10 @@ public class LineTemplate extends MapElement {
 			return getAlpha();
 		} else if (property.equals(PROPERTY_LABEL)) {
 			return getLabel();
+		} else if (property.equals(PROPERTY_ORIGIN_LOCATION)) {
+			return new Point(getOriginX(), getOriginY());
+		} else if (property.equals(PROPERTY_TARGET_LOCATION)) {
+			return new Point(getX(), getY());
 		} else {
 			// throw exception?
 			return null;
@@ -207,6 +213,14 @@ public class LineTemplate extends MapElement {
 			setAlpha((Float)value);
 		} else if (property.equals(PROPERTY_LABEL)) {
 			setLabel((String)value);
+		} else if (property.equals(PROPERTY_ORIGIN_LOCATION)) {
+			Point2D p = (Point2D)value;
+			setOriginX((int)p.getX());
+			setOriginY((int)p.getY());
+		} else if (property.equals(PROPERTY_TARGET_LOCATION)) {
+			Point2D p = (Point2D)value;
+			setX((int)p.getX());
+			setY((int)p.getY());
 		} else {
 			// throw exception?
 		}

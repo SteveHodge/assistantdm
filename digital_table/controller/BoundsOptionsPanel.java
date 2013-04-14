@@ -54,7 +54,10 @@ public class BoundsOptionsPanel extends OptionsPanel {
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
+	}
 
+	public ScreenBounds getElement() {
+		return bounds;
 	}
 
 	protected PropertyChangeListener listener = new PropertyChangeListener() {

@@ -200,51 +200,61 @@ abstract public class OptionsPanel extends JPanel {
 		});
 		return visibleCheck;
 	}
-
-
-	public DragMode getDragMode() {
-		return DragMode.NONE;
-	}
 	
-	/**
-	 * If this MapElement is draggable then this will return an object that identifies the aspect that is being dragged.
-	 * This is called when a mouse button is pressed. Returning null cancels the drag.
-	 * @param gridLocation location of the mouse in the grid when dragging commenced. Should be serialisable
-	 * @return an Object that identifies what is being dragged
-	 */
-	public Object getDragTarget(Point2D gridLocation) {
+	public MapElementMouseListener getMouseListener() {
 		return null;
 	}
 
-	/**
-	 * Get the location of the element in grid coordinates.
-	 * Currently this is only used by the minimap dragging code. If a subclass returns true for isDraggable()
-	 * then it must override and implement this method otherwise it does not need to.
-	 * @param target the Object identifying the aspect of the element to get the location of
-	 * @return a Point2D containing the location of the specified target. null if the target is not recognised
-	 */
-	public Point2D getLocation(Object target) {
-		return null;
-	}
-
-	/**
-	 * Set the location of the element in grid coordinates. Some elements may support integer positions - these
-	 * element may round the coordinates in p however they choose.
-	 * Currently this is only used by the minimap dragging code. If a subclass returns true for isDraggable()
-	 * then it must override and implement this method otherwise it does not need to.
-	 * @param target the Object identifying the aspect of the element to be moved
-	 * @param p a Point2D specifying the new location for this element
-	 */
-	public void setLocation(Object target, Point2D p) {
-	}
+	public abstract MapElement getElement();
 	
-	/**
-	 * Signals an element that the mouse has been clicked
-	 * @param mouse - grid location of the click
-	 * @param e - MouseEvent for the click  
-	 * @param dragging - true if this click was generated as part of a drag (of DragMode == PAINT)
-	 */
-	public void elementClicked(Point2D mouse, MouseEvent e, boolean dragging) {
-	}
+	abstract public class DefaultDragger implements MapElementMouseListener {
+		protected boolean dragging = false;
+		protected int button;
+		protected Point2D offset;
+		protected String target;
+		
+		protected abstract String getDragTarget(Point2D gridLocation);
 
+		protected void setTargetLocation(Point2D p) {
+			if (target == null) return;
+			try {
+				remote.setElementProperty(getElement().getID(), target, p);
+				getElement().setProperty(target, p);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+
+		protected Point2D getTargetLocation() {
+			return (Point2D)getElement().getProperty(target);
+		}
+
+		public void mousePressed(MouseEvent e, Point2D gridloc) {
+			button = e.getButton();
+			target = getDragTarget(gridloc);
+			if (target == null) return;
+			Point2D targetLoc = getTargetLocation();
+			offset = new Point2D.Double(gridloc.getX()-targetLoc.getX(), gridloc.getY()-targetLoc.getY());
+		}
+	
+		public void mouseReleased(MouseEvent e, Point2D gridloc) {
+			if (dragging) {
+				Point2D p = new Point2D.Double(gridloc.getX() - offset.getX(), gridloc.getY() - offset.getY());
+				setTargetLocation(p);
+				dragging = false;
+			}
+		}
+	
+		public void mouseDragged(MouseEvent e, Point2D gridloc) {
+			if (button == MouseEvent.BUTTON1 && target != null) {
+				dragging = true;
+			}
+			if (dragging) {
+				Point2D p = new Point2D.Double(gridloc.getX() - offset.getX(), gridloc.getY() - offset.getY());
+				setTargetLocation(p);
+			} 
+		}
+
+		public void mouseClicked(MouseEvent e, Point2D gridloc) {}
+	};
 }

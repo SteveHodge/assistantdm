@@ -92,6 +92,10 @@ public class GridOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
+	public Grid getElement() {
+		return grid;
+	}
+
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Grid.PROPERTY_ALPHA)) {

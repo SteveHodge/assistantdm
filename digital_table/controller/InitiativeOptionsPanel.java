@@ -85,6 +85,10 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
+	public Initiative getElement() {
+		return initiative;
+	}
+
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Initiative.PROPERTY_ALPHA)) {
@@ -111,23 +115,16 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		}
 	};
 
-	public DragMode getDragMode() {
-		return DragMode.MOVE;
-	}
-	
-	public Object getDragTarget(Point2D gridLocation) {
-		return "LOCATION";
+	public MapElementMouseListener getMouseListener() {
+		return mouseListener;
 	}
 
-	public Point2D getLocation(Object target) {
-		if (target.equals("LOCATION")) {
-			return new Point2D.Double(initiative.getX(),initiative.getY());
+	protected MapElementMouseListener mouseListener = new DefaultDragger() {
+		protected String getDragTarget(Point2D gridLocation) {
+			return "location";
 		}
-		return null;
-	}
-
-	public void setLocation(Object target, Point2D p) {
-		if (target.equals("LOCATION")) {
+	
+		public void setTargetLocation(Point2D p) {
 			try {
 				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_X, p.getX());
 				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_Y, p.getY());
@@ -137,5 +134,9 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 				e.printStackTrace();
 			}
 		}
-	}
+
+		protected Point2D getTargetLocation() {
+			return new Point2D.Double(initiative.getX(),initiative.getY());
+		}
+	};
 }
