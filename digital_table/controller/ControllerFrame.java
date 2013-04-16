@@ -41,18 +41,18 @@ import digital_table.server.TableDisplay;
 import digital_table.elements.*;
 
 /* TODO main priorities:
+ * Expand DarknessMask to true visibility element including light sources and low-light
+ * Improve Tokens element: option to show label, hps/status, choose image
+ * Camera integration
  * Alternate button dragging (e.g. resize)
  * Recalibrate - could be done using screen bounds element
  * Auto configure - set defaults according to OS screen layout
  * Load/Save
  * Fix MapImage for that rotation preseves scale
  * Add MapElement method that is called on remove - use for cleanup?
- * Make MapImage editable? other templates?
+ * Make line and spread templates editable?
  * Zoomed view on controller
  * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
- * Expand DarknessMask to true visibility element including light sources and low-light
- * Tokens element
- * Camera integration
  * Convert MapElements to use location property instead of X and Y properties - will reduce dragging code in OptionsPanel subclasses
  */
 
@@ -83,6 +83,7 @@ public class ControllerFrame extends JFrame {
 		add(miniMapPanel);
 
 		AddElementAction[] availableElements = {
+				tokenAction,
 				imageElementAction,
 				templateAction,
 				lineAction,
@@ -455,6 +456,18 @@ public class ControllerFrame extends JFrame {
 			if (sendElement(bounds)) {
 				bounds.setVisible(true);
 				addElement(bounds, new BoundsOptionsPanel(bounds, display));
+			}
+		}
+	};
+
+	@SuppressWarnings("serial")
+	public AddElementAction tokenAction = new AddElementAction("Token") {
+		public void actionPerformed(ActionEvent e) {
+			Token token = new Token();
+			if (sendElement(token)) {
+				token.setVisible(true);
+				token.addPropertyChangeListener(labelListener);
+				addElement(token, new TokenOptionsPanel(token, display));
 			}
 		}
 	};

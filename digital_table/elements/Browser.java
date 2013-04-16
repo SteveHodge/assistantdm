@@ -48,7 +48,7 @@ public abstract class Browser extends MapElement {
 	}
 
 	public Order getDefaultOrder() {
-		return Order.Top;
+		return Order.TOP;
 	}
 
 	public JComponent getComponent() {

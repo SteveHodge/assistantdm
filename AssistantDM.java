@@ -15,13 +15,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import javafx.application.Platform;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -51,14 +47,13 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.Document;
-
-import combat.CombatPanel;
-
 import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
 import magicitems.ShoppingPanel;
 import monsters.MonstersPanel;
+
+import org.w3c.dom.Document;
+
 import party.Character;
 import party.CharacterLibrary;
 import party.Party;
@@ -71,7 +66,10 @@ import ui.UpdateCharacterDialog;
 import ui.XPEntryDialog;
 import util.Updater;
 import camera.CameraPanel;
-import digital_table.controller.MonitorConfigFrame;
+
+import combat.CombatPanel;
+
+import digital_table.controller.DigitalTableController;
 import digital_table.server.TableDisplay;
 
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
@@ -219,19 +217,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	}
 
 	public void showDigitalTableController() {
-		try {
-			String name = "TableDisplay";
-			Registry registry = LocateRegistry.getRegistry(DIGITAL_TABLE_SERVER);
-			tableDisplay = (TableDisplay) registry.lookup(name);
-		} catch (Exception e) {
-			System.err.println("TableDisplay exception:" + e.getMessage());
-			e.printStackTrace();
-		}
-
-		if (tableDisplay != null) {
-            Platform.setImplicitExit(false);
-			new MonitorConfigFrame(tableDisplay);
-		}
+		new DigitalTableController(DIGITAL_TABLE_SERVER);
 	}
 
 	// WISH provide checkbox on dialog to add new character to party (default:checked) 

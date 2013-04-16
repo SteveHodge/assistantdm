@@ -34,7 +34,7 @@ public class Initiative extends MapElement {
 	String text = "";
 	
 	public Order getDefaultOrder() {
-		return Order.Top;
+		return Order.TOP;
 	}
 
 	public void paint(Graphics2D g) {

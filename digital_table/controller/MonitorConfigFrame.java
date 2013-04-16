@@ -19,7 +19,7 @@ import digital_table.server.TableDisplay;
 public class MonitorConfigFrame extends JFrame {
 	JComboBox[] screenCombos = new JComboBox[6];
 	TableDisplay display;
-	boolean openScreens = false;
+	public boolean openScreens = false;
 	int[] screenNums;
 
 	public MonitorConfigFrame(TableDisplay disp) {

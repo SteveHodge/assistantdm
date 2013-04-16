@@ -90,7 +90,7 @@ public abstract class MapElement implements Serializable {
 	}
 	
 	public Order getDefaultOrder() {
-		return Order.Bottom;
+		return Order.BOTTOM;
 	}
 	
 	public static Color darken(Color c) {

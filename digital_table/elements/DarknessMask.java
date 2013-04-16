@@ -26,7 +26,7 @@ public class DarknessMask extends MapElement {
 	List<Point> cleared = new ArrayList<Point>();
 	
 	public Order getDefaultOrder() {
-		return Order.AboveGrid;
+		return Order.ABOVEGRID;
 	}
 
 	public void paint(Graphics2D g) {

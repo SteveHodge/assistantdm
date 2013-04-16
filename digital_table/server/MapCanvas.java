@@ -30,10 +30,10 @@ public class MapCanvas implements ListDataListener {
 	Grid grid;	// used to position other element above or below the grid
 
 	public enum Order {
-		Top,		// use for popups, informational elements
-		AboveGrid,	// use for creatures
-		BelowGrid,	// use for templates
-		Bottom;		// use for backgrounds images 
+		TOP,		// use for popups, informational elements
+		ABOVEGRID,	// use for creatures
+		BELOWGRID,	// use for templates
+		BOTTOM;		// use for backgrounds images 
 	}
 	
 	public MapCanvas() {
@@ -65,16 +65,16 @@ public class MapCanvas implements ListDataListener {
 		if (element instanceof Grid) grid = (Grid)element;
 		int pos = 0;
 		switch (element.getDefaultOrder()) {
-		case Top:
+		case TOP:
 			pos = 0;
 			break;
-		case AboveGrid:
+		case ABOVEGRID:
 			pos = getIndexOf(grid);
 			break;
-		case BelowGrid:
+		case BELOWGRID:
 			pos = getIndexOf(grid)+1;
 			break;
-		case Bottom:
+		case BOTTOM:
 			pos = model.getSize();
 		}
 		((DefaultListModel)model).add(pos, element);

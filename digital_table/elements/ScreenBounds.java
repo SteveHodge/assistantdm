@@ -22,7 +22,7 @@ public class ScreenBounds extends MapElement {
 	float alpha = 0.5f;
 	
 	public Order getDefaultOrder() {
-		return Order.Top;
+		return Order.TOP;
 	}
 
 	public void paint(Graphics2D g) {

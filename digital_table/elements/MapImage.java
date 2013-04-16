@@ -7,11 +7,15 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -31,6 +35,8 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_HEIGHT = "height";	// double
 	public final static String PROPERTY_X = "x";	// double
 	public final static String PROPERTY_Y = "y";	// double
+	public final static String PROPERTY_CLEARCELL = "clear";	// Point - when this property is set the specified cell will be cleared
+	public final static String PROPERTY_UNCLEARCELL = "unclear";	// Point - when this property is set the specified cell will be shown again
 
 	protected transient BufferedImage sourceImage = null;
 	protected transient BufferedImage rotatedImage = null;
@@ -41,6 +47,7 @@ public class MapImage extends MapElement {
 	int rotations = 0;
 	float alpha = 1.0f;
 	String label;
+	List<Point> cleared = new ArrayList<Point>();
 
 	public MapImage(byte[] b, String label) throws IOException {
 		this.label = label;
@@ -48,7 +55,7 @@ public class MapImage extends MapElement {
 	}
 	
 	public Order getDefaultOrder() {
-		return Order.Bottom;
+		return Order.BOTTOM;
 	}
 
 	protected void createRotatedImage() {
@@ -98,6 +105,18 @@ public class MapImage extends MapElement {
 			createRotatedImage();		// TODO invoke this later and then schedule repaint?
 		}
 		if (rotatedImage != null) {
+			Shape oldClip = g.getClip();
+			// build the shape
+			Area area = new Area(g.getClip());
+			// using indexed loop instead of iterator to avoid concurrency issues
+			for (int i = 0; i < cleared.size(); i++) {
+				Point p = cleared.get(i);
+				Point tl = canvas.getDisplayCoordinates(p.x, p.y);
+				Point br = canvas.getDisplayCoordinates(p.x+1, p.y+1);
+				area.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
+			}
+			g.setClip(area);
+
 			Composite c = g.getComposite();
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
 
@@ -117,6 +136,7 @@ public class MapImage extends MapElement {
 				left, top, right, bottom, new Color(255,255,255,0), null);
 
 			g.setComposite(c);
+			g.setClip(oldClip);
 		}
 	}
 
@@ -178,6 +198,10 @@ public class MapImage extends MapElement {
 			setRotations((Integer)value);
 		} else if (property.equals(PROPERTY_LABEL)) {
 			setLabel((String)value);
+		} else if (property.equals(PROPERTY_CLEARCELL)) {
+			setCleared((Point)value, true);
+		} else if (property.equals(PROPERTY_UNCLEARCELL)) {
+			setCleared((Point)value, false);
 		} else {
 			// throw exception?
 		}
@@ -255,5 +279,19 @@ public class MapImage extends MapElement {
 		rotatedImage = null;
 		pcs.firePropertyChange(PROPERTY_ROTATIONS, old, rotations);
 		if (canvas != null) canvas.repaint();
+	}
+
+	public boolean isCleared(Point p) {
+		return cleared.contains(p);
+	}
+	
+	public void setCleared(Point p, boolean clear) {
+		if (!clear) {
+			cleared.remove(p);
+			canvas.repaint();
+		} else if (!cleared.contains(p)) {
+			cleared.add(p);
+			canvas.repaint();
+		}
 	}
 }

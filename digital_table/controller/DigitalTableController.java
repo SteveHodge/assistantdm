@@ -21,9 +21,13 @@ public class DigitalTableController {
 	TableDisplay display;
 
 	public DigitalTableController() {
+		this("corto");
+	}
+
+	public DigitalTableController(String server) {
 		try {
 			String name = "TableDisplay";
-			Registry registry = LocateRegistry.getRegistry("corto");
+			Registry registry = LocateRegistry.getRegistry(server);
 			display = (TableDisplay) registry.lookup(name);
 		} catch (Exception e) {
 			System.err.println("TableDisplay exception:" + e.getMessage());

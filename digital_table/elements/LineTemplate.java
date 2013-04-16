@@ -39,7 +39,7 @@ public class LineTemplate extends MapElement {
 	}
 	
 	public Order getDefaultOrder() {
-		return Order.BelowGrid;
+		return Order.BELOWGRID;
 	}
 
 	public void paint(Graphics2D g) {

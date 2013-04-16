@@ -2,8 +2,10 @@ package digital_table.controller;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -153,6 +155,24 @@ public class ImageOptionsPanel extends OptionsPanel {
 
 		protected Point2D getTargetLocation() {
 			return new Point2D.Double(image.getX(), image.getY());
+		}
+
+		public void mouseClicked(MouseEvent e, Point2D gridloc) {
+			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getClickCount() != 1) return;
+	
+			Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
+			boolean clear = !image.isCleared(p);
+			image.setCleared(p, clear);
+			try {
+				if (clear) {
+					remote.setElementProperty(image.getID(), MapImage.PROPERTY_CLEARCELL, p);
+				} else {
+					remote.setElementProperty(image.getID(), MapImage.PROPERTY_UNCLEARCELL, p);
+				}
+			} catch (RemoteException ex) {
+				ex.printStackTrace();
+			}
 		}
 	};
 }

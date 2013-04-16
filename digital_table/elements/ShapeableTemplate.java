@@ -36,7 +36,7 @@ public class ShapeableTemplate extends MapElement {
 	List<Point> squares = new ArrayList<Point>();
 	
 	public Order getDefaultOrder() {
-		return Order.BelowGrid;
+		return Order.BELOWGRID;
 	}
 
 	public void paint(Graphics2D g) {
