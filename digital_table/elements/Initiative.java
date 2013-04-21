@@ -25,13 +25,22 @@ public class Initiative extends MapElement {
 	public final static String PROPERTY_COLOR = "color";	// Color
 	public static final String PROPERTY_BACKGROUND_COLOR = "background_color";	// Color
 
-	double x, y;	// position in grid coordinate-space
-	int rotations = 0;
-	float alpha = 1.0f;
+	// position in grid coordinate-space
+	Property<Double> x = new Property<Double>(PROPERTY_X, 0d);
+	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
+	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0) {
+		private static final long serialVersionUID = 1L;
+
+		public void setValue(Integer r) {
+			super.setValue(r % 4);
+		}
+	};
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK);
+	Property<Color> backgroundColor = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE);
+	Property<String> text = new Property<String>(PROPERTY_TEXT, "");
+
 	float fontSize = 0.333f;	// font size in grid coordinate-space
-	Color color = Color.BLACK;
-	Color backgroundColor = Color.WHITE;
-	String text = "";
 	
 	public Order getDefaultOrder() {
 		return Order.TOP;
@@ -56,9 +65,9 @@ public class Initiative extends MapElement {
 
 		if (col1Width + col2Width > 0 ) {
 			Composite c = g.getComposite();
-			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 			
-			Point p = canvas.getDisplayCoordinates(new Point2D.Double(x, y));
+			Point p = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
 			int x0 = p.x + 5;
 			int x1 = p.x + 5 + col1Width + 10;
 			int y = p.y + 5 + metrics.getAscent();
@@ -66,18 +75,18 @@ public class Initiative extends MapElement {
 			int w = col1Width + col2Width + 20;
 			int h = metrics.getHeight() * text.size() + 10;
 
-			AffineTransform t = AffineTransform.getQuadrantRotateInstance(rotations);
+			AffineTransform t = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
 			Point size = new Point(w, h);
 			t.transform(size,size);	// transform to get new dimensions
 			int newWidth = Math.abs(size.x);
 			int newHeight = Math.abs(size.y);
 			t = g.getTransform();
-			g.rotate(Math.toRadians(rotations*90), p.x + newWidth/2, p.y + newHeight/2);
+			g.rotate(Math.toRadians(rotations.getValue()*90), p.x + newWidth/2, p.y + newHeight/2);
 			g.translate((newWidth - w)/2, (newHeight - h)/2);
 
-			g.setColor(backgroundColor);
+			g.setColor(backgroundColor.getValue());
 			g.fillRect(p.x, p.y, w, h);
-			g.setColor(color);
+			g.setColor(color.getValue());
 			for (String[] line : text) {
 				g.drawString(line[0], x0, y);
 				g.drawString(line[1], x1, y);
@@ -91,7 +100,7 @@ public class Initiative extends MapElement {
 	}
 
 	protected List<String[]> getTable() {
-		String[] lines = text.split("\\r?\\n|\\r");
+		String[] lines = text.getValue().split("\\r?\\n|\\r");
 		List<String[]> output = new ArrayList<String[]>();
 
 		String[] outLine = new String[2];
@@ -121,130 +130,5 @@ public class Initiative extends MapElement {
 
 	public String toString() {
 		return "Initiative ("+getID()+")";
-	}
-	
-	public Object getProperty(String property) {
-		if (property.equals(PROPERTY_ALPHA)) {
-			return getAlpha();
-		} else if (property.equals(PROPERTY_X)) {
-			return getX();
-		} else if (property.equals(PROPERTY_Y)) {
-			return getY();
-		} else if (property.equals(PROPERTY_ROTATIONS)) {
-			return getRotations();
-		} else if (property.equals(PROPERTY_TEXT)) {
-			return getText();
-		} else if (property.equals(PROPERTY_COLOR)) {
-			return getColor();
-		} else if (property.equals(PROPERTY_BACKGROUND_COLOR)) {
-			return getBackgroundColor();
-		} else {
-			// throw exception?
-			return null;
-		}
-	}
-
-	public void setProperty(String property, Object value) {
-		if (property.equals(PROPERTY_ALPHA)) {
-			setAlpha((Float)value);
-		} else if (property.equals(PROPERTY_X)) {
-			setX((Double)value);
-		} else if (property.equals(PROPERTY_Y)) {
-			setY((Double)value);
-		} else if (property.equals(PROPERTY_ROTATIONS)) {
-			setRotations((Integer)value);
-		} else if (property.equals(PROPERTY_TEXT)) {
-			setText((String)value);
-		} else if (property.equals(PROPERTY_COLOR)) {
-			setColor((Color)value);
-		} else if (property.equals(PROPERTY_BACKGROUND_COLOR)) {
-			setBackgroundColor((Color)value);
-		} else {
-			// throw exception?
-		}
-	}
-
-	public float getAlpha() {
-		return alpha;
-	}
-	
-	public void setAlpha(float a) {
-		if (alpha == a) return;
-		float old = alpha;
-		alpha = a;
-		pcs.firePropertyChange(PROPERTY_ALPHA, old, alpha);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public double getX() {
-		return x;
-	}
-	
-	public void setX(double newX) {
-		if (x == newX) return;
-		double old = x;
-		x = newX;
-		pcs.firePropertyChange(PROPERTY_X, old, x);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public double getY() {
-		return y;
-	}
-	
-	public void setY(double newY) {
-		if (y == newY) return;
-		double old = y;
-		y = newY;
-		pcs.firePropertyChange(PROPERTY_Y, old, y);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public int getRotations() {
-		return rotations;
-	}
-	
-	public void setRotations(int r) {
-		r = r % 4;
-		if (rotations == r) return;
-		int old = rotations;
-		rotations = r;
-		pcs.firePropertyChange(PROPERTY_ROTATIONS, old, rotations);
-		if (canvas != null) canvas.repaint();
-	}
-	
-	public Color getColor() {
-		return color;
-	}
-	
-	public void setColor(Color c) {
-		if (color.equals(c)) return;
-		Color old = color;
-		color = c;
-		pcs.firePropertyChange(PROPERTY_COLOR, old, color);
-		if (canvas != null) canvas.repaint();
-	}
-	
-	public Color getBackgroundColor() {
-		return backgroundColor;
-	}
-	
-	public void setBackgroundColor(Color c) {
-		if (backgroundColor.equals(c)) return;
-		Color old = backgroundColor;
-		backgroundColor = c;
-		pcs.firePropertyChange(PROPERTY_BACKGROUND_COLOR, old, backgroundColor);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public void setText(String t) {
-		String old = text;
-		text = t;
-		pcs.firePropertyChange(PROPERTY_TEXT, old, text);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public String getText() {
-		return text;
 	}
 }

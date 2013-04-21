@@ -47,13 +47,13 @@ public class ImageOptionsPanel extends OptionsPanel {
 		
 		String[] options = {"0","90","180","270"};
 		rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex(image.getRotations());
+		rotationsCombo.setSelectedIndex((Integer)image.getProperty(MapImage.PROPERTY_ROTATIONS));
 		rotationsCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JComboBox combo = (JComboBox)e.getSource();
 					int index = combo.getSelectedIndex();
-					image.setRotations(index);
+					image.setProperty(MapImage.PROPERTY_ROTATIONS, index);
 					remote.setElementProperty(image.getID(), MapImage.PROPERTY_ROTATIONS, index);
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
@@ -146,15 +146,16 @@ public class ImageOptionsPanel extends OptionsPanel {
 			try {
 				remote.setElementProperty(image.getID(), MapImage.PROPERTY_X, x);
 				remote.setElementProperty(image.getID(), MapImage.PROPERTY_Y, y);
-				image.setX(x);
-				image.setY(y);
+				image.setProperty(MapImage.PROPERTY_X, x);
+				image.setProperty(MapImage.PROPERTY_Y, y);
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
 		}
 
 		protected Point2D getTargetLocation() {
-			return new Point2D.Double(image.getX(), image.getY());
+			return new Point2D.Double((Double)image.getProperty(MapImage.PROPERTY_X),
+					(Double)image.getProperty(MapImage.PROPERTY_Y));
 		}
 
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {

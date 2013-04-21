@@ -41,8 +41,10 @@ import digital_table.server.TableDisplay;
 import digital_table.elements.*;
 
 /* TODO main priorities:
+ * BUG Issue with image scaling before remote visible
+ * BUG Grid legend rows - UI shows wrong values
+ * Improve Tokens element: option to show label, hps/status
  * Expand DarknessMask to true visibility element including light sources and low-light
- * Improve Tokens element: option to show label, hps/status, choose image
  * Camera integration
  * Alternate button dragging (e.g. resize)
  * Recalibrate - could be done using screen bounds element
@@ -209,8 +211,8 @@ public class ControllerFrame extends JFrame {
 			grid = new Grid();
 			display.addElement(grid);
 			OptionsPanel p = new GridOptionsPanel(grid,display);	// set up the option panel as the remote grid is configured 
-			grid.setRulerColumn(0);
-			grid.setRulerRow(0);
+			grid.setProperty(Grid.PROPERTY_RULER_COLUMN,0);
+			grid.setProperty(Grid.PROPERTY_RULER_ROW,0);
 			miniMapPanel.addElement(grid);
 			optionPanels.put(grid, p);
 
@@ -410,7 +412,7 @@ public class ControllerFrame extends JFrame {
 			DarknessMask template = new DarknessMask();
 			template.setVisible(true);
 			if (sendElement(template)) {
-				template.setAlpha(0.5f);
+				template.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
 				addElement(template, new DarknessMaskOptionsPanel(template, display));
 			}
 		}
@@ -436,7 +438,7 @@ public class ControllerFrame extends JFrame {
 				init.setVisible(true);
 				CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
 					public void initiativeUpdated(String text) {
-						init.setText(text);
+						init.setProperty(Initiative.PROPERTY_TEXT, text);
 						try {
 							display.setElementProperty(init.getID(), Initiative.PROPERTY_TEXT, text);
 						} catch (RemoteException e) {

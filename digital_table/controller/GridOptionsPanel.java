@@ -33,7 +33,7 @@ public class GridOptionsPanel extends OptionsPanel {
 		grid.addPropertyChangeListener(listener);
 
 		rulerRowField = new JTextField(8);
-		if (grid.getRulerRow() != null) rulerRowField.setText(""+grid.getRulerRow());
+		if (grid.getProperty(Grid.PROPERTY_RULER_ROW) != null) rulerRowField.setText(""+grid.getProperty(Grid.PROPERTY_RULER_ROW));
 		rulerRowField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
@@ -48,7 +48,7 @@ public class GridOptionsPanel extends OptionsPanel {
 		});
 		
 		rulerColumnField = new JTextField(8);
-		if (grid.getRulerColumn() != null) rulerColumnField.setText(""+grid.getRulerColumn());
+		if (grid.getProperty(Grid.PROPERTY_RULER_COLUMN) != null) rulerColumnField.setText(""+grid.getProperty(Grid.PROPERTY_RULER_COLUMN));
 		rulerColumnField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
@@ -108,10 +108,12 @@ public class GridOptionsPanel extends OptionsPanel {
 				bgColorPanel.setBackground((Color)e.getNewValue());
 
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_RULER_ROW)) {
-				rulerRowField.setText(e.getNewValue().toString());
+				// don't care about local changes:
+//				rulerRowField.setText(e.getNewValue().toString());
 				
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_RULER_COLUMN)) {
-				rulerColumnField.setText(e.getNewValue().toString());
+				// don't care about local changes:
+//				rulerColumnField.setText(e.getNewValue().toString());
 				
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());

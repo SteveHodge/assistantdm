@@ -57,20 +57,31 @@ public class SpreadTemplate extends MapElement {
 		private final int xDir, yDir;
 	}
 	
-	int radius;
-	int x, y;
-	Color color = Color.RED;
-	float alpha = 1.0f;
-	Type type = Type.CIRCLE;
-	Direction direction = Direction.SE;
-	String label = null;
+	Property<Integer> x, y;
+	Property<Integer> radius;
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED);
+	Property<Type> type = new Property<Type>(PROPERTY_TYPE, Type.CIRCLE);
+	Property<Direction> direction = new Property<Direction>(PROPERTY_DIRECTION, Direction.SE);
+	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "");
 
 	transient boolean affected[][];
 
 	public SpreadTemplate(int radius, int x, int y) {
-		this.radius = radius;
-		this.x = x;
-		this.y = y;
+		this.x = new Property<Integer>(PROPERTY_X, true, x);
+		this.y = new Property<Integer>(PROPERTY_Y, true, y);
+		this.radius = new Property<Integer>(PROPERTY_RADIUS, true, radius) {
+			private static final long serialVersionUID = 1L;
+
+			public void setValue(Integer v) {
+				if (value.equals(v)) return;
+				Integer old = value;
+				value = v;
+				affected = null;
+				pcs.firePropertyChange(name, old, value);
+				if (visible && canvas != null) canvas.repaint();
+			}
+		};
 		calculateSpread();
 	}
 	
@@ -82,33 +93,33 @@ public class SpreadTemplate extends MapElement {
 		if (canvas == null || !visible) return;
 
 		Stroke oldStroke = g.getStroke();
-		g.setColor(color);
+		g.setColor(color.getValue());
 		Composite c = g.getComposite();
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
 		// build the shape
 		Area area = new Area();
-		if (type == Type.CIRCLE) {
+		if (type.getValue() == Type.CIRCLE) {
 			area.add(getQuadrant(1, 1));
 			area.add(getQuadrant(1, -1));
 			area.add(getQuadrant(-1, 1));
 			area.add(getQuadrant(-1, -1));
-		} else if (type == Type.QUADRANT) {
-			if (direction.getXDirection() == 0) {
-				area.add(getVerticalQuadrant(direction.getYDirection()));
-			} else if (direction.getYDirection() == 0) {
-				area.add(getHorizontalQuadrant(direction.getXDirection()));
+		} else if (type.getValue() == Type.QUADRANT) {
+			if (direction.getValue().getXDirection() == 0) {
+				area.add(getVerticalQuadrant(direction.getValue().getYDirection()));
+			} else if (direction.getValue().getYDirection() == 0) {
+				area.add(getHorizontalQuadrant(direction.getValue().getXDirection()));
 			} else {
 				// diagonal cones - just draw the quadrant
-				area.add(getQuadrant(direction.getXDirection(), direction.getYDirection()));
+				area.add(getQuadrant(direction.getValue().getXDirection(), direction.getValue().getYDirection()));
 			}
 		}
 		g.fill(area);
-		g.setColor(darken(color));
+		g.setColor(darken(color.getValue()));
 		g.setStroke(getThickStroke());
 		g.draw(area);
-		if (type == Type.CIRCLE) {
-			Point t = canvas.getDisplayCoordinates(x, y); 
+		if (type.getValue() == Type.CIRCLE) {
+			Point t = canvas.getDisplayCoordinates(x.getValue(), y.getValue()); 
 			g.fillOval(t.x-5, t.y-5, 10, 10);
 		}
 		g.setStroke(oldStroke);
@@ -120,11 +131,11 @@ public class SpreadTemplate extends MapElement {
 
 		if (affected == null) calculateSpread();
 	
-		for (int i = 0; i < radius; i++) {
-			for (int j = 0; j < radius; j++) {
+		for (int i = 0; i < radius.getValue(); i++) {
+			for (int j = 0; j < radius.getValue(); j++) {
 				if (affected[i][j]) {
-					int gridx = xdir*i+x;
-					int gridy = ydir*j+y;
+					int gridx = xdir*i+x.getValue();
+					int gridy = ydir*j+y.getValue();
 					area.add(new Area(getRectangle(gridx, gridy, gridx+xdir, gridy+ydir)));
 				}
 			}
@@ -151,12 +162,12 @@ public class SpreadTemplate extends MapElement {
 	protected Area getVerticalQuadrant(int ydir) {
 		Area area = new Area();
 		if (affected == null) calculateSpread();
-		for (int i = 0; i < radius; i++) {
-			for (int j = 0; j < radius; j++) {
+		for (int i = 0; i < radius.getValue(); i++) {
+			for (int j = 0; j < radius.getValue(); j++) {
 				if (affected[i][j] &&  Math.abs(i) <= Math.abs(j)) {
-					int gridy = ydir*j+y;
-					area.add(new Area(getRectangle(x+i, gridy, x+i+1, gridy+ydir)));
-					area.add(new Area(getRectangle(x-i-1, gridy, x-i, gridy+ydir)));
+					int gridy = ydir*j+y.getValue();
+					area.add(new Area(getRectangle(x.getValue()+i, gridy, x.getValue()+i+1, gridy+ydir)));
+					area.add(new Area(getRectangle(x.getValue()-i-1, gridy, x.getValue()-i, gridy+ydir)));
 				}
 			}
 		}
@@ -165,30 +176,30 @@ public class SpreadTemplate extends MapElement {
 	protected Area getHorizontalQuadrant(int xdir) {
 		Area area = new Area();
 		if (affected == null) calculateSpread();
-		for (int i = 0; i < radius; i++) {
-			for (int j = 0; j < radius; j++) {
+		for (int i = 0; i < radius.getValue(); i++) {
+			for (int j = 0; j < radius.getValue(); j++) {
 				if (affected[i][j] && Math.abs(i) >= Math.abs(j)) {
-					int gridx = xdir*i+x;
-					area.add(new Area(getRectangle(gridx, y-j-1, gridx+xdir, y-j)));
-					area.add(new Area(getRectangle(gridx, y+j, gridx+xdir, y+j+1)));
+					int gridx = xdir*i+x.getValue();
+					area.add(new Area(getRectangle(gridx, y.getValue()-j-1, gridx+xdir, y.getValue()-j)));
+					area.add(new Area(getRectangle(gridx, y.getValue()+j, gridx+xdir, y.getValue()+j+1)));
 				}
 			}
 		}
 		return area;
 	}
 
-	// TODO might be better not to cache this
+	// TODO better not to cache this - then radius need not be an subclass
 	protected void calculateSpread() {
-		affected = new boolean[radius][radius];
+		affected = new boolean[radius.getValue()][radius.getValue()];
 
 		// calculate the affected cells
-		for (int i = 0; i < radius; i++) {
-			for (int j = 0; j < radius; j++) {
+		for (int i = 0; i < radius.getValue(); i++) {
+			for (int j = 0; j < radius.getValue(); j++) {
 				// measure distance from (0, 0) to each corner of this cell
 				// if all four corners are within the radius then the cell is affected
 				// note: only need to test the bottom right corner - if that is in the radius then the other corners must be 
 				int dist = i+1 + j+1 - (Math.min(i+1, j+1)-1)/2;	// the subtracted term is half the number of diagonals
-				if (dist <= radius+1) affected[i][j] = true;
+				if (dist <= radius.getValue()+1) affected[i][j] = true;
 			}
 		}
 	}
@@ -394,147 +405,7 @@ public class SpreadTemplate extends MapElement {
 */
 	
 	public String toString() {
-		if (label == null || label.length() == 0) return "Template ("+getID()+")";
+		if (label == null || label.getValue().length() == 0) return "Template ("+getID()+")";
 		return "Template ("+label+")";
-	}
-	
-	public String getLabel() {
-		return label == null ? "" : label;
-	}
-	
-	public void setLabel(String l) {
-		String old = label;
-		label = l;
-		pcs.firePropertyChange(PROPERTY_LABEL, old, label);
-	}
-
-	public int getRadius() {
-		return radius;
-	}
-	
-	public void setRadius(int r) {
-		if (r == radius) return;
-		int old = radius;
-		radius = r;
-		affected = null;
-		pcs.firePropertyChange(PROPERTY_RADIUS, old, radius);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public int getX() {
-		return x;
-	}
-	
-	public void setX(int newX) {
-		if (x == newX) return;
-		int old = x;
-		x = newX;
-		pcs.firePropertyChange(PROPERTY_X, old, x);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public int getY() {
-		return y;
-	}
-	
-	public void setY(int newY) {
-		if (y == newY) return;
-		int old = y;
-		y = newY;
-		pcs.firePropertyChange(PROPERTY_Y, old, y);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public Color getColor() {
-		return color;
-	}
-	
-	public void setColor(Color c) {
-		if (color.equals(c)) return;
-		Color old = color;
-		color = c;
-		pcs.firePropertyChange(PROPERTY_COLOR, old, color);
-		if (canvas != null) canvas.repaint();
-	}
-	
-	public Type getType() {
-		return type;
-	}
-	
-	public void setType(Type t) {
-		if (type == t) return;
-		Type old = type;
-		type = t;
-		pcs.firePropertyChange(PROPERTY_TYPE, old, type);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public Direction getDirection() {
-		return direction;
-	}
-	
-	public void setDirection(Direction d) {
-		if (direction == d) return;
-		Direction old = direction;
-		direction = d;
-		pcs.firePropertyChange(PROPERTY_DIRECTION, old, direction);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public float getAlpha() {
-		return alpha;
-	}
-	
-	public void setAlpha(float a) {
-		if (alpha == a) return;
-		float old = alpha;
-		alpha = a;
-		pcs.firePropertyChange(PROPERTY_ALPHA, old, alpha);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public Object getProperty(String property) {
-		if (property.equals(PROPERTY_RADIUS)) {
-			return getRadius();
-		} else if (property.equals(PROPERTY_X)) {
-			return getX();
-		} else if (property.equals(PROPERTY_Y)) {
-			return getY();
-		} else if (property.equals(PROPERTY_COLOR)) {
-			return getColor();
-		} else if (property.equals(PROPERTY_TYPE)) {
-			return getType();
-		} else if (property.equals(PROPERTY_DIRECTION)) {
-			return getDirection();
-		} else if (property.equals(PROPERTY_ALPHA)) {
-			return getAlpha();
-		} else if (property.equals(PROPERTY_LABEL)) {
-			return getLabel();
-		} else {
-			// throw exception?
-			return null;
-		}
-	}
-
-	public void setProperty(String property, Object value) {
-		if (property.equals(PROPERTY_RADIUS)) {
-			setRadius((Integer)value);
-		} else if (property.equals(PROPERTY_X)) {
-			setX((Integer)value);
-		} else if (property.equals(PROPERTY_Y)) {
-			setY((Integer)value);
-		} else if (property.equals(PROPERTY_COLOR)) {
-			setColor((Color)value);
-		} else if (property.equals(PROPERTY_TYPE)) {
-			setType((Type)value);
-		} else if (property.equals(PROPERTY_DIRECTION)) {
-			setDirection((Direction)value);
-		} else if (property.equals(PROPERTY_ALPHA)) {
-			setAlpha((Float)value);
-		} else if (property.equals(PROPERTY_LABEL)) {
-			setLabel((String)value);
-		} else {
-			// throw exception?
-		}
 	}
 }

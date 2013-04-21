@@ -14,14 +14,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.rmi.RemoteException;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
-import digital_table.elements.MapImage;
 import digital_table.elements.Token;
 import digital_table.server.TableDisplay;
 
@@ -35,23 +36,17 @@ public class TokenOptionsPanel extends OptionsPanel {
 	JTextField labelField;
 	JSlider alphaSlider;
 	JComboBox sizeCombo;
+	JCheckBox reachWeapon;
+	JCheckBox remoteReach;
+	JCheckBox localReach;
+	
+	static File imageFile = null;	// last selected image - used to keep the current directory
 	
 	public TokenOptionsPanel(Token t, TableDisplay r) {
 		super(r);
 		token = t;
 		token.addPropertyChangeListener(listener);
 
-		File f = new File("D:/Programming/Workspace/AssistantDM/html/monsters/images/MM35_gallery/MM35_PG203.jpg");
-		byte bytes[] = new byte[(int)f.length()];
-		try {
-			FileInputStream stream = new FileInputStream(f);
-			stream.read(bytes);
-			remote.setElementProperty(token.getID(), Token.PROPERTY_IMAGE, bytes);
-			token.setImage(f);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
 		xField = createIntegerControl(token, Token.PROPERTY_X);
 		yField = createIntegerControl(token, Token.PROPERTY_Y);
 		colorPanel = createColorControl(token, Token.PROPERTY_COLOR);
@@ -60,13 +55,13 @@ public class TokenOptionsPanel extends OptionsPanel {
 
 		String[] options = {"0","90","180","270"};
 		rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex(token.getRotations());
+		rotationsCombo.setSelectedIndex((Integer)token.getProperty(Token.PROPERTY_ROTATIONS));
 		rotationsCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JComboBox combo = (JComboBox)e.getSource();
 					int index = combo.getSelectedIndex();
-					token.setRotations(index);
+					token.setProperty(Token.PROPERTY_ROTATIONS, index);
 					remote.setElementProperty(token.getID(), Token.PROPERTY_ROTATIONS, index);
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
@@ -76,6 +71,32 @@ public class TokenOptionsPanel extends OptionsPanel {
 
 		labelField = this.createLocalStringControl(token, Token.PROPERTY_LABEL);
 		JCheckBox visibleCheck = createVisibilityControl(token);
+		localReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.LOCAL, "local");
+		remoteReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.REMOTE, "remote");
+		reachWeapon = createCheckBox(token, Token.PROPERTY_REACHWEAPON, Mode.BOTH, "Reach weapon?");
+		
+		JButton imageButton = new JButton("Set Image");
+		imageButton.addActionListener(new ActionListener() {
+			JFileChooser chooser = new JFileChooser();
+
+			public void actionPerformed(ActionEvent arg0) {
+				if (imageFile != null) chooser.setCurrentDirectory(imageFile);
+				if (chooser.showOpenDialog(TokenOptionsPanel.this) == JFileChooser.APPROVE_OPTION) {
+					imageFile = chooser.getSelectedFile();
+					byte bytes[] = new byte[(int)imageFile.length()];
+					try {
+						FileInputStream stream = new FileInputStream(imageFile);
+						stream.read(bytes);
+						remote.setElementProperty(token.getID(), Token.PROPERTY_IMAGE, bytes);
+						token.setImage(imageFile);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				} else {
+					System.out.println("Cancelled");
+				}
+			}
+		});
 		
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -87,6 +108,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 		c.gridy++; add(new JLabel("Rotation:"), c);
 		c.gridy++; add(new JLabel("Colour:"), c);
 		c.gridy++; add(new JLabel("Transparency:"), c);
+		c.gridy++; add(new JLabel("Show reach:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
@@ -97,9 +119,15 @@ public class TokenOptionsPanel extends OptionsPanel {
 		c.gridy++; add(rotationsCombo, c);
 		c.gridy++; add(colorPanel, c);
 		c.gridy++; add(alphaSlider, c);
+		JPanel p = new JPanel();
+		p.add(localReach);
+		p.add(remoteReach);
+		p.add(reachWeapon);
+		c.gridy++; add(p, c);
+		c.gridy++; add(imageButton, c); 
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
+		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
 	}
 
@@ -127,8 +155,14 @@ public class TokenOptionsPanel extends OptionsPanel {
 			} else if (e.getPropertyName().equals(Token.PROPERTY_SIZE)) {
 				sizeCombo.setSelectedItem(e.getNewValue());
 
-			} else if (e.getPropertyName().equals(MapImage.PROPERTY_ROTATIONS)) {
+			} else if (e.getPropertyName().equals(Token.PROPERTY_ROTATIONS)) {
 				rotationsCombo.setSelectedIndex((Integer)e.getNewValue());
+
+			} else if (e.getPropertyName().equals(Token.PROPERTY_SHOWREACH)) {
+				localReach.setSelected((Boolean)e.getNewValue());
+
+			} else if (e.getPropertyName().equals(Token.PROPERTY_REACHWEAPON)) {
+				reachWeapon.setSelected((Boolean)e.getNewValue());
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
@@ -149,15 +183,15 @@ public class TokenOptionsPanel extends OptionsPanel {
 			try {
 				remote.setElementProperty(token.getID(), Token.PROPERTY_X, (int)p.getX());
 				remote.setElementProperty(token.getID(), Token.PROPERTY_Y, (int)p.getY());
-				token.setX((int)p.getX());
-				token.setY((int)p.getY());
+				token.setProperty(Token.PROPERTY_X, (int)p.getX());
+				token.setProperty(Token.PROPERTY_Y, (int)p.getY());
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
 		}
 
 		protected Point2D getTargetLocation() {
-			return new Point(token.getX(),token.getY());
+			return new Point((Integer)token.getProperty(Token.PROPERTY_X),(Integer)token.getProperty(Token.PROPERTY_Y));
 		}
 	};
 }

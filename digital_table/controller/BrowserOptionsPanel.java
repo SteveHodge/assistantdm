@@ -55,7 +55,7 @@ public class BrowserOptionsPanel extends OptionsPanel {
 		
 		String[] options = {"0","90","180","270"};
 		rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex(browser.getRotations());
+		rotationsCombo.setSelectedIndex((Integer)browser.getProperty(Browser.PROPERTY_ROTATIONS));
 		rotationsCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -74,13 +74,13 @@ public class BrowserOptionsPanel extends OptionsPanel {
 			screens[i] = "" + i;
 		}
 		screenCombo = new JComboBox(screens);
-		screenCombo.setSelectedIndex(browser.getScreen());
+		screenCombo.setSelectedIndex((Integer)browser.getProperty(Browser.PROPERTY_SCREEN));
 		screenCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JComboBox combo = (JComboBox)e.getSource();
 					int index = combo.getSelectedIndex();
-					browser.setScreen(index);
+					browser.setProperty(Browser.PROPERTY_SCREEN, index);
 					remote.setElementProperty(browser.getID(), Browser.PROPERTY_SCREEN, index);
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
@@ -193,8 +193,8 @@ public class BrowserOptionsPanel extends OptionsPanel {
         panel.add(browser.getComponent(), BorderLayout.CENTER);
         panel.add(statusBar, BorderLayout.SOUTH);
 
-        frame.setTitle(browser.getTitle());
-        statusLabel.setText(browser.getRollover());
+        frame.setTitle((String)browser.getProperty(Browser.PROPERTY_TITLE));
+        statusLabel.setText((String)browser.getProperty(Browser.PROPERTY_ROLLOVER));
 
         frame.getContentPane().add(panel);
         frame.pack();

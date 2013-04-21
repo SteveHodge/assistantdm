@@ -14,6 +14,8 @@ import java.util.List;
 
 import digital_table.server.MapCanvas.Order;
 
+// TODO if maximum will be less than the number of defined cubes then need to truncate the list of defined cubes
+
 public class ShapeableTemplate extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -27,11 +29,10 @@ public class ShapeableTemplate extends MapElement {
 	//public final static String PROPERTY_CONTIGUOUS = "contiguous";	// bool - all cubes after the first must be adjacent to at least one other cube
 	//public final static String PROPERTY_5FOOT = "5foot";	// bool - shape using 5 foot cubes
 
-	Color color = Color.RED;
-	float alpha = 1.0f;
-	int maximum = 0;
-//	boolean contiguous = true;
-	String label;
+	Property<Integer> maximum = new Property<Integer>(PROPERTY_MAXIMUM, 0);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
+	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "");
 	
 	List<Point> squares = new ArrayList<Point>();
 	
@@ -43,9 +44,9 @@ public class ShapeableTemplate extends MapElement {
 		if (canvas == null || !visible) return;
 
 		Stroke oldStroke = g.getStroke();
-		g.setColor(color);
+		g.setColor(color.getValue());
 		Composite c = g.getComposite();
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
 		// build the shape
 		Area area = new Area();
@@ -56,7 +57,7 @@ public class ShapeableTemplate extends MapElement {
 		}
 
 		g.fill(area);
-		g.setColor(darken(color));
+		g.setColor(darken(color.getValue()));
 		g.setStroke(getThickStroke());
 		g.draw(area);
 
@@ -70,73 +71,14 @@ public class ShapeableTemplate extends MapElement {
 	}
 
 	public String toString() {
-		if (label == null || label.length() == 0) return "Shapeable ("+getID()+")";
+		if (label == null || label.getValue().length() == 0) return "Shapeable ("+getID()+")";
 		return "Shapeable ("+label+")";
 	}
 	
-	public String getLabel() {
-		return label == null ? "" : label;
-	}
-	
-	public void setLabel(String l) {
-		String old = label;
-		label = l;
-		pcs.firePropertyChange(PROPERTY_LABEL, old, label);
-	}
-
-	public Color getColor() {
-		return color;
-	}
-	
-	public void setColor(Color c) {
-		if (color.equals(c)) return;
-		Color old = color;
-		color = c;
-		pcs.firePropertyChange(PROPERTY_COLOR, old, color);
-		if (canvas != null) canvas.repaint();
-	}
-	
-	public float getAlpha() {
-		return alpha;
-	}
-	
-	public void setAlpha(float a) {
-		if (alpha == a) return;
-		float old = alpha;
-		alpha = a;
-		pcs.firePropertyChange(PROPERTY_ALPHA, old, alpha);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public int getMaximum() {
-		return maximum;
-	}
-	
-	// TODO if maximum will be less than the number of defined cubes then need to truncate the list of defined cubes
-	public void setMaximum(int m) {
-		if (maximum == m) return;
-		int old = maximum;
-		maximum = m;
-		pcs.firePropertyChange(PROPERTY_MAXIMUM, old, maximum);
-		if (canvas != null) canvas.repaint();
-	}
-
 	public int getPlaced() {
 		return squares.size();
 	}
 	
-//	public boolean getContiguous() {
-//		return contiguous;
-//	}
-//	
-//	public void setContiguous(boolean c) {
-//		if (contiguous == c) return;
-//		boolean old = contiguous;
-//		contiguous = c;
-//		pcs.firePropertyChange(PROPERTY_ALPHA, old, contiguous);
-//		if (canvas != null) canvas.repaint();
-//	}
-
 	public boolean contains(Point p) {
 		return squares.contains(p);
 	}
@@ -160,41 +102,20 @@ public class ShapeableTemplate extends MapElement {
 	}
 
 	public Object getProperty(String property) {
-		if (property.equals(PROPERTY_COLOR)) {
-			return getColor();
-		} else if (property.equals(PROPERTY_ALPHA)) {
-			return getAlpha();
-		} else if (property.equals(PROPERTY_LABEL)) {
-			return getLabel();
-		} else if (property.equals(PROPERTY_MAXIMUM)) {
-			return getMaximum();
-		} else if (property.equals(PROPERTY_PLACED)) {
+		if (property.equals(PROPERTY_PLACED)) {
 			return getPlaced();
-//		} else if (property.equals(PROPERTY_CONTIGUOUS)) {
-//			return getContiguous();
 		} else {
-			// throw exception?
-			return null;
+			return super.getProperty(property);
 		}
 	}
 
 	public void setProperty(String property, Object value) {
-		if (property.equals(PROPERTY_COLOR)) {
-			setColor((Color)value);
-		} else if (property.equals(PROPERTY_ALPHA)) {
-			setAlpha((Float)value);
-		} else if (property.equals(PROPERTY_LABEL)) {
-			setLabel((String)value);
-		} else if (property.equals(PROPERTY_MAXIMUM)) {
-			setMaximum((Integer)value);
-		} else if (property.equals(PROPERTY_ADDCUBE)) {
+		if (property.equals(PROPERTY_ADDCUBE)) {
 			addCube((Point)value);
 		} else if (property.equals(PROPERTY_REMOVECUBE)) {
 			removeCube((Point)value);
-//		} else if (property.equals(PROPERTY_CONTIGUOUS)) {
-//			setContiguous((Boolean)value);
 		} else {
-			// throw exception?
+			super.setProperty(property, value);
 		}
 	}
 }

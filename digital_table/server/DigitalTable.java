@@ -37,9 +37,9 @@ import digital_table.elements.MapElement;
 public class DigitalTable implements TableDisplay, ScreenManager {
     static final String SERVICE_NAME = "TableDisplay";
 
-    static final int[] xOffsets = {65, 1421, 64, 1425, 63, 1421};	// relative x location of each screen
+    //static final int[] xOffsets = {65, 1421, 64, 1425, 63, 1421};	// relative x location of each screen
 	//static final int[] yOffsets = {0, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
-	static final int[] yOffsets = {250, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
+	//static final int[] yOffsets = {250, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
 
 	JFrame[] idFrames = null;
 	JFrame[] screens = new JFrame[6];

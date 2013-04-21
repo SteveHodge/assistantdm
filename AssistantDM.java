@@ -77,7 +77,8 @@ import digital_table.server.TableDisplay;
 //TODO add new party menu option, ask to save modified file
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
-	private static final String DIGITAL_TABLE_SERVER = "corto";
+	//private static final String DIGITAL_TABLE_SERVER = "corto";
+	//private static final String DIGITAL_TABLE_SERVER = "wintermute";
 	JMenuBar menuBar;
 	JMenu fileMenu, partyMenu;
 	JMenuItem saveItem, saveAsItem, openItem, updateItem;
@@ -88,6 +89,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	CameraPanel cameraPanel = null;
 	JTabbedPane tabbedPane;
 	TableDisplay tableDisplay;
+	static String tableServer = null;
 
 	Party party;
 	File file;
@@ -103,6 +105,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			System.setSecurityManager(new SecurityManager());
 		}
 
+		if (args.length > 0) {
+			tableServer = args[0];
+		}
+		
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				AssistantDM inst = new AssistantDM();
@@ -217,7 +223,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	}
 
 	public void showDigitalTableController() {
-		new DigitalTableController(DIGITAL_TABLE_SERVER);
+		new DigitalTableController(AssistantDM.tableServer);
 	}
 
 	// WISH provide checkbox on dialog to add new character to party (default:checked) 

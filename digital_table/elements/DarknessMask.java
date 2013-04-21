@@ -20,8 +20,8 @@ public class DarknessMask extends MapElement {
 	public final static String PROPERTY_MASKCELL = "mask";	// Point - when this property is set the specified point will be masked
 	public final static String PROPERTY_UNMASKCELL = "unmask";	// Point - when this property is set the specified point will be cleared
 
-	Color color = Color.BLACK;
-	float alpha = 1.0f;
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
 	
 	List<Point> cleared = new ArrayList<Point>();
 	
@@ -32,9 +32,9 @@ public class DarknessMask extends MapElement {
 	public void paint(Graphics2D g) {
 		if (canvas == null || !visible) return;
 
-		g.setColor(color);
+		g.setColor(color.getValue());
 		Composite c = g.getComposite();
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
 		// build the shape
 		Area area = new Area(g.getClip());
@@ -68,65 +68,14 @@ public class DarknessMask extends MapElement {
 			canvas.repaint();
 		}
 	}
-	
-	public Color getColor() {
-		return color;
-	}
-	
-	public void setColor(Color c) {
-		if (color.equals(c)) return;
-		Color old = color;
-		color = c;
-		pcs.firePropertyChange(PROPERTY_COLOR, old, color);
-		if (canvas != null) canvas.repaint();
-	}
-	
-	public float getAlpha() {
-		return alpha;
-	}
-	
-	public void setAlpha(float a) {
-		if (alpha == a) return;
-		float old = alpha;
-		alpha = a;
-		pcs.firePropertyChange(PROPERTY_ALPHA, old, alpha);
-		if (canvas != null) canvas.repaint();
-	}
-
-//	public boolean getContiguous() {
-//		return contiguous;
-//	}
-//	
-//	public void setContiguous(boolean c) {
-//		if (contiguous == c) return;
-//		boolean old = contiguous;
-//		contiguous = c;
-//		pcs.firePropertyChange(PROPERTY_ALPHA, old, contiguous);
-//		if (canvas != null) canvas.repaint();
-//	}
-
-	public Object getProperty(String property) {
-		if (property.equals(PROPERTY_COLOR)) {
-			return getColor();
-		} else if (property.equals(PROPERTY_ALPHA)) {
-			return getAlpha();
-		} else {
-			// throw exception?
-			return null;
-		}
-	}
 
 	public void setProperty(String property, Object value) {
-		if (property.equals(PROPERTY_COLOR)) {
-			setColor((Color)value);
-		} else if (property.equals(PROPERTY_ALPHA)) {
-			setAlpha((Float)value);
-		} else if (property.equals(PROPERTY_MASKCELL)) {
+		if (property.equals(PROPERTY_MASKCELL)) {
 			setMasked((Point)value, true);
 		} else if (property.equals(PROPERTY_UNMASKCELL)) {
 			setMasked((Point)value, false);
 		} else {
-			// throw exception?
+			super.setProperty(property, value);
 		}
 	}
 }

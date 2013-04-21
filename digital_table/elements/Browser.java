@@ -30,11 +30,52 @@ public abstract class Browser extends MapElement {
 	public final static String PROPERTY_ROTATIONS = "rotations";	// int - number of quadrants rotated clockwise
 	public final static String PROPERTY_SCREEN = "screen";	// String
 	
-	String urlString = "";
-	String title;
-	String rollover;
-	int rotations = 0;
-	int screen = 0;
+	Property<Integer> screen;
+	Property<String> title = new Property<String>(PROPERTY_TITLE, false, "") {
+		private static final long serialVersionUID = 1L;
+
+		public void setValue(String v) {
+			if (value.equals(v)) return;
+			if (v == null) v = "";
+			String old = value;
+			super.setValue(v);
+			pcs.firePropertyChange(PROPERTY_LABEL, old, title);
+		}
+	};
+
+	Property<String> rollover = new Property<String>(PROPERTY_ROLLOVER, false, new String()) {
+		private static final long serialVersionUID = 1L;
+
+		public void setValue(String s) {
+			if (s == null) s = "";
+			super.setValue(s);
+		}
+	};
+
+	Property<String> urlString = new Property<String>(PROPERTY_URL, false, "") {
+		private static final long serialVersionUID = 1L;
+
+		public void setValue(String v) {
+			setURL(v, true);
+		}
+	};
+
+	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, false, 0) {
+		private static final long serialVersionUID = 1L;
+
+		public void setValue(Integer r) {
+			r = r % 4;
+			if (value == r) return;
+			int old = value;
+			value = r;
+			if (view != null) {
+				view.rotateProperty().set(90.0d * value);
+			}
+			pcs.firePropertyChange(PROPERTY_ROTATIONS, old, rotations);
+			//if (canvas != null) canvas.repaint();
+		}
+	};
+
 	
 	transient protected JFXPanel jfxPanel = null;
 	transient protected WebEngine engine;
@@ -56,10 +97,10 @@ public abstract class Browser extends MapElement {
 			jfxPanel = new JFXPanel();
 			createScene();
 
-	        if (urlString == null || urlString.length() == 0) {
+	        if (urlString.getValue() == null || urlString.getValue().length() == 0) {
 	        	loadURL("http://oracle.com");
 	        } else {
-	        	loadURL(urlString);
+	        	loadURL(urlString.getValue());
 	        }
 		}
 		return jfxPanel;
@@ -69,14 +110,14 @@ public abstract class Browser extends MapElement {
         Platform.runLater(new Runnable() {
         	public void run() {
                 view = new WebView();
-                view.rotateProperty().set(90.0d * rotations);
+                view.rotateProperty().set(90.0d * rotations.getValue());
                 engine = view.getEngine();
 
                 engine.titleProperty().addListener(new ChangeListener<String>() {
                     public void changed(ObservableValue<? extends String> observable, String oldValue, final String newValue) {
                         SwingUtilities.invokeLater(new Runnable() {
                             public void run() {
-                            	setTitle(newValue);
+                            	title.setValue(newValue);
                             }
                         });
                     }
@@ -86,7 +127,7 @@ public abstract class Browser extends MapElement {
                     public void handle(final WebEvent<String> event) {
                         SwingUtilities.invokeLater(new Runnable() {
                             public void run() {
-                            	setRollover(event.getData());
+                            	rollover.setValue(event.getData());
                             }
                         });
                     }
@@ -136,7 +177,7 @@ public abstract class Browser extends MapElement {
     }
 
 	public String toString() {
-		if (title == null || title.length() == 0) return "Browser ("+getID()+")";
+		if (title.getValue() == null || title.getValue().length() == 0) return "Browser ("+getID()+")";
 		return "Browser ("+title+")";
 	}
 
@@ -161,103 +202,21 @@ public abstract class Browser extends MapElement {
         }
     }
 
-	public Object getProperty(String property) {
-		if (property.equals(PROPERTY_URL)) {
-			return getURL();
-		} else if (property.equals(PROPERTY_TITLE)) {
-			return getTitle();
-		} else if (property.equals(PROPERTY_ROLLOVER)) {
-			return getRollover();
-		} else if (property.equals(PROPERTY_ROTATIONS)) {
-			return getRotations();
-		} else if (property.equals(PROPERTY_SCREEN)) {
-			return getScreen();
-		} else {
-			// throw exception?
-			return null;
-		}
-	}
-
 	public void setProperty(String property, Object value) {
-		if (property.equals(PROPERTY_URL)) {
-			setURL((String)value);
-		} else if (property.equals(PROPERTY_TITLE)) {
+		if (property.equals(PROPERTY_TITLE)) {
 			// read only
 		} else if (property.equals(PROPERTY_ROLLOVER)) {
 			// read only
-		} else if (property.equals(PROPERTY_ROTATIONS)) {
-			setRotations((Integer)value);
-		} else if (property.equals(PROPERTY_SCREEN)) {
-			setScreen((Integer)value);
 		} else {
-			// throw exception?
+			super.setProperty(property, value);
 		}
-	}
-	
-	public String getURL() {
-		return urlString;
-	}
-	
-	public void setURL(String url) {
-		setURL(url,true);
 	}
 
 	protected void setURL(String url, boolean load) {
-		String old = urlString;
-		urlString = url;
+		if (urlString.getValue().equals(url) && !load) return;
+		String old = urlString.getValue();
+		urlString.value = url;
 		if (load) loadURL(url);
-		pcs.firePropertyChange(PROPERTY_URL, old, urlString);
-		//if (canvas != null) canvas.repaint();
-	}
-
-	public String getTitle() {
-		return title == null ? "" : title;
-	}
-	
-	protected void setTitle(String newTitle) {
-		String old = title;
-		title = newTitle;
-		pcs.firePropertyChange(PROPERTY_TITLE, old, title);
-		pcs.firePropertyChange(PROPERTY_LABEL, old, title);
-		//if (canvas != null) canvas.repaint();
-	}
-
-	public String getRollover() {
-		return rollover == null ? "" : rollover;
-	}
-
-	protected void setRollover(String newRollover) {
-		String old = rollover;
-		rollover = newRollover;
-		pcs.firePropertyChange(PROPERTY_ROLLOVER, old, rollover);
-		//if (canvas != null) canvas.repaint();
-	}
-
-	public int getRotations() {
-		return rotations;
-	}
-	
-	public void setRotations(int r) {
-		r = r % 4;
-		if (rotations == r) return;
-		int old = rotations;
-		rotations = r;
-		if (view != null) {
-			view.rotateProperty().set(90.0d * rotations);
-		}
-		pcs.firePropertyChange(PROPERTY_ROTATIONS, old, rotations);
-		//if (canvas != null) canvas.repaint();
-	}
-
-	public int getScreen() {
-		return screen;
-	}
-	
-	public void setScreen(int s) {
-		if (screen == s) return;
-		int old = screen;
-		screen = s;
-		pcs.firePropertyChange(PROPERTY_SCREEN, old, screen);
-		if (canvas != null) canvas.repaint();
+		pcs.firePropertyChange(PROPERTY_URL, old, urlString.getValue());
 	}
 }

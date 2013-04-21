@@ -20,12 +20,11 @@ public class Grid extends MapElement {
 	public static final String PROPERTY_BACKGROUND_COLOR = "background_color";	// Color
 
 	public boolean showCoordinates = false;	// show coordinates of every cell
-	public Integer rulerRow = 0;
-	public Integer rulerColumn = 27;
-
-	Color color = Color.BLACK;
-	Color backgroundColor = Color.WHITE;
-	float alpha = 1.0f;
+	Property<Integer> rulerRow = new Property<Integer>(PROPERTY_RULER_ROW, 0);
+	Property<Integer> rulerColumn = new Property<Integer>(PROPERTY_RULER_COLUMN, 27);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK);
+	Property<Color> backgroundColor = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
 
 	public Grid() {
 		visible = true;
@@ -44,10 +43,10 @@ public class Grid extends MapElement {
 	public void paint(Graphics2D g) {
 		if (canvas == null || !visible) return;
 
-		g.setColor(color);
+		g.setColor(color.getValue());
 
 		Composite c = g.getComposite();
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
 		Rectangle bounds = g.getClipBounds();
 		Point tlCell = canvas.getGridCellCoordinates(bounds.x, bounds.y);
@@ -71,19 +70,19 @@ public class Grid extends MapElement {
 			}
 		}
 
-		if (rulerRow != null) {
+		if (rulerRow.getValue() != null) {
 			Font f = g.getFont();
 			float newSize = canvas.getRowHeight()/2-4;
 			if (newSize < 12.0) newSize = 12.0f;
 			g.setFont(f.deriveFont(newSize));
-			int row = rulerRow.intValue();
+			int row = rulerRow.getValue();
 			for (int col = tlCell.x; col <= brCell.x; col++) {
 				canvas.getDisplayCoordinates(col, row, p); 
 				String s = getLetterIndex(col);
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
-				g.setColor(backgroundColor);
+				g.setColor(backgroundColor.getValue());
 				g.fillRect(p.x, p.y, cellWidth+1, (int)(-strBounds.getY() + 4));
-				g.setColor(color);
+				g.setColor(color.getValue());
 				g.drawString(s, 
 						(int)(p.x + (cellWidth - strBounds.getWidth())/2 - strBounds.getX()), 
 						(int)(p.y - strBounds.getY() + 2)
@@ -92,22 +91,22 @@ public class Grid extends MapElement {
 			g.setFont(f);
 		}
 		
-		if (rulerColumn != null) {
+		if (rulerColumn.getValue() != null) {
 			Font f = g.getFont();
 			float newSize = canvas.getColumnWidth()/2-4;
 			if (newSize < 12.0f) newSize = 12.0f;
 			if (newSize > canvas.getColumnWidth()-4) newSize = canvas.getColumnWidth()-4;
 			AffineTransform rot = AffineTransform.getQuadrantRotateInstance(1);
 			g.setFont(f.deriveFont(newSize).deriveFont(rot));
-			int col = rulerColumn.intValue();
+			int col = rulerColumn.getValue();
 			for (int row = tlCell.y; row <= brCell.y; row++) {
 				canvas.getDisplayCoordinates(col, row, p); 
 				String s = ""+(row+1);
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
-				g.setColor(backgroundColor);
+				g.setColor(backgroundColor.getValue());
 				g.fillRect((int)(p.x + cellWidth + strBounds.getY()-2), p.y,
 						(int)(-strBounds.getY()+4), cellHeight+1);
-				g.setColor(color);
+				g.setColor(color.getValue());
 				g.drawString(s, 
 						(int)(p.x + cellWidth + strBounds.getY()), 
 						(int)(p.y + (cellHeight - strBounds.getWidth())/2 - strBounds.getX())
@@ -130,98 +129,5 @@ public class Grid extends MapElement {
 
 	public String toString() {
 		return "Grid";
-	}
-	
-	public Object getProperty(String property) {
-		if (property.equals(PROPERTY_COLOR)) {
-			return getColor();
-		} else if (property.equals(PROPERTY_ALPHA)) {
-			return getAlpha();
-		} else if (property.equals(PROPERTY_RULER_ROW)) {
-			return getRulerRow();
-		} else if (property.equals(PROPERTY_RULER_COLUMN)) {
-			return getRulerColumn();
-		} else if (property.equals(PROPERTY_BACKGROUND_COLOR)) {
-			return getBackgroundColor();
-		} else {
-			// throw exception?
-			return null;
-		}
-	}
-
-	public void setProperty(String property, Object value) {
-		if (property.equals(PROPERTY_COLOR)) {
-			setColor((Color)value);
-		} else if (property.equals(PROPERTY_ALPHA)) {
-			setAlpha((Float)value);
-		} else if (property.equals(PROPERTY_RULER_ROW)) {
-			setRulerRow((Integer)value);
-		} else if (property.equals(PROPERTY_RULER_COLUMN)) {
-			setRulerColumn((Integer)value);
-		} else if (property.equals(PROPERTY_BACKGROUND_COLOR)) {
-			setBackgroundColor((Color)value);
-		} else {
-			// throw exception?
-		}
-	}
-
-	public float getAlpha() {
-		return alpha;
-	}
-	
-	public void setAlpha(float a) {
-		if (alpha == a) return;
-		float old = alpha;
-		alpha = a;
-		pcs.firePropertyChange(PROPERTY_ALPHA, old, alpha);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public Color getColor() {
-		return color;
-	}
-	
-	public void setColor(Color c) {
-		if (color.equals(c)) return;
-		Color old = color;
-		color = c;
-		pcs.firePropertyChange(PROPERTY_COLOR, old, color);
-		if (canvas != null) canvas.repaint();
-	}
-	
-	public Color getBackgroundColor() {
-		return backgroundColor;
-	}
-	
-	public void setBackgroundColor(Color c) {
-		if (backgroundColor.equals(c)) return;
-		Color old = backgroundColor;
-		backgroundColor = c;
-		pcs.firePropertyChange(PROPERTY_BACKGROUND_COLOR, old, backgroundColor);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public Integer getRulerRow() {
-		return rulerRow;
-	}
-
-	public void setRulerRow(Integer newRow) {
-		if (rulerRow == newRow) return;
-		Integer old = rulerRow;
-		rulerRow = newRow;
-		pcs.firePropertyChange(PROPERTY_RULER_ROW, old, rulerRow);
-		if (canvas != null) canvas.repaint();
-	}
-
-	public Integer getRulerColumn() {
-		return rulerColumn;
-	}
-
-	public void setRulerColumn(Integer newColumn) {
-		if (rulerColumn == newColumn) return;
-		Integer old = rulerColumn;
-		rulerColumn = newColumn;
-		pcs.firePropertyChange(PROPERTY_RULER_COLUMN, old, rulerColumn);
-		if (canvas != null) canvas.repaint();
 	}
 }

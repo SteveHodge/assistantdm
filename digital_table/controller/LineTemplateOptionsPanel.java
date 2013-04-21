@@ -113,8 +113,12 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 
 	protected MapElementMouseListener mouseListener = new DefaultDragger() {
 		protected String getDragTarget(Point2D gridLocation) {
-			if (gridLocation.distance(template.getOriginX(), template.getOriginY()) < 2.0d
-					&& gridLocation.distance(template.getOriginX(), template.getOriginY()) < gridLocation.distance(template.getX(), template.getY())) {
+			
+			if (gridLocation.distance((Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_X),
+					(Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_Y)) < 2.0d
+					&& gridLocation.distance((Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_X),
+							(Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_Y))
+							< gridLocation.distance((Integer)template.getProperty(LineTemplate.PROPERTY_X), (Integer)template.getProperty(LineTemplate.PROPERTY_Y))) {
 				return LineTemplate.PROPERTY_ORIGIN_LOCATION;
 			} else {
 				return LineTemplate.PROPERTY_TARGET_LOCATION;

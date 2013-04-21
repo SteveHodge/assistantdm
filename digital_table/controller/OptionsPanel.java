@@ -179,6 +179,24 @@ abstract public class OptionsPanel extends JPanel {
 		return label;
 	}
 	
+	// TODO use this for visibility - need to implement visibility properties
+	protected JCheckBox createCheckBox(final MapElement element, final String property, final Mode mode, String label) {
+		JCheckBox check = new JCheckBox(label);
+		check.setSelected((Boolean)element.getProperty(property));
+		check.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				try {
+					JCheckBox check = (JCheckBox)e.getSource();
+					if (mode != Mode.REMOTE) element.setProperty(property, check.isSelected());
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, check.isSelected());
+				} catch (RemoteException ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+		return check;
+	}
+
 	// this control does not apply the changes to the local MapElement - it's intended for visibility 
 	protected JCheckBox createVisibilityControl(final MapElement element) {
 		return createVisibilityControl(element, "visible?");

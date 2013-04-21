@@ -19,6 +19,7 @@ public class BrowserLocal extends Browser {
 
 	public BrowserLocal(BrowserRemote remote) {
 		super(remote.getID());
+		screen = new Property<Integer>(PROPERTY_SCREEN, 0);
 		getComponent();	// we need a browser to preload the page
 	}
 
@@ -28,7 +29,7 @@ public class BrowserLocal extends Browser {
 			Composite c = g.getComposite();
 			g.setColor(color);
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-			DisplayConfig.Screen s = DisplayConfig.screens.get(screen);
+			DisplayConfig.Screen s = DisplayConfig.screens.get(screen.getValue());
 			int browserSize = Math.min(s.size.width, s.size.height);
 			int x = s.location.x + (s.size.width - browserSize)/2;
 			int y = s.location.y + (s.size.height - browserSize)/2;

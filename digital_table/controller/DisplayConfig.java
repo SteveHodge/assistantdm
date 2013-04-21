@@ -11,7 +11,7 @@ import digital_table.server.TableDisplay;
 
 public class DisplayConfig {
 	public static Point[] defaultLocations = {
-		new Point(65,250),	// 0 for the real table
+		new Point(65,250),	// 0 for the real table, 250 for corto
 		new Point(1421,3),
 		new Point(64,1101),
 		new Point(1425,1106),

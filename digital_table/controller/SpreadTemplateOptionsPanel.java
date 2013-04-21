@@ -53,7 +53,7 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 		});
 		
 		directionCombo = createComboControl(template, SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.values());
-		directionCombo.setEnabled(template.getType() == SpreadTemplate.Type.QUADRANT);
+		directionCombo.setEnabled(template.getProperty(SpreadTemplate.PROPERTY_TYPE) == SpreadTemplate.Type.QUADRANT);
 
 		labelField = this.createLocalStringControl(template, SpreadTemplate.PROPERTY_LABEL);
 		JCheckBox visibleCheck = createVisibilityControl(template);
@@ -135,15 +135,16 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 			try {
 				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_X, (int)p.getX());
 				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_Y, (int)p.getY());
-				template.setX((int)p.getX());
-				template.setY((int)p.getY());
+				template.setProperty(SpreadTemplate.PROPERTY_X, (int)p.getX());
+				template.setProperty(SpreadTemplate.PROPERTY_Y, (int)p.getY());
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
 		}
 
 		protected Point2D getTargetLocation() {
-			return new Point(template.getX(),template.getY());
+			return new Point((Integer)template.getProperty(SpreadTemplate.PROPERTY_X),
+					(Integer)template.getProperty(SpreadTemplate.PROPERTY_Y));
 		}
 	};
 }

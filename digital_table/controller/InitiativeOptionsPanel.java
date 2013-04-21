@@ -44,13 +44,13 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 
 		String[] options = {"0","90","180","270"};
 		rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex(initiative.getRotations());
+		rotationsCombo.setSelectedIndex((Integer)initiative.getProperty(Initiative.PROPERTY_ROTATIONS));
 		rotationsCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JComboBox combo = (JComboBox)e.getSource();
 					int index = combo.getSelectedIndex();
-					initiative.setRotations(index);
+					initiative.setProperty(Initiative.PROPERTY_ROTATIONS, index);
 					remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_ROTATIONS, index);
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
@@ -128,15 +128,16 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 			try {
 				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_X, p.getX());
 				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_Y, p.getY());
-				initiative.setX(p.getX());
-				initiative.setY(p.getY());
+				initiative.setProperty(Initiative.PROPERTY_X, p.getX());
+				initiative.setProperty(Initiative.PROPERTY_Y, p.getY());
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
 		}
 
 		protected Point2D getTargetLocation() {
-			return new Point2D.Double(initiative.getX(),initiative.getY());
+			return new Point2D.Double((Double)initiative.getProperty(Initiative.PROPERTY_X),
+					(Double)initiative.getProperty(Initiative.PROPERTY_Y));
 		}
 	};
 }

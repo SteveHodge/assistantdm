@@ -68,7 +68,7 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	}
 
 	protected void updateRemaining() {
-		int max = template.getMaximum();
+		int max = (Integer)template.getProperty(ShapeableTemplate.PROPERTY_MAXIMUM);
 		if (max == 0) {
 			remaining.setText("");
 		} else {

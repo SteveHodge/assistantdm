@@ -11,20 +11,28 @@ public class BrowserRemote extends Browser {
 	transient protected JPanel panel = null;
 	transient protected int onScreen;
 
+	public BrowserRemote() {
+		screen = new Property<Integer>(PROPERTY_SCREEN, 0) {
+			private static final long serialVersionUID = 1L;
+
+			public void setValue(Integer s) {
+				if (value == s) return;
+				Integer old = value;
+				value = s;
+				checkScreenSetup();
+				pcs.firePropertyChange(PROPERTY_SCREEN, old, value);
+				//if (canvas != null) canvas.repaint();
+			}
+			
+		};
+	}
+	
 	public void paint(Graphics2D g) {
 		if (visible && panel != null) {
 			panel.repaint();	// without this the underlying map will often get painted ontop of the panel. with this there can still be flickering
 		}
 	}
 
-	public void setScreen(int s) {
-		if (screen == s) return;
-		int old = screen;
-		screen = s;
-		checkScreenSetup();
-		pcs.firePropertyChange(PROPERTY_SCREEN, old, screen);
-		//if (canvas != null) canvas.repaint();
-	}
 
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
@@ -46,15 +54,15 @@ public class BrowserRemote extends Browser {
 			panel.setLayout(new BorderLayout());
 	        panel.add(getComponent(), BorderLayout.CENTER);
 	        if (screenManager != null) {
-	        	screenManager.addComponent(getID(), panel, screen);
-		        onScreen = screen;
+	        	screenManager.addComponent(getID(), panel, screen.getValue());
+		        onScreen = screen.getValue();
 	        }
 		} else {
-			if (onScreen != screen && screenManager != null) {
+			if (onScreen != screen.getValue() && screenManager != null) {
 				// if the panel has changed screens then move it
 				screenManager.removeComponent(getID(), panel);
-				screenManager.addComponent(getID(), panel, screen);
-		        onScreen = screen;
+				screenManager.addComponent(getID(), panel, screen.getValue());
+		        onScreen = screen.getValue();
 		        panel.revalidate();
 			}
 			// set it visible incase it is not visible

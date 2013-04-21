@@ -22,13 +22,14 @@ public class DigitalTableController {
 
 	public DigitalTableController() {
 		this("corto");
+//		this("wintermute");
 	}
 
 	public DigitalTableController(String server) {
 		try {
 			String name = "TableDisplay";
 			Registry registry = LocateRegistry.getRegistry(server);
-			display = (TableDisplay) registry.lookup(name);
+			display = (TableDisplay)registry.lookup(name);
 		} catch (Exception e) {
 			System.err.println("TableDisplay exception:" + e.getMessage());
 			e.printStackTrace();

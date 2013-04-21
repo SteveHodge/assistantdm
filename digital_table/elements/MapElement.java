@@ -5,6 +5,8 @@ import java.awt.Graphics2D;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import digital_table.server.MapCanvas;
 import digital_table.server.MapCanvas.Order;
@@ -31,9 +33,45 @@ public abstract class MapElement implements Serializable {
 	protected MapCanvas canvas = null;
 	protected ScreenManager screenManager = null;
 	protected boolean visible = false;
+	protected Map<String,Property<?>> properties = new HashMap<String,Property<?>>();
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
+	protected class Property<T> implements Serializable {
+		private static final long serialVersionUID = 1L;
+
+		String name;
+		T value;
+		boolean visible;
+		
+		public Property(String name, T defaultValue) {
+			this(name, true, defaultValue);
+		}
+
+		public Property(String name, boolean visible, T defaultValue) {
+			this.name = name;
+			this.visible = visible;
+			value = defaultValue;
+			properties.put(name, this);
+		}
+		
+		public void setValue(T v) {
+			if (value.equals(v)) return;
+			T old = value;
+			value = v;
+			pcs.firePropertyChange(name, old, value);
+			if (visible && canvas != null) canvas.repaint();
+		}
+
+		public T getValue() {
+			return value;
+		}
+		
+		public String toString() {
+			return value.toString();
+		}
+	};
+	
 	protected MapElement() {
 		id = nextID++;
 	}
@@ -74,12 +112,24 @@ public abstract class MapElement implements Serializable {
 		return super.toString() + " (ID "+id+")";
 	}
 	
-	public void setProperty(String property, Object value) {
-		System.out.println("Unknown property "+property);
+	public <T> void setProperty(String property, T value) {
+		@SuppressWarnings("unchecked")
+		Property<T> prop = (Property<T>)properties.get(property);
+		if (prop != null) {
+			prop.setValue(value);
+		} else {
+			System.out.println("Unknown property "+property);
+		}
 	}
 
 	public Object getProperty(String property) {
-		return null;
+		Property<?> prop = properties.get(property);
+		if (prop != null) {
+			return prop.getValue();
+		} else {
+			System.out.println("Unknown property "+property);
+			return null;
+		}
 	}
 
 	public void setVisible(boolean visible) {
