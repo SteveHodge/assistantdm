@@ -47,7 +47,7 @@ public class Initiative extends MapElement {
 	}
 
 	public void paint(Graphics2D g) {
-		if (!visible) return;
+		if (!visible.getValue()) return;
 
 		Font f = g.getFont();
 		float newSize = canvas.getDisplayCoordinates(new Point2D.Float(fontSize,0)).x;

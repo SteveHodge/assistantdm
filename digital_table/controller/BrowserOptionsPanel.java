@@ -26,6 +26,7 @@ import javax.swing.JTextField;
 
 import digital_table.server.TableDisplay;
 import digital_table.elements.Browser;
+import digital_table.elements.MapElement;
 
 @SuppressWarnings("serial")
 public class BrowserOptionsPanel extends OptionsPanel {
@@ -91,7 +92,7 @@ public class BrowserOptionsPanel extends OptionsPanel {
 		remoteVisibleCheck = createVisibilityControl(browser, "remote visible?");
 		remoteVisibleCheck.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				browser.setVisible(remoteVisibleCheck.isSelected());	// remote side is handled by the listener installed by createVisibilityControl
+				browser.setProperty(MapElement.PROPERTY_VISIBLE, remoteVisibleCheck.isSelected());	// remote side is handled by the listener installed by createVisibilityControl
 			}
 		});
 

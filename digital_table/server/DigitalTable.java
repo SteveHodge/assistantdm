@@ -223,13 +223,6 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		}
 	}
 
-	public void setElementVisible(int id, boolean visible) {
-		MapElement e = canvas.getElement(id);
-		if (e != null) {
-			e.setVisible(visible);
-		}
-	}
-
 	public void addComponent(int id, JComponent component, int screen) {
 		JFrame frame = screens[screen];
 		if (frame != null) {

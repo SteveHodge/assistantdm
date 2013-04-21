@@ -106,7 +106,7 @@ public class Token extends MapElement {
 	}
 	
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible) return;
+		if (canvas == null || !visible.getValue()) return;
 
 		int space = size.getValue().getSpace();
 		if (space < 10) space = 10;	// TODO need to be able to draw sub-Small tokens slightly smaller

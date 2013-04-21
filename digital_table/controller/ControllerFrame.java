@@ -357,7 +357,7 @@ public class ControllerFrame extends JFrame {
 					stream.read(bytes);
 					MapImage mapImage = new MapImage(bytes, f.getName());
 					if (sendElement(mapImage)) {
-						mapImage.setVisible(true);
+						mapImage.setProperty(MapElement.PROPERTY_VISIBLE,true);
 						mapImage.addPropertyChangeListener(labelListener);
 						addElement(mapImage, new ImageOptionsPanel(mapImage, display));
 					}
@@ -375,7 +375,7 @@ public class ControllerFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			SpreadTemplate template = new SpreadTemplate(4, 10, 10);
 			if (sendElement(template)) {
-				template.setVisible(true);
+				template.setProperty(MapElement.PROPERTY_VISIBLE,true);
 				template.addPropertyChangeListener(labelListener);
 				addElement(template, new SpreadTemplateOptionsPanel(template, display));
 			}
@@ -387,7 +387,7 @@ public class ControllerFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			LineTemplate template = new LineTemplate(18, 14, 21, 7);
 			if (sendElement(template)) {
-				template.setVisible(true);
+				template.setProperty(MapElement.PROPERTY_VISIBLE,true);
 				template.addPropertyChangeListener(labelListener);
 				addElement(template, new LineTemplateOptionsPanel(template, display));
 			}
@@ -399,7 +399,7 @@ public class ControllerFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			ShapeableTemplate template = new ShapeableTemplate();
 			if (sendElement(template)) {
-				template.setVisible(true);
+				template.setProperty(MapElement.PROPERTY_VISIBLE,true);
 				template.addPropertyChangeListener(labelListener);
 				addElement(template, new ShapeableTemplateOptionsPanel(template, display));
 			}
@@ -410,7 +410,7 @@ public class ControllerFrame extends JFrame {
 	public AddElementAction darknessAction = new AddElementAction("Darkness") {
 		public void actionPerformed(ActionEvent e) {
 			DarknessMask template = new DarknessMask();
-			template.setVisible(true);
+			template.setProperty(MapElement.PROPERTY_VISIBLE,true);
 			if (sendElement(template)) {
 				template.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
 				addElement(template, new DarknessMaskOptionsPanel(template, display));
@@ -435,7 +435,7 @@ public class ControllerFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			final Initiative init = new Initiative();
 			if (sendElement(init)) {
-				init.setVisible(true);
+				init.setProperty(MapElement.PROPERTY_VISIBLE,true);
 				CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
 					public void initiativeUpdated(String text) {
 						init.setProperty(Initiative.PROPERTY_TEXT, text);
@@ -456,7 +456,7 @@ public class ControllerFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			ScreenBounds bounds = new ScreenBounds();
 			if (sendElement(bounds)) {
-				bounds.setVisible(true);
+				bounds.setProperty(MapElement.PROPERTY_VISIBLE,true);
 				addElement(bounds, new BoundsOptionsPanel(bounds, display));
 			}
 		}
@@ -467,7 +467,7 @@ public class ControllerFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			Token token = new Token();
 			if (sendElement(token)) {
-				token.setVisible(true);
+				token.setProperty(MapElement.PROPERTY_VISIBLE,true);
 				token.addPropertyChangeListener(labelListener);
 				addElement(token, new TokenOptionsPanel(token, display));
 			}

@@ -13,6 +13,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import digital_table.elements.MapElement;
 import digital_table.elements.ScreenBounds;
 import digital_table.server.TableDisplay;
 
@@ -35,7 +36,7 @@ public class BoundsOptionsPanel extends OptionsPanel {
 		visibleCheck.setSelected(true);
 		visibleCheck.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				bounds.setVisible(visibleCheck.isSelected());
+				bounds.setProperty(MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
 			}
 		});
 		

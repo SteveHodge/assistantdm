@@ -113,7 +113,7 @@ public class MapImage extends MapElement {
 	 */
 	@Override
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible) return;
+		if (canvas == null || !visible.getValue()) return;
 
 		Rectangle bounds = g.getClipBounds();
 		//System.out.println("Clip = "+bounds);

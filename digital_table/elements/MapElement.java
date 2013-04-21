@@ -28,12 +28,14 @@ import digital_table.server.ScreenManager;
 public abstract class MapElement implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	public static final String PROPERTY_VISIBLE = "visible";
+	
 	private static int nextID = 1;
 	protected final int id;
 	protected MapCanvas canvas = null;
 	protected ScreenManager screenManager = null;
-	protected boolean visible = false;
 	protected Map<String,Property<?>> properties = new HashMap<String,Property<?>>();
+	protected Property<Boolean> visible = new Property<Boolean>(PROPERTY_VISIBLE,true,false);
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -132,13 +134,6 @@ public abstract class MapElement implements Serializable {
 		}
 	}
 
-	public void setVisible(boolean visible) {
-		if (this.visible != visible) {
-			this.visible = visible;
-			if (canvas != null) canvas.repaint();
-		}
-	}
-	
 	public Order getDefaultOrder() {
 		return Order.BOTTOM;
 	}

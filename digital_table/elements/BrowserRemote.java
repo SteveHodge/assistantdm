@@ -25,22 +25,24 @@ public class BrowserRemote extends Browser {
 			}
 			
 		};
+		visible = new Property<Boolean>(PROPERTY_VISIBLE, false, false) {
+			private static final long serialVersionUID = 1L;
+
+			public void setValue(Boolean visible) {
+				super.setValue(visible);
+				checkScreenSetup();
+			}
+		};
 	}
 	
 	public void paint(Graphics2D g) {
-		if (visible && panel != null) {
+		if (visible.getValue() && panel != null) {
 			panel.repaint();	// without this the underlying map will often get painted ontop of the panel. with this there can still be flickering
 		}
 	}
 
-
-	public void setVisible(boolean visible) {
-		super.setVisible(visible);
-		checkScreenSetup();
-	}
-
 	public void checkScreenSetup() {
-		if (!visible) {
+		if (!visible.getValue()) {
 			// make the panel not visible if it exists
 			if (panel != null) {
 				panel.setVisible(false);

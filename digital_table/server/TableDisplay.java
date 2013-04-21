@@ -17,5 +17,4 @@ public interface TableDisplay extends Remote {
 	public void removeElement(int id) throws RemoteException;
 	public void reorderElement(int id, int index) throws RemoteException;
 	public void setElementProperty(int id, String property, Object value) throws RemoteException;
-	public void setElementVisible(int id, boolean visible) throws RemoteException;
 }

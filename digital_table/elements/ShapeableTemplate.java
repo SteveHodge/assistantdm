@@ -41,7 +41,7 @@ public class ShapeableTemplate extends MapElement {
 	}
 
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible) return;
+		if (canvas == null || !visible.getValue()) return;
 
 		Stroke oldStroke = g.getStroke();
 		g.setColor(color.getValue());

@@ -210,7 +210,7 @@ abstract public class OptionsPanel extends JPanel {
 			public void itemStateChanged(ItemEvent e) {
 				try {
 					JCheckBox check = (JCheckBox)e.getSource();
-					remote.setElementVisible(element.getID(), check.isSelected());
+					remote.setElementProperty(element.getID(), MapElement.PROPERTY_VISIBLE, check.isSelected());
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
 				}

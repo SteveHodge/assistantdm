@@ -43,7 +43,7 @@ public class LineTemplate extends MapElement {
 	}
 
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible) return;
+		if (canvas == null || !visible.getValue()) return;
 
 		Composite c = g.getComposite();
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
