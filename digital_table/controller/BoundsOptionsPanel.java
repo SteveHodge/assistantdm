@@ -3,8 +3,6 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -32,13 +30,8 @@ public class BoundsOptionsPanel extends OptionsPanel {
 		colorPanel = createColorControl(bounds, ScreenBounds.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(bounds, ScreenBounds.PROPERTY_ALPHA);
 
-		visibleCheck = new JCheckBox("local visible?");
+		visibleCheck = this.createCheckBox(bounds, MapElement.PROPERTY_VISIBLE, Mode.LOCAL, "local visible?");
 		visibleCheck.setSelected(true);
-		visibleCheck.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				bounds.setProperty(MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
-			}
-		});
 		
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();

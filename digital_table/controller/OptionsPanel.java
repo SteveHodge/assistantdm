@@ -43,14 +43,18 @@ abstract public class OptionsPanel extends JPanel {
 	};
 	
 	protected JTextField createIntegerControl(final MapElement element, final String property) {
+		return createIntegerControl(element, property, Mode.BOTH);
+	}
+
+	protected JTextField createIntegerControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
 		field.setText(""+element.getProperty(property));
 		field.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					int newRadius = Integer.parseInt(field.getText());
-					element.setProperty(property, newRadius);
-					remote.setElementProperty(element.getID(), property, newRadius);
+					if (mode != Mode.REMOTE) element.setProperty(property, newRadius);
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newRadius);
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -60,14 +64,18 @@ abstract public class OptionsPanel extends JPanel {
 	}
 
 	protected JTextField createDoubleControl(final MapElement element, final String property) {
+		return createDoubleControl(element, property, Mode.BOTH);
+	}
+
+	protected JTextField createDoubleControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
 		field.setText(""+element.getProperty(property));
 		field.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					double newRadius = Double.parseDouble(field.getText());
-					element.setProperty(property, newRadius);
-					remote.setElementProperty(element.getID(), property, newRadius);
+					if (mode != Mode.REMOTE) element.setProperty(property, newRadius);
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newRadius);
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -77,6 +85,10 @@ abstract public class OptionsPanel extends JPanel {
 	}
 
 	protected JPanel createColorControl(final MapElement element, final String property) {
+		return createColorControl(element, property, Mode.BOTH);
+	}
+
+	protected JPanel createColorControl(final MapElement element, final String property, final Mode mode) {
 		final JPanel colorPanel = new JPanel();
 		colorPanel.setBackground((Color)element.getProperty(property));
 		colorPanel.setOpaque(true);
@@ -87,8 +99,8 @@ abstract public class OptionsPanel extends JPanel {
 			public void mouseClicked(MouseEvent e) {
 				try {
 					Color newColor = JColorChooser.showDialog(OptionsPanel.this, "Choose colour", (Color)element.getProperty(property));
-					remote.setElementProperty(element.getID(), property, newColor);
-					element.setProperty(property, newColor);
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newColor);
+					if (mode != Mode.REMOTE) element.setProperty(property, newColor);
 					colorPanel.setBackground(newColor);
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
@@ -128,6 +140,10 @@ abstract public class OptionsPanel extends JPanel {
 	}
 
 	protected JComboBox createComboControl(final MapElement element, final String property, Object[] values) {
+		return createComboControl(element, property, Mode.BOTH, values);
+	}
+
+	protected JComboBox createComboControl(final MapElement element, final String property, final Mode mode, Object[] values) {
 		final JComboBox typeCombo = new JComboBox(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
 		typeCombo.addActionListener(new ActionListener() {
@@ -135,8 +151,8 @@ abstract public class OptionsPanel extends JPanel {
 				try {
 					JComboBox combo = (JComboBox)e.getSource();
 					Object selected = combo.getSelectedItem();
-					element.setProperty(property, selected);
-					remote.setElementProperty(element.getID(), property, selected);
+					if (mode != Mode.REMOTE) element.setProperty(property, selected);
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, selected);
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
 				}
@@ -146,28 +162,21 @@ abstract public class OptionsPanel extends JPanel {
 	}
 
 	protected JTextField createStringControl(final MapElement element, final String property) {
+		return createStringControl(element, property);
+	}
+
+	protected JTextField createStringControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField textField = new JTextField(30);
 		textField.setText(""+element.getProperty(property));
 		textField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				element.setProperty(property, textField.getText());
 				try {
-					remote.setElementProperty(element.getID(), property, textField.getText());
+					if (mode != Mode.REMOTE) element.setProperty(property, textField.getText());
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, textField.getText());
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
 				}
-			}
-		});
-		return textField;
-	}
-
-	// this control does not send the changes to the remote MapElement - it's intended for labels
-	protected JTextField createLocalStringControl(final MapElement element, final String property) {
-		final JTextField textField = new JTextField(30);
-		textField.setText(""+element.getProperty(property));
-		textField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				element.setProperty(property, textField.getText());
 			}
 		});
 		return textField;
@@ -197,27 +206,41 @@ abstract public class OptionsPanel extends JPanel {
 		return check;
 	}
 
+	// TODO convert users to use createCheckBox?
 	// this control does not apply the changes to the local MapElement - it's intended for visibility 
 	protected JCheckBox createVisibilityControl(final MapElement element) {
-		return createVisibilityControl(element, "visible?");
+		JCheckBox cb = createCheckBox(element, MapElement.PROPERTY_VISIBLE, Mode.REMOTE, "visible?");
+		cb.setSelected(false);
+		return cb;
 	}
 
+	// TODO convert users to use createCheckBox?
 	// this control does not apply the changes to the local MapElement - it's intended for visibility 
 	protected JCheckBox createVisibilityControl(final MapElement element, String label) {
-		JCheckBox visibleCheck = new JCheckBox(label);
-		visibleCheck.setSelected(false);
-		visibleCheck.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
+		JCheckBox cb = createCheckBox(element, MapElement.PROPERTY_VISIBLE, Mode.REMOTE, label);
+		cb.setSelected(false);
+		return cb;
+	}
+	
+	protected final static String[] options = {"0","90","180","270"};
+
+	protected JComboBox createRotationControl(final MapElement element, final String property, final Mode mode) {
+		JComboBox rotationsCombo = new JComboBox(options);
+		rotationsCombo.setSelectedIndex((Integer)element.getProperty(property));
+		rotationsCombo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				try {
-					JCheckBox check = (JCheckBox)e.getSource();
-					remote.setElementProperty(element.getID(), MapElement.PROPERTY_VISIBLE, check.isSelected());
+					JComboBox combo = (JComboBox)e.getSource();
+					int index = combo.getSelectedIndex();
+					if (mode != Mode.REMOTE) element.setProperty(property, index);
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, index);
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
 				}
 			}
 		});
-		return visibleCheck;
-	}
+		return rotationsCombo;
+	};
 	
 	public MapElementMouseListener getMouseListener() {
 		return null;

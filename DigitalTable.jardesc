@@ -11,12 +11,7 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements{MapElement.java"/>
-        <file path="/AssistantDM/combat.xsd"/>
-        <file path="/AssistantDM/shops.xsd"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.server"/>
-        <file path="/AssistantDM/monsters.xsd"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements{Grid.java"/>
-        <file path="/AssistantDM/party.xsd"/>
     </selectedElements>
 </jardesc>

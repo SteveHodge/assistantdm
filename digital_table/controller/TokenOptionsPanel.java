@@ -52,24 +52,8 @@ public class TokenOptionsPanel extends OptionsPanel {
 		colorPanel = createColorControl(token, Token.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(token, Token.PROPERTY_ALPHA);
 		sizeCombo = createComboControl(token, Token.PROPERTY_SIZE, Token.Size.values());
-
-		String[] options = {"0","90","180","270"};
-		rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex((Integer)token.getProperty(Token.PROPERTY_ROTATIONS));
-		rotationsCombo.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					JComboBox combo = (JComboBox)e.getSource();
-					int index = combo.getSelectedIndex();
-					token.setProperty(Token.PROPERTY_ROTATIONS, index);
-					remote.setElementProperty(token.getID(), Token.PROPERTY_ROTATIONS, index);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
-			}
-		});
-
-		labelField = this.createLocalStringControl(token, Token.PROPERTY_LABEL);
+		rotationsCombo = createRotationControl(token, Token.PROPERTY_ROTATIONS, Mode.BOTH);
+		labelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.LOCAL);
 		JCheckBox visibleCheck = createVisibilityControl(token);
 		localReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.LOCAL, "local");
 		remoteReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.REMOTE, "remote");

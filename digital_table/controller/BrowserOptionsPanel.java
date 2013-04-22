@@ -53,22 +53,7 @@ public class BrowserOptionsPanel extends OptionsPanel {
 		urlField = createStringControl(browser, Browser.PROPERTY_URL);
 		titleLabel = createLabelControl(browser, Browser.PROPERTY_TITLE);
 		rolloverLabel = createLabelControl(browser, Browser.PROPERTY_ROLLOVER);
-		
-		String[] options = {"0","90","180","270"};
-		rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex((Integer)browser.getProperty(Browser.PROPERTY_ROTATIONS));
-		rotationsCombo.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					JComboBox combo = (JComboBox)e.getSource();
-					int index = combo.getSelectedIndex();
-					//browser.setRotations(index);
-					remote.setElementProperty(browser.getID(), Browser.PROPERTY_ROTATIONS, index);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
-			}
-		});
+		rotationsCombo = createRotationControl(browser, Browser.PROPERTY_ROTATIONS, Mode.REMOTE);
 
 		String[] screens = new String[DisplayConfig.screens.size()];
 		for (int i = 0; i < screens.length; i++) {
@@ -89,12 +74,7 @@ public class BrowserOptionsPanel extends OptionsPanel {
 			}
 		});
 
-		remoteVisibleCheck = createVisibilityControl(browser, "remote visible?");
-		remoteVisibleCheck.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				browser.setProperty(MapElement.PROPERTY_VISIBLE, remoteVisibleCheck.isSelected());	// remote side is handled by the listener installed by createVisibilityControl
-			}
-		});
+		remoteVisibleCheck = this.createCheckBox(browser, MapElement.PROPERTY_VISIBLE, Mode.BOTH, "remote visible?");
 
 		localVisibleCheck = new JCheckBox("local visible?");
 		localVisibleCheck.setSelected(false);

@@ -3,8 +3,6 @@ package digital_table.controller;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
@@ -44,24 +42,8 @@ public class ImageOptionsPanel extends OptionsPanel {
 		widthField = createDoubleControl(image, MapImage.PROPERTY_WIDTH);
 		heightField = createDoubleControl(image, MapImage.PROPERTY_HEIGHT);
 		alphaSlider = createSliderControl(image, MapImage.PROPERTY_ALPHA);
-		
-		String[] options = {"0","90","180","270"};
-		rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex((Integer)image.getProperty(MapImage.PROPERTY_ROTATIONS));
-		rotationsCombo.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					JComboBox combo = (JComboBox)e.getSource();
-					int index = combo.getSelectedIndex();
-					image.setProperty(MapImage.PROPERTY_ROTATIONS, index);
-					remote.setElementProperty(image.getID(), MapImage.PROPERTY_ROTATIONS, index);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
-			}
-		});
-
-		labelField = createLocalStringControl(image, MapImage.PROPERTY_LABEL);
+		rotationsCombo = createRotationControl(image, MapImage.PROPERTY_ROTATIONS, Mode.BOTH);
+		labelField = createStringControl(image, MapImage.PROPERTY_LABEL, Mode.LOCAL);
 		JCheckBox visibleCheck = createVisibilityControl(image);
 		
 		snapCheck = new JCheckBox("snap to grid?");
@@ -71,26 +53,26 @@ public class ImageOptionsPanel extends OptionsPanel {
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0; add(visibleCheck, c);
-		c.gridy = 1; add(new JLabel("Left edge column:"), c);
-		c.gridy = 2; add(new JLabel("Top edge Row:"), c);
-		c.gridy = 3; add(new JLabel("Width:"), c);
-		c.gridy = 4; add(new JLabel("Height:"), c);
-		c.gridy = 5; add(new JLabel("Rotation:"), c);
-		c.gridy = 6; add(new JLabel("Transparency:"), c);
+		c.gridy++; add(new JLabel("Left edge column:"), c);
+		c.gridy++; add(new JLabel("Top edge Row:"), c);
+		c.gridy++; add(new JLabel("Width:"), c);
+		c.gridy++; add(new JLabel("Height:"), c);
+		c.gridy++; add(new JLabel("Rotation:"), c);
+		c.gridy++; add(new JLabel("Transparency:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0; add(labelField, c);
-		c.gridy = 1; add(xField, c);
-		c.gridy = 2; add(yField, c);
-		c.gridy = 3; add(widthField, c);
-		c.gridy = 4; add(heightField, c);
-		c.gridy = 5; add(rotationsCombo, c);
-		c.gridy = 6; add(alphaSlider, c);
-		c.gridy = 7; add(snapCheck, c);
+		c.gridy++; add(xField, c);
+		c.gridy++; add(yField, c);
+		c.gridy++; add(widthField, c);
+		c.gridy++; add(heightField, c);
+		c.gridy++; add(rotationsCombo, c);
+		c.gridy++; add(alphaSlider, c);
+		c.gridy++; add(snapCheck, c);
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
+		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
 	}
 

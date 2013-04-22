@@ -55,7 +55,7 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 		directionCombo = createComboControl(template, SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.values());
 		directionCombo.setEnabled(template.getProperty(SpreadTemplate.PROPERTY_TYPE) == SpreadTemplate.Type.QUADRANT);
 
-		labelField = this.createLocalStringControl(template, SpreadTemplate.PROPERTY_LABEL);
+		labelField = createStringControl(template, SpreadTemplate.PROPERTY_LABEL, Mode.LOCAL);
 		JCheckBox visibleCheck = createVisibilityControl(template);
 		
 		setLayout(new GridBagLayout());

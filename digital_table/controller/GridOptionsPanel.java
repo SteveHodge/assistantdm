@@ -18,6 +18,8 @@ import javax.swing.JTextField;
 import digital_table.server.TableDisplay;
 import digital_table.elements.Grid;
 
+// TODO clean up nullable-Integer fields - maybe promote code to super
+
 @SuppressWarnings("serial")
 public class GridOptionsPanel extends OptionsPanel {
 	Grid grid;

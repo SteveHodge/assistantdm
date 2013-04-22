@@ -36,7 +36,7 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 		colorPanel = createColorControl(template, ShapeableTemplate.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(template, ShapeableTemplate.PROPERTY_ALPHA);
 		maximumField = createIntegerControl(template, ShapeableTemplate.PROPERTY_MAXIMUM);
-		labelField = this.createLocalStringControl(template, ShapeableTemplate.PROPERTY_LABEL);
+		labelField = createStringControl(template, ShapeableTemplate.PROPERTY_LABEL, Mode.LOCAL);
 		JCheckBox visibleCheck = createVisibilityControl(template);
 		updateRemaining();
 

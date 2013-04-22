@@ -40,7 +40,7 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 		rangeField = createIntegerControl(template, LineTemplate.PROPERTY_RANGE);
 		colorPanel = createColorControl(template, LineTemplate.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(template, LineTemplate.PROPERTY_ALPHA);
-		labelField = createLocalStringControl(template, LineTemplate.PROPERTY_LABEL);
+		labelField = createStringControl(template, LineTemplate.PROPERTY_LABEL, Mode.LOCAL);
 		JCheckBox visibleCheck = createVisibilityControl(template);
 		
 		setLayout(new GridBagLayout());

@@ -3,8 +3,6 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -41,23 +39,7 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		alphaSlider = createSliderControl(initiative, Initiative.PROPERTY_ALPHA);
 		colorPanel = createColorControl(initiative, Initiative.PROPERTY_COLOR);
 		bgColorPanel = createColorControl(initiative, Initiative.PROPERTY_BACKGROUND_COLOR);
-
-		String[] options = {"0","90","180","270"};
-		rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex((Integer)initiative.getProperty(Initiative.PROPERTY_ROTATIONS));
-		rotationsCombo.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					JComboBox combo = (JComboBox)e.getSource();
-					int index = combo.getSelectedIndex();
-					initiative.setProperty(Initiative.PROPERTY_ROTATIONS, index);
-					remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_ROTATIONS, index);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
-			}
-		});
-
+		rotationsCombo = createRotationControl(initiative, Initiative.PROPERTY_ROTATIONS, Mode.BOTH);
 		JCheckBox visibleCheck = createVisibilityControl(initiative);
 				
 		setLayout(new GridBagLayout());
