@@ -26,19 +26,19 @@ public class Initiative extends MapElement {
 	public static final String PROPERTY_BACKGROUND_COLOR = "background_color";	// Color
 
 	// position in grid coordinate-space
-	Property<Double> x = new Property<Double>(PROPERTY_X, 0d);
-	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
-	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0) {
+	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
+	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d, Double.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
 		private static final long serialVersionUID = 1L;
 
 		public void setValue(Integer r) {
 			super.setValue(r % 4);
 		}
 	};
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK);
-	Property<Color> backgroundColor = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE);
-	Property<String> text = new Property<String>(PROPERTY_TEXT, "");
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK, Color.class);
+	Property<Color> backgroundColor = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE, Color.class);
+	Property<String> text = new Property<String>(PROPERTY_TEXT, "", String.class);
 
 	float fontSize = 0.333f;	// font size in grid coordinate-space
 	

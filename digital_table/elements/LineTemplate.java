@@ -26,16 +26,16 @@ public class LineTemplate extends MapElement {
 	public static final String PROPERTY_ORIGIN_LOCATION = "origin";	// Point
 
 	Property<Integer> originX, originY, targetX, targetY;
-	Property<Integer> range = new Property<Integer>(PROPERTY_RANGE, 12);
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
-	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "");
+	Property<Integer> range = new Property<Integer>(PROPERTY_RANGE, 12, Integer.class);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
 	
 	public LineTemplate(int ox, int oy, int tx, int ty) {
-		originX = new Property<Integer>(PROPERTY_ORIGIN_X, ox);
-		originY = new Property<Integer>(PROPERTY_ORIGIN_X, oy);
-		targetX = new Property<Integer>(PROPERTY_X, tx);
-		targetY = new Property<Integer>(PROPERTY_Y, ty);
+		originX = new Property<Integer>(PROPERTY_ORIGIN_X, ox, Integer.class);
+		originY = new Property<Integer>(PROPERTY_ORIGIN_X, oy, Integer.class);
+		targetX = new Property<Integer>(PROPERTY_X, tx, Integer.class);
+		targetY = new Property<Integer>(PROPERTY_Y, ty, Integer.class);
 	}
 	
 	public Order getDefaultOrder() {

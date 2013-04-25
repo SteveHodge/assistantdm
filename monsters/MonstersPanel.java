@@ -60,7 +60,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 			e.printStackTrace();
 		}
 		monsters = new MonstersTableModel();
-		// TODO remove hardcoded files here - probably best to use one global master
+		// TODO remove hardcoded files here - probably best to use one global master or just scan for xml files
 		monsters.parseXML(new File("html/monsters/monster_manual.xml"));
 		monsters.parseXML(new File("html/monsters/monster_manual_ii.xml"));
 		monsters.parseXML(new File("html/monsters/monster_manual_iii.xml"));

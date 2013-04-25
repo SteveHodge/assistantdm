@@ -59,18 +59,18 @@ public class SpreadTemplate extends MapElement {
 	
 	Property<Integer> x, y;
 	Property<Integer> radius;
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED);
-	Property<Type> type = new Property<Type>(PROPERTY_TYPE, Type.CIRCLE);
-	Property<Direction> direction = new Property<Direction>(PROPERTY_DIRECTION, Direction.SE);
-	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "");
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
+	Property<Type> type = new Property<Type>(PROPERTY_TYPE, Type.CIRCLE, Type.class);
+	Property<Direction> direction = new Property<Direction>(PROPERTY_DIRECTION, Direction.SE, Direction.class);
+	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
 
 	transient boolean affected[][];
 
 	public SpreadTemplate(int radius, int x, int y) {
-		this.x = new Property<Integer>(PROPERTY_X, true, x);
-		this.y = new Property<Integer>(PROPERTY_Y, true, y);
-		this.radius = new Property<Integer>(PROPERTY_RADIUS, true, radius) {
+		this.x = new Property<Integer>(PROPERTY_X, true, x, Integer.class);
+		this.y = new Property<Integer>(PROPERTY_Y, true, y, Integer.class);
+		this.radius = new Property<Integer>(PROPERTY_RADIUS, true, radius, Integer.class) {
 			private static final long serialVersionUID = 1L;
 
 			public void setValue(Integer v) {

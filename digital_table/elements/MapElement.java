@@ -35,7 +35,7 @@ public abstract class MapElement implements Serializable {
 	protected MapCanvas canvas = null;
 	protected ScreenManager screenManager = null;
 	protected Map<String,Property<?>> properties = new HashMap<String,Property<?>>();
-	protected Property<Boolean> visible = new Property<Boolean>(PROPERTY_VISIBLE,true,false);
+	protected Property<Boolean> visible = new Property<Boolean>(PROPERTY_VISIBLE,true,false,Boolean.class);
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -44,15 +44,17 @@ public abstract class MapElement implements Serializable {
 
 		String name;
 		T value;
+		Class<T> typeToken;
 		boolean visible;
 		
-		public Property(String name, T defaultValue) {
-			this(name, true, defaultValue);
+		public Property(String name, T defaultValue, Class<T> token) {
+			this(name, true, defaultValue, token);
 		}
 
-		public Property(String name, boolean visible, T defaultValue) {
+		public Property(String name, boolean visible, T defaultValue, Class<T> token) {
 			this.name = name;
 			this.visible = visible;
+			typeToken = token;
 			value = defaultValue;
 			properties.put(name, this);
 		}
@@ -65,6 +67,10 @@ public abstract class MapElement implements Serializable {
 			if (visible && canvas != null) canvas.repaint();
 		}
 
+		public void setValueUntyped(Object v) {
+			setValue(typeToken.cast(v));
+		}
+		
 		public T getValue() {
 			return value;
 		}
@@ -114,11 +120,10 @@ public abstract class MapElement implements Serializable {
 		return super.toString() + " (ID "+id+")";
 	}
 	
-	public <T> void setProperty(String property, T value) {
-		@SuppressWarnings("unchecked")
-		Property<T> prop = (Property<T>)properties.get(property);
+	public void setProperty(String property, Object value) {
+		Property<?> prop = properties.get(property);
 		if (prop != null) {
-			prop.setValue(value);
+			prop.setValueUntyped(value);
 		} else {
 			System.out.println("Unknown property "+property);
 		}

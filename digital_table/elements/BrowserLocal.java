@@ -19,7 +19,7 @@ public class BrowserLocal extends Browser {
 
 	public BrowserLocal(BrowserRemote remote) {
 		super(remote.getID());
-		screen = new Property<Integer>(PROPERTY_SCREEN, 0);
+		screen = new Property<Integer>(PROPERTY_SCREEN, 0, Integer.class);
 		getComponent();	// we need a browser to preload the page
 	}
 

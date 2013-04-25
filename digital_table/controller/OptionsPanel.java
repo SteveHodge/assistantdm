@@ -170,7 +170,6 @@ abstract public class OptionsPanel extends JPanel {
 		textField.setText(""+element.getProperty(property));
 		textField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				element.setProperty(property, textField.getText());
 				try {
 					if (mode != Mode.REMOTE) element.setProperty(property, textField.getText());
 					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, textField.getText());

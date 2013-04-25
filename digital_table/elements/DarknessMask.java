@@ -20,8 +20,8 @@ public class DarknessMask extends MapElement {
 	public final static String PROPERTY_MASKCELL = "mask";	// Point - when this property is set the specified point will be masked
 	public final static String PROPERTY_UNMASKCELL = "unmask";	// Point - when this property is set the specified point will be cleared
 
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK, Color.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	
 	List<Point> cleared = new ArrayList<Point>();
 	

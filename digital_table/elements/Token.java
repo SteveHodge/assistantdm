@@ -5,6 +5,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -78,12 +80,12 @@ public class Token extends MapElement {
 		private String description;
 	};
 
-	Property<Size> size = new Property<Size>(PROPERTY_SIZE, Size.MEDIUM);
-	Property<Integer> x = new Property<Integer>(PROPERTY_X, 5);		// grid coordinate of left edge
-	Property<Integer> y = new Property<Integer>(PROPERTY_Y, 8);		// grid coordinate of left edge
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.WHITE);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
-	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0) {
+	Property<Size> size = new Property<Size>(PROPERTY_SIZE, Size.MEDIUM, Size.class);
+	Property<Integer> x = new Property<Integer>(PROPERTY_X, 5, Integer.class);		// grid coordinate of left edge
+	Property<Integer> y = new Property<Integer>(PROPERTY_Y, 8, Integer.class);		// grid coordinate of left edge
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.WHITE, Color.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
 		private static final long serialVersionUID = 1L;
 
 		public void setValue(Integer r) {
@@ -93,9 +95,9 @@ public class Token extends MapElement {
 			super.setValue(r);
 		}
 	};
-	Property<Boolean> showReach = new Property<Boolean>(PROPERTY_SHOWREACH, false);
-	Property<Boolean> reachWeapon = new Property<Boolean>(PROPERTY_REACHWEAPON, false);
-	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "");
+	Property<Boolean> showReach = new Property<Boolean>(PROPERTY_SHOWREACH, false, Boolean.class);
+	Property<Boolean> reachWeapon = new Property<Boolean>(PROPERTY_REACHWEAPON, false, Boolean.class);
+	Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
 
 	protected transient BufferedImage sourceImage = null;
 	protected transient Image cachedImage = null;
@@ -145,17 +147,36 @@ public class Token extends MapElement {
 //			s = new RoundRectangle2D.Float(tl.x+2, tl.y+2, br.x-tl.x-inset*2, br.y-tl.y-inset*2,arcWidth,arcHeight);
 //			g.fill(s);
 		
+		Shape oldClip = g.getClip();
+		Shape clip = new RoundRectangle2D.Float(tl.x+stroke.getLineWidth(), tl.y+stroke.getLineWidth(), br.x-tl.x-stroke.getLineWidth()*2, br.y-tl.y-stroke.getLineWidth()*2,arcWidth,arcHeight);
+		g.setClip(clip);
+
+		int labelHeight = 0;
+		if (label.getValue() != null && label.getValue().length() > 0) {
+			Font f = g.getFont();
+			float newSize = canvas.getRowHeight()/4;
+			if (newSize < 8.0f) newSize = 8.0f;
+			g.setFont(f.deriveFont(newSize));
+			FontMetrics metrics = g.getFontMetrics();
+			Rectangle2D bounds = metrics.getStringBounds(label.getValue(), g);
+			labelHeight = (int)bounds.getHeight();
+			double xPos = clip.getBounds2D().getCenterX() - bounds.getWidth()/2;
+			if (xPos < clip.getBounds2D().getX()) xPos = clip.getBounds2D().getX();
+			double yPos = clip.getBounds2D().getMaxY() - metrics.getDescent();
+			g.drawString(label.getValue(), (float)xPos, (float)yPos);
+		}
+		
 		if (sourceImage != null) {
-			Shape oldClip = g.getClip();
-			Shape clip = new RoundRectangle2D.Float(tl.x+stroke.getLineWidth(), tl.y+stroke.getLineWidth(), br.x-tl.x-stroke.getLineWidth()*2, br.y-tl.y-stroke.getLineWidth()*2,arcWidth,arcHeight);
-			g.setClip(clip);
 			Rectangle2D bounds = clip.getBounds2D();
-			resizeImage(bounds);
-			g.drawImage(cachedImage, (int)(bounds.getX()+(bounds.getWidth()-cachedSize.width)/2),
-					(int)(bounds.getY()+(bounds.getHeight()-cachedSize.height)/2), null);
-			g.setClip(oldClip);
+			bounds = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - labelHeight);
+			if (bounds.getHeight() > 0f) {
+				resizeImage(bounds);
+				g.drawImage(cachedImage, (int)(bounds.getX()+(bounds.getWidth()-cachedSize.width)/2),
+						(int)(bounds.getY()+(bounds.getHeight()-cachedSize.height)/2), null);
+			}
 		}
 
+		g.setClip(oldClip);
 		g.setComposite(c);
 	}
 
@@ -250,7 +271,7 @@ public class Token extends MapElement {
 		g2d.drawImage(sourceImage, 0, 0, sourceImage.getWidth(), sourceImage.getHeight(), null);
 		g2d.dispose();
 
-		Dimension b = new Dimension((int)bounds.getWidth()-1, (int)bounds.getHeight()-1);
+		Dimension b = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
 		int scaledWidth = (int)(rotatedImage.getWidth() * b.getHeight() / rotatedImage.getHeight());	// width if we scale to fit the height
 		int scaledHeight = (int)(rotatedImage.getHeight() * b.getWidth() / rotatedImage.getWidth());	// // height if we scale to fit the width
 		//System.out.println("scaledWidth = "+scaledWidth+", scaledHeight = "+scaledHeight);

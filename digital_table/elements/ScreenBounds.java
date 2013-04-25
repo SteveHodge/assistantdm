@@ -18,8 +18,8 @@ public class ScreenBounds extends MapElement {
 	public final static String PROPERTY_COLOR = "color";	// Color
 	public final static String PROPERTY_ALPHA = "alpha";	// float
 
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.LIGHT_GRAY);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.LIGHT_GRAY, Color.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
 
 	public Order getDefaultOrder() {
 		return Order.TOP;

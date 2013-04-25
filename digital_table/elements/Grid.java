@@ -20,11 +20,11 @@ public class Grid extends MapElement {
 	public static final String PROPERTY_BACKGROUND_COLOR = "background_color";	// Color
 
 	public boolean showCoordinates = false;	// show coordinates of every cell
-	Property<Integer> rulerRow = new Property<Integer>(PROPERTY_RULER_ROW, 0);
-	Property<Integer> rulerColumn = new Property<Integer>(PROPERTY_RULER_COLUMN, 27);
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK);
-	Property<Color> backgroundColor = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
+	Property<Integer> rulerRow = new Property<Integer>(PROPERTY_RULER_ROW, 0, Integer.class);
+	Property<Integer> rulerColumn = new Property<Integer>(PROPERTY_RULER_COLUMN, 27, Integer.class);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK, Color.class);
+	Property<Color> backgroundColor = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE, Color.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 
 	public Grid() {
 		visible.value = true;

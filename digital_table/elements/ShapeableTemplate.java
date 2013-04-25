@@ -29,10 +29,10 @@ public class ShapeableTemplate extends MapElement {
 	//public final static String PROPERTY_CONTIGUOUS = "contiguous";	// bool - all cubes after the first must be adjacent to at least one other cube
 	//public final static String PROPERTY_5FOOT = "5foot";	// bool - shape using 5 foot cubes
 
-	Property<Integer> maximum = new Property<Integer>(PROPERTY_MAXIMUM, 0);
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
-	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "");
+	Property<Integer> maximum = new Property<Integer>(PROPERTY_MAXIMUM, 0, Integer.class);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
 	
 	List<Point> squares = new ArrayList<Point>();
 	

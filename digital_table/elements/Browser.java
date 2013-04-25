@@ -31,7 +31,7 @@ public abstract class Browser extends MapElement {
 	public final static String PROPERTY_SCREEN = "screen";	// String
 	
 	Property<Integer> screen;
-	Property<String> title = new Property<String>(PROPERTY_TITLE, false, "") {
+	Property<String> title = new Property<String>(PROPERTY_TITLE, false, "", String.class) {
 		private static final long serialVersionUID = 1L;
 
 		public void setValue(String v) {
@@ -43,7 +43,7 @@ public abstract class Browser extends MapElement {
 		}
 	};
 
-	Property<String> rollover = new Property<String>(PROPERTY_ROLLOVER, false, new String()) {
+	Property<String> rollover = new Property<String>(PROPERTY_ROLLOVER, false, "", String.class) {
 		private static final long serialVersionUID = 1L;
 
 		public void setValue(String s) {
@@ -52,7 +52,7 @@ public abstract class Browser extends MapElement {
 		}
 	};
 
-	Property<String> urlString = new Property<String>(PROPERTY_URL, false, "") {
+	Property<String> urlString = new Property<String>(PROPERTY_URL, false, "", String.class) {
 		private static final long serialVersionUID = 1L;
 
 		public void setValue(String v) {
@@ -60,7 +60,7 @@ public abstract class Browser extends MapElement {
 		}
 	};
 
-	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, false, 0) {
+	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, false, 0, Integer.class) {
 		private static final long serialVersionUID = 1L;
 
 		public void setValue(Integer r) {

@@ -43,14 +43,14 @@ public class MapImage extends MapElement {
 	byte[] bytes;	// used to store the raw bytes so we can be serialised  
 
 	// position in grid coordinate-space:
-	Property<Double> x = new Property<Double>(PROPERTY_X, 0d);
-	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d);
+	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
+	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d, Double.class);
 	
 	// scaled dimensions in grid coordinate-space:
-	Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d);
-	Property<Double> height = new Property<Double>(PROPERTY_HEIGHT, 0d);
+	Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d, Double.class);
+	Property<Double> height = new Property<Double>(PROPERTY_HEIGHT, 0d, Double.class);
 	
-	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0) {
+	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
 		private static final long serialVersionUID = 1L;
 
 		public void setValue(Integer r) {
@@ -61,13 +61,13 @@ public class MapImage extends MapElement {
 		}
 	};
 
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	Property<String> label;
 
 	List<Point> cleared = new ArrayList<Point>();
 
 	public MapImage(byte[] b, String label) throws IOException {
-		this.label = new Property<String>(PROPERTY_LABEL, false, label);
+		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
 		bytes = b;
 	}
 	

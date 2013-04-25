@@ -12,7 +12,7 @@ public class BrowserRemote extends Browser {
 	transient protected int onScreen;
 
 	public BrowserRemote() {
-		screen = new Property<Integer>(PROPERTY_SCREEN, 0) {
+		screen = new Property<Integer>(PROPERTY_SCREEN, 0, Integer.class) {
 			private static final long serialVersionUID = 1L;
 
 			public void setValue(Integer s) {
@@ -25,7 +25,7 @@ public class BrowserRemote extends Browser {
 			}
 			
 		};
-		visible = new Property<Boolean>(PROPERTY_VISIBLE, false, false) {
+		visible = new Property<Boolean>(PROPERTY_VISIBLE, false, false, Boolean.class) {
 			private static final long serialVersionUID = 1L;
 
 			public void setValue(Boolean visible) {

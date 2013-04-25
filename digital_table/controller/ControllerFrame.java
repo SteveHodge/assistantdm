@@ -42,8 +42,7 @@ import digital_table.elements.*;
 
 /* TODO main priorities:
  * BUG Issue with image scaling before remote visible
- * BUG Grid legend rows - UI shows wrong values (because field is tied to local settings)
- * Improve Tokens element: option to show label, hps/status
+ * Improve Tokens element: hps/status
  * Expand DarknessMask to true visibility element including light sources and low-light
  * Camera integration
  * Alternate button dragging (e.g. resize)

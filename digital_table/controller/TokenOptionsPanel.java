@@ -40,7 +40,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 	JCheckBox remoteReach;
 	JCheckBox localReach;
 	
-	static File imageFile = null;	// last selected image - used to keep the current directory
+	static File imageFile = new File(".");	// last selected image - used to keep the current directory
 	
 	public TokenOptionsPanel(Token t, TableDisplay r) {
 		super(r);
@@ -54,6 +54,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 		sizeCombo = createComboControl(token, Token.PROPERTY_SIZE, Token.Size.values());
 		rotationsCombo = createRotationControl(token, Token.PROPERTY_ROTATIONS, Mode.BOTH);
 		labelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.LOCAL);
+		JTextField remoteLabelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.REMOTE);
 		JCheckBox visibleCheck = createVisibilityControl(token);
 		localReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.LOCAL, "local");
 		remoteReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.REMOTE, "remote");
@@ -86,6 +87,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0; add(visibleCheck, c);
+		c.gridy++; add(new JLabel("Remote Label:"), c);
 		c.gridy++; add(new JLabel("Column:"), c);
 		c.gridy++; add(new JLabel("Row:"), c);
 		c.gridy++; add(new JLabel("Size:"), c);
@@ -97,6 +99,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0; add(labelField, c);
+		c.gridy++; add(remoteLabelField, c);
 		c.gridy++; add(xField, c);
 		c.gridy++; add(yField, c);
 		c.gridy++; add(sizeCombo, c);
