@@ -28,17 +28,11 @@ public class MonsterCombatEntry extends CombatEntry {
 		createEntry();
 	}
 
-	public MonsterCombatEntry(StatisticsBlock monster) {
-		creature = new Monster();
-		creature.setName(monster.getName());
-		int[] ac = monster.getACs();
-		creature.setAC(ac[0]);
-		creature.setTouchAC(ac[1]);
-		creature.setFlatFootedAC(ac[2]);
-		creature.setMaximumHitPoints(monster.getDefaultHPs());
-		creature.setInitiativeModifier(monster.getInitiativeModifier());
+	public MonsterCombatEntry(StatisticsBlock stats) {
+		Monster m = Monster.createMonster(stats);
+		creature = m;
 		createEntry();
-		setToolTipText(monster.getHTML());
+		if (m.getHTML() != null) setToolTipText(m.getHTML());
 		initBlank();
 	}
 

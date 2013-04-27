@@ -12,6 +12,7 @@ import java.awt.geom.Point2D;
 import java.rmi.RemoteException;
 
 import javax.swing.BorderFactory;
+import javax.swing.ComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
@@ -52,9 +53,9 @@ abstract public class OptionsPanel extends JPanel {
 		field.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					int newRadius = Integer.parseInt(field.getText());
-					if (mode != Mode.REMOTE) element.setProperty(property, newRadius);
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newRadius);
+					int newValue = Integer.parseInt(field.getText());
+					if (mode != Mode.REMOTE) element.setProperty(property, newValue);
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newValue);
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -63,6 +64,25 @@ abstract public class OptionsPanel extends JPanel {
 		return field;
 	}
 
+	protected JTextField createNullableIntegerControl(final MapElement element, final String property, final Mode mode) {
+		final JTextField field = new JTextField(8);
+		if (element.getProperty(property) != null) field.setText(""+element.getProperty(property));
+		field.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					Integer newValue = null;
+					if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
+					if (mode != Mode.REMOTE) element.setProperty(property, newValue);
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newValue);
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		return field;
+	}
+
+	
 	protected JTextField createDoubleControl(final MapElement element, final String property) {
 		return createDoubleControl(element, property, Mode.BOTH);
 	}
@@ -144,6 +164,24 @@ abstract public class OptionsPanel extends JPanel {
 	}
 
 	protected JComboBox createComboControl(final MapElement element, final String property, final Mode mode, Object[] values) {
+		final JComboBox typeCombo = new JComboBox(values);
+		typeCombo.setSelectedItem(element.getProperty(property));
+		typeCombo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					JComboBox combo = (JComboBox)e.getSource();
+					Object selected = combo.getSelectedItem();
+					if (mode != Mode.REMOTE) element.setProperty(property, selected);
+					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, selected);
+				} catch (RemoteException ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+		return typeCombo;
+	}
+
+	protected JComboBox createComboControl(final MapElement element, final String property, final Mode mode, ComboBoxModel values) {
 		final JComboBox typeCombo = new JComboBox(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
 		typeCombo.addActionListener(new ActionListener() {

@@ -40,6 +40,9 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.table.TableRowSorter;
 
+import party.CreatureLibrary;
+import party.Monster;
+
 import combat.CombatPanel;
 
 @SuppressWarnings("serial")
@@ -50,8 +53,10 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 	Map<JComponent,RowFilter<MonstersTableModel,Integer>> filters = new HashMap<JComponent,RowFilter<MonstersTableModel,Integer>>();
 	Map<JComponent,Integer>filterCols = new HashMap<JComponent,Integer>();
 	URL baseURL;
+	CreatureLibrary library;
 
-	public MonstersPanel() {
+	public MonstersPanel(CreatureLibrary l) {
+		library = l;
 		File f = new File("html/monsters/");
 		try {
 			baseURL = f.toURI().toURL();
@@ -229,13 +234,16 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 	}
 
 	static class AddMonsterButton extends JButton {
+		CreatureLibrary library;
 		StatisticsBlock block;
-		public AddMonsterButton(String label, StatisticsBlock b) {
+		public AddMonsterButton(String label, StatisticsBlock b, CreatureLibrary l) {
 			super(label);
+			library = l;
 			block = b;
 			addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					//System.out.println("Add "+block.getName());
+					library.add(Monster.createMonster(block));
 					CombatPanel.addMonster(block);
 				}
 			});
@@ -252,7 +260,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 			f = new File(u.toURI());
 			List<StatisticsBlock> blocks = StatisticsBlock.parseFile(f);
 			for (StatisticsBlock block : blocks) {
-				JButton button = new AddMonsterButton("Add "+block.getName(),block);
+				JButton button = new AddMonsterButton("Add "+block.getName(), block, library);
 				buttons.add(button);
 			}
 		} catch (URISyntaxException e) {

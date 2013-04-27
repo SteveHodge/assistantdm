@@ -3,11 +3,8 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -15,8 +12,8 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
-import digital_table.server.TableDisplay;
 import digital_table.elements.Grid;
+import digital_table.server.TableDisplay;
 
 // TODO clean up nullable-Integer fields - maybe promote code to super
 
@@ -34,36 +31,8 @@ public class GridOptionsPanel extends OptionsPanel {
 		grid = g;
 		grid.addPropertyChangeListener(listener);
 
-		rulerRowField = new JTextField(8);
-		if (grid.getProperty(Grid.PROPERTY_RULER_ROW) != null) rulerRowField.setText(""+grid.getProperty(Grid.PROPERTY_RULER_ROW));
-		rulerRowField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-					Integer newRow = null;
-					if (rulerRowField.getText().length() > 0) newRow = Integer.parseInt(rulerRowField.getText());
-					//grid.setRulerRow(newRow);
-					remote.setElementProperty(grid.getID(), Grid.PROPERTY_RULER_ROW, newRow);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		
-		rulerColumnField = new JTextField(8);
-		if (grid.getProperty(Grid.PROPERTY_RULER_COLUMN) != null) rulerColumnField.setText(""+grid.getProperty(Grid.PROPERTY_RULER_COLUMN));
-		rulerColumnField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-					Integer newColumn= null;
-					if (rulerColumnField.getText().length() > 0) newColumn = Integer.parseInt(rulerColumnField.getText());
-					//grid.setRulerColumn(newColumn);
-					remote.setElementProperty(grid.getID(), Grid.PROPERTY_RULER_COLUMN, newColumn);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		
+		rulerRowField = createNullableIntegerControl(grid, Grid.PROPERTY_RULER_ROW, Mode.REMOTE);
+		rulerColumnField = createNullableIntegerControl(grid, Grid.PROPERTY_RULER_COLUMN, Mode.REMOTE);
 		colorPanel = createColorControl(grid, Grid.PROPERTY_COLOR);
 		bgColorPanel = createColorControl(grid, Grid.PROPERTY_BACKGROUND_COLOR);
 		alphaSlider = this.createSliderControl(grid, Grid.PROPERTY_ALPHA);

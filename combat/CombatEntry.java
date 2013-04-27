@@ -24,6 +24,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 
 import party.Creature;
+import ui.Status;
 
 @SuppressWarnings("serial")
 abstract public class CombatEntry extends JPanel implements PropertyChangeListener, ActionListener {
@@ -303,10 +304,10 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	}
 
 	protected void updateStatus() {
-		int status = Status.getStatus(creature.getMaximumHitPoints(), creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
+		Status status = Status.getStatus(creature.getMaximumHitPoints(), creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
 		//System.out.println("Status = "+Status.descriptions[status]);
-		statusPanel.setBackground(Status.colours[status]);
-		statusPanel.setToolTipText(Status.descriptions[status]);
+		statusPanel.setBackground(status.getColor());
+		statusPanel.setToolTipText(status.toString());
 	}
 
 	public int getTotal() {

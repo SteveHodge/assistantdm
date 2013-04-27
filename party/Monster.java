@@ -1,5 +1,7 @@
 package party;
 
+import monsters.StatisticsBlock;
+
 public class Monster extends Creature {
 	int fullAC;
 	int flatFootedAC;
@@ -9,6 +11,20 @@ public class Monster extends Creature {
 	int wounds = 0;
 	int nonLethal = 0;
 	String name;
+	String html;
+	
+	public static Monster createMonster(StatisticsBlock stats) {
+		Monster m = new Monster();
+		m.setName(stats.getName());
+		int[] ac = stats.getACs();
+		m.setAC(ac[0]);
+		m.setTouchAC(ac[1]);
+		m.setFlatFootedAC(ac[2]);
+		m.setMaximumHitPoints(stats.getDefaultHPs());
+		m.setInitiativeModifier(stats.getInitiativeModifier());
+		m.html = stats.getHTML();
+		return m;
+	}
 
 	public int getAC() {return fullAC;}
 	public int getFlatFootedAC() {return flatFootedAC;}
@@ -22,7 +38,15 @@ public class Monster extends Creature {
 
 	public final static String PROPERTY_AC_TOUCH = "AC: Touch";
 	public final static String PROPERTY_AC_FLATFOOTED = "AC: Flat Footed";
+	
+	public String toString() {
+		return name;
+	}
 
+	public String getHTML() {
+		return html;
+	}
+	
 	public void setAC(int ac) {
 		int old = fullAC;
 		fullAC = ac;

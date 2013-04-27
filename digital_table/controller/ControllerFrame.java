@@ -42,7 +42,11 @@ import digital_table.elements.*;
 
 /* TODO main priorities:
  * BUG Issue with image scaling before remote visible
- * Improve Tokens element: hps/status
+ * Improve Tokens element: hps/status, floating label, rotate labels with token
+ * Better integration with AssistantDM - auto open controller if server is available, exit just controller when closing controller window, cleanup controller when exiting assitantdm window
+ * Implement Creature Size
+ * Token Groups
+ * Implement label element
  * Expand DarknessMask to true visibility element including light sources and low-light
  * Camera integration
  * Alternate button dragging (e.g. resize)
@@ -50,8 +54,8 @@ import digital_table.elements.*;
  * Auto configure - set defaults according to OS screen layout
  * Load/Save
  * Fix MapImage for that rotation preseves scale
- * Add MapElement method that is called on remove - use for cleanup?
  * Make line and spread templates editable?
+ * Swarm Token (editable token with replicated painting)
  * Zoomed view on controller
  * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
  * Convert MapElements to use location property instead of X and Y properties - will reduce dragging code in OptionsPanel subclasses

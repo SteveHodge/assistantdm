@@ -56,6 +56,7 @@ import org.w3c.dom.Document;
 
 import party.Character;
 import party.CharacterLibrary;
+import party.CreatureLibrary;
 import party.Party;
 import swing.JTableWithToolTips;
 import ui.PartyPanel;
@@ -91,6 +92,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	TableDisplay tableDisplay;
 	static String tableServer = null;
 
+	CreatureLibrary library = new CreatureLibrary();
 	Party party;
 	File file;
 
@@ -170,7 +172,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		party = Party.parseXML(file);
 
 		JComponent panel; 
-		combatPanel = new CombatPanel(party);
+		combatPanel = new CombatPanel(party, library);
 		File f = new File("combat.xml");
         if (f.exists()) combatPanel.parseXML(f);
 		tabbedPane.addTab("Combat", null, combatPanel, "Initiative and Combat");
@@ -181,7 +183,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		panel = new RollsPanel(party);
 		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
 
-		panel = new MonstersPanel();
+		panel = new MonstersPanel(library);
 		tabbedPane.addTab("Monsters", null, panel, "Monsters");
 
 		List<Shop> shops = ShoppingPanel.parseShopsXML("shops.xml");
@@ -329,7 +331,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		tabbedPane.removeTabAt(0);	// party
 
 		JComponent panel; 
-		panel = new CombatPanel(party);
+		panel = new CombatPanel(party, library);
 		tabbedPane.insertTab("Combat", null, panel, "Initiative and Combat", 0);
 
 		panel = new RollsPanel(party);

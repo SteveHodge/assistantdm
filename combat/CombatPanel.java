@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import party.CreatureLibrary;
 import party.Party;
 import swing.ReorderableList;
 import swing.SpinnerCellEditor;
@@ -50,6 +51,7 @@ import xml.XMLUtils;
 public class CombatPanel extends JPanel {
 	static CombatPanel combatPanel; 
 	
+	CreatureLibrary library;
 	Party party;
 	InitiativeListModel initiativeListModel;
 	EffectListModel effectsListModel;
@@ -63,8 +65,13 @@ public class CombatPanel extends JPanel {
 		return combatPanel;
 	}
 	
-	public CombatPanel(Party p) {
+	public InitiativeListModel getInitiativeListModel() {
+		return initiativeListModel;
+	}
+	
+	public CombatPanel(Party p, CreatureLibrary l) {
 		combatPanel = this;
+		library = l;
 		party = p;
 
 		initiativeListModel = new InitiativeListModel(party);

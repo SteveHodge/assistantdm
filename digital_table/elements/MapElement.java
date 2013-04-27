@@ -60,7 +60,7 @@ public abstract class MapElement implements Serializable {
 		}
 		
 		public void setValue(T v) {
-			if (value.equals(v)) return;
+			if (value != null && value.equals(v)) return;
 			T old = value;
 			value = v;
 			pcs.firePropertyChange(name, old, value);

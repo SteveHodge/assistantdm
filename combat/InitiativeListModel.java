@@ -246,7 +246,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
-	public Object getElementAt(int index) {
+	public CombatEntry getElementAt(int index) {
 		return list.get(index);
 	}
 
