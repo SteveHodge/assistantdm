@@ -9,14 +9,10 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.List;
 
 import digital_table.server.MapCanvas.Order;
 
-// TODO this is very similar to Label. consider combining
-
-public class Initiative extends MapElement {
+public class Label extends MapElement {
 	private static final long serialVersionUID = 1L;
 
 	public final static String PROPERTY_ALPHA = "alpha";	// float
@@ -26,6 +22,8 @@ public class Initiative extends MapElement {
 	public final static String PROPERTY_TEXT = "text";	// String
 	public final static String PROPERTY_COLOR = "color";	// Color
 	public static final String PROPERTY_BACKGROUND_COLOR = "background_color";	// Color
+	public static final String PROPERTY_SOLID_BACKGROUND = "solid_background";	// boolean
+	public static final String PROPERTY_FONT_SIZE = "font_size";	// double
 
 	// position in grid coordinate-space
 	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
@@ -42,8 +40,8 @@ public class Initiative extends MapElement {
 	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK, Color.class);
 	Property<Color> backgroundColor = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE, Color.class);
 	Property<String> text = new Property<String>(PROPERTY_TEXT, "", String.class);
-
-	float fontSize = 0.333f;	// font size in grid coordinate-space
+	Property<Boolean> solidBackground = new Property<Boolean>(PROPERTY_SOLID_BACKGROUND, true, Boolean.class);
+	Property<Double> fontSize = new Property<Double>(PROPERTY_FONT_SIZE, 0.333d, Double.class);
 
 	@Override
 	public Order getDefaultOrder() {
@@ -52,33 +50,34 @@ public class Initiative extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
-		if (!isVisible()) return;
+		if (!isVisible() || canvas == null) return;
 
 		Font f = g.getFont();
-		float newSize = canvas.getDisplayCoordinates(new Point2D.Float(fontSize, 0)).x;
+		float newSize;
+		if (rotations.getValue() % 2 == 0) {
+			newSize = canvas.getDisplayCoordinates(new Point2D.Float(0, fontSize.getValue().floatValue())).y;
+		} else {
+			newSize = canvas.getDisplayCoordinates(new Point2D.Float(fontSize.getValue().floatValue(), 0)).x;
+		}
 		g.setFont(f.deriveFont(newSize));
 
-		List<String[]> text = getTable();
+		String[] text = getText();
 
-		// get the maximum width of the first cell in each line
+		// get the maximum width of each line
 		FontMetrics metrics = g.getFontMetrics();
-		int col1Width = 0, col2Width = 0;
-		for (String[] line : text) {
-			if (metrics.stringWidth(line[0]) > col1Width) col1Width = metrics.stringWidth(line[0]);
-			if (metrics.stringWidth(line[1]) > col2Width) col2Width = metrics.stringWidth(line[1]);
+		int width = 0;
+		for (String line : text) {
+			if (metrics.stringWidth(line) > width) width = metrics.stringWidth(line);
 		}
 
-		if (col1Width + col2Width > 0) {
+		if (width > 0) {
 			Composite c = g.getComposite();
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
 			Point p = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
-			int x0 = p.x + 5;
-			int x1 = p.x + 5 + col1Width + 10;
-			int y = p.y + 5 + metrics.getAscent();
 
-			int w = col1Width + col2Width + 20;
-			int h = metrics.getHeight() * text.size() + 10;
+			int w = width + 10;
+			int h = metrics.getHeight() * text.length;
 
 			AffineTransform t = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
 			Point size = new Point(w, h);
@@ -89,12 +88,17 @@ public class Initiative extends MapElement {
 			g.rotate(Math.toRadians(rotations.getValue() * 90), p.x + newWidth / 2, p.y + newHeight / 2);
 			g.translate((newWidth - w) / 2, (newHeight - h) / 2);
 
-			g.setColor(backgroundColor.getValue());
-			g.fillRect(p.x, p.y, w, h);
+			// paint background
+			if (solidBackground.getValue()) {
+				g.setColor(backgroundColor.getValue());
+				g.fillRect(p.x, p.y, w, h);
+			}
+
+			// draw text
+			int y = p.y + metrics.getAscent();
 			g.setColor(color.getValue());
-			for (String[] line : text) {
-				g.drawString(line[0], x0, y);
-				g.drawString(line[1], x1, y);
+			for (String line : text) {
+				g.drawString(line, p.x + 5, y);
 				y += metrics.getHeight();
 			}
 
@@ -104,37 +108,21 @@ public class Initiative extends MapElement {
 		}
 	}
 
-	protected List<String[]> getTable() {
-		String[] lines = text.getValue().split("\\r?\\n|\\r");
-		List<String[]> output = new ArrayList<String[]>();
-
-		String[] outLine = new String[2];
-		for (String line : lines) {
-			String[] parts = line.split("=");
-			if (parts.length < 2) continue;
-
-			if (parts[0].equals("round")) {
-				outLine[0] = "Round";
-				outLine[1] = parts[1];
-				output.add(outLine);
-				outLine = new String[2];
-
-			} else if (parts[0].equals("lastindex")) {
-
-			} else if (parts[0].startsWith("fixedname")) {
-				outLine[0] = parts[1];
-
-			} else if (parts[0].startsWith("init")) {
-				outLine[1] = parts[1];
-				output.add(outLine);
-				outLine = new String[2];
-			}
+	protected String[] getText() {
+		String[] lines;
+		if (text.getValue() == null) {
+			lines = new String[1];
+			lines[0] = "";
+		} else {
+			lines = text.getValue().split("\\r?\\n|\\r");
 		}
-		return output;
+		return lines;
 	}
 
 	@Override
 	public String toString() {
-		return "Initiative (" + getID() + ")";
+		String text = getText()[0];
+		if (text.equals("")) text += getID();
+		return "Label (" + text + ")";
 	}
 }

@@ -21,12 +21,14 @@ public class ScreenBounds extends MapElement {
 	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.LIGHT_GRAY, Color.class);
 	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
 
+	@Override
 	public Order getDefaultOrder() {
 		return Order.TOP;
 	}
 
+	@Override
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible.getValue()) return;
+		if (canvas == null || !isVisible()) return;
 
 		Composite c = g.getComposite();
 		g.setColor(color.getValue());
@@ -46,6 +48,7 @@ public class ScreenBounds extends MapElement {
 		g.setComposite(c);
 	}
 
+	@Override
 	public String toString() {
 		return "Screen Bounds";
 	}

@@ -23,16 +23,17 @@ public class BrowserLocal extends Browser {
 		getComponent();	// we need a browser to preload the page
 	}
 
+	@Override
 	public void paint(Graphics2D g) {
-		if (visible.getValue() && canvas != null) {
+		if (isVisible() && canvas != null) {
 			// show bounds of the browser on the map based on the screen - this should only run on the client
 			Composite c = g.getComposite();
 			g.setColor(color);
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
 			DisplayConfig.Screen s = DisplayConfig.screens.get(screen.getValue());
 			int browserSize = Math.min(s.size.width, s.size.height);
-			int x = s.location.x + (s.size.width - browserSize)/2;
-			int y = s.location.y + (s.size.height - browserSize)/2;
+			int x = s.location.x + (s.size.width - browserSize) / 2;
+			int y = s.location.y + (s.size.height - browserSize) / 2;
 			Point2D topLeft = canvas.getRemoteGridCellCoords(x, y);
 			Point2D bottomRight = canvas.getRemoteGridCellCoords(x + browserSize, y + browserSize);
 			Point tl = canvas.getDisplayCoordinates(topLeft);

@@ -22,13 +22,13 @@ import javax.imageio.ImageIO;
 import digital_table.server.MapCanvas.Order;
 
 // TODO cache scaled image for performance
-// TODO should have some sort of persistent cache so we don't have to keep the image file bytes in memory and don't have to resend the image each time  
+// TODO should have some sort of persistent cache so we don't have to keep the image file bytes in memory and don't have to resend the image each time
 
 public class MapImage extends MapElement {
 	private static final long serialVersionUID = 1L;
 
 	public final static String PROPERTY_ALPHA = "alpha";	// float
-//	public final static String PROPERTY_FILENAME = "filename";	// String - read only
+	//	public final static String PROPERTY_FILENAME = "filename";	// String - read only
 	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_ROTATIONS = "rotations";	// int - number of quadrants rotated clockwise
 	public final static String PROPERTY_WIDTH = "width";	// double
@@ -40,19 +40,20 @@ public class MapImage extends MapElement {
 
 	protected transient BufferedImage sourceImage = null;
 	protected transient BufferedImage rotatedImage = null;
-	byte[] bytes;	// used to store the raw bytes so we can be serialised  
+	byte[] bytes;	// used to store the raw bytes so we can be serialised
 
 	// position in grid coordinate-space:
 	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
 	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d, Double.class);
-	
+
 	// scaled dimensions in grid coordinate-space:
 	Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d, Double.class);
 	Property<Double> height = new Property<Double>(PROPERTY_HEIGHT, 0d, Double.class);
-	
+
 	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
 		private static final long serialVersionUID = 1L;
 
+		@Override
 		public void setValue(Integer r) {
 			r = r % 4;
 			if (rotations.getValue().equals(r)) return;
@@ -70,15 +71,16 @@ public class MapImage extends MapElement {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
 		bytes = b;
 	}
-	
+
+	@Override
 	public Order getDefaultOrder() {
 		return Order.BOTTOM;
 	}
 
 	protected void createRotatedImage() {
 		if (sourceImage == null) {
-//			sourceImage = ImageIO.read(f);
-//			if (label == null) setLabel(f.getName());
+			//			sourceImage = ImageIO.read(f);
+			//			if (label == null) setLabel(f.getName());
 			try {
 				ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 				sourceImage = ImageIO.read(stream);
@@ -87,19 +89,19 @@ public class MapImage extends MapElement {
 				e.printStackTrace();
 			}
 		}
-		
+
 		if (sourceImage != null) {
 			AffineTransform t = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
 			Point p = new Point(sourceImage.getWidth(),sourceImage.getHeight());
 			t.transform(p,p);	// transform to get new dimensions
-	
+
 			rotatedImage = new BufferedImage(Math.abs(p.x), Math.abs(p.y), BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2d = (Graphics2D)rotatedImage.getGraphics();
 			g2d.rotate(Math.toRadians(rotations.getValue()*90), rotatedImage.getWidth() / 2, rotatedImage.getHeight() / 2);
 			g2d.translate((rotatedImage.getWidth() - sourceImage.getWidth()) / 2, (rotatedImage.getHeight() - sourceImage.getHeight()) / 2);
 			g2d.drawImage(sourceImage, 0, 0, sourceImage.getWidth(), sourceImage.getHeight(), null);
 			g2d.dispose();
-	
+
 			// get the dimensions in grid-coordinate space of the remote display:
 			// TODO strictly speaking we should calculate the bottom left corner and then use that to determine the size
 			Point2D size = canvas.getRemoteGridCellCoords(rotatedImage.getWidth(), rotatedImage.getHeight());
@@ -113,7 +115,7 @@ public class MapImage extends MapElement {
 	 */
 	@Override
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible.getValue()) return;
+		if (canvas == null || !isVisible()) return;
 
 		Rectangle bounds = g.getClipBounds();
 		//System.out.println("Clip = "+bounds);
@@ -142,7 +144,7 @@ public class MapImage extends MapElement {
 			Point offset = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
 			//System.out.println("Grid coordinates: ("+x+","+y+") x ("+p.getX()+","+p.getY()+")");
 			//System.out.println("Display coordinates: "+offset+" x "+bottomRight);
-			
+
 			int left, right, top, bottom;
 			left = (bounds.x - offset.x) * rotatedImage.getWidth() / bottomRight.x;
 			top = (bounds.y - offset.y) * rotatedImage.getHeight() / bottomRight.y;
@@ -150,7 +152,7 @@ public class MapImage extends MapElement {
 			bottom = (bounds.y + bounds.height - offset.y) * rotatedImage.getHeight() / bottomRight.y;
 
 			g.drawImage(rotatedImage, bounds.x, bounds.y, bounds.x+bounds.width, bounds.y+bounds.height,
-				left, top, right, bottom, new Color(255,255,255,0), null);
+					left, top, right, bottom, new Color(255,255,255,0), null);
 
 			g.setComposite(c);
 			g.setClip(oldClip);
@@ -164,11 +166,13 @@ public class MapImage extends MapElement {
 		return new Dimension(rotatedImage.getWidth(), rotatedImage.getHeight());
 	}
 
+	@Override
 	public String toString() {
 		if (label == null || label.getValue().length() == 0) return "Image ("+getID()+")";
 		return "Image ("+label+")";
 	}
 
+	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_CLEARCELL)) {
 			setCleared((Point)value, true);
@@ -182,7 +186,7 @@ public class MapImage extends MapElement {
 	public boolean isCleared(Point p) {
 		return cleared.contains(p);
 	}
-	
+
 	public void setCleared(Point p, boolean clear) {
 		if (!clear) {
 			cleared.remove(p);

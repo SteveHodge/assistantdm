@@ -29,7 +29,7 @@ public class Grid extends MapElement {
 	public Grid() {
 		visible.value = true;
 	}
-	
+
 	public String getLetterIndex(int index) {
 		String s = new String();
 		if (index > 25) {
@@ -38,10 +38,10 @@ public class Grid extends MapElement {
 		s += (char)(65 + index % 26);
 		return s;
 	}
-	
+
 	@Override
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible.getValue()) return;
+		if (canvas == null || !isVisible()) return;
 
 		g.setColor(color.getValue());
 
@@ -59,11 +59,11 @@ public class Grid extends MapElement {
 		if (showCoordinates) {
 			for (int row = tlCell.y; row <= brCell.y; row++) {
 				for (int col = tlCell.x; col <= brCell.x; col++) {
-					canvas.getDisplayCoordinates(col, row, p); 
+					canvas.getDisplayCoordinates(col, row, p);
 					String s = ""+col+","+row;
 					Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
-					g.drawString(s, 
-							(int)(p.x + (cellWidth - strBounds.getWidth())/2 - strBounds.getX()), 
+					g.drawString(s,
+							(int)(p.x + (cellWidth - strBounds.getWidth())/2 - strBounds.getX()),
 							(int)(p.y + (cellHeight - strBounds.getHeight())/2 - strBounds.getY())
 							);
 				}
@@ -77,20 +77,20 @@ public class Grid extends MapElement {
 			g.setFont(f.deriveFont(newSize));
 			int row = rulerRow.getValue();
 			for (int col = tlCell.x; col <= brCell.x; col++) {
-				canvas.getDisplayCoordinates(col, row, p); 
+				canvas.getDisplayCoordinates(col, row, p);
 				String s = getLetterIndex(col);
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 				g.setColor(backgroundColor.getValue());
 				g.fillRect(p.x, p.y, cellWidth+1, (int)(-strBounds.getY() + 4));
 				g.setColor(color.getValue());
-				g.drawString(s, 
-						(int)(p.x + (cellWidth - strBounds.getWidth())/2 - strBounds.getX()), 
+				g.drawString(s,
+						(int)(p.x + (cellWidth - strBounds.getWidth())/2 - strBounds.getX()),
 						(int)(p.y - strBounds.getY() + 2)
 						);
 			}
 			g.setFont(f);
 		}
-		
+
 		if (rulerColumn.getValue() != null) {
 			Font f = g.getFont();
 			float newSize = canvas.getColumnWidth()/2-4;
@@ -100,15 +100,15 @@ public class Grid extends MapElement {
 			g.setFont(f.deriveFont(newSize).deriveFont(rot));
 			int col = rulerColumn.getValue();
 			for (int row = tlCell.y; row <= brCell.y; row++) {
-				canvas.getDisplayCoordinates(col, row, p); 
+				canvas.getDisplayCoordinates(col, row, p);
 				String s = ""+(row+1);
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 				g.setColor(backgroundColor.getValue());
 				g.fillRect((int)(p.x + cellWidth + strBounds.getY()-2), p.y,
 						(int)(-strBounds.getY()+4), cellHeight+1);
 				g.setColor(color.getValue());
-				g.drawString(s, 
-						(int)(p.x + cellWidth + strBounds.getY()), 
+				g.drawString(s,
+						(int)(p.x + cellWidth + strBounds.getY()),
 						(int)(p.y + (cellHeight - strBounds.getWidth())/2 - strBounds.getX())
 						);
 			}
@@ -116,17 +116,18 @@ public class Grid extends MapElement {
 		}
 
 		for (int col = tlCell.x; col <= brCell.x; col++) {
-			canvas.getDisplayCoordinates(col, 0, p); 
+			canvas.getDisplayCoordinates(col, 0, p);
 			g.drawLine(p.x, bounds.y, p.x, bounds.y + bounds.height);
 		}
 		for (int row = tlCell.y; row <= brCell.y; row++) {
-			canvas.getDisplayCoordinates(0, row, p); 
+			canvas.getDisplayCoordinates(0, row, p);
 			g.drawLine(bounds.x, p.y, bounds.x + bounds.width, p.y);
 		}
 
 		g.setComposite(c);
 	}
 
+	@Override
 	public String toString() {
 		return "Grid";
 	}

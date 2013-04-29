@@ -33,15 +33,17 @@ public class ShapeableTemplate extends MapElement {
 	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
 	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
-	
+
 	List<Point> squares = new ArrayList<Point>();
-	
+
+	@Override
 	public Order getDefaultOrder() {
 		return Order.BELOWGRID;
 	}
 
+	@Override
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible.getValue()) return;
+		if (canvas == null || !isVisible()) return;
 
 		Stroke oldStroke = g.getStroke();
 		g.setColor(color.getValue());
@@ -70,15 +72,16 @@ public class ShapeableTemplate extends MapElement {
 		return new BasicStroke(5);
 	}
 
+	@Override
 	public String toString() {
 		if (label == null || label.getValue().length() == 0) return "Shapeable ("+getID()+")";
 		return "Shapeable ("+label+")";
 	}
-	
+
 	public int getPlaced() {
 		return squares.size();
 	}
-	
+
 	public boolean contains(Point p) {
 		return squares.contains(p);
 	}
@@ -91,7 +94,7 @@ public class ShapeableTemplate extends MapElement {
 			canvas.repaint();
 		}
 	}
-	
+
 	public void removeCube(Point p) {
 		if (squares.contains(p)) {
 			int old = squares.size();
@@ -101,6 +104,7 @@ public class ShapeableTemplate extends MapElement {
 		}
 	}
 
+	@Override
 	public Object getProperty(String property) {
 		if (property.equals(PROPERTY_PLACED)) {
 			return getPlaced();
@@ -109,6 +113,7 @@ public class ShapeableTemplate extends MapElement {
 		}
 	}
 
+	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_ADDCUBE)) {
 			addCube((Point)value);

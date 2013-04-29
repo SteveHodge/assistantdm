@@ -1,6 +1,5 @@
 package digital_table.server;
 
-
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -21,7 +20,6 @@ import java.util.Map;
 
 import javafx.application.Platform;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -31,46 +29,46 @@ import javax.swing.SwingConstants;
 
 import digital_table.elements.MapElement;
 
-
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
 public class DigitalTable implements TableDisplay, ScreenManager {
-    static final String SERVICE_NAME = "TableDisplay";
+	static final String SERVICE_NAME = "TableDisplay";
 
-    //static final int[] xOffsets = {65, 1421, 64, 1425, 63, 1421};	// relative x location of each screen
+	//static final int[] xOffsets = {65, 1421, 64, 1425, 63, 1421};	// relative x location of each screen
 	//static final int[] yOffsets = {0, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
 	//static final int[] yOffsets = {250, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
 
 	JFrame[] idFrames = null;
 	JFrame[] screens = new JFrame[6];
-	
-	Map<Integer,List<JComponent>> components = new HashMap<Integer,List<JComponent>>();
+
+	Map<Integer, List<JComponent>> components = new HashMap<Integer, List<JComponent>>();
 	MapCanvas canvas = new MapCanvas();
 
 	Registry registry = null;
-	
-    public DigitalTable() {
-        super();
-    }
 
-    public static void main(String[] args) {
-        if (System.getSecurityManager() == null) {
-            System.setSecurityManager(new SecurityManager());
-        }
-        try {
-            TableDisplay engine = new DigitalTable();
-            TableDisplay stub = (TableDisplay)UnicastRemoteObject.exportObject(engine, 0);
-            //Registry registry = LocateRegistry.getRegistry();
-            Registry registry = LocateRegistry.createRegistry(1099);
-            registry.rebind(SERVICE_NAME, stub);
-            System.out.println("DigitalTable bound");
-            Platform.setImplicitExit(false);
-        } catch (Exception e) {
-            System.err.println("DigitalTable exception:");
-            e.printStackTrace();
-        }
-    }
+	public DigitalTable() {
+		super();
+	}
 
+	public static void main(String[] args) {
+		if (System.getSecurityManager() == null) {
+			System.setSecurityManager(new SecurityManager());
+		}
+		try {
+			TableDisplay engine = new DigitalTable();
+			TableDisplay stub = (TableDisplay) UnicastRemoteObject.exportObject(engine, 0);
+			//Registry registry = LocateRegistry.getRegistry();
+			Registry registry = LocateRegistry.createRegistry(1099);
+			registry.rebind(SERVICE_NAME, stub);
+			System.out.println("DigitalTable bound");
+			Platform.setImplicitExit(false);
+		} catch (Exception e) {
+			System.err.println("DigitalTable exception:");
+			e.printStackTrace();
+		}
+	}
+
+	@Override
 	public Rectangle[] getScreenBounds() {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] devs = ge.getScreenDevices();
@@ -82,6 +80,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		return list;
 	}
 
+	@Override
 	public void showScreens(int[] screenNums, Point[] offsets) {
 		hideIDs();
 
@@ -118,6 +117,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		return frame;
 	}
 
+	@Override
 	public void setScreenIDsVisible(boolean visible) {
 		hideIDs();
 		if (visible) showIDs();
@@ -132,14 +132,14 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 			GraphicsConfiguration config = devs[i].getDefaultConfiguration();
 			idFrames[i] = new JFrame(config);
 			idFrames[i].setUndecorated(true);
-			JLabel label = new JLabel(""+(i+1), SwingConstants.CENTER);
+			JLabel label = new JLabel("" + (i + 1), SwingConstants.CENTER);
 			label.setFont(label.getFont().deriveFont(300.0f));
 			idFrames[i].add(label, BorderLayout.CENTER);
 			idFrames[i].pack();
 			Rectangle bounds = config.getBounds();
 			bounds.width -= idFrames[i].getWidth();
 			bounds.height -= idFrames[i].getHeight();
-			idFrames[i].setLocation(bounds.x+bounds.width/2, bounds.y+bounds.height/2);
+			idFrames[i].setLocation(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
 			idFrames[i].setVisible(true);
 		}
 	}
@@ -155,6 +155,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		}
 	}
 
+	@Override
 	public void requestExit() throws RemoteException {
 		hideIDs();
 		for (int i = 0; i < screens.length; i++) {
@@ -163,15 +164,16 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 				screens[i].dispose();
 				screens[i] = null;
 			}
-		}		
+		}
 		Platform.exit();
 
 		new Thread() {
+			@Override
 			public void run() {
 				try {
 					sleep(2000);
 					System.out.println("Shutting down");
-			        Registry registry = LocateRegistry.getRegistry();
+					Registry registry = LocateRegistry.getRegistry();
 					try {
 						registry.unbind(SERVICE_NAME);
 					} catch (NotBoundException e) {
@@ -183,20 +185,31 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 				System.exit(0);
 			}
 		}.start();
-		
+
 		System.out.println("Quit complete");
 	}
 
+	@Override
 	public void addElement(MapElement element) {
 		element.setScreenMananger(this);
-		canvas.addElement(element);
+		canvas.addElement(element, null);
 	}
 
+	@Override
+	public void addElement(MapElement element, int parent) {
+		MapElement p = canvas.getElement(parent);
+		if (p != null) {
+			element.setScreenMananger(this);
+			canvas.addElement(element, p);
+		}
+	}
+
+	@Override
 	public void removeElement(int id) {
 		List<JComponent> comps = components.get(id);
 		if (comps != null) {
 			for (JComponent component : comps) {
-				Container parent =  component.getParent();
+				Container parent = component.getParent();
 				if (parent != null) {
 					parent.remove(component);
 					parent.repaint();
@@ -206,16 +219,20 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		components.remove(id);
 		canvas.removeElement(id);
 	}
-	
-	public void reorderElement(int id, int index) throws RemoteException {
+
+	@Override
+	public void promoteElement(int id) {
 		MapElement e = canvas.getElement(id);
-		if (e != null) {
-			DefaultListModel model = (DefaultListModel)canvas.getModel();
-			model.removeElement(e);
-			model.add(index, e);
-		}
+		if (e != null) canvas.promoteElement(e);
 	}
 
+	@Override
+	public void demoteElement(int id) {
+		MapElement e = canvas.getElement(id);
+		if (e != null) canvas.demoteElement(e);
+	}
+
+	@Override
 	public void setElementProperty(int id, String property, Object value) {
 		MapElement e = canvas.getElement(id);
 		if (e != null) {
@@ -223,12 +240,13 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		}
 	}
 
+	@Override
 	public void addComponent(int id, JComponent component, int screen) {
 		JFrame frame = screens[screen];
 		if (frame != null) {
 			//JLayeredPane l = (JLayeredPane)frame.getContentPane().getComponent(0);
 			JLayeredPane l = frame.getLayeredPane();
-			l.add(component,1);	// TODO should set the number according to the element's position
+			l.add(component, 1);	// TODO should set the number according to the element's position
 			List<JComponent> comps = components.get(id);
 			if (comps == null) {
 				comps = new ArrayList<JComponent>();
@@ -238,14 +256,15 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 			Dimension size = frame.getContentPane().getSize();
 			Dimension popupSize = new Dimension(Math.min(size.width, size.height), Math.min(size.width, size.height));	// make largest possible square
 			component.setSize(popupSize);
-			component.setLocation((size.width-popupSize.width)/2, (size.height-popupSize.height)/2);	// centre on screen
+			component.setLocation((size.width - popupSize.width) / 2, (size.height - popupSize.height) / 2);	// centre on screen
 			component.repaint();
 		}
 	}
 
+	@Override
 	public void removeComponent(int id, JComponent component) {
 		List<JComponent> comps = components.get(id);
-		Container parent =  component.getParent();
+		Container parent = component.getParent();
 		if (parent != null && comps.remove(component)) {
 			parent.remove(component);
 			parent.repaint();

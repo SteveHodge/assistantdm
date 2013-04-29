@@ -22,15 +22,17 @@ public class DarknessMask extends MapElement {
 
 	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK, Color.class);
 	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
-	
+
 	List<Point> cleared = new ArrayList<Point>();
-	
+
+	@Override
 	public Order getDefaultOrder() {
 		return Order.ABOVEGRID;
 	}
 
+	@Override
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible.getValue()) return;
+		if (canvas == null || !isVisible()) return;
 
 		g.setColor(color.getValue());
 		Composite c = g.getComposite();
@@ -50,15 +52,16 @@ public class DarknessMask extends MapElement {
 		g.setComposite(c);
 	}
 
+	@Override
 	public String toString() {
 		return "Darkness ("+getID()+")";
 	}
-	
+
 	public boolean isMasked(Point p) {
 		if (cleared.contains(p)) return false;
 		return true;
 	}
-	
+
 	public void setMasked(Point p, boolean mask) {
 		if (mask) {
 			cleared.remove(p);
@@ -69,6 +72,7 @@ public class DarknessMask extends MapElement {
 		}
 	}
 
+	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_MASKCELL)) {
 			setMasked((Point)value, true);

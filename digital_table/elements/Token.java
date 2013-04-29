@@ -37,7 +37,7 @@ public class Token extends MapElement {
 	public final static String PROPERTY_COLOR = "color";	// Color
 	public final static String PROPERTY_ALPHA = "alpha";	// float
 	public final static String PROPERTY_SIZE = "size";		// Size
-	public final static String PROPERTY_LABEL = "label";
+	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_IMAGE = "image";	// byte[]
 	public final static String PROPERTY_ROTATIONS = "rotations";	// int - number of quadrants rotated clockwise
 	public final static String PROPERTY_SHOWREACH = "show_reach";	// boolean
@@ -196,7 +196,7 @@ public class Token extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
-		if (canvas == null || !visible.getValue()) return;
+		if (canvas == null || !isVisible()) return;
 
 		int space = size.getValue().getSpace();
 		if (space < 10) space = 10;	// TODO need to be able to draw sub-Small tokens slightly smaller
@@ -366,7 +366,7 @@ public class Token extends MapElement {
 			for (int j = 0; j < radius; j++) {
 				// measure distance from (0, 0) to each corner of this cell
 				// if all four corners are within the radius then the cell is affected
-				// note: only need to test the bottom right corner - if that is in the radius then the other corners must be 
+				// note: only need to test the bottom right corner - if that is in the radius then the other corners must be
 				int dist = i + 1 + j + 1 - (Math.min(i + 1, j + 1) - 1) / 2;	// the subtracted term is half the number of diagonals
 				if (dist <= radius + 1) affected[i][j] = true;
 				if (radius == 2 && i == 1 && j == 1) affected[i][j] = true;
@@ -445,7 +445,7 @@ public class Token extends MapElement {
 	//		Color oldColor = g.getColor();
 	//		int h = height;
 	//		int w = width;
-	//		
+	//
 	//		g.translate(x, y);
 	//
 	//		int total = outer + inner;
@@ -460,19 +460,19 @@ public class Token extends MapElement {
 	//			g.drawLine(i, i, i, h-2-i);		// left
 	//			g.drawLine(1+i, i, w-2-i, i);	// top
 	//		}
-	//		
+	//
 	//		g.setColor(oldColor.darker().darker());
 	//		for (int i = 0; i < outer; i++) {
 	//			g.drawLine(i, h-1-i, w-1-i, h-1-i);
 	//			g.drawLine(w-1-i, i, w-1-i, h-2-i);
 	//		}
-	//		
+	//
 	//		g.setColor(oldColor.darker());
 	//		for (int i = outer; i < total; i++) {
 	//			g.drawLine(i, h-1-i, w-1-i, h-1-i);
 	//			g.drawLine(w-1-i, i, w-1-i, h-2-i);
 	//		}
-	//		
+	//
 	//		g.translate(-x, -y);
 	//		g.setColor(oldColor);
 	//	}

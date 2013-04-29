@@ -8,6 +8,7 @@ import java.awt.geom.AffineTransform;
 import javax.swing.JPanel;
 
 
+
 /*
  * A viewport onto a MapCanvas. This is similar to a JViewport, but multiple MapViewports can be attached to
  * a single MapCanvas.

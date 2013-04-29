@@ -26,7 +26,6 @@ import javax.swing.event.ChangeListener;
 import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
-
 @SuppressWarnings("serial")
 abstract public class OptionsPanel extends JPanel {
 	protected TableDisplay remote;
@@ -35,22 +34,25 @@ abstract public class OptionsPanel extends JPanel {
 		remote = r;
 	}
 
-	protected enum Mode {BOTH, LOCAL, REMOTE};
+	protected enum Mode {
+		BOTH, LOCAL, REMOTE
+	};
 
 	public enum DragMode {
 		NONE,	// no dragging
 		MOVE,	// dragging will move the element or a subelement
 		PAINT	// dragging will trigger a click event on each mouse move
 	};
-	
+
 	protected JTextField createIntegerControl(final MapElement element, final String property) {
 		return createIntegerControl(element, property, Mode.BOTH);
 	}
 
 	protected JTextField createIntegerControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
-		field.setText(""+element.getProperty(property));
+		field.setText("" + element.getProperty(property));
 		field.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					int newValue = Integer.parseInt(field.getText());
@@ -66,8 +68,9 @@ abstract public class OptionsPanel extends JPanel {
 
 	protected JTextField createNullableIntegerControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
-		if (element.getProperty(property) != null) field.setText(""+element.getProperty(property));
+		if (element.getProperty(property) != null) field.setText("" + element.getProperty(property));
 		field.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					Integer newValue = null;
@@ -82,15 +85,15 @@ abstract public class OptionsPanel extends JPanel {
 		return field;
 	}
 
-	
 	protected JTextField createDoubleControl(final MapElement element, final String property) {
 		return createDoubleControl(element, property, Mode.BOTH);
 	}
 
 	protected JTextField createDoubleControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
-		field.setText(""+element.getProperty(property));
+		field.setText("" + element.getProperty(property));
 		field.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					double newRadius = Double.parseDouble(field.getText());
@@ -110,15 +113,16 @@ abstract public class OptionsPanel extends JPanel {
 
 	protected JPanel createColorControl(final MapElement element, final String property, final Mode mode) {
 		final JPanel colorPanel = new JPanel();
-		colorPanel.setBackground((Color)element.getProperty(property));
+		colorPanel.setBackground((Color) element.getProperty(property));
 		colorPanel.setOpaque(true);
-		colorPanel.setMinimumSize(new Dimension(50,20));
-		colorPanel.setPreferredSize(new Dimension(50,20));
+		colorPanel.setMinimumSize(new Dimension(50, 20));
+		colorPanel.setPreferredSize(new Dimension(50, 20));
 		colorPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		colorPanel.addMouseListener(new MouseListener() {
+			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					Color newColor = JColorChooser.showDialog(OptionsPanel.this, "Choose colour", (Color)element.getProperty(property));
+					Color newColor = JColorChooser.showDialog(OptionsPanel.this, "Choose colour", (Color) element.getProperty(property));
 					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newColor);
 					if (mode != Mode.REMOTE) element.setProperty(property, newColor);
 					colorPanel.setBackground(newColor);
@@ -126,27 +130,39 @@ abstract public class OptionsPanel extends JPanel {
 					ex.printStackTrace();
 				}
 			}
-	
-			public void mouseEntered(MouseEvent arg0) {}
-			public void mouseExited(MouseEvent arg0) {}
-			public void mousePressed(MouseEvent arg0) {}
-			public void mouseReleased(MouseEvent arg0) {}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+			}
 		});
 		return colorPanel;
 	}
-	
+
 	protected JSlider createSliderControl(final MapElement element, final String property) {
 		return createSliderControl(element, property, Mode.BOTH);
 	}
 
 	protected JSlider createSliderControl(final MapElement element, final String property, final Mode mode) {
 		JSlider alphaSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
-		alphaSlider.setValue((int)(100*(Float)element.getProperty(property)));
+		alphaSlider.setValue((int) (100 * (Float) element.getProperty(property)));
 		alphaSlider.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent e) {
 				try {
-					JSlider slider = (JSlider)e.getSource();
-					float alpha = ((int)slider.getValue())/100f;
+					JSlider slider = (JSlider) e.getSource();
+					float alpha = slider.getValue() / 100f;
 					if (mode != Mode.REMOTE) element.setProperty(property, alpha);
 					if (!slider.getValueIsAdjusting() && mode != Mode.LOCAL) {
 						remote.setElementProperty(element.getID(), property, alpha);
@@ -167,9 +183,10 @@ abstract public class OptionsPanel extends JPanel {
 		final JComboBox typeCombo = new JComboBox(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
 		typeCombo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					JComboBox combo = (JComboBox)e.getSource();
+					JComboBox combo = (JComboBox) e.getSource();
 					Object selected = combo.getSelectedItem();
 					if (mode != Mode.REMOTE) element.setProperty(property, selected);
 					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, selected);
@@ -185,9 +202,10 @@ abstract public class OptionsPanel extends JPanel {
 		final JComboBox typeCombo = new JComboBox(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
 		typeCombo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					JComboBox combo = (JComboBox)e.getSource();
+					JComboBox combo = (JComboBox) e.getSource();
 					Object selected = combo.getSelectedItem();
 					if (mode != Mode.REMOTE) element.setProperty(property, selected);
 					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, selected);
@@ -200,13 +218,14 @@ abstract public class OptionsPanel extends JPanel {
 	}
 
 	protected JTextField createStringControl(final MapElement element, final String property) {
-		return createStringControl(element, property);
+		return createStringControl(element, property, Mode.BOTH);
 	}
 
 	protected JTextField createStringControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField textField = new JTextField(30);
-		textField.setText(""+element.getProperty(property));
+		textField.setText("" + element.getProperty(property));
 		textField.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					if (mode != Mode.REMOTE) element.setProperty(property, textField.getText());
@@ -221,18 +240,19 @@ abstract public class OptionsPanel extends JPanel {
 
 	protected JLabel createLabelControl(final MapElement element, final String property) {
 		final JLabel label = new JLabel();
-		label.setText(""+element.getProperty(property));
+		label.setText("" + element.getProperty(property));
 		return label;
 	}
-	
+
 	// TODO use this for visibility - need to implement visibility properties
 	protected JCheckBox createCheckBox(final MapElement element, final String property, final Mode mode, String label) {
 		JCheckBox check = new JCheckBox(label);
-		check.setSelected((Boolean)element.getProperty(property));
+		check.setSelected((Boolean) element.getProperty(property));
 		check.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				try {
-					JCheckBox check = (JCheckBox)e.getSource();
+					JCheckBox check = (JCheckBox) e.getSource();
 					if (mode != Mode.REMOTE) element.setProperty(property, check.isSelected());
 					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, check.isSelected());
 				} catch (RemoteException ex) {
@@ -258,16 +278,17 @@ abstract public class OptionsPanel extends JPanel {
 		cb.setSelected(false);
 		return cb;
 	}
-	
-	protected final static String[] options = {"0","90","180","270"};
+
+	protected final static String[] options = { "0", "90", "180", "270" };
 
 	protected JComboBox createRotationControl(final MapElement element, final String property, final Mode mode) {
 		JComboBox rotationsCombo = new JComboBox(options);
-		rotationsCombo.setSelectedIndex((Integer)element.getProperty(property));
+		rotationsCombo.setSelectedIndex((Integer) element.getProperty(property));
 		rotationsCombo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					JComboBox combo = (JComboBox)e.getSource();
+					JComboBox combo = (JComboBox) e.getSource();
 					int index = combo.getSelectedIndex();
 					if (mode != Mode.REMOTE) element.setProperty(property, index);
 					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, index);
@@ -278,19 +299,19 @@ abstract public class OptionsPanel extends JPanel {
 		});
 		return rotationsCombo;
 	};
-	
+
 	public MapElementMouseListener getMouseListener() {
 		return null;
 	}
 
 	public abstract MapElement getElement();
-	
+
 	abstract public class DefaultDragger implements MapElementMouseListener {
 		protected boolean dragging = false;
 		protected int button;
 		protected Point2D offset;
 		protected String target;
-		
+
 		protected abstract String getDragTarget(Point2D gridLocation);
 
 		protected void setTargetLocation(Point2D p) {
@@ -304,17 +325,19 @@ abstract public class OptionsPanel extends JPanel {
 		}
 
 		protected Point2D getTargetLocation() {
-			return (Point2D)getElement().getProperty(target);
+			return (Point2D) getElement().getProperty(target);
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e, Point2D gridloc) {
 			button = e.getButton();
 			target = getDragTarget(gridloc);
 			if (target == null) return;
 			Point2D targetLoc = getTargetLocation();
-			offset = new Point2D.Double(gridloc.getX()-targetLoc.getX(), gridloc.getY()-targetLoc.getY());
+			offset = new Point2D.Double(gridloc.getX() - targetLoc.getX(), gridloc.getY() - targetLoc.getY());
 		}
-	
+
+		@Override
 		public void mouseReleased(MouseEvent e, Point2D gridloc) {
 			if (dragging) {
 				Point2D p = new Point2D.Double(gridloc.getX() - offset.getX(), gridloc.getY() - offset.getY());
@@ -322,7 +345,8 @@ abstract public class OptionsPanel extends JPanel {
 				dragging = false;
 			}
 		}
-	
+
+		@Override
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {
 			if (button == MouseEvent.BUTTON1 && target != null) {
 				dragging = true;
@@ -330,9 +354,11 @@ abstract public class OptionsPanel extends JPanel {
 			if (dragging) {
 				Point2D p = new Point2D.Double(gridloc.getX() - offset.getX(), gridloc.getY() - offset.getY());
 				setTargetLocation(p);
-			} 
+			}
 		}
 
-		public void mouseClicked(MouseEvent e, Point2D gridloc) {}
+		@Override
+		public void mouseClicked(MouseEvent e, Point2D gridloc) {
+		}
 	};
 }
