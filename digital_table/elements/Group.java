@@ -9,8 +9,8 @@ public class Group extends MapElement {
 	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_LOCATION = "location";
 
-	private Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
-	private Property<Point2D> location = new Property<Point2D>(PROPERTY_LOCATION, new Point2D.Double(), Point2D.class);
+	protected Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
+	protected Property<Point2D> location = new Property<Point2D>(PROPERTY_LOCATION, new Point2D.Double(), Point2D.class);
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {

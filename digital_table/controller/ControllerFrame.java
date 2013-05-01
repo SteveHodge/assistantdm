@@ -47,6 +47,7 @@ import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.Initiative;
 import digital_table.elements.Label;
+import digital_table.elements.LightSource;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
@@ -58,12 +59,12 @@ import digital_table.server.TableDisplay;
 
 /* TODO main priorities:
  * BUG Issue with image scaling before remote visible
- * Group dragging
+ * Allow multi-select and grouping in tree
  * Improve Tokens element: hps/status, floating label, rotate labels with token
  * Better integration with AssistantDM - auto open controller if server is available, exit just controller when closing controller window, cleanup controller when exiting assitantdm window
  * Implement Creature Size
- * Expand DarknessMask to true visibility element including light sources and low-light
  * Camera integration
+ * Refactor common utility methods into MapElement (e.g. template creation)
  * Alternate button dragging (e.g. resize)
  * Recalibrate - could be done using screen bounds element
  * Auto configure - set defaults according to OS screen layout
@@ -156,6 +157,7 @@ public class ControllerFrame extends JFrame {
 				shapeableAction,
 				labelAction,
 				darknessAction,
+				lightSourceAction,
 				initiativeAction,
 				browserAction,
 				groupAction,
@@ -535,7 +537,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(MapImage e) {
+		protected ImageOptionsPanel createOptionsPanel(MapImage e) {
 			return new ImageOptionsPanel(e, display);
 		}
 	};
@@ -553,7 +555,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(SpreadTemplate e) {
+		protected SpreadTemplateOptionsPanel createOptionsPanel(SpreadTemplate e) {
 			return new SpreadTemplateOptionsPanel(e, display);
 		}
 	};
@@ -571,7 +573,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(LineTemplate e) {
+		protected LineTemplateOptionsPanel createOptionsPanel(LineTemplate e) {
 			return new LineTemplateOptionsPanel(e, display);
 		}
 	};
@@ -589,7 +591,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(ShapeableTemplate e) {
+		protected ShapeableTemplateOptionsPanel createOptionsPanel(ShapeableTemplate e) {
 			return new ShapeableTemplateOptionsPanel(e, display);
 		}
 	};
@@ -607,7 +609,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(DarknessMask e) {
+		protected DarknessMaskOptionsPanel createOptionsPanel(DarknessMask e) {
 			return new DarknessMaskOptionsPanel(e, display);
 		}
 	};
@@ -625,7 +627,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(Browser e) {
+		protected BrowserOptionsPanel createOptionsPanel(Browser e) {
 			return new BrowserOptionsPanel(e, display);
 		}
 	};
@@ -653,7 +655,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(Initiative e) {
+		protected InitiativeOptionsPanel createOptionsPanel(Initiative e) {
 			return new InitiativeOptionsPanel(e, display);
 		}
 	};
@@ -671,7 +673,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(Label e) {
+		protected LabelOptionsPanel createOptionsPanel(Label e) {
 			return new LabelOptionsPanel(e, display);
 		}
 	};
@@ -688,7 +690,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(ScreenBounds e) {
+		protected BoundsOptionsPanel createOptionsPanel(ScreenBounds e) {
 			return new BoundsOptionsPanel(e, display);
 		}
 	};
@@ -706,7 +708,7 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(Token e) {
+		protected TokenOptionsPanel createOptionsPanel(Token e) {
 			return new TokenOptionsPanel(e, display);
 		}
 	};
@@ -724,8 +726,26 @@ public class ControllerFrame extends JFrame {
 		}
 
 		@Override
-		protected OptionsPanel createOptionsPanel(Group e) {
+		protected GroupOptionsPanel createOptionsPanel(Group e) {
 			return new GroupOptionsPanel(e, display);
+		}
+	};
+
+	private AddElementAction<LightSource> lightSourceAction = new AddElementAction<LightSource>("Light Source") {
+		@Override
+		protected LightSource createElement(MapElement parent) {
+			LightSource light = new LightSource(4, 10, 10);
+			if (sendElement(light, parent)) {
+				light.setProperty(MapElement.PROPERTY_VISIBLE, true);
+				light.addPropertyChangeListener(labelListener);
+				return light;
+			}
+			return null;
+		}
+
+		@Override
+		protected LightSourceOptionsPanel createOptionsPanel(LightSource e) {
+			return new LightSourceOptionsPanel(e, display);
 		}
 	};
 }

@@ -30,7 +30,7 @@ import ui.SimpleStatus;
 import ui.Status;
 import digital_table.server.MapCanvas.Order;
 
-public class Token extends MapElement {
+public class Token extends Group {
 	private static final long serialVersionUID = 1L;
 
 	public final static String PROPERTY_X = "x";	// int
@@ -165,8 +165,6 @@ public class Token extends MapElement {
 	private Property<StatusDisplay> statusDisplay = new Property<StatusDisplay>(PROPERTY_STATUS_DISPLAY, StatusDisplay.LABEL, StatusDisplay.class);
 	private Property<StatusType> statusType = new Property<StatusType>(PROPERTY_STATUS_TYPE, StatusType.EXACT, StatusType.class);
 	private Property<Size> size = new Property<Size>(PROPERTY_SIZE, Size.MEDIUM, Size.class);
-	private Property<Integer> x = new Property<Integer>(PROPERTY_X, 5, Integer.class);		// grid coordinate of left edge
-	private Property<Integer> y = new Property<Integer>(PROPERTY_Y, 8, Integer.class);		// grid coordinate of left edge
 	private Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.WHITE, Color.class);
 	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	private Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
@@ -195,6 +193,24 @@ public class Token extends MapElement {
 		return Order.ABOVEGRID;
 	}
 
+	private int getX() {
+		return (int) location.getValue().getX();
+	}
+
+	private int getY() {
+		return (int) location.getValue().getY();
+	}
+
+	private void setX(int x) {
+		Point p = new Point(x, getY());
+		location.setValue(p);
+	}
+
+	private void setY(int y) {
+		Point p = new Point(getX(), y);
+		location.setValue(p);
+	}
+
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
 		if (canvas == null || !isVisible()) return;
@@ -209,8 +225,8 @@ public class Token extends MapElement {
 		float arcWidth = canvas.getColumnWidth() * space / 30;
 		float arcHeight = canvas.getRowHeight() * space / 30;
 		int cells = space / 10;
-		Point tl = canvas.getDisplayCoordinates(x.getValue(), y.getValue());
-		Point br = canvas.getDisplayCoordinates(x.getValue() + cells, y.getValue() + cells);
+		Point tl = canvas.getDisplayCoordinates(getX(), getY());
+		Point br = canvas.getDisplayCoordinates(getX() + cells, getY() + cells);
 		BasicStroke stroke = getThickStroke();
 		float inset = stroke.getLineWidth() / 2;
 
@@ -346,8 +362,8 @@ public class Token extends MapElement {
 	}
 
 	private Area getReach(int reach, int space) {
-		int x = this.x.getValue();
-		int y = this.y.getValue();
+		int x = getX();
+		int y = getY();
 		Area area = new Area();
 		area.add(getRectangularArea(x - reach, y, x + reach + space, y + space));
 		area.add(getRectangularArea(x, y - reach, x + space, y + space + reach));
@@ -363,23 +379,9 @@ public class Token extends MapElement {
 	private Area getQuadrant(int x, int y, int xdir, int ydir, int radius) {
 		Area area = new Area();
 
-		boolean[][] affected = new boolean[radius][radius];
-
-		// calculate the affected cells
 		for (int i = 0; i < radius; i++) {
 			for (int j = 0; j < radius; j++) {
-				// measure distance from (0, 0) to each corner of this cell
-				// if all four corners are within the radius then the cell is affected
-				// note: only need to test the bottom right corner - if that is in the radius then the other corners must be
-				int dist = i + 1 + j + 1 - (Math.min(i + 1, j + 1) - 1) / 2;	// the subtracted term is half the number of diagonals
-				if (dist <= radius + 1) affected[i][j] = true;
-				if (radius == 2 && i == 1 && j == 1) affected[i][j] = true;
-			}
-		}
-
-		for (int i = 0; i < radius; i++) {
-			for (int j = 0; j < radius; j++) {
-				if (affected[i][j]) {
+				if (isAffected(radius, i, j)) {
 					int gridx = xdir * i + x;
 					int gridy = ydir * j + y;
 					area.add(getRectangularArea(gridx, gridy, gridx + xdir, gridy + ydir));
@@ -387,6 +389,16 @@ public class Token extends MapElement {
 			}
 		}
 		return area;
+	}
+
+	private boolean isAffected(int radius, int i, int j) {
+		// measure distance from (0, 0) to each corner of this cell
+		// if all four corners are within the radius then the cell is affected
+		// note: only need to test the bottom right corner - if that is in the radius then the other corners must be
+		int dist = i + 1 + j + 1 - (Math.min(i + 1, j + 1) - 1) / 2;	// the subtracted term is half the number of diagonals
+		if (dist <= radius + 1) return true;
+		if (radius == 2 && i == 1 && j == 1) return true;
+		return false;
 	}
 
 	// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
@@ -507,9 +519,24 @@ public class Token extends MapElement {
 	}
 
 	@Override
+	public Object getProperty(String property) {
+		if (property.equals(PROPERTY_X)) {
+			return getX();
+		} else if (property.equals(PROPERTY_Y)) {
+			return getY();
+		} else {
+			return super.getProperty(property);
+		}
+	}
+
+	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_IMAGE)) {
 			setImage((byte[]) value);
+		} else if (property.equals(PROPERTY_X)) {
+			setX((Integer) value);
+		} else if (property.equals(PROPERTY_Y)) {
+			setY((Integer) value);
 		} else {
 			super.setProperty(property, value);
 		}

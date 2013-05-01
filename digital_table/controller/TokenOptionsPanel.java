@@ -309,6 +309,11 @@ public class TokenOptionsPanel extends OptionsPanel {
 			} else if (e.getPropertyName().equals(Token.PROPERTY_Y)) {
 				yField.setText(e.getNewValue().toString());
 
+			} else if (e.getPropertyName().equals(Token.PROPERTY_LOCATION)) {
+				Point2D p = (Point2D) e.getNewValue();
+				xField.setText("" + (int) p.getX());
+				yField.setText("" + (int) p.getY());
+
 			} else if (e.getPropertyName().equals(Token.PROPERTY_SIZE)) {
 				sizeCombo.setSelectedItem(e.getNewValue());
 
