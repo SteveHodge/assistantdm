@@ -131,14 +131,14 @@ public class LabelOptionsPanel extends OptionsPanel {
 		return mouseListener;
 	}
 
-	protected MapElementMouseListener mouseListener = new DefaultDragger() {
+	MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
-		protected String getDragTarget(Point2D gridLocation) {
+		String getDragTarget(Point2D gridLocation) {
 			return "location";
 		}
 
 		@Override
-		public void setTargetLocation(Point2D p) {
+		void setTargetLocation(Point2D p) {
 			try {
 				remote.setElementProperty(label.getID(), Label.PROPERTY_X, p.getX());
 				remote.setElementProperty(label.getID(), Label.PROPERTY_Y, p.getY());
@@ -150,7 +150,7 @@ public class LabelOptionsPanel extends OptionsPanel {
 		}
 
 		@Override
-		protected Point2D getTargetLocation() {
+		Point2D getTargetLocation() {
 			return new Point2D.Double((Double) label.getProperty(Label.PROPERTY_X),
 					(Double) label.getProperty(Label.PROPERTY_Y));
 		}

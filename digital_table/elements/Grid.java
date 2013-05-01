@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 public class Grid extends MapElement {
@@ -40,7 +41,7 @@ public class Grid extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g) {
+	public void paint(Graphics2D g, Point2D offset) {
 		if (canvas == null || !isVisible()) return;
 
 		g.setColor(color.getValue());

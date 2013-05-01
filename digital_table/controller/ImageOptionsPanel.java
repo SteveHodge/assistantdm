@@ -16,8 +16,8 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
-import digital_table.server.TableDisplay;
 import digital_table.elements.MapImage;
+import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class ImageOptionsPanel extends OptionsPanel {
@@ -45,10 +45,10 @@ public class ImageOptionsPanel extends OptionsPanel {
 		rotationsCombo = createRotationControl(image, MapImage.PROPERTY_ROTATIONS, Mode.BOTH);
 		labelField = createStringControl(image, MapImage.PROPERTY_LABEL, Mode.LOCAL);
 		JCheckBox visibleCheck = createVisibilityControl(image);
-		
+
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
-		
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -76,24 +76,26 @@ public class ImageOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
+	@Override
 	public MapImage getElement() {
 		return image;
 	}
 
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapImage.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_X)) {
 				xField.setText(e.getNewValue().toString());
-				
+
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_Y)) {
 				yField.setText(e.getNewValue().toString());
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_WIDTH)) {
 				widthField.setText(e.getNewValue().toString());
-				
+
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_HEIGHT)) {
 				heightField.setText(e.getNewValue().toString());
 
@@ -109,16 +111,19 @@ public class ImageOptionsPanel extends OptionsPanel {
 		}
 	};
 
+	@Override
 	public MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	protected MapElementMouseListener mouseListener = new DefaultDragger() {
-		protected String getDragTarget(Point2D gridLocation) {
+	MapElementMouseListener mouseListener = new DefaultDragger() {
+		@Override
+		String getDragTarget(Point2D gridLocation) {
 			return "location";
 		}
-	
-		public void setTargetLocation(Point2D p) {
+
+		@Override
+		void setTargetLocation(Point2D p) {
 			double x = p.getX();
 			double y = p.getY();
 			if (snapCheck.isSelected()) {
@@ -135,15 +140,17 @@ public class ImageOptionsPanel extends OptionsPanel {
 			}
 		}
 
-		protected Point2D getTargetLocation() {
+		@Override
+		Point2D getTargetLocation() {
 			return new Point2D.Double((Double)image.getProperty(MapImage.PROPERTY_X),
 					(Double)image.getProperty(MapImage.PROPERTY_Y));
 		}
 
+		@Override
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
 			if (e.getButton() != MouseEvent.BUTTON1) return;
 			if (e.getClickCount() != 1) return;
-	
+
 			Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
 			boolean clear = !image.isCleared(p);
 			image.setCleared(p, clear);

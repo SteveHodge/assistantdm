@@ -58,6 +58,7 @@ import digital_table.server.TableDisplay;
 
 /* TODO main priorities:
  * BUG Issue with image scaling before remote visible
+ * Group dragging
  * Improve Tokens element: hps/status, floating label, rotate labels with token
  * Better integration with AssistantDM - auto open controller if server is available, exit just controller when closing controller window, cleanup controller when exiting assitantdm window
  * Implement Creature Size
@@ -67,7 +68,7 @@ import digital_table.server.TableDisplay;
  * Recalibrate - could be done using screen bounds element
  * Auto configure - set defaults according to OS screen layout
  * Load/Save
- * Fix MapImage for that rotation preseves scale
+ * Fix MapImage so that rotation preseves scale
  * Make line and spread templates editable?
  * Swarm Token (editable token with replicated painting)
  * Zoomed view on controller

@@ -33,7 +33,7 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 	JPanel colorPanel;
 	JTextField labelField;
 	JSlider alphaSlider;
-	
+
 	public SpreadTemplateOptionsPanel(SpreadTemplate t, TableDisplay r) {
 		super(r);
 		template = t;
@@ -47,17 +47,18 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 
 		typeCombo = createComboControl(template, SpreadTemplate.PROPERTY_TYPE, SpreadTemplate.Type.values());
 		typeCombo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				directionCombo.setEnabled(typeCombo.getSelectedItem() == SpreadTemplate.Type.QUADRANT);
 			}
 		});
-		
+
 		directionCombo = createComboControl(template, SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.values());
 		directionCombo.setEnabled(template.getProperty(SpreadTemplate.PROPERTY_TYPE) == SpreadTemplate.Type.QUADRANT);
 
 		labelField = createStringControl(template, SpreadTemplate.PROPERTY_LABEL, Mode.LOCAL);
 		JCheckBox visibleCheck = createVisibilityControl(template);
-		
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -86,52 +87,57 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
+	@Override
 	public SpreadTemplate getElement() {
 		return template;
 	}
 
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
-				
+
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
-				
+
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_DIRECTION)) {
 				directionCombo.setSelectedItem(e.getNewValue());
-				
+
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
-				
+
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_RADIUS)) {
 				radiusField.setText(e.getNewValue().toString());
-				
+
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_TYPE)) {
 				typeCombo.setSelectedItem(e.getNewValue());
-				
+
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_X)) {
 				xField.setText(e.getNewValue().toString());
-				
+
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_Y)) {
 				yField.setText(e.getNewValue().toString());
-				
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}
 		}
 	};
 
+	@Override
 	public MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	protected MapElementMouseListener mouseListener = new DefaultDragger() {
-		protected String getDragTarget(Point2D gridLocation) {
+	MapElementMouseListener mouseListener = new DefaultDragger() {
+		@Override
+		String getDragTarget(Point2D gridLocation) {
 			return "location";
 		}
-	
-		public void setTargetLocation(Point2D p) {
+
+		@Override
+		void setTargetLocation(Point2D p) {
 			try {
 				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_X, (int)p.getX());
 				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_Y, (int)p.getY());
@@ -142,7 +148,8 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 			}
 		}
 
-		protected Point2D getTargetLocation() {
+		@Override
+		Point2D getTargetLocation() {
 			return new Point((Integer)template.getProperty(SpreadTemplate.PROPERTY_X),
 					(Integer)template.getProperty(SpreadTemplate.PROPERTY_Y));
 		}

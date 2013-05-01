@@ -29,6 +29,7 @@ import digital_table.elements.MapElement;
  */
 
 // TODO reimplement models and clean up
+// TODO probably should have root MapElement to avoid all the special cases
 
 public class MapCanvas implements ListDataListener {
 	private DefaultListModel model;
@@ -39,7 +40,7 @@ public class MapCanvas implements ListDataListener {
 		TOP,		// use for popups, informational elements
 		ABOVEGRID,	// use for creatures
 		BELOWGRID,	// use for templates
-		BOTTOM;		// use for backgrounds images 
+		BOTTOM;		// use for backgrounds images
 	}
 
 	public MapCanvas() {
@@ -98,14 +99,29 @@ public class MapCanvas implements ListDataListener {
 	public boolean removeElement(int id) {
 		MapElement e = getElement(id);
 		if (e != null) {
-			int index = model.indexOf(e);
+			Group parent = e.getParent();
+			int index = treeModel.getIndexOfChild(parent, e);
 			boolean removed = model.removeElement(e);
 			if (removed) {
-				Group parent = e.getParent();
 				if (parent != null) {
 					parent.removeChild(e);
 				}
-				treeModel.fireTreeNodeRemoved(e, null, index);
+				boolean reparented = false;
+				if (e instanceof Group) {
+					for (int i = 0; i < model.getSize(); i++) {
+						MapElement el = (MapElement) model.get(i);
+						if (el.getParent() == e) {
+							reparented = true;
+							parent.addChild(el);
+							// TODO should also adjust offsets
+						}
+					}
+				}
+				if (reparented) {
+					treeModel.fireTreeStructureChanged(parent);
+				} else {
+					treeModel.fireTreeNodeRemoved(e, parent, index);
+				}
 			}
 			return removed;
 		}
@@ -117,7 +133,7 @@ public class MapCanvas implements ListDataListener {
 		if (index < 1) return;
 		model.removeElement(e);
 		model.add(index - 1, e);
-		treeModel.fireTreeStructureChanged();
+		treeModel.fireTreeStructureChanged(null);
 	}
 
 	public void demoteElement(MapElement e) {
@@ -125,7 +141,7 @@ public class MapCanvas implements ListDataListener {
 		if (index < 0 || index == model.getSize() - 1) return;
 		model.removeElement(e);
 		model.add(index + 1, e);
-		treeModel.fireTreeStructureChanged();
+		treeModel.fireTreeStructureChanged(null);
 	}
 
 	public MapElement getElement(int id) {
@@ -150,7 +166,14 @@ public class MapCanvas implements ListDataListener {
 			MapElement r = (MapElement) model.getElementAt(i);
 			if (r != null) {
 				//System.out.println("Painting "+r);
-				r.paint(g);
+				// get offset
+				Point2D offset = new Point2D.Double();
+				Group parent = r.getParent();
+				while (parent != null) {
+					offset = parent.translate(offset);
+					parent = parent.getParent();
+				}
+				r.paint(g, offset);
 			}
 		}
 	}
@@ -406,11 +429,11 @@ public class MapCanvas implements ListDataListener {
 			}
 		}
 
-		void fireTreeStructureChanged() {
+		void fireTreeStructureChanged(MapElement node) {
 			Object[] list = listeners.getListenerList();
 			for (int i = list.length - 2; i >= 0; i -= 2) {
 				if (list[i] == TreeModelListener.class) {
-					TreePath path = getPathTo(MapCanvas.this);
+					TreePath path = getPathTo(node);
 					TreeModelEvent e = new TreeModelEvent(this, path);
 					((TreeModelListener) list[i + 1]).treeStructureChanged(e);
 				}

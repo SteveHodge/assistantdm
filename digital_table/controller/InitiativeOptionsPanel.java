@@ -41,7 +41,7 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		bgColorPanel = createColorControl(initiative, Initiative.PROPERTY_BACKGROUND_COLOR);
 		rotationsCombo = createRotationControl(initiative, Initiative.PROPERTY_ROTATIONS, Mode.BOTH);
 		JCheckBox visibleCheck = createVisibilityControl(initiative);
-				
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -67,18 +67,20 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
+	@Override
 	public Initiative getElement() {
 		return initiative;
 	}
 
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Initiative.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
 
 			} else if (e.getPropertyName().equals(Initiative.PROPERTY_X)) {
 				xField.setText(e.getNewValue().toString());
-				
+
 			} else if (e.getPropertyName().equals(Initiative.PROPERTY_Y)) {
 				yField.setText(e.getNewValue().toString());
 
@@ -87,7 +89,7 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 
 			} else if (e.getPropertyName().equals(Initiative.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
-				
+
 			} else if (e.getPropertyName().equals(Initiative.PROPERTY_BACKGROUND_COLOR)) {
 				bgColorPanel.setBackground((Color)e.getNewValue());
 
@@ -97,16 +99,19 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		}
 	};
 
+	@Override
 	public MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	protected MapElementMouseListener mouseListener = new DefaultDragger() {
-		protected String getDragTarget(Point2D gridLocation) {
+	MapElementMouseListener mouseListener = new DefaultDragger() {
+		@Override
+		String getDragTarget(Point2D gridLocation) {
 			return "location";
 		}
-	
-		public void setTargetLocation(Point2D p) {
+
+		@Override
+		void setTargetLocation(Point2D p) {
 			try {
 				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_X, p.getX());
 				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_Y, p.getY());
@@ -117,7 +122,8 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 			}
 		}
 
-		protected Point2D getTargetLocation() {
+		@Override
+		Point2D getTargetLocation() {
 			return new Point2D.Double((Double)initiative.getProperty(Initiative.PROPERTY_X),
 					(Double)initiative.getProperty(Initiative.PROPERTY_Y));
 		}

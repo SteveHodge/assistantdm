@@ -27,7 +27,7 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	JTextField maximumField;
 	JSlider alphaSlider;
 	JLabel remaining = new JLabel();
-	
+
 	public ShapeableTemplateOptionsPanel(ShapeableTemplate t, TableDisplay r) {
 		super(r);
 		template = t;
@@ -63,6 +63,7 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 
 	}
 
+	@Override
 	public ShapeableTemplate getElement() {
 		return template;
 	}
@@ -75,18 +76,19 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 			remaining.setText("" + (max - template.getPlaced()));
 		}
 	}
-	
+
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(ShapeableTemplate.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
-				
+
 			} else if (e.getPropertyName().equals(ShapeableTemplate.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
-				
+
 			} else if (e.getPropertyName().equals(ShapeableTemplate.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
-				
+
 			} else if (e.getPropertyName().equals(ShapeableTemplate.PROPERTY_MAXIMUM)) {
 				maximumField.setText(e.getNewValue().toString());
 				updateRemaining();
@@ -100,11 +102,13 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 		}
 	};
 
+	@Override
 	public MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	protected MapElementMouseListener mouseListener = new MapElementMouseListener() {
+	MapElementMouseListener mouseListener = new MapElementMouseListener() {
+		@Override
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
 			if (e.getButton() != MouseEvent.BUTTON1) return;
 			if (e.getClickCount() != 1) return;
@@ -119,19 +123,22 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 					template.removeCube(p);
 				} catch (RemoteException e1) {
 					e1.printStackTrace();
-				} 
+				}
 			} else {
 				try {
 					remote.setElementProperty(template.getID(), ShapeableTemplate.PROPERTY_ADDCUBE, p);
 					template.addCube(p);
 				} catch (RemoteException e1) {
 					e1.printStackTrace();
-				} 
+				}
 			}
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e, Point2D gridloc) {}
+		@Override
 		public void mouseReleased(MouseEvent e, Point2D gridloc) {}
+		@Override
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {}
 	};
 }

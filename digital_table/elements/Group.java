@@ -1,16 +1,19 @@
 package digital_table.elements;
 
 import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
 
 public class Group extends MapElement {
 	private static final long serialVersionUID = 1L;
 
 	public final static String PROPERTY_LABEL = "label";	// String
+	public final static String PROPERTY_LOCATION = "location";
 
 	private Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
+	private Property<Point2D> location = new Property<Point2D>(PROPERTY_LOCATION, new Point2D.Double(), Point2D.class);
 
 	@Override
-	public void paint(Graphics2D g) {
+	public void paint(Graphics2D g, Point2D offset) {
 	}
 
 	public void addChild(MapElement e) {
@@ -19,6 +22,11 @@ public class Group extends MapElement {
 
 	public void removeChild(MapElement e) {
 		if (e.parent == this) e.parent = null;
+	}
+
+	public Point2D translate(Point2D p) {
+		Point2D loc = location.getValue();
+		return new Point2D.Double(loc.getX() + p.getX(), loc.getY() + p.getY());
 	}
 
 	@Override

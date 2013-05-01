@@ -27,7 +27,7 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 	JPanel colorPanel;
 	JTextField labelField;
 	JSlider alphaSlider;
-	
+
 	public LineTemplateOptionsPanel(LineTemplate t, TableDisplay r) {
 		super(r);
 		template = t;
@@ -42,7 +42,7 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 		alphaSlider = createSliderControl(template, LineTemplate.PROPERTY_ALPHA);
 		labelField = createStringControl(template, LineTemplate.PROPERTY_LABEL, Mode.LOCAL);
 		JCheckBox visibleCheck = createVisibilityControl(template);
-		
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -71,11 +71,13 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
+	@Override
 	public LineTemplate getElement() {
 		return template;
 	}
-	
+
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(LineTemplate.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
@@ -107,13 +109,15 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 		}
 	};
 
+	@Override
 	public MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	protected MapElementMouseListener mouseListener = new DefaultDragger() {
-		protected String getDragTarget(Point2D gridLocation) {
-			
+	MapElementMouseListener mouseListener = new DefaultDragger() {
+		@Override
+		String getDragTarget(Point2D gridLocation) {
+
 			if (gridLocation.distance((Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_X),
 					(Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_Y)) < 2.0d
 					&& gridLocation.distance((Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_X),

@@ -23,6 +23,7 @@ import digital_table.server.MapCanvas.Order;
 
 // TODO cache scaled image for performance
 // TODO should have some sort of persistent cache so we don't have to keep the image file bytes in memory and don't have to resend the image each time
+// TODO create grid-aligned property
 
 public class MapImage extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -114,8 +115,10 @@ public class MapImage extends MapElement {
 	 * @see server.MapRenderer#paint(java.awt.Graphics2D)
 	 */
 	@Override
-	public void paint(Graphics2D g) {
+	public void paint(Graphics2D g, Point2D off) {
 		if (canvas == null || !isVisible()) return;
+		Point2D o = canvas.getDisplayCoordinates((int) off.getX(), (int) off.getY());
+		g.translate(o.getX(), o.getY());
 
 		Rectangle bounds = g.getClipBounds();
 		//System.out.println("Clip = "+bounds);
@@ -157,6 +160,7 @@ public class MapImage extends MapElement {
 			g.setComposite(c);
 			g.setClip(oldClip);
 		}
+		g.translate(-o.getX(), -o.getY());
 	}
 
 	public Dimension getImageSize() {

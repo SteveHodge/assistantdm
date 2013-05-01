@@ -348,14 +348,14 @@ public class TokenOptionsPanel extends OptionsPanel {
 		return mouseListener;
 	}
 
-	private MapElementMouseListener mouseListener = new DefaultDragger() {
+	MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
-		protected String getDragTarget(Point2D gridLocation) {
+		String getDragTarget(Point2D gridLocation) {
 			return "location";
 		}
 
 		@Override
-		public void setTargetLocation(Point2D p) {
+		void setTargetLocation(Point2D p) {
 			try {
 				remote.setElementProperty(token.getID(), Token.PROPERTY_X, (int) p.getX());
 				remote.setElementProperty(token.getID(), Token.PROPERTY_Y, (int) p.getY());
@@ -367,7 +367,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 		}
 
 		@Override
-		protected Point2D getTargetLocation() {
+		Point2D getTargetLocation() {
 			return new Point((Integer) token.getProperty(Token.PROPERTY_X), (Integer) token.getProperty(Token.PROPERTY_Y));
 		}
 	};

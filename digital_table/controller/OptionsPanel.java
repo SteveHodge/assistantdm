@@ -264,7 +264,7 @@ abstract public class OptionsPanel extends JPanel {
 	}
 
 	// TODO convert users to use createCheckBox?
-	// this control does not apply the changes to the local MapElement - it's intended for visibility 
+	// this control does not apply the changes to the local MapElement - it's intended for visibility
 	protected JCheckBox createVisibilityControl(final MapElement element) {
 		JCheckBox cb = createCheckBox(element, MapElement.PROPERTY_VISIBLE, Mode.REMOTE, "visible?");
 		cb.setSelected(false);
@@ -272,7 +272,7 @@ abstract public class OptionsPanel extends JPanel {
 	}
 
 	// TODO convert users to use createCheckBox?
-	// this control does not apply the changes to the local MapElement - it's intended for visibility 
+	// this control does not apply the changes to the local MapElement - it's intended for visibility
 	protected JCheckBox createVisibilityControl(final MapElement element, String label) {
 		JCheckBox cb = createCheckBox(element, MapElement.PROPERTY_VISIBLE, Mode.REMOTE, label);
 		cb.setSelected(false);
@@ -306,15 +306,15 @@ abstract public class OptionsPanel extends JPanel {
 
 	public abstract MapElement getElement();
 
-	abstract public class DefaultDragger implements MapElementMouseListener {
-		protected boolean dragging = false;
-		protected int button;
-		protected Point2D offset;
-		protected String target;
+	abstract class DefaultDragger implements MapElementMouseListener {
+		boolean dragging = false;
+		int button;
+		Point2D offset;
+		String target;
 
-		protected abstract String getDragTarget(Point2D gridLocation);
+		abstract String getDragTarget(Point2D gridLocation);
 
-		protected void setTargetLocation(Point2D p) {
+		void setTargetLocation(Point2D p) {
 			if (target == null) return;
 			try {
 				remote.setElementProperty(getElement().getID(), target, p);
@@ -324,7 +324,7 @@ abstract public class OptionsPanel extends JPanel {
 			}
 		}
 
-		protected Point2D getTargetLocation() {
+		Point2D getTargetLocation() {
 			return (Point2D) getElement().getProperty(target);
 		}
 

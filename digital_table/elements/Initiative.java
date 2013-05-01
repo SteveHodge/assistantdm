@@ -51,8 +51,10 @@ public class Initiative extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g) {
-		if (!isVisible()) return;
+	public void paint(Graphics2D g, Point2D offset) {
+		if (!isVisible() || canvas == null) return;
+		Point2D o = canvas.getDisplayCoordinates(offset);
+		g.translate(o.getX(), o.getY());
 
 		Font f = g.getFont();
 		float newSize = canvas.getDisplayCoordinates(new Point2D.Float(fontSize, 0)).x;
@@ -102,6 +104,7 @@ public class Initiative extends MapElement {
 			g.setComposite(c);
 			g.setFont(f);
 		}
+		g.translate(-o.getX(), -o.getY());
 	}
 
 	protected List<String[]> getTable() {

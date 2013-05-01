@@ -2,6 +2,7 @@ package digital_table.controller;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -43,22 +44,22 @@ public class GroupOptionsPanel extends OptionsPanel {
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		add(visibleCheck, c);
-//		c.gridy = 1; add(new JLabel("Label:"), c);
-//		c.gridy++; add(new JLabel("Left edge column:"), c);
-//		c.gridy++; add(new JLabel("Top edge Row:"), c);
-//		c.gridy++; add(new JLabel("Rotation:"), c);
-//		c.gridy++; add(new JLabel("Colour:"), c);
-//		c.gridy++; add(new JLabel("Transparency:"), c);
+		//		c.gridy = 1; add(new JLabel("Label:"), c);
+		//		c.gridy++; add(new JLabel("Left edge column:"), c);
+		//		c.gridy++; add(new JLabel("Top edge Row:"), c);
+		//		c.gridy++; add(new JLabel("Rotation:"), c);
+		//		c.gridy++; add(new JLabel("Colour:"), c);
+		//		c.gridy++; add(new JLabel("Transparency:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0; add(labelField, c);
-//		c.gridy++; add(xField, c);
-//		c.gridy++; add(yField, c);
-//		c.gridy++; add(rotationsCombo, c);
-//		c.gridy++; add(colorPanel, c);
-//		c.gridy++; add(alphaSlider, c);
+		//		c.gridy++; add(xField, c);
+		//		c.gridy++; add(yField, c);
+		//		c.gridy++; add(rotationsCombo, c);
+		//		c.gridy++; add(colorPanel, c);
+		//		c.gridy++; add(alphaSlider, c);
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
@@ -91,43 +92,25 @@ public class GroupOptionsPanel extends OptionsPanel {
 			//
 			//			} else if (e.getPropertyName().equals(Label.PROPERTY_COLOR)) {
 			//				colorPanel.setBackground((Color) e.getNewValue());
-			//			} else 
+			//			} else
 			if (e.getPropertyName().equals(Group.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
-
+			} else if (e.getPropertyName().equals(Group.PROPERTY_LOCATION)) {
 			} else {
 				System.out.println(toString() + ": Unknown property: " + e.getPropertyName());
 			}
 		}
 	};
-	/*
+
+	@Override
+	public MapElementMouseListener getMouseListener() {
+		return mouseListener;
+	}
+
+	protected MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
-		public MapElementMouseListener getMouseListener() {
-			return mouseListener;
+		protected String getDragTarget(Point2D gridLocation) {
+			return Group.PROPERTY_LOCATION;
 		}
-
-		protected MapElementMouseListener mouseListener = new DefaultDragger() {
-			@Override
-			protected String getDragTarget(Point2D gridLocation) {
-				return "location";
-			}
-
-			@Override
-			public void setTargetLocation(Point2D p) {
-				try {
-					remote.setElementProperty(group.getID(), Label.PROPERTY_X, p.getX());
-					remote.setElementProperty(group.getID(), Label.PROPERTY_Y, p.getY());
-					group.setProperty(Label.PROPERTY_X, p.getX());
-					group.setProperty(Label.PROPERTY_Y, p.getY());
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-			}
-
-			@Override
-			protected Point2D getTargetLocation() {
-				return new Point2D.Double((Double) group.getProperty(Label.PROPERTY_X),
-						(Double) group.getProperty(Label.PROPERTY_Y));
-			}
-		};*/
+	};
 }

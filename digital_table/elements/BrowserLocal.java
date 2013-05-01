@@ -24,7 +24,7 @@ public class BrowserLocal extends Browser {
 	}
 
 	@Override
-	public void paint(Graphics2D g) {
+	public void paint(Graphics2D g, Point2D offset) {
 		if (isVisible() && canvas != null) {
 			// show bounds of the browser on the map based on the screen - this should only run on the client
 			Composite c = g.getComposite();

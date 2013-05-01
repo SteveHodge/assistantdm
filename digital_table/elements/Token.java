@@ -15,6 +15,7 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
@@ -195,8 +196,10 @@ public class Token extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g) {
+	public void paint(Graphics2D g, Point2D offset) {
 		if (canvas == null || !isVisible()) return;
+		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+		g.translate(o.getX(), o.getY());
 
 		int space = size.getValue().getSpace();
 		if (space < 10) space = 10;	// TODO need to be able to draw sub-Small tokens slightly smaller
@@ -289,6 +292,7 @@ public class Token extends MapElement {
 		}
 
 		g.setComposite(c);
+		g.translate(-o.getX(), -o.getY());
 	}
 
 	private CreatureStatus getStatus() {

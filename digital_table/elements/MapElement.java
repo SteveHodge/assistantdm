@@ -2,6 +2,7 @@ package digital_table.elements;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
@@ -25,7 +26,7 @@ public abstract class MapElement implements Serializable {
 	protected ScreenManager screenManager = null;
 	protected Map<String, Property<?>> properties = new HashMap<String, Property<?>>();
 	protected Property<Boolean> visible = new Property<Boolean>(PROPERTY_VISIBLE, true, false, Boolean.class);
-	protected Group parent = null;
+	public Group parent = null;	// TODO should be private
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -131,7 +132,7 @@ public abstract class MapElement implements Serializable {
 		return visible.getValue() && parent.isVisible();
 	}
 
-	public abstract void paint(Graphics2D g);
+	public abstract void paint(Graphics2D g, Point2D offset);
 
 	@Override
 	public String toString() {
@@ -157,6 +158,7 @@ public abstract class MapElement implements Serializable {
 		}
 	}
 
+	// TODO perhaps this should be a static field
 	public Order getDefaultOrder() {
 		return Order.BOTTOM;
 	}

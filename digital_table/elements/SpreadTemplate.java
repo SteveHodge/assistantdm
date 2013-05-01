@@ -9,6 +9,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.Area;
+import java.awt.geom.Point2D;
 
 import digital_table.server.MapCanvas.Order;
 
@@ -104,8 +105,10 @@ public class SpreadTemplate extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g) {
+	public void paint(Graphics2D g, Point2D offset) {
 		if (canvas == null || !isVisible()) return;
+		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+		g.translate(o.getX(), o.getY());
 
 		Stroke oldStroke = g.getStroke();
 		g.setColor(color.getValue());
@@ -139,6 +142,7 @@ public class SpreadTemplate extends MapElement {
 		}
 		g.setStroke(oldStroke);
 		g.setComposite(c);
+		g.translate(-o.getX(), -o.getY());
 	}
 
 	protected Area getQuadrant(int xdir, int ydir) {

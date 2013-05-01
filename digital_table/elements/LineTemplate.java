@@ -44,8 +44,10 @@ public class LineTemplate extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g) {
+	public void paint(Graphics2D g, Point2D offset) {
 		if (canvas == null || !isVisible()) return;
+		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+		g.translate(o.getX(), o.getY());
 
 		Composite c = g.getComposite();
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
@@ -129,6 +131,7 @@ public class LineTemplate extends MapElement {
 		g.setStroke(oldStroke);
 
 		g.setComposite(c);
+		g.translate(-o.getX(), -o.getY());
 	}
 
 	protected Point getVerticalRange(int x, int targetX, double endX, double endY) {
