@@ -345,8 +345,7 @@ public class Token extends Group {
 
 	private void paintReach(Graphics2D g) {
 		int reach = size.getValue().getReach() / 5;
-		int space = size.getValue().getSpace() / 10;
-		if (space < 1) space = 1;
+		int space = getSpace();
 		Area area;
 		if (!reachWeapon.getValue()) {
 			area = getReach(reach, space);
@@ -359,6 +358,13 @@ public class Token extends Group {
 		g.setColor(Color.RED);
 		g.fill(area);
 		g.setComposite(c);
+	}
+
+	// returns the space is grid units
+	int getSpace() {
+		int space = size.getValue().getSpace() / 10;
+		if (space < 1) space = 1;
+		return space;
 	}
 
 	private Area getReach(int reach, int space) {

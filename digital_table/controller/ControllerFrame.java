@@ -51,6 +51,7 @@ import digital_table.elements.LightSource;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
+import digital_table.elements.PersonalEmanation;
 import digital_table.elements.ScreenBounds;
 import digital_table.elements.ShapeableTemplate;
 import digital_table.elements.SpreadTemplate;
@@ -61,7 +62,6 @@ import digital_table.server.TableDisplay;
  * BUG Issue with image scaling before remote visible
  * Allow multi-select and grouping in tree
  * Improve Tokens element: hps/status, floating label, rotate labels with token
- * Better integration with AssistantDM - auto open controller if server is available, exit just controller when closing controller window, cleanup controller when exiting assitantdm window
  * Implement Creature Size
  * Camera integration
  * Refactor common utility methods into MapElement (e.g. template creation)
@@ -155,6 +155,7 @@ public class ControllerFrame extends JFrame {
 				templateAction,
 				lineAction,
 				shapeableAction,
+				personalEmanationAction,
 				labelAction,
 				darknessAction,
 				lightSourceAction,
@@ -734,7 +735,7 @@ public class ControllerFrame extends JFrame {
 	private AddElementAction<LightSource> lightSourceAction = new AddElementAction<LightSource>("Light Source") {
 		@Override
 		protected LightSource createElement(MapElement parent) {
-			LightSource light = new LightSource(4, 10, 10);
+			LightSource light = new LightSource(4, 0, 0);
 			if (sendElement(light, parent)) {
 				light.setProperty(MapElement.PROPERTY_VISIBLE, true);
 				light.addPropertyChangeListener(labelListener);
@@ -746,6 +747,24 @@ public class ControllerFrame extends JFrame {
 		@Override
 		protected LightSourceOptionsPanel createOptionsPanel(LightSource e) {
 			return new LightSourceOptionsPanel(e, display);
+		}
+	};
+
+	private AddElementAction<PersonalEmanation> personalEmanationAction = new AddElementAction<PersonalEmanation>("Personal Emanation") {
+		@Override
+		protected PersonalEmanation createElement(MapElement parent) {
+			PersonalEmanation light = new PersonalEmanation(2, 0, 0);
+			if (sendElement(light, parent)) {
+				light.setProperty(MapElement.PROPERTY_VISIBLE, true);
+				light.addPropertyChangeListener(labelListener);
+				return light;
+			}
+			return null;
+		}
+
+		@Override
+		protected PersonalEmanationOptionsPanel createOptionsPanel(PersonalEmanation e) {
+			return new PersonalEmanationOptionsPanel(e, display);
 		}
 	};
 }

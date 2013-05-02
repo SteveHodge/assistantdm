@@ -83,7 +83,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	JMenuBar menuBar;
 	JMenu fileMenu, partyMenu;
 	JMenuItem saveItem, saveAsItem, openItem, updateItem;
-	JMenuItem tableItem;
+	//	JMenuItem tableItem;
 	JMenuItem selectPartyItem, xpItem, xpHistoryItem, newCharacterItem;
 	ShoppingPanel shopPanel;
 	CombatPanel combatPanel;
@@ -101,7 +101,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace();
-	    }
+		}
 
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
@@ -110,8 +110,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		if (args.length > 0) {
 			tableServer = args[0];
 		}
-		
+
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				AssistantDM inst = new AssistantDM();
 				inst.setLocationRelativeTo(null);
@@ -139,14 +140,15 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		openItem = new JMenuItem("Open...", KeyEvent.VK_O);
 		openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		openItem.addActionListener(this);
-		tableItem = new JMenuItem("Digital table controller...", KeyEvent.VK_T);
-		tableItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
-		tableItem.addActionListener(this);
+		//		tableItem = new JMenuItem("Digital table controller...", KeyEvent.VK_T);
+		//		tableItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
+		//		tableItem.addActionListener(this);
 		fileMenu.add(openItem);
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAsItem);
-		fileMenu.add(tableItem);
-		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {public void actionPerformed(ActionEvent arg0) {exit();}}));
+		//		fileMenu.add(tableItem);
+		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
+			public void actionPerformed(ActionEvent arg0) {exit();}}));
 		partyMenu = new JMenu("Party");
 		partyMenu.setMnemonic(KeyEvent.VK_P);
 		menuBar.add(partyMenu);
@@ -171,10 +173,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		party = Party.parseXML(file);
 
-		JComponent panel; 
+		JComponent panel;
 		combatPanel = new CombatPanel(party, library);
 		File f = new File("combat.xml");
-        if (f.exists()) combatPanel.parseXML(f);
+		if (f.exists()) combatPanel.parseXML(f);
 		tabbedPane.addTab("Combat", null, combatPanel, "Initiative and Combat");
 
 		panel = new PartyPanel(party);
@@ -207,6 +209,12 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			System.out.println("Caught error: "+e);
 		}
 
+		new DigitalTableController() {
+			@Override
+			protected void quit() {
+			}
+		};
+
 		getContentPane().add(tabbedPane);
 
 		pack();
@@ -224,13 +232,13 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		}
 	}
 
-	public void showDigitalTableController() {
-		new DigitalTableController(AssistantDM.tableServer);
-	}
+	//	public void showDigitalTableController() {
+	//		new DigitalTableController(AssistantDM.tableServer);
+	//	}
 
-	// WISH provide checkbox on dialog to add new character to party (default:checked) 
+	// WISH provide checkbox on dialog to add new character to party (default:checked)
 	public void newCharacter() {
-		String s = (String)JOptionPane.showInputDialog(this,"Enter the new character's name:","Add New Character",JOptionPane.PLAIN_MESSAGE);
+		String s = JOptionPane.showInputDialog(this,"Enter the new character's name:","Add New Character",JOptionPane.PLAIN_MESSAGE);
 		if ((s != null) && (s.length() > 0)) {
 			Character newc = new Character(s);
 			CharacterLibrary.add(newc);
@@ -248,11 +256,11 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 				if (!newParty.contains(c)) changes.add(c);
 			}
 			for (Character c : changes) party.remove(c);
-			changes = new HashSet<Character>();
-			for (Character c : newParty) {
-				if (!party.contains(c)) changes.add(c);
-			}
-			for (Character c : changes) party.add(c);
+					changes = new HashSet<Character>();
+					for (Character c : newParty) {
+						if (!party.contains(c)) changes.add(c);
+					}
+					for (Character c : changes) party.add(c);
 		}
 	}
 
@@ -283,7 +291,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		dialog.setVisible(true);
 		if (dialog.isCancelled()) return;
 
-       	// Shows diffs and accept
+		// Shows diffs and accept
 		for (Character inChar : newparty) {
 			Character oldChar = dialog.getSelectedCharacter(inChar);
 			if (oldChar == null) {
@@ -318,19 +326,19 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 		file = fc.getSelectedFile();
 		setTitle("Assistant DM - "+file.getName());
-       	System.out.println("Opening "+file.getAbsolutePath());
+		System.out.println("Opening "+file.getAbsolutePath());
 
-       	CharacterLibrary.characters.clear();
-       	party = Party.parseXML(file);
+		CharacterLibrary.characters.clear();
+		party = Party.parseXML(file);
 
-       	int selected = tabbedPane.getSelectedIndex();
+		int selected = tabbedPane.getSelectedIndex();
 
-    	// FIXME rebuilding the ui is ugly - should be able to just replace the party
-       	tabbedPane.removeTabAt(0);	// combat
+		// FIXME rebuilding the ui is ugly - should be able to just replace the party
+		tabbedPane.removeTabAt(0);	// combat
 		tabbedPane.removeTabAt(0);	// rolls
 		tabbedPane.removeTabAt(0);	// party
 
-		JComponent panel; 
+		JComponent panel;
 		panel = new CombatPanel(party, library);
 		tabbedPane.insertTab("Combat", null, panel, "Initiative and Combat", 0);
 
@@ -340,7 +348,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		panel = new PartyPanel(party);
 		tabbedPane.insertTab("Party", null, panel, "Character Details", 2);
 
-       	tabbedPane.setSelectedIndex(selected);
+		tabbedPane.setSelectedIndex(selected);
 	}
 
 	// TODO saveAs should probably ask to overwrite and forget about backups
@@ -351,57 +359,57 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		fc.setSelectedFile(file);
 		int returnVal = fc.showSaveDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-        	file = fc.getSelectedFile();
-    		setTitle("Assistant DM - "+file.getName());
-        	System.out.println("Saving to "+file.getAbsolutePath());
-        	saveParty(file);
+			file = fc.getSelectedFile();
+			setTitle("Assistant DM - "+file.getName());
+			System.out.println("Saving to "+file.getAbsolutePath());
+			saveParty(file);
 		}
 	}
 
 	public void saveParty(File f) {
-        FileWriter outputStream = null;
+		FileWriter outputStream = null;
 
-        // check if file exists
-        if (f.exists()) {
-            String filename = f.getName();
-        	String backName;
-        	if (filename.contains(".")) {
-        		backName = filename.substring(0,filename.lastIndexOf('.'));
-        		backName += "_backup";
-        		backName += filename.substring(filename.lastIndexOf('.'));
-        	} else {
-        		backName = filename + "_backup";
-        	}
-        	File back = new File(f.getParent(),backName);
-        	System.out.println("Writing backup to: "+back.getAbsolutePath());
-        	if (back.exists()) back.delete();
-        	File newF = f;
-        	f.renameTo(back);
-        	f = newF;
-        }
+		// check if file exists
+		if (f.exists()) {
+			String filename = f.getName();
+			String backName;
+			if (filename.contains(".")) {
+				backName = filename.substring(0,filename.lastIndexOf('.'));
+				backName += "_backup";
+				backName += filename.substring(filename.lastIndexOf('.'));
+			} else {
+				backName = filename + "_backup";
+			}
+			File back = new File(f.getParent(),backName);
+			System.out.println("Writing backup to: "+back.getAbsolutePath());
+			if (back.exists()) back.delete();
+			File newF = f;
+			f.renameTo(back);
+			f = newF;
+		}
 
-        try {
-//        	// old output implementation
-//        	outputStream = new FileWriter(f);
-//			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-//			outputStream.write(System.getProperty("line.separator"));
-//			outputStream.write(System.getProperty("line.separator"));
-//			outputStream.write(party.getXML("", "    "));
-//			outputStream.close();
-//			outputStream = null;
-//
-//			// new DOM based output
-//    		f = new File(f.getParent(), "party_new.xml");
-        	Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-        	doc.appendChild(party.getElement(doc));
-        	doc.setXmlStandalone(true);
-        	Transformer trans = TransformerFactory.newInstance().newTransformer();
-        	trans.setOutputProperty(OutputKeys.INDENT, "yes");
-        	trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        	outputStream = new FileWriter(f);
-        	trans.transform(new DOMSource(doc), new StreamResult(outputStream));
+		try {
+			//        	// old output implementation
+			//        	outputStream = new FileWriter(f);
+			//			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+			//			outputStream.write(System.getProperty("line.separator"));
+			//			outputStream.write(System.getProperty("line.separator"));
+			//			outputStream.write(party.getXML("", "    "));
+			//			outputStream.close();
+			//			outputStream = null;
+			//
+			//			// new DOM based output
+			//    		f = new File(f.getParent(), "party_new.xml");
+			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			doc.appendChild(party.getElement(doc));
+			doc.setXmlStandalone(true);
+			Transformer trans = TransformerFactory.newInstance().newTransformer();
+			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			outputStream = new FileWriter(f);
+			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
 
-        } catch (IOException ex) {
+		} catch (IOException ex) {
 			ex.printStackTrace();
 		} catch (TransformerConfigurationException e) {
 			e.printStackTrace();
@@ -430,7 +438,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		try {
 			fis = new FileInputStream(filename);
 			in = new ObjectInputStream(fis);
-			panel = new ShoppingPanel(in); 
+			panel = new ShoppingPanel(in);
 			in.close();
 		} catch (FileNotFoundException e) {
 			System.out.println("No shops file found");
@@ -447,9 +455,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 
 	public void saveCombat() {
 		String filename = "combat.xml";
-        FileWriter outputStream = null;
+		FileWriter outputStream = null;
 
-        try {
+		try {
 			outputStream = new FileWriter(filename);
 			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			outputStream.write(System.getProperty("line.separator"));
@@ -482,6 +490,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		}
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == saveItem) {
 			if (file != null) saveParty(file);
@@ -499,8 +508,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		} else if (e.getSource() == openItem) {
 			openParty();
 
-		} else if (e.getSource() == tableItem) {
-			showDigitalTableController();
+			//		} else if (e.getSource() == tableItem) {
+			//			showDigitalTableController();
 
 		} else if (e.getSource() == xpItem) {
 			calculateXP();
@@ -541,13 +550,20 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		}
 	}
 
+	@Override
 	public void windowActivated(WindowEvent e) {}
+	@Override
 	public void windowClosed(WindowEvent e) {}
+	@Override
 	public void windowDeactivated(WindowEvent e) {}
+	@Override
 	public void windowDeiconified(WindowEvent e) {}
+	@Override
 	public void windowIconified(WindowEvent e) {}
+	@Override
 	public void windowOpened(WindowEvent e) {}
 
+	@Override
 	public void windowClosing(WindowEvent e) {
 		exit();
 	}
