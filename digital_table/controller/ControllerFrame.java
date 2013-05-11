@@ -36,12 +36,15 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import camera.CameraPanel;
+
 import combat.CombatPanel;
 import combat.InitiativeListener;
 
 import digital_table.elements.Browser;
 import digital_table.elements.BrowserLocal;
 import digital_table.elements.BrowserRemote;
+import digital_table.elements.Callibrate;
 import digital_table.elements.DarknessMask;
 import digital_table.elements.Grid;
 import digital_table.elements.Group;
@@ -58,69 +61,6 @@ import digital_table.elements.SpreadTemplate;
 import digital_table.elements.Token;
 import digital_table.server.TableDisplay;
 
-/* TODO main priorities:
- * BUG Issue with image scaling before remote visible
- * Allow multi-select and grouping in tree
- * Improve Tokens element: hps/status, floating label, rotate labels with token
- * Implement Creature Size
- * Camera integration
- * Refactor common utility methods into MapElement (e.g. template creation)
- * Alternate button dragging (e.g. resize)
- * Recalibrate - could be done using screen bounds element
- * Auto configure - set defaults according to OS screen layout
- * Load/Save
- * Fix MapImage so that rotation preseves scale
- * Make line and spread templates editable?
- * Swarm Token (editable token with replicated painting)
- * Zoomed view on controller
- * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
- * Convert MapElements to use location property instead of X and Y properties - will reduce dragging code in OptionsPanel subclasses
- * dice roller element?
- * thrown object scatter?
- */
-
-/* grouping:
- * General grouping e.g. for encounter (images, tokens, perhaps darkness and templates)
- *  - grouped in interface but maintain display order
- *  - don't need to drag group
- *  - visibility: show/hide group, probably don't need alpha
- *  > maybe better to use load/save of selected elements
- * 
- * Token grouping
- *  - grouped in interface and can be painted together
- *  - don't need to drag group
- *  - visibility: show/hide group - useful to have independent setting from individual tokens though that could be confusing
- *  - override alpha, colour, perhaps status settings, image
- *  - if templates can be attached to token then painting order needs to be maintained
- *  - also want to be able to attach light sources
- *  > could be implemented purely in interface except show/hide would have to override
- * 
- * Darkness mask light sources
- *  - grouped in interface, painted as part of darkness mask (no independent painting)
- *  - visibility: not independent of darkness mask
- *  - no override of properties or dragging of group
- *  - note: can be attached to token and dragged with token
- *  > needs to be implemented in darkness mask element
- * 
- * Attached label
- *  - grouped in interface or attached to element's ui but not shown in list. can be painted with attached element
- *  - visibility: parent element should override. could have independent visibility and combined alpha
- *  - label must drag with parent
- *  > could implement as property on elements like token, template
- * 
- * imlpementations:
- * UI only implementation:
- *  - easy to override properties
- *  - drag can be done
- *  - hard to show/hide group without overiding children's visibility setting
- *  - can't support light sources
- * 
- * Full implementation with any element as child:
- *  - hard to determine what properties can be overidden
- *  - might need to restrict types of children for specific parent types
- *  - drag needs to determine if children support it
- */
-
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
 @SuppressWarnings("serial")
@@ -128,6 +68,7 @@ public class ControllerFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private TableDisplay display;
+	private CameraPanel camera;
 	private MiniMapPanel miniMapPanel = new MiniMapPanel();
 	private JPanel elementPanel = new JPanel();
 	private Map<MapElement, OptionsPanel> optionPanels = new HashMap<MapElement, OptionsPanel>();
@@ -137,8 +78,9 @@ public class ControllerFrame extends JFrame {
 	//private DefaultListModel elements;
 	private Grid grid;
 
-	public ControllerFrame(TableDisplay remote) {
+	public ControllerFrame(TableDisplay remote, CameraPanel camera) {
 		super("DigitalTable Controller");
+		this.camera = camera;
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(windowListener);
 
@@ -152,6 +94,7 @@ public class ControllerFrame extends JFrame {
 		AddElementAction<?>[] availableElements = {
 				tokenAction,
 				imageElementAction,
+				cameraImageAction,
 				templateAction,
 				lineAction,
 				shapeableAction,
@@ -162,7 +105,8 @@ public class ControllerFrame extends JFrame {
 				initiativeAction,
 				browserAction,
 				groupAction,
-				screensAction
+				screensAction,
+				callibrateAction
 		};
 		availableList = new JList(availableElements);
 		availableList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -519,7 +463,7 @@ public class ControllerFrame extends JFrame {
 			if (chooser.showOpenDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
 				try {
 					File f = chooser.getSelectedFile();
-					byte bytes[] = new byte[(int) f.length()];
+					byte[] bytes = new byte[(int) f.length()];
 					FileInputStream stream = new FileInputStream(f);
 					stream.read(bytes);
 					MapImage mapImage = new MapImage(bytes, f.getName());
@@ -765,6 +709,44 @@ public class ControllerFrame extends JFrame {
 		@Override
 		protected PersonalEmanationOptionsPanel createOptionsPanel(PersonalEmanation e) {
 			return new PersonalEmanationOptionsPanel(e, display);
+		}
+	};
+
+	private AddElementAction<Callibrate> callibrateAction = new AddElementAction<Callibrate>("Callibrate") {
+		@Override
+		protected Callibrate createElement(MapElement parent) {
+			Callibrate cal = new Callibrate();
+			if (sendElement(cal, parent)) {
+				return cal;
+			}
+			return null;
+		}
+
+		@Override
+		protected CallibrateOptionsPanel createOptionsPanel(Callibrate e) {
+			return new CallibrateOptionsPanel(e, display);
+		}
+	};
+
+	private AddElementAction<MapImage> cameraImageAction = new AddElementAction<MapImage>("Camera Image") {
+		@Override
+		protected MapImage createElement(MapElement parent) {
+			if (camera == null) return null;
+			MapImage remote = new MapImage("Camera");
+			remote.setProperty(MapImage.PROPERTY_ROTATIONS, 1);
+			remote.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
+			remote.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
+			remote.setProperty(MapImage.PROPERTY_Y, -1.0d);
+			if (sendElement(remote, parent)) {
+				return remote;
+			}
+			return null;
+		}
+
+		@Override
+		protected CameraOptionsPanel createOptionsPanel(MapImage e) {
+			if (camera == null) return null;
+			return new CameraOptionsPanel(e, display, camera);
 		}
 	};
 }

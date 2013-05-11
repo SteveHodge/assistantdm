@@ -38,10 +38,11 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_Y = "y";	// double
 	public final static String PROPERTY_CLEARCELL = "clear";	// Point - when this property is set the specified cell will be cleared
 	public final static String PROPERTY_UNCLEARCELL = "unclear";	// Point - when this property is set the specified cell will be shown again
+	public final static String PROPERTY_IMAGE = "image";	// byte[]
 
 	protected transient BufferedImage sourceImage = null;
 	protected transient BufferedImage rotatedImage = null;
-	byte[] bytes;	// used to store the raw bytes so we can be serialised
+	byte[] bytes = null;	// used to store the raw bytes so we can be serialised
 
 	// position in grid coordinate-space:
 	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
@@ -68,9 +69,18 @@ public class MapImage extends MapElement {
 
 	List<Point> cleared = new ArrayList<Point>();
 
-	public MapImage(byte[] b, String label) throws IOException {
+	public MapImage(String label) {
+		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
+	}
+
+	public MapImage(byte[] b, String label) {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
 		bytes = b;
+	}
+
+	protected MapImage(int id, String label) {
+		super(id);
+		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
 	}
 
 	@Override
@@ -79,13 +89,19 @@ public class MapImage extends MapElement {
 	}
 
 	protected void createRotatedImage() {
-		if (sourceImage == null) {
+		if (sourceImage == null && bytes != null) {
 			//			sourceImage = ImageIO.read(f);
 			//			if (label == null) setLabel(f.getName());
 			try {
 				ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 				sourceImage = ImageIO.read(stream);
 				// we could now drop the bytes array at the cost of no longer being serializable
+				// TODO strictly speaking we should calculate the bottom right corner and then use that to determine the size
+				if (width.getValue() == 0 || height.getValue() == 0) {
+					Point2D size = canvas.getRemoteGridCellCoords(sourceImage.getWidth(), sourceImage.getHeight());
+					width.setValue(size.getX());
+					height.setValue(size.getY());
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -104,10 +120,11 @@ public class MapImage extends MapElement {
 			g2d.dispose();
 
 			// get the dimensions in grid-coordinate space of the remote display:
-			// TODO strictly speaking we should calculate the bottom left corner and then use that to determine the size
-			Point2D size = canvas.getRemoteGridCellCoords(rotatedImage.getWidth(), rotatedImage.getHeight());
-			width.setValue(size.getX());
-			height.setValue(size.getY());
+			// TODO setting sizes here means we lose any user set size which is not what we want - but we should swap the values if we've rotated 90 degrees
+			// TODO strictly speaking we should calculate the bottom right corner and then use that to determine the size
+//			Point2D size = canvas.getRemoteGridCellCoords(rotatedImage.getWidth(), rotatedImage.getHeight());
+//			width.setValue(size.getX());
+//			height.setValue(size.getY());
 		}
 	}
 
@@ -182,6 +199,12 @@ public class MapImage extends MapElement {
 			setCleared((Point)value, true);
 		} else if (property.equals(PROPERTY_UNCLEARCELL)) {
 			setCleared((Point)value, false);
+		} else if (property.equals(PROPERTY_IMAGE)) {
+			bytes = (byte[]) value;
+			sourceImage = null;
+			rotatedImage = null;
+			canvas.repaint();
+
 		} else {
 			super.setProperty(property, value);
 		}

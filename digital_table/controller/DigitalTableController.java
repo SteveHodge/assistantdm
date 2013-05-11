@@ -8,6 +8,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import javafx.application.Platform;
+import camera.CameraPanel;
 import digital_table.server.TableDisplay;
 
 /*
@@ -17,6 +18,7 @@ import digital_table.server.TableDisplay;
 
 public class DigitalTableController {
 	TableDisplay display;
+	CameraPanel camera;
 
 	public DigitalTableController() {
 		this("corto");
@@ -24,6 +26,12 @@ public class DigitalTableController {
 	}
 
 	public DigitalTableController(String server) {
+		this(server, null);
+	}
+
+	public DigitalTableController(String server, CameraPanel camera) {
+		this.camera = camera;
+
 		try {
 			String name = "TableDisplay";
 			Registry registry = LocateRegistry.getRegistry(server);
@@ -71,7 +79,7 @@ public class DigitalTableController {
 				}
 			}
 			display.showScreens(f.screenNums,DisplayConfig.defaultLocations);
-			ControllerFrame controller = new ControllerFrame(display);
+			ControllerFrame controller = new ControllerFrame(display, camera);
 			controller.addWindowListener(new WindowListener() {
 				@Override
 				public void windowClosed(WindowEvent arg0) {

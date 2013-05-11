@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 
 import swing.ImagePanel;
 
+//TODO obsolete and unused
 
 @SuppressWarnings("serial")
 public class CameraMonitorPanel extends JPanel implements ImageScanListener {
@@ -33,7 +34,7 @@ public class CameraMonitorPanel extends JPanel implements ImageScanListener {
 
 	public CameraMonitorPanel() {
 		area = new JTextArea(20,40);
-		JScrollPane scrollPane = new JScrollPane(area); 
+		JScrollPane scrollPane = new JScrollPane(area);
 		area.setEditable(false);
 
 		BufferedImage image = null;
@@ -43,7 +44,7 @@ public class CameraMonitorPanel extends JPanel implements ImageScanListener {
 			System.err.println("Can't read image file "+destination);
 		}
 		imagePanel = new ImagePanel(image);
-		JScrollPane scrollPane2 = new JScrollPane(imagePanel); 
+		JScrollPane scrollPane2 = new JScrollPane(imagePanel);
 
 		//Create a split pane with the two scroll panes in it.
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -67,6 +68,7 @@ public class CameraMonitorPanel extends JPanel implements ImageScanListener {
 		cameraThread.start();
 	}
 
+	@Override
 	public void imageFound(final ImageScanEvent e) {
 		try {
 			final BufferedImage image = ImageIO.read(e.getImageFile());
@@ -77,6 +79,7 @@ public class CameraMonitorPanel extends JPanel implements ImageScanListener {
 			// CameraMonitor has it's own thread but we need to make these changes from the
 			// AWT event thread
 			SwingUtilities.invokeLater(new Runnable() {
+				@Override
 				public void run() {
 					area.append(logMsg);
 					imagePanel.setImage(image);

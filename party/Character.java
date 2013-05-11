@@ -41,39 +41,6 @@ import org.w3c.dom.ProcessingInstruction;
 import ui.CharacterBuffsPanel.BuffListModel;
 import util.Updater;
 
-// TODO priorities:
-// properties for statistics: bab, convert temp hps
-// ability checks
-// enum conversions - property and statistics types
-// feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
-// clean up handling of HPs, wounds, healing etc, particularly ui
-// review Statistics vs Properties
-// ui for adding adhoc modifiers
-// size
-// equipment, particularly magic item slots, armor, weapons
-
-// TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac
-// TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
-// that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
-// TODO need to review how properties work on Character and BoundIntegerField
-// TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
-
-/* Things to implement:
- *  (in progress) Feats
- *  (in progress) Grapple modifier
- *  Ability score checks
- *  Class levels
- *  Spell lists / spells per day
- *  Damage reduction
- *  Spell resistance
- *  Magic items slots
- *  Weight/encumberance
- *  Skill synergies
- *  Skill named versions (Crafting, Profession etc)
- *  Size
- *  Speed
- */
-
 /**
  * @author Steve
  *
@@ -90,6 +57,7 @@ public class Character extends Creature {
 		DODGE("Dodge"),
 		OTHER("Misc");
 		
+		@Override
 		public String toString() {return description;}
 
 		private ACComponentType(String d) {description = d;}
@@ -217,6 +185,7 @@ public class Character extends Creature {
 	}
 
 	protected PropertyChangeListener statListener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getSource() == hps) {
 				firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
@@ -276,6 +245,7 @@ public class Character extends Creature {
 			final AbilityScore s = new AbilityScore(t);
 			s.addPropertyChangeListener(statListener);
 			s.getModifier().addPropertyChangeListener(new PropertyChangeListener() {
+				@Override
 				public void propertyChange(PropertyChangeEvent e) {
 					//System.out.println(PROPERTY_ABILITY_PREFIX+s.getName()+": "+e.getOldValue()+" -> "+ e.getNewValue());
 			        firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue());
@@ -308,14 +278,17 @@ public class Character extends Creature {
 		attacks.addPropertyChangeListener(statListener);
 	}
 
+	@Override
 	public String toString() {
 		return name;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public void setName(String name) {
 		System.out.println("Setting Name");
 		throw new UnsupportedOperationException();
@@ -454,6 +427,7 @@ public class Character extends Creature {
 //------------------- Initiative -------------------
 // Initiative has a total value, a base value and is modified by dexterity
 
+	@Override
 	public int getInitiativeModifier() {
 		return initiative.getValue();
 	}
@@ -462,6 +436,7 @@ public class Character extends Creature {
 		return initiative.getBaseValue();
 	}
 
+	@Override
 	public void setInitiativeModifier(int i) {
 		initiative.setBaseValue(i);
 	}
@@ -519,26 +494,32 @@ public class Character extends Creature {
 // Hit points have a maximum value, wounds taken, non-lethal taken and a calculated
 // current value
 
+	@Override
 	public int getMaximumHitPoints() {
 		return hps.getMaximumHitPoints();
 	}
 
+	@Override
 	public void setMaximumHitPoints(int hp) {
 		hps.setMaximumHitPoints(hp);
 	}		
 
+	@Override
 	public int getWounds() {
 		return hps.getWounds();
 	}
 
+	@Override
 	public void setWounds(int i) {
 		hps.setWounds(i);
 	}
 
+	@Override
 	public int getNonLethal() {
 		return hps.getNonLethal();
 	}
 
+	@Override
 	public void setNonLethal(int i) {
 		hps.setNonLethal(i);
 	}
@@ -575,6 +556,7 @@ public class Character extends Creature {
     * 
     * @return current total ac
     */
+	@Override
 	public int getAC() {
 		return getAC(true);
 	}
@@ -591,6 +573,7 @@ public class Character extends Creature {
     * 
     * @return current flat-footed ac
     */
+	@Override
 	public int getFlatFootedAC() {
 		return getFlatFootedAC(true);
 	}
@@ -607,6 +590,7 @@ public class Character extends Creature {
     * 
     * @return current touch ac
     */
+	@Override
 	public int getTouchAC() {
 		return getTouchAC(true);
 	}
@@ -622,6 +606,7 @@ public class Character extends Creature {
     * 
     * @param ac the score to set the full ac to
     */
+	@Override
 	public void setAC(int tempac) {
 		if (hasTempTouch) {
 			int totAC = getAC(false);
@@ -643,6 +628,7 @@ public class Character extends Creature {
     * 
     * @param ac the score to set the touch ac to
     */
+	@Override
 	public void setTouchAC(int tempac) {
 		if (hasTempTouch) {
 			int totAC = getTouchAC(false);
@@ -664,6 +650,7 @@ public class Character extends Creature {
     * 
     * @param ac the score to set the flat-footed ac to
     */
+	@Override
 	public void setFlatFootedAC(int tempac) {
 		if (hasTempFF) {
 			int totAC = getFlatFootedAC(false);
@@ -1296,6 +1283,7 @@ public class Character extends Creature {
 	}
 
 	// TODO not sure this is right for ability scores. probably needs reimplementing now
+	@Override
 	public Object getProperty(String prop) {
 		if (prop.equals(PROPERTY_NAME)) return name;
 		if (prop.equals(PROPERTY_PLAYER)) return player;
@@ -1375,6 +1363,7 @@ public class Character extends Creature {
 		return null;
 	}
 
+	@Override
 	public void setProperty(String prop, Object value) {
 		if (prop.equals(PROPERTY_NAME)) setName((String)value);
 		if (prop.equals(PROPERTY_PLAYER)) setPlayer((String)value);
@@ -1556,6 +1545,7 @@ public class Character extends Creature {
 		e = doc.createElement("Skills");
 		ArrayList<SkillType> set = new ArrayList<SkillType>(getSkills());
 		Collections.sort(set, new Comparator<SkillType>() {
+			@Override
 			public int compare(SkillType o1, SkillType o2) {
 				return o1.getName().compareTo(o2.getName());
 			}

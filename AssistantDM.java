@@ -73,6 +73,69 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 import digital_table.server.TableDisplay;
 
+/* TODO current priorities:
+ * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
+ * Save/Load display state, perhaps global preferences
+ * EOS camera support + refactoring of camera library
+ * Magic items and/or allow addition of custom modifiers
+ * Detect token movement
+ * Improve character sheet - show extra attacks, show current effects, tool tips for calculations
+ */
+
+//TODO priorities:
+//properties for statistics: bab, convert temp hps
+//ability checks
+//enum conversions - property and statistics types
+//feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
+//clean up handling of HPs, wounds, healing etc, particularly ui
+//review Statistics vs Properties
+//ui for adding adhoc modifiers
+//size
+//equipment, particularly magic item slots, armor, weapons
+
+//TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac
+//TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
+//that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
+//TODO need to review how properties work on Character and BoundIntegerField
+//TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
+
+/* Things to implement:
+ *  (in progress) Feats
+ *  (in progress) Grapple modifier
+ *  Ability score checks
+ *  Class levels
+ *  Spell lists / spells per day
+ *  Damage reduction
+ *  Spell resistance
+ *  Magic items slots
+ *  Weight/encumberance
+ *  Skill synergies
+ *  Skill named versions (Crafting, Profession etc)
+ *  Size
+ *  Speed
+ */
+
+/* TODO digital table priorities:
+ * BUG Issue with image scaling before remote visible - fix handling of image size when image changes
+ * Allow multi-select and grouping in tree
+ * Improve Tokens element: hps/status, floating label, rotate labels with token
+ * Implement Creature Size
+ * Improve camera integration, fix ui for camera panel
+ * Refactor common utility methods into MapElement (e.g. template creation)
+ * Alternate button dragging (e.g. resize)
+ * Recalibrate - could be done using screen bounds element
+ * Auto configure - set defaults according to OS screen layout
+ * Load/Save
+ * Fix MapImage so that rotation preseves scale
+ * Make line and spread templates editable?
+ * Swarm Token (editable token with replicated painting)
+ * Zoomed view on controller
+ * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
+ * Convert MapElements to use location property instead of X and Y properties - will reduce dragging code in OptionsPanel subclasses
+ * dice roller element?
+ * thrown object scatter?
+ */
+
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
 //WISH refactor classes that should be in ui package
 //TODO add new party menu option, ask to save modified file
@@ -209,7 +272,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			System.out.println("Caught error: "+e);
 		}
 
-		new DigitalTableController() {
+		new DigitalTableController(AssistantDM.tableServer, cameraPanel) {
 			@Override
 			protected void quit() {
 			}

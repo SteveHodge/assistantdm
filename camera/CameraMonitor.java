@@ -9,12 +9,13 @@ import java.nio.channels.FileChannel;
 
 import javax.swing.event.EventListenerList;
 
+// TODO obsolete and unused
 /**
  * Periodically monitors a directory for files of the form prefixX.jpg where X is a number.
  * When a file of the specified type appears it is copied to the specified
  * destination and any registered action listeners are notified. Only the file with the
  * latest creation date is copied. Whether a file is copied or not the monitor sleeps for the
- * specified period before scanning the directory again.   
+ * specified period before scanning the directory again.
  * 
  * Files that match the specified pattern are renamed (prefixing 'done') in order to prevent
  * them being scanned again.
@@ -85,6 +86,7 @@ public class CameraMonitor implements Runnable {
 		}
 	}
 
+	@Override
 	public void run() {
 		while(true) {
 			//System.out.println("Camera Monitor scanning");
@@ -117,6 +119,7 @@ public class CameraMonitor implements Runnable {
 	 */
 	private File scanDirectory() {
 		File[] files = source.listFiles(new FilenameFilter() {
+			@Override
 			public boolean accept(File dir, String name) {
 				String lowerName = name.toLowerCase();
 				if (!lowerName.startsWith(prefix)) return false;
@@ -149,22 +152,22 @@ public class CameraMonitor implements Runnable {
 		return mostRecent;
 	}
 
-    public static void fileCopy( File in, File out ) throws IOException {
-    	FileChannel inChannel = new FileInputStream( in ).getChannel();
-    	FileChannel outChannel = new FileOutputStream( out ).getChannel();
-    	try {
-    		//  inChannel.transferTo(0, inChannel.size(), outChannel);      // original -- apparently has trouble copying large files on Windows
-	
-    		// magic number for Windows, 64Mb - 32Kb)
-    		int maxCount = (64 * 1024 * 1024) - (32 * 1024);
-    		long size = inChannel.size();
-    		long position = 0;
-    		while ( position < size ) {
-    			position += inChannel.transferTo( position, maxCount, outChannel );
-    		}
-    	} finally {
-    		if (inChannel != null) inChannel.close();
-    		if (outChannel != null) outChannel.close();
-    	}
+	public static void fileCopy( File in, File out ) throws IOException {
+		FileChannel inChannel = new FileInputStream( in ).getChannel();
+		FileChannel outChannel = new FileOutputStream( out ).getChannel();
+		try {
+			//  inChannel.transferTo(0, inChannel.size(), outChannel);      // original -- apparently has trouble copying large files on Windows
+
+			// magic number for Windows, 64Mb - 32Kb)
+			int maxCount = (64 * 1024 * 1024) - (32 * 1024);
+			long size = inChannel.size();
+			long position = 0;
+			while ( position < size ) {
+				position += inChannel.transferTo( position, maxCount, outChannel );
+			}
+		} finally {
+			if (inChannel != null) inChannel.close();
+			if (outChannel != null) outChannel.close();
+		}
 	}
 }

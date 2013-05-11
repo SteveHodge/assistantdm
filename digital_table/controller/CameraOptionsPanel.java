@@ -1,0 +1,93 @@
+package digital_table.controller;
+
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.rmi.RemoteException;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+
+import camera.CameraPanel;
+import digital_table.elements.MapElement;
+import digital_table.elements.MapImage;
+import digital_table.server.TableDisplay;
+
+public class CameraOptionsPanel extends OptionsPanel {
+	private static final long serialVersionUID = 1L;
+
+	private MapImage image;
+	private JSlider alphaSlider;
+	private CameraPanel camera;
+
+	public CameraOptionsPanel(MapImage img, TableDisplay r, CameraPanel cam) {
+		super(r);
+		image = img;
+		image.addPropertyChangeListener(listener);
+		this.camera = cam;
+
+		alphaSlider = createSliderControl(image, MapImage.PROPERTY_ALPHA);
+		JCheckBox visibleCheck = createCheckBox(image, MapElement.PROPERTY_VISIBLE, Mode.BOTH, "visible?");
+
+		JButton updateButton = new JButton("Update");
+		updateButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				byte[] bytes = camera.getLatestCorrectedImage();
+				try {
+					remote.setElementProperty(image.getID(), MapImage.PROPERTY_IMAGE, bytes);
+					remote.setElementProperty(image.getID(), MapImage.PROPERTY_WIDTH, 32.0d);
+					remote.setElementProperty(image.getID(), MapImage.PROPERTY_HEIGHT, 39.0d);
+					image.setProperty(MapImage.PROPERTY_IMAGE, bytes);
+					image.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
+					image.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		//@formatter:off
+		setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		add(visibleCheck, c);
+		c.gridy++; add(new JLabel("Transparency:"), c);
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1.0d;
+		c.gridx = 1;
+		c.gridy = 0;
+		c.gridy++; add(alphaSlider, c);
+		c.gridy++; add(updateButton, c);
+
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
+		c.gridx = 0;
+		c.gridy++;
+		c.gridwidth = 2;
+		add(new JPanel(), c);
+		//@formatter:on
+	}
+
+	@Override
+	public MapImage getElement() {
+		return image;
+	}
+
+	private PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
+		public void propertyChange(PropertyChangeEvent e) {
+			if (e.getPropertyName().equals(MapImage.PROPERTY_ALPHA)) {
+				alphaSlider.setValue((int) (100 * (Float) e.getNewValue()));
+			}
+		}
+	};
+}
