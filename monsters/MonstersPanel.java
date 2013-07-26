@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -34,16 +35,14 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.table.TableRowSorter;
 
-import party.CreatureLibrary;
-import party.Monster;
-
-import combat.CombatPanel;
+// TODO move listeners to inner classes
 
 @SuppressWarnings("serial")
 public class MonstersPanel extends JPanel implements MouseListener, HyperlinkListener {
@@ -53,10 +52,8 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 	Map<JComponent,RowFilter<MonstersTableModel,Integer>> filters = new HashMap<JComponent,RowFilter<MonstersTableModel,Integer>>();
 	Map<JComponent,Integer>filterCols = new HashMap<JComponent,Integer>();
 	URL baseURL;
-	CreatureLibrary library;
 
-	public MonstersPanel(CreatureLibrary l) {
-		library = l;
+	public MonstersPanel() {
 		File f = new File("html/monsters/");
 		try {
 			baseURL = f.toURI().toURL();
@@ -84,40 +81,41 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		add(createFilterPanel(),BorderLayout.NORTH);
 	}
 
-	protected void newFilter(JTextField field) {
-	    RowFilter<MonstersTableModel, Integer> rf = null;
-	    int col = filterCols.get(field);
-	    try {
-	        rf = RowFilter.regexFilter("(?i)" + field.getText(), col);	// slight hack to force case insensitive matching
-	    } catch (java.util.regex.PatternSyntaxException e) {
-	    	// if the expression doesn't parse then we ignore it
-	    }
-	    filters.put(field, rf);
-	    HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<RowFilter<MonstersTableModel, Integer>>(filters.values());
-	    if (set.contains(null)) set.remove(null);
-	    sorter.setRowFilter(RowFilter.andFilter(set));
+	private void newFilter(JTextField field) {
+		RowFilter<MonstersTableModel, Integer> rf = null;
+		int col = filterCols.get(field);
+		try {
+			rf = RowFilter.regexFilter("(?i)" + field.getText(), col);	// slight hack to force case insensitive matching
+		} catch (java.util.regex.PatternSyntaxException e) {
+			// if the expression doesn't parse then we ignore it
+		}
+		filters.put(field, rf);
+		HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<RowFilter<MonstersTableModel, Integer>>(filters.values());
+		if (set.contains(null)) set.remove(null);
+		sorter.setRowFilter(RowFilter.andFilter(set));
 	}
 
-	protected void newFilter(JComboBox combo) {
+	private void newFilter(JComboBox combo) {
 		if (combo.getSelectedItem().toString().equals("")) {
 			filters.remove(combo);
 		} else {
 			RowFilter<MonstersTableModel, Integer> rf = null;
-		    int col = filterCols.get(combo);
-		    try {
-		        rf = RowFilter.regexFilter("^"+combo.getSelectedItem().toString()+"$", col);	// XXX slight hack to force exact matching - could implement a more efficient filter
-		    } catch (java.util.regex.PatternSyntaxException e) {
-		    	// if the expression doesn't parse then we ignore it
-		    }
-		    filters.put(combo, rf);
+			int col = filterCols.get(combo);
+			try {
+				rf = RowFilter.regexFilter("^"+combo.getSelectedItem().toString()+"$", col);	// XXX slight hack to force exact matching - could implement a more efficient filter
+			} catch (java.util.regex.PatternSyntaxException e) {
+				// if the expression doesn't parse then we ignore it
+			}
+			filters.put(combo, rf);
 		}
-	    HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<RowFilter<MonstersTableModel, Integer>>(filters.values());
-	    if (set.contains(null)) set.remove(null);
-	    sorter.setRowFilter(RowFilter.andFilter(set));
+		HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<RowFilter<MonstersTableModel, Integer>>(filters.values());
+		if (set.contains(null)) set.remove(null);
+		sorter.setRowFilter(RowFilter.andFilter(set));
 
 	}
 
-	protected JPanel createFilterPanel() {
+	// TODO fix the use of Column.X.ordinal(): the fields should take the enum value not it's ordinal
+	private JPanel createFilterPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -126,25 +124,25 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		c.weightx = 1.0;
 		c.anchor = GridBagConstraints.LINE_START;
 
-		JTextField nameField = createFilterTextField(MonstersTableModel.COLUMN_NAME);
+		JTextField nameField = createFilterTextField(MonstersTableModel.Column.NAME.ordinal());
 		panel.add(new JLabel("Name:"),c);
 		c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL;
 		panel.add(nameField,c);
 
 //		JTextField sizeField = createFilterTextField(MonstersTableModel.COLUMN_SIZE);
-		JComboBox sizeField = createFilterCombo(MonstersTableModel.COLUMN_SIZE);
+		JComboBox sizeField = createFilterCombo(MonstersTableModel.Column.SIZE.ordinal());
 		c.gridx = 2; c.fill = GridBagConstraints.NONE;
 		panel.add(new JLabel("Size:"),c);
 		c.gridx = 3; c.fill = GridBagConstraints.HORIZONTAL;
 		panel.add(sizeField,c);
 
-		JTextField typeField = createFilterTextField(MonstersTableModel.COLUMN_TYPE);
+		JTextField typeField = createFilterTextField(MonstersTableModel.Column.TYPE.ordinal());
 		c.gridx = 0; c.gridy = 1; c.fill = GridBagConstraints.NONE;
 		panel.add(new JLabel("Type:"),c);
 		c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL;
 		panel.add(typeField,c);
 
-		JTextField environmentField = createFilterTextField(MonstersTableModel.COLUMN_ENVIRONMENT);
+		JTextField environmentField = createFilterTextField(MonstersTableModel.Column.ENVIRONMENT.ordinal());
 //		JComboBox environmentField = createFilterCombo(MonstersTableModel.COLUMN_ENVIRONMENT);
 		c.gridx = 2; c.fill = GridBagConstraints.NONE;
 		panel.add(new JLabel("Environment:"),c);
@@ -152,14 +150,14 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		panel.add(environmentField,c);
 
 //		JTextField crField = createFilterTextField(MonstersTableModel.COLUMN_CR);
-		JComboBox crField = createFilterCombo(MonstersTableModel.COLUMN_CR);
+		JComboBox crField = createFilterCombo(MonstersTableModel.Column.CR.ordinal());
 		c.gridx = 0; c.gridy = 2; c.fill = GridBagConstraints.NONE;
 		panel.add(new JLabel("CR:"),c);
 		c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL;
 		panel.add(crField,c);
 
 //		JTextField sourceField = createFilterTextField(MonstersTableModel.COLUMN_SOURCE);
-		JComboBox sourceField = createFilterCombo(MonstersTableModel.COLUMN_SOURCE);
+		JComboBox sourceField = createFilterCombo(MonstersTableModel.Column.SOURCE.ordinal());
 		c.gridx = 2; c.fill = GridBagConstraints.NONE;
 		panel.add(new JLabel("Source:"),c);
 		c.gridx = 3; c.fill = GridBagConstraints.HORIZONTAL;
@@ -168,7 +166,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		return panel;
 	}
 
-	protected JComboBox createFilterCombo(int col) {
+	private JComboBox createFilterCombo(int col) {
 		HashSet<String> optionSet = new HashSet<String>();
 		for (int row = 0; row < monsters.getRowCount(); row++) {
 			optionSet.add(monsters.getValueAt(row, col).toString());
@@ -179,32 +177,37 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		final JComboBox combo = new JComboBox(options);
 		filterCols.put(combo,col);
 		combo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				newFilter(combo);
 			}
 		});
 		return combo;
 	}
-	
-	protected JTextField createFilterTextField(int col) {
+
+	private JTextField createFilterTextField(int col) {
 		final JTextField field = new JTextField(30);
 		filterCols.put(field,col);
 		// add an ActionListener so we can filter when enter is pressed
 		field.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				newFilter(field);
 			}
 		});
 		// add a DocumentListener so we can filter on every keypress
 		field.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
 			public void changedUpdate(DocumentEvent arg0) {
 				newFilter(field);
 			}
 
+			@Override
 			public void insertUpdate(DocumentEvent arg0) {
 				newFilter(field);
 			}
 
+			@Override
 			public void removeUpdate(DocumentEvent arg0) {
 				newFilter(field);
 			}
@@ -212,6 +215,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		return field;
 	}
 
+	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (e.getClickCount() == 2) {
 			MonsterEntry me = monsters.getMonsterEntry(table.convertRowIndexToModel(table.getSelectedRow()));
@@ -221,7 +225,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 					url = new URL(me.url);
 				} catch (MalformedURLException e1) {
 					// try relative URL
-					url = new URL(baseURL, me.url); 
+					url = new URL(baseURL, me.url);
 				}
 				//System.out.println("URL: "+url);
 				JFrame frame = createMonsterFrame(me, url);
@@ -233,24 +237,23 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		}
 	}
 
-	static class AddMonsterButton extends JButton {
-		CreatureLibrary library;
+	private class AddMonsterButton extends JButton {
 		StatisticsBlock block;
-		public AddMonsterButton(String label, StatisticsBlock b, CreatureLibrary l) {
-			super(label);
-			library = l;
+
+		public AddMonsterButton(StatisticsBlock b) {
+			super("Add " + b.getName());
 			block = b;
 			addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					//System.out.println("Add "+block.getName());
-					library.add(Monster.createMonster(block));
-					CombatPanel.addMonster(block);
+					Window parentFrame = SwingUtilities.windowForComponent(MonstersPanel.this);
+					new AddMonsterDialog(parentFrame, block);
 				}
 			});
 		}
 	}
-	
-	public JFrame createMonsterFrame(MonsterEntry me, URL url) {
+
+	private JFrame createMonsterFrame(MonsterEntry me, URL url) {
 		String label = "Size: "+me.size + ", Type: "+me.type+", Environment: "+me.environment+", CR: "+me.cr;
 		JPanel buttons = new JPanel();
 		buttons.setLayout(new GridLayout(0,5));
@@ -260,7 +263,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 			f = new File(u.toURI());
 			List<StatisticsBlock> blocks = StatisticsBlock.parseFile(f);
 			for (StatisticsBlock block : blocks) {
-				JButton button = new AddMonsterButton("Add "+block.getName(), block, library);
+				JButton button = new AddMonsterButton(block);
 				buttons.add(button);
 			}
 		} catch (URISyntaxException e) {
@@ -287,7 +290,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		return frame;
 	}
 
-	public JEditorPane createWebPanel(URL url) {
+	private JEditorPane createWebPanel(URL url) {
 		JEditorPane p = new JEditorPane();
 		p.setEditable(false);
 		p.addHyperlinkListener(this);
@@ -299,6 +302,7 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		return p;
 	}
 
+	@Override
 	public void hyperlinkUpdate(HyperlinkEvent e) {
 		try{
 			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -326,9 +330,13 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 		}
 	}
 
+	@Override
 	public void mouseEntered(MouseEvent arg0) {}
+	@Override
 	public void mouseExited(MouseEvent arg0) {}
+	@Override
 	public void mousePressed(MouseEvent arg0) {}
+	@Override
 	public void mouseReleased(MouseEvent arg0) {}
 }
 

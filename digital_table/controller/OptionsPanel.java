@@ -28,11 +28,7 @@ import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 abstract public class OptionsPanel extends JPanel {
-	protected TableDisplay remote;
-
-	protected OptionsPanel(TableDisplay r) {
-		remote = r;
-	}
+	private TableDisplay remote;
 
 	protected enum Mode {
 		BOTH, LOCAL, REMOTE
@@ -44,6 +40,33 @@ abstract public class OptionsPanel extends JPanel {
 		PAINT	// dragging will trigger a click event on each mouse move
 	};
 
+	protected OptionsPanel(TableDisplay r) {
+		remote = r;
+	}
+
+	public abstract MapElement getElement();
+
+	protected void sendElement(MapElement e, MapElement parent) {
+		try {
+			if (parent == null) {
+				remote.addElement(e);
+			} else {
+				remote.addElement(e, parent.getID());
+			}
+		} catch (RemoteException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	protected void setRemote(int id, String property, Object value) {
+		try {
+			remote.setElementProperty(id, property, value);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	protected JTextField createIntegerControl(final MapElement element, final String property) {
 		return createIntegerControl(element, property, Mode.BOTH);
 	}
@@ -54,13 +77,9 @@ abstract public class OptionsPanel extends JPanel {
 		field.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				try {
-					int newValue = Integer.parseInt(field.getText());
-					if (mode != Mode.REMOTE) element.setProperty(property, newValue);
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newValue);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
+				int newValue = Integer.parseInt(field.getText());
+				if (mode != Mode.REMOTE) element.setProperty(property, newValue);
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, newValue);
 			}
 		});
 		return field;
@@ -72,14 +91,10 @@ abstract public class OptionsPanel extends JPanel {
 		field.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				try {
-					Integer newValue = null;
-					if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
-					if (mode != Mode.REMOTE) element.setProperty(property, newValue);
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newValue);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
+				Integer newValue = null;
+				if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
+				if (mode != Mode.REMOTE) element.setProperty(property, newValue);
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, newValue);
 			}
 		});
 		return field;
@@ -95,13 +110,9 @@ abstract public class OptionsPanel extends JPanel {
 		field.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				try {
-					double newRadius = Double.parseDouble(field.getText());
-					if (mode != Mode.REMOTE) element.setProperty(property, newRadius);
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newRadius);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
+				double newRadius = Double.parseDouble(field.getText());
+				if (mode != Mode.REMOTE) element.setProperty(property, newRadius);
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, newRadius);
 			}
 		});
 		return field;
@@ -121,14 +132,10 @@ abstract public class OptionsPanel extends JPanel {
 		colorPanel.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				try {
-					Color newColor = JColorChooser.showDialog(OptionsPanel.this, "Choose colour", (Color) element.getProperty(property));
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, newColor);
-					if (mode != Mode.REMOTE) element.setProperty(property, newColor);
-					colorPanel.setBackground(newColor);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
+				Color newColor = JColorChooser.showDialog(OptionsPanel.this, "Choose colour", (Color) element.getProperty(property));
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, newColor);
+				if (mode != Mode.REMOTE) element.setProperty(property, newColor);
+				colorPanel.setBackground(newColor);
 			}
 
 			@Override
@@ -160,15 +167,11 @@ abstract public class OptionsPanel extends JPanel {
 		alphaSlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				try {
-					JSlider slider = (JSlider) e.getSource();
-					float alpha = slider.getValue() / 100f;
-					if (mode != Mode.REMOTE) element.setProperty(property, alpha);
-					if (!slider.getValueIsAdjusting() && mode != Mode.LOCAL) {
-						remote.setElementProperty(element.getID(), property, alpha);
-					}
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
+				JSlider slider = (JSlider) e.getSource();
+				float alpha = slider.getValue() / 100f;
+				if (mode != Mode.REMOTE) element.setProperty(property, alpha);
+				if (!slider.getValueIsAdjusting() && mode != Mode.LOCAL) {
+					setRemote(element.getID(), property, alpha);
 				}
 			}
 		});
@@ -185,14 +188,10 @@ abstract public class OptionsPanel extends JPanel {
 		typeCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					JComboBox combo = (JComboBox) e.getSource();
-					Object selected = combo.getSelectedItem();
-					if (mode != Mode.REMOTE) element.setProperty(property, selected);
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, selected);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
+				JComboBox combo = (JComboBox) e.getSource();
+				Object selected = combo.getSelectedItem();
+				if (mode != Mode.REMOTE) element.setProperty(property, selected);
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, selected);
 			}
 		});
 		return typeCombo;
@@ -204,14 +203,10 @@ abstract public class OptionsPanel extends JPanel {
 		typeCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					JComboBox combo = (JComboBox) e.getSource();
-					Object selected = combo.getSelectedItem();
-					if (mode != Mode.REMOTE) element.setProperty(property, selected);
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, selected);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
+				JComboBox combo = (JComboBox) e.getSource();
+				Object selected = combo.getSelectedItem();
+				if (mode != Mode.REMOTE) element.setProperty(property, selected);
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, selected);
 			}
 		});
 		return typeCombo;
@@ -227,12 +222,8 @@ abstract public class OptionsPanel extends JPanel {
 		textField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					if (mode != Mode.REMOTE) element.setProperty(property, textField.getText());
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, textField.getText());
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
+				if (mode != Mode.REMOTE) element.setProperty(property, textField.getText());
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, textField.getText());
 			}
 		});
 		return textField;
@@ -251,13 +242,9 @@ abstract public class OptionsPanel extends JPanel {
 		check.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				try {
-					JCheckBox check = (JCheckBox) e.getSource();
-					if (mode != Mode.REMOTE) element.setProperty(property, check.isSelected());
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, check.isSelected());
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
+				JCheckBox check = (JCheckBox) e.getSource();
+				if (mode != Mode.REMOTE) element.setProperty(property, check.isSelected());
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, check.isSelected());
 			}
 		});
 		return check;
@@ -287,14 +274,10 @@ abstract public class OptionsPanel extends JPanel {
 		rotationsCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					JComboBox combo = (JComboBox) e.getSource();
-					int index = combo.getSelectedIndex();
-					if (mode != Mode.REMOTE) element.setProperty(property, index);
-					if (mode != Mode.LOCAL) remote.setElementProperty(element.getID(), property, index);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
+				JComboBox combo = (JComboBox) e.getSource();
+				int index = combo.getSelectedIndex();
+				if (mode != Mode.REMOTE) element.setProperty(property, index);
+				if (mode != Mode.LOCAL) setRemote(element.getID(), property, index);
 			}
 		});
 		return rotationsCombo;
@@ -303,8 +286,6 @@ abstract public class OptionsPanel extends JPanel {
 	public MapElementMouseListener getMouseListener() {
 		return null;
 	}
-
-	public abstract MapElement getElement();
 
 	abstract class DefaultDragger implements MapElementMouseListener {
 		boolean dragging = false;
@@ -316,12 +297,8 @@ abstract public class OptionsPanel extends JPanel {
 
 		void setTargetLocation(Point2D p) {
 			if (target == null) return;
-			try {
-				remote.setElementProperty(getElement().getID(), target, p);
-				getElement().setProperty(target, p);
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
+			setRemote(getElement().getID(), target, p);
+			getElement().setProperty(target, p);
 		}
 
 		Point2D getTargetLocation() {

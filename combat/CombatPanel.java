@@ -30,14 +30,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 
-import monsters.StatisticsBlock;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import party.CreatureLibrary;
+import party.Monster;
 import party.Party;
 import swing.ReorderableList;
 import swing.SpinnerCellEditor;
@@ -49,9 +47,8 @@ import xml.XMLUtils;
 
 @SuppressWarnings("serial")
 public class CombatPanel extends JPanel {
-	static CombatPanel combatPanel; 
-	
-	CreatureLibrary library;
+	static CombatPanel combatPanel;
+
 	Party party;
 	InitiativeListModel initiativeListModel;
 	EffectListModel effectsListModel;
@@ -64,30 +61,32 @@ public class CombatPanel extends JPanel {
 	public static CombatPanel getCombatPanel() {
 		return combatPanel;
 	}
-	
+
 	public InitiativeListModel getInitiativeListModel() {
 		return initiativeListModel;
 	}
-	
-	public CombatPanel(Party p, CreatureLibrary l) {
+
+	public CombatPanel(Party p) {
 		combatPanel = this;
-		library = l;
 		party = p;
 
 		initiativeListModel = new InitiativeListModel(party);
 		initiativeListModel.addListDataListener(new ListDataListener() {
+			@Override
 			public void contentsChanged(ListDataEvent arg0) {
 				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
 
+			@Override
 			public void intervalAdded(ListDataEvent arg0) {
 				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
 
+			@Override
 			public void intervalRemoved(ListDataEvent arg0) {
 				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
-			
+
 		});
 		JLayeredPane initiativeList = new ReorderableList(initiativeListModel);
 		JScrollPane listScroller = new JScrollPane(initiativeList);
@@ -137,6 +136,7 @@ public class CombatPanel extends JPanel {
 
 		JButton resetCombatButton = new JButton("Reset Combat");
 		resetCombatButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				initiativeListModel.reset();
 				round = 0;
@@ -147,6 +147,7 @@ public class CombatPanel extends JPanel {
 
 		JButton nextRoundButton = new JButton("Next Round");
 		nextRoundButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				// work from last to first to avoid issues when we remove entries
 				for (int i=effectsTableModel.getRowCount()-1; i >= 0; i--) {
@@ -160,6 +161,7 @@ public class CombatPanel extends JPanel {
 
 		JButton advanceTimeButton = new JButton("Advance Time");
 		advanceTimeButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				SelectTimeDialog dialog = new SelectTimeDialog(SwingUtilities.getWindowAncestor((JButton)e.getSource()));
 				dialog.setVisible(true);
@@ -178,6 +180,7 @@ public class CombatPanel extends JPanel {
 
 		JButton resetEffectsButton = new JButton("Reset Effects");
 		resetEffectsButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				effectsTableModel.clear();
 			}
@@ -222,14 +225,14 @@ public class CombatPanel extends JPanel {
 		return party.get(index).getName();
 	}
 
-	public static void addMonster(StatisticsBlock monster) {
-		combatPanel.initiativeListModel.addEntry(new MonsterCombatEntry(monster));
+	public static void addMonster(Monster m) {
+		combatPanel.initiativeListModel.addEntry(new MonsterCombatEntry(m));
 	}
 
 	public void parseXML(File xmlFile) {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			InputStream is = getClass().getClassLoader().getResourceAsStream("combat.xsd"); 
+			InputStream is = getClass().getClassLoader().getResourceAsStream("combat.xsd");
 			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 			//XMLUtils.printNode(dom, "");

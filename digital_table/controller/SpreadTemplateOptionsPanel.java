@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -18,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import digital_table.elements.MapElement;
 import digital_table.elements.SpreadTemplate;
 import digital_table.server.TableDisplay;
 
@@ -34,9 +34,11 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 	JTextField labelField;
 	JSlider alphaSlider;
 
-	public SpreadTemplateOptionsPanel(SpreadTemplate t, TableDisplay r) {
+	public SpreadTemplateOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		template = t;
+		template = new SpreadTemplate(4, 10, 10);
+		sendElement(template, parent);
+		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		template.addPropertyChangeListener(listener);
 
 		radiusField = createIntegerControl(template, SpreadTemplate.PROPERTY_RADIUS);
@@ -138,14 +140,10 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			try {
-				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_X, (int)p.getX());
-				remote.setElementProperty(template.getID(), SpreadTemplate.PROPERTY_Y, (int)p.getY());
-				template.setProperty(SpreadTemplate.PROPERTY_X, (int)p.getX());
-				template.setProperty(SpreadTemplate.PROPERTY_Y, (int)p.getY());
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
+			setRemote(template.getID(), SpreadTemplate.PROPERTY_X, (int) p.getX());
+			setRemote(template.getID(), SpreadTemplate.PROPERTY_Y, (int) p.getY());
+			template.setProperty(SpreadTemplate.PROPERTY_X, (int) p.getX());
+			template.setProperty(SpreadTemplate.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override

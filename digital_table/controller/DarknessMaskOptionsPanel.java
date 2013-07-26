@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -16,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 
 import digital_table.elements.DarknessMask;
+import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
@@ -25,9 +25,12 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 	JSlider alphaSlider;
 	JCheckBox lowLightCheck;
 
-	public DarknessMaskOptionsPanel(DarknessMask t, TableDisplay r) {
+	public DarknessMaskOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		darkness = t;
+		darkness = new DarknessMask();
+		darkness.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		sendElement(darkness, parent);
+		darkness.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
 		darkness.addPropertyChangeListener(listener);
 
 		colorPanel = createColorControl(darkness, DarknessMask.PROPERTY_COLOR);
@@ -92,14 +95,10 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 
 		protected void setMasked(Point p, boolean mask) {
 			darkness.setMasked(p, mask);
-			try {
-				if (mask) {
-					remote.setElementProperty(darkness.getID(), DarknessMask.PROPERTY_MASKCELL, p);
-				} else {
-					remote.setElementProperty(darkness.getID(), DarknessMask.PROPERTY_UNMASKCELL, p);
-				}
-			} catch (RemoteException e) {
-				e.printStackTrace();
+			if (mask) {
+				setRemote(darkness.getID(), DarknessMask.PROPERTY_MASKCELL, p);
+			} else {
+				setRemote(darkness.getID(), DarknessMask.PROPERTY_UNMASKCELL, p);
 			}
 		}
 

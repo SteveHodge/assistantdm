@@ -14,6 +14,7 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 
 import digital_table.elements.LineTemplate;
+import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
@@ -28,9 +29,11 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 	JTextField labelField;
 	JSlider alphaSlider;
 
-	public LineTemplateOptionsPanel(LineTemplate t, TableDisplay r) {
+	public LineTemplateOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		template = t;
+		template = new LineTemplate(18, 14, 21, 7);
+		sendElement(template, parent);
+		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		template.addPropertyChangeListener(listener);
 
 		xField = createIntegerControl(template, LineTemplate.PROPERTY_X);

@@ -6,35 +6,37 @@ import java.util.Random;
 
 public class HitDice {
 	public static java.util.Random rand = new Random();
-	
-	List<Integer> number = new ArrayList<Integer>();		// num of 0 means 1/2, -1 means 1/4
-	List<Integer> type = new ArrayList<Integer>();
-	List<Integer> modifier = new ArrayList<Integer>();
-	//List<Boolean> class_levels = new ArrayList<Boolean>();	// later might want to distinguish between HD from base creature and HD from class levels
 
-	protected HitDice() {}
+	private List<Integer> number = new ArrayList<Integer>();		// num of 0 means 1/2, -1 means 1/4
+	private List<Integer> type = new ArrayList<Integer>();
+	private List<Integer> modifier = new ArrayList<Integer>();
+
+	//private List<Boolean> class_levels = new ArrayList<Boolean>();	// later might want to distinguish between HD from base creature and HD from class levels
+
+	private HitDice() {
+	}
 
 	// num of 0 means 1/2, -1 means 1/4
-	public HitDice(int num, int type) {
+	private HitDice(int num, int type) {
 		this(num, type, 0);
 	}
 
 	// num of 0 means 1/2, -1 means 1/4
-	public HitDice(int num, int type, int mod) {
+	private HitDice(int num, int type, int mod) {
 		this.number.add(num);
 		this.type.add(type);
 		this.modifier.add(mod);
 	}
 
 	// returns the total modifier applied to all dice
-	public int getModifier() {
+	int getModifier() {
 		int mod = 0;
 		for (int m : modifier) mod += m;
-		return mod;
+				return mod;
 	}
 
 	// returns the total number of dice (any fractional components are treated as 1)
-	public int getNumber() {
+	int getNumber() {
 		int num = 0;
 		for (int n : number) {
 			if (n < 0) n = 1;
@@ -43,7 +45,7 @@ public class HitDice {
 		return num;
 	}
 
-	public int roll() {
+	int roll() {
 		int roll = 0;
 
 		for (int i = 0; i < number.size(); i++) {
@@ -66,6 +68,7 @@ public class HitDice {
 		return (roll < 1 ? 1 : roll);
 	}
 
+	@Override
 	public String toString() {
 		String s = "";
 		for (int i = 0; i < number.size(); i++) {
@@ -88,7 +91,7 @@ public class HitDice {
 
 	// parses a hitdice description. s can have any number of components separated by " plus ". each component has
 	// format [num]d<type>[+/-<mod>]. white space between components is ok. recognises 1/2 and 1/4 in num
-	public static HitDice parse(String s) {
+	static HitDice parse(String s) {
 		String[] rolls = s.split(" plus ");
 
 		HitDice dice = new HitDice();
@@ -101,7 +104,7 @@ public class HitDice {
 
 	// parses one component of a hitdice description
 	// format is [num]d<type>[+/-<mod>]. white space between components is ok. recognises 1/2 and 1/4 in num
-	protected void add(String s) {
+	private void add(String s) {
 		int n = 1;
 		int t;
 		int m = 0;
@@ -129,7 +132,7 @@ public class HitDice {
 		} else {
 			t = Integer.parseInt(s.trim());
 		}
-		
+
 		this.number.add(n);
 		this.type.add(t);
 		this.modifier.add(m);

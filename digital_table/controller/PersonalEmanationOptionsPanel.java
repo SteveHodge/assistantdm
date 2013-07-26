@@ -7,7 +7,6 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -15,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import digital_table.elements.MapElement;
 import digital_table.elements.PersonalEmanation;
 import digital_table.server.TableDisplay;
 
@@ -30,9 +30,11 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 	JTextField labelField;
 	JSlider alphaSlider;
 
-	public PersonalEmanationOptionsPanel(PersonalEmanation t, TableDisplay r) {
+	public PersonalEmanationOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		template = t;
+		template = new PersonalEmanation(2, 0, 0);
+		sendElement(template, parent);
+		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		template.addPropertyChangeListener(listener);
 
 		radiusField = createIntegerControl(template, PersonalEmanation.PROPERTY_RADIUS);
@@ -120,14 +122,10 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			try {
-				remote.setElementProperty(template.getID(), PersonalEmanation.PROPERTY_X, (int) p.getX());
-				remote.setElementProperty(template.getID(), PersonalEmanation.PROPERTY_Y, (int) p.getY());
-				template.setProperty(PersonalEmanation.PROPERTY_X, (int) p.getX());
-				template.setProperty(PersonalEmanation.PROPERTY_Y, (int) p.getY());
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
+			setRemote(template.getID(), PersonalEmanation.PROPERTY_X, (int) p.getX());
+			setRemote(template.getID(), PersonalEmanation.PROPERTY_Y, (int) p.getY());
+			template.setProperty(PersonalEmanation.PROPERTY_X, (int) p.getX());
+			template.setProperty(PersonalEmanation.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override

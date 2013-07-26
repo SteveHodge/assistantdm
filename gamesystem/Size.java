@@ -1,28 +1,92 @@
 package gamesystem;
 
-public class Size {
-	public enum Category {
-		FINE ("Fine"),
-		DIMINUTIVE ("Diminutive"),
-		TINY ("Tiny"),
-		SMALL ("Small"),
-		MEDIUM ("Medium"),
-		LARGE ("Large"),
-		HUGE ("Huge"),
-		GARGANTUAN ("Gargantuan"),
-		COLOSSAL ("Colossal");
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-		public String toString() {return description;}
-		
-		public static Category getCategory(String d) {
-			for (Category s : values()) {
-				if (s.toString().equals(d)) return s;
-			}
-			return null;		// TODO should throw exception
-		}
+public class Size extends Statistic {
+	private SizeCategory category = SizeCategory.MEDIUM;
+	private int space = SizeCategory.MEDIUM.getSpace();
+	private int reach = SizeCategory.MEDIUM.getReachTall();
 
-		private Category(String d) {description = d;}
-
-		private String description;		
+	public Size() {
+		super("Size");
 	}
+
+	// TODO should probably replace the modifier with an ImmutableModifier of enhancement type
+	@Override
+	public void addModifier(Modifier m) {
+		m.addPropertyChangeListener(listener);
+		modifiers.add(m);
+		SizeCategory newValue = getSize();
+		pcs.firePropertyChange("value", null, newValue);
+	}
+
+	// TODO should probably replace the modifier with an ImmutableModifier of enhancement type
+	@Override
+	public void removeModifier(Modifier m) {
+		modifiers.remove(m);
+		m.removePropertyChangeListener(listener);
+		SizeCategory newValue = getSize();
+		pcs.firePropertyChange("value", null, newValue);
+	}
+
+	public int getSpace() {
+		if (getModifiersTotal() == 0) return space;
+		if (space == category.getSpace()) return getSize().getSpace();	// standard space so use standard for changed size
+		// TODO adjust space based on change in size
+		return space;
+	}
+
+	public int getReach() {
+		if (getModifiersTotal() == 0) return reach;
+		if (reach == category.getReachTall()) return getSize().getReachTall();	// standard reach
+		if (reach == category.getReachLong()) return getSize().getReachLong();	// standard reach
+		// TODO adjust reach based on change in size
+		return reach;
+	}
+
+	public SizeCategory getBaseSize() {
+		return category;
+	}
+
+	public SizeCategory getSize() {
+		if (getModifiersTotal() == 0) return category;
+		return category.resize(getModifiersTotal());
+	}
+
+	public void setBaseSize(SizeCategory size) {
+		if (size == null) throw new NullPointerException("Size cannot be set to null");
+		category = size;
+		pcs.firePropertyChange("value", null, category);
+	}
+
+	public void setBaseSpace(int s) {
+		if (s < 0) throw new IllegalArgumentException("Space cannot be negative: " + s);
+		space = s;
+		pcs.firePropertyChange("space", null, space);
+	}
+
+	public void setBaseReach(int r) {
+		if (r < 0) throw new IllegalArgumentException("Reach cannot be negative: " + r);
+		reach = r;
+		pcs.firePropertyChange("reach", null, reach);
+	}
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("Size");
+		e.setAttribute("category", "" + category);
+		e.setAttribute("space", "" + space);
+		e.setAttribute("reach", "" + reach);
+		return e;
+	}
+
+	// TODO notify listeners?
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals("Size")) return;
+		category = SizeCategory.getSize(e.getAttribute("category"));
+		space = Integer.parseInt(e.getAttribute("space"));
+		reach = Integer.parseInt(e.getAttribute("reach"));
+	}
+
 }

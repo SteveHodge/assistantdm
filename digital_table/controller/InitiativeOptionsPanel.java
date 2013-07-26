@@ -6,7 +6,6 @@ import java.awt.GridBagLayout;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -15,7 +14,12 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import combat.CombatPanel;
+import combat.InitiativeListener;
+
 import digital_table.elements.Initiative;
+import digital_table.elements.Label;
+import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
@@ -29,9 +33,18 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 	JPanel colorPanel;
 	JPanel bgColorPanel;
 
-	public InitiativeOptionsPanel(Initiative init, TableDisplay r) {
+	public InitiativeOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		initiative = init;
+		initiative = new Initiative();
+		sendElement(initiative, parent);
+		initiative.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
+			@Override
+			public void initiativeUpdated(String text) {
+				initiative.setProperty(Label.PROPERTY_TEXT, text);
+				setRemote(initiative.getID(), Label.PROPERTY_TEXT, text);
+			}
+		});
 		initiative.addPropertyChangeListener(listener);
 
 		xField = createDoubleControl(initiative, Initiative.PROPERTY_X);
@@ -112,14 +125,10 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			try {
-				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_X, p.getX());
-				remote.setElementProperty(initiative.getID(), Initiative.PROPERTY_Y, p.getY());
-				initiative.setProperty(Initiative.PROPERTY_X, p.getX());
-				initiative.setProperty(Initiative.PROPERTY_Y, p.getY());
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
+			setRemote(initiative.getID(), Initiative.PROPERTY_X, p.getX());
+			setRemote(initiative.getID(), Initiative.PROPERTY_Y, p.getY());
+			initiative.setProperty(Initiative.PROPERTY_X, p.getX());
+			initiative.setProperty(Initiative.PROPERTY_Y, p.getY());
 		}
 
 		@Override

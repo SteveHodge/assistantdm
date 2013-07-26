@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -16,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import digital_table.elements.MapElement;
 import digital_table.elements.ShapeableTemplate;
 import digital_table.server.TableDisplay;
 
@@ -28,9 +28,11 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	JSlider alphaSlider;
 	JLabel remaining = new JLabel();
 
-	public ShapeableTemplateOptionsPanel(ShapeableTemplate t, TableDisplay r) {
+	public ShapeableTemplateOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		template = t;
+		template = new ShapeableTemplate();
+		sendElement(template, parent);
+		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		template.addPropertyChangeListener(listener);
 
 		colorPanel = createColorControl(template, ShapeableTemplate.PROPERTY_COLOR);
@@ -118,19 +120,11 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 			int y = (int)(gridloc.getY() + 0.5d);
 			Point p = new Point(x,y);
 			if (template.contains(p)) {
-				try {
-					remote.setElementProperty(template.getID(), ShapeableTemplate.PROPERTY_REMOVECUBE, p);
-					template.removeCube(p);
-				} catch (RemoteException e1) {
-					e1.printStackTrace();
-				}
+				setRemote(template.getID(), ShapeableTemplate.PROPERTY_REMOVECUBE, p);
+				template.removeCube(p);
 			} else {
-				try {
-					remote.setElementProperty(template.getID(), ShapeableTemplate.PROPERTY_ADDCUBE, p);
-					template.addCube(p);
-				} catch (RemoteException e1) {
-					e1.printStackTrace();
-				}
+				setRemote(template.getID(), ShapeableTemplate.PROPERTY_ADDCUBE, p);
+				template.addCube(p);
 			}
 		}
 

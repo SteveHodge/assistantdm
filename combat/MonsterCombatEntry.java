@@ -11,8 +11,6 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import monsters.StatisticsBlock;
-
 import org.w3c.dom.Element;
 
 import party.Creature;
@@ -28,11 +26,10 @@ public class MonsterCombatEntry extends CombatEntry {
 		createEntry();
 	}
 
-	public MonsterCombatEntry(StatisticsBlock stats) {
-		Monster m = Monster.createMonster(stats);
+	public MonsterCombatEntry(Monster m) {
 		creature = m;
 		createEntry();
-		if (m.getHTML() != null) setToolTipText(m.getHTML());
+		if (m.getStatsBlock() != null) setToolTipText(m.getStatsBlock().getHTML());
 		initBlank();
 	}
 
@@ -47,6 +44,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		createPanel();
 	}
 
+	@Override
 	protected JComponent createNameSection() {
 		JPanel section = new JPanel();
 		section.setLayout(new GridBagLayout());
@@ -63,24 +61,27 @@ public class MonsterCombatEntry extends CombatEntry {
 		nameField = new JTextField(20);
 		nameField.setText(creature.getName());
 		nameField.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
 			public void changedUpdate(DocumentEvent e) {
 				initBlank();
 				creature.setName(nameField.getText());
 				fireChange();
 			}
 
+			@Override
 			public void insertUpdate(DocumentEvent e) {
 				initBlank();
 				creature.setName(nameField.getText());
 				fireChange();
 			}
 
+			@Override
 			public void removeUpdate(DocumentEvent e) {
 				initBlank();
 				creature.setName(nameField.getText());
 				fireChange();
 			}
-			
+
 		});
 
 		c.gridx = GridBagConstraints.RELATIVE;
@@ -91,6 +92,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		return section;
 	}
 
+	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		super.propertyChange(evt);
 		if (evt.getPropertyName().equals("value")) {
@@ -114,6 +116,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		return c;
 	}
 
+	@Override
 	public String getXML(String indent, String nextIndent) {
 		StringBuilder b = new StringBuilder();
 		b.append(indent).append("<MonsterEntry name=\"").append(creature.getName());

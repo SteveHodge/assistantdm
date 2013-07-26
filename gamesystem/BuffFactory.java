@@ -2,10 +2,11 @@ package gamesystem;
 
 import gamesystem.Buff.Effect;
 import gamesystem.dice.HDDice;
-import party.Creature;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import party.Creature;
 
 
 /*
@@ -23,6 +24,7 @@ public class BuffFactory {
 		return b;
 	}
 
+	@Override
 	public String toString() {
 		return name;
 	}
@@ -102,6 +104,7 @@ public class BuffFactory {
 		return this;
 	}
 
+	//@formatter:off
 	public static BuffFactory[] buffs = {
 		(new BuffFactory("Shield Other"))
 			.addEffect(Creature.STATISTIC_AC,"Deflection",1)
@@ -222,7 +225,6 @@ public class BuffFactory {
 			.addEffect(Creature.STATISTIC_AC, "Deflection", 2, "vs lawful")
 			.addEffect(Creature.STATISTIC_SAVING_THROWS, "Resistance", 2, "vs lawful"),
 		(new BuffFactory("Mind Fog"))
-			//-10 comptence penalty to wisdom checks
 			.addEffect(Creature.STATISTIC_WILL_SAVE, "Competence", -10),
 		(new BuffFactory("Otto's Irresistable Dance"))
 			.addEffect(Creature.STATISTIC_AC, null, -4)
@@ -259,19 +261,19 @@ public class BuffFactory {
 			.addPenalty(Creature.STATISTIC_WISDOM, null, new HDDice(6), 0, 6)	// to min of 1
 			.addPenalty(Creature.STATISTIC_CHARISMA, null, new HDDice(6), 0, 6),	// to min of 1
 		(new BuffFactory("Enlarge Person"))
-			// increase size category
+			.addEffect(Creature.STATISTIC_SIZE,"Enhancement",1)
 			.addEffect(Creature.STATISTIC_STRENGTH,"Size",2)
 			.addEffect(Creature.STATISTIC_DEXTERITY,"Size",-2)
 			.addEffect(Creature.STATISTIC_AC,"Size",-1)
 			.addEffect(Creature.STATISTIC_ATTACKS,"Size",-1),
 		(new BuffFactory("Reduce Person"))
-			// reduce size category
+			.addEffect(Creature.STATISTIC_SIZE,"Enhancement",-1)
 			.addEffect(Creature.STATISTIC_STRENGTH,"Size",-2)
 			.addEffect(Creature.STATISTIC_DEXTERITY,"Size",2)
 			.addEffect(Creature.STATISTIC_AC,"Size",1)
 			.addEffect(Creature.STATISTIC_ATTACKS,"Size",1),
 		(new BuffFactory("Righteous Might"))
-			// increase size category
+			.addEffect(Creature.STATISTIC_SIZE,"Enhancement",1)
 			.addEffect(Creature.STATISTIC_STRENGTH,"Size",4)
 			.addEffect(Creature.STATISTIC_CONSTITUTION,"Size",2)
 			.addEffect(Creature.STATISTIC_NATURAL_ARMOR,"Enhancement",2)

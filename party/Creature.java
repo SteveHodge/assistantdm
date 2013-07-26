@@ -1,5 +1,7 @@
 package party;
 
+import gamesystem.SizeCategory;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
@@ -24,6 +26,9 @@ public abstract class Creature {
 	public final static String PROPERTY_XP = "XP";
 	public final static String PROPERTY_BAB = "BAB";
 
+	public final static String PROPERTY_SPACE = "Space";	// currently only a property on Monster
+	public final static String PROPERTY_REACH = "Reach";	// currently only a property on Monster
+
 	// informational string properties (these are simple values that can be set/retrieved)
 	public static final String PROPERTY_PLAYER = "Player";
 	public final static String PROPERTY_CLASS = "Class";
@@ -44,7 +49,7 @@ public abstract class Creature {
 	public final static String PROPERTY_SPELL_RESISTANCE = "Spell Resistance";
 	public final static String PROPERTY_ARCANE_SPELL_FAILURE = "Arcane Spell Failure";
 	public final static String PROPERTY_ACTION_POINTS = "Action Points";
-	
+
 	// statistics
 	// TODO should be combined with properties
 	public final static String STATISTIC_STRENGTH = "abilities.strength";
@@ -68,11 +73,12 @@ public abstract class Creature {
 	public final static String STATISTIC_LEVEL = "level";
 	public final static String STATISTIC_ATTACKS = "attacks";
 	public final static String STATISTIC_DAMAGE = "damage";
+	public final static String STATISTIC_SIZE = "size";
 
 	// The order of these needs to be the same as the ability enum in AbilityScore
 	public final static String[] STATISTIC_ABILITY = {STATISTIC_STRENGTH,STATISTIC_DEXTERITY,STATISTIC_CONSTITUTION,STATISTIC_INTELLIGENCE,STATISTIC_WISDOM,STATISTIC_CHARISMA};
 	// The order of these needs to be the same as the save enum in SavingThrow
-	public final static String[] STATISTIC_SAVING_THROW = {STATISTIC_FORTITUDE_SAVE,STATISTIC_REFLEX_SAVE,STATISTIC_WILL_SAVE}; 
+	public final static String[] STATISTIC_SAVING_THROW = {STATISTIC_FORTITUDE_SAVE,STATISTIC_REFLEX_SAVE,STATISTIC_WILL_SAVE};
 
 	// ************************* Non static members and methods **************************
 
@@ -111,12 +117,21 @@ public abstract class Creature {
 
 	abstract public int getAC();
 	abstract public void setAC(int ac);
-	
+
 	abstract public int getTouchAC();
 	abstract public void setTouchAC(int ac);
-	
+
 	abstract public int getFlatFootedAC();
 	abstract public void setFlatFootedAC(int ac);
+
+	abstract public SizeCategory getSize();
+	abstract public void setSize(SizeCategory s);
+
+	abstract public int getSpace();
+	abstract public void setSpace(int s);
+
+	abstract public int getReach();
+	abstract public void setReach(int r);
 
 	abstract public Object getProperty(String prop);
 	abstract public void setProperty(String prop, Object value);

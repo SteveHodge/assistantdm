@@ -9,6 +9,8 @@ import gamesystem.InitiativeModifier;
 import gamesystem.Level;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
+import gamesystem.Size;
+import gamesystem.SizeCategory;
 import gamesystem.Skill;
 import gamesystem.SkillType;
 import gamesystem.Skills;
@@ -56,7 +58,7 @@ public class Character extends Creature {
 		DEFLECTION("Deflection"),
 		DODGE("Dodge"),
 		OTHER("Misc");
-		
+
 		@Override
 		public String toString() {return description;}
 
@@ -65,60 +67,61 @@ public class Character extends Creature {
 		private final String description;
 	}
 
-	protected String name;
-	protected String classDescription;
-	protected String player;
-	protected String region;
-	protected String race;
-	protected String gender;
-	protected String alignment;
-	protected String deity;
-	protected String size;
-	protected String type;
-	protected String age;
-	protected String height;
-	protected String weight;
-	protected String eyeColour;
-	protected String hairColour;
-	protected String speed;
-	protected String damageReduction;
-	protected String spellResistance;
-	protected String arcaneSpellFailure;
-	protected String actionPoints;
+	private String name;
+	private String classDescription;
+	private String player;
+	private String region;
+	private String race;
+	private String gender;
+	private String alignment;
+	private String deity;
+	private String type;
+	private String age;
+	private String height;
+	private String weight;
+	private String eyeColour;
+	private String hairColour;
+	private String speed;
+	private String damageReduction;
+	private String spellResistance;
+	private String arcaneSpellFailure;
+	private String actionPoints;
 
-	protected InitiativeModifier initiative;
+	private InitiativeModifier initiative;
 
-	protected EnumMap<SavingThrow.Type,SavingThrow> saves = new EnumMap<SavingThrow.Type,SavingThrow>(SavingThrow.Type.class);
-	protected EnumMap<SavingThrow.Type,Modifier> saveMisc = new EnumMap<SavingThrow.Type,Modifier>(SavingThrow.Type.class);
-	
-	protected EnumMap<AbilityScore.Type,AbilityScore> abilities = new EnumMap<AbilityScore.Type,AbilityScore>(AbilityScore.Type.class);
+	private EnumMap<SavingThrow.Type, SavingThrow> saves = new EnumMap<SavingThrow.Type, SavingThrow>(SavingThrow.Type.class);
+	private EnumMap<SavingThrow.Type, Modifier> saveMisc = new EnumMap<SavingThrow.Type, Modifier>(SavingThrow.Type.class);
 
-	protected Skills skills;
+	private EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<AbilityScore.Type, AbilityScore>(AbilityScore.Type.class);
 
-//	protected Set<Feat> feats = new HashSet<Feat>();
+	private Skills skills;
 
-	protected HPs hps;
-	protected Level level; 
-	protected int xp = 0;
+//	private Set<Feat> feats = new HashSet<Feat>();
 
-	protected AC ac;
-	protected EnumMap<ACComponentType,Modifier> acMods = new EnumMap<ACComponentType,Modifier>(ACComponentType.class); // TODO should move to AC panel
-	protected int tempAC, tempTouch, tempFF;	// ac overrides
-	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
+	private HPs hps;
+	private Level level;
+	private int xp = 0;
 
-	protected Attacks attacks;
+	private AC ac;
+	private EnumMap<ACComponentType, Modifier> acMods = new EnumMap<ACComponentType, Modifier>(ACComponentType.class); // TODO should move to AC panel
+	private int tempAC, tempTouch, tempFF;	// ac overrides
+	private boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
+
+	private Attacks attacks;
+
+	private Size size;
 
 	public BuffListModel buffs = new BuffListModel();	// TODO reimplement for better encapsulation
 	public BuffListModel feats = new BuffListModel();	// TODO reimplement for better encapsulation
 
-	protected List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
+	private List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
 
-	protected boolean autoSave = false;
+	private boolean autoSave = false;
 
 	public class XPHistoryItem {
-		protected XPChange xpChange;
-		protected int total;
-		protected int index;
+		XPChange xpChange;
+		private int total;
+		private int index;
 
 		public int getTotal() {
 			return total;
@@ -184,11 +187,21 @@ public class Character extends Creature {
 		}
 	}
 
-	protected PropertyChangeListener statListener = new PropertyChangeListener() {
+	private PropertyChangeListener statListener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getSource() == hps) {
 				firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+				return;
+
+			} else if (evt.getSource() == size) {
+				if (evt.getPropertyName().equals("value")) {
+					firePropertyChange(PROPERTY_SIZE, evt.getOldValue(), evt.getNewValue());
+				} else if (evt.getPropertyName().equals("space")) {
+					firePropertyChange(PROPERTY_SPACE, evt.getOldValue(), evt.getNewValue());
+				} else if (evt.getPropertyName().equals("reach")) {
+					firePropertyChange(PROPERTY_REACH, evt.getOldValue(), evt.getNewValue());
+				}
 				return;
 			}
 
@@ -207,7 +220,7 @@ public class Character extends Creature {
 
 			} else if (evt.getSource() instanceof AbilityScore) {
 				AbilityScore score = (AbilityScore)evt.getSource();
-		        firePropertyChange(PROPERTY_ABILITY_PREFIX+score.getName(), evt.getOldValue(), evt.getNewValue());
+				firePropertyChange(PROPERTY_ABILITY_PREFIX+score.getName(), evt.getOldValue(), evt.getNewValue());
 
 			} else if (evt.getSource() instanceof Skill) {
 				Skill s = (Skill)evt.getSource();
@@ -248,7 +261,7 @@ public class Character extends Creature {
 				@Override
 				public void propertyChange(PropertyChangeEvent e) {
 					//System.out.println(PROPERTY_ABILITY_PREFIX+s.getName()+": "+e.getOldValue()+" -> "+ e.getNewValue());
-			        firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue());
+					firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue());
 				}
 			});
 			abilities.put(t, s);
@@ -276,6 +289,9 @@ public class Character extends Creature {
 
 		attacks = new Attacks(abilities.get(AbilityScore.Type.STRENGTH), abilities.get(AbilityScore.Type.DEXTERITY), this);
 		attacks.addPropertyChangeListener(statListener);
+
+		size = new Size();
+		size.addPropertyChangeListener(statListener);
 	}
 
 	@Override
@@ -312,60 +328,60 @@ public class Character extends Creature {
 //------------------- Ability Scores -------------------
 // Ability scores have a base value and can have an override value
 
-   /**
-	* Returns the current score of the specified ability. The current score
-	* is the temporary score if one has been set by setTemporaryAbility,
-	* otherwise it is base ability score
-	* 
-	* @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
-	* @return      the current score of the specified ability
-	*/
+	/**
+	 * Returns the current score of the specified ability. The current score
+	 * is the temporary score if one has been set by setTemporaryAbility,
+	 * otherwise it is base ability score
+	 * 
+	 * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
+	 * @return      the current score of the specified ability
+	 */
 	public int getAbilityScore(AbilityScore.Type type) {
 		return abilities.get(type).getValue();
 	}
 
-   /**
-    * Returns the base score of the specified ability. 
-    * 
-    * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
-    * @return      the base score of the specified ability
-    */
+	/**
+	 * Returns the base score of the specified ability.
+	 * 
+	 * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
+	 * @return      the base score of the specified ability
+	 */
 	public int getBaseAbilityScore(AbilityScore.Type type) {
 		return abilities.get(type).getBaseValue();
 	}
 
-   /**
-    * Returns the modifier calculated from the specified ability's current score.
-    * 
-    * @param type  the ability score to get the modifier of: one of the ABILITY constants from {@link Creature}
-    * @return      the modifier calculated from the current score of the specified ability
-    */
+	/**
+	 * Returns the modifier calculated from the specified ability's current score.
+	 * 
+	 * @param type  the ability score to get the modifier of: one of the ABILITY constants from {@link Creature}
+	 * @return      the modifier calculated from the current score of the specified ability
+	 */
 	public int getAbilityModifier(AbilityScore.Type type) {
 		return abilities.get(type).getModifierValue();
 	}
 
-   /**
-    * Sets the base score of the specified ability
-    * 
-    * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
-    * @param value the value to set the score to
-    */
+	/**
+	 * Sets the base score of the specified ability
+	 * 
+	 * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
+	 * @param value the value to set the score to
+	 */
 	public void setAbilityScore(AbilityScore.Type type, int value) {
 		abilities.get(type).setBaseValue(value);
 	}
 
-   /**
-    * Sets the temporary score of the specified ability. When a temporary score is set,
-    * <code>getAbilityScore</code> will return it rather than the base score and
-    * <code>getAbilityModifier</code> will calculate the modifier using the temporary
-    * score rather than the base score.
-    * <p>
-    * The temporary score can be removed by setting it to -1 or to the base score of
-    * the specified ability.
-    *  
-    * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
-    * @param value the value to set as the temporary score
-    */
+	/**
+	 * Sets the temporary score of the specified ability. When a temporary score is set,
+	 * <code>getAbilityScore</code> will return it rather than the base score and
+	 * <code>getAbilityModifier</code> will calculate the modifier using the temporary
+	 * score rather than the base score.
+	 * <p>
+	 * The temporary score can be removed by setting it to -1 or to the base score of
+	 * the specified ability.
+	 * 
+	 * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
+	 * @param value the value to set as the temporary score
+	 */
 	public void setTemporaryAbility(AbilityScore.Type type, int value) {
 		if (value != abilities.get(type).getBaseValue() && value >= 0) {
 			abilities.get(type).setOverride(value);
@@ -390,13 +406,13 @@ public class Character extends Creature {
 		return set;
 	}
 
-   /**
-    * Sets the specified skill to the specified total. Ranks in the skill are adjusted
-    * to achieve this.
-    * 
-    * @param skill  the skill to set
-    * @param value  the total value to set the skill to
-    */
+	/**
+	 * Sets the specified skill to the specified total. Ranks in the skill are adjusted
+	 * to achieve this.
+	 * 
+	 * @param skill  the skill to set
+	 * @param value  the total value to set the skill to
+	 */
 	public void setSkillTotal(SkillType skill, int value) {
 		int old = getSkillTotal(skill);
 		float ranks = getSkillRanks(skill) + value - old;
@@ -476,12 +492,12 @@ public class Character extends Creature {
 		}
 	}
 
-   /**
-    * Sets the saving throw total by modifying the base value.
-    * 
-    * @param save   the saving throw to set
-    * @param total  the total required
-    */
+	/**
+	 * Sets the saving throw total by modifying the base value.
+	 * 
+	 * @param save   the saving throw to set
+	 * @param total  the total required
+	 */
 	// TODO this is used by RollsPanel. it should probably be removed
 	public void setSavingThrow(SavingThrow.Type save, int total) {
 		int old = getSavingThrow(save);
@@ -502,7 +518,7 @@ public class Character extends Creature {
 	@Override
 	public void setMaximumHitPoints(int hp) {
 		hps.setMaximumHitPoints(hp);
-	}		
+	}
 
 	@Override
 	public int getWounds() {
@@ -550,62 +566,62 @@ public class Character extends Creature {
 		return 0;
 	}
 
-   /**
-    * Returns the temporary ac if there is one, otherwise calculates the total ac
-    * from the ac components
-    * 
-    * @return current total ac
-    */
+	/**
+	 * Returns the temporary ac if there is one, otherwise calculates the total ac
+	 * from the ac components
+	 * 
+	 * @return current total ac
+	 */
 	@Override
 	public int getAC() {
 		return getAC(true);
 	}
 
-	protected int getAC(boolean allowTemp) {
+	private int getAC(boolean allowTemp) {
 		if (allowTemp && hasTempAC) return tempAC;
 		return ac.getValue();
 	}
 
-   /**
-    * Returns the temporary flat-footed ac if there is one, otherwise calculates the
-    * flat-footed ac from the ac components with any positive dexterity modifier
-    * ignored.
-    * 
-    * @return current flat-footed ac
-    */
+	/**
+	 * Returns the temporary flat-footed ac if there is one, otherwise calculates the
+	 * flat-footed ac from the ac components with any positive dexterity modifier
+	 * ignored.
+	 * 
+	 * @return current flat-footed ac
+	 */
 	@Override
 	public int getFlatFootedAC() {
 		return getFlatFootedAC(true);
 	}
 
-	protected int getFlatFootedAC(boolean allowTemp) {
+	private int getFlatFootedAC(boolean allowTemp) {
 		if (allowTemp && hasTempFF) return tempFF;
 		return ac.getFlatFootedAC().getValue();
 	}
 
-   /**
-    * Returns the temporary touch ac if there is one, otherwise calculates the touch
-    * ac from the ac components with all armor, shield and natural armor bonuses
-    * ignored.
-    * 
-    * @return current touch ac
-    */
+	/**
+	 * Returns the temporary touch ac if there is one, otherwise calculates the touch
+	 * ac from the ac components with all armor, shield and natural armor bonuses
+	 * ignored.
+	 * 
+	 * @return current touch ac
+	 */
 	@Override
 	public int getTouchAC() {
 		return getTouchAC(true);
 	}
 
-	protected int getTouchAC(boolean allowTemp) {
+	private int getTouchAC(boolean allowTemp) {
 		if (allowTemp && hasTempTouch) return tempTouch;
 		return ac.getTouchAC().getValue();
 	}
 
-   /**
-    * Sets a temporary full ac score. Setting this to the normal value will remove
-    * the temporary score (as will <code>clearTemporaryAC()</code>)
-    * 
-    * @param ac the score to set the full ac to
-    */
+	/**
+	 * Sets a temporary full ac score. Setting this to the normal value will remove
+	 * the temporary score (as will <code>clearTemporaryAC()</code>)
+	 * 
+	 * @param ac the score to set the full ac to
+	 */
 	@Override
 	public void setAC(int tempac) {
 		if (hasTempTouch) {
@@ -622,12 +638,12 @@ public class Character extends Creature {
 		firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
-   /**
-    * Sets a temporary touch ac score. Setting this to the normal value will remove
-    * the temporary score (as will <code>clearTemporaryTouchAC()</code>
-    * 
-    * @param ac the score to set the touch ac to
-    */
+	/**
+	 * Sets a temporary touch ac score. Setting this to the normal value will remove
+	 * the temporary score (as will <code>clearTemporaryTouchAC()</code>
+	 * 
+	 * @param ac the score to set the touch ac to
+	 */
 	@Override
 	public void setTouchAC(int tempac) {
 		if (hasTempTouch) {
@@ -644,12 +660,12 @@ public class Character extends Creature {
 		firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
-   /**
-    * Sets a temporary flat-footed ac score. Setting this to the normal value will
-    * remove the temporary score (as will <code>clearTemporaryFlatFootedAC()</code>
-    * 
-    * @param ac the score to set the flat-footed ac to
-    */
+	/**
+	 * Sets a temporary flat-footed ac score. Setting this to the normal value will
+	 * remove the temporary score (as will <code>clearTemporaryFlatFootedAC()</code>
+	 * 
+	 * @param ac the score to set the flat-footed ac to
+	 */
 	@Override
 	public void setFlatFootedAC(int tempac) {
 		if (hasTempFF) {
@@ -690,7 +706,7 @@ public class Character extends Creature {
 		}
 		return b.toString();
 	}*/
-	
+
 	public void addXPChallenges(int count, int penalty, Collection<Challenge> challenges, String comment, Date d) {
 		XP.XPChangeChallenges change = new XP.XPChangeChallenges(comment, d);
 		change.level = level.getLevel();
@@ -701,14 +717,14 @@ public class Character extends Creature {
 		addXPChange(change);
 		int old = xp;
 		xp += change.xp;
-        firePropertyChange(PROPERTY_XP, old, xp);
+		firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public void addXPAdhocChange(int delta, String comment, Date d) {
 		addXPChange(new XP.XPChangeAdhoc(delta, comment, d));
 		int old = xp;
 		xp += delta;
-        firePropertyChange(PROPERTY_XP, old, xp);
+		firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public int getLevel() {
@@ -724,7 +740,7 @@ public class Character extends Creature {
 	}
 
 //------------------- XP History ------------------
-	protected void addXPChange(XP.XPChange change) {
+	private void addXPChange(XP.XPChange change) {
 		XPHistoryItem item = new XPHistoryItem();
 		item.index = xpChanges.size();
 		item.xpChange = change;
@@ -756,7 +772,7 @@ public class Character extends Creature {
 		} else {
 			xp = 0;
 		}
-        firePropertyChange(PROPERTY_XP, old, xp);
+		firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public void moveXPHistory(int from, int to) {
@@ -783,6 +799,37 @@ public class Character extends Creature {
 		return false;
 	}
 
+//------------- Size --------------
+	@Override
+	public SizeCategory getSize() {
+		return size.getSize();
+	}
+
+	@Override
+	public void setSize(SizeCategory s) {
+		size.setBaseSize(s);
+	}
+
+	@Override
+	public int getSpace() {
+		return size.getSpace();
+	}
+
+	@Override
+	public void setSpace(int s) {
+		size.setBaseSpace(s);
+	}
+
+	@Override
+	public int getReach() {
+		return size.getReach();
+	}
+
+	@Override
+	public void setReach(int r) {
+		size.setBaseReach(r);
+	}
+
 //------------ getters and setters for informational fields -------------
 	public String getPlayer() {return player;}
 	public String getRegion() {return region;}
@@ -790,7 +837,6 @@ public class Character extends Creature {
 	public String getGender() {return gender;}
 	public String getAlignment() {return alignment;}
 	public String getDeity() {return deity;}
-	public String getSize() {return size;}
 	public String getType() {return type;}
 	public String getAge() {return age;}
 	public String getHeight() {return height;}
@@ -815,49 +861,43 @@ public class Character extends Creature {
 		region = s;
 		firePropertyChange(PROPERTY_REGION, old, s);
 	}
-	
+
 	public void setRace(String s) {
 		String old = race;
 		race = s;
 		firePropertyChange(PROPERTY_RACE, old, s);
 	}
-	
+
 	public void setGender(String s) {
 		String old = gender;
 		gender = s;
 		firePropertyChange(PROPERTY_GENDER, old, s);
 	}
-	
+
 	public void setAlignment(String s) {
 		String old = alignment;
 		alignment = s;
 		firePropertyChange(PROPERTY_ALIGNMENT, old, s);
 	}
-	
+
 	public void setDeity(String s) {
 		String old = deity;
 		deity = s;
 		firePropertyChange(PROPERTY_DEITY, old, s);
 	}
-	
-	public void setSize(String s) {
-		String old = size;
-		size = s;
-		firePropertyChange(PROPERTY_SIZE, old, s);
-	}
-	
+
 	public void setType(String s) {
 		String old = type;
 		type = s;
 		firePropertyChange(PROPERTY_TYPE, old, s);
 	}
-	
+
 	public void setAge(String s) {
 		String old = age;
 		age = s;
 		firePropertyChange(PROPERTY_AGE, old, s);
 	}
-	
+
 	public void setHeight(String s) {
 		String old = height;
 		height = s;
@@ -869,37 +909,37 @@ public class Character extends Creature {
 		weight = s;
 		firePropertyChange(PROPERTY_WEIGHT, old, s);
 	}
-	
+
 	public void setEyeColour(String s) {
 		String old = eyeColour;
 		eyeColour = s;
 		firePropertyChange(PROPERTY_EYE_COLOUR, old, s);
 	}
-	
+
 	public void setHairColour(String s) {
 		String old = hairColour;
 		hairColour = s;
 		firePropertyChange(PROPERTY_HAIR_COLOUR, old, s);
 	}
-	
+
 	public void setSpeed(String s) {
 		String old = speed;
 		speed = s;
 		firePropertyChange(PROPERTY_SPEED, old, s);
 	}
-	
+
 	public void setDamageReduction(String s) {
 		String old = damageReduction;
 		damageReduction = s;
 		firePropertyChange(PROPERTY_DAMAGE_REDUCTION, old, s);
 	}
-	
+
 	public void setSpellResistance(String s) {
 		String old = spellResistance;
 		spellResistance = s;
 		firePropertyChange(PROPERTY_SPELL_RESISTANCE, old, s);
 	}
-	
+
 	public void setArcaneSpellFailure(String s) {
 		String old = arcaneSpellFailure;
 		arcaneSpellFailure = s;
@@ -964,6 +1004,8 @@ public class Character extends Creature {
 			return attacks;
 		} else if (name.equals(STATISTIC_DAMAGE)) {
 			return attacks.getDamageStatistic();
+		} else if (name.equals(STATISTIC_SIZE)) {
+			return size;
 		} else {
 			System.out.println("Unknown statistic "+name);
 			return null;
@@ -979,7 +1021,6 @@ public class Character extends Creature {
 		c.gender = el.getAttribute("gender");
 		c.alignment = el.getAttribute("alignment");
 		c.deity = el.getAttribute("deity");
-		c.size = el.getAttribute("size");
 		c.type = el.getAttribute("type");
 		c.age = el.getAttribute("age");
 		c.height = el.getAttribute("height");
@@ -991,7 +1032,7 @@ public class Character extends Creature {
 		c.spellResistance = el.getAttribute("spell-resistance");
 		c.arcaneSpellFailure = el.getAttribute("arcane-spell-failure");
 		c.actionPoints = el.getAttribute("action-points");
-		
+
 		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con
 		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise
 
@@ -1026,7 +1067,7 @@ public class Character extends Creature {
 					}
 					if (change != null) c.addXPChange(change);
 				}
-					
+
 
 			} else if (tag.equals("AbilityScores")) {
 				NodeList abilities = e.getChildNodes();
@@ -1096,6 +1137,9 @@ public class Character extends Creature {
 					b.applyBuff(c);
 					c.buffs.addElement(b);
 				}
+
+			} else if (tag.equals("Size")) {
+				c.size.parseDOM(e);
 			}
 		}
 
@@ -1293,7 +1337,6 @@ public class Character extends Creature {
 		if (prop.equals(PROPERTY_GENDER)) return gender;
 		if (prop.equals(PROPERTY_ALIGNMENT)) return alignment;
 		if (prop.equals(PROPERTY_DEITY)) return deity;
-		if (prop.equals(PROPERTY_SIZE)) return size;
 		if (prop.equals(PROPERTY_TYPE)) return type;
 		if (prop.equals(PROPERTY_AGE)) return age;
 		if (prop.equals(PROPERTY_HEIGHT)) return height;
@@ -1313,7 +1356,10 @@ public class Character extends Creature {
 		if (prop.equals(PROPERTY_LEVEL)) return level.getLevel();
 		if (prop.equals(PROPERTY_XP)) return xp;
 		if (prop.equals(PROPERTY_BAB)) return attacks.getBAB();
-		
+		if (prop.equals(PROPERTY_SIZE)) return size.getSize();
+		if (prop.equals(PROPERTY_SPACE)) return size.getSpace();
+		if (prop.equals(PROPERTY_REACH)) return size.getReach();
+
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
 			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
@@ -1373,7 +1419,6 @@ public class Character extends Creature {
 		if (prop.equals(PROPERTY_GENDER)) setGender((String)value);
 		if (prop.equals(PROPERTY_ALIGNMENT)) setAlignment((String)value);
 		if (prop.equals(PROPERTY_DEITY)) setDeity((String)value);
-		if (prop.equals(PROPERTY_SIZE)) setSize((String)value);
 		if (prop.equals(PROPERTY_TYPE)) setType((String)value);
 		if (prop.equals(PROPERTY_AGE)) setAge((String)value);
 		if (prop.equals(PROPERTY_HEIGHT)) setHeight((String)value);
@@ -1393,6 +1438,10 @@ public class Character extends Creature {
 		if (prop.equals(PROPERTY_LEVEL)) setLevel((Integer)value,null,null);
 		//if (prop.equals(PROPERTY_XP)) setXP((Integer)value);	// TODO should this be permitted as an adhoc change?
 		if (prop.equals(PROPERTY_BAB)) attacks.setBAB((Integer)value);
+
+		if (prop.equals(PROPERTY_SIZE)) size.setBaseSize((SizeCategory) value);
+		if (prop.equals(PROPERTY_SPACE)) size.setBaseSpace((Integer) value);
+		if (prop.equals(PROPERTY_REACH)) size.setBaseReach((Integer) value);
 
 		if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
 			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
@@ -1443,15 +1492,15 @@ public class Character extends Creature {
 	}
 
 	public void saveCharacterSheet() {
-    	Document doc;
+		Document doc;
 		try {
 			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			ProcessingInstruction pi = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"CharacterSheetTemplate.xsl\"");
 			doc.appendChild(pi);
-	    	doc.appendChild(getCharacterSheet(doc));
-	    	doc.setXmlStandalone(true);
-	    	Updater.updateDocument(doc, name);
-	    	//System.out.println("Saved character sheet "+name);
+			doc.appendChild(getCharacterSheet(doc));
+			doc.setXmlStandalone(true);
+			Updater.updateDocument(doc, name);
+			//System.out.println("Saved character sheet "+name);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1463,7 +1512,7 @@ public class Character extends Creature {
 		return Integer.toString(mod);
 	}
 
-	protected Element getCharacterElement(Document doc) {
+	private Element getCharacterElement(Document doc) {
 		Element e = doc.createElement("Character");
 		e.setAttribute("name", name);
 		if(player != null && player.length() > 0) e.setAttribute("player",player);
@@ -1472,7 +1521,6 @@ public class Character extends Creature {
 		if(gender != null && gender.length() > 0) e.setAttribute("gender",gender);
 		if(alignment != null && alignment.length() > 0) e.setAttribute("alignment",alignment);
 		if(deity != null && deity.length() > 0) e.setAttribute("deity",deity);
-		if(size != null && size.length() > 0) e.setAttribute("size",size);
 		if(type != null && type.length() > 0) e.setAttribute("type",type);
 		if(age != null && age.length() > 0) e.setAttribute("age",age);
 		if(height != null && height.length() > 0) e.setAttribute("height",height);
@@ -1487,7 +1535,7 @@ public class Character extends Creature {
 		return e;
 	}
 
-	protected static void setACComponent(Document doc, Element e, String type, int mod) { 
+	private static void setACComponent(Document doc, Element e, String type, int mod) {
 		if (mod != 0) {
 			Element comp = doc.createElement("ACComponent");
 			comp.setAttribute("type", type);
@@ -1526,9 +1574,11 @@ public class Character extends Creature {
 		e.setAttribute("misc", getModifierString(initiative.getValue()-abilities.get(AbilityScore.Type.DEXTERITY).getModifierValue()));	// assumes only 1 dex modifier that will always apply
 		charEl.appendChild(e);
 
-        e = doc.createElement("SavingThrows");
-        for (SavingThrow.Type t : saves.keySet()) {
-        	SavingThrow s = saves.get(t);
+		charEl.appendChild(size.getElement(doc));
+
+		e = doc.createElement("SavingThrows");
+		for (SavingThrow.Type t : saves.keySet()) {
+			SavingThrow s = saves.get(t);
 			Element saveEl = doc.createElement("Save");
 			saveEl.setAttribute("type", s.getName());
 			saveEl.setAttribute("base", getModifierString(s.getBaseValue()));
@@ -1541,7 +1591,7 @@ public class Character extends Creature {
 			e.appendChild(saveEl);
 		}
 		charEl.appendChild(e);
-		
+
 		e = doc.createElement("Skills");
 		ArrayList<SkillType> set = new ArrayList<SkillType>(getSkills());
 		Collections.sort(set, new Comparator<SkillType>() {
@@ -1641,6 +1691,8 @@ public class Character extends Creature {
 		charEl.appendChild(e);
 		charEl.appendChild(hps.getElement(doc));
 		charEl.appendChild(initiative.getElement(doc));
+		charEl.appendChild(size.getElement(doc));
+
 		e = doc.createElement("SavingThrows");
 		for (SavingThrow.Type t : saves.keySet()) {
 			SavingThrow s = saves.get(t);
@@ -1672,7 +1724,7 @@ public class Character extends Creature {
 			e.appendChild(b.getElement(doc, "Feat"));
 		}
 		charEl.appendChild(e);
-		
+
 		e = doc.createElement("Buffs");
 		for (int i = 0; i < buffs.getSize(); i++) {
 			Buff b = (Buff)buffs.get(i);

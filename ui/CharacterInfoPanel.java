@@ -7,6 +7,8 @@ import javax.swing.JLabel;
 import party.Character;
 import party.Creature;
 
+// TODO space should be double control showing value in feet (instead of integer showing value in 6-inch units)
+
 @SuppressWarnings("serial")
 public class CharacterInfoPanel extends CharacterSubPanel {
 	public CharacterInfoPanel(Character c) {
@@ -35,8 +37,11 @@ public class CharacterInfoPanel extends CharacterSubPanel {
 		add(new JLabel("Deity: "));
 		add(new BoundTextField(character,Creature.PROPERTY_DEITY,30));
 
-		add(new JLabel("Size: "));
-		add(new BoundTextField(character,Creature.PROPERTY_SIZE,30));
+		add(new JLabel("Space: "));
+		add(new BoundIntegerField(character, Creature.PROPERTY_SPACE, 30));
+
+		add(new JLabel("Reach: "));
+		add(new BoundIntegerField(character, Creature.PROPERTY_REACH, 30));
 
 		add(new JLabel("Type: "));
 		add(new BoundTextField(character,Creature.PROPERTY_TYPE,30));

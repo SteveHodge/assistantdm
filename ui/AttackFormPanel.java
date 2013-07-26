@@ -1,11 +1,11 @@
 package ui;
 
 import gamesystem.Attacks;
-import gamesystem.Modifier;
-import gamesystem.Statistic;
 import gamesystem.Attacks.AttackForm;
+import gamesystem.Modifier;
+import gamesystem.SizeCategory;
+import gamesystem.Statistic;
 import gamesystem.dice.CombinedDice;
-import gamesystem.Size;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -40,7 +40,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	JTextField rangeField = new JTextField(20);
 	JTextField weightField = new JTextField(20);
 	JTextField typeField = new JTextField(20);
-	JComboBox sizeCombo = new JComboBox(Size.Category.values());
+	JComboBox sizeCombo = new JComboBox(SizeCategory.values());
 	JTextField propertiesField = new JTextField(20);
 	JTextField ammunitionField = new JTextField(20);
 	JComboBox kindCombo;
@@ -104,13 +104,14 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		c.gridx = 2;
 		add(totalAttackLabel,c);
 		c.gridy++; add(totalDamageLabel,c);
-		
-		
+
+
 		setAttackForm(atk);
 
 		// the damage field uses an input verifier and applies changes on enter or losing focus
 		damageField.setInputVerifier(damageVerifier);
 		damageField.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				damageVerifier.shouldYieldFocus(damageField);
 			}
@@ -127,6 +128,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		ammunitionField.getDocument().addDocumentListener(docListener);
 
 		kindCombo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (attack != null) {
 					attack.setKind((Attacks.Kind)kindCombo.getSelectedItem());
@@ -134,13 +136,15 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			}
 		});
 		sizeCombo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (attack != null) {
-					attack.size = (Size.Category)sizeCombo.getSelectedItem();
+					attack.size = (SizeCategory) sizeCombo.getSelectedItem();
 				}
 			}
 		});
 		usageCombo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (attack != null) {
 					attack.setUsage((Attacks.Usage)usageCombo.getSelectedItem());
@@ -150,6 +154,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	}
 
 	InputVerifier damageVerifier = new InputVerifier() {
+		@Override
 		public boolean shouldYieldFocus(JComponent c) {
 			if (c != damageField) return true;
 
@@ -164,6 +169,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			}
 		}
 
+		@Override
 		public boolean verify(JComponent c) {
 			if (c != damageField) return true;
 
@@ -177,14 +183,17 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	};
 
 	DocumentListener docListener = new DocumentListener() {
+		@Override
 		public void changedUpdate(DocumentEvent e) {
 			updateField(e);
 		}
 
+		@Override
 		public void insertUpdate(DocumentEvent e) {
 			updateField(e);
 		}
 
+		@Override
 		public void removeUpdate(DocumentEvent e) {
 			updateField(e);
 		}
@@ -339,6 +348,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		totalDamageLabel.setToolTipText(text.toString());
 	}
 
+	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		update();
 	}

@@ -56,7 +56,6 @@ import org.w3c.dom.Document;
 
 import party.Character;
 import party.CharacterLibrary;
-import party.CreatureLibrary;
 import party.Party;
 import swing.JTableWithToolTips;
 import ui.PartyPanel;
@@ -74,24 +73,48 @@ import digital_table.controller.DigitalTableController;
 import digital_table.server.TableDisplay;
 
 /* TODO current priorities:
+ * select multiple targets for buffs / combine with effects on combat panel
+ * monster list should open add monster dialog rather than monster page
+ * fix healing on combat panel
+ * implement custom buffs (will be stop-gap for equipment)
+ * fix live character sheet to show extra attacks and add list of buffs and/or calculations
+ * size
  * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
  * Save/Load display state, perhaps global preferences
  * EOS camera support + refactoring of camera library
  * Magic items and/or allow addition of custom modifiers
  * Detect token movement
  * Improve character sheet - show extra attacks, show current effects, tool tips for calculations
+ * clean up handling of HPs, wounds, healing etc, particularly ui
+ * properties for statistics: bab, convert temp hps
+ * ability checks
+ * enum conversions - property and statistics types
+ * feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
+ * review Statistics vs Properties
+ * ui for adding adhoc modifiers
+ * equipment, particularly magic item slots, armor, weapons
  */
-
-//TODO priorities:
-//properties for statistics: bab, convert temp hps
-//ability checks
-//enum conversions - property and statistics types
-//feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
-//clean up handling of HPs, wounds, healing etc, particularly ui
-//review Statistics vs Properties
-//ui for adding adhoc modifiers
-//size
-//equipment, particularly magic item slots, armor, weapons
+/* TODO digital table priorities:
+ * Move element creation into OptionPanel subclasses so that serialisation can be implemented there. Maybe later refactor panels out to inner classes
+ * BUG Issue with image scaling before remote visible - fix handling of image size when image changes
+ * Allow multi-select and grouping in tree
+ * Improve Tokens element: hps/status, floating label, rotate labels with token
+ * Implement Creature Size
+ * Improve camera integration, fix ui for camera panel
+ * Refactor common utility methods into MapElement (e.g. template creation)
+ * Alternate button dragging (e.g. resize)
+ * Recalibrate - could be done using screen bounds element
+ * Auto configure - set defaults according to OS screen layout
+ * Load/Save
+ * Fix MapImage so that rotation preseves scale
+ * Make line and spread templates editable?
+ * Swarm Token (editable token with replicated painting)
+ * Zoomed view on controller
+ * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
+ * Convert MapElements to use location property instead of X and Y properties - will reduce dragging code in OptionsPanel subclasses
+ * dice roller element?
+ * thrown object scatter?
+ */
 
 //TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac
 //TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
@@ -115,27 +138,6 @@ import digital_table.server.TableDisplay;
  *  Speed
  */
 
-/* TODO digital table priorities:
- * BUG Issue with image scaling before remote visible - fix handling of image size when image changes
- * Allow multi-select and grouping in tree
- * Improve Tokens element: hps/status, floating label, rotate labels with token
- * Implement Creature Size
- * Improve camera integration, fix ui for camera panel
- * Refactor common utility methods into MapElement (e.g. template creation)
- * Alternate button dragging (e.g. resize)
- * Recalibrate - could be done using screen bounds element
- * Auto configure - set defaults according to OS screen layout
- * Load/Save
- * Fix MapImage so that rotation preseves scale
- * Make line and spread templates editable?
- * Swarm Token (editable token with replicated painting)
- * Zoomed view on controller
- * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
- * Convert MapElements to use location property instead of X and Y properties - will reduce dragging code in OptionsPanel subclasses
- * dice roller element?
- * thrown object scatter?
- */
-
 //WISH would be nice to have a library of creatures that could be selected for the combat panel
 //WISH refactor classes that should be in ui package
 //TODO add new party menu option, ask to save modified file
@@ -155,7 +157,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	TableDisplay tableDisplay;
 	static String tableServer = null;
 
-	CreatureLibrary library = new CreatureLibrary();
 	Party party;
 	File file;
 
@@ -237,7 +238,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		party = Party.parseXML(file);
 
 		JComponent panel;
-		combatPanel = new CombatPanel(party, library);
+		combatPanel = new CombatPanel(party);
 		File f = new File("combat.xml");
 		if (f.exists()) combatPanel.parseXML(f);
 		tabbedPane.addTab("Combat", null, combatPanel, "Initiative and Combat");
@@ -248,7 +249,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		panel = new RollsPanel(party);
 		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
 
-		panel = new MonstersPanel(library);
+		panel = new MonstersPanel();
 		tabbedPane.addTab("Monsters", null, panel, "Monsters");
 
 		List<Shop> shops = ShoppingPanel.parseShopsXML("shops.xml");
@@ -402,7 +403,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		tabbedPane.removeTabAt(0);	// party
 
 		JComponent panel;
-		panel = new CombatPanel(party, library);
+		panel = new CombatPanel(party);
 		tabbedPane.insertTab("Combat", null, panel, "Initiative and Combat", 0);
 
 		panel = new RollsPanel(party);

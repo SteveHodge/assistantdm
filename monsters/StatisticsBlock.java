@@ -2,10 +2,12 @@ package monsters;
 
 import gamesystem.AbilityScore.Type;
 import gamesystem.CR;
+import gamesystem.SizeCategory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,56 +22,111 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-
+import party.Monster;
 import xml.LocalEntityResolver;
 
+/**
+ * Represents a parsed statistics block from a source (usual an HTML table). The values stored in the
+ * StatisticsBlock are accessed via keys (Property values). The raw values are strings which may contain
+ * any text. Specific getX() methods attempt to further parse concrete values from these strings.
+ * 
+ * This is an immutable type.
+ * 
+ * @author Steve
+ * 
+ */
+
 public class StatisticsBlock {
-	// TODO convert to enum?
-	public final static String PROPERTY_NAME = "Name:";
-	public final static String PROPERTY_URL = "URL:";
+	public enum Property {
+		NAME("Name:"),
+		URL("URL:"),
 
-	public final static String PROPERTY_SIZE_TYPE = "Size/Type:";
-	public final static String PROPERTY_HITDICE = "Hit Dice:";
-	public final static String PROPERTY_INITIATIVE = "Initiative:";
-	public final static String PROPERTY_SPEED = "Speed:";
-	public final static String PROPERTY_AC = "Armor Class:";
-	public final static String PROPERTY_BASE_ATTACK_GRAPPLE = "Base Attack/Grapple:";
-	public final static String PROPERTY_ATTACK = "Attack:";
-	public final static String PROPERTY_FULL_ATTACK = "Full Attack:";
-	public final static String PROPERTY_SPACE_REACH = "Space/Reach:";
-	public final static String PROPERTY_SPECIAL_ATTACKS = "Special Attacks:";
-	public final static String PROPERTY_SPECIAL_QUALITIES = "Special Qualities:";
-	public final static String PROPERTY_SAVES = "Saves:";
-	public final static String PROPERTY_ABILITIES = "Abilities:";
-	public final static String PROPERTY_SKILLS = "Skills:";
-	public final static String PROPERTY_FEATS = "Feats:";
-	public final static String PROPERTY_ENVIRONMENT = "Environment:";
-	public final static String PROPERTY_ORGANIZATION = "Organization:";
-	public final static String PROPERTY_CR = "Challenge Rating:";
-	public final static String PROPERTY_TREASURE = "Treasure:";
-	public final static String PROPERTY_ALIGNMENT = "Alignment:";
-	public final static String PROPERTY_ADVANCEMENT = "Advancement:";
-	public final static String PROPERTY_LEVEL_ADJUSTMENT = "Level Adjustment:";
+		SIZE_TYPE("Size/Type:"),
+		HITDICE("Hit Dice:"),
+		INITIATIVE("Initiative:"),
+		SPEED("Speed:"),
+		AC("Armor Class:"),
+		BASE_ATTACK_GRAPPLE("Base Attack/Grapple:"),
+		ATTACK("Attack:"),
+		FULL_ATTACK("Full Attack:"),
+		SPACE_REACH("Space/Reach:"),
+		SPECIAL_ATTACKS("Special Attacks:"),
+		SPECIAL_QUALITIES("Special Qualities:"),
+		SAVES("Saves:"),
+		ABILITIES("Abilities:"),
+		SKILLS("Skills:"),
+		FEATS("Feats:"),
+		ENVIRONMENT("Environment:"),
+		ORGANIZATION("Organization:"),
+		CR("Challenge Rating:"),
+		TREASURE("Treasure:"),
+		ALIGNMENT("Alignment:"),
+		ADVANCEMENT("Advancement:"),
+		LEVEL_ADJUSTMENT("Level Adjustment:");
+//		'Type:' - from the dragon pages
 
-//	'Type:' - from the dragon pages
+		@Override
+		public String toString() {return label;}
+
+		public static Property fromString(String p) {
+			// TODO more efficient implementation
+			for (Property prop : Property.values()) {
+				if (prop.toString().equals(p)) return prop;
+			}
+			return null;
+		}
+
+		public static Property[] getStandardOrder() {
+			return Arrays.copyOf(standardOrder, standardOrder.length);
+		}
+
+		private static final Property[] standardOrder = {
+			SIZE_TYPE,
+			HITDICE,
+			INITIATIVE,
+			SPEED,
+			AC,
+			BASE_ATTACK_GRAPPLE,
+			ATTACK,
+			FULL_ATTACK,
+			SPACE_REACH,
+			SPECIAL_ATTACKS,
+			SPECIAL_QUALITIES,
+			SAVES,
+			ABILITIES,
+			SKILLS,
+			FEATS,
+			ENVIRONMENT,
+			ORGANIZATION,
+			CR,
+			TREASURE,
+			ALIGNMENT,
+			ADVANCEMENT,
+			LEVEL_ADJUSTMENT
+		};
+
+		private Property(String l) {label = l;}
+
+		private String label;
+	}
 
 	static final String STATBLOCKCLASS = "statBlock";
 
-	protected Source source;
-	protected Map<String,String> properties  = new HashMap<String,String>();
+	private Source source;
+	private Map<Property, String> properties = new HashMap<Property, String>();
 
-	public String get(String key) {
+	String get(Property key) {
 		return properties.get(key);
 	}
 
-	public String getName() {
-		return get(PROPERTY_NAME);
+	String getName() {
+		return get(Property.NAME);
 	}
 
 	// type of the creature
 	// property has format "<Size> <Type> [(Subtypes)]"
-	public String getType() {
-		String sizeType = get(PROPERTY_SIZE_TYPE);
+	String getType() {
+		String sizeType = get(Property.SIZE_TYPE);
 		if (sizeType == null || sizeType.indexOf(' ') < 1) return sizeType;
 		sizeType = sizeType.substring(sizeType.indexOf(' ')+1);
 		if (sizeType.indexOf('(') > 1) {
@@ -78,8 +135,8 @@ public class StatisticsBlock {
 		return sizeType;
 	}
 
-	public String[] getSubtypes() {
-		String sizeType = get(PROPERTY_SIZE_TYPE);
+	private String[] getSubtypes() {
+		String sizeType = get(Property.SIZE_TYPE);
 		if (sizeType == null || sizeType.indexOf('(') < 0) return null;
 		sizeType = sizeType.substring(sizeType.indexOf('(') + 1);
 		if (sizeType.indexOf(')') >= 0) {
@@ -88,28 +145,76 @@ public class StatisticsBlock {
 		return sizeType.split("\\s*,\\s*");
 	}
 
-	// first word of size/type property
-	// TODO could verify size is valid
-	public String getSize() {
-		String sizeType = get(PROPERTY_SIZE_TYPE);
-		if (sizeType == null || sizeType.indexOf(' ') < 1) return sizeType;
-		return sizeType.substring(0, sizeType.indexOf(' '));
+	/**
+	 * Parses the SIZE_TYPE property value and returns the size category (which is the first word of the property).
+	 * If SIZE_TYPE can't be parsed then null is returned
+	 * 
+	 * @return the SizeCategory of the creature or null
+	 */
+	SizeCategory getSize() {
+		String sizeType = get(Property.SIZE_TYPE);
+		if (sizeType == null || sizeType.indexOf(' ') < 1) return null;
+		return SizeCategory.getSize(sizeType.substring(0, sizeType.indexOf(' ')));
+	}
+
+	/**
+	 * Parses the SPACE_REACH property value and returns the space taken by the creature in 6" units.
+	 * The SPACE_REACH value should be of the form "X ft./...". X should be an integer or either "2 1/2" or "2½".
+	 * If SPACE_REACH has no value or it can't be parsed to extract the space value then -1 is returned
+	 * 
+	 * @return the space taken by the creature in 6" units or -1 if the SPACE_REACH property can't be parsed
+	 */
+	int getSpace() {
+		String space = get(Property.SPACE_REACH);
+		if (space == null || space.indexOf(" ft./") < 1) return -1;
+		space = space.substring(0, space.indexOf(" ft./"));
+		if (space.equals("2 1/2") || space.equals("2½")) return 5;
+		int s = -1;
+		try {
+			s = Integer.parseInt(space) * 2;
+		} catch (NumberFormatException e) {
+			// will default to -1 if we can't parse
+		}
+		return s;
+	}
+
+	/**
+	 * Parses the SPACE_REACH property value and returns the normal reach of the creature in feet.
+	 * The SPACE_REACH value should be of the form ".../X ft....". X should be an integer.
+	 * Any additional information (e.g. "20 ft. with tentacles") is ignored.
+	 * If SPACE_REACH has no value or it can't be parsed to extract the reach value then -1 is returned
+	 * 
+	 * @return the reach of the creature in feet or -1 if the SPACE_REACH property can't be parsed
+	 */
+	int getReach() {
+		String reach = get(Property.SPACE_REACH);
+		if (reach == null || reach.indexOf(" ft./") < 1) return -1;
+		reach = reach.substring(reach.indexOf(" ft./") + 5);
+		if (reach.indexOf(" ft.") < 1) return -1;
+		reach = reach.substring(0, reach.indexOf(" ft."));
+		int s = -1;
+		try {
+			s = Integer.parseInt(reach);
+		} catch (NumberFormatException e) {
+			// will default to -1 if we can't parse
+		}
+		return s;
 	}
 
 	// format of property is:
 	// Str 25, Dex 10, Con —, Int 1, Wis 11, Cha 1
 	// returns -1 for a missing ability
 	// TODO should throw exceptions for invalid formats (or at least return -1)
-	public int getAbilityScore(Type strength) {
-		String abilitiesStr = get(PROPERTY_ABILITIES);
+	int getAbilityScore(Type strength) {
+		String abilitiesStr = get(Property.ABILITIES);
 		String[] abilities = abilitiesStr.split("\\s*,\\s*");
 		String a = abilities[strength.ordinal()].substring(abilities[strength.ordinal()].indexOf(' ')+1);
 		if (a.equals("-") || a.equals("—") || a.equals("Ø")) return -1;
 		return Integer.parseInt(a);
 	}
 
-	public CR getCR() {
-		String s = get(PROPERTY_CR);
+	private CR getCR() {
+		String s = get(Property.CR);
 		if (s.equals("¼")) s = "1/4";
 		if (s.equals("½")) s = "1/2";
 		try {
@@ -122,14 +227,14 @@ public class StatisticsBlock {
 		}
 	}
 
-	public Source getSource() {
+	Source getSource() {
 		return source;
 	}
 
-	public int getInitiativeModifier() {
+	private int getInitiativeModifier() {
 		int mod = 0;
 
-		String init = get(PROPERTY_INITIATIVE);
+		String init = get(Property.INITIATIVE);
 		if (init == null) {
 			System.out.println("WARN: "+getName()+" has no initiative");
 			return mod;
@@ -148,8 +253,8 @@ public class StatisticsBlock {
 	// multiple dice rolls can be separated by " plus "
 	// hitdice section ends with " (# hp)"
 	// first number may be "½ "
-	public HitDice getHitDice() {
-		String hd = get(PROPERTY_HITDICE);
+	HitDice getHitDice() {
+		String hd = get(Property.HITDICE);
 		if (hd == null || hd.indexOf(" (") < 0) {
 			System.out.println("WARN: "+getName()+" has no default hp ending hitdice");
 			return null;
@@ -160,9 +265,9 @@ public class StatisticsBlock {
 
 	// parse default hitpoints:
 	// pattern is "<hitdice> (# hp)"
-	public int getDefaultHPs() {
+	private int getDefaultHPs() {
 		int hp = 0;
-		String hps = get(PROPERTY_HITDICE);
+		String hps = get(Property.HITDICE);
 		if (hps != null && hps.indexOf(" (") > 0 && hps.indexOf(" hp)") > 0) {
 			hps = hps.substring(hps.indexOf(" (")+2,hps.indexOf(" hp)"));
 			//System.out.println(block.get("Name:")+"HPs: "+hps);
@@ -171,7 +276,7 @@ public class StatisticsBlock {
 			} catch (NumberFormatException e) {
 				System.out.println(getName()+": "+e);
 			}
-	
+
 		} else {
 			System.out.println("WARN: "+getName()+" has no default hp entry");
 		}
@@ -180,15 +285,15 @@ public class StatisticsBlock {
 
 	// parse armor class:
 	// pattern is "# (components), touch #, flat-footed #"
-	public int[] getACs() {
+	private int[] getACs() {
 		int[] acs = new int[3];
 		acs[0] = 0; acs[1] = 0; acs[2] = 0;
-	
-		String ac = get(PROPERTY_AC);
+
+		String ac = get(Property.AC);
 		if (ac == null) {
 			System.out.println("WARN: "+getName()+" has no AC");
 			return acs;
-		} 
+		}
 		int i = ac.indexOf(", touch ");
 		if (i == -1) {
 			System.out.println("WARN: "+getName()+" couldn't locate ', touch '");
@@ -205,7 +310,7 @@ public class StatisticsBlock {
 		}
 		String touchAC = ac.substring(i+8,j);
 		String ffAC = ac.substring(j+14);
-	
+
 		try {
 			acs[0] = Integer.parseInt(fullAC);
 		} catch (NumberFormatException e) {
@@ -221,16 +326,16 @@ public class StatisticsBlock {
 		} catch (NumberFormatException e) {
 			System.out.println(getName()+": "+e);
 		}
-	
+
 		return acs;
 	}
 
 	// TODO remove this version - source should always be required
-	public static List<StatisticsBlock> parseFile(File file) {
+	static List<StatisticsBlock> parseFile(File file) {
 		return parseFile(null, file);
 	}
 
-	public static List<StatisticsBlock> parseFile(Source source, File file) {
+	static List<StatisticsBlock> parseFile(Source source, File file) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		Document dom;
 		List<StatisticsBlock> blocks = new ArrayList<StatisticsBlock>();
@@ -238,13 +343,13 @@ public class StatisticsBlock {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			builder.setEntityResolver(new LocalEntityResolver());
 			dom = builder.parse(file);
-	
+
 			NodeList htmlBodies = dom.getElementsByTagName("body");
 			if (htmlBodies.getLength() != 1) {
 				System.out.println("Expected exactly one body tag, found "+htmlBodies.getLength());
 				return blocks;
 			}
-	
+
 			NodeList children = ((Element)htmlBodies.item(0)).getChildNodes();
 			String name = "";
 			String url = "";
@@ -259,7 +364,7 @@ public class StatisticsBlock {
 							url = file.getName();
 						}
 						//System.out.println("h1 name = "+name);
-						
+
 					} else if (child.getTagName().equals("h2")) {
 						// h2 tag. if this has an child anchor then this is a new monster name
 						NodeList anchors = child.getElementsByTagName("a");
@@ -273,7 +378,7 @@ public class StatisticsBlock {
 							}
 							//System.out.println("h2 name = "+name);
 						}
-	
+
 					} else if (child.getTagName().equals("table")) {
 						String classString = child.getAttribute("class");
 						if (classString != null && classString.contains(STATBLOCKCLASS)) {
@@ -285,8 +390,8 @@ public class StatisticsBlock {
 					}
 				}
 			}
-	
-	
+
+
 		} catch (SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -295,14 +400,14 @@ public class StatisticsBlock {
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 		}
-	
+
 		return blocks;
 	}
 
-	public static List<StatisticsBlock> parseStatBlock(Element table, String defaultName, String url) {
+	private static List<StatisticsBlock> parseStatBlock(Element table, String defaultName, String url) {
 		//System.out.println("Found stat block");
 		List<StatisticsBlock> statsBlock = new ArrayList<StatisticsBlock>();
-	
+
 		// fetch the rows...
 		NodeList rows = table.getElementsByTagName("tr");
 		if (rows.getLength() > 23) {
@@ -327,17 +432,18 @@ public class StatisticsBlock {
 						} else {
 							while (col > statsBlock.size()) {
 								StatisticsBlock block = new StatisticsBlock();
-								block.properties.put(PROPERTY_NAME,defaultName);
-								block.properties.put(PROPERTY_URL, url);
+								block.properties.put(Property.NAME, defaultName);
+								block.properties.put(Property.URL, url);
 								statsBlock.add(block);
 								//System.out.println("Added block for "+col);
 							}
 							StatisticsBlock block = statsBlock.get(col-1);
 							if (stat.equals("")) {
-								block.properties.put(PROPERTY_NAME,el.getTextContent().trim());
-								//System.out.println("Set name to "+block.properties.get(PROPERTY_NAME));
+								block.properties.put(Property.NAME, el.getTextContent().trim());
+								//System.out.println("Set name to "+block.properties.get(Property.NAME));
 							} else {
-								block.properties.put(stat,el.getTextContent().trim());
+								Property p = Property.fromString(stat);
+								if (p != null) block.properties.put(p, el.getTextContent().trim());
 								//System.out.println(""+col+": "+stat+" = "+el.getTextContent());
 							}
 						}
@@ -355,58 +461,38 @@ public class StatisticsBlock {
 
 	public String getHTML() {
 		StringBuilder s = new StringBuilder();
-		s.append("<html><table><tr><td></td><td>").append(getName()).append("</td></tr><tr><td>");
-		s.append(PROPERTY_SIZE_TYPE).append("</td><td>").append(get(PROPERTY_SIZE_TYPE)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_HITDICE).append("</td><td>").append(get(PROPERTY_HITDICE)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_INITIATIVE).append("</td><td>").append(get(PROPERTY_INITIATIVE)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_SPEED).append("</td><td>").append(get(PROPERTY_SPEED)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_AC).append("</td><td>").append(get(PROPERTY_AC)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_BASE_ATTACK_GRAPPLE).append("</td><td>").append(get(PROPERTY_BASE_ATTACK_GRAPPLE)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_ATTACK).append("</td><td>").append(get(PROPERTY_ATTACK)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_FULL_ATTACK).append("</td><td>").append(get(PROPERTY_FULL_ATTACK)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_SPACE_REACH).append("</td><td>").append(get(PROPERTY_SPACE_REACH)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_SPECIAL_ATTACKS).append("</td><td>").append(get(PROPERTY_SPECIAL_ATTACKS)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_SPECIAL_QUALITIES).append("</td><td>").append(get(PROPERTY_SPECIAL_QUALITIES)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_SAVES).append("</td><td>").append(get(PROPERTY_SAVES)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_ABILITIES).append("</td><td>").append(get(PROPERTY_ABILITIES)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_SKILLS).append("</td><td>").append(get(PROPERTY_SKILLS)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_FEATS).append("</td><td>").append(get(PROPERTY_FEATS)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_ENVIRONMENT).append("</td><td>").append(get(PROPERTY_ENVIRONMENT)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_ORGANIZATION).append("</td><td>").append(get(PROPERTY_ORGANIZATION)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_CR).append("</td><td>").append(get(PROPERTY_CR)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_TREASURE).append("</td><td>").append(get(PROPERTY_TREASURE)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_ALIGNMENT).append("</td><td>").append(get(PROPERTY_ALIGNMENT)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_ADVANCEMENT).append("</td><td>").append(get(PROPERTY_ADVANCEMENT)).append("</td></tr><tr><td>");
-		s.append(PROPERTY_LEVEL_ADJUSTMENT).append("</td><td>").append(get(PROPERTY_LEVEL_ADJUSTMENT)).append("</td></tr><tr><td>");
+		s.append("<html><table><tr><td></td><td>").append(getName()).append("</td></tr>");
+		for (Property p : Property.getStandardOrder()) {
+			s.append("<tr><td>").append(p).append("</td><td>").append(get(p)).append("</td></tr>");
+		}
+		s.append("</table></html>");
 		return s.toString();
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		String nl = System.getProperty("line.separator");
 		s.append(getName()).append(nl);
-		s.append(PROPERTY_SIZE_TYPE).append(" ").append(get(PROPERTY_SIZE_TYPE)).append(nl);
-		s.append(PROPERTY_HITDICE).append(" ").append(get(PROPERTY_HITDICE)).append(nl);
-		s.append(PROPERTY_INITIATIVE).append(" ").append(get(PROPERTY_INITIATIVE)).append(nl);
-		s.append(PROPERTY_SPEED).append(" ").append(get(PROPERTY_SPEED)).append(nl);
-		s.append(PROPERTY_AC).append(" ").append(get(PROPERTY_AC)).append(nl);
-		s.append(PROPERTY_BASE_ATTACK_GRAPPLE).append(" ").append(get(PROPERTY_BASE_ATTACK_GRAPPLE)).append(nl);
-		s.append(PROPERTY_ATTACK).append(" ").append(get(PROPERTY_ATTACK)).append(nl);
-		s.append(PROPERTY_FULL_ATTACK).append(" ").append(get(PROPERTY_FULL_ATTACK)).append(nl);
-		s.append(PROPERTY_SPACE_REACH).append(" ").append(get(PROPERTY_SPACE_REACH)).append(nl);
-		s.append(PROPERTY_SPECIAL_ATTACKS).append(" ").append(get(PROPERTY_SPECIAL_ATTACKS)).append(nl);
-		s.append(PROPERTY_SPECIAL_QUALITIES).append(" ").append(get(PROPERTY_SPECIAL_QUALITIES)).append(nl);
-		s.append(PROPERTY_SAVES).append(" ").append(get(PROPERTY_SAVES)).append(nl);
-		s.append(PROPERTY_ABILITIES).append(" ").append(get(PROPERTY_ABILITIES)).append(nl);
-		s.append(PROPERTY_SKILLS).append(" ").append(get(PROPERTY_SKILLS)).append(nl);
-		s.append(PROPERTY_FEATS).append(" ").append(get(PROPERTY_FEATS)).append(nl);
-		s.append(PROPERTY_ENVIRONMENT).append(" ").append(get(PROPERTY_ENVIRONMENT)).append(nl);
-		s.append(PROPERTY_ORGANIZATION).append(" ").append(get(PROPERTY_ORGANIZATION)).append(nl);
-		s.append(PROPERTY_CR).append(" ").append(get(PROPERTY_CR)).append(nl);
-		s.append(PROPERTY_TREASURE).append(" ").append(get(PROPERTY_TREASURE)).append(nl);
-		s.append(PROPERTY_ALIGNMENT).append(" ").append(get(PROPERTY_ALIGNMENT)).append(nl);
-		s.append(PROPERTY_ADVANCEMENT).append(" ").append(get(PROPERTY_ADVANCEMENT)).append(nl);
-		s.append(PROPERTY_LEVEL_ADJUSTMENT).append(" ").append(get(PROPERTY_LEVEL_ADJUSTMENT)).append(nl);
+		for (Property p : Property.getStandardOrder()) {
+			s.append(p).append(" ").append(get(p)).append(nl);
+		}
 		return s.toString();
+	}
+
+	public Monster createMonster() {
+		Monster m = new Monster();
+		m.setName(getName());
+		int[] ac = getACs();
+		m.setAC(ac[0]);
+		m.setTouchAC(ac[1]);
+		m.setFlatFootedAC(ac[2]);
+		m.setMaximumHitPoints(getDefaultHPs());
+		m.setInitiativeModifier(getInitiativeModifier());
+		m.setSpace(getSpace());
+		m.setReach(getReach());
+		m.setSize(getSize());
+		m.setStatisticsBlock(this);
+		return m;
 	}
 }

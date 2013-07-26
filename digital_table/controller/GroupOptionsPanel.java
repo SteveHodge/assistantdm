@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import digital_table.elements.Group;
+import digital_table.elements.MapElement;
 import digital_table.elements.Token;
 import digital_table.server.TableDisplay;
 
@@ -25,9 +26,11 @@ public class GroupOptionsPanel extends OptionsPanel {
 	//	private JPanel colorPanel;
 	private JTextField labelField;
 
-	public GroupOptionsPanel(Group g, TableDisplay r) {
+	public GroupOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		group = g;
+		group = new Group();
+		sendElement(group, parent);
+		group.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		group.addPropertyChangeListener(listener);
 
 		//		xField = createDoubleControl(group, Label.PROPERTY_X);

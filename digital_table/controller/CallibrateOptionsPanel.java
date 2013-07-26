@@ -18,9 +18,10 @@ public class CallibrateOptionsPanel extends OptionsPanel {
 	JCheckBox visibleCheck;
 	JCheckBox showBGCheck;
 
-	public CallibrateOptionsPanel(Callibrate cal, TableDisplay r) {
+	public CallibrateOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		callibrate = cal;
+		callibrate = new Callibrate();
+		sendElement(callibrate, parent);
 		callibrate.addPropertyChangeListener(listener);
 
 		showBGCheck = createCheckBox(callibrate, Callibrate.PROPERTY_SHOW_BACKGROUND, Mode.BOTH, "show background?");

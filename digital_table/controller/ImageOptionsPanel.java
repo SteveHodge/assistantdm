@@ -7,7 +7,10 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -16,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
 import digital_table.server.TableDisplay;
 
@@ -32,9 +36,22 @@ public class ImageOptionsPanel extends OptionsPanel {
 	JComboBox rotationsCombo;
 	JCheckBox snapCheck;
 
-	public ImageOptionsPanel(MapImage img, TableDisplay r) {
+	public ImageOptionsPanel(File f, MapElement parent, TableDisplay r) {
 		super(r);
-		image = img;
+		byte[] bytes = new byte[(int) f.length()];
+		try {
+			FileInputStream stream;
+			stream = new FileInputStream(f);
+			stream.read(bytes);
+		} catch (FileNotFoundException e) {
+			// TODO handle exceptions correctly
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		image = new MapImage(bytes, f.getName());
+		sendElement(image, parent);
+		image.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		image.addPropertyChangeListener(listener);
 
 		xField = createDoubleControl(image, MapImage.PROPERTY_X);
@@ -130,14 +147,10 @@ public class ImageOptionsPanel extends OptionsPanel {
 				x = Math.floor(x);
 				y = Math.floor(y);
 			}
-			try {
-				remote.setElementProperty(image.getID(), MapImage.PROPERTY_X, x);
-				remote.setElementProperty(image.getID(), MapImage.PROPERTY_Y, y);
-				image.setProperty(MapImage.PROPERTY_X, x);
-				image.setProperty(MapImage.PROPERTY_Y, y);
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
+			setRemote(image.getID(), MapImage.PROPERTY_X, x);
+			setRemote(image.getID(), MapImage.PROPERTY_Y, y);
+			image.setProperty(MapImage.PROPERTY_X, x);
+			image.setProperty(MapImage.PROPERTY_Y, y);
 		}
 
 		@Override
@@ -154,14 +167,10 @@ public class ImageOptionsPanel extends OptionsPanel {
 			Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
 			boolean clear = !image.isCleared(p);
 			image.setCleared(p, clear);
-			try {
-				if (clear) {
-					remote.setElementProperty(image.getID(), MapImage.PROPERTY_CLEARCELL, p);
-				} else {
-					remote.setElementProperty(image.getID(), MapImage.PROPERTY_UNCLEARCELL, p);
-				}
-			} catch (RemoteException ex) {
-				ex.printStackTrace();
+			if (clear) {
+				setRemote(image.getID(), MapImage.PROPERTY_CLEARCELL, p);
+			} else {
+				setRemote(image.getID(), MapImage.PROPERTY_UNCLEARCELL, p);
 			}
 		}
 	};

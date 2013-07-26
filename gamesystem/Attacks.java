@@ -33,7 +33,7 @@ import party.Creature;
 /*
  * Statistics provided:
  * Attacks - the melee attack statistic
- * .AttackForm - a particular attack mode  
+ * .AttackForm - a particular attack mode
  * Properties provided:
  * extra_attacks - additional attacks at top attack bonus
  * base_attack_bonus - TODO
@@ -49,6 +49,7 @@ public class Attacks extends Statistic {
 
 		private Usage(String d) {description = d;}
 
+		@Override
 		public String toString() {return description;}
 
 		private final String description;
@@ -60,18 +61,19 @@ public class Attacks extends Statistic {
 		LIGHT("Light Melee"),				// can't be used 2 handed, adds str
 		ONE_HANDED("One-handed Melee"),		// can be used 1 or 2 handed. adds str for primary hand use, 1/2 str for off hand use, 3/2 str for 2 handed use
 		TWO_HANDED("Two-handed Melee"),		// must be used 2 handed. adds 3/2 str
-		THROWN("Ranged - Thrown"),			// adds str. can be thrown in off hand 
+		THROWN("Ranged - Thrown"),			// adds str. can be thrown in off hand
 		MISSILE("Ranged - Projectile");		// adds str only if mighty bow or sling
 
 		private Kind(String d) {description = d;}
 
+		@Override
 		public String toString() {return description;}
 
 		public static Kind getKind(String d) {
 			for (Kind k : values()) {
 				if (k.description.equals(d)) return k;
 			}
-			return null;	// TODO probably better to throw an exception 
+			return null;	// TODO probably better to throw an exception
 		}
 
 		private final String description;
@@ -94,14 +96,18 @@ public class Attacks extends Statistic {
 	protected Modifier fightingDefensivelyAC = new ImmutableModifier(2,"Dodge","Fighting defensively");
 
 	final PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			firePropertyChange("value", null, getValue());
 		}
 	};
 
 	final ListDataListener featsListener = new ListDataListener() {
+		@Override
 		public void contentsChanged(ListDataEvent e) {update();}
+		@Override
 		public void intervalAdded(ListDataEvent e) {update();}
+		@Override
 		public void intervalRemoved(ListDataEvent e) {update();}
 
 		protected void update() {
@@ -129,6 +135,7 @@ public class Attacks extends Statistic {
 		dexMod.addPropertyChangeListener(listener);
 	}
 
+	@Override
 	protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
 		super.firePropertyChange(prop, oldVal, newVal);
 		for (AttackForm a : attackForms) {
@@ -143,7 +150,7 @@ public class Attacks extends Statistic {
 		int attacks;
 	}
 
-	protected List<ExtraAttacks> extraAttacks = new ArrayList<ExtraAttacks>(); 
+	protected List<ExtraAttacks> extraAttacks = new ArrayList<ExtraAttacks>();
 
 	public int getExtraAttacks() {
 		HashMap<String,Integer> attacks = new HashMap<String,Integer>();
@@ -159,6 +166,7 @@ public class Attacks extends Statistic {
 	}
 
 	// "extra_attacks" - integer value - number of extra attacks at the highest base attack bonus
+	@Override
 	public void setProperty(String property, Object value, String source, Object key) {
 		if (property == null || !property.equals("extra_attacks")) return;
 		//int old = getExtraAttacks();
@@ -171,6 +179,7 @@ public class Attacks extends Statistic {
 		firePropertyChange("value", null, getValue());
 	}
 
+	@Override
 	public void resetProperty(String property, Object key) {
 		if (property == null || !property.equals("extra_attacks")) return;
 		int old = getExtraAttacks();
@@ -194,10 +203,12 @@ public class Attacks extends Statistic {
 	}
 
 	// returns the str-modified ("melee") statistic
+	@Override
 	public int getValue() {
 		return BAB + getModifiersTotal();
 	}
 
+	@Override
 	protected Set<Modifier> getModifierSet() {
 		Set<Modifier> mods = new HashSet<Modifier>();
 		mods.addAll(modifiers);
@@ -269,7 +280,7 @@ public class Attacks extends Statistic {
 			ac.addModifier(combatExpertiseAC);
 		}
 
-		//firePropertyChange("value", null, getValue());	// will be fired by when the modifier is changed 
+		//firePropertyChange("value", null, getValue());	// will be fired by when the modifier is changed
 	}
 
 	// returns the amount of combat expertise applied (i.e. 0 to 5 inclusive)
@@ -309,9 +320,10 @@ public class Attacks extends Statistic {
 
 	public boolean isTotalDefense() {
 		return isTotalDefense;
-	} 
+	}
 
 	// ------------ DOM conversion --------------
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("Attacks");
 		e.setAttribute("base", ""+getBAB());
@@ -356,10 +368,12 @@ public class Attacks extends Statistic {
 	// listener modifications are forwarded to the Attacks instance (which means the source of any events will be that instance)
 	// getValue() returns the total of the modifiers.
 	protected final Statistic damageStat = new Statistic("Damage") {
+		@Override
 		public void addPropertyChangeListener(PropertyChangeListener listener) {
 			Attacks.this.addPropertyChangeListener(listener);
 		}
 
+		@Override
 		public void removePropertyChangeListener(PropertyChangeListener listener) {
 			Attacks.this.removePropertyChangeListener(listener);
 		}
@@ -368,7 +382,7 @@ public class Attacks extends Statistic {
 	public Statistic getDamageStatistic() {
 		return damageStat;
 	}
-	
+
 	// ------------ Attack forms / weapons list related ------------
 	@SuppressWarnings("serial")
 	protected class AttackFormListModel extends AbstractListModel {
@@ -376,10 +390,12 @@ public class Attacks extends Statistic {
 			return attackForms.get(i);
 		}
 
+		@Override
 		public Object getElementAt(int i) {
 			return get(i);
 		}
 
+		@Override
 		public int getSize() {
 			return attackForms.size();
 		}
@@ -425,7 +441,7 @@ public class Attacks extends Statistic {
 	public int getAttackFormsCount() {
 		return attackFormsModel.getSize();
 	}
-	
+
 	public AttackForm getAttackForm(int i) {
 		return attackFormsModel.get(i);
 	}
@@ -515,7 +531,7 @@ public class Attacks extends Statistic {
 		public String damage_type;			// TODO convert to enum/constants/bitfield - not sure if it's practical since multiple values can be "and" or "or"
 		public String properties;			// TODO eventually will be derived
 		public String ammunition;
-		public Size.Category size = Size.Category.MEDIUM;	// weapon size // TODO should default to character's size 
+		public SizeCategory size = SizeCategory.MEDIUM;	// weapon size // TODO should default to character's size
 		protected Kind  kind;					// weapon kind (melee/ranged/thrown etc)
 		protected Usage usage;					// style of use (one-handed, two-handed, primary, etc) // TODO when we have weapon definitions this should default to the correct "normal" use of the weapon
 
@@ -536,8 +552,9 @@ public class Attacks extends Statistic {
 		// convenient passthrough of Attacks method:
 		public boolean isTotalDefense() {
 			return Attacks.this.isTotalDefense();
-		} 
+		}
 
+		@Override
 		public int getValue() {
 			return getBAB() + getModifiersTotal();
 		}
@@ -629,7 +646,7 @@ public class Attacks extends Statistic {
 					{
 						s = mod;
 					}
-					// TODO mighty bows 
+					// TODO mighty bows
 					//if (kind == Kind.MISSILE && ...mighty...)
 				}
 				if (s > 0) {
@@ -650,7 +667,7 @@ public class Attacks extends Statistic {
 		}
 
 		// calculates any penalties and applies them
-		protected void updateModifiers() {			
+		protected void updateModifiers() {
 			// two-weapon fighting modifiers:
 			Modifier newMod = null;
 
@@ -666,7 +683,7 @@ public class Attacks extends Statistic {
 						break;
 					}
 				}
-				
+
 				newMod = new ImmutableModifier(-penalty,null,"Two-weapon fighting (primary)");
 			} else if (usage == Usage.SECONDARY) {
 				int penalty = 10;
@@ -696,6 +713,7 @@ public class Attacks extends Statistic {
 		}
 
 		// if kind is unset then it is assumed to be a melee weapon
+		@Override
 		public Set<Modifier> getModifierSet() {
 			Set<Modifier> mods = new HashSet<Modifier>(modifiers);
 			mods.addAll(Attacks.this.modifiers);
@@ -720,7 +738,7 @@ public class Attacks extends Statistic {
 		// secondary weapon + improved 2 weapon fighting - returns max of 2 attacks
 		// secondary weapon + greater 2 weapon fighting - returns max of 3 attacks
 		// missile weapon + rapid shot - returns extra attack at the top bonus
-		// flurry of blows - provides 1 or 2 extra attacks at the top bonus (depends on level) 
+		// flurry of blows - provides 1 or 2 extra attacks at the top bonus (depends on level)
 		public String getAttacksDescription() {
 			StringBuilder s = new StringBuilder();
 
@@ -754,10 +772,12 @@ public class Attacks extends Statistic {
 			return s.toString();
 		}
 
+		@Override
 		public String toString() {
 			return name;
 		}
 
+		@Override
 		public Element getElement(Document doc) {
 			Element e = doc.createElement("AttackForm");
 			e.setAttribute("name", name);
@@ -799,7 +819,7 @@ public class Attacks extends Statistic {
 			if (e.hasAttribute("range")) range = Integer.parseInt(e.getAttribute("range"));
 			if (e.hasAttribute("weight")) weight = Integer.parseInt(e.getAttribute("weight"));
 			damage_type = e.getAttribute("type");
-			if (e.hasAttribute("size")) size = Size.Category.getCategory(e.getAttribute("size"));
+			if (e.hasAttribute("size")) size = SizeCategory.getSize(e.getAttribute("size"));
 			ammunition = e.getAttribute("ammunition");
 			kind = Kind.getKind(e.getAttribute("kind"));
 			if (e.hasAttribute("usage")) usage = Usage.values()[Integer.parseInt(e.getAttribute("usage"))];

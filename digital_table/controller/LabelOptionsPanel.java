@@ -6,7 +6,6 @@ import java.awt.GridBagLayout;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -16,6 +15,7 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 
 import digital_table.elements.Label;
+import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
@@ -32,9 +32,11 @@ public class LabelOptionsPanel extends OptionsPanel {
 	private JTextField fontSizeField;
 	private JTextField textField;
 
-	public LabelOptionsPanel(Label l, TableDisplay r) {
+	public LabelOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		label = l;
+		label= new Label();
+		sendElement(label, parent);
+		label.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		label.addPropertyChangeListener(listener);
 
 		xField = createDoubleControl(label, Label.PROPERTY_X);
@@ -139,14 +141,10 @@ public class LabelOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			try {
-				remote.setElementProperty(label.getID(), Label.PROPERTY_X, p.getX());
-				remote.setElementProperty(label.getID(), Label.PROPERTY_Y, p.getY());
-				label.setProperty(Label.PROPERTY_X, p.getX());
-				label.setProperty(Label.PROPERTY_Y, p.getY());
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
+			setRemote(label.getID(), Label.PROPERTY_X, p.getX());
+			setRemote(label.getID(), Label.PROPERTY_Y, p.getY());
+			label.setProperty(Label.PROPERTY_X, p.getX());
+			label.setProperty(Label.PROPERTY_Y, p.getY());
 		}
 
 		@Override

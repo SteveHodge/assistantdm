@@ -6,7 +6,6 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -15,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import digital_table.elements.LightSource;
+import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
 
@@ -27,9 +27,11 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 	JTextField labelField;
 	JComboBox typeCombo;
 
-	public LightSourceOptionsPanel(LightSource t, TableDisplay r) {
+	public LightSourceOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		light = t;
+		light = new LightSource(4, 0, 0);
+		sendElement(light, parent);
+		light.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		light.addPropertyChangeListener(listener);
 
 		radiusField = createIntegerControl(light, LightSource.PROPERTY_RADIUS);
@@ -105,14 +107,10 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			try {
-				remote.setElementProperty(light.getID(), LightSource.PROPERTY_X, (int) p.getX());
-				remote.setElementProperty(light.getID(), LightSource.PROPERTY_Y, (int) p.getY());
-				light.setProperty(LightSource.PROPERTY_X, (int) p.getX());
-				light.setProperty(LightSource.PROPERTY_Y, (int) p.getY());
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
+			setRemote(light.getID(), LightSource.PROPERTY_X, (int) p.getX());
+			setRemote(light.getID(), LightSource.PROPERTY_Y, (int) p.getY());
+			light.setProperty(LightSource.PROPERTY_X, (int) p.getX());
+			light.setProperty(LightSource.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override

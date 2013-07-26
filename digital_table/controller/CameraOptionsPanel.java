@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -26,9 +25,14 @@ public class CameraOptionsPanel extends OptionsPanel {
 	private JSlider alphaSlider;
 	private CameraPanel camera;
 
-	public CameraOptionsPanel(MapImage img, TableDisplay r, CameraPanel cam) {
+	public CameraOptionsPanel(MapElement parent, TableDisplay r, CameraPanel cam) {
 		super(r);
-		image = img;
+		image = new MapImage("Camera");
+		image.setProperty(MapImage.PROPERTY_ROTATIONS, 1);
+		image.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
+		image.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
+		image.setProperty(MapImage.PROPERTY_Y, -1.0d);
+		sendElement(image, parent);
 		image.addPropertyChangeListener(listener);
 		this.camera = cam;
 
@@ -40,16 +44,12 @@ public class CameraOptionsPanel extends OptionsPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				byte[] bytes = camera.getLatestCorrectedImage();
-				try {
-					remote.setElementProperty(image.getID(), MapImage.PROPERTY_IMAGE, bytes);
-					remote.setElementProperty(image.getID(), MapImage.PROPERTY_WIDTH, 32.0d);
-					remote.setElementProperty(image.getID(), MapImage.PROPERTY_HEIGHT, 39.0d);
-					image.setProperty(MapImage.PROPERTY_IMAGE, bytes);
-					image.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
-					image.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
+				setRemote(image.getID(), MapImage.PROPERTY_IMAGE, bytes);
+				setRemote(image.getID(), MapImage.PROPERTY_WIDTH, 32.0d);
+				setRemote(image.getID(), MapImage.PROPERTY_HEIGHT, 39.0d);
+				image.setProperty(MapImage.PROPERTY_IMAGE, bytes);
+				image.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
+				image.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
 			}
 		});
 

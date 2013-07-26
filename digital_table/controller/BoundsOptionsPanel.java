@@ -22,9 +22,11 @@ public class BoundsOptionsPanel extends OptionsPanel {
 	JSlider alphaSlider;
 	JCheckBox visibleCheck;
 
-	public BoundsOptionsPanel(ScreenBounds b, TableDisplay r) {
+	public BoundsOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
-		bounds = b;
+		bounds = new ScreenBounds();
+		sendElement(bounds, parent);
+		bounds.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		bounds.addPropertyChangeListener(listener);
 
 		colorPanel = createColorControl(bounds, ScreenBounds.PROPERTY_COLOR);
@@ -32,7 +34,7 @@ public class BoundsOptionsPanel extends OptionsPanel {
 
 		visibleCheck = this.createCheckBox(bounds, MapElement.PROPERTY_VISIBLE, Mode.LOCAL, "local visible?");
 		visibleCheck.setSelected(true);
-		
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -50,18 +52,20 @@ public class BoundsOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
+	@Override
 	public ScreenBounds getElement() {
 		return bounds;
 	}
 
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(ScreenBounds.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
-				
+
 			} else if (e.getPropertyName().equals(ScreenBounds.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
-				
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}

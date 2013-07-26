@@ -11,8 +11,6 @@ import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,36 +34,19 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import party.Monster;
 import camera.CameraPanel;
-
-import combat.CombatPanel;
-import combat.InitiativeListener;
-
-import digital_table.elements.Browser;
-import digital_table.elements.BrowserLocal;
-import digital_table.elements.BrowserRemote;
-import digital_table.elements.Callibrate;
-import digital_table.elements.DarknessMask;
 import digital_table.elements.Grid;
 import digital_table.elements.Group;
-import digital_table.elements.Initiative;
-import digital_table.elements.Label;
-import digital_table.elements.LightSource;
-import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
-import digital_table.elements.MapImage;
-import digital_table.elements.PersonalEmanation;
-import digital_table.elements.ScreenBounds;
-import digital_table.elements.ShapeableTemplate;
 import digital_table.elements.SpreadTemplate;
-import digital_table.elements.Token;
 import digital_table.server.TableDisplay;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
 @SuppressWarnings("serial")
 public class ControllerFrame extends JFrame {
-	private static final long serialVersionUID = 1L;
+	private static ControllerFrame instance = null;	// TODO remove
 
 	private TableDisplay display;
 	private CameraPanel camera;
@@ -80,6 +61,9 @@ public class ControllerFrame extends JFrame {
 
 	public ControllerFrame(TableDisplay remote, CameraPanel camera) {
 		super("DigitalTable Controller");
+
+		instance = this;
+
 		this.camera = camera;
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(windowListener);
@@ -305,6 +289,14 @@ public class ControllerFrame extends JFrame {
 		}
 	}
 
+	public static void addMonster(Monster m, File imageFile) {
+		if (instance != null) {
+			TokenOptionsPanel panel = instance.tokenAction.addElement(null);
+			panel.setCreature(m);
+			panel.setImage(imageFile);
+		}
+	}
+
 	private MouseInputListener miniMapMouseListener = new MouseInputListener() {
 		protected MapElementMouseListener getOptionsPanel() {
 			MapElement element = getSelectedElement();
@@ -408,7 +400,7 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
-	private abstract class AddElementAction<E extends MapElement> extends AbstractAction {
+	private abstract class AddElementAction<P extends OptionsPanel> extends AbstractAction {
 		String name;
 
 		protected AddElementAction(String name) {
@@ -416,37 +408,24 @@ public class ControllerFrame extends JFrame {
 			putValue(NAME, "Add " + name);
 		}
 
-		abstract protected E createElement(MapElement parent);
-
-		abstract protected OptionsPanel createOptionsPanel(E e);
+		abstract protected P createOptionsPanel(MapElement parent);
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			addElement(null);
 		}
 
-		protected void addElement(MapElement parent) {
-			E element = createElement(parent);
-			if (element != null) {
+		protected P addElement(MapElement parent) {
+			P panel = createOptionsPanel(parent);
+			if (panel != null) {
+				MapElement element = panel.getElement();
+				element.addPropertyChangeListener(labelListener);
 				miniMapPanel.addElement(element, parent);
-				optionPanels.put(element, createOptionsPanel(element));
+				optionPanels.put(element, panel);
 				elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
 				//elementList.setSelectedValue(element, true);
 			}
-		}
-
-		protected boolean sendElement(E e, MapElement parent) {
-			try {
-				if (parent == null) {
-					display.addElement(e);
-				} else {
-					display.addElement(e, parent.getID());
-				}
-				return true;
-			} catch (RemoteException e1) {
-				e1.printStackTrace();
-			}
-			return false;
+			return panel;
 		}
 
 		@Override
@@ -455,298 +434,114 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
-	private AddElementAction<MapImage> imageElementAction = new AddElementAction<MapImage>("Image") {
+	private AddElementAction<ImageOptionsPanel> imageElementAction = new AddElementAction<ImageOptionsPanel>("Image") {
 		JFileChooser chooser = new JFileChooser();
 
 		@Override
-		protected MapImage createElement(MapElement parent) {
+		protected ImageOptionsPanel createOptionsPanel(MapElement parent) {
 			if (chooser.showOpenDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
-				try {
-					File f = chooser.getSelectedFile();
-					byte[] bytes = new byte[(int) f.length()];
-					FileInputStream stream = new FileInputStream(f);
-					stream.read(bytes);
-					MapImage mapImage = new MapImage(bytes, f.getName());
-					if (sendElement(mapImage, parent)) {
-						mapImage.setProperty(MapElement.PROPERTY_VISIBLE, true);
-						mapImage.addPropertyChangeListener(labelListener);
-						return mapImage;
-					}
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			} else {
-				System.out.println("Cancelled");
+				return new ImageOptionsPanel(chooser.getSelectedFile(), parent, display);
 			}
 			return null;
-		}
-
-		@Override
-		protected ImageOptionsPanel createOptionsPanel(MapImage e) {
-			return new ImageOptionsPanel(e, display);
 		}
 	};
 
-	private AddElementAction<SpreadTemplate> templateAction = new AddElementAction<SpreadTemplate>("Template") {
+	private AddElementAction<SpreadTemplateOptionsPanel> templateAction = new AddElementAction<SpreadTemplateOptionsPanel>("Template") {
 		@Override
-		protected SpreadTemplate createElement(MapElement parent) {
-			SpreadTemplate template = new SpreadTemplate(4, 10, 10);
-			if (sendElement(template, parent)) {
-				template.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				template.addPropertyChangeListener(labelListener);
-				return template;
-			}
-			return null;
-		}
-
-		@Override
-		protected SpreadTemplateOptionsPanel createOptionsPanel(SpreadTemplate e) {
-			return new SpreadTemplateOptionsPanel(e, display);
+		protected SpreadTemplateOptionsPanel createOptionsPanel(MapElement parent) {
+			return new SpreadTemplateOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<LineTemplate> lineAction = new AddElementAction<LineTemplate>("Line") {
+	private AddElementAction<LineTemplateOptionsPanel> lineAction = new AddElementAction<LineTemplateOptionsPanel>("Line") {
 		@Override
-		protected LineTemplate createElement(MapElement parent) {
-			LineTemplate template = new LineTemplate(18, 14, 21, 7);
-			if (sendElement(template, parent)) {
-				template.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				template.addPropertyChangeListener(labelListener);
-				return template;
-			}
-			return null;
-		}
-
-		@Override
-		protected LineTemplateOptionsPanel createOptionsPanel(LineTemplate e) {
-			return new LineTemplateOptionsPanel(e, display);
+		protected LineTemplateOptionsPanel createOptionsPanel(MapElement parent) {
+			return new LineTemplateOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<ShapeableTemplate> shapeableAction = new AddElementAction<ShapeableTemplate>("Shapeable") {
-		@Override
-		protected ShapeableTemplate createElement(MapElement parent) {
-			ShapeableTemplate template = new ShapeableTemplate();
-			if (sendElement(template, parent)) {
-				template.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				template.addPropertyChangeListener(labelListener);
-				return template;
-			}
-			return null;
-		}
+	private AddElementAction<ShapeableTemplateOptionsPanel> shapeableAction = new AddElementAction<ShapeableTemplateOptionsPanel>("Shapeable") {
 
 		@Override
-		protected ShapeableTemplateOptionsPanel createOptionsPanel(ShapeableTemplate e) {
-			return new ShapeableTemplateOptionsPanel(e, display);
+		protected ShapeableTemplateOptionsPanel createOptionsPanel(MapElement parent) {
+			return new ShapeableTemplateOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<DarknessMask> darknessAction = new AddElementAction<DarknessMask>("Darkness") {
+	private AddElementAction<DarknessMaskOptionsPanel> darknessAction = new AddElementAction<DarknessMaskOptionsPanel>("Darkness") {
 		@Override
-		protected DarknessMask createElement(MapElement parent) {
-			DarknessMask template = new DarknessMask();
-			template.setProperty(MapElement.PROPERTY_VISIBLE, true);
-			if (sendElement(template, parent)) {
-				template.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
-				return template;
-			}
-			return null;
-		}
-
-		@Override
-		protected DarknessMaskOptionsPanel createOptionsPanel(DarknessMask e) {
-			return new DarknessMaskOptionsPanel(e, display);
+		protected DarknessMaskOptionsPanel createOptionsPanel(MapElement parent) {
+			return new DarknessMaskOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<Browser> browserAction = new AddElementAction<Browser>("Browser") {
+	private AddElementAction<BrowserOptionsPanel> browserAction = new AddElementAction<BrowserOptionsPanel>("Browser") {
 		@Override
-		protected Browser createElement(MapElement parent) {
-			BrowserRemote remote = new BrowserRemote();
-			if (sendElement(remote, parent)) {
-				Browser browser = new BrowserLocal(remote);
-				browser.addPropertyChangeListener(labelListener);
-				return browser;
-			}
-			return null;
-		}
-
-		@Override
-		protected BrowserOptionsPanel createOptionsPanel(Browser e) {
-			return new BrowserOptionsPanel(e, display);
+		protected BrowserOptionsPanel createOptionsPanel(MapElement parent) {
+			return new BrowserOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<Initiative> initiativeAction = new AddElementAction<Initiative>("Initiative") {
+	private AddElementAction<InitiativeOptionsPanel> initiativeAction = new AddElementAction<InitiativeOptionsPanel>("Initiative") {
 		@Override
-		protected Initiative createElement(MapElement parent) {
-			final Initiative init = new Initiative();
-			if (sendElement(init, parent)) {
-				init.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
-					@Override
-					public void initiativeUpdated(String text) {
-						init.setProperty(Label.PROPERTY_TEXT, text);
-						try {
-							display.setElementProperty(init.getID(), Label.PROPERTY_TEXT, text);
-						} catch (RemoteException e) {
-							e.printStackTrace();
-						}
-					}
-				});
-				return init;
-			}
-			return null;
-		}
-
-		@Override
-		protected InitiativeOptionsPanel createOptionsPanel(Initiative e) {
-			return new InitiativeOptionsPanel(e, display);
+		protected InitiativeOptionsPanel createOptionsPanel(MapElement parent) {
+			return new InitiativeOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<Label> labelAction = new AddElementAction<Label>("Label") {
+	private AddElementAction<LabelOptionsPanel> labelAction = new AddElementAction<LabelOptionsPanel>("Label") {
 		@Override
-		protected Label createElement(MapElement parent) {
-			final Label label = new Label();
-			if (sendElement(label, parent)) {
-				label.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				label.addPropertyChangeListener(labelListener);
-				return label;
-			}
-			return null;
-		}
-
-		@Override
-		protected LabelOptionsPanel createOptionsPanel(Label e) {
-			return new LabelOptionsPanel(e, display);
+		protected LabelOptionsPanel createOptionsPanel(MapElement parent) {
+			return new LabelOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<ScreenBounds> screensAction = new AddElementAction<ScreenBounds>("Screens") {
+	private AddElementAction<BoundsOptionsPanel> screensAction = new AddElementAction<BoundsOptionsPanel>("Screens") {
 		@Override
-		protected ScreenBounds createElement(MapElement parent) {
-			ScreenBounds bounds = new ScreenBounds();
-			if (sendElement(bounds, parent)) {
-				bounds.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				return bounds;
-			}
-			return null;
-		}
-
-		@Override
-		protected BoundsOptionsPanel createOptionsPanel(ScreenBounds e) {
-			return new BoundsOptionsPanel(e, display);
+		protected BoundsOptionsPanel createOptionsPanel(MapElement parent) {
+			return new BoundsOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<Token> tokenAction = new AddElementAction<Token>("Token") {
+	private AddElementAction<TokenOptionsPanel> tokenAction = new AddElementAction<TokenOptionsPanel>("Token") {
 		@Override
-		protected Token createElement(MapElement parent) {
-			Token token = new Token();
-			if (sendElement(token, parent)) {
-				token.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				token.addPropertyChangeListener(labelListener);
-				return token;
-			}
-			return null;
-		}
-
-		@Override
-		protected TokenOptionsPanel createOptionsPanel(Token e) {
-			return new TokenOptionsPanel(e, display);
+		protected TokenOptionsPanel createOptionsPanel(MapElement parent) {
+			return new TokenOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<Group> groupAction = new AddElementAction<Group>("Group") {
+	private AddElementAction<GroupOptionsPanel> groupAction = new AddElementAction<GroupOptionsPanel>("Group") {
 		@Override
-		protected Group createElement(MapElement parent) {
-			Group group = new Group();
-			if (sendElement(group, parent)) {
-				group.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				group.addPropertyChangeListener(labelListener);
-				return group;
-			}
-			return null;
-		}
-
-		@Override
-		protected GroupOptionsPanel createOptionsPanel(Group e) {
-			return new GroupOptionsPanel(e, display);
+		protected GroupOptionsPanel createOptionsPanel(MapElement parent) {
+			return new GroupOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<LightSource> lightSourceAction = new AddElementAction<LightSource>("Light Source") {
+	private AddElementAction<LightSourceOptionsPanel> lightSourceAction = new AddElementAction<LightSourceOptionsPanel>("Light Source") {
 		@Override
-		protected LightSource createElement(MapElement parent) {
-			LightSource light = new LightSource(4, 0, 0);
-			if (sendElement(light, parent)) {
-				light.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				light.addPropertyChangeListener(labelListener);
-				return light;
-			}
-			return null;
-		}
-
-		@Override
-		protected LightSourceOptionsPanel createOptionsPanel(LightSource e) {
-			return new LightSourceOptionsPanel(e, display);
+		protected LightSourceOptionsPanel createOptionsPanel(MapElement parent) {
+			return new LightSourceOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<PersonalEmanation> personalEmanationAction = new AddElementAction<PersonalEmanation>("Personal Emanation") {
+	private AddElementAction<PersonalEmanationOptionsPanel> personalEmanationAction = new AddElementAction<PersonalEmanationOptionsPanel>("Personal Emanation") {
 		@Override
-		protected PersonalEmanation createElement(MapElement parent) {
-			PersonalEmanation light = new PersonalEmanation(2, 0, 0);
-			if (sendElement(light, parent)) {
-				light.setProperty(MapElement.PROPERTY_VISIBLE, true);
-				light.addPropertyChangeListener(labelListener);
-				return light;
-			}
-			return null;
-		}
-
-		@Override
-		protected PersonalEmanationOptionsPanel createOptionsPanel(PersonalEmanation e) {
-			return new PersonalEmanationOptionsPanel(e, display);
+		protected PersonalEmanationOptionsPanel createOptionsPanel(MapElement parent) {
+			return new PersonalEmanationOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<Callibrate> callibrateAction = new AddElementAction<Callibrate>("Callibrate") {
+	private AddElementAction<CallibrateOptionsPanel> callibrateAction = new AddElementAction<CallibrateOptionsPanel>("Callibrate") {
 		@Override
-		protected Callibrate createElement(MapElement parent) {
-			Callibrate cal = new Callibrate();
-			if (sendElement(cal, parent)) {
-				return cal;
-			}
-			return null;
-		}
-
-		@Override
-		protected CallibrateOptionsPanel createOptionsPanel(Callibrate e) {
-			return new CallibrateOptionsPanel(e, display);
+		protected CallibrateOptionsPanel createOptionsPanel(MapElement parent) {
+			return new CallibrateOptionsPanel(parent, display);
 		}
 	};
 
-	private AddElementAction<MapImage> cameraImageAction = new AddElementAction<MapImage>("Camera Image") {
+	private AddElementAction<CameraOptionsPanel> cameraImageAction = new AddElementAction<CameraOptionsPanel>("Camera Image") {
 		@Override
-		protected MapImage createElement(MapElement parent) {
-			if (camera == null) return null;
-			MapImage remote = new MapImage("Camera");
-			remote.setProperty(MapImage.PROPERTY_ROTATIONS, 1);
-			remote.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
-			remote.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
-			remote.setProperty(MapImage.PROPERTY_Y, -1.0d);
-			if (sendElement(remote, parent)) {
-				return remote;
-			}
-			return null;
-		}
-
-		@Override
-		protected CameraOptionsPanel createOptionsPanel(MapImage e) {
-			if (camera == null) return null;
-			return new CameraOptionsPanel(e, display, camera);
+		protected CameraOptionsPanel createOptionsPanel(MapElement parent) {
+			return new CameraOptionsPanel(parent, display, camera);
 		}
 	};
 }

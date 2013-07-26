@@ -37,9 +37,10 @@ public class Token extends Group {
 	public final static String PROPERTY_Y = "y";	// int
 	public final static String PROPERTY_COLOR = "color";	// Color
 	public final static String PROPERTY_ALPHA = "alpha";	// float
-	public final static String PROPERTY_SIZE = "size";		// Size
 	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_IMAGE = "image";	// byte[]
+	public final static String PROPERTY_REACH = "reach";	// int - in feet
+	public final static String PROPERTY_SPACE = "space";	// int - in 1/2 foot units
 	public final static String PROPERTY_ROTATIONS = "rotations";	// int - number of quadrants rotated clockwise
 	public final static String PROPERTY_SHOWREACH = "show_reach";	// boolean
 	public final static String PROPERTY_REACHWEAPON = "reach_weapon";	// boolean
@@ -47,57 +48,6 @@ public class Token extends Group {
 	public final static String PROPERTY_CURRENT_HPS = "current_hps";	// int
 	public final static String PROPERTY_STATUS_TYPE = "status_type";	// StatusType
 	public final static String PROPERTY_STATUS_DISPLAY = "status_display";	// StatusDisplay
-
-	// TODO combine with gamesystem.Size
-	public enum Size {
-		FINE(1, 0, "Fine"),
-		DIMINUTIVE(2, 0, "Diminutive"),
-		TINY(5, 0, "Tiny"),
-		SMALL(10, 5, "Small"),
-		MEDIUM(10, 5, "Medium"),
-		LARGE_LONG(20, 5, "Large (long)"),
-		LARGE_TALL(20, 10, "Large (tall)"),
-		HUGE_LONG(30, 10, "Huge (long)"),
-		HUGE_TALL(30, 15, "Huge (tall)"),
-		GARGANTUAN_LONG(40, 15, "Gargantuan (long)"),
-		GARGANTUAN_TALL(40, 20, "Gargantuan (tall)"),
-		COLOSSAL_LONG(60, 20, "Colossal (long)"),
-		COLOSSAL_TALL(60, 30, "Colossal (tall)");
-
-		@Override
-		public String toString() {
-			return description;
-		}
-
-		public static Size getSize(String d) {
-			for (Size s : values()) {
-				if (s.toString().equals(d)) return s;
-			}
-			return null;		// TODO should throw exception
-		}
-
-		public int getSpace() {
-			return space;
-		}	// space in 1/2ft units
-
-		public double getSpaceFeet() {
-			return (double) space / 2;
-		}
-
-		public int getReach() {
-			return reach;
-		}
-
-		Size(int space, int reach, String desc) {
-			this.space = space;
-			this.reach = reach;
-			description = desc;
-		}
-
-		private final int space;	// in 1/2ft units
-		private final int reach;	// in feet
-		private String description;
-	}
 
 	public enum StatusDisplay {
 		NONE("Don't show"),
@@ -164,7 +114,9 @@ public class Token extends Group {
 
 	private Property<StatusDisplay> statusDisplay = new Property<StatusDisplay>(PROPERTY_STATUS_DISPLAY, StatusDisplay.LABEL, StatusDisplay.class);
 	private Property<StatusType> statusType = new Property<StatusType>(PROPERTY_STATUS_TYPE, StatusType.EXACT, StatusType.class);
-	private Property<Size> size = new Property<Size>(PROPERTY_SIZE, Size.MEDIUM, Size.class);
+//	private Property<CreatureSize> size = new Property<CreatureSize>(PROPERTY_SIZE, CreatureSize.MEDIUM, CreatureSize.class);
+	private Property<Integer> space = new Property<Integer>(PROPERTY_SPACE, 10, Integer.class);
+	private Property<Integer> reach = new Property<Integer>(PROPERTY_REACH, 5, Integer.class);
 	private Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.WHITE, Color.class);
 	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	private Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
@@ -217,7 +169,7 @@ public class Token extends Group {
 		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
 		g.translate(o.getX(), o.getY());
 
-		int space = size.getValue().getSpace();
+		int space = this.space.getValue();
 		if (space < 10) space = 10;	// TODO need to be able to draw sub-Small tokens slightly smaller
 
 		if (showReach.getValue()) paintReach(g);
@@ -344,7 +296,7 @@ public class Token extends Group {
 	}
 
 	private void paintReach(Graphics2D g) {
-		int reach = size.getValue().getReach() / 5;
+		int reach = this.reach.getValue() / 5;
 		int space = getSpace();
 		Area area;
 		if (!reachWeapon.getValue()) {
@@ -362,7 +314,7 @@ public class Token extends Group {
 
 	// returns the space is grid units
 	int getSpace() {
-		int space = size.getValue().getSpace() / 10;
+		int space = this.space.getValue() / 10;
 		if (space < 1) space = 1;
 		return space;
 	}
@@ -506,22 +458,30 @@ public class Token extends Group {
 	}
 
 	public void setImage(File f) {
-		try {
-			sourceImage = ImageIO.read(f);
-			canvas.repaint();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (f != null) {
+			try {
+				sourceImage = ImageIO.read(f);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			sourceImage = null;
 		}
+		canvas.repaint();
 	}
 
 	public void setImage(byte[] bytes) {
-		try {
-			ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-			sourceImage = ImageIO.read(stream);
-			canvas.repaint();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (bytes != null) {
+			try {
+				ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+				sourceImage = ImageIO.read(stream);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			sourceImage = null;
 		}
+		canvas.repaint();
 	}
 
 	@Override
