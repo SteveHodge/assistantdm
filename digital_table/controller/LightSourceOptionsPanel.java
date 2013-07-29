@@ -13,6 +13,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.LightSource;
 import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
@@ -20,12 +23,14 @@ import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class LightSourceOptionsPanel extends OptionsPanel {
-	LightSource light;
-	JTextField radiusField;
-	JTextField xField;
-	JTextField yField;
-	JTextField labelField;
-	JComboBox typeCombo;
+	private LightSource light;
+
+	private JTextField radiusField;
+	private JTextField xField;
+	private JTextField yField;
+	private JTextField labelField;
+	private JComboBox typeCombo;
+	private JCheckBox visibleCheck;
 
 	public LightSourceOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -39,7 +44,7 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 		yField = createIntegerControl(light, LightSource.PROPERTY_Y);
 		typeCombo = createComboControl(light, LightSource.PROPERTY_TYPE, LightSource.Type.values());
 		labelField = createStringControl(light, LightSource.PROPERTY_LABEL, Mode.LOCAL);
-		JCheckBox visibleCheck = createVisibilityControl(light);
+		visibleCheck = createVisibilityControl(light);
 
 		// @formatter:off
 		setLayout(new GridBagLayout());
@@ -119,4 +124,27 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 					(Integer) light.getProperty(LightSource.PROPERTY_Y));
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "LightSource";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseStringAttribute(LightSource.PROPERTY_LABEL, e, Mode.LOCAL);
+		parseIntegerAttribute(LightSource.PROPERTY_X, e, Mode.BOTH);
+		parseIntegerAttribute(LightSource.PROPERTY_Y, e, Mode.BOTH);
+		parseIntegerAttribute(LightSource.PROPERTY_RADIUS, e, Mode.BOTH);
+		parseEnumAttribute(LightSource.PROPERTY_TYPE, LightSource.Type.class, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+	}
 }

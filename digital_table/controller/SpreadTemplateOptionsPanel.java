@@ -17,6 +17,9 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.MapElement;
 import digital_table.elements.SpreadTemplate;
 import digital_table.server.TableDisplay;
@@ -24,15 +27,16 @@ import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class SpreadTemplateOptionsPanel extends OptionsPanel {
-	SpreadTemplate template;
-	JTextField radiusField;
-	JTextField xField;
-	JTextField yField;
-	JComboBox directionCombo;
-	JComboBox typeCombo;
-	JPanel colorPanel;
-	JTextField labelField;
-	JSlider alphaSlider;
+	private SpreadTemplate template;
+	private JTextField radiusField;
+	private JTextField xField;
+	private JTextField yField;
+	private JComboBox directionCombo;
+	private JComboBox typeCombo;
+	private JPanel colorPanel;
+	private JTextField labelField;
+	private JSlider alphaSlider;
+	private JCheckBox visibleCheck;
 
 	public SpreadTemplateOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -59,7 +63,7 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 		directionCombo.setEnabled(template.getProperty(SpreadTemplate.PROPERTY_TYPE) == SpreadTemplate.Type.QUADRANT);
 
 		labelField = createStringControl(template, SpreadTemplate.PROPERTY_LABEL, Mode.LOCAL);
-		JCheckBox visibleCheck = createVisibilityControl(template);
+		visibleCheck = createVisibilityControl(template);
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -94,7 +98,7 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 		return template;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_ALPHA)) {
@@ -152,4 +156,30 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 					(Integer)template.getProperty(SpreadTemplate.PROPERTY_Y));
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "SpreadTemplate";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + SpreadTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseEnumAttribute(SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.class, e, Mode.BOTH);
+		parseEnumAttribute(SpreadTemplate.PROPERTY_TYPE, SpreadTemplate.Type.class, e, Mode.BOTH);
+		parseStringAttribute(SpreadTemplate.PROPERTY_LABEL, e, Mode.LOCAL);
+		parseColorAttribute(SpreadTemplate.PROPERTY_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(SpreadTemplate.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseIntegerAttribute(SpreadTemplate.PROPERTY_RADIUS, e, Mode.BOTH);
+		parseIntegerAttribute(SpreadTemplate.PROPERTY_X, e, Mode.BOTH);
+		parseIntegerAttribute(SpreadTemplate.PROPERTY_Y, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+	}
 }

@@ -13,10 +13,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import camera.CameraPanel;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
 import digital_table.server.TableDisplay;
+
+// TODO save latest image when saving?
 
 public class CameraOptionsPanel extends OptionsPanel {
 	private static final long serialVersionUID = 1L;
@@ -24,6 +29,7 @@ public class CameraOptionsPanel extends OptionsPanel {
 	private MapImage image;
 	private JSlider alphaSlider;
 	private CameraPanel camera;
+	private JCheckBox visibleCheck;
 
 	public CameraOptionsPanel(MapElement parent, TableDisplay r, CameraPanel cam) {
 		super(r);
@@ -37,7 +43,7 @@ public class CameraOptionsPanel extends OptionsPanel {
 		this.camera = cam;
 
 		alphaSlider = createSliderControl(image, MapImage.PROPERTY_ALPHA);
-		JCheckBox visibleCheck = createCheckBox(image, MapElement.PROPERTY_VISIBLE, Mode.BOTH, "visible?");
+		visibleCheck = createCheckBox(image, MapElement.PROPERTY_VISIBLE, Mode.BOTH, "visible?");
 
 		JButton updateButton = new JButton("Update");
 		updateButton.addActionListener(new ActionListener() {
@@ -90,4 +96,23 @@ public class CameraOptionsPanel extends OptionsPanel {
 			}
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "CameraImage";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+	}
 }

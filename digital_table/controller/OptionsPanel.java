@@ -22,6 +22,10 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.JTextComponent;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
@@ -338,4 +342,136 @@ abstract public class OptionsPanel extends JPanel {
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	static final String REMOTE_PREFIX = "remote_";	// prefix for properties intended for remote element
+
+	public Element getElement(Document doc) {
+		return null;
+	}
+
+	public void parseDOM(Element e) {
+	}
+
+	// sets attributes for all properties of the local MapElement
+	void setAllAttributes(Element e) {
+		for (String p : getElement().getProperties()) {
+			setAttribute(e, p, getElement().getProperty(p));
+		}
+	}
+
+	void setAttribute(Element e, String name, Object prop) {
+		String value;
+		if (prop instanceof Enum) {
+			value = ((Enum<?>) prop).name();
+		} else if (prop instanceof Color) {
+			Color c = (Color) prop;
+			value = String.format("#%06x", c.getRGB() & 0xffffff).toUpperCase();
+		} else {
+			value = prop == null ? "" : prop.toString();
+		}
+		e.setAttribute(name, value);
+	}
+
+	void parseBooleanAttribute(String property, Element domElement, JCheckBox check) {
+		String domProp = REMOTE_PREFIX + property;
+		if (domElement.hasAttribute(domProp)) {
+			boolean value = Boolean.parseBoolean(domElement.getAttribute(domProp));
+			setRemote(getElement().getID(), property, value);
+			check.setSelected(value);
+		}
+	}
+
+	void parseBooleanAttribute(String property, Element domElement, Mode mode) {
+		if (domElement.hasAttribute(property)) {
+			boolean value = Boolean.parseBoolean(domElement.getAttribute(property));
+			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
+			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+		}
+	}
+
+	void parseIntegerAttribute(String property, Element domElement, JTextComponent field) {
+		String domProp = REMOTE_PREFIX + property;
+		if (domElement.hasAttribute(domProp)) {
+//			try {
+			int value = Integer.parseInt(domElement.getAttribute(domProp));
+			setRemote(getElement().getID(), property, value);
+			field.setText(Integer.toString(value));
+//			} catch (NumberFormatException e) {
+//			}
+		}
+	}
+
+	void parseIntegerAttribute(String property, Element domElement, Mode mode) {
+		if (domElement.hasAttribute(property)) {
+//			try {
+			int value = Integer.parseInt(domElement.getAttribute(property));
+			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
+			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+//			} catch (NumberFormatException e) {
+//			}
+		}
+	}
+
+	void parseStringAttribute(String property, Element domElement, JTextComponent field) {
+		String domProp = REMOTE_PREFIX + property;
+		if (domElement.hasAttribute(domProp)) {
+			String value = domElement.getAttribute(domProp);
+			setRemote(getElement().getID(), property, value);
+			field.setText(value);
+		}
+	}
+
+	void parseStringAttribute(String property, Element domElement, Mode mode) {
+		if (domElement.hasAttribute(property)) {
+			String value = domElement.getAttribute(property);
+			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
+			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+		}
+	}
+
+	void parseFloatAttribute(String property, Element domElement, Mode mode) {
+		if (domElement.hasAttribute(property)) {
+//			try {
+			float value = Float.parseFloat(domElement.getAttribute(property));
+			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
+			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+//			} catch (NumberFormatException e) {
+//			}
+		}
+	}
+
+	void parseDoubleAttribute(String property, Element domElement, Mode mode) {
+		if (domElement.hasAttribute(property)) {
+//			try {
+			double value = Double.parseDouble(domElement.getAttribute(property));
+			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
+			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+//			} catch (NumberFormatException e) {
+//			}
+		}
+	}
+
+	void parseColorAttribute(String property, Element domElement, Mode mode) {
+		if (domElement.hasAttribute(property)) {
+//			try {
+			Color value = Color.decode(domElement.getAttribute(property));
+			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
+			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+//			} catch (NumberFormatException e) {
+//			}
+		}
+	}
+
+	<T extends Enum<T>> void parseEnumAttribute(String property, Class<T> enumType, Element domElement, Mode mode) {
+		if (domElement.hasAttribute(property)) {
+//			try {
+			T value = Enum.valueOf(enumType, domElement.getAttribute(property));
+			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
+			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+//			} catch (IllegalArgumentException e) {
+//			}
+		}
+	}
+
 }

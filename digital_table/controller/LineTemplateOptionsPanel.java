@@ -13,6 +13,9 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
@@ -28,6 +31,7 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 	JPanel colorPanel;
 	JTextField labelField;
 	JSlider alphaSlider;
+	JCheckBox visibleCheck;
 
 	public LineTemplateOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -44,7 +48,7 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 		colorPanel = createColorControl(template, LineTemplate.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(template, LineTemplate.PROPERTY_ALPHA);
 		labelField = createStringControl(template, LineTemplate.PROPERTY_LABEL, Mode.LOCAL);
-		JCheckBox visibleCheck = createVisibilityControl(template);
+		visibleCheck = createVisibilityControl(template);
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -132,4 +136,30 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 			}
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "LineTemplate";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseStringAttribute(LineTemplate.PROPERTY_LABEL, e, Mode.LOCAL);
+		parseColorAttribute(LineTemplate.PROPERTY_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(LineTemplate.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseIntegerAttribute(LineTemplate.PROPERTY_X, e, Mode.BOTH);
+		parseIntegerAttribute(LineTemplate.PROPERTY_Y, e, Mode.BOTH);
+		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_X, e, Mode.BOTH);
+		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_Y, e, Mode.BOTH);
+		parseIntegerAttribute(LineTemplate.PROPERTY_RANGE, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+	}
 }

@@ -31,12 +31,17 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.MouseInputListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import party.Monster;
 import camera.CameraPanel;
-import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.SpreadTemplate;
@@ -57,7 +62,9 @@ public class ControllerFrame extends JFrame {
 	//private JList elementList;
 	private JTree elementTree;
 	//private DefaultListModel elements;
-	private Grid grid;
+	private GridOptionsPanel gridPanel;
+
+	private File last_file = null;
 
 	public ControllerFrame(TableDisplay remote, CameraPanel camera) {
 		super("DigitalTable Controller");
@@ -162,7 +169,7 @@ public class ControllerFrame extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				MapElement element = getSelectedElement();
-				if (element != null && element != grid) {
+				if (element != null && element != gridPanel.getElement()) {
 					try {
 						elementPanel.removeAll();
 						elementPanel.revalidate();
@@ -242,18 +249,9 @@ public class ControllerFrame extends JFrame {
 
 		pack();
 
-		try {
-			grid = new Grid();
-			display.addElement(grid);
-			OptionsPanel p = new GridOptionsPanel(grid, display);	// set up the option panel as the remote grid is configured
-			grid.setProperty(Grid.PROPERTY_RULER_COLUMN, 0);
-			grid.setProperty(Grid.PROPERTY_RULER_ROW, 0);
-			miniMapPanel.addElement(grid, null);
-			optionPanels.put(grid, p);
-
-		} catch (RemoteException e1) {
-			e1.printStackTrace();
-		}
+		gridPanel = new GridOptionsPanel(display);
+		miniMapPanel.addElement(gridPanel.getElement(), null);
+		optionPanels.put(gridPanel.getElement(), gridPanel);
 
 		setVisible(true);
 	}
@@ -435,11 +433,12 @@ public class ControllerFrame extends JFrame {
 	};
 
 	private AddElementAction<ImageOptionsPanel> imageElementAction = new AddElementAction<ImageOptionsPanel>("Image") {
-		JFileChooser chooser = new JFileChooser();
+		JFileChooser chooser = new JFileChooser(last_file);
 
 		@Override
 		protected ImageOptionsPanel createOptionsPanel(MapElement parent) {
 			if (chooser.showOpenDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
+				last_file = chooser.getSelectedFile();
 				return new ImageOptionsPanel(chooser.getSelectedFile(), parent, display);
 			}
 			return null;
@@ -544,4 +543,85 @@ public class ControllerFrame extends JFrame {
 			return new CameraOptionsPanel(parent, display, camera);
 		}
 	};
+
+	private void addChildren(Document doc, Element docParent, TreeModel tree, Object treeParent) {
+		for (int i = 0; i < tree.getChildCount(treeParent); i++) {
+			Object mapElement = tree.getChild(treeParent, i);
+			OptionsPanel p = this.optionPanels.get(mapElement);
+			Element e = p.getElement(doc);
+			if (e != null) {
+				docParent.appendChild(e);
+				addChildren(doc, e, tree, mapElement);
+			}
+		}
+	}
+
+	public Node getElement(Document doc) {
+		Element root = doc.createElement("Elements");
+		TreeModel tree = miniMapPanel.getTreeModel();
+		addChildren(doc, root, tree, tree.getRoot());
+		return root;
+	}
+
+	public void parseNode(Element e, MapElement parent) {
+		String tag = e.getTagName();
+		OptionsPanel p = null;
+
+		if (tag.equals(GridOptionsPanel.XML_TAG)) {
+			p = gridPanel;
+		} else if (tag.equals(SpreadTemplateOptionsPanel.XML_TAG)) {
+			p = templateAction.addElement(parent);
+		} else if (tag.equals(LineTemplateOptionsPanel.XML_TAG)) {
+			p = lineAction.addElement(parent);
+		} else if (tag.equals(PersonalEmanationOptionsPanel.XML_TAG)) {
+			p = personalEmanationAction.addElement(parent);
+		} else if (tag.equals(LabelOptionsPanel.XML_TAG)) {
+			p = labelAction.addElement(parent);
+		} else if (tag.equals(DarknessMaskOptionsPanel.XML_TAG)) {
+			p = darknessAction.addElement(parent);
+		} else if (tag.equals(LightSourceOptionsPanel.XML_TAG)) {
+			p = lightSourceAction.addElement(parent);
+		} else if (tag.equals(InitiativeOptionsPanel.XML_TAG)) {
+			p = initiativeAction.addElement(parent);
+		} else if (tag.equals(GroupOptionsPanel.XML_TAG)) {
+			p = groupAction.addElement(parent);
+		} else if (tag.equals(BoundsOptionsPanel.XML_TAG)) {
+			p = screensAction.addElement(parent);
+		} else if (tag.equals(CallibrateOptionsPanel.XML_TAG)) {
+			p = callibrateAction.addElement(parent);
+		} else if (tag.equals(TokenOptionsPanel.XML_TAG)) {
+			p = tokenAction.addElement(parent);
+		} else if (tag.equals(ShapeableTemplateOptionsPanel.XML_TAG)) {
+			p = shapeableAction.addElement(parent);
+		} else if (tag.equals(BrowserOptionsPanel.XML_TAG)) {
+			p = browserAction.addElement(parent);
+		} else if (tag.equals(ImageOptionsPanel.XML_TAG)) {
+			if (e.hasAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME)) {
+				File file = new File(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
+				p = new ImageOptionsPanel(file, parent, display);
+				MapElement element = p.getElement();
+				element.addPropertyChangeListener(labelListener);
+				miniMapPanel.addElement(element, parent);
+				optionPanels.put(element, p);
+				elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
+			}
+		}
+
+		if (p != null) {
+			p.parseDOM(e);
+			parent = p.getElement();
+		}
+
+		NodeList nodes = e.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			parseNode((Element) nodes.item(i), parent);
+		}
+	}
+
+	public void parseDOM(Element el) {
+		if (!el.getTagName().equals("Elements")) return;
+
+		parseNode(el, null);
+	}
 }

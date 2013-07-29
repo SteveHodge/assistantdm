@@ -19,29 +19,35 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
 import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class ImageOptionsPanel extends OptionsPanel {
-	MapImage image;
-	//JTextField filenameField;
-	JTextField xField;
-	JTextField yField;
-	JTextField widthField;
-	JTextField heightField;
-	JSlider alphaSlider;
-	JTextField labelField;
-	JComboBox rotationsCombo;
-	JCheckBox snapCheck;
+	private MapImage image;
+
+	private File file = null;
+
+	private JTextField xField;
+	private JTextField yField;
+	private JTextField widthField;
+	private JTextField heightField;
+	private JSlider alphaSlider;
+	private JTextField labelField;
+	private JComboBox rotationsCombo;
+	private JCheckBox snapCheck;
+	private JCheckBox visibleCheck;
 
 	public ImageOptionsPanel(File f, MapElement parent, TableDisplay r) {
 		super(r);
-		byte[] bytes = new byte[(int) f.length()];
+		file = f;
+		byte[] bytes = new byte[(int) file.length()];
 		try {
-			FileInputStream stream;
-			stream = new FileInputStream(f);
+			FileInputStream stream = new FileInputStream(file);
 			stream.read(bytes);
 		} catch (FileNotFoundException e) {
 			// TODO handle exceptions correctly
@@ -49,7 +55,7 @@ public class ImageOptionsPanel extends OptionsPanel {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		image = new MapImage(bytes, f.getName());
+		image = new MapImage(bytes, file.getName());
 		sendElement(image, parent);
 		image.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		image.addPropertyChangeListener(listener);
@@ -61,7 +67,7 @@ public class ImageOptionsPanel extends OptionsPanel {
 		alphaSlider = createSliderControl(image, MapImage.PROPERTY_ALPHA);
 		rotationsCombo = createRotationControl(image, MapImage.PROPERTY_ROTATIONS, Mode.BOTH);
 		labelField = createStringControl(image, MapImage.PROPERTY_LABEL, Mode.LOCAL);
-		JCheckBox visibleCheck = createVisibilityControl(image);
+		visibleCheck = createVisibilityControl(image);
 
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
@@ -174,4 +180,55 @@ public class ImageOptionsPanel extends OptionsPanel {
 			}
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "Image";
+	final static String FILE_ATTRIBUTE_NAME = "path";
+	final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		e.setAttribute(FILE_ATTRIBUTE_NAME, file.getPath());
+
+		// output the current list of points in an attribute (might be better to have a more
+		// structured output but that will complicate general parsing of child elements).
+		// points are output as a list of coordinates, one point at a time, x then y coordinate.
+		Point[] points = image.getCells();
+		String attr = "";
+		for (int i = 0; i < points.length; i++) {
+			attr += points[i].x + "," + points[i].y + ",";
+		}
+		if (attr.length() > 0) {
+			attr = attr.substring(0, attr.length() - 1);
+			e.setAttribute(CLEARED_CELL_LIST_ATTRIBUTE, attr);
+		}
+
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseStringAttribute(MapImage.PROPERTY_LABEL, e, Mode.LOCAL);
+		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseDoubleAttribute(MapImage.PROPERTY_X, e, Mode.BOTH);
+		parseDoubleAttribute(MapImage.PROPERTY_Y, e, Mode.BOTH);
+		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.BOTH);
+		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.BOTH);
+		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+
+		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
+			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");
+			for (int i = 0; i < coords.length; i += 2) {
+				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
+				image.setCleared(p, true);
+				setRemote(image.getID(), MapImage.PROPERTY_CLEARCELL, p);
+			}
+		}
+	}
 }

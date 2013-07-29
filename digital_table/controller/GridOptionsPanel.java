@@ -12,7 +12,11 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.Grid;
+import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
 // TODO clean up nullable-Integer fields - maybe promote code to super
@@ -25,21 +29,28 @@ public class GridOptionsPanel extends OptionsPanel {
 	JPanel colorPanel;
 	JPanel bgColorPanel;
 	JSlider alphaSlider;
+	JCheckBox visibleCheck;
 
-	public GridOptionsPanel(Grid g, TableDisplay r) {
+	public GridOptionsPanel(TableDisplay r) {
 		super(r);
-		grid = g;
+		grid = new Grid();
 		grid.addPropertyChangeListener(listener);
+		sendElement(grid, null);
 
 		rulerRowField = createNullableIntegerControl(grid, Grid.PROPERTY_RULER_ROW, Mode.REMOTE);
 		rulerColumnField = createNullableIntegerControl(grid, Grid.PROPERTY_RULER_COLUMN, Mode.REMOTE);
+
+		// set local options
+		grid.setProperty(Grid.PROPERTY_RULER_COLUMN, 0);
+		grid.setProperty(Grid.PROPERTY_RULER_ROW, 0);
+
 		colorPanel = createColorControl(grid, Grid.PROPERTY_COLOR);
 		bgColorPanel = createColorControl(grid, Grid.PROPERTY_BACKGROUND_COLOR);
 		alphaSlider = this.createSliderControl(grid, Grid.PROPERTY_ALPHA);
-		
-		JCheckBox visibleCheck = createVisibilityControl(grid);
+
+		visibleCheck = createVisibilityControl(grid);
 		visibleCheck.setSelected(true);
-		
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -73,24 +84,49 @@ public class GridOptionsPanel extends OptionsPanel {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Grid.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
-				
+
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
-				
+
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_BACKGROUND_COLOR)) {
 				bgColorPanel.setBackground((Color)e.getNewValue());
 
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_RULER_ROW)) {
 				// don't care about local changes:
 //				rulerRowField.setText(e.getNewValue().toString());
-				
+
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_RULER_COLUMN)) {
 				// don't care about local changes:
 //				rulerColumnField.setText(e.getNewValue().toString());
-				
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "Grid";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_ROW, rulerRowField.getText());
+		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_COLUMN, rulerColumnField.getText());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseColorAttribute(Grid.PROPERTY_COLOR, e, Mode.BOTH);
+		parseColorAttribute(Grid.PROPERTY_BACKGROUND_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(Grid.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseIntegerAttribute(Grid.PROPERTY_RULER_ROW, e, rulerRowField);
+		parseIntegerAttribute(Grid.PROPERTY_RULER_COLUMN, e, rulerColumnField);
+	}
 }

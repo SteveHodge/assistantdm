@@ -8,6 +8,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import digital_table.server.MapCanvas;
 import digital_table.server.MapCanvas.Order;
@@ -156,6 +157,10 @@ public abstract class MapElement implements Serializable {
 			System.out.println("Unknown property " + property);
 			return null;
 		}
+	}
+
+	public Set<String> getProperties() {
+		return properties.keySet();
 	}
 
 	// TODO perhaps this should be a static field

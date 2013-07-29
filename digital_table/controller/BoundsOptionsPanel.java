@@ -11,6 +11,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.MapElement;
 import digital_table.elements.ScreenBounds;
 import digital_table.server.TableDisplay;
@@ -25,7 +28,7 @@ public class BoundsOptionsPanel extends OptionsPanel {
 	public BoundsOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
 		bounds = new ScreenBounds();
-		sendElement(bounds, parent);
+		sendElement(bounds, parent);	// XXX should we send to remote?
 		bounds.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		bounds.addPropertyChangeListener(listener);
 
@@ -66,9 +69,31 @@ public class BoundsOptionsPanel extends OptionsPanel {
 			} else if (e.getPropertyName().equals(ScreenBounds.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
 
+			} else if (e.getPropertyName().equals(ScreenBounds.PROPERTY_VISIBLE)) {
+				visibleCheck.setSelected((Boolean) e.getNewValue());
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "ScreenBounds";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseColorAttribute(ScreenBounds.PROPERTY_COLOR, e, Mode.LOCAL);
+		parseFloatAttribute(ScreenBounds.PROPERTY_ALPHA, e, Mode.LOCAL);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.LOCAL);
+	}
 }

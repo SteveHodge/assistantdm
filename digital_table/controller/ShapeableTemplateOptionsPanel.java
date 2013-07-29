@@ -15,18 +15,22 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.MapElement;
 import digital_table.elements.ShapeableTemplate;
 import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class ShapeableTemplateOptionsPanel extends OptionsPanel {
-	ShapeableTemplate template;
-	JPanel colorPanel;
-	JTextField labelField;
-	JTextField maximumField;
-	JSlider alphaSlider;
-	JLabel remaining = new JLabel();
+	private ShapeableTemplate template;
+	private JPanel colorPanel;
+	private JTextField labelField;
+	private JTextField maximumField;
+	private JSlider alphaSlider;
+	private JLabel remaining = new JLabel();
+	private JCheckBox visibleCheck;
 
 	public ShapeableTemplateOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -39,7 +43,7 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 		alphaSlider = createSliderControl(template, ShapeableTemplate.PROPERTY_ALPHA);
 		maximumField = createIntegerControl(template, ShapeableTemplate.PROPERTY_MAXIMUM);
 		labelField = createStringControl(template, ShapeableTemplate.PROPERTY_LABEL, Mode.LOCAL);
-		JCheckBox visibleCheck = createVisibilityControl(template);
+		visibleCheck = createVisibilityControl(template);
 		updateRemaining();
 
 		setLayout(new GridBagLayout());
@@ -135,4 +139,50 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 		@Override
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "ShapeableTemplate";
+	private final static String CUBE_LIST_ATTRIBUTE = "cube_list";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+
+		// output the current list of points in an attribute (might be better to have a more
+		// structured output but that will complicate general parsing of child elements).
+		// points are output as a list of coordinates, one point at a time, x then y coordinate.
+		Point[] points = template.getCubes();
+		String attr = "";
+		for (int i = 0; i < points.length; i++) {
+			attr += points[i].x + "," + points[i].y + ",";
+		}
+		if (attr.length() > 0) {
+			attr = attr.substring(0, attr.length() - 1);
+			e.setAttribute(CUBE_LIST_ATTRIBUTE, attr);
+		}
+
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseStringAttribute(ShapeableTemplate.PROPERTY_LABEL, e, Mode.LOCAL);
+		parseColorAttribute(ShapeableTemplate.PROPERTY_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(ShapeableTemplate.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseIntegerAttribute(ShapeableTemplate.PROPERTY_MAXIMUM, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+
+		if (e.hasAttribute(CUBE_LIST_ATTRIBUTE)) {
+			String[] coords = e.getAttribute(CUBE_LIST_ATTRIBUTE).split("\\s*,\\s*");
+			for (int i = 0; i < coords.length; i += 2) {
+				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
+				setRemote(template.getID(), ShapeableTemplate.PROPERTY_ADDCUBE, p);
+				template.addCube(p);
+			}
+		}
+	}
 }

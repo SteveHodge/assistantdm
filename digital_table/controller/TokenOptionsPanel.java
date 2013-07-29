@@ -28,11 +28,15 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import party.Creature;
 
 import combat.CombatPanel;
 import combat.InitiativeListModel;
 
+import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.Token;
 import digital_table.server.TableDisplay;
@@ -58,6 +62,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 	private JTextField currentHPsField;
 	private JComboBox statusCombo;
 	private JComboBox statusDisplayCombo;
+	private JCheckBox visibleCheck;
 	private Creature creature;
 
 	// TODO shouldn't be public
@@ -78,7 +83,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 		rotationsCombo = createRotationControl(token, Token.PROPERTY_ROTATIONS, Mode.BOTH);
 		labelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.LOCAL);
 		remoteLabelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.REMOTE);
-		JCheckBox visibleCheck = createVisibilityControl(token);
+		visibleCheck = createVisibilityControl(token);
 		localReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.LOCAL, "local");
 		remoteReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.REMOTE, "remote");
 		reachWeapon = createCheckBox(token, Token.PROPERTY_REACHWEAPON, Mode.BOTH, "Reach weapon?");
@@ -506,6 +511,65 @@ public class TokenOptionsPanel extends OptionsPanel {
 					}
 				}
 			}
+		}
+	}
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "Token";
+	final static String FILE_ATTRIBUTE_NAME = "image_path";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_LABEL, remoteLabelField.getText());
+		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_SHOWREACH, remoteReach.isSelected());
+		setAttribute(e, FILE_ATTRIBUTE_NAME, imageFile.getPath());
+		Point2D location = (Point2D) token.getProperty(Group.PROPERTY_LOCATION);
+		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseStringAttribute(Token.PROPERTY_LABEL, e, Mode.LOCAL);
+		parseStringAttribute(Token.PROPERTY_LABEL, e, remoteLabelField);
+		parseColorAttribute(Token.PROPERTY_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(Token.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseDoubleAttribute(Token.PROPERTY_X, e, Mode.BOTH);
+		parseDoubleAttribute(Token.PROPERTY_Y, e, Mode.BOTH);
+		parseIntegerAttribute(Token.PROPERTY_REACH, e, Mode.BOTH);
+		parseIntegerAttribute(Token.PROPERTY_SPACE, e, Mode.BOTH);
+		parseIntegerAttribute(Token.PROPERTY_ROTATIONS, e, Mode.BOTH);
+		parseBooleanAttribute(Token.PROPERTY_SHOWREACH, e, Mode.LOCAL);
+		parseBooleanAttribute(Token.PROPERTY_SHOWREACH, e, remoteReach);
+		parseBooleanAttribute(Token.PROPERTY_REACHWEAPON, e, Mode.BOTH);
+		parseIntegerAttribute(Token.PROPERTY_MAX_HPS, e, Mode.BOTH);
+		parseIntegerAttribute(Token.PROPERTY_CURRENT_HPS, e, Mode.BOTH);
+		parseEnumAttribute(Token.PROPERTY_STATUS_TYPE, Token.StatusType.class, e, Mode.BOTH);
+		parseEnumAttribute(Token.PROPERTY_STATUS_DISPLAY, Token.StatusDisplay.class, e, Mode.BOTH);
+		//parseEnumAttribute("size", CreatureSize.class, e, Mode.BOTH);
+		//sizeCombo.setSelectedItem(CreatureSize.getSize(creature.getSize(), creature.getReach()));
+
+		if (e.hasAttribute(FILE_ATTRIBUTE_NAME)) {
+			imageFile = new File(e.getAttribute(FILE_ATTRIBUTE_NAME));
+			setImage(imageFile);
+		}
+
+		if (e.hasAttribute(Group.PROPERTY_LOCATION)) {
+//			try {
+			String coords[] = e.getAttribute(Group.PROPERTY_LOCATION).split(",");
+			Double x = Double.parseDouble(coords[0]);
+			Double y = Double.parseDouble(coords[1]);
+			Point2D value = new Point2D.Double(x, y);
+			token.setProperty(Group.PROPERTY_LOCATION, value);
+			setRemote(token.getID(), Group.PROPERTY_LOCATION, value);
+//			} catch (NumberFormatException e) {
+//			}
 		}
 	}
 }

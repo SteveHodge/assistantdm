@@ -14,6 +14,9 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
@@ -31,6 +34,7 @@ public class LabelOptionsPanel extends OptionsPanel {
 	private JCheckBox bgCheck;
 	private JTextField fontSizeField;
 	private JTextField textField;
+	private JCheckBox visibleCheck;
 
 	public LabelOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -45,7 +49,7 @@ public class LabelOptionsPanel extends OptionsPanel {
 		colorPanel = createColorControl(label, Label.PROPERTY_COLOR);
 		bgColorPanel = createColorControl(label, Label.PROPERTY_BACKGROUND_COLOR);
 		rotationsCombo = createRotationControl(label, Label.PROPERTY_ROTATIONS, Mode.BOTH);
-		JCheckBox visibleCheck = createVisibilityControl(label);
+		visibleCheck = createVisibilityControl(label);
 		bgCheck = createCheckBox(label, Label.PROPERTY_SOLID_BACKGROUND, Mode.BOTH, "show background?");
 		fontSizeField = createDoubleControl(label, Label.PROPERTY_FONT_SIZE);
 		textField = createStringControl(label, Label.PROPERTY_TEXT);
@@ -153,4 +157,31 @@ public class LabelOptionsPanel extends OptionsPanel {
 					(Double) label.getProperty(Label.PROPERTY_Y));
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "Label";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + Label.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseStringAttribute(Label.PROPERTY_TEXT, e, Mode.BOTH);
+		parseColorAttribute(Label.PROPERTY_COLOR, e, Mode.BOTH);
+		parseColorAttribute(Label.PROPERTY_BACKGROUND_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(Label.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseDoubleAttribute(Label.PROPERTY_X, e, Mode.BOTH);
+		parseDoubleAttribute(Label.PROPERTY_Y, e, Mode.BOTH);
+		parseIntegerAttribute(Label.PROPERTY_ROTATIONS, e, Mode.BOTH);
+		parseDoubleAttribute(Label.PROPERTY_FONT_SIZE, e, Mode.BOTH);
+		parseBooleanAttribute(Label.PROPERTY_SOLID_BACKGROUND, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+	}
 }

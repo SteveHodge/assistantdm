@@ -3,11 +3,30 @@ package digital_table.controller;
 
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import javafx.application.Platform;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
+
 import camera.CameraPanel;
 import digital_table.server.TableDisplay;
 
@@ -19,6 +38,7 @@ import digital_table.server.TableDisplay;
 public class DigitalTableController {
 	TableDisplay display;
 	CameraPanel camera;
+	ControllerFrame controller = null;
 
 	public DigitalTableController() {
 		this("corto");
@@ -65,7 +85,20 @@ public class DigitalTableController {
 		}
 	}
 
+	protected void saveDisplay() {
+		if (controller != null) {
+			try {
+				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+				doc.appendChild(controller.getElement(doc));
+				writeDOM(doc, "display.xml");
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	protected void quit() {
+		saveDisplay();
 		System.exit(0);
 	}
 
@@ -79,7 +112,23 @@ public class DigitalTableController {
 				}
 			}
 			display.showScreens(f.screenNums,DisplayConfig.defaultLocations);
-			ControllerFrame controller = new ControllerFrame(display, camera);
+			File xmlFile = new File("display.xml");
+			Document dom = null;
+			if (xmlFile.exists()) {
+				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+				//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
+				//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
+				try {
+					dom = factory.newDocumentBuilder().parse(xmlFile);
+				} catch (SAXException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (ParserConfigurationException e) {
+					e.printStackTrace();
+				}
+			}
+			controller = new ControllerFrame(display, camera);
 			controller.addWindowListener(new WindowListener() {
 				@Override
 				public void windowClosed(WindowEvent arg0) {
@@ -98,8 +147,45 @@ public class DigitalTableController {
 				@Override
 				public void windowOpened(WindowEvent arg0) {}
 			});
+			if (dom != null) controller.parseDOM(dom.getDocumentElement());
 		} catch (RemoteException e) {
 			e.printStackTrace();
+		}
+	}
+
+	protected Node getElement(Document doc) {
+		if (controller == null) return null;
+		return controller.getElement(doc);
+	}
+
+	// TODO should move this to XMLUtils
+	void writeDOM(Document doc, String filename) {
+		FileWriter outputStream = null;
+
+		try {
+			doc.setXmlStandalone(true);
+			Transformer trans = TransformerFactory.newInstance().newTransformer();
+			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			outputStream = new FileWriter(filename);
+			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
+
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} catch (TransformerConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerFactoryConfigurationError e) {
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			e.printStackTrace();
+		} finally {
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
 		}
 	}
 

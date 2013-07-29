@@ -187,6 +187,18 @@ public class MapImage extends MapElement {
 		return new Dimension(rotatedImage.getWidth(), rotatedImage.getHeight());
 	}
 
+	/**
+	 * 
+	 * @return array of the points defining the centres of the cubes
+	 */
+	public Point[] getCells() {
+		Point[] ps = new Point[cleared.size()];
+		for (int i = 0; i < ps.length; i++) {
+			ps[i] = new Point(cleared.get(i));
+		}
+		return ps;
+	}
+
 	@Override
 	public String toString() {
 		if (label == null || label.getValue().length() == 0) return "Image ("+getID()+")";

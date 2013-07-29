@@ -14,16 +14,22 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.DarknessMask;
+import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class DarknessMaskOptionsPanel extends OptionsPanel {
-	DarknessMask darkness;
-	JPanel colorPanel;
-	JSlider alphaSlider;
-	JCheckBox lowLightCheck;
+	private DarknessMask darkness;
+
+	private JPanel colorPanel;
+	private JSlider alphaSlider;
+	private JCheckBox lowLightCheck;
+	private JCheckBox visibleCheck;
 
 	public DarknessMaskOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -36,7 +42,7 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 		colorPanel = createColorControl(darkness, DarknessMask.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(darkness, DarknessMask.PROPERTY_ALPHA, Mode.LOCAL);
 		lowLightCheck = this.createCheckBox(darkness, DarknessMask.PROPERTY_LOW_LIGHT, Mode.BOTH, "Lowlight vision");
-		JCheckBox visibleCheck = createVisibilityControl(darkness);
+		visibleCheck = createVisibilityControl(darkness);
 		visibleCheck.setSelected(true);
 
 		//@formatter:off
@@ -137,4 +143,25 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 			}
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "DarknessMask";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + LineTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseColorAttribute(DarknessMask.PROPERTY_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(DarknessMask.PROPERTY_ALPHA, e, Mode.LOCAL);
+		parseBooleanAttribute(DarknessMask.PROPERTY_LOW_LIGHT, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+	}
 }

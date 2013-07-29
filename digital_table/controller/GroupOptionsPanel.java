@@ -10,6 +10,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.Token;
@@ -19,12 +22,8 @@ import digital_table.server.TableDisplay;
 public class GroupOptionsPanel extends OptionsPanel {
 	private Group group;
 
-	//	private JTextField xField;
-	//	private JTextField yField;
-	//	private JSlider alphaSlider;
-	//	private JComboBox rotationsCombo;
-	//	private JPanel colorPanel;
 	private JTextField labelField;
+	private JCheckBox visibleCheck;
 
 	public GroupOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -33,13 +32,7 @@ public class GroupOptionsPanel extends OptionsPanel {
 		group.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		group.addPropertyChangeListener(listener);
 
-		//		xField = createDoubleControl(group, Label.PROPERTY_X);
-		//		yField = createDoubleControl(group, Label.PROPERTY_Y);
-		//		alphaSlider = createSliderControl(group, Label.PROPERTY_ALPHA);
-		//		colorPanel = createColorControl(group, Label.PROPERTY_COLOR);
-		//		bgColorPanel = createColorControl(group, Label.PROPERTY_BACKGROUND_COLOR);
-		//		rotationsCombo = createRotationControl(group, Label.PROPERTY_ROTATIONS, Mode.BOTH);
-		JCheckBox visibleCheck = createVisibilityControl(group);
+		visibleCheck = createVisibilityControl(group);
 		labelField = createStringControl(group, Token.PROPERTY_LABEL);
 
 		//@formatter:off
@@ -47,22 +40,11 @@ public class GroupOptionsPanel extends OptionsPanel {
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		add(visibleCheck, c);
-		//		c.gridy = 1; add(new JLabel("Label:"), c);
-		//		c.gridy++; add(new JLabel("Left edge column:"), c);
-		//		c.gridy++; add(new JLabel("Top edge Row:"), c);
-		//		c.gridy++; add(new JLabel("Rotation:"), c);
-		//		c.gridy++; add(new JLabel("Colour:"), c);
-		//		c.gridy++; add(new JLabel("Transparency:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0; add(labelField, c);
-		//		c.gridy++; add(xField, c);
-		//		c.gridy++; add(yField, c);
-		//		c.gridy++; add(rotationsCombo, c);
-		//		c.gridy++; add(colorPanel, c);
-		//		c.gridy++; add(alphaSlider, c);
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
@@ -81,21 +63,6 @@ public class GroupOptionsPanel extends OptionsPanel {
 	protected PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			//			if (e.getPropertyName().equals(Label.PROPERTY_ALPHA)) {
-			//				alphaSlider.setValue((int) (100 * (Float) e.getNewValue()));
-			//
-			//			} else if (e.getPropertyName().equals(Label.PROPERTY_X)) {
-			//				xField.setText(e.getNewValue().toString());
-			//
-			//			} else if (e.getPropertyName().equals(Label.PROPERTY_Y)) {
-			//				yField.setText(e.getNewValue().toString());
-			//
-			//			} else if (e.getPropertyName().equals(Label.PROPERTY_ROTATIONS)) {
-			//				rotationsCombo.setSelectedIndex((Integer) e.getNewValue());
-			//
-			//			} else if (e.getPropertyName().equals(Label.PROPERTY_COLOR)) {
-			//				colorPanel.setBackground((Color) e.getNewValue());
-			//			} else
 			if (e.getPropertyName().equals(Group.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
 			} else if (e.getPropertyName().equals(Group.PROPERTY_LOCATION)) {
@@ -116,4 +83,37 @@ public class GroupOptionsPanel extends OptionsPanel {
 			return Group.PROPERTY_LOCATION;
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "Group";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAttribute(e, Group.PROPERTY_LABEL, group.getProperty(Group.PROPERTY_LABEL));
+		Point2D location = (Point2D)group.getProperty(Group.PROPERTY_LOCATION);
+		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
+		setAttribute(e, REMOTE_PREFIX + Group.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseStringAttribute(Group.PROPERTY_LABEL, e, Mode.LOCAL);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+
+		if (e.hasAttribute(Group.PROPERTY_LOCATION)) {
+//			try {
+			String coords[] = e.getAttribute(Group.PROPERTY_LOCATION).split(",");
+			Double x = Double.parseDouble(coords[0]);
+			Double y = Double.parseDouble(coords[1]);
+			Point2D value = new Point2D.Double(x, y);
+			group.setProperty(Group.PROPERTY_LOCATION, value);
+			setRemote(group.getID(), Group.PROPERTY_LOCATION, value);
+//			} catch (NumberFormatException e) {
+//			}
+		}
+	}
 }

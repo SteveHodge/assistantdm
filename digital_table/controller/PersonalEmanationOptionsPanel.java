@@ -14,6 +14,9 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.MapElement;
 import digital_table.elements.PersonalEmanation;
 import digital_table.server.TableDisplay;
@@ -29,6 +32,7 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 	JTextField spaceField;
 	JTextField labelField;
 	JSlider alphaSlider;
+	JCheckBox visibleCheck;
 
 	public PersonalEmanationOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -44,7 +48,7 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 		alphaSlider = createSliderControl(template, PersonalEmanation.PROPERTY_ALPHA);
 		spaceField = createIntegerControl(template, PersonalEmanation.PROPERTY_SPACE);
 		labelField = createStringControl(template, PersonalEmanation.PROPERTY_LABEL, Mode.LOCAL);
-		JCheckBox visibleCheck = createVisibilityControl(template);
+		visibleCheck = createVisibilityControl(template);
 
 		//@formatter:off
 		setLayout(new GridBagLayout());
@@ -134,4 +138,29 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 					(Integer) template.getProperty(PersonalEmanation.PROPERTY_Y));
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "PersonalEmanation";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + PersonalEmanation.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseStringAttribute(PersonalEmanation.PROPERTY_LABEL, e, Mode.LOCAL);
+		parseColorAttribute(PersonalEmanation.PROPERTY_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(PersonalEmanation.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseIntegerAttribute(PersonalEmanation.PROPERTY_X, e, Mode.BOTH);
+		parseIntegerAttribute(PersonalEmanation.PROPERTY_Y, e, Mode.BOTH);
+		parseIntegerAttribute(PersonalEmanation.PROPERTY_RADIUS, e, Mode.BOTH);
+		parseIntegerAttribute(PersonalEmanation.PROPERTY_SPACE, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+	}
 }

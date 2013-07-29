@@ -108,6 +108,18 @@ public class ShapeableTemplate extends MapElement {
 		}
 	}
 
+	/**
+	 * 
+	 * @return array of the points defining the centres of the cubes
+	 */
+	public Point[] getCubes() {
+		Point[] ps = new Point[squares.size()];
+		for (int i = 0; i < ps.length; i++) {
+			ps[i] = new Point(squares.get(i));
+		}
+		return ps;
+	}
+
 	@Override
 	public Object getProperty(String property) {
 		if (property.equals(PROPERTY_PLACED)) {

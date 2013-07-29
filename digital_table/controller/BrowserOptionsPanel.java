@@ -23,6 +23,9 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import digital_table.elements.Browser;
 import digital_table.elements.BrowserLocal;
 import digital_table.elements.BrowserRemote;
@@ -31,20 +34,21 @@ import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class BrowserOptionsPanel extends OptionsPanel {
-	Browser browser;
-	JTextField urlField;
-	JLabel titleLabel;
-	JLabel rolloverLabel;
-	JComboBox rotationsCombo;
-	JComboBox screenCombo;
-	JCheckBox remoteVisibleCheck;
-	JCheckBox localVisibleCheck;
+	private Browser browser;
 
-	JFrame frame = null;
-	JPanel panel;
-	JTextField frameURLField;
-	JLabel statusLabel;
-	JProgressBar progressBar;
+	private JTextField urlField;
+	private JLabel titleLabel;
+	private JLabel rolloverLabel;
+	private JComboBox rotationsCombo;
+	private JComboBox screenCombo;
+	private JCheckBox remoteVisibleCheck;
+	private JCheckBox localVisibleCheck;
+
+	private JFrame frame = null;
+	private JPanel panel;
+	private JTextField frameURLField;
+	private JLabel statusLabel;
+	private JProgressBar progressBar;
 
 	protected BrowserOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
@@ -209,6 +213,9 @@ public class BrowserOptionsPanel extends OptionsPanel {
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_ROTATIONS)) {
 				rotationsCombo.setSelectedIndex((Integer)e.getNewValue());
 
+			} else if (e.getPropertyName().equals(Browser.PROPERTY_VISIBLE)) {
+				localVisibleCheck.setSelected((Boolean) e.getNewValue());
+
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_LABEL)) {
 
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_SCREEN)) {
@@ -218,4 +225,36 @@ public class BrowserOptionsPanel extends OptionsPanel {
 			}
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "Browser";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, remoteVisibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + Browser.PROPERTY_ROTATIONS, rotationsCombo.getSelectedIndex());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseStringAttribute(Browser.PROPERTY_URL, e, Mode.BOTH);
+		parseIntegerAttribute(Browser.PROPERTY_SCREEN, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, remoteVisibleCheck);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.LOCAL);
+
+		parseIntegerAttribute(Browser.PROPERTY_ROTATIONS, e, Mode.LOCAL);
+		if (e.hasAttribute(REMOTE_PREFIX + Browser.PROPERTY_ROTATIONS)) {
+//			try {
+			int value = Integer.parseInt(e.getAttribute(REMOTE_PREFIX + Browser.PROPERTY_ROTATIONS));
+			setRemote(getElement().getID(), Browser.PROPERTY_ROTATIONS, value);
+			rotationsCombo.setSelectedIndex(value);
+//			} catch (NumberFormatException e) {
+//			}
+		}
+	}
 }

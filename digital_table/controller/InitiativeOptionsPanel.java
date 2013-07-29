@@ -14,37 +14,44 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import combat.CombatPanel;
 import combat.InitiativeListener;
 
 import digital_table.elements.Initiative;
 import digital_table.elements.Label;
+import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class InitiativeOptionsPanel extends OptionsPanel {
-	Initiative initiative;
+	private Initiative initiative;
 
-	JTextField xField;
-	JTextField yField;
-	JSlider alphaSlider;
-	JComboBox rotationsCombo;
-	JPanel colorPanel;
-	JPanel bgColorPanel;
+	private JTextField xField;
+	private JTextField yField;
+	private JSlider alphaSlider;
+	private JComboBox rotationsCombo;
+	private JPanel colorPanel;
+	private JPanel bgColorPanel;
+	private JCheckBox visibleCheck;
 
 	public InitiativeOptionsPanel(MapElement parent, TableDisplay r) {
 		super(r);
 		initiative = new Initiative();
 		sendElement(initiative, parent);
 		initiative.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
-			@Override
-			public void initiativeUpdated(String text) {
-				initiative.setProperty(Label.PROPERTY_TEXT, text);
-				setRemote(initiative.getID(), Label.PROPERTY_TEXT, text);
-			}
-		});
+		if (CombatPanel.getCombatPanel() != null) {
+			CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
+				@Override
+				public void initiativeUpdated(String text) {
+					initiative.setProperty(Label.PROPERTY_TEXT, text);
+					setRemote(initiative.getID(), Label.PROPERTY_TEXT, text);
+				}
+			});
+		}
 		initiative.addPropertyChangeListener(listener);
 
 		xField = createDoubleControl(initiative, Initiative.PROPERTY_X);
@@ -53,7 +60,7 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		colorPanel = createColorControl(initiative, Initiative.PROPERTY_COLOR);
 		bgColorPanel = createColorControl(initiative, Initiative.PROPERTY_BACKGROUND_COLOR);
 		rotationsCombo = createRotationControl(initiative, Initiative.PROPERTY_ROTATIONS, Mode.BOTH);
-		JCheckBox visibleCheck = createVisibilityControl(initiative);
+		visibleCheck = createVisibilityControl(initiative);
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -137,4 +144,29 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 					(Double)initiative.getProperty(Initiative.PROPERTY_Y));
 		}
 	};
+
+	// ---- XML serialisation methods ----
+	public final static String XML_TAG = "Initiative";
+
+	@Override
+	public Element getElement(Document doc) {
+		Element e = doc.createElement(XML_TAG);
+		setAllAttributes(e);
+		setAttribute(e, REMOTE_PREFIX + LineTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		return e;
+	}
+
+	@Override
+	public void parseDOM(Element e) {
+		if (!e.getTagName().equals(XML_TAG)) return;
+
+		parseColorAttribute(Initiative.PROPERTY_COLOR, e, Mode.BOTH);
+		parseColorAttribute(Initiative.PROPERTY_BACKGROUND_COLOR, e, Mode.BOTH);
+		parseFloatAttribute(Initiative.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseDoubleAttribute(Initiative.PROPERTY_X, e, Mode.BOTH);
+		parseDoubleAttribute(Initiative.PROPERTY_Y, e, Mode.BOTH);
+		parseIntegerAttribute(Initiative.PROPERTY_ROTATIONS, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+	}
 }
+

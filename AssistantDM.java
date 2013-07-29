@@ -70,7 +70,6 @@ import camera.CameraPanel;
 import combat.CombatPanel;
 
 import digital_table.controller.DigitalTableController;
-import digital_table.server.TableDisplay;
 
 /* TODO current priorities:
  * select multiple targets for buffs / combine with effects on combat panel
@@ -95,7 +94,6 @@ import digital_table.server.TableDisplay;
  * equipment, particularly magic item slots, armor, weapons
  */
 /* TODO digital table priorities:
- * Move element creation into OptionPanel subclasses so that serialisation can be implemented there. Maybe later refactor panels out to inner classes
  * BUG Issue with image scaling before remote visible - fix handling of image size when image changes
  * Allow multi-select and grouping in tree
  * Improve Tokens element: hps/status, floating label, rotate labels with token
@@ -154,7 +152,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	CombatPanel combatPanel;
 	CameraPanel cameraPanel = null;
 	JTabbedPane tabbedPane;
-	TableDisplay tableDisplay;
 	static String tableServer = null;
 
 	Party party;
@@ -276,6 +273,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		new DigitalTableController(AssistantDM.tableServer, cameraPanel) {
 			@Override
 			protected void quit() {
+				saveDisplay();
 			}
 		};
 
@@ -453,17 +451,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		}
 
 		try {
-			//        	// old output implementation
-			//        	outputStream = new FileWriter(f);
-			//			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-			//			outputStream.write(System.getProperty("line.separator"));
-			//			outputStream.write(System.getProperty("line.separator"));
-			//			outputStream.write(party.getXML("", "    "));
-			//			outputStream.close();
-			//			outputStream = null;
-			//
-			//			// new DOM based output
-			//    		f = new File(f.getParent(), "party_new.xml");
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			doc.appendChild(party.getElement(doc));
 			doc.setXmlStandalone(true);
