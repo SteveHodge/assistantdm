@@ -18,7 +18,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import party.Character;
-import party.Monster;
 import party.Party;
 import party.PartyListener;
 import swing.ReorderableListModel;
@@ -42,16 +41,18 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 				addEntry(new CharacterCombatEntry(c));
 			}
 		}
-		blankInit = new MonsterCombatEntry(new Monster());
+		blankInit = new MonsterCombatEntry();
 		addEntry(blankInit);
 		sort();
 	}
 
+	@Override
 	public void characterAdded(Character c) {
 		addEntry(new CharacterCombatEntry(c));
 		sort();
 	}
 
+	@Override
 	public void characterRemoved(Character c) {
 		CombatEntry toRemove = null;
 		for (CombatEntry e : list) {
@@ -63,11 +64,13 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		if (toRemove != null) removeEntry(toRemove);
 	}
 
+	@Override
 	public int indexOf(Object item) {
 		return list.indexOf(item);
 	}
 
 	// XXX use of noSort flag to prevent sorts is a bit hackish, but probably the simpilest solution
+	@Override
 	public void moveTo(Object item, int index) {
 		if (!list.remove(item)) throw new NoSuchElementException();
 		noSort = true;	// disable sort while we reorganise (because adjustRoll() in moveEntries() will cause a sort otherwise
@@ -77,6 +80,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		// fix up roll so that it remains in this position
 		// first sort the list by y-position
 		Collections.sort(list,new Comparator<CombatEntry>() {
+			@Override
 			public int compare(CombatEntry o1, CombatEntry o2) {
 				return o1.getY() - o2.getY();
 			}
@@ -230,9 +234,11 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
+	@Override
 	public void sort() {
 		if (noSort) return;
 		Collections.sort(list,new Comparator<CombatEntry>() {
+			@Override
 			public int compare(CombatEntry ie1, CombatEntry ie2) {
 				return CombatEntry.compareInitiatives(ie1,ie2);
 			}
@@ -240,24 +246,29 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
+	@Override
 	public void sort(Comparator<Object> c) {
 		if (noSort) return;
 		Collections.sort(list,c);
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
+	@Override
 	public CombatEntry getElementAt(int index) {
 		return list.get(index);
 	}
 
+	@Override
 	public int getSize() {
 		return list.size();
 	}
 
+	@Override
 	public void addListDataListener(ListDataListener l) {
 		listenerList.add(ListDataListener.class,l);
 	}
 
+	@Override
 	public void removeListDataListener(ListDataListener l) {
 		listenerList.remove(ListDataListener.class,l);
 	}
@@ -303,6 +314,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		fireListDataEvent(ListDataEvent.INTERVAL_REMOVED,pos,pos);
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent e) {
 		CombatEntry changed = (CombatEntry)e.getSource();
 		boolean reorder = false;
@@ -310,7 +322,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		// check if we need to add a new entry:
 		if (changed == blankInit && !changed.isBlank()) {
 //			System.out.println("Adding new entry");
-			blankInit = new MonsterCombatEntry(new Monster());
+			blankInit = new MonsterCombatEntry();
 			addEntry(blankInit);
 			reorder = true;
 		}
@@ -415,6 +427,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getActionCommand().equals("delete")) {
 			CombatEntry e = (CombatEntry)arg0.getSource();
@@ -422,7 +435,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	// removes all created (non-character) initiative entries and reset rolls 
+	// removes all created (non-character) initiative entries and reset rolls
 	public void reset() {
 		// first check out all the entries and determine what to do with them
 		// we need to do it this way because both changing the rolls and removing entries
@@ -443,7 +456,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 			removeEntry(e);
 		}
 
-		// reset entries' rolls to 0 
+		// reset entries' rolls to 0
 		for (CombatEntry e : toReset) {
 			e.setRoll(0);
 		}

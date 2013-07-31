@@ -17,6 +17,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -51,8 +52,8 @@ public class AddMonsterDialog extends JDialog {
 	private File imageFile = null;	// TODO make per-token
 	private ImagePanel image = new ImagePanel(null);
 
-	AddMonsterDialog(Window owner, StatisticsBlock stats) {
-		super(owner, "Add new " + stats.getName(), Dialog.ModalityType.APPLICATION_MODAL);
+	AddMonsterDialog(Window owner, final StatisticsBlock stats) {
+		super(owner, "Add new " + stats.getName(), Dialog.ModalityType.MODELESS);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.stats = stats;
@@ -159,10 +160,20 @@ public class AddMonsterDialog extends JDialog {
 			}
 		});
 
+		JButton detailsButton = new JButton("Details");
+		detailsButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JFrame frame = new MonsterFrame(stats);
+				frame.setVisible(true);
+			}
+		});
+
 		JPanel buttons = new JPanel();
 		buttons.add(addCombatButton);
 		buttons.add(addTokenButton);
 		buttons.add(cancelButton);
+		buttons.add(detailsButton);
 
 		add(main, BorderLayout.CENTER);
 		add(buttons, BorderLayout.SOUTH);

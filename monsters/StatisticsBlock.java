@@ -6,6 +6,9 @@ import gamesystem.SizeCategory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -121,6 +124,10 @@ public class StatisticsBlock {
 
 	String getName() {
 		return get(Property.NAME);
+	}
+
+	URL getURL() throws MalformedURLException {
+		return new URL(get(Property.URL));
 	}
 
 	// type of the creature
@@ -330,6 +337,21 @@ public class StatisticsBlock {
 		return acs;
 	}
 
+	// TODO should download the URL directly rather than converting to a file. should add Source argument
+	static List<StatisticsBlock> parseURL(URL url) {
+		try {
+			// first remove any fragment from the URL:
+			URL u = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getFile());
+			File f = new File(u.toURI());
+			return parseFile(null, f);
+		} catch (URISyntaxException ex) {
+			ex.printStackTrace();
+		} catch (MalformedURLException ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
 	// TODO remove this version - source should always be required
 	static List<StatisticsBlock> parseFile(File file) {
 		return parseFile(null, file);
@@ -352,16 +374,16 @@ public class StatisticsBlock {
 
 			NodeList children = ((Element)htmlBodies.item(0)).getChildNodes();
 			String name = "";
-			String url = "";
+			URL url = null;
 			for (int i = 0; i < children.getLength(); i++) {
 				if (children.item(i).getNodeType() == Node.ELEMENT_NODE) {
 					Element child = (Element)children.item(i);
 					if (child.getTagName().equals("h1")) {
 						name = child.getTextContent();
 						if (source != null) {
-							url = source.getLocation()+"\\"+file.getName();
+							url = new File(source.getLocation() + "\\" + file.getName()).toURI().toURL();
 						} else {
-							url = file.getName();
+							url = file.toURI().toURL();
 						}
 						//System.out.println("h1 name = "+name);
 
@@ -372,9 +394,10 @@ public class StatisticsBlock {
 							name = child.getTextContent();
 							Element a = (Element)anchors.item(0);
 							if (source != null) {
-								url = source.getLocation()+"\\"+file.getName()+"#"+a.getAttribute("name");
+								url = new File(source.getLocation() + "\\" + file.getName()).toURI().toURL();
+								url = new URL(url, "#" + a.getAttribute("name"));
 							} else {
-								url = file.getName()+"#"+a.getAttribute("name");
+								url = new URL(file.toURI().toURL(), "#" + a.getAttribute("name"));
 							}
 							//System.out.println("h2 name = "+name);
 						}
@@ -382,7 +405,7 @@ public class StatisticsBlock {
 					} else if (child.getTagName().equals("table")) {
 						String classString = child.getAttribute("class");
 						if (classString != null && classString.contains(STATBLOCKCLASS)) {
-							for (StatisticsBlock block : parseStatBlock(child, name, url)) {
+							for (StatisticsBlock block : parseStatBlock(child, name, url.toString())) {
 								block.source = source;
 								blocks.add(block);
 							}

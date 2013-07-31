@@ -21,8 +21,9 @@ import ui.BoundIntegerField;
 
 @SuppressWarnings("serial")
 public class MonsterCombatEntry extends CombatEntry {
-	public MonsterCombatEntry(Creature creature) {
-		this.creature = creature;
+	// creates a new MonsterCombatEntry backed by a new Monster
+	public MonsterCombatEntry() {
+		creature = new Monster();
 		createEntry();
 	}
 

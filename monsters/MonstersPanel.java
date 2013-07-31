@@ -1,10 +1,8 @@
 package monsters;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -13,7 +11,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,11 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,14 +32,12 @@ import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.table.TableRowSorter;
 
 // TODO move listeners to inner classes
 
 @SuppressWarnings("serial")
-public class MonstersPanel extends JPanel implements MouseListener, HyperlinkListener {
+public class MonstersPanel extends JPanel implements MouseListener {
 	JTable table;
 	MonstersTableModel monsters;
 	TableRowSorter<MonstersTableModel> sorter;
@@ -219,114 +211,44 @@ public class MonstersPanel extends JPanel implements MouseListener, HyperlinkLis
 	public void mouseClicked(MouseEvent e) {
 		if (e.getClickCount() == 2) {
 			MonsterEntry me = monsters.getMonsterEntry(table.convertRowIndexToModel(table.getSelectedRow()));
-			try {
-				URL url;
-				try {
-					url = new URL(me.url);
-				} catch (MalformedURLException e1) {
-					// try relative URL
-					url = new URL(baseURL, me.url);
-				}
-				//System.out.println("URL: "+url);
-				JFrame frame = createMonsterFrame(me, url);
-				frame.setVisible(true);
-			} catch (MalformedURLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-	}
+			// see if we can find a statistics block (based on name matching)
+			URL url = me.getURL(baseURL);
+			if (url != null) {
+				System.out.println("URL: " + url);
+				System.out.println("Selected: " + me.name);
 
-	private class AddMonsterButton extends JButton {
-		StatisticsBlock block;
-
-		public AddMonsterButton(StatisticsBlock b) {
-			super("Add " + b.getName());
-			block = b;
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					Window parentFrame = SwingUtilities.windowForComponent(MonstersPanel.this);
-					new AddMonsterDialog(parentFrame, block);
-				}
-			});
-		}
-	}
-
-	private JFrame createMonsterFrame(MonsterEntry me, URL url) {
-		String label = "Size: "+me.size + ", Type: "+me.type+", Environment: "+me.environment+", CR: "+me.cr;
-		JPanel buttons = new JPanel();
-		buttons.setLayout(new GridLayout(0,5));
-		File f;
-		try {
-			URL u = new URL(url.getProtocol(),url.getHost(),url.getPort(),url.getFile());
-			f = new File(u.toURI());
-			List<StatisticsBlock> blocks = StatisticsBlock.parseFile(f);
-			for (StatisticsBlock block : blocks) {
-				JButton button = new AddMonsterButton(block);
-				buttons.add(button);
-			}
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
-		JPanel topPanel = new JPanel();
-		topPanel.setLayout(new BorderLayout());
-		topPanel.add(new JLabel(label),BorderLayout.NORTH);
-		topPanel.add(buttons);
-
-		JFrame frame = new JFrame(me.name);
-		JEditorPane p = createWebPanel(url);
-		JScrollPane sp = new JScrollPane(p);
-		sp.setSize(new Dimension(800,600));
-		sp.setPreferredSize(new Dimension(800,600));
-		frame.add(topPanel,BorderLayout.NORTH);
-		frame.add(sp);
-		frame.setSize(new Dimension(800,600));
-		frame.pack();
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		return frame;
-	}
-
-	private JEditorPane createWebPanel(URL url) {
-		JEditorPane p = new JEditorPane();
-		p.setEditable(false);
-		p.addHyperlinkListener(this);
-		try {
-			p.setPage(url);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return p;
-	}
-
-	@Override
-	public void hyperlinkUpdate(HyperlinkEvent e) {
-		try{
-			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-				if (e.getURL() != null) {
-					JFrame frame = new JFrame(e.getURL().toString());
-					JScrollPane sp;
-					if (e.getURL().getFile().endsWith(".jpg")) {
-						JLabel pic = new JLabel(new ImageIcon(e.getURL()));
-						sp = new JScrollPane(pic);
-					} else {
-						JEditorPane p = createWebPanel(e.getURL());
-						sp = new JScrollPane(p);
-						sp.setPreferredSize(new Dimension(800,600));
+				List<StatisticsBlock> blocks = StatisticsBlock.parseURL(url);
+				StatisticsBlock selected = null;
+				int matched = 0;
+				for (StatisticsBlock block : blocks) {
+					// tries to match the selected MonsterEntry name to a StatisticsBlock name, in one of these ways:
+					// 1. MonsterEntry name == StatisticsBlock name
+					// 2. MonsterEntry name == StatisticsBlock name up to first comma
+					// 3. MonsterEntry name up to first parentheses == StatisticsBlock name
+					// 4. MonsterEntry name up to first parentheses == StatisticsBlock name up to first comma
+					String blockName = block.getName();
+					if (blockName.equals(me.name)
+							|| (blockName.contains(",") && blockName.substring(0, blockName.indexOf(',')).equals(me.name))) {
+						selected = block;
+						matched++;
+					} else if (me.name.contains("(")) {
+						String entryName = me.name.substring(0, me.name.indexOf('(')).trim();
+						if (blockName.equals(entryName)
+								|| (blockName.contains(",") && blockName.substring(0, blockName.indexOf(',')).equals(entryName))) {
+							selected = block;
+							matched++;
+						}
 					}
-					frame.add(sp);
-					frame.pack();
-					frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-					frame.setVisible(true);
+				}
+
+				if (matched == 1) {
+					Window parentFrame = SwingUtilities.windowForComponent(this);
+					new AddMonsterDialog(parentFrame, selected);
 				} else {
-					System.out.println("No URL, string was: "+e.getDescription());
+					JFrame frame = new MonsterFrame(me, url);
+					frame.setVisible(true);
 				}
 			}
-		} catch(Exception ex) {
-			ex.printStackTrace();
 		}
 	}
 

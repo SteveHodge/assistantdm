@@ -73,11 +73,12 @@ import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
  * select multiple targets for buffs / combine with effects on combat panel
- * monster list should open add monster dialog rather than monster page
  * fix healing on combat panel
+ * perhaps heal all button on character sheet. damage/heading should reset to 0 after it's applied
  * implement custom buffs (will be stop-gap for equipment)
  * fix live character sheet to show extra attacks and add list of buffs and/or calculations
- * size
+ * size (where is up to?)
+ *
  * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
  * Save/Load display state, perhaps global preferences
  * EOS camera support + refactoring of camera library
