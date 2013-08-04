@@ -77,6 +77,7 @@ public class Buff {
 		return false;
 	}
 
+	@Override
 	public String toString() {
 		return name;
 	}
@@ -149,7 +150,7 @@ public class Buff {
 			} else {
 				s.append(" penalty");
 			}
-			
+
 			s.append(" to ").append(getTargetDescription(target));
 			if (m.getCondition() != null) s.append(" ").append(m.getCondition());
 			s.append("<br/>");
@@ -187,7 +188,7 @@ public class Buff {
 	}
 
 	public abstract static class Effect {
-		String target;
+		public String target;
 
 		public boolean requiresCasterLevel() {
 			return false;
@@ -203,15 +204,16 @@ public class Buff {
 		Object value;
 		String description;
 
+		@Override
 		public String toString() {
 			return description;
 		}
 	}
 
 	public abstract static class ModifierEffect extends Effect {
-		String type;
+		public String type;
 		String condition;
-	
+
 		public abstract Modifier getModifier(Buff b);
 	}
 
@@ -221,6 +223,7 @@ public class Buff {
 		int maxPerCL;
 		boolean penalty = false;
 
+		@Override
 		public Modifier getModifier(Buff b) {
 			int mod = 0;
 			if (perCL > 0) mod = b.casterLevel/perCL;
@@ -250,9 +253,10 @@ public class Buff {
 			return m;
 		}
 
+		@Override
 		public String toString() {
 			StringBuilder s = new StringBuilder();
-	
+
 			if (type != null) s.append(" ").append(type);
 			if (penalty) {
 				s.append(" penalty of ");
@@ -275,34 +279,38 @@ public class Buff {
 					s.append(perCL).append(" caster levels");
 				}
 			}
-			
+
 			s.append(" to ").append(getTargetDescription(target));
 			if (condition != null) s.append(" ").append(condition);
 			return s.toString();
 		}
 
+		@Override
 		public boolean requiresCasterLevel() {
 			return true;
 		}
 
+		@Override
 		public Dice getDice() {
 			if (baseMod instanceof Dice) return (Dice)baseMod;
 			return null;
 		}
 	}
 
-	protected static class FixedEffect extends ModifierEffect {
-		int modifier;
-	
+	public static class FixedEffect extends ModifierEffect {
+		public int modifier;
+
+		@Override
 		public Modifier getModifier(Buff b) {
 			ImmutableModifier m = new ImmutableModifier(modifier, type, b.name, condition);
 			m.id = b.id;
 			return m;
 		}
-	
+
+		@Override
 		public String toString() {
 			StringBuilder s = new StringBuilder();
-	
+
 			if (modifier >= 0) s.append("+");
 			s.append(modifier);
 			if (type != null) s.append(" ").append(type);
@@ -311,7 +319,7 @@ public class Buff {
 			} else {
 				s.append(" penalty");
 			}
-			
+
 			s.append(" to ").append(getTargetDescription(target));
 			if (condition != null) s.append(" ").append(condition);
 			return s.toString();
@@ -389,7 +397,7 @@ public class Buff {
 				p.property = m.getAttribute("property");
 				p.value = value;
 				buff.propertyChanges.put(p,target);
-				
+
 			}
 		}
 		return buff;

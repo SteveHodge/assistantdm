@@ -66,14 +66,17 @@ public class HPs extends Statistic {
 			this.source = source;
 		}
 
+		@Override
 		public int getModifier() {
 			return hps;
 		}
 
+		@Override
 		public String getSource() {
 			return source;
 		}
 
+		@Override
 		public int getID() {
 			return id;
 		}
@@ -89,13 +92,14 @@ public class HPs extends Statistic {
 		oldMod = conMod.getModifier();
 		conMod.addPropertyChangeListener(new PropertyChangeListener() {
 
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
-        		int oldhps = getMaximumHitPoints();
-        		int newhps = oldhps + (level.getLevel() * (conMod.getModifier() - oldMod));
-        		if (newhps < level.getLevel()) newhps = level.getLevel();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
-        		//System.out.println("changing max hps from "+oldhps+" to "+newhps);
-        		setMaximumHitPoints(newhps);
-        		oldMod = conMod.getModifier();
+				int oldhps = getMaximumHitPoints();
+				int newhps = oldhps + (level.getLevel() * (conMod.getModifier() - oldMod));
+				if (newhps < level.getLevel()) newhps = level.getLevel();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
+				//System.out.println("changing max hps from "+oldhps+" to "+newhps);
+				setMaximumHitPoints(newhps);
+				oldMod = conMod.getModifier();
 			}
 		});
 	}
@@ -107,7 +111,7 @@ public class HPs extends Statistic {
 	public void setMaximumHitPoints(int hp) {
 		int old = hps;
 		hps = hp;
-        firePropertyChange(Creature.PROPERTY_MAXHPS, old, hp);
+		firePropertyChange(Creature.PROPERTY_MAXHPS, old, hp);
 	}
 
 	public List<Modifier> getTemporaryHPsModifiers() {
@@ -253,7 +257,7 @@ public class HPs extends Statistic {
 		}
 	}
 
-	// returns the current effective value of temporary hitpoints 
+	// returns the current effective value of temporary hitpoints
 	public int getTemporaryHPs() {
 		int total = 0;
 		for (TempHPs t : tempHPs) {
@@ -268,7 +272,8 @@ public class HPs extends Statistic {
 	}
 
 	// Statistics methods
-	// TODO this should search the temphps we already have in case the temphps were already loaded by parseDOM 
+	// TODO this should search the temphps we already have in case the temphps were already loaded by parseDOM
+	@Override
 	public void addModifier(Modifier m) {
 		TempHPs hps = new TempHPs(m.getSource(),m.getModifier());
 		hps.id = m.getID();
@@ -276,6 +281,7 @@ public class HPs extends Statistic {
 		modMap.put(m, hps);
 	}
 
+	@Override
 	public void removeModifier(Modifier m) {
 		TempHPs hps = modMap.remove(m);
 		if (hps != null) {
@@ -283,22 +289,27 @@ public class HPs extends Statistic {
 		}
 	}
 
+	@Override
 	public int getValue() {
 		return getHPs();
 	}
 
+	@Override
 	public boolean hasConditionalModifier() {
 		return false;
 	}
 
+	@Override
 	public int getModifiersTotal() {
 		return getTemporaryHPs();
 	}
 
+	@Override
 	public int getModifiersTotal(String type) {
 		return getTemporaryHPs();
 	}
 
+	@Override
 	public Map<Modifier, Boolean> getModifiers() {
 		HashMap<Modifier, Boolean> map = new HashMap<Modifier, Boolean>();
 		for (TempHPs t : tempHPs) {
@@ -307,7 +318,29 @@ public class HPs extends Statistic {
 		return map;
 	}
 
-	
+	@Override
+	public String getSummary() {
+		StringBuilder text = new StringBuilder();
+		text.append(getMaximumHitPoints()).append(" maximum<br/>");
+		if (getWounds() != 0) text.append(-getWounds()).append(" wounds<br/>");
+		if (getNonLethal() != 0) text.append(-getNonLethal()).append(" non-lethal damage taken<br/>");
+
+		Map<Modifier, Boolean> mods = getModifiers();
+		for (Modifier m : mods.keySet()) {
+			if (m.getCondition() == null) {
+				if (!mods.get(m)) text.append("<s>");
+				if (m.getModifier() >= 0) text.append("+");
+				text.append(m.getModifier()).append(" temporary");
+				if (m.getSource() != null) text.append(" (from ").append(m.getSource()).append(")");
+				if (!mods.get(m)) text.append("</s>");
+				text.append("<br/>");
+			}
+		}
+
+		text.append("=").append(getHPs()).append(" current total<br/><br/>");
+		return text.toString();
+	}
+
 	protected static void printTempHPs(List<TempHPs> tempHPs) {
 		for (TempHPs t : tempHPs) {
 			if (t.active) {
@@ -318,6 +351,7 @@ public class HPs extends Statistic {
 		}
 	}
 
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("HitPoints");
 		e.setAttribute("maximum", ""+hps);

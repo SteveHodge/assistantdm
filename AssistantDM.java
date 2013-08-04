@@ -75,12 +75,11 @@ import digital_table.controller.DigitalTableController;
  * select multiple targets for buffs / combine with effects on combat panel
  * fix healing on combat panel
  * perhaps heal all button on character sheet. damage/heading should reset to 0 after it's applied
- * implement custom buffs (will be stop-gap for equipment)
  * fix live character sheet to show extra attacks and add list of buffs and/or calculations
  * size (where is up to?)
- *
+ * 
+ * Add info dialog for remaining statistics (attacks, ac, weapons, armor, level, size)
  * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
- * Save/Load display state, perhaps global preferences
  * EOS camera support + refactoring of camera library
  * Magic items and/or allow addition of custom modifiers
  * Detect token movement

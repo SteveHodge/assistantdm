@@ -2,9 +2,9 @@ package ui;
 
 import gamesystem.Buff;
 import gamesystem.Buff.Effect;
+import gamesystem.Buff.ModifierEffect;
 import gamesystem.BuffFactory;
 import gamesystem.Modifier;
-import gamesystem.Buff.ModifierEffect;
 import gamesystem.dice.Dice;
 
 import java.awt.BorderLayout;
@@ -43,8 +43,8 @@ import swing.ListModelWithToolTips;
 
 @SuppressWarnings("serial")
 public class CharacterBuffsPanel extends CharacterSubPanel {
-	JCheckBox empCheckBox;
-	JCheckBox maxCheckBox;
+	private JCheckBox empCheckBox;
+	private JCheckBox maxCheckBox;
 
 	public CharacterBuffsPanel(Character c) {
 		super(c);
@@ -52,6 +52,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 
 		BuffFactory[] availableBuffs = Arrays.copyOf(BuffFactory.buffs, BuffFactory.buffs.length);
 		Arrays.sort(availableBuffs, new Comparator<BuffFactory>() {
+			@Override
 			public int compare(BuffFactory a, BuffFactory b) {
 				return a.name.compareTo(b.name);
 			}
@@ -67,9 +68,11 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 
 		JButton apply = new JButton("Apply");
 		apply.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// need to invoke this code later since it involves a modal dialog
 				SwingUtilities.invokeLater(new Runnable() {
+					@Override
 					public void run() {
 						BuffFactory bf = (BuffFactory)buffs.getSelectedValue();
 						Buff buff = applyBuff(bf);
@@ -81,10 +84,11 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 
 		JButton remove = new JButton("Remove");
 		remove.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Object[] buffs = applied.getSelectedValues();
 				for (Object b : buffs) {
-					((Buff)b).removeBuff(character);
+					((Buff) b).removeBuff(character);
 					character.buffs.removeElement(b);
 				}
 			}
@@ -112,7 +116,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		add(right);
 	}
 
-	protected Buff applyBuff(BuffFactory bf) {
+	private Buff applyBuff(BuffFactory bf) {
 		Buff buff = bf.getBuff();
 		buff.maximized = maxCheckBox.isSelected();
 		buff.empowered = empCheckBox.isSelected();
@@ -124,6 +128,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 
 			JButton ok = new JButton("Ok");
 			ok.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent arg0) {
 					// TODO confirm editing of clSpinner?
 					dialog.setVisible(false);
@@ -141,6 +146,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		return buff;
 	}
 
+	// TODO this should probably be toplevel class
 	public static class BuffListModel extends DefaultListModel implements ListModelWithToolTips {
 		public BuffListModel() {
 			super();
@@ -153,6 +159,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			}
 		}
 
+		@Override
 		public String getToolTipAt(int index) {
 			if (index < 0) return null;
 			Object o = get(index);
@@ -166,7 +173,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 	}
 
 	// Note: this class assumes that the Effects in a Buff don't change.
-	protected class BuffOptionPanel extends JPanel {
+	private class BuffOptionPanel extends JPanel {
 		Buff buff;
 		SpinnerNumberModel clModel;
 		JLabel[] effectLabels;
@@ -208,6 +215,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 					buff.setRoll(d, roll);
 					diceModels[i] = new SpinnerNumberModel(roll, d.getMinimum(), d.getMaximum(), 1);
 					diceModels[i].addChangeListener(new ChangeListener() {
+						@Override
 						public void stateChanged(ChangeEvent e) {
 							buff.setRoll(d, ((SpinnerNumberModel)e.getSource()).getNumber().intValue());
 							updateEffects();
@@ -229,6 +237,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			add(effectsPanel);
 
 			clModel.addChangeListener(new ChangeListener() {
+				@Override
 				public void stateChanged(ChangeEvent e) {
 					buff.setCasterLevel(clModel.getNumber().intValue());
 					updateEffects();
@@ -237,8 +246,8 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 
 			updateEffects();
 		}
-		
-		protected void updateEffects() {
+
+		private void updateEffects() {
 			int i = 0;
 			for (Effect e : buff.effects) {
 				if (e instanceof ModifierEffect) {

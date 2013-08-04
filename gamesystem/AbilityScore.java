@@ -6,7 +6,7 @@ import java.beans.PropertyChangeListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-// TODO overrides are a bit unintuituve - they ignore modifiers, which is fine, but the modifiers are reapplied once the override is removed (which at the moment happens if the override is set to the baseValue in the ui) 
+// TODO overrides are a bit unintuituve - they ignore modifiers, which is fine, but the modifiers are reapplied once the override is removed (which at the moment happens if the override is set to the baseValue in the ui)
 public class AbilityScore extends Statistic {
 	public enum Type {
 		STRENGTH ("Strength", "STR"),
@@ -18,6 +18,7 @@ public class AbilityScore extends Statistic {
 
 		private Type(String d, String a) {description = d; abbreviation = a;}
 
+		@Override
 		public String toString() {return description;}
 
 		public String getAbbreviation() {return abbreviation;}
@@ -27,7 +28,7 @@ public class AbilityScore extends Statistic {
 			for (Type t : values()) {
 				if (t.description.equals(d)) return t;
 			}
-			return null;	// TODO probably better to throw an exception 
+			return null;	// TODO probably better to throw an exception
 		}
 
 		private final String description, abbreviation;
@@ -45,6 +46,7 @@ public class AbilityScore extends Statistic {
 	protected class AbilityModifier extends AbstractModifier {
 		public AbilityModifier(AbilityScore score) {
 			score.addPropertyChangeListener(new PropertyChangeListener() {
+				@Override
 				public void propertyChange(PropertyChangeEvent evt) {
 					//int oldValue = ((Integer)evt.getOldValue())/2-5;
 					//int newValue = ((Integer)evt.getNewValue())/2-5;
@@ -54,14 +56,17 @@ public class AbilityScore extends Statistic {
 			});
 		}
 
+		@Override
 		public int getModifier() {
 			return AbilityScore.getModifier(getValue());
 		}
 
+		@Override
 		public String getType() {
 			return name;
 		}
 
+		@Override
 		public String toString() {
 			StringBuilder s = new StringBuilder();
 			if (getModifier() >= 0) s.append("+");
@@ -73,13 +78,14 @@ public class AbilityScore extends Statistic {
 	public AbilityScore(Type type) {
 		super(type.toString());
 		this.type = type;
-		modifier = new AbilityModifier(this); 
+		modifier = new AbilityModifier(this);
 	}
 
 	public Type getType() {
 		return type;
 	}
 
+	@Override
 	public int getValue() {
 		if (override == -1) {
 			return baseValue + super.getValue();
@@ -132,6 +138,24 @@ public class AbilityScore extends Statistic {
 		return modifier.getModifier();
 	}
 
+	@Override
+	public String getSummary() {
+		StringBuilder text = new StringBuilder();
+		if (getOverride() > 0) text.append("<s>");
+		text.append(getBaseValue()).append(" base<br/>");
+		text.append(super.getSummary());
+
+		if (getOverride() > 0) {
+			text.append("</s><br/>").append(getOverride()).append(" current ").append(getName()).append(" (override)");
+		}
+
+		text.append("<br/>");
+		if (getModifierValue() >= 0) text.append("+");
+		text.append(getModifierValue()).append(" ").append(getName()).append(" modifier");
+		return text.toString();
+	}
+
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("AbilityScore");
 		e.setAttribute("type", type.toString());
@@ -144,7 +168,7 @@ public class AbilityScore extends Statistic {
 	public void parseDOM(Element e) {
 		if (!e.getTagName().equals("AbilityScore")) return;
 		if (!e.getAttribute("type").equals(type.toString())) return;
-		
+
 		baseValue = Integer.parseInt(e.getAttribute("value"));
 		if (e.hasAttribute("temp")) override = Integer.parseInt(e.getAttribute("temp"));
 	}

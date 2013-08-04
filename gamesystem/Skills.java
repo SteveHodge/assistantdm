@@ -30,8 +30,9 @@ public class Skills extends Statistic {
 	final protected Modifier acp;
 
 	final protected PropertyChangeListener modifierListener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
-			// for ability modifier changes. sends event to indicate all skills need updating 
+			// for ability modifier changes. sends event to indicate all skills need updating
 			pcs.firePropertyChange("value", null, null);
 		}
 	};
@@ -167,11 +168,24 @@ public class Skills extends Statistic {
 		return trained;
 	}
 
+	public String getSummary(SkillType s) {
+		StringBuffer text = new StringBuffer();
+		text.append(getRanks(s)).append(" base<br/>");
+		Map<Modifier, Boolean> mods = getModifiers(s);
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(getValue(s)).append(" total ").append(s.getName()).append("<br/>");
+		String conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/>").append(conds);
+		return text.toString();
+	}
+
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement(name);
 
 		ArrayList<SkillType> set = new ArrayList<SkillType>(skills.keySet());
 		Collections.sort(set, new Comparator<SkillType>() {
+			@Override
 			public int compare(SkillType o1, SkillType o2) {
 				return o1.getName().compareTo(o2.getName());
 			}

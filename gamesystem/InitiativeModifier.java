@@ -12,6 +12,7 @@ public class InitiativeModifier extends Statistic {
 		addModifier(dex.getModifier());
 	}
 
+	@Override
 	public int getValue() {
 		return baseValue + super.getValue();
 	}
@@ -28,6 +29,15 @@ public class InitiativeModifier extends Statistic {
 		pcs.firePropertyChange("value", null, newValue);
 	}
 
+	@Override
+	public String getSummary() {
+		StringBuilder text = new StringBuilder();
+		text.append(getBaseValue()).append(" base<br/>");
+		text.append(super.getSummary());
+		return text.toString();
+	}
+
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("Initiative");
 		e.setAttribute("value", ""+baseValue);

@@ -1,37 +1,38 @@
 package ui;
 
-import gamesystem.Modifier;
 import gamesystem.SavingThrow;
-import gamesystem.Statistic;
 
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Map;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
-import party.Creature;
 import party.Character;
+import party.Creature;
 
 //TODO update to use the saving throw's ability modifier rather than looking at the ability score's modifier directly
 //TODO change to listen to the SavingThrow itself instead of the character
 //TODO cleanup stuff surround change to enum for save types
-//TODO review for change to enum SavingThrow.Type 
+//TODO review for change to enum SavingThrow.Type
 @SuppressWarnings("serial")
-public class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeListener {
-	protected JLabel[] modLabels = new JLabel[3];
-	protected JLabel[] totalLabels = new JLabel[3];
-	protected JFormattedTextField baseSaveFields[] = new JFormattedTextField[3];
-	protected JFormattedTextField miscSaveFields[] = new JFormattedTextField[3];
+class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeListener {
+	private JLabel[] modLabels = new JLabel[3];
+	private JLabel[] totalLabels = new JLabel[3];
+	private JFormattedTextField baseSaveFields[] = new JFormattedTextField[3];
+	private JFormattedTextField miscSaveFields[] = new JFormattedTextField[3];
 
-	public CharacterSavesPanel(Character c) {
+	CharacterSavesPanel(Character c) {
 		super(c);
 		summary = getSummary();
 
-		JPanel inner = new JPanel(); 
+		JPanel inner = new JPanel();
 		GroupLayout layout = new GroupLayout(inner);
 		inner.setLayout(layout);
 		layout.setAutoCreateGaps(true);
@@ -52,7 +53,7 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 				.addComponent(titleLabels[2])
 				.addComponent(titleLabels[3])
 				.addComponent(titleLabels[4])
-			);
+				);
 		GroupLayout.ParallelGroup[] hGroups = new GroupLayout.ParallelGroup[5];
 		for (int i=0; i<5; i++) {
 			hGroups[i] = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
@@ -77,7 +78,7 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 					.addComponent(miscSaveFields[type])
 					.addComponent(modLabels[type])
 					.addComponent(totalLabels[type])
-				);
+					);
 			hGroups[0].addComponent(saveLabels[type]);
 			hGroups[1].addComponent(baseSaveFields[type], GroupLayout.PREFERRED_SIZE,
 					GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
@@ -92,29 +93,42 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 		layout.setHorizontalGroup(hGroup);
 		layout.setVerticalGroup(vGroup);
 
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (!SwingUtilities.isRightMouseButton(e)) return;
+				int y = e.getPoint().y;
+				for (int i = 0; i < 3; i++) {
+					Rectangle bounds = baseSaveFields[i].getBounds();
+					if (y >= bounds.y && y <= bounds.y + bounds.height) {
+						String title = SavingThrow.Type.values()[i].toString();
+						String statName = Creature.STATISTIC_SAVING_THROW[i];
+						StatisticInfoDialog dialog = new StatisticInfoDialog(CharacterSavesPanel.this, title, character, statName);
+						dialog.setVisible(true);
+						break;
+					}
+				}
+			}
+		});
+
 		character.addPropertyChangeListener(this);
 		updateToolTips();
 
 		add(inner);
 	}
 
-	protected void updateToolTips() {
+	private void updateToolTips() {
 		for (int i = 0; i < totalLabels.length; i++) {
 			StringBuilder text = new StringBuilder();
 			text.append("<html><body>");
 			SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[i]);
-			text.append(stat.getBaseValue()).append(" base<br/>");
-			Map<Modifier, Boolean> mods = stat.getModifiers();
-			text.append(Statistic.getModifiersHTML(mods));
-			text.append(stat.getValue()).append(" total");
-			String conds = Statistic.getModifiersHTML(mods, true);
-			if (conds.length() > 0) text.append("<br/><br/>").append(conds);			
+			text.append(stat.getSummary());
 			text.append("</body></html>");
 			totalLabels[i].setToolTipText(text.toString());
 		}
 	}
 
-	protected String getSummary() {
+	private String getSummary() {
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < 3; i++) {
 			if (i > 0) s.append("   ");
@@ -125,6 +139,7 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 		return s.toString();
 	}
 
+	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		String prop = evt.getPropertyName();
 		if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
@@ -149,13 +164,14 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 		}
 	}
 
-	protected class BaseFieldPropertyListener implements PropertyChangeListener {
+	private class BaseFieldPropertyListener implements PropertyChangeListener {
 		int type;
 
 		public BaseFieldPropertyListener(int t) {
 			type = t;
 		}
 
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)baseSaveFields[type].getValue();
@@ -164,13 +180,14 @@ public class CharacterSavesPanel extends CharacterSubPanel implements PropertyCh
 		}
 	}
 
-	protected class MiscFieldPropertyListener implements PropertyChangeListener {
+	private class MiscFieldPropertyListener implements PropertyChangeListener {
 		int type;
 
 		public MiscFieldPropertyListener(int t) {
 			type = t;
 		}
 
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)miscSaveFields[type].getValue();

@@ -9,6 +9,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
@@ -22,22 +25,23 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import party.Character;
 import party.Creature;
 
-// TODO probably don't want both damage and healing to be applied when user hits the apply button. either clear the other value when one value is changed or clear both fields after apply 
+// TODO probably don't want both damage and healing to be applied when user hits the apply button. either clear the other value when one value is changed or clear both fields after apply
 
 @SuppressWarnings("serial")
-public class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChangeListener {
-	HPs hps;
-	JFormattedTextField currHP;
-	JFormattedTextField dmgField = new JFormattedTextField(0);
-	JFormattedTextField healField = new JFormattedTextField(0);
-	JCheckBox nonLethal = new JCheckBox("Non-lethal");
+class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChangeListener {
+	private HPs hps;
+	private JFormattedTextField currHP;
+	private JFormattedTextField dmgField = new JFormattedTextField(0);
+	private JFormattedTextField healField = new JFormattedTextField(0);
+	private JCheckBox nonLethal = new JCheckBox("Non-lethal");
 
-	public CharacterHitPointPanel(Character chr) {
+	CharacterHitPointPanel(Character chr) {
 		super(chr);
 		hps = (HPs)chr.getStatistic(Creature.STATISTIC_HPS);
 
@@ -49,6 +53,7 @@ public class CharacterHitPointPanel extends CharacterSubPanel implements Propert
 		currHP.setValue(new Integer(character.getHPs()));
 		currHP.setColumns(3);
 		currHP.addPropertyChangeListener("value", new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
 				if (evt.getPropertyName().equals("value")) {
 					int total = (Integer)currHP.getValue();
@@ -64,6 +69,7 @@ public class CharacterHitPointPanel extends CharacterSubPanel implements Propert
 
 		JButton apply = new JButton("Apply");
 		apply.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				int dmg = (Integer)dmgField.getValue();
 				if (nonLethal.isSelected()) {
@@ -71,12 +77,14 @@ public class CharacterHitPointPanel extends CharacterSubPanel implements Propert
 				} else {
 					hps.applyDamage(dmg);
 				}
+				dmgField.setValue(0);
 
 				int heal = (Integer)healField.getValue();
 				hps.applyHealing(heal);
+				healField.setValue(0);
 			}
 		});
-		
+
 		GridBagConstraints c = new GridBagConstraints();
 		c.insets = new Insets(1,2,1,2);
 		c.gridx = 0;
@@ -114,10 +122,24 @@ public class CharacterHitPointPanel extends CharacterSubPanel implements Propert
 		scroller.setBorder(BorderFactory.createTitledBorder("Temporary Hitpoints"));
 		add(scroller, c);
 
+		scroller.addMouseListener(rightClickListener);
+		addMouseListener(rightClickListener);
+		tempTable.addMouseListener(rightClickListener);
+
 		// update fields when character changes
 		character.addPropertyChangeListener(this);
 	}
 
+	private MouseListener rightClickListener = new MouseAdapter() {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (!SwingUtilities.isRightMouseButton(e)) return;
+			StatisticInfoDialog dialog = new StatisticInfoDialog(CharacterHitPointPanel.this, "Hitpoints", character, Creature.STATISTIC_HPS);
+			dialog.setVisible(true);
+		}
+	};
+
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getPropertyName().equals(Creature.PROPERTY_MAXHPS)
 				|| e.getPropertyName().equals(Creature.PROPERTY_WOUNDS)
@@ -132,11 +154,12 @@ public class CharacterHitPointPanel extends CharacterSubPanel implements Propert
 	// work to figure out what has changed when the HPs sends an event, it just rebuilds the whole model.
 	// TODO consider tracking changes more closely
 	// TODO temporary hitpoints should probably be editable
-	protected class TempHPModel extends AbstractTableModel {
+	private class TempHPModel extends AbstractTableModel {
 		List<Modifier> tempHPs;
 
-		public TempHPModel() {
+		private TempHPModel() {
 			hps.addPropertyChangeListener(new PropertyChangeListener() {
+				@Override
 				public void propertyChange(PropertyChangeEvent arg0) {
 					updateModel();
 				}
@@ -144,35 +167,41 @@ public class CharacterHitPointPanel extends CharacterSubPanel implements Propert
 			updateModel();
 		}
 
-		protected void updateModel() {
+		private void updateModel() {
 			tempHPs =  hps.getTemporaryHPsModifiers();
 			fireTableDataChanged();
 		}
 
+		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			return false;
 		}
 
+		@Override
 		public int getColumnCount() {
 			return 2;
 		}
 
+		@Override
 		public int getRowCount() {
 			return tempHPs.size();
 		}
 
+		@Override
 		public Class<?> getColumnClass(int col) {
 			if (col == 0) return String.class;
 			if (col == 1) return Integer.class;
 			return super.getColumnClass(col);
 		}
 
+		@Override
 		public String getColumnName(int col) {
 			if (col == 0) return "Source";
 			if (col == 1) return "Remaining";
 			return super.getColumnName(col);
 		}
 
+		@Override
 		public Object getValueAt(int row, int col) {
 			Modifier m = tempHPs.get(row);
 			if (col == 0) return m.getSource();

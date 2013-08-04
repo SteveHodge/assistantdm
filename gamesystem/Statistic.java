@@ -15,7 +15,7 @@ import org.w3c.dom.Element;
 /*
  * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
  * In many cases there is a base value that the modifiers are applied to. But the base value may not be editable so it's implementation
- * is left to the subclasses. 
+ * is left to the subclasses.
  * 
  * Reports a single property "value" which is the total of the base value and the applicable modifiers.
  */
@@ -29,6 +29,7 @@ public class Statistic {
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	protected final PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			//System.out.println("Modifier to "+name+" changed");
 			// problem here is that we know what the old value of the modifier is (from the event),
@@ -72,13 +73,13 @@ public class Statistic {
 
 	public void resetProperty(String property, Object key) {
 	}
-	
+
 	public void addModifier(Modifier m) {
 		//int oldValue = getValue();
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
 		int newValue = getValue();
-		firePropertyChange("value", null, newValue); 
+		firePropertyChange("value", null, newValue);
 	}
 
 	public void removeModifier(Modifier m) {
@@ -102,7 +103,7 @@ public class Statistic {
 		return false;
 	}
 
-	// getModifiers() and the getModifiersTotal() methods should all be overridden if a subclasses 
+	// getModifiers() and the getModifiersTotal() methods should all be overridden if a subclasses
 	// does any manipulation filtering of modifiers
 	protected Set<Modifier> getModifierSet() {
 		return modifiers;
@@ -160,8 +161,8 @@ public class Statistic {
 			if (include && m.getSource() != null) {
 				for (Modifier a : map.keySet()) {
 					if (map.get(a) && m.getSource().equals(a.getSource()) && Integer.signum(m.getModifier()) == Integer.signum(a.getModifier())
-						&& (m.getType() == null && a.getType() == null || m.getType() != null && m.getType().equals(a.getType()))
-					) {
+							&& (m.getType() == null && a.getType() == null || m.getType() != null && m.getType().equals(a.getType()))
+							) {
 						// 'a' is an existing active modifier with the same source and sign
 						if (Math.abs(m.getModifier()) < Math.abs(a.getModifier())) {
 							// m is a smaller modifier so exclude it unless 'a' has a different condition
@@ -210,13 +211,13 @@ public class Statistic {
 	}
 
 	// returns a html formatted list of non-conditional modifiers from the specified map. inactive modifiers (where the
-	// matching boolean is false) are stuck through. 
+	// matching boolean is false) are stuck through.
 	public static String getModifiersHTML(Map<Modifier,Boolean> mods) {
 		return getModifiersHTML(mods, false);
 	}
 
 	// returns a html formatted list of modifiers from the specified map. inactive modifiers (where the
-	// matching boolean is false) are stuck through. 
+	// matching boolean is false) are stuck through.
 	// if conditionals is true then returns html for conditional modifiers only, otherwise returns
 	// html for non-conditionals only
 	public static String getModifiersHTML(Map<Modifier,Boolean> mods, boolean conditionals) {
@@ -231,7 +232,18 @@ public class Statistic {
 		}
 		return text.toString();
 	}
-	
+
+	public String getSummary() {
+		StringBuilder text = new StringBuilder();
+		Map<Modifier, Boolean> mods = getModifiers();
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(getValue()).append(" total ").append(getName()).append("<br/>");
+		String conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/>").append(conds);
+		return text.toString();
+	}
+
+	@Override
 	public String toString() {
 		String s = new String();
 		Map<Modifier,Boolean> map = getModifiers();

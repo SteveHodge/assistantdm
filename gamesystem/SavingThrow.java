@@ -11,7 +11,8 @@ public class SavingThrow extends Statistic {
 		WILL("Will", AbilityScore.Type.WISDOM);
 
 		private Type(String d, AbilityScore.Type a) {description = d; ability = a;}
-	
+
+		@Override
 		public String toString() {return description;}
 
 		public AbilityScore.Type getAbilityType() {return ability;}
@@ -20,7 +21,7 @@ public class SavingThrow extends Statistic {
 			for (Type t : values()) {
 				if (t.description.equals(d)) return t;
 			}
-			return null;	// TODO probably better to throw an exception 
+			return null;	// TODO probably better to throw an exception
 		}
 
 		private final String description;
@@ -37,6 +38,7 @@ public class SavingThrow extends Statistic {
 		addModifier(ability.getModifier());
 	}
 
+	@Override
 	public int getValue() {
 		return baseValue + super.getValue();
 	}
@@ -53,6 +55,15 @@ public class SavingThrow extends Statistic {
 		pcs.firePropertyChange("value", null, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
 	}
 
+	@Override
+	public String getSummary() {
+		StringBuilder text = new StringBuilder();
+		text.append(getBaseValue()).append(" base<br/>");
+		text.append(super.getSummary());
+		return text.toString();
+	}
+
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("Save");
 		e.setAttribute("type", type.toString());
@@ -64,7 +75,7 @@ public class SavingThrow extends Statistic {
 	public void parseDOM(Element e) {
 		if (!e.getTagName().equals("Save")) return;
 		if (!e.getAttribute("type").equals(type.toString())) return;
-		
+
 		baseValue = Integer.parseInt(e.getAttribute("base"));
 		// TODO misc
 	}

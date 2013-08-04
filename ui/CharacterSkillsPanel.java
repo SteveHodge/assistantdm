@@ -1,27 +1,32 @@
 package ui;
 
 import gamesystem.AbilityScore;
-import gamesystem.Modifier;
+import gamesystem.Skill;
 import gamesystem.SkillType;
 import gamesystem.Skills;
 import gamesystem.Statistic;
 
 import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
-import java.util.Map;
 
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 
-import party.Creature;
 import party.Character;
-
+import party.Creature;
 import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
 import swing.TableModelWithToolTips;
@@ -31,41 +36,111 @@ import swing.TableModelWithToolTips;
 // TODO should have column with other modifiers
 
 @SuppressWarnings("serial")
-public class CharacterSkillsPanel extends JPanel {
-	protected Character character;
+class CharacterSkillsPanel extends JPanel {
+	private Character character;
 
-	public CharacterSkillsPanel(Character c) {
+	CharacterSkillsPanel(Character c) {
 		character = c;
 
-		TableModel model = new SkillsTableModel();
-		JTable table = new JTableWithToolTips(model);
+		final SkillsTableModel model = new SkillsTableModel();
+		final JTable table = new JTableWithToolTips(model);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.getColumnModel().getColumn(0).setPreferredWidth(200);
 		table.setDefaultEditor(Integer.class, new SpinnerCellEditor());
 		JScrollPane skillsScrollpane = new JScrollPane(table);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (!SwingUtilities.isRightMouseButton(e)) return;
+				int row = table.rowAtPoint(e.getPoint());
+				String title = model.getSkillName(row);
+				String statName = Creature.STATISTIC_SKILLS + "." + title;
+				SkillsInfoDialog dialog = new SkillsInfoDialog(CharacterSkillsPanel.this, title, character, statName);
+				dialog.setVisible(true);
+			}
+		});
 
 		setLayout(new BorderLayout());
 		add(skillsScrollpane);
 	}
 
-	protected class SkillsTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelWithToolTips {
-		SkillType[] skills;
+	private class SkillsInfoDialog extends StatisticInfoDialog {
+		SkillsInfoDialog(JComponent parent, String title, Character chr, final String statName) {
+			super(parent, title);
 
-		public SkillsTableModel() {
+			initialize(chr, statName);
+
+			JPanel skillsAdhocPanel = getAdhocPanel(Creature.STATISTIC_SKILLS);
+			skillsAdhocPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier for all skills"));
+
+			Statistic allSkills = chr.getStatistic(Creature.STATISTIC_SKILLS);
+			allSkills.addPropertyChangeListener(new PropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent arg0) {
+					updateSummary();
+				}
+			});
+
+			addPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier for " + title));
+
+			setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridx = 0;
+			c.gridy = 0;
+			c.weightx = 1;
+			c.weighty = 1;
+			c.fill = GridBagConstraints.BOTH;
+			add(summary, c);
+
+			c.gridy++;
+			c.weighty = 0;
+			add(addPanel, c);
+
+			c.gridy++;
+			add(skillsAdhocPanel, c);
+
+			c.gridy++;
+			c.fill = GridBagConstraints.NONE;
+			c.insets = new Insets(2, 4, 2, 4);
+			add(okButton, c);
+
+			pack();
+			setLocationRelativeTo(SwingUtilities.getWindowAncestor(parent));
+		}
+
+		@Override
+		void updateSummary() {
+			Skills s = (Skills) character.getStatistic(Creature.STATISTIC_SKILLS);
+			summary.setText("<html><body>" + s.getSummary(((Skill) statistic).getSkillType()) + "</body></html>");
+			pack();
+		}
+	}
+
+	private class SkillsTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelWithToolTips {
+		private SkillType[] skills;
+
+		SkillsTableModel() {
 			skills = new SkillType[character.getSkills().size()];
 			character.getSkills().toArray(this.skills);
 			character.addPropertyChangeListener(this);
 			Arrays.sort(skills);
 		}
 
+		@Override
 		public int getColumnCount() {
 			return 6;
 		}
 
+		@Override
 		public int getRowCount() {
 			return skills.length;
 		}
 
+		String getSkillName(int row) {
+			return skills[row].getName();
+		}
+
+		@Override
 		public Object getValueAt(int row, int col) {
 			if (col == 0) return skills[row];
 			if (col == 1) {
@@ -87,12 +162,14 @@ public class CharacterSkillsPanel extends JPanel {
 			return null;
 		}
 
+		@Override
 		public Class<?> getColumnClass(int col) {
 			if (col == 0 || col == 1) return String.class;
 			if (col == 2) return Float.class;
 			return Integer.class;
 		}
 
+		@Override
 		public String getColumnName(int col) {
 			if (col == 0) return "Skill";
 			if (col == 1) return "Ability";
@@ -103,11 +180,13 @@ public class CharacterSkillsPanel extends JPanel {
 			return super.getColumnName(col);
 		}
 
+		@Override
 		public boolean isCellEditable(int row, int col) {
 			if (col == 2 || col == 4) return true;
 			return false;
 		}
 
+		@Override
 		public void setValueAt(Object arg0, int row, int col) {
 			if (col == 2 && arg0 instanceof Float) {
 				character.setSkillRanks(skills[row], ((Float)arg0).intValue());
@@ -119,6 +198,7 @@ public class CharacterSkillsPanel extends JPanel {
 			super.setValueAt(arg0, row, col);
 		}
 
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().startsWith(Creature.PROPERTY_SKILL_PREFIX)) {
 				String skill = evt.getPropertyName().substring(Creature.PROPERTY_SKILL_PREFIX.length());
@@ -140,16 +220,12 @@ public class CharacterSkillsPanel extends JPanel {
 			}
 		}
 
+		@Override
 		public String getToolTipAt(int row, int col) {
 			Skills s = (Skills)character.getStatistic(Creature.STATISTIC_SKILLS);
 			StringBuilder text = new StringBuilder();
 			text.append("<html><body>");
-			text.append(s.getRanks(skills[row])).append(" base<br/>");
-			Map<Modifier, Boolean> mods = s.getModifiers(skills[row]);
-			text.append(Statistic.getModifiersHTML(mods));
-			text.append(s.getValue(skills[row])).append(" total ").append(skills[row].getName()).append("<br/>");
-			String conds = Statistic.getModifiersHTML(mods, true);
-			if (conds.length() > 0) text.append("<br/>").append(conds);
+			text.append(s.getSummary(skills[row]));
 			text.append("</body></html>");
 			return text.toString();
 		}
