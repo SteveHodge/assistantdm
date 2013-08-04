@@ -207,6 +207,7 @@ public class Character extends Creature {
 
 			// only care about "value" updates from other statistics except skills
 			// TODO not sure this is what we want to do
+			// TODO need to handle extra_attacks at least
 			if (!evt.getPropertyName().equals("value")) {
 				if (!(evt.getSource() instanceof Skills)) {
 					System.out.println("Ignoring update to "+evt.getPropertyName()+" on "+((Statistic)evt.getSource()).getName());
@@ -1558,6 +1559,7 @@ public class Character extends Creature {
 			e1.setAttribute("type", s.getType().toString());
 			e1.setAttribute("total", ""+s.getRegularValue());		// this is the base value plus modifiers to the ability score
 			e1.setAttribute("modifier", getModifierString(AbilityScore.getModifier(s.getRegularValue())));
+			e1.setAttribute("info", s.getSummary());
 
 			if (s.getOverride() != -1) {
 				e1.setAttribute("temp", ""+s.getOverride());
@@ -1567,11 +1569,14 @@ public class Character extends Creature {
 		}
 		charEl.appendChild(e);
 
-		charEl.appendChild(hps.getElement(doc));
+		e = hps.getElement(doc);
+		e.setAttribute("info", hps.getSummary());
+		charEl.appendChild(e);
 
 		e = doc.createElement("Initiative");
 		e.setAttribute("total", getModifierString(initiative.getValue()));
 		e.setAttribute("misc", getModifierString(initiative.getValue()-abilities.get(AbilityScore.Type.DEXTERITY).getModifierValue()));	// assumes only 1 dex modifier that will always apply
+		e.setAttribute("info", initiative.getSummary());
 		charEl.appendChild(e);
 
 		charEl.appendChild(size.getElement(doc));
@@ -1583,6 +1588,7 @@ public class Character extends Creature {
 			saveEl.setAttribute("type", s.getName());
 			saveEl.setAttribute("base", getModifierString(s.getBaseValue()));
 			saveEl.setAttribute("total", getModifierString(s.getValue()));
+			saveEl.setAttribute("info", s.getSummary());
 			int temp = 0;
 			if (saveMisc.get(t) != null) temp = saveMisc.get(t).getModifier();
 			if (temp != 0) saveEl.setAttribute("misc", getModifierString(temp));	// the misc/temp modifier applied through the ui
@@ -1613,6 +1619,7 @@ public class Character extends Creature {
 			se.setAttribute("ability", s.getAbility().getAbbreviation());
 			se.setAttribute("ability-modifier", ""+abilities.get(s.getAbility()).getModifierValue());
 			se.setAttribute("total", getModifierString(skills.getValue(s)));
+			se.setAttribute("info", skills.getSummary(s));
 			if (skills.getMisc(s) != 0) se.setAttribute("misc", ""+skills.getMisc(s));
 			e.appendChild(se);
 		}
@@ -1634,9 +1641,10 @@ public class Character extends Creature {
 		setACComponent(doc, e, "Shield", ac.getShield().getValue());
 		charEl.appendChild(e);
 
-		e = attacks.getElement(doc);
+		e = attacks.getElement(doc, true);
 		e.setAttribute("temp", "");					// TODO implement
 		e.setAttribute("size-modifier", "+0");			// TODO implement
+		e.setAttribute("attacks", attacks.getAttacksDescription(attacks.getBAB()));
 		Element e1 = doc.createElement("Attack");
 		e1.setAttribute("type","Grapple");
 		e1.setAttribute("total",getModifierString(attacks.getGrappleValue()));
@@ -1647,12 +1655,16 @@ public class Character extends Creature {
 		e1.setAttribute("total",getModifierString(attacks.getValue()));
 		e1.setAttribute("misc","+0");				// TODO implement
 		e1.setAttribute("temp-modifier", "");				// TODO implement
+		e1.setAttribute("attacks", attacks.getAttacksDescription(attacks.getValue()));
+		e1.setAttribute("info", attacks.getSummary());
 		e.appendChild(e1);
 		e1 = doc.createElement("Attack");
 		e1.setAttribute("type","Ranged");
 		e1.setAttribute("total",getModifierString(attacks.getRangedValue()));
 		e1.setAttribute("misc","+0");					// TODO implement
 		e1.setAttribute("temp-modifier", "");				// TODO implement
+		e1.setAttribute("attacks", attacks.getAttacksDescription(attacks.getRangedValue()));
+		e1.setAttribute("info", attacks.getRangedSummary());
 		e.appendChild(e1);
 		charEl.appendChild(e);
 

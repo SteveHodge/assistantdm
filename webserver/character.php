@@ -2,6 +2,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 	<link rel="stylesheet" type="text/css" href="character.css"/>
+	<script type="text/javascript" src="dialog_box.js"></script>
 	<script type="text/javascript">
 <?php
 echo 'var name = "'.$_GET['name'].'";'."\n";
@@ -29,7 +30,7 @@ function sendRequest() {
 				var xml = req.responseXML;
 				if (xml) displayXML(xml);
 			} else {
-				document.getElementById("character").innerHTML = "Error waiting for refresh:<br/>"+req.status;
+				document.getElementById("content").innerHTML = "Error waiting for refresh:<br/>"+req.status;
 			}
 			sendRequest();
 		}
@@ -46,7 +47,7 @@ function loadXMLDoc(dname) {
 }
 
 function displayXML(xml) {
-	var div = document.getElementById("character");
+	var div = document.getElementById("content");
 	// code for IE
 	if (window.ActiveXObject) {
 		div.innerHTML=xml.transformNode(xsl);
@@ -75,6 +76,6 @@ function load() {
 </head>
 
 <body onLoad="load();" style="font-size:62.5%;">
-	<div id="character"></div>
+	<div id="content"></div>
 </body>
 </html>

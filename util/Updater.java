@@ -42,6 +42,7 @@ public class Updater {
 	public static class UpdaterThread extends Thread {
 		protected volatile boolean quit = false;
 
+		@Override
 		public void run() {
 			while (!quit) {
 				// wait 5 seconds
@@ -61,7 +62,7 @@ public class Updater {
 							// take the first update from the list
 							update = i.next();
 							i.remove();
-							
+
 							// search the list of any other updates with the same url - we use the bytes for the last matching update
 							while (i.hasNext()) {
 								Update u = i.next();
@@ -72,7 +73,7 @@ public class Updater {
 							}
 						}
 					}
-	
+
 					if (update != null) {
 						System.out.println("Updating "+update.url);
 						String msg = updateURL(update.url, update.bytes);
@@ -101,23 +102,23 @@ public class Updater {
 		Update update = new Update();
 		update.url = dest;
 		update.bytes = buffer;
-		System.out.println("Queued "+dest+" for update");
+		//System.out.println("Queued "+dest+" for update");
 		pending.add(update);
 	}
 
 	public static void updateDocument(Document doc, String name) {
 		try {
-	    	Transformer trans = TransformerFactory.newInstance().newTransformer();
-	    	trans.setOutputProperty(OutputKeys.INDENT, "yes");
-	    	trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-	    	FileWriter outputStream = new FileWriter(new File(name+".xml"));
-	    	trans.transform(new DOMSource(doc), new StreamResult(outputStream));
+			Transformer trans = TransformerFactory.newInstance().newTransformer();
+			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			FileWriter outputStream = new FileWriter(new File(name+".xml"));
+			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
 
-	    	StringWriter writer = new StringWriter();
-	    	trans.transform(new DOMSource(doc), new StreamResult(writer));
-	    	byte[] bytes = writer.toString().getBytes();
+			StringWriter writer = new StringWriter();
+			trans.transform(new DOMSource(doc), new StreamResult(writer));
+			byte[] bytes = writer.toString().getBytes();
 
-	    	update(DOCUMENT_DIR+name.replace(" ", "%20")+".xml", bytes);
+			update(DOCUMENT_DIR+name.replace(" ", "%20")+".xml", bytes);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -126,30 +127,30 @@ public class Updater {
 
 	// TODO probably should propagate exceptions upwards, and consider wrapping responses in exceptions too
 	public static String updateURL(String dest, byte[] bytes) {
-    	HttpURLConnection connection = null;
+		HttpURLConnection connection = null;
 		try {
-	    	// PUT it to the webserver
-	    	//URL url = new URL("http://max/webcam/ftp/HTML_CharacterSheet/upload.php/"+name.replace(" ", "%20")+".xml");
-	    	URL url = new URL(dest);
-	    	connection = (HttpURLConnection)url.openConnection();
-	    	connection.setRequestMethod("PUT");
-	    	connection.setRequestProperty("Content-Type", "");
-	    	connection.setRequestProperty("Content-Length", ""+bytes.length);
-	    	connection.setRequestProperty("Content-Language", "en-US");
-	    	connection.setUseCaches(false);
-	    	connection.setDoInput(true);
-	    	connection.setDoOutput(true);
-	
-	    	DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-	    	wr.write(bytes);
-	    	wr.flush();
-	    	wr.close();
-	
+			// PUT it to the webserver
+			//URL url = new URL("http://max/webcam/ftp/HTML_CharacterSheet/upload.php/"+name.replace(" ", "%20")+".xml");
+			URL url = new URL(dest);
+			connection = (HttpURLConnection)url.openConnection();
+			connection.setRequestMethod("PUT");
+			connection.setRequestProperty("Content-Type", "");
+			connection.setRequestProperty("Content-Length", ""+bytes.length);
+			connection.setRequestProperty("Content-Language", "en-US");
+			connection.setUseCaches(false);
+			connection.setDoInput(true);
+			connection.setDoOutput(true);
+
+			DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+			wr.write(bytes);
+			wr.flush();
+			wr.close();
+
 //	    	System.out.println("Response = "+connection.getResponseCode() + " - " + connection.getResponseMessage());
-	    	if (connection.getResponseCode() == 200) return null;
-	    	return "Response = "+connection.getResponseCode() + " - " + connection.getResponseMessage();
-	    	
-	
+			if (connection.getResponseCode() == 200) return null;
+			return "Response = "+connection.getResponseCode() + " - " + connection.getResponseMessage();
+
+
 //	    	// Get response
 //	    	InputStream is = connection.getInputStream();
 //	    	BufferedReader rd = new BufferedReader(new InputStreamReader(is));
@@ -172,8 +173,8 @@ public class Updater {
 			}
 		}
 	}
-	
-	// TODO probably should propagate exceptions upwards 
+
+	// TODO probably should propagate exceptions upwards
 	protected static String updateFile(String dest, byte[] buffer) {
 		String message = null;
 		FileOutputStream out = null;

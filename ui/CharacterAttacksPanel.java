@@ -3,8 +3,7 @@ package ui;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Feat;
-import gamesystem.Modifier;
-import gamesystem.Statistic;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -12,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -32,27 +30,27 @@ import javax.swing.event.ListSelectionListener;
 import party.Character;
 import party.Creature;
 
-// TODO make power attack and combat expertise filtered/numeric fields or combos or cycles 
+// TODO make power attack and combat expertise filtered/numeric fields or combos or cycles
 @SuppressWarnings("serial")
-public class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeListener {
-	protected BoundIntegerField BAB;
-	protected JLabel strLabel = new JLabel();
-	protected JLabel dexLabel = new JLabel();
-	protected JLabel meleeLabel = new JLabel();
-	protected JLabel rangedLabel = new JLabel();
-	protected JLabel powerAttackLabel = new JLabel("Power Attack: ");
-	protected JLabel combatExpertiseLabel = new JLabel("Combat Expertise: ");
-	protected JTextField powerAttack = new JTextField(4);
-	protected JTextField combatExpertise = new JTextField(4);
-	protected JCheckBox fightingDefensively = new JCheckBox("Fighting Defensively");
-	protected JCheckBox totalDefense = new JCheckBox("Total Defense");
-	protected Attacks attacks;
-	protected AttackFormPanel attackPanel;
-	protected JList weaponList;
+class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeListener {
+	private BoundIntegerField BAB;
+	private JLabel strLabel = new JLabel();
+	private JLabel dexLabel = new JLabel();
+	private JLabel meleeLabel = new JLabel();
+	private JLabel rangedLabel = new JLabel();
+	private JLabel powerAttackLabel = new JLabel("Power Attack: ");
+	private JLabel combatExpertiseLabel = new JLabel("Combat Expertise: ");
+	private JTextField powerAttack = new JTextField(4);
+	private JTextField combatExpertise = new JTextField(4);
+	private JCheckBox fightingDefensively = new JCheckBox("Fighting Defensively");
+	private JCheckBox totalDefense = new JCheckBox("Total Defense");
+	private Attacks attacks;
+	private AttackFormPanel attackPanel;
+	private JList weaponList;
 
-	public CharacterAttacksPanel(Character chr) {
+	CharacterAttacksPanel(Character chr) {
 		super(chr);
-		attacks = (Attacks)chr.getStatistic(Creature.STATISTIC_ATTACKS); 
+		attacks = (Attacks)chr.getStatistic(Creature.STATISTIC_ATTACKS);
 		summary = getSummary();
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -65,35 +63,42 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		attacks.addPropertyChangeListener(this);
 
 		powerAttack.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
 			public void changedUpdate(DocumentEvent arg0) {
 				updatePowerAttack();
 			}
 
+			@Override
 			public void insertUpdate(DocumentEvent arg0) {
 				updatePowerAttack();
 			}
 
+			@Override
 			public void removeUpdate(DocumentEvent arg0) {
 				updatePowerAttack();
 			}
 		});
 
 		combatExpertise.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
 			public void changedUpdate(DocumentEvent e) {
 				updateCombatExpertise();
 			}
 
+			@Override
 			public void insertUpdate(DocumentEvent e) {
 				updateCombatExpertise();
 			}
 
+			@Override
 			public void removeUpdate(DocumentEvent e) {
 				updateCombatExpertise();
 			}
-			
+
 		});
 
 		fightingDefensively.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				attacks.setFightingDefensively(fightingDefensively.isSelected());
 				if (fightingDefensively.isSelected()) {
@@ -104,6 +109,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		});
 
 		totalDefense.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				attacks.setTotalDefense(totalDefense.isSelected());
 				if (totalDefense.isSelected()) {
@@ -118,7 +124,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		});
 	}
 
-	protected void updatePowerAttack() {
+	private void updatePowerAttack() {
 		int value = 0;
 		try {
 			value = Integer.parseInt(powerAttack.getText());
@@ -134,7 +140,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		attacks.setPowerAttack(value);
 	}
 
-	protected void updateCombatExpertise() {
+	private void updateCombatExpertise() {
 		int value = 0;
 		try {
 			value = Integer.parseInt(combatExpertise.getText());
@@ -150,7 +156,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		attacks.setCombatExpertise(value);
 	}
 
-	protected JPanel getBaseValuesPanel() {
+	private JPanel getBaseValuesPanel() {
 		JPanel top = new JPanel();
 		top.setLayout(new GridBagLayout());
 
@@ -193,7 +199,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		return top;
 	}
 
-	protected JPanel getAttackOptionsPanel() {
+	private JPanel getAttackOptionsPanel() {
 		JPanel panel = new JPanel();
 
 		panel.add(fightingDefensively);
@@ -214,7 +220,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		return panel;
 	}
 
-	protected void updateOptions() {
+	private void updateOptions() {
 		if (character.hasFeat(Feat.FEAT_POWER_ATTACK)) {
 			powerAttackLabel.setVisible(true);
 			powerAttack.setVisible(true);
@@ -232,13 +238,14 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		}
 	}
 
-	protected JPanel getWeaponPanel() {
+	private JPanel getWeaponPanel() {
 		JPanel bottom = new JPanel();
 		bottom.setLayout(new GridBagLayout());
 		bottom.setBorder(BorderFactory.createTitledBorder("Weapons"));
 
 		JButton newButton = new JButton("New");
 		newButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Attacks.AttackForm a = attacks.addAttackForm();
 				weaponList.setSelectedValue(a, true);
@@ -247,6 +254,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 
 		JButton deleteButton = new JButton("Delete");
 		deleteButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Attacks.AttackForm a = (Attacks.AttackForm)weaponList.getSelectedValue();
 				if (a != null) {
@@ -258,6 +266,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 
 		JButton upButton = new JButton("/\\");
 		upButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				int i = weaponList.getSelectedIndex();
 				if (i >= 1) {
@@ -269,6 +278,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 
 		JButton downButton = new JButton("\\/");
 		downButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				int i = weaponList.getSelectedIndex();
 				if (i != -1 && i < attacks.getAttackFormsCount()-1) {
@@ -295,6 +305,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		weaponList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		weaponList.setVisibleRowCount(6);
 		weaponList.addListSelectionListener(new ListSelectionListener() {
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!e.getValueIsAdjusting()) {
 					attackPanel.setAttackForm((Attacks.AttackForm)weaponList.getSelectedValue());
@@ -318,11 +329,11 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		c.weightx = 0.5; c.weighty = 1.0;
 		c.fill = GridBagConstraints.BOTH;
 		bottom.add(attackPanel, c);
-		
+
 		return bottom;
 	}
 
-	protected void updateLabels() {
+	private void updateLabels() {
 		strLabel.setText(""+character.getAbilityModifier(AbilityScore.Type.STRENGTH));
 		String melee = attacks.getAttacksDescription(attacks.getValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {
@@ -337,31 +348,21 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 		rangedLabel.setText(ranged);
 	}
 
-	protected void updateToolTip() {
+	private void updateToolTip() {
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>");
-		text.append(attacks.getBAB()).append(" base attack bonus<br/>");
-		Map<Modifier, Boolean> mods = attacks.getModifiers();
-		text.append(Statistic.getModifiersHTML(mods));
-		text.append(attacks.getValue()).append(" total");
-		String conds = Statistic.getModifiersHTML(mods, true);
-		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		text.append(attacks.getSummary());
 		text.append("</body></html>");
 		meleeLabel.setToolTipText(text.toString());
 
 		text = new StringBuilder();
 		text.append("<html><body>");
-		text.append(attacks.getBAB()).append(" base attack bonus<br/>");
-		mods = attacks.getRangedModifiers();
-		text.append(Statistic.getModifiersHTML(mods));
-		text.append(attacks.getRangedValue()).append(" total");
-		conds = Statistic.getModifiersHTML(mods, true);
-		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		text.append(attacks.getRangedSummary());
 		text.append("</body></html>");
 		rangedLabel.setToolTipText(text.toString());
 	}
 
-	protected String getSummary() {
+	private String getSummary() {
 		StringBuilder s = new StringBuilder();
 		s.append("Melee ");
 		s.append(attacks.getAttacksDescription(attacks.getValue()));
@@ -372,6 +373,7 @@ public class CharacterAttacksPanel extends CharacterSubPanel implements Property
 
 	// we rely on the attack to tell us about feat and ability changes indirectly
 	// TODO maybe better to directly listen?
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		updateOptions();
 		updateLabels();

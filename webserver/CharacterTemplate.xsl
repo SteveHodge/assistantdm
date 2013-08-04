@@ -13,13 +13,18 @@
 	<td colspan="17" rowspan="3" class="weapon-name-class">
 		<xsl:value-of select="$weapon/@name"/>
 	</td>
-	<td colspan="15" rowspan="3" class="bab-class">
-		<xsl:call-template name="attacks">
-			<xsl:with-param name="total" select="$weapon/@total"/>
-		</xsl:call-template>
+	<td colspan="15" rowspan="3" class="bab-class" onclick="showDialog('{$weapon/@name}','{$weapon/@info}','info');">
+		<xsl:choose>
+			<xsl:when test="Attacks/@total_defense = 'true'">
+				<s><xsl:value-of select="$weapon/@attacks"/></s>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$weapon/@attacks"/>
+			</xsl:otherwise>
+		</xsl:choose>
 	</td>
 	<td colspan="13" rowspan="3" class="data-value-class">
-		<xsl:value-of select="$weapon/@damage"/>
+			<xsl:value-of select="$weapon/@damage"/>
 	</td>
 	<td colspan="9" rowspan="3" class="data-value-class">
 		<xsl:value-of select="$weapon/@critical"/>
@@ -50,19 +55,10 @@
 	</td>
 </xsl:template>
 
-<xsl:template name="attacks">
-	<xsl:param name="total" select="Attacks/@base"/>
-	<xsl:if test="$total > 0">+</xsl:if>
-	<xsl:value-of select="$total"/>
-	<xsl:if test="Attacks/@base > 5">/<xsl:if test="$total > 5">+</xsl:if><xsl:value-of select="number(translate($total,'+','0')) - 5"/></xsl:if>
-	<xsl:if test="Attacks/@base > 10">/<xsl:if test="$total > 10">+</xsl:if><xsl:value-of select="number(translate($total,'+','0')) - 10"/></xsl:if>
-	<xsl:if test="Attacks/@base > 15">/<xsl:if test="$total > 15">+</xsl:if><xsl:value-of select="number(translate($total,'+','0')) - 15"/></xsl:if>
-</xsl:template>
-
 <xsl:template name="ability">
 	<xsl:param name="ability"/>
 	<td/>
-	<td colspan="4" rowspan="3" class="data-value-important-class">
+	<td colspan="4" rowspan="3" class="data-value-important-class" onclick="showDialog('{$ability/@type}','{$ability/@info}','info');">
 		<xsl:value-of select="$ability/@total"/>
 	</td>
 	<td/>
@@ -96,7 +92,7 @@
 	<xsl:param name="save"/>
 	<xsl:param name="ability"/>
 					<td/>
-					<td colspan="4" rowspan="3" class="data-value-important-class">
+					<td colspan="4" rowspan="3" class="data-value-important-class" onclick="showDialog('{$save/@type}','{$save/@info}','info');">
 						<xsl:value-of select="$save/@total"/>
 					</td>
 					<td rowspan="3" class="equation-class">=</td>
@@ -145,7 +141,7 @@
 						<xsl:value-of select="$skill/@ability"/>
 					</td>
 					<td rowspan="2"/>
-					<td colspan="4" rowspan="2" class="skills-total-class B">
+					<td colspan="4" rowspan="2" class="skills-total-class B" onclick="showDialog('{$skill/@type}','{$skill/@info}','info');">
 						<xsl:value-of select="$skill/@total"/>
 					</td>
 					<td rowspan="2" class="equation-class">=</td>
@@ -432,15 +428,15 @@
 					</xsl:call-template>
 					<td colspan="6" rowspan="2" class="title-class">HP</td>
 					<td/>
-					<td colspan="4" rowspan="3" class="data-value-important-class">
+					<td colspan="4" rowspan="3" class="data-value-important-class" onclick="showDialog('Hitpoints','{HitPoints/@info}','info');">
 						<xsl:value-of select="HitPoints/@maximum"/>
 					</td>
 					<td/>
-					<td colspan="15" rowspan="3" class="data-value-class" style="text-align:left;">
+					<td colspan="15" rowspan="3" class="data-value-class" style="text-align:left;" onclick="showDialog('Hitpoints','{HitPoints/@info}','info');">
 						<xsl:value-of select="HitPoints/@wounds"/>
 					</td>
 					<td/>
-					<td colspan="15" rowspan="3" class="data-value-class" style="text-align:left;">
+					<td colspan="15" rowspan="3" class="data-value-class" style="text-align:left;" onclick="showDialog('Hitpoints','{HitPoints/@info}','info');">
 						<xsl:value-of select="HitPoints/@non-lethal"/>
 					</td>
 					<td/>
@@ -1100,7 +1096,7 @@
 					<td/>
 					<td colspan="11" rowspan="2" class="title-class">INITIATIVE</td>
 					<td/>
-					<td colspan="4" rowspan="3" class="data-value-important-class">
+					<td colspan="4" rowspan="3" class="data-value-important-class" onclick="showDialog('Initiative','{Initiative/@info}','info');">
 						<xsl:value-of select="Initiative/@total"/>
 					</td>
 					<td rowspan="3" class="equation-class">=</td>
@@ -1517,7 +1513,7 @@
 					<td colspan="16" rowspan="3" class="title-class">BASE ATTACK BONUS</td>
 					<td/>
 					<td colspan="9" rowspan="3" class="bab-class">
-						<xsl:call-template name="attacks"/>
+						<xsl:value-of select="Attacks/@attacks"/>
 					</td>
 					<td/>
 					<td colspan="4" rowspan="3" class="temp-value-class">&nbsp;</td>
@@ -1881,10 +1877,15 @@
 					<td class="L">&nbsp;</td>
 					<td colspan="11" rowspan="2" class="title-class">MELEE</td>
 					<td/>
-					<td colspan="12" rowspan="3" class="total-attack-bonus-class">
-						<xsl:call-template name="attacks">
-							<xsl:with-param name="total" select="Attacks/Attack[@type='Melee']/@total"/>
-						</xsl:call-template>
+					<td colspan="12" rowspan="3" class="total-attack-bonus-class" onclick="showDialog('Melee Attack','{Attacks/Attack[@type='Melee']/@info}','info');">
+						<xsl:choose>
+							<xsl:when test="Attacks/@total_defense = 'true'">
+								<s><xsl:value-of select="Attacks/Attack[@type='Melee']/@attacks"/></s>
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:value-of select="Attacks/Attack[@type='Melee']/@attacks"/>
+							</xsl:otherwise>
+						</xsl:choose>
 					</td>
 					<td rowspan="3" class="equation-class">=</td>
 					<td colspan="9" rowspan="3" class="bab-class">
@@ -1945,10 +1946,15 @@
 					<td class="L">&nbsp;</td>
 					<td colspan="11" rowspan="2" class="title-class">RANGED</td>
 					<td/>
-					<td colspan="12" rowspan="3" class="total-attack-bonus-class">
-						<xsl:call-template name="attacks">
-							<xsl:with-param name="total" select="Attacks/Attack[@type='Ranged']/@total"/>
-						</xsl:call-template>
+					<td colspan="12" rowspan="3" class="total-attack-bonus-class" onclick="showDialog('Ranged Attack','{Attacks/Attack[@type='Ranged']/@info}','info');">
+						<xsl:choose>
+							<xsl:when test="Attacks/@total_defense = 'true'">
+								<s><xsl:value-of select="Attacks/Attack[@type='Ranged']/@attacks"/></s>
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:value-of select="Attacks/Attack[@type='Ranged']/@attacks"/>
+							</xsl:otherwise>
+						</xsl:choose>
 					</td>
 					<td rowspan="3" class="equation-class">=</td>
 					<td colspan="9" rowspan="3" class="bab-class">

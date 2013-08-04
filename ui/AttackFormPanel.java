@@ -29,31 +29,31 @@ import javax.swing.event.DocumentListener;
 // TODO only attack and damage labels are updated on changes from the attack, other changes will be ignored (needs fixing if something other than this panel makes changes to the attack)
 
 @SuppressWarnings("serial")
-public class AttackFormPanel extends JPanel implements PropertyChangeListener {
+class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	//Attacks attacks;
-	AttackForm attack;
+	private AttackForm attack;
 
-	JTextField nameField = new JTextField(20);
-	JTextField attackBonusField = new JTextField(20);
-	JTextField damageField = new JTextField(20);
-	JTextField criticalField = new JTextField(20);
-	JTextField rangeField = new JTextField(20);
-	JTextField weightField = new JTextField(20);
-	JTextField typeField = new JTextField(20);
-	JComboBox sizeCombo = new JComboBox(SizeCategory.values());
-	JTextField propertiesField = new JTextField(20);
-	JTextField ammunitionField = new JTextField(20);
-	JComboBox kindCombo;
-	JComboBox usageCombo;
+	private JTextField nameField = new JTextField(20);
+	private JTextField attackBonusField = new JTextField(20);
+	private JTextField damageField = new JTextField(20);
+	private JTextField criticalField = new JTextField(20);
+	private JTextField rangeField = new JTextField(20);
+	private JTextField weightField = new JTextField(20);
+	private JTextField typeField = new JTextField(20);
+	private JComboBox sizeCombo = new JComboBox(SizeCategory.values());
+	private JTextField propertiesField = new JTextField(20);
+	private JTextField ammunitionField = new JTextField(20);
+	private JComboBox kindCombo;
+	private JComboBox usageCombo;
 
-	JLabel totalAttackLabel = new JLabel();
-	JLabel totalDamageLabel = new JLabel();
+	private JLabel totalAttackLabel = new JLabel();
+	private JLabel totalDamageLabel = new JLabel();
 
-	public AttackFormPanel() {
+	AttackFormPanel() {
 		this(null);
 	}
 
-	public AttackFormPanel(AttackForm atk) {
+	private AttackFormPanel(AttackForm atk) {
 		super(new GridBagLayout());
 
 		kindCombo = new JComboBox(Attacks.Kind.values());
@@ -153,7 +153,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		});
 	}
 
-	InputVerifier damageVerifier = new InputVerifier() {
+	private InputVerifier damageVerifier = new InputVerifier() {
 		@Override
 		public boolean shouldYieldFocus(JComponent c) {
 			if (c != damageField) return true;
@@ -182,7 +182,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		}
 	};
 
-	DocumentListener docListener = new DocumentListener() {
+	private DocumentListener docListener = new DocumentListener() {
 		@Override
 		public void changedUpdate(DocumentEvent e) {
 			updateField(e);
@@ -241,7 +241,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		}
 	};
 
-	public void clearAttackForm() {
+	private void clearAttackForm() {
 		if (attack != null) {
 			attack.removePropertyChangeListener(this);
 		}
@@ -276,7 +276,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		usageCombo.setSelectedItem(null);
 	}
 
-	public void setAttackForm(AttackForm attack) {
+	void setAttackForm(AttackForm attack) {
 		if (attack == null) {
 			clearAttackForm();
 
@@ -314,7 +314,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		}
 	}
 
-	public void update() {
+	private void update() {
 		// set attacks:
 		String s = attack.getAttacksDescription();
 		if (attack.isTotalDefense()) s = "<html><body><s>"+s+"</s></body></html>";
@@ -323,12 +323,7 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		// set attack tooltip:
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>");
-		text.append(attack.getBAB()).append(" base attack bonus<br/>");
-		Map<Modifier, Boolean> mods = attack.getModifiers();
-		text.append(Statistic.getModifiersHTML(mods));
-		text.append(attack.getValue()).append(" total");
-		String conds = Statistic.getModifiersHTML(mods, true);
-		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		text.append(attack.getSummary());
 		text.append("</body></html>");
 		totalAttackLabel.setToolTipText(text.toString());
 
@@ -339,10 +334,10 @@ public class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		text = new StringBuilder();
 		text.append("<html><body>");
 		text.append(attack.getBaseDamage()).append(" base damage<br/>");
-		mods = attack.getDamageModifiers();
+		Map<Modifier, Boolean> mods = attack.getDamageModifiers();
 		text.append(Statistic.getModifiersHTML(mods));
 		text.append(attack.getDamage()).append(" total damage");
-		conds = Statistic.getModifiersHTML(mods, true);
+		String conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
 		totalDamageLabel.setToolTipText(text.toString());

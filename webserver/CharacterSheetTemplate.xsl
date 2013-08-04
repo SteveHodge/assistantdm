@@ -12,9 +12,12 @@
 				<xsl:value-of select="/Character[1]/@name"/>
 			</title>
 			<link href="character.css" rel="stylesheet" title="new" type="text/css" />
+			<script type="text/javascript" src="dialog_box.js"></script>
 		</head>
 		<body style="font-size:62.5%;">
-		<xsl:apply-templates/>
+			<div id="content">
+				<xsl:apply-templates/>
+			</div>
 		</body>
 	</html>
 	</xsl:template>

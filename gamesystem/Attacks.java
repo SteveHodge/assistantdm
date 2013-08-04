@@ -79,21 +79,21 @@ public class Attacks extends Statistic {
 		private final String description;
 	}
 
-	protected int BAB = 0;
-	protected Modifier strMod;
-	protected Modifier dexMod;
-	protected Character character;
-	protected AC ac;
-	protected AttackFormListModel attackFormsModel = new AttackFormListModel();
-	protected List<AttackForm> attackForms = new ArrayList<AttackForm>();
-	protected Modifier powerAttack = null;
-	protected Modifier combatExpertise = null;
-	protected Modifier combatExpertiseAC = null;	// assumed to be null/not-null in sync with combatExpertise
-	protected boolean isTotalDefense = false;
-	protected Modifier totalDefenseAC = new ImmutableModifier(4,"Dodge","Total defense");
-	protected boolean isFightingDefensively = false;
-	protected Modifier fightingDefensively = new ImmutableModifier(-4,null,"Fighting defensively");
-	protected Modifier fightingDefensivelyAC = new ImmutableModifier(2,"Dodge","Fighting defensively");
+	private int BAB = 0;
+	private Modifier strMod;
+	private Modifier dexMod;
+	private Character character;
+	private AC ac;
+	private AttackFormListModel attackFormsModel = new AttackFormListModel();
+	private List<AttackForm> attackForms = new ArrayList<AttackForm>();
+	private Modifier powerAttack = null;
+	private Modifier combatExpertise = null;
+	private Modifier combatExpertiseAC = null;	// assumed to be null/not-null in sync with combatExpertise
+	private boolean isTotalDefense = false;
+	private Modifier totalDefenseAC = new ImmutableModifier(4, "Dodge", "Total defense");
+	private boolean isFightingDefensively = false;
+	private Modifier fightingDefensively = new ImmutableModifier(-4, null, "Fighting defensively");
+	private Modifier fightingDefensivelyAC = new ImmutableModifier(2, "Dodge", "Fighting defensively");
 
 	final PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
@@ -322,9 +322,36 @@ public class Attacks extends Statistic {
 		return isTotalDefense;
 	}
 
+	@Override
+	public String getSummary() {
+		StringBuilder text = new StringBuilder();
+		text.append(getBAB()).append(" base attack bonus<br/>");
+		Map<Modifier, Boolean> mods = getModifiers();
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(getValue()).append(" total melee attack");
+		String conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		return text.toString();
+	}
+
+	public String getRangedSummary() {
+		StringBuilder text = new StringBuilder();
+		text.append(getBAB()).append(" base attack bonus<br/>");
+		Map<Modifier, Boolean> mods = getRangedModifiers();
+		text.append(Statistic.getModifiersHTML(mods));
+		text.append(getRangedValue()).append(" total ranged attack");
+		String conds = Statistic.getModifiersHTML(mods, true);
+		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+		return text.toString();
+	}
+
 	// ------------ DOM conversion --------------
 	@Override
 	public Element getElement(Document doc) {
+		return getElement(doc, false);
+	}
+
+	public Element getElement(Document doc, boolean include_info) {
 		Element e = doc.createElement("Attacks");
 		e.setAttribute("base", ""+getBAB());
 		// combat options:
@@ -338,7 +365,7 @@ public class Attacks extends Statistic {
 		if (isFightingDefensively) e.setAttribute("fighting_defensively","true");
 
 		for (AttackForm a : attackForms) {
-			e.appendChild(a.getElement(doc));
+			e.appendChild(a.getElement(doc, include_info));
 		}
 		return e;
 	}
@@ -773,12 +800,28 @@ public class Attacks extends Statistic {
 		}
 
 		@Override
+		public String getSummary() {
+			StringBuilder text = new StringBuilder();
+			text.append(getBAB()).append(" base attack bonus<br/>");
+			Map<Modifier, Boolean> mods = getModifiers();
+			text.append(Statistic.getModifiersHTML(mods));
+			text.append(getValue()).append(" total");
+			String conds = Statistic.getModifiersHTML(mods, true);
+			if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+			return text.toString();
+		}
+
+		@Override
 		public String toString() {
 			return name;
 		}
 
 		@Override
 		public Element getElement(Document doc) {
+			return getElement(doc, false);
+		}
+
+		public Element getElement(Document doc, boolean include_info) {
 			Element e = doc.createElement("AttackForm");
 			e.setAttribute("name", name);
 			if (enhancement != null) {
@@ -804,6 +847,10 @@ public class Attacks extends Statistic {
 
 			// informational attributes:
 			e.setAttribute("total", ""+getValue());
+			if (include_info) {
+				e.setAttribute("attacks", getAttacksDescription());
+				e.setAttribute("info", getSummary());
+			}
 			return e;
 		}
 
