@@ -30,10 +30,14 @@
 	<xsl:param name="weapon"/>
 	<td class="L">&nbsp;</td>
 	<td colspan="5" rowspan="3" class="data-value-class">
+		<xsl:if test="not($weapon/@range)">0</xsl:if>
 		<xsl:value-of select="$weapon/@range"/>
+		ft
 	</td>
 	<td colspan="5" rowspan="3" class="data-value-class">
+		<xsl:if test="not($weapon/@weight)">0</xsl:if>
 		<xsl:value-of select="$weapon/@weight"/>
+		lb
 	</td>
 	<td colspan="9" rowspan="3" class="data-value-class">
 		<xsl:value-of select="$weapon/@type"/>
@@ -533,8 +537,8 @@
 					</td>
 					<td rowspan="3" class="equation-class">+</td>
 					<td colspan="4" rowspan="3" class="data-value-class">
-						<xsl:value-of select="AC/ACComponent[@type='Natural']/@value"/>
-						<xsl:if test="not(AC/ACComponent[@type='Natural']/@value)">+0</xsl:if>
+						<xsl:value-of select="AC/ACComponent[@type='Natural Armor']/@value"/>
+						<xsl:if test="not(AC/ACComponent[@type='Natural Armor']/@value)">+0</xsl:if>
 					</td>
 					<td rowspan="3" class="equation-class">+</td>
 					<td colspan="4" rowspan="3" class="data-value-class">
@@ -2091,7 +2095,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[1]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[1]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[26]"/>
@@ -2128,7 +2132,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon2">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[1]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[1]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[28]"/>
@@ -2153,7 +2157,9 @@
 					<td/>
 					<td class="L">&nbsp;</td>
 					<td colspan="9" rowspan="2" class="weapon-ammo-label-class">AMMUNITION</td>
-					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">&nbsp;</td>
+					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">
+						<xsl:value-of select="Attacks/AttackForm[1]/@ammunition"/>
+					</td>
 					<td/>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
@@ -2225,7 +2231,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[2]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[2]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[32]"/>
@@ -2262,7 +2268,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon2">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[2]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[2]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[34]"/>
@@ -2287,7 +2293,9 @@
 					<td/>
 					<td class="L">&nbsp;</td>
 					<td colspan="9" rowspan="2" class="weapon-ammo-label-class">AMMUNITION</td>
-					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">&nbsp;</td>
+					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">
+						<xsl:value-of select="Attacks/AttackForm[2]/@ammunition"/>
+					</td>
 					<td/>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
@@ -2359,7 +2367,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[3]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[3]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[38]"/>
@@ -2396,7 +2404,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon2">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[3]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[3]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[40]"/>
@@ -2421,7 +2429,9 @@
 					<td/>
 					<td class="L">&nbsp;</td>
 					<td colspan="9" rowspan="2" class="weapon-ammo-label-class">AMMUNITION</td>
-					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">&nbsp;</td>
+					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">
+						<xsl:value-of select="Attacks/AttackForm[3]/@ammunition"/>
+					</td>
 					<td/>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
@@ -2493,7 +2503,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[4]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[4]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[44]"/>
@@ -2530,7 +2540,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon2">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[4]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[4]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[46]"/>
@@ -2555,7 +2565,9 @@
 					<td/>
 					<td class="L">&nbsp;</td>
 					<td colspan="9" rowspan="2" class="weapon-ammo-label-class">AMMUNITION</td>
-					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">&nbsp;</td>
+					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">
+						<xsl:value-of select="Attacks/AttackForm[4]/@ammunition"/>
+					</td>
 					<td/>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
@@ -2627,7 +2639,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[5]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[5]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[50]"/>
@@ -2664,7 +2676,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon2">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[5]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[5]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[52]"/>
@@ -2689,7 +2701,9 @@
 					<td/>
 					<td class="L">&nbsp;</td>
 					<td colspan="9" rowspan="2" class="weapon-ammo-label-class">AMMUNITION</td>
-					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">&nbsp;</td>
+					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">
+						<xsl:value-of select="Attacks/AttackForm[5]/@ammunition"/>
+					</td>
 					<td/>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
@@ -2761,7 +2775,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[6]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[6]"/>
 					</xsl:call-template>
 					<xsl:call-template name="skill">
 						<xsl:with-param name="skill" select="Skills/Skill[56]"/>
@@ -2798,7 +2812,7 @@
 				<tr style="height:1.0625em">
 					<td/>
 					<xsl:call-template name="weapon2">
-						<xsl:with-param name="weapon" select="Attacks/Weapon[6]"/>
+						<xsl:with-param name="weapon" select="Attacks/AttackForm[6]"/>
 					</xsl:call-template>
 					<td/>
 					<td/>
@@ -2836,7 +2850,9 @@
 					<td/>
 					<td class="L">&nbsp;</td>
 					<td colspan="9" rowspan="2" class="weapon-ammo-label-class">AMMUNITION</td>
-					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">&nbsp;</td>
+					<td colspan="21" rowspan="2" class="weapon-ammo-desc-class">
+						<xsl:value-of select="Attacks/AttackForm[6]/@ammunition"/>
+					</td>
 					<td/>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
 					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>

@@ -65,7 +65,8 @@ td {
 }
 
 .weapon-ammo-desc-class {
-	vertical-align:middle;
+	vertical-align:bottom;
+	font-size:1.2em;
 	border-bottom:thin solid black;
 }
 
