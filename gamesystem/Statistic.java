@@ -18,6 +18,9 @@ import org.w3c.dom.Element;
  * is left to the subclasses.
  * 
  * Reports a single property "value" which is the total of the base value and the applicable modifiers.
+ * 
+ * Subclasses may implement additional properties, e.g. Attacks implements an extra_attacks property. Generally properties
+ * are values that are changeable but are not subject to typed modifiers.
  */
 // TODO might need more comprehensive reporting. specifically subclasses may wish to issue a property change for baseValue separately
 // to the property change for value (i.e. total). property change for changing modifiers even when the total is unchanged are also desirable

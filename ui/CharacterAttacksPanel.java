@@ -2,6 +2,8 @@ package ui;
 
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
+import gamesystem.Buff;
+import gamesystem.BuffFactory;
 import gamesystem.Feat;
 
 import java.awt.GridBagConstraints;
@@ -9,6 +11,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -16,12 +21,16 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -61,6 +70,8 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		updateToolTip();
 		// update labels when character changes
 		attacks.addPropertyChangeListener(this);
+
+		addMouseListener(rightClickListener);
 
 		powerAttack.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
@@ -122,6 +133,144 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 				}
 			}
 		});
+	}
+
+	private MouseListener rightClickListener = new MouseAdapter() {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (!SwingUtilities.isRightMouseButton(e)) return;
+			AttacksInfoDialog dialog = new AttacksInfoDialog();
+			dialog.setVisible(true);
+		}
+	};
+
+	private class AttacksInfoDialog extends StatisticInfoDialog {
+		private JLabel rangedSummary;
+		private JLabel damageSummary;
+
+		AttacksInfoDialog() {
+			super(CharacterAttacksPanel.this, "Attacks");
+
+			rangedSummary = new JLabel();
+			rangedSummary.setBorder(BorderFactory.createTitledBorder("Ranged"));
+			rangedSummary.setVerticalAlignment(SwingConstants.TOP);
+			damageSummary = new JLabel();
+			damageSummary.setBorder(BorderFactory.createTitledBorder("Damage"));
+			damageSummary.setVerticalAlignment(SwingConstants.TOP);
+
+			initialize(CharacterAttacksPanel.this.character, Creature.STATISTIC_ATTACKS);			// will also call updateSummary
+
+			summary.setBorder(BorderFactory.createTitledBorder("Melee"));
+
+			setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridx = 0;
+			c.gridy = 0;
+			c.weightx = 0.5;
+			c.weighty = 1;
+			c.fill = GridBagConstraints.BOTH;
+			add(summary, c);
+
+			c.gridx++;
+			add(rangedSummary, c);
+
+			c.gridx++;
+			add(damageSummary, c);
+
+			c.gridy++;
+			c.gridx = 0;
+			c.weighty = 0;
+			c.gridwidth = 3;
+			c.weightx = 1;
+			add(addPanel, c);
+
+			c.gridy++;
+			c.fill = GridBagConstraints.NONE;
+			c.insets = new Insets(2, 4, 2, 4);
+			add(okButton, c);
+
+			pack();
+			setLocationRelativeTo(SwingUtilities.getWindowAncestor(CharacterAttacksPanel.this));
+		}
+
+		@Override
+		void updateSummary() {
+			summary.setText("<html><body>" + attacks.getSummary() + "</body></html>");
+			rangedSummary.setText("<html><body>" + attacks.getRangedSummary() + "</body></html>");
+			damageSummary.setText("<html><body>" + attacks.getDamageStatistic().getSummary() + "</body></html>");
+			pack();
+		}
+
+		@Override
+		JPanel getAdhocPanel(final String statName) {
+			final JComboBox typeBox = new JComboBox(types);
+			typeBox.setSelectedItem("Enhancement");
+			typeBox.setEditable(true);
+
+			final JTextField nameField = new JTextField();
+
+			final JFormattedTextField modField = new JFormattedTextField();
+			modField.setValue(new Integer(0));
+			modField.setColumns(3);
+
+			final JCheckBox attackMod = new JCheckBox("attack");
+			attackMod.setSelected(true);
+			final JCheckBox damageMod = new JCheckBox("damage");
+			damageMod.setSelected(true);
+
+			JButton addButton = new JButton("Add");
+			addButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					BuffFactory bf = new BuffFactory(nameField.getText());
+					int mod = (Integer) modField.getValue();
+					if (attackMod.isSelected()) bf.addEffect(Creature.STATISTIC_ATTACKS, typeBox.getSelectedItem().toString(), mod);
+					if (damageMod.isSelected()) bf.addEffect(Creature.STATISTIC_DAMAGE, typeBox.getSelectedItem().toString(), mod);
+					Buff buff = bf.getBuff();
+					buff.applyBuff(character);
+					character.buffs.addElement(buff);
+				}
+			});
+
+			JPanel addPanel = new JPanel();
+			addPanel.setLayout(new GridBagLayout());
+
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridx = 0;
+			c.gridy = 1;
+			c.gridwidth = 1;
+			c.weightx = 0;
+			c.weighty = 0;
+			c.fill = GridBagConstraints.NONE;
+			addPanel.add(new JLabel("Applies to: "), c);
+
+			c.gridx++;
+			addPanel.add(attackMod, c);
+
+			c.gridx++;
+			addPanel.add(damageMod, c);
+
+			c.gridx++;
+			addPanel.add(addButton, c);
+
+			c.gridx = 0;
+			c.gridy = 0;
+			addPanel.add(new JLabel("Source: "), c);
+
+			c.gridx++;
+			c.weightx = 1;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			addPanel.add(nameField, c);
+
+			c.gridx++;
+			c.weightx = 0.5;
+			addPanel.add(typeBox, c);
+
+			c.gridx++;
+			c.weightx = 0.25;
+			addPanel.add(modField, c);
+			return addPanel;
+		}
 	}
 
 	private void updatePowerAttack() {

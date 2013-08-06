@@ -2,27 +2,34 @@ package ui;
 
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
-import gamesystem.Modifier;
 import gamesystem.SizeCategory;
-import gamesystem.Statistic;
 import gamesystem.dice.CombinedDice;
 
+import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.InputVerifier;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -108,6 +115,10 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 		setAttackForm(atk);
 
+		addMouseListener(rightClickListener);
+		totalAttackLabel.addMouseListener(rightClickListener);
+		totalDamageLabel.addMouseListener(rightClickListener);
+
 		// the damage field uses an input verifier and applies changes on enter or losing focus
 		damageField.setInputVerifier(damageVerifier);
 		damageField.addActionListener(new ActionListener() {
@@ -152,6 +163,15 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			}
 		});
 	}
+
+	private MouseListener rightClickListener = new MouseAdapter() {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (!SwingUtilities.isRightMouseButton(e)) return;
+			AttackFormInfoDialog dialog = new AttackFormInfoDialog();
+			dialog.setVisible(true);
+		}
+	};
 
 	private InputVerifier damageVerifier = new InputVerifier() {
 		@Override
@@ -321,26 +341,146 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		totalAttackLabel.setText(s);
 
 		// set attack tooltip:
-		StringBuilder text = new StringBuilder();
-		text.append("<html><body>");
-		text.append(attack.getSummary());
-		text.append("</body></html>");
-		totalAttackLabel.setToolTipText(text.toString());
+		totalAttackLabel.setToolTipText("<html><body>" + attack.getSummary() + "</body></html>");
 
 		// set damage:
 		totalDamageLabel.setText(attack.getDamage());
 
 		// set damage tooltip:
-		text = new StringBuilder();
-		text.append("<html><body>");
-		text.append(attack.getBaseDamage()).append(" base damage<br/>");
-		Map<Modifier, Boolean> mods = attack.getDamageModifiers();
-		text.append(Statistic.getModifiersHTML(mods));
-		text.append(attack.getDamage()).append(" total damage");
-		String conds = Statistic.getModifiersHTML(mods, true);
-		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
-		text.append("</body></html>");
-		totalDamageLabel.setToolTipText(text.toString());
+		totalDamageLabel.setToolTipText("<html><body>" + attack.getDamageSummary() + "</body></html>");
+	}
+
+	// TODO make into subclass of StatisticInfoDialog
+	private class AttackFormInfoDialog extends JDialog {
+		private JLabel summary;
+		private JLabel damageSummary;
+		private JButton okButton;
+		private JPanel addPanel;
+
+		AttackFormInfoDialog() {
+			super(SwingUtilities.getWindowAncestor(AttackFormPanel.this), attack.getName(), Dialog.ModalityType.APPLICATION_MODAL);
+
+			attack.addPropertyChangeListener(new PropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent arg0) {
+					updateSummary();
+				}
+			});
+
+			damageSummary = new JLabel();
+			damageSummary.setBorder(BorderFactory.createTitledBorder("Damage"));
+			damageSummary.setVerticalAlignment(SwingConstants.TOP);
+
+			summary = new JLabel();
+			updateSummary();
+			summary.setBorder(BorderFactory.createTitledBorder("Attack"));
+			summary.setVerticalAlignment(SwingConstants.TOP);
+
+			okButton = new JButton("Ok");
+			okButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					setVisible(false);
+				}
+			});
+
+			addPanel = getAdhocPanel();
+			addPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier"));
+
+			setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridx = 0;
+			c.gridy = 0;
+			c.weightx = 0.5;
+			c.weighty = 1;
+			c.fill = GridBagConstraints.BOTH;
+			add(summary, c);
+
+			c.gridx++;
+			add(damageSummary, c);
+
+			c.gridy++;
+			c.gridx = 0;
+			c.weighty = 0;
+			c.gridwidth = 3;
+			c.weightx = 1;
+			add(addPanel, c);
+
+			c.gridy++;
+			c.fill = GridBagConstraints.NONE;
+			c.insets = new Insets(2, 4, 2, 4);
+			add(okButton, c);
+
+			pack();
+			setLocationRelativeTo(SwingUtilities.getWindowAncestor(AttackFormPanel.this));
+		}
+
+		JPanel getAdhocPanel() {
+			final JComboBox typeBox = new JComboBox(StatisticInfoDialog.types);
+			typeBox.setSelectedItem("Enhancement");
+			typeBox.setEditable(true);
+
+			final JTextField nameField = new JTextField();
+
+			final JFormattedTextField modField = new JFormattedTextField();
+			modField.setValue(new Integer(0));
+			modField.setColumns(3);
+
+			JButton addButton = new JButton("Add");
+			addButton.setEnabled(false);
+			addButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					// TODO implement - need to be able to get to the character (ultimately should appear in the list of the possessor, but remain linked to the item)
+//					BuffFactory bf = new BuffFactory(nameField.getText());
+//					int mod = (Integer) modField.getValue();
+//					bf.addEffect(statName, typeBox.getSelectedItem().toString(), mod);
+//					Buff buff = bf.getBuff();
+//					buff.applyBuff(character);
+//					character.buffs.addElement(buff);
+				}
+			});
+
+			JPanel addPanel = new JPanel();
+			addPanel.setLayout(new GridBagLayout());
+
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridx = 0;
+			c.gridy = 0;
+			c.gridwidth = 1;
+			c.weightx = 0;
+			c.weighty = 0;
+			c.fill = GridBagConstraints.NONE;
+			addPanel.add(new JLabel("Source: "), c);
+
+			c.gridx++;
+			c.weightx = 1;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.gridwidth = 3;
+			addPanel.add(nameField, c);
+
+			c.gridy++;
+			c.gridx = 0;
+			c.weightx = 0.5;
+			c.weighty = 0;
+			c.gridwidth = 2;
+			addPanel.add(typeBox, c);
+
+			c.gridx += 2;
+			c.weightx = 0.25;
+			c.gridwidth = 1;
+			addPanel.add(modField, c);
+
+			c.gridx++;
+			addPanel.add(addButton, c);
+			return addPanel;
+		}
+
+		void updateSummary() {
+			summary.setText("<html><body>" + attack.getSummary() + "</body></html>");
+			damageSummary.setText("<html><body>" + attack.getDamageSummary() + "</body></html>");
+			pack();
+		}
 	}
 
 	@Override

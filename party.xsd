@@ -91,6 +91,20 @@
 	</xs:complexType>
 </xs:element>
 
+<xs:simpleType name="SizeCategory">
+	<xs:restriction base="xs:string">
+		<xs:enumeration value="Fine"/>
+		<xs:enumeration value="Diminutive"/>
+		<xs:enumeration value="Tiny"/>
+		<xs:enumeration value="Small"/>
+		<xs:enumeration value="Medium"/>
+		<xs:enumeration value="Large"/>
+		<xs:enumeration value="Huge"/>
+		<xs:enumeration value="Gargantuan"/>
+		<xs:enumeration value="Colossal"/>
+	</xs:restriction>
+</xs:simpleType>
+
 <xs:element name="Shield">
 	<xs:complexType>
 		<xs:attribute name="acp" type="xs:int"/>
@@ -282,6 +296,13 @@
 			<xs:element name="Initiative">
 				<xs:complexType>
 					<xs:attribute name="value" type="xs:int" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Size">
+				<xs:complexType>
+					<xs:attribute name="category" type="SizeCategory" use="required"/>
+					<xs:attribute name="space" type="xs:int" use="required"/>
+					<xs:attribute name="reach" type="xs:int" use="required"/>
 				</xs:complexType>
 			</xs:element>
 			<xs:element ref="SavingThrows"/>

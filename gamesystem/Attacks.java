@@ -33,6 +33,7 @@ import party.Creature;
 /*
  * Statistics provided:
  * Attacks - the melee attack statistic
+ * Attacks.damageStat - stat for collecting damage specific modifiers
  * .AttackForm - a particular attack mode
  * Properties provided:
  * extra_attacks - additional attacks at top attack bonus
@@ -403,6 +404,22 @@ public class Attacks extends Statistic {
 		@Override
 		public void removePropertyChangeListener(PropertyChangeListener listener) {
 			Attacks.this.removePropertyChangeListener(listener);
+		}
+
+		@Override
+		protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
+			Attacks.this.firePropertyChange(prop, oldVal, newVal);
+		}
+
+		@Override
+		public String getSummary() {
+			StringBuilder text = new StringBuilder();
+			Map<Modifier, Boolean> mods = getModifiers();
+			text.append(Statistic.getModifiersHTML(mods));
+			text.append(getValue()).append(" total extra damage").append("<br/>");
+			String conds = Statistic.getModifiersHTML(mods, true);
+			if (conds.length() > 0) text.append("<br/>").append(conds);
+			return text.toString();
 		}
 	};
 
@@ -811,6 +828,17 @@ public class Attacks extends Statistic {
 			return text.toString();
 		}
 
+		public String getDamageSummary() {
+			StringBuilder text = new StringBuilder();
+			text.append(getBaseDamage()).append(" base damage<br/>");
+			Map<Modifier, Boolean> mods = getDamageModifiers();
+			text.append(Statistic.getModifiersHTML(mods));
+			text.append(getDamage()).append(" total damage");
+			String conds = Statistic.getModifiersHTML(mods, true);
+			if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+			return text.toString();
+		}
+
 		@Override
 		public String toString() {
 			return name;
@@ -850,6 +878,7 @@ public class Attacks extends Statistic {
 			if (include_info) {
 				e.setAttribute("attacks", getAttacksDescription());
 				e.setAttribute("info", getSummary());
+				e.setAttribute("damage_info", getDamageSummary());
 			}
 			return e;
 		}

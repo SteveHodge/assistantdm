@@ -22,6 +22,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import party.Character;
@@ -29,6 +30,11 @@ import party.Character;
 // TODO should probably convert to factory class
 @SuppressWarnings("serial")
 public class StatisticInfoDialog extends JDialog {
+	static final String[] types = { "", "Alchemical", "Armor", "Circumstance", "Competence", "Deflection",
+		"Enhancement", "Inherent", "Insight", "Luck", "Morale", "Natural Armor", "Profane", "Racial",
+		"Resistance", "Sacred", "Shield", "Size"
+	};
+
 	Character character;
 	Statistic statistic;
 
@@ -82,6 +88,7 @@ public class StatisticInfoDialog extends JDialog {
 		summary = new JLabel();
 		updateSummary();
 		summary.setBorder(BorderFactory.createTitledBorder("Summary"));
+		summary.setVerticalAlignment(SwingConstants.TOP);
 
 		okButton = new JButton("Ok");
 		okButton.addActionListener(new ActionListener() {
@@ -96,11 +103,6 @@ public class StatisticInfoDialog extends JDialog {
 	}
 
 	JPanel getAdhocPanel(final String statName) {
-		String[] types = { "", "Alchemical", "Armor", "Circumstance", "Competence", "Deflection", "Enhancement",
-				"Inherent", "Insight", "Luck", "Morale", "Natural Armor", "Profane", "Racial", "Resistance",
-				"Sacred", "Shield", "Size"
-		};
-
 		final JComboBox typeBox = new JComboBox(types);
 		typeBox.setSelectedItem("Enhancement");
 		typeBox.setEditable(true);

@@ -74,25 +74,28 @@ import digital_table.controller.DigitalTableController;
 /* TODO current priorities:
  * select multiple targets for buffs / combine with effects on combat panel
  * fix healing on combat panel
- * size (where is up to?)
- * 
- * Add info dialog for remaining statistics (attacks, ac, weapons, armor, level, size)
- * Add calculations to live character sheet for remaining statistics (attacks, ac, weapon damage, armor, level, size)
- * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
- * EOS camera support + refactoring of camera library
- * Magic items and/or allow addition of custom modifiers
- * Detect token movement
- * Improve character sheet - show extra attacks, show current effects, tool tips for calculations
  * clean up handling of HPs, wounds, healing etc, particularly ui
+ * size (where is up to?)
+ * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
+ * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
+ * 
+ * live character sheet: fix up incomplete fading of character sheet when dialog appears
+ * fix automatic updates due to extra_attacks
+ * ui: add info dialog for remaining statistics (ac, weapons, armor, level, size)
+ * live character sheet: add calculations for remaining statistics (attacks, ac, weapon damage, armor, level, size)
+ * live character sheet: consider adding list of buffs/effects
+ * live character sheet: consider adding current hps box
+ * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
+ * camera: EOS camera support + refactoring of camera library
+ * camera/dtt: Detect token movement
  * properties for statistics: bab, convert temp hps
+ * review Statistics vs properties on statistics
  * ability checks
  * enum conversions - property and statistics types
  * feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
- * review Statistics vs Properties
- * ui for adding adhoc modifiers
  * equipment, particularly magic item slots, armor, weapons
  */
-/* TODO digital table priorities:
+/* TODO digital tabletop (dtt) priorities:
  * BUG Issue with image scaling before remote visible - fix handling of image size when image changes
  * Allow multi-select and grouping in tree
  * Improve Tokens element: hps/status, floating label, rotate labels with token
