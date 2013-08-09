@@ -32,16 +32,16 @@ public class Buff {
 	Map<Dice,Integer> rolls = new HashMap<Dice,Integer>();
 	public boolean maximized = false;
 	public boolean empowered = false;
-	int id;
+	public int id;
 	private static int nextid = 1;	// TODO not threadsafe
 
-	protected class PropertyChange {
+	class PropertyChange {
 		String property;
 		Object value;
 		String description;
 	}
 
-	protected final static Map<String,String> TARGET_DESC;
+	final static Map<String,String> TARGET_DESC;
 	static {
 		HashMap<String,String> map = new HashMap<String,String>();
 		map.put(Creature.STATISTIC_STRENGTH, AbilityScore.Type.STRENGTH.toString());
@@ -108,6 +108,7 @@ public class Buff {
 					propertyChanges.put(change, e.target);
 				}
 			}
+			realised = true;
 		}
 
 		for (Modifier m : modifiers.keySet()) {

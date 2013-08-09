@@ -1,9 +1,12 @@
 package combat;
+import gamesystem.Buff;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Set;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
@@ -17,81 +20,94 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import party.Character;
+
 // TODO consider moving into CombatPanel class
 
 @SuppressWarnings("serial")
-public class NewEffectPanel extends JPanel implements ActionListener {
-	protected JTextField effectField;
-	protected JComboBox sourceField;
-	protected JFormattedTextField initField;
-	protected JFormattedTextField durationField;
-	protected JComboBox unitsField;
-	protected JButton addButton;
-	protected JButton resetButton;
-	protected JButton nextButton;
-	protected JButton deleteButton;
+class NewEffectPanel extends JPanel {
+	private JTextField effectField;
+	private JComboBox sourceField;
+	private JFormattedTextField initField;
+	private JFormattedTextField durationField;
+	private JComboBox unitsField;
+	private JButton addButton;
+	private JButton buffButton;
+	private JButton deleteButton;
 
 	//protected EffectListModel model;
-	protected EffectTableModel model;
-	protected SourceModel sourceModel;
-	protected JTable table;
+	private EffectTableModel model;
+	private SourceModel sourceModel;
+	private JTable table;
 
-	public class SourceModel implements ComboBoxModel {
-		InitiativeListModel initiativeModel;
-		String selected = "";
-		EventListenerList listenerList = new EventListenerList();
+	private Buff buff = null;
+	private Set<Character> targets;
 
-		SourceModel(InitiativeListModel ilm) {
+	private class SourceModel implements ComboBoxModel {
+		private InitiativeListModel initiativeModel;
+		private String selected = "";
+		private EventListenerList listenerList = new EventListenerList();
+
+		private SourceModel(InitiativeListModel ilm) {
 			initiativeModel = ilm;
 			ilm.addListDataListener(new ListDataListener() {
 				// forward list changes to listeners
+				@Override
 				public void contentsChanged(ListDataEvent e) {
 					fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,e.getIndex0(),e.getIndex1());
 				}
 
+				@Override
 				public void intervalAdded(ListDataEvent e) {
 					fireListDataEvent(ListDataEvent.INTERVAL_ADDED,e.getIndex0(),e.getIndex1());
 				}
 
+				@Override
 				public void intervalRemoved(ListDataEvent e) {
 					fireListDataEvent(ListDataEvent.INTERVAL_REMOVED,e.getIndex0(),e.getIndex1());
 				}
 			});
 		}
 
+		@Override
 		public Object getSelectedItem() {
 			return selected;
 		}
 
+		@Override
 		public void setSelectedItem(Object arg0) {
 			if (arg0 != null) selected = arg0.toString();
 			else selected = "";
 			fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,-1,-1);
-			
+
 		}
 
+		@Override
 		public Object getElementAt(int arg0) {
-			return ((CombatEntry)initiativeModel.getElementAt(arg0)).getCreatureName();
+			return initiativeModel.getElementAt(arg0).getCreatureName();
 		}
 
+		@Override
 		public int getSize() {
 			return initiativeModel.getSize();
 		}
 
-		public int getInitiative(int index) {
-			CombatEntry e = (CombatEntry)initiativeModel.getElementAt(index);
+		private int getInitiative(int index) {
+			CombatEntry e = initiativeModel.getElementAt(index);
 			return e.getTotal();
 		}
 
+		@Override
 		public void addListDataListener(ListDataListener l) {
 			listenerList.add(ListDataListener.class,l);
 		}
 
+		@Override
 		public void removeListDataListener(ListDataListener l) {
 			listenerList.remove(ListDataListener.class,l);
 		}
 
-		protected void fireListDataEvent(int type, int index0, int index1) {
+		private void fireListDataEvent(int type, int index0, int index1) {
 			ListDataEvent e = null;
 			Object[] listeners = listenerList.getListenerList();
 			for (int i = listeners.length-2; i>=0; i-=2) {
@@ -113,7 +129,7 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		}
 	}
 
-	public NewEffectPanel(JTable t, EffectTableModel m, InitiativeListModel im) {
+	NewEffectPanel(JTable t, final EffectTableModel m, final InitiativeListModel im) {
 		model = m;
 		table = t;
 		sourceModel = new SourceModel(im);
@@ -123,7 +139,15 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 
 		sourceField = new JComboBox(sourceModel);
 		sourceField.setEditable(true);
-		sourceField.addActionListener(this);
+		sourceField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int index = sourceField.getSelectedIndex();
+				if (index != -1) {
+					initField.setValue(new Integer(sourceModel.getInitiative(index)));
+				}
+			}
+		});
 
 		initField = new JFormattedTextField();
 		initField.setValue(new Integer(0));
@@ -136,14 +160,57 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		String [] units = {"Rounds","Minutes","Hours"};
 		unitsField = new JComboBox(units);
 
+		buffButton = new JButton("Buff...");
+		buffButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				BuffDialog dialog = new BuffDialog(NewEffectPanel.this, im);
+				buff = dialog.getBuff();
+				if (buff != null) {
+					effectField.setText(buff.name);
+					targets = dialog.getTargets();
+				}
+			}
+		});
+
 		addButton = new JButton("Add");
-		addButton.addActionListener(this);
-		resetButton = new JButton("Clear All");
-		resetButton.addActionListener(this);
-		nextButton = new JButton("Next Round");
-		nextButton.addActionListener(this);
+		addButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int d = (Integer) durationField.getValue();
+				if (unitsField.getSelectedItem().equals("Minutes")) d *= 10;
+				if (unitsField.getSelectedItem().equals("Hours")) d *= 600;
+
+				if (buff != null) {
+					for (Character c : targets) {
+						buff.applyBuff(c);
+						c.buffs.addElement(buff);
+					}
+				}
+				model.addEntry(effectField.getText(), sourceField.getSelectedItem().toString(),
+						(Integer) initField.getValue(), d, buff);
+				//model.sort();
+
+				if (buff != null) {
+					//reset the buff so we don't add it again next time
+					effectField.setText("");
+					buff = null;
+				}
+			}
+		});
+
 		deleteButton = new JButton("Delete");
-		deleteButton.addActionListener(this);
+		deleteButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int selectedRows[] = table.getSelectedRows();
+				// XXX is selected[] always sorted?
+				for (int s = selectedRows.length - 1; s >= 0; s--) {
+					int index = table.convertRowIndexToModel(selectedRows[s]);
+					m.removeEffect(index, NewEffectPanel.this, im);
+				}
+			}
+		});
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -152,7 +219,7 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		add(new JLabel("Effect:"),c);
 		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 1.0;
-		c.gridwidth = 2;
+		c.gridwidth = 3;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		add(effectField, c);
 		c.gridwidth = 1;
@@ -174,33 +241,8 @@ public class NewEffectPanel extends JPanel implements ActionListener {
 		add(new JLabel("Initiative:"),c);
 		add(initField, c);
 		c.fill = GridBagConstraints.HORIZONTAL;
+		add(buffButton, c);
 		add(addButton, c);
 		add(deleteButton, c);
-	}
-
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == addButton) {
-			int d = (Integer)durationField.getValue();
-			if (unitsField.getSelectedItem().equals("Minutes")) d *= 10;
-			if (unitsField.getSelectedItem().equals("Hours")) d *= 600;
-			
-			model.addEntry(effectField.getText(), sourceField.getSelectedItem().toString(),
-					(Integer)initField.getValue(), d);
-			//model.sort();
-
-		} else if (e.getSource() == sourceField) {
-			int index = sourceField.getSelectedIndex();
-			if (index != -1) {
-				initField.setValue(new Integer(sourceModel.getInitiative(index)));
-			}
-
-		} else if (e.getSource() == deleteButton) {
-			int selected = table.getSelectedRow();
-			while (selected > -1) {
-				model.removeEntry(table.convertRowIndexToModel(selected));
-				selected = table.getSelectedRow();
-			}
-		}
-		
 	}
 }

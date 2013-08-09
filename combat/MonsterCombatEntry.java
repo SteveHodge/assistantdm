@@ -2,15 +2,19 @@ package combat;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import party.Creature;
@@ -20,21 +24,21 @@ import ui.BoundIntegerField;
 //TODO tooltips get lost on reload - the connection to the stat block is not stored in the xml file
 
 @SuppressWarnings("serial")
-public class MonsterCombatEntry extends CombatEntry {
+class MonsterCombatEntry extends CombatEntry {
 	// creates a new MonsterCombatEntry backed by a new Monster
-	public MonsterCombatEntry() {
+	MonsterCombatEntry() {
 		creature = new Monster();
 		createEntry();
 	}
 
-	public MonsterCombatEntry(Monster m) {
+	MonsterCombatEntry(Monster m) {
 		creature = m;
 		createEntry();
 		if (m.getStatsBlock() != null) setToolTipText(m.getStatsBlock().getHTML());
 		initBlank();
 	}
 
-	protected void createEntry() {
+	void createEntry() {
 		acComp = new BoundIntegerField(creature, Monster.PROPERTY_AC, 4);
 		touchACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_TOUCH, 4);
 		flatFootedACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_FLATFOOTED, 4);
@@ -46,7 +50,7 @@ public class MonsterCombatEntry extends CombatEntry {
 	}
 
 	@Override
-	protected JComponent createNameSection() {
+	JComponent createNameSection() {
 		JPanel section = new JPanel();
 		section.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -57,7 +61,24 @@ public class MonsterCombatEntry extends CombatEntry {
 		delete.setMargin(new Insets(0, 4, 0, 3));
 		delete.setFocusPainted(false);
 		delete.setEnabled(false);
-		delete.addActionListener(this);
+		delete.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// fire a delete action to all listeners
+				// Guaranteed to return a non-null array
+				Object[] listeners = listenerList.getListenerList();
+				// Process the listeners last to first, notifying
+				// those that are interested in this event
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == ChangeListener.class) {
+						// Lazily create the event:
+						if (actionEvent == null)
+							actionEvent = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "delete", e.getWhen(), e.getModifiers());
+						((ActionListener) listeners[i + 1]).actionPerformed(actionEvent);
+					}
+				}
+			}
+		});
 		section.add(delete, c);
 		nameField = new JTextField(20);
 		nameField.setText(creature.getName());
@@ -101,7 +122,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		}
 	}
 
-	public static MonsterCombatEntry parseDOM(Element el) {
+	static MonsterCombatEntry parseDOM(Element el) {
 		if (!el.getNodeName().equals("MonsterEntry")) return null;
 		MonsterCombatEntry c = new MonsterCombatEntry(new Monster());
 		c.nameField.setText(el.getAttribute("name"));
@@ -118,19 +139,18 @@ public class MonsterCombatEntry extends CombatEntry {
 	}
 
 	@Override
-	public String getXML(String indent, String nextIndent) {
-		StringBuilder b = new StringBuilder();
-		b.append(indent).append("<MonsterEntry name=\"").append(creature.getName());
-		b.append("\" roll=\"").append(getRoll());
-		b.append("\" tieBreak=\"").append(getTieBreak());
-		b.append("\" initMod=\"").append(creature.getInitiativeModifier());
-		b.append("\" maxHPs=\"").append(creature.getMaximumHitPoints());
-		b.append("\" wounds=\"").append(creature.getWounds());
-		b.append("\" nonLethal=\"").append(creature.getNonLethal());
-		b.append("\" fullAC=\"").append(creature.getAC());
-		b.append("\" touchAC=\"").append(creature.getTouchAC());
-		b.append("\" flatFootedAC=\"").append(creature.getFlatFootedAC());
-		b.append("\"/>").append(System.getProperty("line.separator"));
-		return b.toString();
+	Element getElement(Document doc) {
+		Element e = doc.createElement("MonsterEntry");
+		e.setAttribute("name", creature.getName());
+		e.setAttribute("roll", "" + getRoll());
+		e.setAttribute("tieBreak", "" + getTieBreak());
+		e.setAttribute("initMod", "" + creature.getInitiativeModifier());
+		e.setAttribute("maxHPs", "" + creature.getMaximumHitPoints());
+		e.setAttribute("wounds", "" + creature.getWounds());
+		e.setAttribute("nonLethal", "" + creature.getNonLethal());
+		e.setAttribute("fullAC", "" + creature.getAC());
+		e.setAttribute("touchAC", "" + creature.getTouchAC());
+		e.setAttribute("flatFootedAC", "" + creature.getFlatFootedAC());
+		return e;
 	}
 }

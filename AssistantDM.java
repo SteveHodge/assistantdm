@@ -72,13 +72,9 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * select multiple targets for buffs / combine with effects on combat panel
- * fix healing on combat panel
- * clean up handling of HPs, wounds, healing etc, particularly ui
  * size (where is up to?)
  * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
  * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
- * 
  * live character sheet: fix up incomplete fading of character sheet when dialog appears
  * fix automatic updates due to extra_attacks
  * ui: add info dialog for remaining statistics (ac, weapons, armor, level, size)
@@ -89,7 +85,7 @@ import digital_table.controller.DigitalTableController;
  * camera: EOS camera support + refactoring of camera library
  * camera/dtt: Detect token movement
  * properties for statistics: bab, convert temp hps
- * review Statistics vs properties on statistics
+ * review Statistics vs creature Properties
  * ability checks
  * enum conversions - property and statistics types
  * feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
@@ -511,13 +507,24 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		FileWriter outputStream = null;
 
 		try {
+			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			doc.appendChild(combatPanel.getElement(doc));
+			doc.setXmlStandalone(true);
+			Transformer trans = TransformerFactory.newInstance().newTransformer();
+			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 			outputStream = new FileWriter(filename);
-			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-			outputStream.write(System.getProperty("line.separator"));
-			outputStream.write(System.getProperty("line.separator"));
-			outputStream.write(combatPanel.getXML("", "    "));
+			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
 		} catch (IOException ex) {
 			ex.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerFactoryConfigurationError e) {
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			e.printStackTrace();
 		} finally {
 			if (outputStream != null) {
 				try {

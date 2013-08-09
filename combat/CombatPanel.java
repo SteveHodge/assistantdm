@@ -1,4 +1,5 @@
 package combat;
+
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -47,15 +48,15 @@ import xml.XMLUtils;
 
 @SuppressWarnings("serial")
 public class CombatPanel extends JPanel {
-	static CombatPanel combatPanel;
+	private static CombatPanel combatPanel;
 
-	Party party;
-	InitiativeListModel initiativeListModel;
-	EffectListModel effectsListModel;
-	EffectTableModel effectsTableModel;
-	int round = 0;
-	Updater fileUpdater = new Updater();
-	List<InitiativeListener> listeners = new ArrayList<InitiativeListener>();
+	private Party party;
+	private InitiativeListModel initiativeListModel;
+	//private EffectListModel effectsListModel;
+	private EffectTableModel effectsTableModel;
+	private int round = 0;
+	//private Updater fileUpdater = new Updater();
+	private List<InitiativeListener> listeners = new ArrayList<InitiativeListener>();
 
 	// TODO need to remove this static instance
 	public static CombatPanel getCombatPanel() {
@@ -151,7 +152,8 @@ public class CombatPanel extends JPanel {
 			public void actionPerformed(ActionEvent arg0) {
 				// work from last to first to avoid issues when we remove entries
 				for (int i=effectsTableModel.getRowCount()-1; i >= 0; i--) {
-					if (effectsTableModel.addDuration(i,-1) < 0) effectsTableModel.removeEntry(i);
+					if (effectsTableModel.addDuration(i, -1) < 0)
+						effectsTableModel.expireEffect(i, CombatPanel.this, initiativeListModel);
 				}
 				round++;
 				roundsLabel.setText("Round "+round);
@@ -169,7 +171,8 @@ public class CombatPanel extends JPanel {
 					int value = dialog.getValue();
 					// work from last to first to avoid issues when we remove entries
 					for (int i=effectsTableModel.getRowCount()-1; i >= 0; i--) {
-						if (effectsTableModel.addDuration(i,-value) < 0) effectsTableModel.removeEntry(i);
+						if (effectsTableModel.addDuration(i, -value) < 0)
+							effectsTableModel.expireEffect(i, CombatPanel.this, initiativeListModel);
 					}
 					round+= value;
 					roundsLabel.setText("Round "+round);
@@ -198,9 +201,9 @@ public class CombatPanel extends JPanel {
 		add(splitPane, BorderLayout.CENTER);
 	}
 
-	String lastInitiativeOutput = "";
+	private String lastInitiativeOutput = "";
 
-	public void updateInitiative(int round, String text) {
+	private void updateInitiative(int round, String text) {
 		String output = "round="+round+"\n"+text;
 		if (!output.equals(lastInitiativeOutput)) {
 			//System.out.println(output);
@@ -221,9 +224,9 @@ public class CombatPanel extends JPanel {
 		listeners.remove(l);
 	}
 
-	public String getCharacterName(int index) {
-		return party.get(index).getName();
-	}
+//	private String getCharacterName(int index) {
+//		return party.get(index).getName();
+//	}
 
 	public static void addMonster(Monster m) {
 		combatPanel.initiativeListModel.addEntry(new MonsterCombatEntry(m));
@@ -254,18 +257,10 @@ public class CombatPanel extends JPanel {
 		}
 	}
 
-
-	public String getXML() {
-		return getXML("","    ");
-	}
-
-	public String getXML(String indent, String nextIndent) {
-		StringBuilder b = new StringBuilder();
-		String nl = System.getProperty("line.separator");
-		b.append(indent).append("<Combat>").append(nl);
-		b.append(initiativeListModel.getXML(nextIndent,nextIndent));
-		b.append(effectsTableModel.getXML(nextIndent,nextIndent));
-		b.append(indent).append("</Combat>").append(nl);
-		return b.toString();
+	public Element getElement(Document doc) {
+		Element el = doc.createElement("Combat");
+		el.appendChild(initiativeListModel.getElement(doc));
+		el.appendChild(effectsTableModel.getElement(doc));
+		return el;
 	}
 }

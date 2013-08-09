@@ -70,15 +70,9 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		apply.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// need to invoke this code later since it involves a modal dialog
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						BuffFactory bf = (BuffFactory)buffs.getSelectedValue();
-						Buff buff = applyBuff(bf);
-						character.buffs.addElement(buff);
-					}
-				});
+				BuffFactory bf = (BuffFactory) buffs.getSelectedValue();
+				Buff buff = applyBuff(bf);
+				character.buffs.addElement(buff);
 			}
 		});
 
@@ -139,8 +133,8 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			dialog.add(buttonPanel, BorderLayout.PAGE_END);
 
 			dialog.pack();
-			dialog.setLocationRelativeTo(parentWindow);
 			dialog.setVisible(true);
+			dialog.setLocationRelativeTo(parentWindow);
 		}
 		buff.applyBuff(character);
 		return buff;

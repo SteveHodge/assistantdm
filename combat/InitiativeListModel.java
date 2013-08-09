@@ -13,6 +13,7 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -24,16 +25,16 @@ import swing.ReorderableListModel;
 
 
 public class InitiativeListModel implements ReorderableListModel, ActionListener, ChangeListener, PartyListener {
-	Party party;
-	List<CombatEntry> list = new ArrayList<CombatEntry>();
+	private Party party;
+	private List<CombatEntry> list = new ArrayList<CombatEntry>();
 
-	EventListenerList listenerList = new EventListenerList();
+	private EventListenerList listenerList = new EventListenerList();
 
-	CombatEntry blankInit = null;
+	private CombatEntry blankInit = null;
 
-	boolean noSort = false;		// set to true to block sorting while we reorder entries
+	private boolean noSort = false;		// set to true to block sorting while we reorder entries
 
-	public InitiativeListModel(Party p) {
+	InitiativeListModel(Party p) {
 		party = p;
 		p.addPartyListener(this);
 		if (party != null) {
@@ -273,7 +274,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		listenerList.remove(ListDataListener.class,l);
 	}
 
-	protected void fireListDataEvent(int type, int index0, int index1) {
+	private void fireListDataEvent(int type, int index0, int index1) {
 		ListDataEvent e = null;
 		Object[] listeners = listenerList.getListenerList();
 		for (int i = listeners.length-2; i>=0; i-=2) {
@@ -294,7 +295,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	protected void addEntry(CombatEntry e) {
+	void addEntry(CombatEntry e) {
 		list.add(e);
 		e.addChangeListener(this);
 		e.addActionListener(this);
@@ -305,7 +306,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	protected void removeEntry(CombatEntry e) {
+	private void removeEntry(CombatEntry e) {
 		e.removeChangeListener(this);
 		e.removeActionListener(this);
 		int pos = list.indexOf(e);
@@ -352,7 +353,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	public String getInitiativeText() {
+	String getInitiativeText() {
 		String output = "";
 		int i = 0;
 		for (CombatEntry e : list) {
@@ -370,7 +371,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	// returns the number of entries moved
 	// start is the index of the entry to start from
 	// dir is the direction: -1 is down (total will be lower), +1 is up (total will be higher)
-	protected int testMove(int start, int dir) {
+	private int testMove(int start, int dir) {
 //		System.out.println("testMove(start="+start+", ignore="+ignore+", dir="+dir+")");
 //		for (int i=0; i<list.size(); i++) {
 //			System.out.println("  "+i+": "+list.get(i));
@@ -401,7 +402,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 
 	// start is the index of the entry to start from
 	// dir is the direction: -1 is down (total will be lower), +1 is up (total will be higher)
-	protected void moveEntries(int start, int dir) {
+	private void moveEntries(int start, int dir) {
 		//System.out.println("Moving entries from "+start+" in "+dir);
 		int i = start;
 		while (i >= 0 && i <= list.size()-1) {
@@ -436,7 +437,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	}
 
 	// removes all created (non-character) initiative entries and reset rolls
-	public void reset() {
+	void reset() {
 		// first check out all the entries and determine what to do with them
 		// we need to do it this way because both changing the rolls and removing entries
 		// will alter the list or list order
@@ -462,7 +463,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	public void parseDOM(Element el) {
+	void parseDOM(Element el) {
 		if (!el.getNodeName().equals("InitiativeList")) return;
 		reset();
 		NodeList nodes = el.getChildNodes();
@@ -485,15 +486,12 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	public String getXML(String indent, String nextIndent) {
-		StringBuilder b = new StringBuilder();
-		String nl = System.getProperty("line.separator");
-		b.append(indent).append("<InitiativeList>").append(nl);
+	Element getElement(Document doc) {
+		Element el = doc.createElement("InitiativeList");
 		for(CombatEntry e : list) {
-			if (e != blankInit) b.append(e.getXML(indent+nextIndent,nextIndent));
+			if (e != blankInit) el.appendChild(e.getElement(doc));
 		}
-		b.append(indent).append("</InitiativeList>").append(nl);
-		return b.toString();
+		return el;
 	}
 }
 

@@ -1,13 +1,20 @@
 package combat;
 
+import gamesystem.Buff;
+
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import party.Character;
 
 // TODO check args, particular index/row args
 @SuppressWarnings("serial")
@@ -17,49 +24,58 @@ public class EffectTableModel extends AbstractTableModel {
 	public final static int INITIATIVE_COLUMN = 2;
 	public final static int DURATION_COLUMN = 3;
 
-	public class Effect {
-		String effect;
-		String source;
-		int initiative;
-		int duration;
+	private class Effect {
+		private String effect;
+		private String source;
+		private int initiative;
+		private int duration;
+		private int buff_id;
 
-		public Effect (String effect, String source, int initiative, int duration) {
+		private Effect(String effect, String source, int initiative, int duration) {
+			this(effect, source, initiative, duration, 0);
+		}
+
+		private Effect(String effect, String source, int initiative, int duration, int buff_id) {
 			this.effect = effect;
 			this.source = source;
 			this.initiative = initiative;
 			this.duration = duration;
+			this.buff_id = buff_id;
 		}
 
-		protected String getDurationString() {
-			if (duration >= 900) {
-				return ""+(duration / 600)+" Hours";
-			} else if (duration >= 20) {
-				return ""+(duration / 10)+" Minutes";
-			}
-			return ""+duration+" Rounds";
-		}
+//		private String getDurationString() {
+//			if (duration >= 900) {
+//				return ""+(duration / 600)+" Hours";
+//			} else if (duration >= 20) {
+//				return ""+(duration / 10)+" Minutes";
+//			}
+//			return ""+duration+" Rounds";
+//		}
 
-		public String getXML(String indent, String nextIndent) {
-			StringBuilder b = new StringBuilder();
-			b.append(indent).append("<EffectEntry effect=\"").append(effect);
-			b.append("\" source=\"").append(source);
-			b.append("\" initiative=\"").append(initiative);
-			b.append("\" duration=\"").append(duration);
-			b.append("\"/>").append(System.getProperty("line.separator"));
-			return b.toString();
+		public Element getElement(Document doc) {
+			Element e = doc.createElement("EffectEntry");
+			e.setAttribute("effect", effect);
+			e.setAttribute("source", source);
+			e.setAttribute("initiative", "" + initiative);
+			e.setAttribute("duration", "" + duration);
+			if (buff_id > 0) e.setAttribute("buff_id", "" + buff_id);
+			return e;
 		}
 	}
 
-	List<Effect> list = new ArrayList<Effect>();
+	private List<Effect> list = new ArrayList<Effect>();
 
+	@Override
 	public int getColumnCount() {
 		return 4;
 	}
 
+	@Override
 	public int getRowCount() {
 		return list.size();
 	}
 
+	@Override
 	public Class<?> getColumnClass(int columnIndex) {
 		if (columnIndex == 0 || columnIndex == 1) {
 			return String.class;
@@ -69,6 +85,7 @@ public class EffectTableModel extends AbstractTableModel {
 		return super.getColumnClass(columnIndex);
 	}
 
+	@Override
 	public String getColumnName(int column) {
 		switch (column) {
 		case EFFECT_COLUMN:
@@ -83,6 +100,7 @@ public class EffectTableModel extends AbstractTableModel {
 		return super.getColumnName(column);
 	}
 
+	@Override
 	public Object getValueAt(int row, int col) {
 		Effect e = list.get(row);
 		switch (col) {
@@ -98,12 +116,13 @@ public class EffectTableModel extends AbstractTableModel {
 		return null;
 	}
 
+	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
 		return true;
 	}
 
+	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-		System.out.println("setValueAt: row = "+rowIndex+", col = "+columnIndex+", to "+aValue);
 		Effect e = list.get(rowIndex);
 		switch (columnIndex) {
 		case EFFECT_COLUMN:
@@ -122,39 +141,108 @@ public class EffectTableModel extends AbstractTableModel {
 		super.setValueAt(aValue, rowIndex, columnIndex);
 	}
 
-	public int addDuration(int row, int delta) {
+	int addDuration(int row, int delta) {
 		Effect e = list.get(row);
 		e.duration += delta;
 		fireTableCellUpdated(row, DURATION_COLUMN);
 		return e.duration;
 	}
 
-	public void removeEntry(int index) {
+	void removeEntry(int index) {
 		list.remove(index);
 		fireTableRowsDeleted(index, index);
 	}
 
-	public void addEntry(String effect, String source, int initiative, int duration) {
-		Effect e = new Effect(effect, source, initiative, duration);
+	void addEntry(String effect, String source, int initiative, int duration, Buff buff) {
+		Effect e;
+		if (buff != null) {
+			e = new Effect(effect, source, initiative, duration, buff.id);
+		} else {
+			e = new Effect(effect, source, initiative, duration);
+		}
 		addEntry(e);
 		this.fireTableRowsInserted(list.size()-1, list.size()-1);
 	}
 
-	public void addEntry(Effect e) {
+	private void addEntry(Effect e) {
 		list.add(e);
 	}
 
-	public Effect getEntry(int index) {
-		return list.get(index);
+	int getBuffID(int row) {
+		Effect e = list.get(row);
+		return e.buff_id;
 	}
 
-	public void clear() {
+//	private Effect getEntry(int index) {
+//		return list.get(index);
+//	}
+
+	void expireEffect(int index, Component parent, InitiativeListModel potentials) {
+		removeEffect(index, "Confirm buff expiry", getValueAt(index, EffectTableModel.EFFECT_COLUMN)
+				+ " has expired. Remove", parent, potentials);
+	}
+
+	void removeEffect(int index, Component parent, InitiativeListModel potentials) {
+		removeEffect(index, "Confirm delete", "Remove " + getValueAt(index, EffectTableModel.EFFECT_COLUMN), parent, potentials);
+	}
+
+	private void removeEffect(int index, String title, String text, Component parent, InitiativeListModel potentials) {
+		int buffId = getBuffID(index);
+		if (buffId > 0) {
+			// there is a buff attached to the effect so confirm it should be removed
+			List<Character> targets = new ArrayList<Character>();
+			Buff buff = null;
+			for (int i = 0; i < potentials.getSize(); i++) {
+				Object t = potentials.getElementAt(i);
+				if (t instanceof CharacterCombatEntry) {
+					Character c = ((CharacterCombatEntry) t).getCharacter();
+					for (int j = 0; j < c.buffs.getSize(); j++) {
+						Buff b = (Buff) c.buffs.get(j);
+						if (b.id == buffId) {
+							buff = b;
+							targets.add(c);
+						}
+					}
+				}
+			}
+			String targetList;
+			if (targets.size() == 0) {
+				// no targets, just remove it
+				removeEntry(index);
+			} else {
+				if (targets.size() == 1) {
+					targetList = targets.get(0).getName();
+				} else {
+					StringBuilder s = new StringBuilder();
+					for (Character c : targets) {
+						if (s.length() > 0) s.append(",\n");
+						s.append(c.getName());
+					}
+					targetList = "\n" + s;
+				}
+				int option = JOptionPane.showConfirmDialog(parent, text + " from " + targetList + "?", title, JOptionPane.YES_NO_OPTION);
+				if (option == JOptionPane.YES_OPTION) {
+					for (Character c : targets) {
+						buff.removeBuff(c);
+						c.buffs.removeElement(buff);
+					}
+					removeEntry(index);
+				}
+			}
+
+		} else {
+			// no buff, just remove it
+			removeEntry(index);
+		}
+	}
+
+	void clear() {
 		int size = list.size();
 		list.clear();
 		fireTableRowsDeleted(0, size-1);
 	}
 
-	public void parseDOM(Element el) {
+	void parseDOM(Element el) {
 		if (!el.getNodeName().equals("EffectList")) return;
 		list.clear();
 		int oldSize = list.size();
@@ -165,11 +253,21 @@ public class EffectTableModel extends AbstractTableModel {
 			Element e = (Element)nodes.item(i);
 			String tag = e.getTagName();
 			if (tag.equals("EffectEntry")) {
-				Effect c = new Effect(e.getAttribute("effect"),
-						e.getAttribute("source"),
-						Integer.parseInt(e.getAttribute("initiative")),
-						Integer.parseInt(e.getAttribute("duration"))
-						);
+				Effect c;
+				if (e.hasAttribute("buff_id")) {
+					c = new Effect(e.getAttribute("effect"),
+							e.getAttribute("source"),
+							Integer.parseInt(e.getAttribute("initiative")),
+							Integer.parseInt(e.getAttribute("duration")),
+							Integer.parseInt(e.getAttribute("buff_id"))
+							);
+				} else {
+					c = new Effect(e.getAttribute("effect"),
+							e.getAttribute("source"),
+							Integer.parseInt(e.getAttribute("initiative")),
+							Integer.parseInt(e.getAttribute("duration"))
+							);
+				}
 				addEntry(c);
 			}
 		}
@@ -178,14 +276,11 @@ public class EffectTableModel extends AbstractTableModel {
 		}
 	}
 
-	public String getXML(String indent, String nextIndent) {
-		StringBuilder b = new StringBuilder();
-		String nl = System.getProperty("line.separator");
-		b.append(indent).append("<EffectList>").append(nl);
-		for(Effect e : list) {
-			b.append(e.getXML(indent+nextIndent,nextIndent));
+	Element getElement(Document doc) {
+		Element el = doc.createElement("EffectList");
+		for (Effect e : list) {
+			el.appendChild(e.getElement(doc));
 		}
-		b.append(indent).append("</EffectList>").append(nl);
-		return b.toString();
+		return el;
 	}
 }
