@@ -145,7 +145,8 @@ public abstract class MapElement implements Serializable {
 		if (prop != null) {
 			prop.setValueUntyped(value);
 		} else {
-			System.out.println("Unknown property " + property);
+			//new Exception().printStackTrace();
+			System.out.println("Unknown property (set) " + property);
 		}
 	}
 
@@ -154,7 +155,8 @@ public abstract class MapElement implements Serializable {
 		if (prop != null) {
 			return prop.getValue();
 		} else {
-			System.out.println("Unknown property " + property);
+			System.out.println("Unknown property (get) " + property);
+			//new Exception().printStackTrace();
 			return null;
 		}
 	}

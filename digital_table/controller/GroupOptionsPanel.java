@@ -13,22 +13,22 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.Token;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class GroupOptionsPanel extends OptionsPanel {
+class GroupOptionsPanel extends OptionsPanel {
 	private Group group;
 
 	private JTextField labelField;
 	private JCheckBox visibleCheck;
 
-	public GroupOptionsPanel(MapElement parent, TableDisplay r) {
+	GroupOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		group = new Group();
-		sendElement(group, parent);
+		display.addElement(group, parent);
 		group.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		group.addPropertyChangeListener(listener);
 
@@ -56,11 +56,11 @@ public class GroupOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public Group getElement() {
+	Group getElement() {
 		return group;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Group.PROPERTY_LABEL)) {
@@ -73,11 +73,11 @@ public class GroupOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	protected MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		protected String getDragTarget(Point2D gridLocation) {
 			return Group.PROPERTY_LOCATION;
@@ -85,10 +85,10 @@ public class GroupOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "Group";
+	final static String XML_TAG = "Group";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAttribute(e, Group.PROPERTY_LABEL, group.getProperty(Group.PROPERTY_LABEL));
 		Point2D location = (Point2D)group.getProperty(Group.PROPERTY_LOCATION);
@@ -98,7 +98,7 @@ public class GroupOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(Group.PROPERTY_LABEL, e, Mode.LOCAL);
@@ -110,8 +110,7 @@ public class GroupOptionsPanel extends OptionsPanel {
 			Double x = Double.parseDouble(coords[0]);
 			Double y = Double.parseDouble(coords[1]);
 			Point2D value = new Point2D.Double(x, y);
-			group.setProperty(Group.PROPERTY_LOCATION, value);
-			setRemote(group.getID(), Group.PROPERTY_LOCATION, value);
+			display.setProperty(group, Group.PROPERTY_LOCATION, value);
 //			} catch (NumberFormatException e) {
 //			}
 		}

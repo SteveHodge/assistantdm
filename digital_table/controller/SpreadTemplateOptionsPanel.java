@@ -20,13 +20,13 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
 import digital_table.elements.SpreadTemplate;
-import digital_table.server.TableDisplay;
 
 
 @SuppressWarnings("serial")
-public class SpreadTemplateOptionsPanel extends OptionsPanel {
+class SpreadTemplateOptionsPanel extends OptionsPanel {
 	private SpreadTemplate template;
 	private JTextField radiusField;
 	private JTextField xField;
@@ -38,10 +38,10 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
 
-	public SpreadTemplateOptionsPanel(MapElement parent, TableDisplay r) {
+	SpreadTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		template = new SpreadTemplate(4, 10, 10);
-		sendElement(template, parent);
+		display.addElement(template, parent);
 		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		template.addPropertyChangeListener(listener);
 
@@ -94,7 +94,7 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public SpreadTemplate getElement() {
+	SpreadTemplate getElement() {
 		return template;
 	}
 
@@ -132,11 +132,11 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 			return "location";
@@ -144,10 +144,8 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			setRemote(template.getID(), SpreadTemplate.PROPERTY_X, (int) p.getX());
-			setRemote(template.getID(), SpreadTemplate.PROPERTY_Y, (int) p.getY());
-			template.setProperty(SpreadTemplate.PROPERTY_X, (int) p.getX());
-			template.setProperty(SpreadTemplate.PROPERTY_Y, (int) p.getY());
+			display.setProperty(template, SpreadTemplate.PROPERTY_X, (int) p.getX());
+			display.setProperty(template, SpreadTemplate.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override
@@ -158,10 +156,10 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "SpreadTemplate";
+	final static String XML_TAG = "SpreadTemplate";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + SpreadTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -169,17 +167,17 @@ public class SpreadTemplateOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseEnumAttribute(SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.class, e, Mode.BOTH);
-		parseEnumAttribute(SpreadTemplate.PROPERTY_TYPE, SpreadTemplate.Type.class, e, Mode.BOTH);
+		parseEnumAttribute(SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.class, e, Mode.ALL);
+		parseEnumAttribute(SpreadTemplate.PROPERTY_TYPE, SpreadTemplate.Type.class, e, Mode.ALL);
 		parseStringAttribute(SpreadTemplate.PROPERTY_LABEL, e, Mode.LOCAL);
-		parseColorAttribute(SpreadTemplate.PROPERTY_COLOR, e, Mode.BOTH);
-		parseFloatAttribute(SpreadTemplate.PROPERTY_ALPHA, e, Mode.BOTH);
-		parseIntegerAttribute(SpreadTemplate.PROPERTY_RADIUS, e, Mode.BOTH);
-		parseIntegerAttribute(SpreadTemplate.PROPERTY_X, e, Mode.BOTH);
-		parseIntegerAttribute(SpreadTemplate.PROPERTY_Y, e, Mode.BOTH);
+		parseColorAttribute(SpreadTemplate.PROPERTY_COLOR, e, Mode.ALL);
+		parseFloatAttribute(SpreadTemplate.PROPERTY_ALPHA, e, Mode.ALL);
+		parseIntegerAttribute(SpreadTemplate.PROPERTY_RADIUS, e, Mode.ALL);
+		parseIntegerAttribute(SpreadTemplate.PROPERTY_X, e, Mode.ALL);
+		parseIntegerAttribute(SpreadTemplate.PROPERTY_Y, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }

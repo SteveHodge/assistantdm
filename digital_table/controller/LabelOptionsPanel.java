@@ -17,12 +17,12 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class LabelOptionsPanel extends OptionsPanel {
+class LabelOptionsPanel extends OptionsPanel {
 	private Label label;
 
 	private JTextField xField;
@@ -36,10 +36,10 @@ public class LabelOptionsPanel extends OptionsPanel {
 	private JTextField textField;
 	private JCheckBox visibleCheck;
 
-	public LabelOptionsPanel(MapElement parent, TableDisplay r) {
+	LabelOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		label= new Label();
-		sendElement(label, parent);
+		display.addElement(label, parent);
 		label.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		label.addPropertyChangeListener(listener);
 
@@ -48,9 +48,9 @@ public class LabelOptionsPanel extends OptionsPanel {
 		alphaSlider = createSliderControl(label, Label.PROPERTY_ALPHA);
 		colorPanel = createColorControl(label, Label.PROPERTY_COLOR);
 		bgColorPanel = createColorControl(label, Label.PROPERTY_BACKGROUND_COLOR);
-		rotationsCombo = createRotationControl(label, Label.PROPERTY_ROTATIONS, Mode.BOTH);
+		rotationsCombo = createRotationControl(label, Label.PROPERTY_ROTATIONS, Mode.ALL);
 		visibleCheck = createVisibilityControl(label);
-		bgCheck = createCheckBox(label, Label.PROPERTY_SOLID_BACKGROUND, Mode.BOTH, "show background?");
+		bgCheck = createCheckBox(label, Label.PROPERTY_SOLID_BACKGROUND, Mode.ALL, "show background?");
 		fontSizeField = createDoubleControl(label, Label.PROPERTY_FONT_SIZE);
 		textField = createStringControl(label, Label.PROPERTY_TEXT);
 
@@ -92,11 +92,11 @@ public class LabelOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public Label getElement() {
+	Label getElement() {
 		return label;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Label.PROPERTY_ALPHA)) {
@@ -133,11 +133,11 @@ public class LabelOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 			return "location";
@@ -145,10 +145,8 @@ public class LabelOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			setRemote(label.getID(), Label.PROPERTY_X, p.getX());
-			setRemote(label.getID(), Label.PROPERTY_Y, p.getY());
-			label.setProperty(Label.PROPERTY_X, p.getX());
-			label.setProperty(Label.PROPERTY_Y, p.getY());
+			display.setProperty(label, Label.PROPERTY_X, p.getX());
+			display.setProperty(label, Label.PROPERTY_Y, p.getY());
 		}
 
 		@Override
@@ -159,10 +157,10 @@ public class LabelOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "Label";
+	final static String XML_TAG = "Label";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + Label.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -170,18 +168,18 @@ public class LabelOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseStringAttribute(Label.PROPERTY_TEXT, e, Mode.BOTH);
-		parseColorAttribute(Label.PROPERTY_COLOR, e, Mode.BOTH);
-		parseColorAttribute(Label.PROPERTY_BACKGROUND_COLOR, e, Mode.BOTH);
-		parseFloatAttribute(Label.PROPERTY_ALPHA, e, Mode.BOTH);
-		parseDoubleAttribute(Label.PROPERTY_X, e, Mode.BOTH);
-		parseDoubleAttribute(Label.PROPERTY_Y, e, Mode.BOTH);
-		parseIntegerAttribute(Label.PROPERTY_ROTATIONS, e, Mode.BOTH);
-		parseDoubleAttribute(Label.PROPERTY_FONT_SIZE, e, Mode.BOTH);
-		parseBooleanAttribute(Label.PROPERTY_SOLID_BACKGROUND, e, Mode.BOTH);
+		parseStringAttribute(Label.PROPERTY_TEXT, e, Mode.ALL);
+		parseColorAttribute(Label.PROPERTY_COLOR, e, Mode.ALL);
+		parseColorAttribute(Label.PROPERTY_BACKGROUND_COLOR, e, Mode.ALL);
+		parseFloatAttribute(Label.PROPERTY_ALPHA, e, Mode.ALL);
+		parseDoubleAttribute(Label.PROPERTY_X, e, Mode.ALL);
+		parseDoubleAttribute(Label.PROPERTY_Y, e, Mode.ALL);
+		parseIntegerAttribute(Label.PROPERTY_ROTATIONS, e, Mode.ALL);
+		parseDoubleAttribute(Label.PROPERTY_FONT_SIZE, e, Mode.ALL);
+		parseBooleanAttribute(Label.PROPERTY_SOLID_BACKGROUND, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }

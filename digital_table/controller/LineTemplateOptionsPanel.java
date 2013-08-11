@@ -16,27 +16,27 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class LineTemplateOptionsPanel extends OptionsPanel {
-	LineTemplate template;
-	JTextField xField;
-	JTextField yField;
-	JTextField rangeField;
-	JTextField originXField;
-	JTextField originYField;
-	JPanel colorPanel;
-	JTextField labelField;
-	JSlider alphaSlider;
-	JCheckBox visibleCheck;
+class LineTemplateOptionsPanel extends OptionsPanel {
+	private LineTemplate template;
+	private JTextField xField;
+	private JTextField yField;
+	private JTextField rangeField;
+	private JTextField originXField;
+	private JTextField originYField;
+	private JPanel colorPanel;
+	private JTextField labelField;
+	private JSlider alphaSlider;
+	private JCheckBox visibleCheck;
 
-	public LineTemplateOptionsPanel(MapElement parent, TableDisplay r) {
+	LineTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		template = new LineTemplate(18, 14, 21, 7);
-		sendElement(template, parent);
+		display.addElement(template, parent);
 		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		template.addPropertyChangeListener(listener);
 
@@ -79,11 +79,11 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public LineTemplate getElement() {
+	LineTemplate getElement() {
 		return template;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(LineTemplate.PROPERTY_ALPHA)) {
@@ -117,11 +117,11 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 
@@ -138,10 +138,10 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "LineTemplate";
+	final static String XML_TAG = "LineTemplate";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -149,17 +149,17 @@ public class LineTemplateOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(LineTemplate.PROPERTY_LABEL, e, Mode.LOCAL);
-		parseColorAttribute(LineTemplate.PROPERTY_COLOR, e, Mode.BOTH);
-		parseFloatAttribute(LineTemplate.PROPERTY_ALPHA, e, Mode.BOTH);
-		parseIntegerAttribute(LineTemplate.PROPERTY_X, e, Mode.BOTH);
-		parseIntegerAttribute(LineTemplate.PROPERTY_Y, e, Mode.BOTH);
-		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_X, e, Mode.BOTH);
-		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_Y, e, Mode.BOTH);
-		parseIntegerAttribute(LineTemplate.PROPERTY_RANGE, e, Mode.BOTH);
+		parseColorAttribute(LineTemplate.PROPERTY_COLOR, e, Mode.ALL);
+		parseFloatAttribute(LineTemplate.PROPERTY_ALPHA, e, Mode.ALL);
+		parseIntegerAttribute(LineTemplate.PROPERTY_X, e, Mode.ALL);
+		parseIntegerAttribute(LineTemplate.PROPERTY_Y, e, Mode.ALL);
+		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_X, e, Mode.ALL);
+		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_Y, e, Mode.ALL);
+		parseIntegerAttribute(LineTemplate.PROPERTY_RANGE, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }

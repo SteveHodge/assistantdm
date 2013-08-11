@@ -112,8 +112,8 @@ public class Token extends Group {
 		private String description;
 	}
 
-	private Property<StatusDisplay> statusDisplay = new Property<StatusDisplay>(PROPERTY_STATUS_DISPLAY, StatusDisplay.LABEL, StatusDisplay.class);
-	private Property<StatusType> statusType = new Property<StatusType>(PROPERTY_STATUS_TYPE, StatusType.EXACT, StatusType.class);
+	private Property<StatusDisplay> statusDisplay = new Property<StatusDisplay>(PROPERTY_STATUS_DISPLAY, StatusDisplay.NONE, StatusDisplay.class);
+	private Property<StatusType> statusType = new Property<StatusType>(PROPERTY_STATUS_TYPE, StatusType.SIMPLE_STATUS, StatusType.class);
 //	private Property<CreatureSize> size = new Property<CreatureSize>(PROPERTY_SIZE, CreatureSize.MEDIUM, CreatureSize.class);
 	private Property<Integer> space = new Property<Integer>(PROPERTY_SPACE, 10, Integer.class);
 	private Property<Integer> reach = new Property<Integer>(PROPERTY_REACH, 5, Integer.class);
@@ -187,6 +187,9 @@ public class Token extends Group {
 
 		CreatureStatus status = getStatus();
 
+		AffineTransform t = g.getTransform();
+		g.rotate(Math.toRadians(rotations.getValue() * 90), (br.x + tl.x) / 2, (br.y + tl.y) / 2);
+
 		// paint background:
 		Shape s = new RoundRectangle2D.Float(tl.x + inset, tl.y + inset, br.x - tl.x - inset * 2, br.y - tl.y - inset * 2, arcWidth, arcHeight);
 		if (statusDisplay.getValue() == StatusDisplay.BACKGROUND && status != null) {
@@ -259,6 +262,7 @@ public class Token extends Group {
 			g.fillOval((int) (tl.x + inset + w / 2), (int) (tl.y + inset + h / 2), w, h);
 		}
 
+		g.setTransform(t);
 		g.setComposite(c);
 		g.translate(-o.getX(), -o.getY());
 	}
@@ -375,34 +379,22 @@ public class Token extends Group {
 		return new Area(rect);
 	}
 
-	// TODO do scaling at the same time as rotate
 	private void resizeImage(Rectangle2D bounds) {
-		AffineTransform t = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
-		Point p = new Point(sourceImage.getWidth(), sourceImage.getHeight());
-		t.transform(p, p);	// transform to get new dimensions
-
-		BufferedImage rotatedImage = new BufferedImage(Math.abs(p.x), Math.abs(p.y), BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2d = (Graphics2D) rotatedImage.getGraphics();
-		g2d.rotate(Math.toRadians(rotations.getValue() * 90), rotatedImage.getWidth() / 2, rotatedImage.getHeight() / 2);
-		g2d.translate((rotatedImage.getWidth() - sourceImage.getWidth()) / 2, (rotatedImage.getHeight() - sourceImage.getHeight()) / 2);
-		g2d.drawImage(sourceImage, 0, 0, sourceImage.getWidth(), sourceImage.getHeight(), null);
-		g2d.dispose();
-
 		Dimension b = new Dimension((int) bounds.getWidth(), (int) bounds.getHeight());
-		int scaledWidth = (int) (rotatedImage.getWidth() * b.getHeight() / rotatedImage.getHeight());	// width if we scale to fit the height
-		int scaledHeight = (int) (rotatedImage.getHeight() * b.getWidth() / rotatedImage.getWidth());	// // height if we scale to fit the width
+		int scaledWidth = (int) (sourceImage.getWidth() * b.getHeight() / sourceImage.getHeight());	// width if we scale to fit the height
+		int scaledHeight = (int) (sourceImage.getHeight() * b.getWidth() / sourceImage.getWidth());	// // height if we scale to fit the width
 		//System.out.println("scaledWidth = "+scaledWidth+", scaledHeight = "+scaledHeight);
 		if (scaledWidth <= bounds.getWidth()) {
 			// scaledWidth fits so use (scaledWidth, bounds.getHeight())
 			if (cachedImage == null || cachedSize.getWidth() > b.width || cachedSize.getHeight() > b.height || cachedSize.getHeight() < b.height - 2) {
-				cachedImage = rotatedImage.getScaledInstance(scaledWidth, b.height, Image.SCALE_SMOOTH);
+				cachedImage = sourceImage.getScaledInstance(scaledWidth, b.height, Image.SCALE_SMOOTH);
 				cachedSize = new Dimension(scaledWidth, b.height);
 				//System.out.println("Resized to "+cachedSize+" to fit "+bounds);
 			}
 		} else {
 			// use (bounds.getWidth(), scaledHeight)
 			if (cachedImage == null || cachedSize.getWidth() > b.width || cachedSize.getWidth() < b.width - 2 || cachedSize.getHeight() > b.height) {
-				cachedImage = rotatedImage.getScaledInstance(b.width, scaledHeight, Image.SCALE_SMOOTH);
+				cachedImage = sourceImage.getScaledInstance(b.width, scaledHeight, Image.SCALE_SMOOTH);
 				cachedSize = new Dimension(b.width, scaledHeight);
 				//System.out.println("Resized to "+cachedSize+" to fit "+bounds);
 			}

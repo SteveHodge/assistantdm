@@ -17,13 +17,13 @@ import javax.swing.JSlider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.DarknessMask;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class DarknessMaskOptionsPanel extends OptionsPanel {
+class DarknessMaskOptionsPanel extends OptionsPanel {
 	private DarknessMask darkness;
 
 	private JPanel colorPanel;
@@ -31,17 +31,17 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 	private JCheckBox lowLightCheck;
 	private JCheckBox visibleCheck;
 
-	public DarknessMaskOptionsPanel(MapElement parent, TableDisplay r) {
+	DarknessMaskOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		darkness = new DarknessMask();
 		darkness.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		sendElement(darkness, parent);
+		display.addElement(darkness, parent);
 		darkness.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
 		darkness.addPropertyChangeListener(listener);
 
 		colorPanel = createColorControl(darkness, DarknessMask.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(darkness, DarknessMask.PROPERTY_ALPHA, Mode.LOCAL);
-		lowLightCheck = this.createCheckBox(darkness, DarknessMask.PROPERTY_LOW_LIGHT, Mode.BOTH, "Lowlight vision");
+		lowLightCheck = this.createCheckBox(darkness, DarknessMask.PROPERTY_LOW_LIGHT, Mode.ALL, "Lowlight vision");
 		visibleCheck = createVisibilityControl(darkness);
 		visibleCheck.setSelected(true);
 
@@ -67,11 +67,11 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public DarknessMask getElement() {
+	DarknessMask getElement() {
 		return darkness;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(DarknessMask.PROPERTY_ALPHA)) {
@@ -90,21 +90,21 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	protected MapElementMouseListener mouseListener = new MapElementMouseListener() {
-		protected boolean dragging = false;
-		protected int button;
-		protected boolean dragClear;	// when dragging if true then we clear cells, otherwise we reset cells
+	private MapElementMouseListener mouseListener = new MapElementMouseListener() {
+		private boolean dragging = false;
+		private int button;
+		private boolean dragClear;	// when dragging if true then we clear cells, otherwise we reset cells
 
-		protected void setMasked(Point p, boolean mask) {
+		private void setMasked(Point p, boolean mask) {
 			darkness.setMasked(p, mask);
 			if (mask) {
-				setRemote(darkness.getID(), DarknessMask.PROPERTY_MASKCELL, p);
+				display.setProperty(darkness, DarknessMask.PROPERTY_MASKCELL, p, Mode.REMOTE);
 			} else {
-				setRemote(darkness.getID(), DarknessMask.PROPERTY_UNMASKCELL, p);
+				display.setProperty(darkness, DarknessMask.PROPERTY_UNMASKCELL, p, Mode.REMOTE);
 			}
 		}
 
@@ -145,10 +145,10 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "DarknessMask";
+	final static String XML_TAG = "DarknessMask";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + LineTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -156,12 +156,12 @@ public class DarknessMaskOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseColorAttribute(DarknessMask.PROPERTY_COLOR, e, Mode.BOTH);
+		parseColorAttribute(DarknessMask.PROPERTY_COLOR, e, Mode.ALL);
 		parseFloatAttribute(DarknessMask.PROPERTY_ALPHA, e, Mode.LOCAL);
-		parseBooleanAttribute(DarknessMask.PROPERTY_LOW_LIGHT, e, Mode.BOTH);
+		parseBooleanAttribute(DarknessMask.PROPERTY_LOW_LIGHT, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }

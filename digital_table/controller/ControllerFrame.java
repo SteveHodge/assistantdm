@@ -11,7 +11,6 @@ import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,9 +52,10 @@ import digital_table.server.TableDisplay;
 public class ControllerFrame extends JFrame {
 	private static ControllerFrame instance = null;	// TODO remove
 
-	private TableDisplay display;
-	private CameraPanel camera;
+	private DisplayManager display;
 	private MiniMapPanel miniMapPanel = new MiniMapPanel();
+	private TokenOverlay overlay = null;
+	private CameraPanel camera;
 	private JPanel elementPanel = new JPanel();
 	private Map<MapElement, OptionsPanel> optionPanels = new HashMap<MapElement, OptionsPanel>();
 	private JList availableList;
@@ -75,7 +75,11 @@ public class ControllerFrame extends JFrame {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(windowListener);
 
-		display = remote;
+		if (camera != null) {
+			overlay = new TokenOverlay();
+			camera.setOverlayGenerator(this);
+		}
+		display = new DisplayManager(remote, miniMapPanel, overlay);
 
 		miniMapPanel.addMouseMotionListener(miniMapMouseListener);
 		miniMapPanel.addMouseListener(miniMapMouseListener);
@@ -170,15 +174,10 @@ public class ControllerFrame extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				MapElement element = getSelectedElement();
 				if (element != null && element != gridPanel.getElement()) {
-					try {
-						elementPanel.removeAll();
-						elementPanel.revalidate();
-						display.removeElement(element.getID());
-						miniMapPanel.removeElement(element.getID());
-						optionPanels.remove(element);
-					} catch (RemoteException e) {
-						e.printStackTrace();
-					}
+					elementPanel.removeAll();
+					elementPanel.revalidate();
+					display.removeElement(element);
+					optionPanels.remove(element);
 				}
 			}
 		});
@@ -189,13 +188,8 @@ public class ControllerFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				MapElement element = getSelectedElement();
 				if (element != null) {
-					try {
-						display.promoteElement(element.getID());
-						miniMapPanel.promoteElement(element);
-						elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
-					} catch (RemoteException e1) {
-						e1.printStackTrace();
-					}
+					display.promoteElement(element);
+					elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
 				}
 			}
 		});
@@ -206,13 +200,8 @@ public class ControllerFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				MapElement element = getSelectedElement();
 				if (element != null) {
-					try {
-						display.demoteElement(element.getID());
-						miniMapPanel.demoteElement(element);
-						elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
-					} catch (RemoteException e1) {
-						e1.printStackTrace();
-					}
+					display.demoteElement(element);
+					elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
 				}
 			}
 		});
@@ -250,7 +239,6 @@ public class ControllerFrame extends JFrame {
 		pack();
 
 		gridPanel = new GridOptionsPanel(display);
-		miniMapPanel.addElement(gridPanel.getElement(), null);
 		optionPanels.put(gridPanel.getElement(), gridPanel);
 
 		setVisible(true);
@@ -267,24 +255,20 @@ public class ControllerFrame extends JFrame {
 
 	public void quit() {
 		System.out.println("Requesting exit");
-		try {
-			display.requestExit();
-			Platform.exit();
-			dispose();
+		display.requestExit();
+		Platform.exit();
+		dispose();
 
-			//			ThreadGroup group = Thread.currentThread().getThreadGroup();
-			//			Thread[] threads = new Thread[group.activeCount()];
-			//			int count = group.enumerate(threads);
-			//			System.out.println("ThreadGroup: "+group);
-			//			System.out.println("Parent = "+group.getParent());
-			//			System.out.println("Active threads = "+count);
-			//			for (int i = 0; i < count; i++) {
-			//				if (threads[i] == Thread.currentThread()) System.out.print("*");
-			//				System.out.println(threads[i].getName()+" ("+threads[i].getId()+")");
-			//			}
-		} catch (RemoteException e1) {
-			e1.printStackTrace();
-		}
+		//			ThreadGroup group = Thread.currentThread().getThreadGroup();
+		//			Thread[] threads = new Thread[group.activeCount()];
+		//			int count = group.enumerate(threads);
+		//			System.out.println("ThreadGroup: "+group);
+		//			System.out.println("Parent = "+group.getParent());
+		//			System.out.println("Active threads = "+count);
+		//			for (int i = 0; i < count; i++) {
+		//				if (threads[i] == Thread.currentThread()) System.out.print("*");
+		//				System.out.println(threads[i].getName()+" ("+threads[i].getId()+")");
+		//			}
 	}
 
 	public static void addMonster(Monster m, File imageFile) {
@@ -418,7 +402,6 @@ public class ControllerFrame extends JFrame {
 			if (panel != null) {
 				MapElement element = panel.getElement();
 				element.addPropertyChangeListener(labelListener);
-				miniMapPanel.addElement(element, parent);
 				optionPanels.put(element, panel);
 				elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
 				//elementList.setSelectedValue(element, true);
@@ -601,7 +584,6 @@ public class ControllerFrame extends JFrame {
 				p = new ImageOptionsPanel(file, parent, display);
 				MapElement element = p.getElement();
 				element.addPropertyChangeListener(labelListener);
-				miniMapPanel.addElement(element, parent);
 				optionPanels.put(element, p);
 				elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
 			}
@@ -623,5 +605,9 @@ public class ControllerFrame extends JFrame {
 		if (!el.getTagName().equals("Elements")) return;
 
 		parseNode(el, null);
+	}
+
+	public void updateOverlay(int width, int height) {
+		overlay.updateOverlay(width, height);
 	}
 }

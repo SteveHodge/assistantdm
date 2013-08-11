@@ -52,10 +52,8 @@ public class CombatPanel extends JPanel {
 
 	private Party party;
 	private InitiativeListModel initiativeListModel;
-	//private EffectListModel effectsListModel;
 	private EffectTableModel effectsTableModel;
 	private int round = 0;
-	//private Updater fileUpdater = new Updater();
 	private List<InitiativeListener> listeners = new ArrayList<InitiativeListener>();
 
 	// TODO need to remove this static instance

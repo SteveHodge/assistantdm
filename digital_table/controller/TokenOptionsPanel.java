@@ -36,10 +36,10 @@ import party.Creature;
 import combat.CombatPanel;
 import combat.InitiativeListModel;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.Token;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 public class TokenOptionsPanel extends OptionsPanel {
@@ -50,6 +50,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 	private JPanel colorPanel;
 	private JTextField labelField;
 	private JTextField remoteLabelField;
+	private JTextField webLabelField;
 	private JSlider alphaSlider;
 	private JComboBox sizeCombo;
 	private JTextField spaceField;
@@ -64,14 +65,15 @@ public class TokenOptionsPanel extends OptionsPanel {
 	private JComboBox statusDisplayCombo;
 	private JCheckBox visibleCheck;
 	private Creature creature;
+	private File imageFile = null;
 
-	// TODO shouldn't be public
-	public static File imageFile = new File(".");	// last selected image - used to keep the current directory
+	// TODO shouldn't be public - default directories should be moved to a global config class
+	public static File lastDir = new File(".");	// last selected image - used to keep the current directory
 
-	TokenOptionsPanel(MapElement parent, TableDisplay r) {
+	TokenOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		token = new Token();
-		sendElement(token, parent);
+		display.addElement(token, parent);
 		token.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		token.addPropertyChangeListener(listener);
 
@@ -80,17 +82,26 @@ public class TokenOptionsPanel extends OptionsPanel {
 		colorPanel = createColorControl(token, Token.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(token, Token.PROPERTY_ALPHA);
 		reachField = createIntegerControl(token, Token.PROPERTY_REACH);
-		rotationsCombo = createRotationControl(token, Token.PROPERTY_ROTATIONS, Mode.BOTH);
+		rotationsCombo = createRotationControl(token, Token.PROPERTY_ROTATIONS, Mode.ALL);
 		labelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.LOCAL);
 		remoteLabelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.REMOTE);
 		visibleCheck = createVisibilityControl(token);
 		localReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.LOCAL, "local");
 		remoteReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.REMOTE, "remote");
-		reachWeapon = createCheckBox(token, Token.PROPERTY_REACHWEAPON, Mode.BOTH, "Reach weapon?");
-		maxHPsField = createNullableIntegerControl(token, Token.PROPERTY_MAX_HPS, Mode.BOTH);
-		currentHPsField = createNullableIntegerControl(token, Token.PROPERTY_CURRENT_HPS, Mode.BOTH);
+		reachWeapon = createCheckBox(token, Token.PROPERTY_REACHWEAPON, Mode.ALL, "Reach weapon?");
+		maxHPsField = createNullableIntegerControl(token, Token.PROPERTY_MAX_HPS, Mode.ALL);
+		currentHPsField = createNullableIntegerControl(token, Token.PROPERTY_CURRENT_HPS, Mode.ALL);
 		statusCombo = createComboControl(token, Token.PROPERTY_STATUS_TYPE, Token.StatusType.values());
 		statusDisplayCombo = createComboControl(token, Token.PROPERTY_STATUS_DISPLAY, Token.StatusDisplay.values());
+
+		webLabelField = new JTextField(30);
+		webLabelField.setText("");
+		webLabelField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				display.setProperty(token, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText(), Mode.OVERLAY);
+			}
+		});
 
 		sizeCombo = new JComboBox(CreatureSize.values());
 		sizeCombo.setSelectedItem(CreatureSize.MEDIUM);
@@ -99,10 +110,8 @@ public class TokenOptionsPanel extends OptionsPanel {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox combo = (JComboBox) e.getSource();
 				CreatureSize selected = (CreatureSize) combo.getSelectedItem();
-				setRemote(token.getID(), Token.PROPERTY_SPACE, selected.getSpace());
-				setRemote(token.getID(), Token.PROPERTY_REACH, selected.getReach());
-				token.setProperty(Token.PROPERTY_SPACE, selected.getSpace());
-				token.setProperty(Token.PROPERTY_REACH, selected.getReach());
+				display.setProperty(token, Token.PROPERTY_SPACE, selected.getSpace());
+				display.setProperty(token, Token.PROPERTY_REACH, selected.getReach());
 			}
 		});
 
@@ -113,8 +122,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int newSpace = (int) (Double.parseDouble(spaceField.getText()) * 2);
-				setRemote(token.getID(), Token.PROPERTY_SPACE, newSpace);
-				token.setProperty(Token.PROPERTY_SPACE, newSpace);
+				display.setProperty(token, Token.PROPERTY_SPACE, newSpace);
 			}
 		});
 
@@ -129,7 +137,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (imageFile != null) chooser.setCurrentDirectory(imageFile);
+				if (lastDir != null) chooser.setCurrentDirectory(lastDir);
 				if (chooser.showOpenDialog(TokenOptionsPanel.this) == JFileChooser.APPROVE_OPTION) {
 					setImage(chooser.getSelectedFile());
 				} else {
@@ -138,56 +146,59 @@ public class TokenOptionsPanel extends OptionsPanel {
 			}
 		});
 
-		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 0; add(visibleCheck, c);
-		c.gridy++; add(new JLabel("Remote Label:"), c);
+		c.gridy = 0;
+		add(visibleCheck, c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("Remote Label:"), c);
+		add(new JLabel("Web Label:"), c);
 		if (CombatPanel.getCombatPanel() != null) {
-			c.gridy++; add(new JLabel("For:"), c);
+			add(new JLabel("For:"), c);
 		}
-		c.gridy++; add(new JLabel("Status Display:"), c);
-		c.gridy++; add(new JLabel("Status Level:"), c);
-		c.gridy++; add(new JLabel("Max HPs:"), c);
-		c.gridy++; add(new JLabel("Current HPs:"), c);
-		c.gridy++; add(new JLabel("Column:"), c);
-		c.gridy++; add(new JLabel("Row:"), c);
-		c.gridy++; add(new JLabel("Size:"), c);
-		c.gridy++; add(new JLabel("Space:"), c);
-		c.gridy++; add(new JLabel("Reach:"), c);
-		c.gridy++; add(new JLabel("Rotation:"), c);
-		c.gridy++; add(new JLabel("Colour:"), c);
-		c.gridy++; add(new JLabel("Transparency:"), c);
-		c.gridy++; add(new JLabel("Show reach:"), c);
+		add(new JLabel("Status Display:"), c);
+		add(new JLabel("Status Level:"), c);
+		add(new JLabel("Max HPs:"), c);
+		add(new JLabel("Current HPs:"), c);
+		add(new JLabel("Column:"), c);
+		add(new JLabel("Row:"), c);
+		add(new JLabel("Size:"), c);
+		add(new JLabel("Space:"), c);
+		add(new JLabel("Reach:"), c);
+		add(new JLabel("Rotation:"), c);
+		add(new JLabel("Colour:"), c);
+		add(new JLabel("Transparency:"), c);
+		add(new JLabel("Show reach:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 0; add(labelField, c);
-		c.gridy++; add(remoteLabelField, c);
+		c.gridy = 0;
+		add(labelField, c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(remoteLabelField, c);
+		add(webLabelField, c);
 		if (CombatPanel.getCombatPanel() != null) {
-			c.gridy++; add(creatureCombo, c);
+			add(creatureCombo, c);
 		}
-		c.gridy++; add(statusDisplayCombo, c);
-		c.gridy++; add(statusCombo, c);
-		c.gridy++; add(maxHPsField, c);
-		c.gridy++; add(currentHPsField, c);
-		c.gridy++; add(xField, c);
-		c.gridy++; add(yField, c);
-		c.gridy++; add(sizeCombo, c);
-		c.gridy++; add(spaceField, c);
-		c.gridy++; add(reachField, c);
-		c.gridy++; add(rotationsCombo, c);
-		c.gridy++; add(colorPanel, c);
-		c.gridy++; add(alphaSlider, c);
+		add(statusDisplayCombo, c);
+		add(statusCombo, c);
+		add(maxHPsField, c);
+		add(currentHPsField, c);
+		add(xField, c);
+		add(yField, c);
+		add(sizeCombo, c);
+		add(spaceField, c);
+		add(reachField, c);
+		add(rotationsCombo, c);
+		add(colorPanel, c);
+		add(alphaSlider, c);
 		JPanel p = new JPanel();
 		p.add(localReach);
 		p.add(remoteReach);
 		p.add(reachWeapon);
-		c.gridy++;
 		add(p, c);
-		c.gridy++;
 		add(imageButton, c);
 
 		c.fill = GridBagConstraints.BOTH;
@@ -201,6 +212,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 
 	void setImage(File f) {
 		imageFile = f;
+		lastDir = f;
 		byte bytes[];
 		if (f == null) {
 			bytes = null;
@@ -213,7 +225,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 				e.printStackTrace();
 			}
 		}
-		setRemote(token.getID(), Token.PROPERTY_IMAGE, bytes);
+		display.setProperty(token, Token.PROPERTY_IMAGE, bytes, Mode.REMOTE);
 		token.setImage(imageFile);
 	}
 
@@ -224,12 +236,9 @@ public class TokenOptionsPanel extends OptionsPanel {
 		}
 		creature = c;
 		if (creature == null) {
-			setRemote(token.getID(), Token.PROPERTY_MAX_HPS, 0);
-			setRemote(token.getID(), Token.PROPERTY_CURRENT_HPS, 0);
-			setRemote(token.getID(), Token.PROPERTY_LABEL, "");
-			token.setProperty(Token.PROPERTY_MAX_HPS, 0);
-			token.setProperty(Token.PROPERTY_CURRENT_HPS, 0);
-			token.setProperty(Token.PROPERTY_LABEL, "");
+			display.setProperty(token, Token.PROPERTY_MAX_HPS, 0);
+			display.setProperty(token, Token.PROPERTY_CURRENT_HPS, 0);
+			display.setProperty(token, Token.PROPERTY_LABEL, "");
 			maxHPsField.setText("");
 			currentHPsField.setText("");
 			labelField.setText("");
@@ -241,14 +250,11 @@ public class TokenOptionsPanel extends OptionsPanel {
 			spaceField.setText("" + ((float) creature.getSpace()) / 2);
 			reachField.setText("" + creature.getReach());
 			sizeCombo.setSelectedItem(CreatureSize.getSize(creature.getSize(), creature.getReach()));
-			setRemote(token.getID(), Token.PROPERTY_SPACE, creature.getSpace());
-			setRemote(token.getID(), Token.PROPERTY_REACH, creature.getReach());
-			token.setProperty(Token.PROPERTY_SPACE, creature.getSpace());
-			token.setProperty(Token.PROPERTY_REACH, creature.getReach());
+			display.setProperty(token, Token.PROPERTY_SPACE, creature.getSpace());
+			display.setProperty(token, Token.PROPERTY_REACH, creature.getReach());
 
 			labelField.setText(creature.getName());
-			token.setProperty(Token.PROPERTY_LABEL, creature.getName());
-			setRemote(token.getID(), Token.PROPERTY_LABEL, creature.getName());
+			display.setProperty(token, Token.PROPERTY_LABEL, creature.getName());
 			remoteLabelField.setText(creature.getName());
 		}
 
@@ -268,12 +274,10 @@ public class TokenOptionsPanel extends OptionsPanel {
 				}
 				if (evt.getPropertyName().equals(Creature.PROPERTY_SPACE) || evt.getPropertyName().equals(Creature.PROPERTY_SIZE)) {
 					spaceField.setText("" + ((float) creature.getSpace()) / 2);
-					setRemote(token.getID(), Token.PROPERTY_SPACE, creature.getSpace());
-					token.setProperty(Token.PROPERTY_SPACE, creature.getSpace());
+					display.setProperty(token, Token.PROPERTY_SPACE, creature.getSpace());
 				} else if (evt.getPropertyName().equals(Creature.PROPERTY_REACH) || evt.getPropertyName().equals(Creature.PROPERTY_SIZE)) {
 					reachField.setText("" + creature.getReach());
-					setRemote(token.getID(), Token.PROPERTY_REACH, creature.getReach());
-					token.setProperty(Token.PROPERTY_REACH, creature.getReach());
+					display.setProperty(token, Token.PROPERTY_REACH, creature.getReach());
 				}
 			}
 		}
@@ -283,16 +287,14 @@ public class TokenOptionsPanel extends OptionsPanel {
 		if (creature == null) return;
 		int max = creature.getMaximumHitPoints();
 		int curr = max - creature.getWounds() - creature.getNonLethal();
-		setRemote(token.getID(), Token.PROPERTY_MAX_HPS, max);
-		setRemote(token.getID(), Token.PROPERTY_CURRENT_HPS, curr);
-		token.setProperty(Token.PROPERTY_MAX_HPS, max);
-		token.setProperty(Token.PROPERTY_CURRENT_HPS, curr);
+		display.setProperty(token, Token.PROPERTY_MAX_HPS, max);
+		display.setProperty(token, Token.PROPERTY_CURRENT_HPS, curr);
 		maxHPsField.setText("" + max);
 		currentHPsField.setText("" + curr);
 	}
 
 	@Override
-	public Token getElement() {
+	Token getElement() {
 		return token;
 	}
 
@@ -362,7 +364,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 			return "location";
@@ -370,10 +372,8 @@ public class TokenOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			setRemote(token.getID(), Token.PROPERTY_X, (int) p.getX());
-			setRemote(token.getID(), Token.PROPERTY_Y, (int) p.getY());
-			token.setProperty(Token.PROPERTY_X, (int) p.getX());
-			token.setProperty(Token.PROPERTY_Y, (int) p.getY());
+			display.setProperty(token, Token.PROPERTY_X, (int) p.getX());
+			display.setProperty(token, Token.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override
@@ -515,49 +515,48 @@ public class TokenOptionsPanel extends OptionsPanel {
 	}
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "Token";
-	final static String FILE_ATTRIBUTE_NAME = "image_path";
+	final static String XML_TAG = "Token";
+	private final static String FILE_ATTRIBUTE_NAME = "image_path";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
 		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_LABEL, remoteLabelField.getText());
+		if (webLabelField.getText().length() > 0) setAttribute(e, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText());
 		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_SHOWREACH, remoteReach.isSelected());
-		setAttribute(e, FILE_ATTRIBUTE_NAME, imageFile.getPath());
+		if (imageFile != null) setAttribute(e, FILE_ATTRIBUTE_NAME, imageFile.getPath());
 		Point2D location = (Point2D) token.getProperty(Group.PROPERTY_LOCATION);
 		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
 		return e;
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 		parseStringAttribute(Token.PROPERTY_LABEL, e, Mode.LOCAL);
 		parseStringAttribute(Token.PROPERTY_LABEL, e, remoteLabelField);
-		parseColorAttribute(Token.PROPERTY_COLOR, e, Mode.BOTH);
-		parseFloatAttribute(Token.PROPERTY_ALPHA, e, Mode.BOTH);
-		parseDoubleAttribute(Token.PROPERTY_X, e, Mode.BOTH);
-		parseDoubleAttribute(Token.PROPERTY_Y, e, Mode.BOTH);
-		parseIntegerAttribute(Token.PROPERTY_REACH, e, Mode.BOTH);
-		parseIntegerAttribute(Token.PROPERTY_SPACE, e, Mode.BOTH);
-		parseIntegerAttribute(Token.PROPERTY_ROTATIONS, e, Mode.BOTH);
+		parseColorAttribute(Token.PROPERTY_COLOR, e, Mode.ALL);
+		parseFloatAttribute(Token.PROPERTY_ALPHA, e, Mode.ALL);
+		parseDoubleAttribute(Token.PROPERTY_X, e, Mode.ALL);
+		parseDoubleAttribute(Token.PROPERTY_Y, e, Mode.ALL);
+		parseIntegerAttribute(Token.PROPERTY_REACH, e, Mode.ALL);
+		parseIntegerAttribute(Token.PROPERTY_SPACE, e, Mode.ALL);
+		parseIntegerAttribute(Token.PROPERTY_ROTATIONS, e, Mode.ALL);
 		parseBooleanAttribute(Token.PROPERTY_SHOWREACH, e, Mode.LOCAL);
 		parseBooleanAttribute(Token.PROPERTY_SHOWREACH, e, remoteReach);
-		parseBooleanAttribute(Token.PROPERTY_REACHWEAPON, e, Mode.BOTH);
-		parseIntegerAttribute(Token.PROPERTY_MAX_HPS, e, Mode.BOTH);
-		parseIntegerAttribute(Token.PROPERTY_CURRENT_HPS, e, Mode.BOTH);
-		parseEnumAttribute(Token.PROPERTY_STATUS_TYPE, Token.StatusType.class, e, Mode.BOTH);
-		parseEnumAttribute(Token.PROPERTY_STATUS_DISPLAY, Token.StatusDisplay.class, e, Mode.BOTH);
+		parseBooleanAttribute(Token.PROPERTY_REACHWEAPON, e, Mode.ALL);
+		parseIntegerAttribute(Token.PROPERTY_MAX_HPS, e, Mode.ALL);
+		parseIntegerAttribute(Token.PROPERTY_CURRENT_HPS, e, Mode.ALL);
+		parseEnumAttribute(Token.PROPERTY_STATUS_TYPE, Token.StatusType.class, e, Mode.ALL);
+		parseEnumAttribute(Token.PROPERTY_STATUS_DISPLAY, Token.StatusDisplay.class, e, Mode.ALL);
 		//parseEnumAttribute("size", CreatureSize.class, e, Mode.BOTH);
 		//sizeCombo.setSelectedItem(CreatureSize.getSize(creature.getSize(), creature.getReach()));
 
 		if (e.hasAttribute(FILE_ATTRIBUTE_NAME)) {
-			imageFile = new File(e.getAttribute(FILE_ATTRIBUTE_NAME));
-			setImage(imageFile);
+			setImage(new File(e.getAttribute(FILE_ATTRIBUTE_NAME)));
 		}
 
 		if (e.hasAttribute(Group.PROPERTY_LOCATION)) {
@@ -566,10 +565,19 @@ public class TokenOptionsPanel extends OptionsPanel {
 			Double x = Double.parseDouble(coords[0]);
 			Double y = Double.parseDouble(coords[1]);
 			Point2D value = new Point2D.Double(x, y);
-			token.setProperty(Group.PROPERTY_LOCATION, value);
-			setRemote(token.getID(), Group.PROPERTY_LOCATION, value);
+			display.setProperty(token, Group.PROPERTY_LOCATION, value);
 //			} catch (NumberFormatException e) {
 //			}
 		}
+
+		if (e.hasAttribute(TokenOverlay.PROPERTY_WEB_LABEL)) {
+			String value = e.getAttribute(TokenOverlay.PROPERTY_WEB_LABEL);
+			display.setProperty(getElement(), TokenOverlay.PROPERTY_WEB_LABEL, value, Mode.OVERLAY);
+			webLabelField.setText(value);
+		} else {
+			webLabelField.setText("");
+		}
+
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }

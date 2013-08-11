@@ -11,24 +11,24 @@ import javax.swing.JPanel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Callibrate;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class CallibrateOptionsPanel extends OptionsPanel {
-	Callibrate callibrate;
-	JCheckBox visibleCheck;
-	JCheckBox showBGCheck;
+class CallibrateOptionsPanel extends OptionsPanel {
+	private Callibrate callibrate;
+	private JCheckBox visibleCheck;
+	private JCheckBox showBGCheck;
 
-	public CallibrateOptionsPanel(MapElement parent, TableDisplay r) {
+	CallibrateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		callibrate = new Callibrate();
-		sendElement(callibrate, parent);
+		display.addElement(callibrate, parent);
 		callibrate.addPropertyChangeListener(listener);
 
-		showBGCheck = createCheckBox(callibrate, Callibrate.PROPERTY_SHOW_BACKGROUND, Mode.BOTH, "show background?");
-		visibleCheck = createCheckBox(callibrate, MapElement.PROPERTY_VISIBLE, Mode.BOTH, "visible?");
+		showBGCheck = createCheckBox(callibrate, Callibrate.PROPERTY_SHOW_BACKGROUND, Mode.ALL, "show background?");
+		visibleCheck = createCheckBox(callibrate, MapElement.PROPERTY_VISIBLE, Mode.ALL, "visible?");
 
 		// @formatter:off
 		setLayout(new GridBagLayout());
@@ -48,11 +48,11 @@ public class CallibrateOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public Callibrate getElement() {
+	Callibrate getElement() {
 		return callibrate;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Callibrate.PROPERTY_SHOW_BACKGROUND)) {
@@ -68,20 +68,20 @@ public class CallibrateOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "Callibrate";
+	final static String XML_TAG = "Callibrate";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		return e;
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.BOTH);
-		parseBooleanAttribute(Callibrate.PROPERTY_SHOW_BACKGROUND, e, Mode.BOTH);
+		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.ALL);
+		parseBooleanAttribute(Callibrate.PROPERTY_SHOW_BACKGROUND, e, Mode.ALL);
 	}
 }

@@ -72,6 +72,8 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * convert character.php to use server-sent events
+ * refactor/combine buff ui code in combat and character tabs
  * size (where is up to?)
  * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
  * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
@@ -94,14 +96,13 @@ import digital_table.controller.DigitalTableController;
 /* TODO digital tabletop (dtt) priorities:
  * BUG Issue with image scaling before remote visible - fix handling of image size when image changes
  * Allow multi-select and grouping in tree
- * Improve Tokens element: hps/status, floating label, rotate labels with token
+ * Improve Tokens element: floating label
  * Implement Creature Size
  * Improve camera integration, fix ui for camera panel
  * Refactor common utility methods into MapElement (e.g. template creation)
  * Alternate button dragging (e.g. resize)
  * Recalibrate - could be done using screen bounds element
  * Auto configure - set defaults according to OS screen layout
- * Load/Save
  * Fix MapImage so that rotation preseves scale
  * Make line and spread templates editable?
  * Swarm Token (editable token with replicated painting)

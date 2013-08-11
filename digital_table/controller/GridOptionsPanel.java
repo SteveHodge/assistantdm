@@ -15,27 +15,27 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Grid;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 // TODO clean up nullable-Integer fields - maybe promote code to super
 
 @SuppressWarnings("serial")
-public class GridOptionsPanel extends OptionsPanel {
-	Grid grid;
-	JTextField rulerRowField;
-	JTextField rulerColumnField;
-	JPanel colorPanel;
-	JPanel bgColorPanel;
-	JSlider alphaSlider;
-	JCheckBox visibleCheck;
+class GridOptionsPanel extends OptionsPanel {
+	private Grid grid;
+	private JTextField rulerRowField;
+	private JTextField rulerColumnField;
+	private JPanel colorPanel;
+	private JPanel bgColorPanel;
+	private JSlider alphaSlider;
+	private JCheckBox visibleCheck;
 
-	public GridOptionsPanel(TableDisplay r) {
+	GridOptionsPanel(DisplayManager r) {
 		super(r);
 		grid = new Grid();
+		display.addElement(grid, null);
 		grid.addPropertyChangeListener(listener);
-		sendElement(grid, null);
 
 		rulerRowField = createNullableIntegerControl(grid, Grid.PROPERTY_RULER_ROW, Mode.REMOTE);
 		rulerColumnField = createNullableIntegerControl(grid, Grid.PROPERTY_RULER_COLUMN, Mode.REMOTE);
@@ -75,11 +75,11 @@ public class GridOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public Grid getElement() {
+	Grid getElement() {
 		return grid;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Grid.PROPERTY_ALPHA)) {
@@ -106,10 +106,10 @@ public class GridOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "Grid";
+	final static String XML_TAG = "Grid";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -119,12 +119,12 @@ public class GridOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseColorAttribute(Grid.PROPERTY_COLOR, e, Mode.BOTH);
-		parseColorAttribute(Grid.PROPERTY_BACKGROUND_COLOR, e, Mode.BOTH);
-		parseFloatAttribute(Grid.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseColorAttribute(Grid.PROPERTY_COLOR, e, Mode.ALL);
+		parseColorAttribute(Grid.PROPERTY_BACKGROUND_COLOR, e, Mode.ALL);
+		parseFloatAttribute(Grid.PROPERTY_ALPHA, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 		parseIntegerAttribute(Grid.PROPERTY_RULER_ROW, e, rulerRowField);
 		parseIntegerAttribute(Grid.PROPERTY_RULER_COLUMN, e, rulerColumnField);

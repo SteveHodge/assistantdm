@@ -26,14 +26,14 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Browser;
 import digital_table.elements.BrowserLocal;
 import digital_table.elements.BrowserRemote;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class BrowserOptionsPanel extends OptionsPanel {
+class BrowserOptionsPanel extends OptionsPanel {
 	private Browser browser;
 
 	private JTextField urlField;
@@ -50,12 +50,12 @@ public class BrowserOptionsPanel extends OptionsPanel {
 	private JLabel statusLabel;
 	private JProgressBar progressBar;
 
-	protected BrowserOptionsPanel(MapElement parent, TableDisplay r) {
+	BrowserOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		BrowserRemote remote = new BrowserRemote();
-		sendElement(remote, parent);
 		browser = new BrowserLocal(remote);
 		browser.addPropertyChangeListener(listener);
+		display.addElement(remote, parent, browser);
 
 		urlField = createStringControl(browser, Browser.PROPERTY_URL);
 		titleLabel = createLabelControl(browser, Browser.PROPERTY_TITLE);
@@ -73,12 +73,11 @@ public class BrowserOptionsPanel extends OptionsPanel {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox combo = (JComboBox)e.getSource();
 				int index = combo.getSelectedIndex();
-				browser.setProperty(Browser.PROPERTY_SCREEN, index);
-				setRemote(browser.getID(), Browser.PROPERTY_SCREEN, index);
+				display.setProperty(browser, Browser.PROPERTY_SCREEN, index, Mode.ALL);
 			}
 		});
 
-		remoteVisibleCheck = this.createCheckBox(browser, MapElement.PROPERTY_VISIBLE, Mode.BOTH, "remote visible?");
+		remoteVisibleCheck = this.createCheckBox(browser, MapElement.PROPERTY_VISIBLE, Mode.ALL, "remote visible?");
 
 		localVisibleCheck = new JCheckBox("local visible?");
 		localVisibleCheck.setSelected(false);
@@ -121,11 +120,11 @@ public class BrowserOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public Browser getElement() {
+	Browser getElement() {
 		return browser;
 	}
 
-	protected JFrame createFrame() {
+	private JFrame createFrame() {
 		JFrame frame = new JFrame();
 		panel = new JPanel(new BorderLayout());
 		statusLabel = new JLabel();
@@ -136,8 +135,7 @@ public class BrowserOptionsPanel extends OptionsPanel {
 		ActionListener listener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				browser.setProperty(Browser.PROPERTY_URL, frameURLField.getText());
-				setRemote(browser.getID(), Browser.PROPERTY_URL, frameURLField.getText());
+				display.setProperty(browser, Browser.PROPERTY_URL, frameURLField.getText(), Mode.ALL);
 			}
 		};
 		goButton.addActionListener(listener);
@@ -192,12 +190,12 @@ public class BrowserOptionsPanel extends OptionsPanel {
 		return frame;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Browser.PROPERTY_URL)) {
 				urlField.setText(e.getNewValue().toString());
-				setRemote(browser.getID(), Browser.PROPERTY_URL, e.getNewValue());
+				display.setProperty(browser, Browser.PROPERTY_URL, e.getNewValue(), Mode.REMOTE);
 				if (frame != null) frameURLField.setText(e.getNewValue().toString());
 
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_TITLE)) {
@@ -227,10 +225,10 @@ public class BrowserOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "Browser";
+	final static String XML_TAG = "Browser";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, remoteVisibleCheck.isSelected());
@@ -239,11 +237,11 @@ public class BrowserOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseStringAttribute(Browser.PROPERTY_URL, e, Mode.BOTH);
-		parseIntegerAttribute(Browser.PROPERTY_SCREEN, e, Mode.BOTH);
+		parseStringAttribute(Browser.PROPERTY_URL, e, Mode.ALL);
+		parseIntegerAttribute(Browser.PROPERTY_SCREEN, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, remoteVisibleCheck);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.LOCAL);
 
@@ -251,7 +249,7 @@ public class BrowserOptionsPanel extends OptionsPanel {
 		if (e.hasAttribute(REMOTE_PREFIX + Browser.PROPERTY_ROTATIONS)) {
 //			try {
 			int value = Integer.parseInt(e.getAttribute(REMOTE_PREFIX + Browser.PROPERTY_ROTATIONS));
-			setRemote(getElement().getID(), Browser.PROPERTY_ROTATIONS, value);
+			display.setProperty(getElement(), Browser.PROPERTY_ROTATIONS, value, Mode.REMOTE);
 			rotationsCombo.setSelectedIndex(value);
 //			} catch (NumberFormatException e) {
 //			}

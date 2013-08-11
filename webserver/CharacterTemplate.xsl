@@ -23,7 +23,7 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</td>
-	<td colspan="13" rowspan="3" class="data-value-class">
+	<td colspan="13" rowspan="3" class="data-value-class" onclick="showDialog('{$weapon/@name}','{$weapon/@damage_info}','info');">
 			<xsl:value-of select="$weapon/@damage"/>
 	</td>
 	<td colspan="9" rowspan="3" class="data-value-class">

@@ -17,27 +17,26 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
 import digital_table.elements.PersonalEmanation;
-import digital_table.server.TableDisplay;
-
 
 @SuppressWarnings("serial")
-public class PersonalEmanationOptionsPanel extends OptionsPanel {
-	PersonalEmanation template;
-	JTextField radiusField;
-	JTextField xField;
-	JTextField yField;
-	JPanel colorPanel;
-	JTextField spaceField;
-	JTextField labelField;
-	JSlider alphaSlider;
-	JCheckBox visibleCheck;
+class PersonalEmanationOptionsPanel extends OptionsPanel {
+	private PersonalEmanation template;
+	private JTextField radiusField;
+	private JTextField xField;
+	private JTextField yField;
+	private JPanel colorPanel;
+	private JTextField spaceField;
+	private JTextField labelField;
+	private JSlider alphaSlider;
+	private JCheckBox visibleCheck;
 
-	public PersonalEmanationOptionsPanel(MapElement parent, TableDisplay r) {
+	PersonalEmanationOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		template = new PersonalEmanation(2, 0, 0);
-		sendElement(template, parent);
+		display.addElement(template, parent);
 		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		template.addPropertyChangeListener(listener);
 
@@ -79,11 +78,11 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public PersonalEmanation getElement() {
+	PersonalEmanation getElement() {
 		return template;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(PersonalEmanation.PROPERTY_ALPHA)) {
@@ -114,11 +113,11 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 			return "location";
@@ -126,10 +125,8 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			setRemote(template.getID(), PersonalEmanation.PROPERTY_X, (int) p.getX());
-			setRemote(template.getID(), PersonalEmanation.PROPERTY_Y, (int) p.getY());
-			template.setProperty(PersonalEmanation.PROPERTY_X, (int) p.getX());
-			template.setProperty(PersonalEmanation.PROPERTY_Y, (int) p.getY());
+			display.setProperty(template, PersonalEmanation.PROPERTY_X, (int) p.getX());
+			display.setProperty(template, PersonalEmanation.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override
@@ -140,10 +137,10 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "PersonalEmanation";
+	final static String XML_TAG = "PersonalEmanation";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + PersonalEmanation.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -151,16 +148,16 @@ public class PersonalEmanationOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(PersonalEmanation.PROPERTY_LABEL, e, Mode.LOCAL);
-		parseColorAttribute(PersonalEmanation.PROPERTY_COLOR, e, Mode.BOTH);
-		parseFloatAttribute(PersonalEmanation.PROPERTY_ALPHA, e, Mode.BOTH);
-		parseIntegerAttribute(PersonalEmanation.PROPERTY_X, e, Mode.BOTH);
-		parseIntegerAttribute(PersonalEmanation.PROPERTY_Y, e, Mode.BOTH);
-		parseIntegerAttribute(PersonalEmanation.PROPERTY_RADIUS, e, Mode.BOTH);
-		parseIntegerAttribute(PersonalEmanation.PROPERTY_SPACE, e, Mode.BOTH);
+		parseColorAttribute(PersonalEmanation.PROPERTY_COLOR, e, Mode.ALL);
+		parseFloatAttribute(PersonalEmanation.PROPERTY_ALPHA, e, Mode.ALL);
+		parseIntegerAttribute(PersonalEmanation.PROPERTY_X, e, Mode.ALL);
+		parseIntegerAttribute(PersonalEmanation.PROPERTY_Y, e, Mode.ALL);
+		parseIntegerAttribute(PersonalEmanation.PROPERTY_RADIUS, e, Mode.ALL);
+		parseIntegerAttribute(PersonalEmanation.PROPERTY_SPACE, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }

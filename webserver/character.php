@@ -31,6 +31,7 @@ function sendRequest() {
 				if (xml) displayXML(xml);
 			} else {
 				document.getElementById("content").innerHTML = "Error waiting for refresh:<br/>"+req.status;
+				//displayXML(loadXMLDoc(name+".xml"));
 			}
 			sendRequest();
 		}

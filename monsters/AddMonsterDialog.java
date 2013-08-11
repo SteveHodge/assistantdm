@@ -86,7 +86,7 @@ public class AddMonsterDialog extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (TokenOptionsPanel.imageFile != null) chooser.setCurrentDirectory(TokenOptionsPanel.imageFile);
+				if (TokenOptionsPanel.lastDir != null) chooser.setCurrentDirectory(TokenOptionsPanel.lastDir);
 				if (chooser.showOpenDialog(AddMonsterDialog.this) == JFileChooser.APPROVE_OPTION) {
 					imageFile = chooser.getSelectedFile();
 					try {

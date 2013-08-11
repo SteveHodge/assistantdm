@@ -14,21 +14,21 @@ import javax.swing.JSlider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
 import digital_table.elements.ScreenBounds;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class BoundsOptionsPanel extends OptionsPanel {
-	ScreenBounds bounds;
-	JPanel colorPanel;
-	JSlider alphaSlider;
-	JCheckBox visibleCheck;
+class BoundsOptionsPanel extends OptionsPanel {
+	private ScreenBounds bounds;
+	private JPanel colorPanel;
+	private JSlider alphaSlider;
+	private JCheckBox visibleCheck;
 
-	public BoundsOptionsPanel(MapElement parent, TableDisplay r) {
+	BoundsOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		bounds = new ScreenBounds();
-		sendElement(bounds, parent);	// XXX should we send to remote?
+		display.addElement(bounds, parent);	// XXX should we send to remote?
 		bounds.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		bounds.addPropertyChangeListener(listener);
 
@@ -56,11 +56,11 @@ public class BoundsOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public ScreenBounds getElement() {
+	ScreenBounds getElement() {
 		return bounds;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(ScreenBounds.PROPERTY_ALPHA)) {
@@ -79,17 +79,17 @@ public class BoundsOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "ScreenBounds";
+	final static String XML_TAG = "ScreenBounds";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		return e;
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseColorAttribute(ScreenBounds.PROPERTY_COLOR, e, Mode.LOCAL);

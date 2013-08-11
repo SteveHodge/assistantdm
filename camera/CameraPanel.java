@@ -55,6 +55,7 @@ import canon.cdsdk.ReleaseEventHandler;
 import canon.cdsdk.ReleaseImageInfo;
 import canon.cdsdk.Source;
 import canon.cdsdk.SourceInfo;
+import digital_table.controller.ControllerFrame;
 
 
 // TODO may be fixed: controls stop responding if you hit stop during a transfer
@@ -96,12 +97,18 @@ public class CameraPanel extends JPanel implements ActionListener {
 	private int remappedHeight;
 	private byte[] lastCorrectedImage = null;
 
+	private ControllerFrame overlayGenerator = null;
+
 	public CameraPanel() {
 		sdk = new CDSDK();
 		sdk.open();
 		timer = new CaptureThread(defaultDelay);
 		createAndShowGUI();
 		connect(true);
+	}
+
+	public void setOverlayGenerator(ControllerFrame generator) {
+		overlayGenerator = generator;
 	}
 
 	public byte[] getLatestCorrectedImage() {
@@ -668,6 +675,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 					buffer = os.toByteArray();
 					lastCorrectedImage = applyRemap.isSelected() ? buffer : null;
 
+					if (overlayGenerator != null) overlayGenerator.updateOverlay(width, height);
 				} else {
 					image = rawImage;
 				}

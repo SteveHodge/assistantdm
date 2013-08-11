@@ -12,14 +12,13 @@ import javax.swing.JPanel;
 
 import digital_table.server.TableDisplay;
 
-
 // TODO probably best to fold this into DisplayConfig
 
 @SuppressWarnings("serial")
-public class MonitorConfigFrame extends JFrame {
-	JComboBox[] screenCombos = new JComboBox[6];
-	TableDisplay display;
-	public boolean openScreens = false;
+class MonitorConfigFrame extends JFrame {
+	private JComboBox[] screenCombos = new JComboBox[6];
+	private TableDisplay display;
+	boolean openScreens = false;
 	int[] screenNums;
 
 	public MonitorConfigFrame(TableDisplay disp) {
@@ -30,6 +29,7 @@ public class MonitorConfigFrame extends JFrame {
 
 		JButton button = new JButton("Identify");
 		button.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					// reset the combo boxes
@@ -41,7 +41,7 @@ public class MonitorConfigFrame extends JFrame {
 							screenCombos[i].addItem("" + (j+1));
 						}
 					}
-	
+
 					display.setScreenIDsVisible(true);
 				} catch (RemoteException ex) {
 					ex.printStackTrace();
@@ -50,6 +50,7 @@ public class MonitorConfigFrame extends JFrame {
 		});
 		JButton openButton = new JButton("Open screens");
 		openButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				screenNums = new int[screenCombos.length];
 				for (int i = 0; i < screenCombos.length; i++) {
@@ -59,7 +60,7 @@ public class MonitorConfigFrame extends JFrame {
 				dispose();
 			}
 		});
-		
+
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.add(button);
 		buttonPanel.add(openButton);

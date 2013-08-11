@@ -22,12 +22,12 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class ImageOptionsPanel extends OptionsPanel {
+class ImageOptionsPanel extends OptionsPanel {
 	private MapImage image;
 
 	private File file = null;
@@ -42,7 +42,7 @@ public class ImageOptionsPanel extends OptionsPanel {
 	private JCheckBox snapCheck;
 	private JCheckBox visibleCheck;
 
-	public ImageOptionsPanel(File f, MapElement parent, TableDisplay r) {
+	ImageOptionsPanel(File f, MapElement parent, DisplayManager r) {
 		super(r);
 		file = f;
 		byte[] bytes = new byte[(int) file.length()];
@@ -56,7 +56,7 @@ public class ImageOptionsPanel extends OptionsPanel {
 			e.printStackTrace();
 		}
 		image = new MapImage(bytes, file.getName());
-		sendElement(image, parent);
+		display.addElement(image, parent);
 		image.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		image.addPropertyChangeListener(listener);
 
@@ -65,7 +65,7 @@ public class ImageOptionsPanel extends OptionsPanel {
 		widthField = createDoubleControl(image, MapImage.PROPERTY_WIDTH);
 		heightField = createDoubleControl(image, MapImage.PROPERTY_HEIGHT);
 		alphaSlider = createSliderControl(image, MapImage.PROPERTY_ALPHA);
-		rotationsCombo = createRotationControl(image, MapImage.PROPERTY_ROTATIONS, Mode.BOTH);
+		rotationsCombo = createRotationControl(image, MapImage.PROPERTY_ROTATIONS, Mode.ALL);
 		labelField = createStringControl(image, MapImage.PROPERTY_LABEL, Mode.LOCAL);
 		visibleCheck = createVisibilityControl(image);
 
@@ -100,11 +100,11 @@ public class ImageOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public MapImage getElement() {
+	MapImage getElement() {
 		return image;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapImage.PROPERTY_ALPHA)) {
@@ -135,11 +135,11 @@ public class ImageOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 			return "location";
@@ -153,10 +153,8 @@ public class ImageOptionsPanel extends OptionsPanel {
 				x = Math.floor(x);
 				y = Math.floor(y);
 			}
-			setRemote(image.getID(), MapImage.PROPERTY_X, x);
-			setRemote(image.getID(), MapImage.PROPERTY_Y, y);
-			image.setProperty(MapImage.PROPERTY_X, x);
-			image.setProperty(MapImage.PROPERTY_Y, y);
+			display.setProperty(image, MapImage.PROPERTY_X, x);
+			display.setProperty(image, MapImage.PROPERTY_Y, y);
 		}
 
 		@Override
@@ -174,20 +172,20 @@ public class ImageOptionsPanel extends OptionsPanel {
 			boolean clear = !image.isCleared(p);
 			image.setCleared(p, clear);
 			if (clear) {
-				setRemote(image.getID(), MapImage.PROPERTY_CLEARCELL, p);
+				display.setProperty(image, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
 			} else {
-				setRemote(image.getID(), MapImage.PROPERTY_UNCLEARCELL, p);
+				display.setProperty(image, MapImage.PROPERTY_UNCLEARCELL, p, Mode.REMOTE);
 			}
 		}
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "Image";
+	final static String XML_TAG = "Image";
 	final static String FILE_ATTRIBUTE_NAME = "path";
-	final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
+	private final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -210,16 +208,16 @@ public class ImageOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(MapImage.PROPERTY_LABEL, e, Mode.LOCAL);
-		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.BOTH);
-		parseDoubleAttribute(MapImage.PROPERTY_X, e, Mode.BOTH);
-		parseDoubleAttribute(MapImage.PROPERTY_Y, e, Mode.BOTH);
-		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.BOTH);
-		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.BOTH);
-		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.BOTH);
+		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.ALL);
+		parseDoubleAttribute(MapImage.PROPERTY_X, e, Mode.ALL);
+		parseDoubleAttribute(MapImage.PROPERTY_Y, e, Mode.ALL);
+		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
+		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
+		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 
 		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
@@ -227,7 +225,7 @@ public class ImageOptionsPanel extends OptionsPanel {
 			for (int i = 0; i < coords.length; i += 2) {
 				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
 				image.setCleared(p, true);
-				setRemote(image.getID(), MapImage.PROPERTY_CLEARCELL, p);
+				display.setProperty(image, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
 			}
 		}
 	}

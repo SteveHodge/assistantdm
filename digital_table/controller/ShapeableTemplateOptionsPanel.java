@@ -18,12 +18,12 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
 import digital_table.elements.ShapeableTemplate;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class ShapeableTemplateOptionsPanel extends OptionsPanel {
+class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	private ShapeableTemplate template;
 	private JPanel colorPanel;
 	private JTextField labelField;
@@ -32,10 +32,10 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	private JLabel remaining = new JLabel();
 	private JCheckBox visibleCheck;
 
-	public ShapeableTemplateOptionsPanel(MapElement parent, TableDisplay r) {
+	ShapeableTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		template = new ShapeableTemplate();
-		sendElement(template, parent);
+		display.addElement(template, parent);
 		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		template.addPropertyChangeListener(listener);
 
@@ -70,11 +70,11 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public ShapeableTemplate getElement() {
+	ShapeableTemplate getElement() {
 		return template;
 	}
 
-	protected void updateRemaining() {
+	private void updateRemaining() {
 		int max = (Integer)template.getProperty(ShapeableTemplate.PROPERTY_MAXIMUM);
 		if (max == 0) {
 			remaining.setText("");
@@ -83,7 +83,7 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 		}
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(ShapeableTemplate.PROPERTY_ALPHA)) {
@@ -109,11 +109,11 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new MapElementMouseListener() {
+	private MapElementMouseListener mouseListener = new MapElementMouseListener() {
 		@Override
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
 			if (e.getButton() != MouseEvent.BUTTON1) return;
@@ -124,10 +124,10 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 			int y = (int)(gridloc.getY() + 0.5d);
 			Point p = new Point(x,y);
 			if (template.contains(p)) {
-				setRemote(template.getID(), ShapeableTemplate.PROPERTY_REMOVECUBE, p);
+				display.setProperty(template, ShapeableTemplate.PROPERTY_REMOVECUBE, p, Mode.REMOTE);
 				template.removeCube(p);
 			} else {
-				setRemote(template.getID(), ShapeableTemplate.PROPERTY_ADDCUBE, p);
+				display.setProperty(template, ShapeableTemplate.PROPERTY_ADDCUBE, p, Mode.REMOTE);
 				template.addCube(p);
 			}
 		}
@@ -141,11 +141,11 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "ShapeableTemplate";
+	final static String XML_TAG = "ShapeableTemplate";
 	private final static String CUBE_LIST_ATTRIBUTE = "cube_list";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -167,20 +167,20 @@ public class ShapeableTemplateOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(ShapeableTemplate.PROPERTY_LABEL, e, Mode.LOCAL);
-		parseColorAttribute(ShapeableTemplate.PROPERTY_COLOR, e, Mode.BOTH);
-		parseFloatAttribute(ShapeableTemplate.PROPERTY_ALPHA, e, Mode.BOTH);
-		parseIntegerAttribute(ShapeableTemplate.PROPERTY_MAXIMUM, e, Mode.BOTH);
+		parseColorAttribute(ShapeableTemplate.PROPERTY_COLOR, e, Mode.ALL);
+		parseFloatAttribute(ShapeableTemplate.PROPERTY_ALPHA, e, Mode.ALL);
+		parseIntegerAttribute(ShapeableTemplate.PROPERTY_MAXIMUM, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 
 		if (e.hasAttribute(CUBE_LIST_ATTRIBUTE)) {
 			String[] coords = e.getAttribute(CUBE_LIST_ATTRIBUTE).split("\\s*,\\s*");
 			for (int i = 0; i < coords.length; i += 2) {
 				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
-				setRemote(template.getID(), ShapeableTemplate.PROPERTY_ADDCUBE, p);
+				display.setProperty(template, ShapeableTemplate.PROPERTY_ADDCUBE, p, Mode.REMOTE);
 				template.addCube(p);
 			}
 		}

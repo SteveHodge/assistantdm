@@ -20,14 +20,14 @@ import org.w3c.dom.Element;
 import combat.CombatPanel;
 import combat.InitiativeListener;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Initiative;
 import digital_table.elements.Label;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-public class InitiativeOptionsPanel extends OptionsPanel {
+class InitiativeOptionsPanel extends OptionsPanel {
 	private Initiative initiative;
 
 	private JTextField xField;
@@ -38,17 +38,16 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 	private JPanel bgColorPanel;
 	private JCheckBox visibleCheck;
 
-	public InitiativeOptionsPanel(MapElement parent, TableDisplay r) {
+	InitiativeOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		initiative = new Initiative();
-		sendElement(initiative, parent);
+		display.addElement(initiative, parent);
 		initiative.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		if (CombatPanel.getCombatPanel() != null) {
 			CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
 				@Override
 				public void initiativeUpdated(String text) {
-					initiative.setProperty(Label.PROPERTY_TEXT, text);
-					setRemote(initiative.getID(), Label.PROPERTY_TEXT, text);
+					display.setProperty(initiative, Label.PROPERTY_TEXT, text);
 				}
 			});
 		}
@@ -59,7 +58,7 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 		alphaSlider = createSliderControl(initiative, Initiative.PROPERTY_ALPHA);
 		colorPanel = createColorControl(initiative, Initiative.PROPERTY_COLOR);
 		bgColorPanel = createColorControl(initiative, Initiative.PROPERTY_BACKGROUND_COLOR);
-		rotationsCombo = createRotationControl(initiative, Initiative.PROPERTY_ROTATIONS, Mode.BOTH);
+		rotationsCombo = createRotationControl(initiative, Initiative.PROPERTY_ROTATIONS, Mode.ALL);
 		visibleCheck = createVisibilityControl(initiative);
 
 		setLayout(new GridBagLayout());
@@ -88,11 +87,11 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public Initiative getElement() {
+	Initiative getElement() {
 		return initiative;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Initiative.PROPERTY_ALPHA)) {
@@ -120,11 +119,11 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 			return "location";
@@ -132,10 +131,8 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			setRemote(initiative.getID(), Initiative.PROPERTY_X, p.getX());
-			setRemote(initiative.getID(), Initiative.PROPERTY_Y, p.getY());
-			initiative.setProperty(Initiative.PROPERTY_X, p.getX());
-			initiative.setProperty(Initiative.PROPERTY_Y, p.getY());
+			display.setProperty(initiative, Initiative.PROPERTY_X, p.getX());
+			display.setProperty(initiative, Initiative.PROPERTY_Y, p.getY());
 		}
 
 		@Override
@@ -146,10 +143,10 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "Initiative";
+	final static String XML_TAG = "Initiative";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + LineTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -157,15 +154,15 @@ public class InitiativeOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseColorAttribute(Initiative.PROPERTY_COLOR, e, Mode.BOTH);
-		parseColorAttribute(Initiative.PROPERTY_BACKGROUND_COLOR, e, Mode.BOTH);
-		parseFloatAttribute(Initiative.PROPERTY_ALPHA, e, Mode.BOTH);
-		parseDoubleAttribute(Initiative.PROPERTY_X, e, Mode.BOTH);
-		parseDoubleAttribute(Initiative.PROPERTY_Y, e, Mode.BOTH);
-		parseIntegerAttribute(Initiative.PROPERTY_ROTATIONS, e, Mode.BOTH);
+		parseColorAttribute(Initiative.PROPERTY_COLOR, e, Mode.ALL);
+		parseColorAttribute(Initiative.PROPERTY_BACKGROUND_COLOR, e, Mode.ALL);
+		parseFloatAttribute(Initiative.PROPERTY_ALPHA, e, Mode.ALL);
+		parseDoubleAttribute(Initiative.PROPERTY_X, e, Mode.ALL);
+		parseDoubleAttribute(Initiative.PROPERTY_Y, e, Mode.ALL);
+		parseIntegerAttribute(Initiative.PROPERTY_ROTATIONS, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }

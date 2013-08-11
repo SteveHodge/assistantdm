@@ -16,13 +16,13 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.LightSource;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 
 @SuppressWarnings("serial")
-public class LightSourceOptionsPanel extends OptionsPanel {
+class LightSourceOptionsPanel extends OptionsPanel {
 	private LightSource light;
 
 	private JTextField radiusField;
@@ -32,10 +32,10 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 	private JComboBox typeCombo;
 	private JCheckBox visibleCheck;
 
-	public LightSourceOptionsPanel(MapElement parent, TableDisplay r) {
+	LightSourceOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		light = new LightSource(4, 0, 0);
-		sendElement(light, parent);
+		display.addElement(light, parent);
 		light.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		light.addPropertyChangeListener(listener);
 
@@ -71,11 +71,11 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public LightSource getElement() {
+	LightSource getElement() {
 		return light;
 	}
 
-	protected PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(LightSource.PROPERTY_LABEL)) {
@@ -100,11 +100,11 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 	};
 
 	@Override
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return mouseListener;
 	}
 
-	MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 			return "location";
@@ -112,10 +112,8 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			setRemote(light.getID(), LightSource.PROPERTY_X, (int) p.getX());
-			setRemote(light.getID(), LightSource.PROPERTY_Y, (int) p.getY());
-			light.setProperty(LightSource.PROPERTY_X, (int) p.getX());
-			light.setProperty(LightSource.PROPERTY_Y, (int) p.getY());
+			display.setProperty(light, LightSource.PROPERTY_X, (int) p.getX());
+			display.setProperty(light, LightSource.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override
@@ -126,10 +124,10 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "LightSource";
+	final static String XML_TAG = "LightSource";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -137,14 +135,14 @@ public class LightSourceOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(LightSource.PROPERTY_LABEL, e, Mode.LOCAL);
-		parseIntegerAttribute(LightSource.PROPERTY_X, e, Mode.BOTH);
-		parseIntegerAttribute(LightSource.PROPERTY_Y, e, Mode.BOTH);
-		parseIntegerAttribute(LightSource.PROPERTY_RADIUS, e, Mode.BOTH);
-		parseEnumAttribute(LightSource.PROPERTY_TYPE, LightSource.Type.class, e, Mode.BOTH);
+		parseIntegerAttribute(LightSource.PROPERTY_X, e, Mode.ALL);
+		parseIntegerAttribute(LightSource.PROPERTY_Y, e, Mode.ALL);
+		parseIntegerAttribute(LightSource.PROPERTY_RADIUS, e, Mode.ALL);
+		parseEnumAttribute(LightSource.PROPERTY_TYPE, LightSource.Type.class, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }

@@ -9,7 +9,6 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
-import java.rmi.RemoteException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
@@ -27,69 +26,43 @@ import javax.swing.text.JTextComponent;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
-import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
-abstract public class OptionsPanel extends JPanel {
-	private TableDisplay remote;
+abstract class OptionsPanel extends JPanel {
+	DisplayManager display;
 
-	protected enum Mode {
-		BOTH, LOCAL, REMOTE
-	};
-
-	public enum DragMode {
+	enum DragMode {
 		NONE,	// no dragging
 		MOVE,	// dragging will move the element or a subelement
 		PAINT	// dragging will trigger a click event on each mouse move
 	};
 
-	protected OptionsPanel(TableDisplay r) {
-		remote = r;
+	OptionsPanel(DisplayManager r) {
+		display = r;
 	}
 
-	public abstract MapElement getElement();
+	abstract MapElement getElement();
 
-	protected void sendElement(MapElement e, MapElement parent) {
-		try {
-			if (parent == null) {
-				remote.addElement(e);
-			} else {
-				remote.addElement(e, parent.getID());
-			}
-		} catch (RemoteException e1) {
-			e1.printStackTrace();
-		}
+	JTextField createIntegerControl(final MapElement element, final String property) {
+		return createIntegerControl(element, property, Mode.ALL);
 	}
 
-	protected void setRemote(int id, String property, Object value) {
-		try {
-			remote.setElementProperty(id, property, value);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	protected JTextField createIntegerControl(final MapElement element, final String property) {
-		return createIntegerControl(element, property, Mode.BOTH);
-	}
-
-	protected JTextField createIntegerControl(final MapElement element, final String property, final Mode mode) {
+	JTextField createIntegerControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
 		field.setText("" + element.getProperty(property));
 		field.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int newValue = Integer.parseInt(field.getText());
-				if (mode != Mode.REMOTE) element.setProperty(property, newValue);
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, newValue);
+				display.setProperty(element, property, newValue, mode);
 			}
 		});
 		return field;
 	}
 
-	protected JTextField createNullableIntegerControl(final MapElement element, final String property, final Mode mode) {
+	JTextField createNullableIntegerControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
 		if (element.getProperty(property) != null) field.setText("" + element.getProperty(property));
 		field.addActionListener(new ActionListener() {
@@ -97,36 +70,34 @@ abstract public class OptionsPanel extends JPanel {
 			public void actionPerformed(ActionEvent arg0) {
 				Integer newValue = null;
 				if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
-				if (mode != Mode.REMOTE) element.setProperty(property, newValue);
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, newValue);
+				display.setProperty(element, property, newValue, mode);
 			}
 		});
 		return field;
 	}
 
-	protected JTextField createDoubleControl(final MapElement element, final String property) {
-		return createDoubleControl(element, property, Mode.BOTH);
+	JTextField createDoubleControl(final MapElement element, final String property) {
+		return createDoubleControl(element, property, Mode.ALL);
 	}
 
-	protected JTextField createDoubleControl(final MapElement element, final String property, final Mode mode) {
+	JTextField createDoubleControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
 		field.setText("" + element.getProperty(property));
 		field.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				double newRadius = Double.parseDouble(field.getText());
-				if (mode != Mode.REMOTE) element.setProperty(property, newRadius);
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, newRadius);
+				display.setProperty(element, property, newRadius, mode);
 			}
 		});
 		return field;
 	}
 
-	protected JPanel createColorControl(final MapElement element, final String property) {
-		return createColorControl(element, property, Mode.BOTH);
+	JPanel createColorControl(final MapElement element, final String property) {
+		return createColorControl(element, property, Mode.ALL);
 	}
 
-	protected JPanel createColorControl(final MapElement element, final String property, final Mode mode) {
+	JPanel createColorControl(final MapElement element, final String property, final Mode mode) {
 		final JPanel colorPanel = new JPanel();
 		colorPanel.setBackground((Color) element.getProperty(property));
 		colorPanel.setOpaque(true);
@@ -137,8 +108,7 @@ abstract public class OptionsPanel extends JPanel {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				Color newColor = JColorChooser.showDialog(OptionsPanel.this, "Choose colour", (Color) element.getProperty(property));
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, newColor);
-				if (mode != Mode.REMOTE) element.setProperty(property, newColor);
+				display.setProperty(element, property, newColor, mode);
 				colorPanel.setBackground(newColor);
 			}
 
@@ -161,11 +131,11 @@ abstract public class OptionsPanel extends JPanel {
 		return colorPanel;
 	}
 
-	protected JSlider createSliderControl(final MapElement element, final String property) {
-		return createSliderControl(element, property, Mode.BOTH);
+	JSlider createSliderControl(final MapElement element, final String property) {
+		return createSliderControl(element, property, Mode.ALL);
 	}
 
-	protected JSlider createSliderControl(final MapElement element, final String property, final Mode mode) {
+	JSlider createSliderControl(final MapElement element, final String property, final Mode mode) {
 		JSlider alphaSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
 		alphaSlider.setValue((int) (100 * (Float) element.getProperty(property)));
 		alphaSlider.addChangeListener(new ChangeListener() {
@@ -175,18 +145,18 @@ abstract public class OptionsPanel extends JPanel {
 				float alpha = slider.getValue() / 100f;
 				if (mode != Mode.REMOTE) element.setProperty(property, alpha);
 				if (!slider.getValueIsAdjusting() && mode != Mode.LOCAL) {
-					setRemote(element.getID(), property, alpha);
+					display.setProperty(element, property, alpha, Mode.REMOTE);	// send to remote because we've already done local
 				}
 			}
 		});
 		return alphaSlider;
 	}
 
-	protected JComboBox createComboControl(final MapElement element, final String property, Object[] values) {
-		return createComboControl(element, property, Mode.BOTH, values);
+	JComboBox createComboControl(final MapElement element, final String property, Object[] values) {
+		return createComboControl(element, property, Mode.ALL, values);
 	}
 
-	protected JComboBox createComboControl(final MapElement element, final String property, final Mode mode, Object[] values) {
+	JComboBox createComboControl(final MapElement element, final String property, final Mode mode, Object[] values) {
 		final JComboBox typeCombo = new JComboBox(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
 		typeCombo.addActionListener(new ActionListener() {
@@ -194,14 +164,13 @@ abstract public class OptionsPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox combo = (JComboBox) e.getSource();
 				Object selected = combo.getSelectedItem();
-				if (mode != Mode.REMOTE) element.setProperty(property, selected);
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, selected);
+				display.setProperty(element, property, selected, mode);
 			}
 		});
 		return typeCombo;
 	}
 
-	protected JComboBox createComboControl(final MapElement element, final String property, final Mode mode, ComboBoxModel values) {
+	JComboBox createComboControl(final MapElement element, final String property, final Mode mode, ComboBoxModel values) {
 		final JComboBox typeCombo = new JComboBox(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
 		typeCombo.addActionListener(new ActionListener() {
@@ -209,46 +178,43 @@ abstract public class OptionsPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox combo = (JComboBox) e.getSource();
 				Object selected = combo.getSelectedItem();
-				if (mode != Mode.REMOTE) element.setProperty(property, selected);
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, selected);
+				display.setProperty(element, property, selected, mode);
 			}
 		});
 		return typeCombo;
 	}
 
-	protected JTextField createStringControl(final MapElement element, final String property) {
-		return createStringControl(element, property, Mode.BOTH);
+	JTextField createStringControl(final MapElement element, final String property) {
+		return createStringControl(element, property, Mode.ALL);
 	}
 
-	protected JTextField createStringControl(final MapElement element, final String property, final Mode mode) {
+	JTextField createStringControl(final MapElement element, final String property, final Mode mode) {
 		final JTextField textField = new JTextField(30);
 		textField.setText("" + element.getProperty(property));
 		textField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (mode != Mode.REMOTE) element.setProperty(property, textField.getText());
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, textField.getText());
+				display.setProperty(element, property, textField.getText(), mode);
 			}
 		});
 		return textField;
 	}
 
-	protected JLabel createLabelControl(final MapElement element, final String property) {
+	JLabel createLabelControl(final MapElement element, final String property) {
 		final JLabel label = new JLabel();
 		label.setText("" + element.getProperty(property));
 		return label;
 	}
 
 	// TODO use this for visibility - need to implement visibility properties
-	protected JCheckBox createCheckBox(final MapElement element, final String property, final Mode mode, String label) {
+	JCheckBox createCheckBox(final MapElement element, final String property, final Mode mode, String label) {
 		JCheckBox check = new JCheckBox(label);
 		check.setSelected((Boolean) element.getProperty(property));
 		check.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				JCheckBox check = (JCheckBox) e.getSource();
-				if (mode != Mode.REMOTE) element.setProperty(property, check.isSelected());
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, check.isSelected());
+				display.setProperty(element, property, check.isSelected(), mode);
 			}
 		});
 		return check;
@@ -256,7 +222,7 @@ abstract public class OptionsPanel extends JPanel {
 
 	// TODO convert users to use createCheckBox?
 	// this control does not apply the changes to the local MapElement - it's intended for visibility
-	protected JCheckBox createVisibilityControl(final MapElement element) {
+	JCheckBox createVisibilityControl(final MapElement element) {
 		JCheckBox cb = createCheckBox(element, MapElement.PROPERTY_VISIBLE, Mode.REMOTE, "visible?");
 		cb.setSelected(false);
 		return cb;
@@ -264,15 +230,15 @@ abstract public class OptionsPanel extends JPanel {
 
 	// TODO convert users to use createCheckBox?
 	// this control does not apply the changes to the local MapElement - it's intended for visibility
-	protected JCheckBox createVisibilityControl(final MapElement element, String label) {
+	JCheckBox createVisibilityControl(final MapElement element, String label) {
 		JCheckBox cb = createCheckBox(element, MapElement.PROPERTY_VISIBLE, Mode.REMOTE, label);
 		cb.setSelected(false);
 		return cb;
 	}
 
-	protected final static String[] options = { "0", "90", "180", "270" };
+	final static String[] options = { "0", "90", "180", "270" };
 
-	protected JComboBox createRotationControl(final MapElement element, final String property, final Mode mode) {
+	JComboBox createRotationControl(final MapElement element, final String property, final Mode mode) {
 		JComboBox rotationsCombo = new JComboBox(options);
 		rotationsCombo.setSelectedIndex((Integer) element.getProperty(property));
 		rotationsCombo.addActionListener(new ActionListener() {
@@ -280,14 +246,13 @@ abstract public class OptionsPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox combo = (JComboBox) e.getSource();
 				int index = combo.getSelectedIndex();
-				if (mode != Mode.REMOTE) element.setProperty(property, index);
-				if (mode != Mode.LOCAL) setRemote(element.getID(), property, index);
+				display.setProperty(element, property, index, mode);
 			}
 		});
 		return rotationsCombo;
 	};
 
-	public MapElementMouseListener getMouseListener() {
+	MapElementMouseListener getMouseListener() {
 		return null;
 	}
 
@@ -301,8 +266,7 @@ abstract public class OptionsPanel extends JPanel {
 
 		void setTargetLocation(Point2D p) {
 			if (target == null) return;
-			setRemote(getElement().getID(), target, p);
-			getElement().setProperty(target, p);
+			display.setProperty(getElement(), target, p, Mode.ALL);
 		}
 
 		Point2D getTargetLocation() {
@@ -346,11 +310,11 @@ abstract public class OptionsPanel extends JPanel {
 	// ---- XML serialisation methods ----
 	static final String REMOTE_PREFIX = "remote_";	// prefix for properties intended for remote element
 
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		return null;
 	}
 
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 	}
 
 	// sets attributes for all properties of the local MapElement
@@ -377,7 +341,7 @@ abstract public class OptionsPanel extends JPanel {
 		String domProp = REMOTE_PREFIX + property;
 		if (domElement.hasAttribute(domProp)) {
 			boolean value = Boolean.parseBoolean(domElement.getAttribute(domProp));
-			setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, Mode.REMOTE);
 			check.setSelected(value);
 		}
 	}
@@ -385,8 +349,7 @@ abstract public class OptionsPanel extends JPanel {
 	void parseBooleanAttribute(String property, Element domElement, Mode mode) {
 		if (domElement.hasAttribute(property)) {
 			boolean value = Boolean.parseBoolean(domElement.getAttribute(property));
-			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
-			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, mode);
 		}
 	}
 
@@ -395,7 +358,7 @@ abstract public class OptionsPanel extends JPanel {
 		if (domElement.hasAttribute(domProp)) {
 //			try {
 			int value = Integer.parseInt(domElement.getAttribute(domProp));
-			setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, Mode.REMOTE);
 			field.setText(Integer.toString(value));
 //			} catch (NumberFormatException e) {
 //			}
@@ -406,8 +369,7 @@ abstract public class OptionsPanel extends JPanel {
 		if (domElement.hasAttribute(property)) {
 //			try {
 			int value = Integer.parseInt(domElement.getAttribute(property));
-			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
-			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, mode);
 //			} catch (NumberFormatException e) {
 //			}
 		}
@@ -417,16 +379,17 @@ abstract public class OptionsPanel extends JPanel {
 		String domProp = REMOTE_PREFIX + property;
 		if (domElement.hasAttribute(domProp)) {
 			String value = domElement.getAttribute(domProp);
-			setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, Mode.REMOTE);
 			field.setText(value);
+		} else {
+			field.setText("");
 		}
 	}
 
 	void parseStringAttribute(String property, Element domElement, Mode mode) {
 		if (domElement.hasAttribute(property)) {
 			String value = domElement.getAttribute(property);
-			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
-			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, mode);
 		}
 	}
 
@@ -434,8 +397,7 @@ abstract public class OptionsPanel extends JPanel {
 		if (domElement.hasAttribute(property)) {
 //			try {
 			float value = Float.parseFloat(domElement.getAttribute(property));
-			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
-			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, mode);
 //			} catch (NumberFormatException e) {
 //			}
 		}
@@ -445,8 +407,7 @@ abstract public class OptionsPanel extends JPanel {
 		if (domElement.hasAttribute(property)) {
 //			try {
 			double value = Double.parseDouble(domElement.getAttribute(property));
-			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
-			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, mode);
 //			} catch (NumberFormatException e) {
 //			}
 		}
@@ -456,8 +417,7 @@ abstract public class OptionsPanel extends JPanel {
 		if (domElement.hasAttribute(property)) {
 //			try {
 			Color value = Color.decode(domElement.getAttribute(property));
-			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
-			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, mode);
 //			} catch (NumberFormatException e) {
 //			}
 		}
@@ -467,8 +427,7 @@ abstract public class OptionsPanel extends JPanel {
 		if (domElement.hasAttribute(property)) {
 //			try {
 			T value = Enum.valueOf(enumType, domElement.getAttribute(property));
-			if (mode != Mode.REMOTE) getElement().setProperty(property, value);
-			if (mode != Mode.LOCAL) setRemote(getElement().getID(), property, value);
+			display.setProperty(getElement(), property, value, mode);
 //			} catch (IllegalArgumentException e) {
 //			}
 		}

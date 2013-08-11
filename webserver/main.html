@@ -2,6 +2,13 @@
 <head>
 	<title>WebCam Page</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<style>
+#box-table{width:100%; border: 0px solid #000;}
+.alignleft { float: left; }
+.clear {
+    clear: both;
+}
+	</style>
 	<script type="text/javascript">
 function getRequest() {
 	if (window.XMLHttpRequest) {
@@ -43,73 +50,96 @@ function updateInitiativeText(text) {
 	document.getElementById("initiative").innerHTML = html;
 }
 
-function sendRequest() {
-	//alert("sending request");
-	var req = getRequest();
-	req.onreadystatechange = function() {
-		if (req.readyState == 4) {
-			if (req.status == 200) {
-				// request is loaded successfully
-				//alert("got response: '"+req.responseText+"'");
-				if (req.responseText.substr(0,9) == "updated: ") {
-					var file = req.responseText.substring(9,req.responseText.indexOf("\n"));
-					if (file == "photo1.jpg") {
-						var now = new Date();
-						document.getElementById("photo1").src = "photo1.jpg?"+now.valueOf();
-						document.getElementById("photo1msg").innerHTML = "Updated at "+now;
-					} else if (file == "initiative.txt") {
-						var text = req.responseText.substring(req.responseText.indexOf("\n")+1);
-						updateInitiativeText(text);
-					} else {
-						alert("Updated '"+file+"'");
-					}
-				} else {
-					document.getElementById("photo1msg").innerHTML = req.responseText;
-				}
-			} else {
-				document.getElementById("photo1msg").innerHTML = "Error waiting for image refresh:<br/>"+req.status;
-				//alert("Status = "+req.status);
-			}
-			sendRequest();
-		}
-	};
-	req.open("GET", "main.php?"+(new Date()).valueOf(), true);
-	req.send();
+function updateTokensText(text) {
+	var lines = text.split("\n");
+	var html = "<table border=1 width=200>";
+
+	for (var i = 0; i < lines.length-1; i+=2) {
+		html += "<tr><td>";
+		html += lines[i];
+		html += "</td><td>";
+		html += lines[i+1];		
+		html += "</td></tr>";
+	}
+	
+	html += "</table>";
+	document.getElementById("tokenlist").innerHTML = html;
 }
 
-function load() {
+function getFile(filename) {
 	var req = getRequest();
-	req.open("GET", "initiative.txt", false);
+	req.open("GET", filename+"?"+(new Date()).valueOf(), false);
 	req.send();
 	if (req.status == 200) {
-		updateInitiativeText(req.responseText);
+		return req.responseText;
 	}
-	sendRequest();
+	return null;
 }
 
+function createEventSource() {
+	var source=new EventSource("main.php");
+	source.onerror=function(e) {
+		alert("Error with EventSource: "+e);
+	}
+	source.onmessage=function(event) {
+		var now = new Date();
+		//alert("update "+event.data);
+		if (event.data == "initiative.txt") {
+			updateInitiativeText(getFile("initiative.txt"));
+		} else if (event.data == "photo1.jpg") {
+			source.close();	// workaround for mobile safari - can't update the images while the EventSource is alive
+			document.getElementById("photo1").src = "photo1.jpg?"+now.valueOf();
+			document.getElementById("photo1msg").innerHTML = "Last image update: "+now;
+			createEventSource();	// workaround for mobile safari - can't update the images while the EventSource is alive
+		} else if (event.data == "tokens1.png") {
+			source.close();	// workaround for mobile safari - can't update the images while the EventSource is alive
+			document.getElementById("tokens1").src = "tokens1.png?"+now.valueOf();
+			createEventSource();	// workaround for mobile safari - can't update the images while the EventSource is alive
+		} else if (event.data == "tokens1.txt") {
+			updateTokensText(getFile("tokens1.txt"));
+		}
+	};
+}
+
+
+function load() {
+	updateInitiativeText(getFile("initiative.txt"));
+	updateTokensText(getFile("tokens1.txt"));
+	
+	if(typeof(EventSource)!=="undefined") {
+		createEventSource();
+	} else {
+		alert("Server-sent events not supported.\nGet a better browser - Firefox, Chrome, Safari, and Opera all support this, IE is shit");
+	} 
+}
+
+function toggleTokens() {
+	var checked = document.getElementById("tokens1check").checked;
+	document.getElementById("tokens1").style.display = checked?"inline":"none";
+	document.getElementById("tokenlist").style.display = checked?"inline":"none";
+}
 	</script>
 </head>
 
 <body onLoad="load();">
-<table width="175" cellpadding="1" bordercolorlight="#FFFFFF" bordercolordark="#000000" cellspacing="2" align="center">
-	<tr>
-	<td id="initiative">
-		<table border=1 width=200>
-			<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
-		</table>
-	</td>
-	<td valign='top'>
-		<table>
-			<tr>
-				<td>
-					<a href="photo1.jpg" target="_blank"><img width="640" height="480" id="photo1" src="photo1.jpg"/></a>
-					<br/>
-					<div id="photo1msg">Waiting for update</div>
-				</td>
-			</tr>
-		</table>
-	</tr>
-</table>
-
+	<div style="width: 80%; float: left;">
+		<img id="photo1" width="75%" src="photo1.jpg" style="position:absolute; z-index:1;"/>
+		<img id="tokens1" width="75%" src="tokens1.png" style="position:absolute; z-index:2;"/>
+		&nbsp;
+	</div>
+	<div style="float: right;">
+		<div id="initiative">
+			<table border="1">
+				<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
+			</table>
+		</div> 
+		<br/>
+		<input id="tokens1check" type="checkbox" checked="true" onclick="toggleTokens();">Show token overlay</input>
+		<div id="tokenlist">
+		</div>
+		<div id="photo1msg" style="width: 200px; margin-top: 20px;">
+			Waiting for update
+		</div>
+	</div>
 </body>
 </html>

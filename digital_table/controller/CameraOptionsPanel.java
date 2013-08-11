@@ -17,13 +17,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import camera.CameraPanel;
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
-import digital_table.server.TableDisplay;
 
 // TODO save latest image when saving?
 
-public class CameraOptionsPanel extends OptionsPanel {
+class CameraOptionsPanel extends OptionsPanel {
 	private static final long serialVersionUID = 1L;
 
 	private MapImage image;
@@ -31,31 +31,28 @@ public class CameraOptionsPanel extends OptionsPanel {
 	private CameraPanel camera;
 	private JCheckBox visibleCheck;
 
-	public CameraOptionsPanel(MapElement parent, TableDisplay r, CameraPanel cam) {
+	CameraOptionsPanel(MapElement parent, DisplayManager r, CameraPanel cam) {
 		super(r);
 		image = new MapImage("Camera");
 		image.setProperty(MapImage.PROPERTY_ROTATIONS, 1);
 		image.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
 		image.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
 		image.setProperty(MapImage.PROPERTY_Y, -1.0d);
-		sendElement(image, parent);
+		display.addElement(image, parent);
 		image.addPropertyChangeListener(listener);
 		this.camera = cam;
 
 		alphaSlider = createSliderControl(image, MapImage.PROPERTY_ALPHA);
-		visibleCheck = createCheckBox(image, MapElement.PROPERTY_VISIBLE, Mode.BOTH, "visible?");
+		visibleCheck = createCheckBox(image, MapElement.PROPERTY_VISIBLE, Mode.ALL, "visible?");
 
 		JButton updateButton = new JButton("Update");
 		updateButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				byte[] bytes = camera.getLatestCorrectedImage();
-				setRemote(image.getID(), MapImage.PROPERTY_IMAGE, bytes);
-				setRemote(image.getID(), MapImage.PROPERTY_WIDTH, 32.0d);
-				setRemote(image.getID(), MapImage.PROPERTY_HEIGHT, 39.0d);
-				image.setProperty(MapImage.PROPERTY_IMAGE, bytes);
-				image.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
-				image.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
+				display.setProperty(image, MapImage.PROPERTY_IMAGE, bytes);
+				display.setProperty(image, MapImage.PROPERTY_WIDTH, 32.0d);
+				display.setProperty(image, MapImage.PROPERTY_HEIGHT, 39.0d);
 			}
 		});
 
@@ -84,7 +81,7 @@ public class CameraOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public MapImage getElement() {
+	MapImage getElement() {
 		return image;
 	}
 
@@ -98,10 +95,10 @@ public class CameraOptionsPanel extends OptionsPanel {
 	};
 
 	// ---- XML serialisation methods ----
-	public final static String XML_TAG = "CameraImage";
+	final static String XML_TAG = "CameraImage";
 
 	@Override
-	public Element getElement(Document doc) {
+	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
@@ -109,10 +106,10 @@ public class CameraOptionsPanel extends OptionsPanel {
 	}
 
 	@Override
-	public void parseDOM(Element e) {
+	void parseDOM(Element e) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.BOTH);
+		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 	}
 }
