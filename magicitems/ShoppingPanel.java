@@ -37,7 +37,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import xml.XMLUtils;
+import util.XMLUtils;
 
 public class ShoppingPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;

@@ -1,68 +1,32 @@
 package ui;
 
 import gamesystem.Buff;
-import gamesystem.Buff.Effect;
-import gamesystem.Buff.ModifierEffect;
-import gamesystem.BuffFactory;
-import gamesystem.Modifier;
-import gamesystem.dice.Dice;
 
-import java.awt.BorderLayout;
-import java.awt.Dialog;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
-import java.util.Comparator;
 
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.ListSelectionModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import party.Character;
 import swing.JListWithToolTips;
-import swing.ListModelWithToolTips;
-
-// TODO have caster level selected with the max/empower check boxes?
 
 @SuppressWarnings("serial")
 public class CharacterBuffsPanel extends CharacterSubPanel {
-	private JCheckBox empCheckBox;
-	private JCheckBox maxCheckBox;
-
 	public CharacterBuffsPanel(Character c) {
 		super(c);
-		setLayout(new GridLayout(0,2));
+		setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
-		BuffFactory[] availableBuffs = Arrays.copyOf(BuffFactory.buffs, BuffFactory.buffs.length);
-		Arrays.sort(availableBuffs, new Comparator<BuffFactory>() {
-			@Override
-			public int compare(BuffFactory a, BuffFactory b) {
-				return a.name.compareTo(b.name);
-			}
-		});
-		BuffListModel bfModel = new BuffListModel(availableBuffs);
-		final JListWithToolTips buffs = new JListWithToolTips(bfModel);
-		buffs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		final BuffUI ui = new BuffUI();
+		JListWithToolTips buffs = ui.getBuffList();
 		buffs.setVisibleRowCount(20);
+		add(buffs);
 
-		final JListWithToolTips applied = new JListWithToolTips(character.buffs);
+		final JListWithToolTips applied = new JListWithToolTips(character.getBuffListModel());
 		applied.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		applied.setVisibleRowCount(8);
 
@@ -70,9 +34,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		apply.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				BuffFactory bf = (BuffFactory) buffs.getSelectedValue();
-				Buff buff = applyBuff(bf);
-				character.buffs.addElement(buff);
+				character.addBuff(ui.getBuff());
 			}
 		});
 
@@ -82,8 +44,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			public void actionPerformed(ActionEvent e) {
 				Object[] buffs = applied.getSelectedValues();
 				for (Object b : buffs) {
-					((Buff) b).removeBuff(character);
-					character.buffs.removeElement(b);
+					character.removeBuff((Buff) b);
 				}
 			}
 		});
@@ -94,10 +55,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 
 		JPanel right = new JPanel();
 		right.setLayout(new BoxLayout(right, BoxLayout.PAGE_AXIS));
-		empCheckBox = new JCheckBox("Empowered");
-		right.add(empCheckBox);
-		maxCheckBox = new JCheckBox("Maximized");
-		right.add(maxCheckBox);
+		right.add(ui.getOptionsPanel());
 
 		JPanel buttons = new JPanel();
 		buttons.add(apply);
@@ -109,153 +67,4 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		right.add(scroller);
 		add(right);
 	}
-
-	private Buff applyBuff(BuffFactory bf) {
-		Buff buff = bf.getBuff();
-		buff.maximized = maxCheckBox.isSelected();
-		buff.empowered = empCheckBox.isSelected();
-		if (buff.requiresCasterLevel()) {
-			// TODO add cancel button?
-			Window parentWindow = SwingUtilities.getWindowAncestor(this);
-			final JDialog dialog = new JDialog(parentWindow, "Enter caster level...", Dialog.DEFAULT_MODALITY_TYPE);
-			dialog.add(new BuffOptionPanel(buff));
-
-			JButton ok = new JButton("Ok");
-			ok.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					// TODO confirm editing of clSpinner?
-					dialog.setVisible(false);
-				}
-			});
-			JPanel buttonPanel = new JPanel();
-			buttonPanel.add(ok);
-			dialog.add(buttonPanel, BorderLayout.PAGE_END);
-
-			dialog.pack();
-			dialog.setVisible(true);
-			dialog.setLocationRelativeTo(parentWindow);
-		}
-		buff.applyBuff(character);
-		return buff;
-	}
-
-	// TODO this should probably be toplevel class
-	public static class BuffListModel extends DefaultListModel implements ListModelWithToolTips {
-		public BuffListModel() {
-			super();
-		}
-
-		public BuffListModel(BuffFactory[] buffs) {
-			super();
-			for (BuffFactory bf : buffs) {
-				addElement(bf);
-			}
-		}
-
-		@Override
-		public String getToolTipAt(int index) {
-			if (index < 0) return null;
-			Object o = get(index);
-			if (o instanceof BuffFactory) {
-				return ((BuffFactory)o).getDescription();
-			} else if (o instanceof Buff) {
-				return ((Buff)o).getDescription();
-			}
-			return null;
-		}
-	}
-
-	// Note: this class assumes that the Effects in a Buff don't change.
-	private class BuffOptionPanel extends JPanel {
-		Buff buff;
-		SpinnerNumberModel clModel;
-		JLabel[] effectLabels;
-		SpinnerNumberModel[] diceModels;
-
-		BuffOptionPanel(Buff b) {
-			buff = b;
-			buff.setCasterLevel(1);
-
-			setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-
-			JPanel clPanel = new JPanel();
-			clPanel.add(new JLabel("Caster Level: "));
-			clModel = new SpinnerNumberModel(1, 1, 20, 1);
-			JSpinner clSpinner = new JSpinner(clModel);
-			clPanel.add(clSpinner);
-			add(clPanel);
-
-			JPanel effectsPanel = new JPanel();
-			effectsPanel.setLayout(new GridBagLayout());
-			effectLabels = new JLabel[buff.effects.size()];
-			diceModels = new SpinnerNumberModel[buff.effects.size()];
-			GridBagConstraints c = new GridBagConstraints();
-			c.fill = GridBagConstraints.HORIZONTAL;
-			c.anchor = GridBagConstraints.LINE_START;
-			c.insets = new Insets(2,5,2,5);
-			int i = 0;
-			for (Effect e : buff.effects) {
-				JLabel l = new JLabel(e.toString());
-				c.gridy = i; c.gridx = 0;
-				effectsPanel.add(l, c);
-				c.fill = GridBagConstraints.NONE;
-
-				final Dice d = e.getDice();
-				if (d != null && !buff.maximized || buff.empowered) {
-					// if the buff is maximized but not empowered then we don't need to roll
-
-					int roll = d.roll();
-					buff.setRoll(d, roll);
-					diceModels[i] = new SpinnerNumberModel(roll, d.getMinimum(), d.getMaximum(), 1);
-					diceModels[i].addChangeListener(new ChangeListener() {
-						@Override
-						public void stateChanged(ChangeEvent e) {
-							buff.setRoll(d, ((SpinnerNumberModel)e.getSource()).getNumber().intValue());
-							updateEffects();
-						}
-					});
-					JSpinner s = new JSpinner(diceModels[i]);
-					c.gridx = 1;
-					effectsPanel.add(new JLabel("Roll: "), c);
-					c.gridx = 2;
-					effectsPanel.add(s, c);
-				}
-				if (e.requiresCasterLevel()) {
-					effectLabels[i] = new JLabel();
-					c.gridx = 3;
-					effectsPanel.add(effectLabels[i], c);
-				}
-				i++;
-			}
-			add(effectsPanel);
-
-			clModel.addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					buff.setCasterLevel(clModel.getNumber().intValue());
-					updateEffects();
-				}
-			});
-
-			updateEffects();
-		}
-
-		private void updateEffects() {
-			int i = 0;
-			for (Effect e : buff.effects) {
-				if (e instanceof ModifierEffect) {
-					if (e.requiresCasterLevel()) {
-						StringBuilder s = new StringBuilder("(");
-						Modifier m = ((ModifierEffect)e).getModifier(buff);
-						if (m.getModifier() >= 0) s.append("+");
-						s.append(m.getModifier()).append(")");
-						effectLabels[i].setText(s.toString());
-					}
-					i++;
-				}
-			}
-		}
-	}
-
 }

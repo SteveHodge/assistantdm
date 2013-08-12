@@ -17,7 +17,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import xml.XMLUtils;
+import util.XMLUtils;
 
 @SuppressWarnings("serial")
 public class MonstersTableModel extends DefaultTableModel {

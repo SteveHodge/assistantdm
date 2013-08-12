@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JOptionPane;
+import javax.swing.ListModel;
 import javax.swing.table.AbstractTableModel;
 
 import org.w3c.dom.Document;
@@ -196,8 +197,9 @@ public class EffectTableModel extends AbstractTableModel {
 				Object t = potentials.getElementAt(i);
 				if (t instanceof CharacterCombatEntry) {
 					Character c = ((CharacterCombatEntry) t).getCharacter();
-					for (int j = 0; j < c.buffs.getSize(); j++) {
-						Buff b = (Buff) c.buffs.get(j);
+					ListModel list = c.getBuffListModel();
+					for (int j = 0; j < list.getSize(); j++) {
+						Buff b = (Buff) list.getElementAt(j);
 						if (b.id == buffId) {
 							buff = b;
 							targets.add(c);
@@ -223,8 +225,7 @@ public class EffectTableModel extends AbstractTableModel {
 				int option = JOptionPane.showConfirmDialog(parent, text + " from " + targetList + "?", title, JOptionPane.YES_NO_OPTION);
 				if (option == JOptionPane.YES_OPTION) {
 					for (Character c : targets) {
-						buff.removeBuff(c);
-						c.buffs.removeElement(buff);
+						c.removeBuff(buff);
 					}
 					removeEntry(index);
 				}

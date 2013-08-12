@@ -1,7 +1,6 @@
 package monsters;
 
 import gamesystem.AbilityScore.Type;
-import gamesystem.CR;
 import gamesystem.SizeCategory;
 
 import java.io.File;
@@ -26,7 +25,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import party.Monster;
-import xml.LocalEntityResolver;
+import util.LocalEntityResolver;
 
 /**
  * Represents a parsed statistics block from a source (usual an HTML table). The values stored in the
@@ -142,15 +141,15 @@ public class StatisticsBlock {
 		return sizeType;
 	}
 
-	private String[] getSubtypes() {
-		String sizeType = get(Property.SIZE_TYPE);
-		if (sizeType == null || sizeType.indexOf('(') < 0) return null;
-		sizeType = sizeType.substring(sizeType.indexOf('(') + 1);
-		if (sizeType.indexOf(')') >= 0) {
-			sizeType = sizeType.substring(0,sizeType.indexOf(')'));
-		}
-		return sizeType.split("\\s*,\\s*");
-	}
+//	private String[] getSubtypes() {
+//		String sizeType = get(Property.SIZE_TYPE);
+//		if (sizeType == null || sizeType.indexOf('(') < 0) return null;
+//		sizeType = sizeType.substring(sizeType.indexOf('(') + 1);
+//		if (sizeType.indexOf(')') >= 0) {
+//			sizeType = sizeType.substring(0,sizeType.indexOf(')'));
+//		}
+//		return sizeType.split("\\s*,\\s*");
+//	}
 
 	/**
 	 * Parses the SIZE_TYPE property value and returns the size category (which is the first word of the property).
@@ -220,19 +219,19 @@ public class StatisticsBlock {
 		return Integer.parseInt(a);
 	}
 
-	private CR getCR() {
-		String s = get(Property.CR);
-		if (s.equals("¼")) s = "1/4";
-		if (s.equals("½")) s = "1/2";
-		try {
-			return new CR(s);
-		} catch (NumberFormatException e) {
-			// failed to parse, generally this means there was a note in the CR field
-			// we could try to parse the initial number, but for now we'll just return null
-			//System.out.println("Failed to parse '"+s+"' as CR");
-			return null;
-		}
-	}
+//	private CR getCR() {
+//		String s = get(Property.CR);
+//		if (s.equals("¼")) s = "1/4";
+//		if (s.equals("½")) s = "1/2";
+//		try {
+//			return new CR(s);
+//		} catch (NumberFormatException e) {
+//			// failed to parse, generally this means there was a note in the CR field
+//			// we could try to parse the initial number, but for now we'll just return null
+//			//System.out.println("Failed to parse '"+s+"' as CR");
+//			return null;
+//		}
+//	}
 
 	Source getSource() {
 		return source;

@@ -183,8 +183,7 @@ class NewEffectPanel extends JPanel {
 
 				if (buff != null) {
 					for (Character c : targets) {
-						buff.applyBuff(c);
-						c.buffs.addElement(buff);
+						c.addBuff(buff);
 					}
 				}
 				model.addEntry(effectField.getText(), sourceField.getSelectedItem().toString(),

@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import xml.XMLUtils;
+import util.XMLUtils;
 
 public class Party implements Iterable<Character> {
 	protected List<Character> characters;

@@ -41,7 +41,7 @@ import party.Party;
 import swing.ReorderableList;
 import swing.SpinnerCellEditor;
 import util.Updater;
-import xml.XMLUtils;
+import util.XMLUtils;
 
 // TODO consider removing ability to edit max hitpoints. Maybe have modifications on this tab be temporary
 // TODO provide events when the combat state changes (round or initiative list), then file updater can just register as listener

@@ -121,8 +121,7 @@ public class StatisticInfoDialog extends JDialog {
 				int mod = (Integer) modField.getValue();
 				bf.addEffect(statName, typeBox.getSelectedItem().toString(), mod);
 				Buff buff = bf.getBuff();
-				buff.applyBuff(character);
-				character.buffs.addElement(buff);
+				character.addBuff(buff);
 			}
 		});
 

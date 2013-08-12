@@ -72,11 +72,14 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * convert character.php to use server-sent events
- * refactor/combine buff ui code in combat and character tabs
+ * Allow multi-select and grouping in tree
+ * Improve Tokens element: floating label
+ * 
+ * get rid of XMLUtils. findNode is used in monsters and magicitems packages
  * size (where is up to?)
  * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
  * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
+ * add combat panel section for pending xp/defeated monsters
  * live character sheet: fix up incomplete fading of character sheet when dialog appears
  * fix automatic updates due to extra_attacks
  * ui: add info dialog for remaining statistics (ac, weapons, armor, level, size)
@@ -95,8 +98,6 @@ import digital_table.controller.DigitalTableController;
  */
 /* TODO digital tabletop (dtt) priorities:
  * BUG Issue with image scaling before remote visible - fix handling of image size when image changes
- * Allow multi-select and grouping in tree
- * Improve Tokens element: floating label
  * Implement Creature Size
  * Improve camera integration, fix ui for camera panel
  * Refactor common utility methods into MapElement (e.g. template creation)

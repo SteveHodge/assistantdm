@@ -2,7 +2,6 @@ package ui;
 
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
-import gamesystem.Buff;
 import gamesystem.BuffFactory;
 import gamesystem.Feat;
 
@@ -226,9 +225,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 					int mod = (Integer) modField.getValue();
 					if (attackMod.isSelected()) bf.addEffect(Creature.STATISTIC_ATTACKS, typeBox.getSelectedItem().toString(), mod);
 					if (damageMod.isSelected()) bf.addEffect(Creature.STATISTIC_DAMAGE, typeBox.getSelectedItem().toString(), mod);
-					Buff buff = bf.getBuff();
-					buff.applyBuff(character);
-					character.buffs.addElement(buff);
+					character.addBuff(bf.getBuff());
 				}
 			});
 

@@ -40,7 +40,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
-import ui.CharacterBuffsPanel.BuffListModel;
+import swing.ListModelWithToolTips;
+import ui.BuffUI;
 import util.Updater;
 
 /**
@@ -111,8 +112,8 @@ public class Character extends Creature {
 
 	private Size size;
 
-	public BuffListModel buffs = new BuffListModel();	// TODO reimplement for better encapsulation
-	public BuffListModel feats = new BuffListModel();	// TODO reimplement for better encapsulation
+	private BuffUI.BuffListModel buffs = new BuffUI.BuffListModel();
+	public BuffUI.BuffListModel feats = new BuffUI.BuffListModel();	// TODO reimplement for better encapsulation
 
 	private List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();
 
@@ -324,6 +325,23 @@ public class Character extends Creature {
 		}
 
 		pcs.firePropertyChange(property, oldValue, newValue);
+	}
+
+	public void addBuff(Buff b) {
+		b.applyBuff(this);
+		buffs.addElement(b);
+		if (autoSave) saveCharacterSheet();
+	}
+
+	public void removeBuff(Buff b) {
+		b.removeBuff(this);
+		buffs.removeElement(b);
+		if (autoSave) saveCharacterSheet();
+	}
+
+	// TODO refactor the BuffListModel class and this accessor
+	public ListModelWithToolTips getBuffListModel() {
+		return buffs;
 	}
 
 //------------------- Ability Scores -------------------

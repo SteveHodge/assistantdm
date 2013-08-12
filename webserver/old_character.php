@@ -36,21 +36,8 @@ function sendRequest() {
 			sendRequest();
 		}
 	};
-	req.open("GET", "old_updatexml.php?name="+name+"&unique="+(new Date()).valueOf(), true);
+	req.open("GET", "updatexml.php?name="+name+"&unique="+(new Date()).valueOf(), true);
 	req.send();
-}
-
-function createEventSource() {
-	var source=new EventSource("updatexml.php?name="+name);
-	source.onerror=function(e) {
-		alert("Error with EventSource: "+e);
-	}
-	source.onmessage=function(event) {
-		//alert("update "+event.data);
-		if (event.data == name+".xml") {
-			displayXML(loadXMLDoc(name+".xml?unique="+(new Date()).valueOf()));
-		}
-	};
 }
 
 function loadXMLDoc(dname) {
@@ -83,14 +70,8 @@ function load() {
 
 	xsl=loadXMLDoc("CharacterTemplate.xsl");
 
-	displayXML(loadXMLDoc(name+".xml?unique="+(new Date()).valueOf()));
-
-	if(typeof(EventSource)!=="undefined") {
-		createEventSource();
-	} else {
-		alert("Server-sent events not supported.\nGet a better browser - Firefox, Chrome, Safari, and Opera all support this, IE is shit");
-		sendRequest();
-	} 
+	displayXML(loadXMLDoc(name+".xml"));
+	sendRequest();
 }
 	</script>
 </head>

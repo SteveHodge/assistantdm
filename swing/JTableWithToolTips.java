@@ -34,10 +34,12 @@ public class JTableWithToolTips extends JTable {
 		super(arg0);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public JTableWithToolTips(Vector arg0, Vector arg1) {
 		super(arg0, arg1);
 	}
 
+	@Override
 	public String getToolTipText(MouseEvent e) {
 		String tip = null;
 		java.awt.Point p = e.getPoint();
