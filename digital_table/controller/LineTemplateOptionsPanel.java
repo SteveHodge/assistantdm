@@ -21,8 +21,7 @@ import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 
 @SuppressWarnings("serial")
-class LineTemplateOptionsPanel extends OptionsPanel {
-	private LineTemplate template;
+class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 	private JTextField xField;
 	private JTextField yField;
 	private JTextField rangeField;
@@ -35,20 +34,20 @@ class LineTemplateOptionsPanel extends OptionsPanel {
 
 	LineTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		template = new LineTemplate(18, 14, 21, 7);
-		display.addElement(template, parent);
-		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		template.addPropertyChangeListener(listener);
+		element = new LineTemplate(18, 14, 21, 7);
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		xField = createIntegerControl(template, LineTemplate.PROPERTY_X);
-		yField = createIntegerControl(template, LineTemplate.PROPERTY_Y);
-		originXField = createIntegerControl(template, LineTemplate.PROPERTY_ORIGIN_X);
-		originYField = createIntegerControl(template, LineTemplate.PROPERTY_ORIGIN_Y);
-		rangeField = createIntegerControl(template, LineTemplate.PROPERTY_RANGE);
-		colorPanel = createColorControl(template, LineTemplate.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(template, LineTemplate.PROPERTY_ALPHA);
-		labelField = createStringControl(template, LineTemplate.PROPERTY_LABEL, Mode.LOCAL);
-		visibleCheck = createVisibilityControl(template);
+		xField = createIntegerControl(LineTemplate.PROPERTY_X);
+		yField = createIntegerControl(LineTemplate.PROPERTY_Y);
+		originXField = createIntegerControl(LineTemplate.PROPERTY_ORIGIN_X);
+		originYField = createIntegerControl(LineTemplate.PROPERTY_ORIGIN_Y);
+		rangeField = createIntegerControl(LineTemplate.PROPERTY_RANGE);
+		colorPanel = createColorControl(LineTemplate.PROPERTY_COLOR);
+		alphaSlider = createSliderControl(LineTemplate.PROPERTY_ALPHA);
+		labelField = createStringControl(LineTemplate.PROPERTY_LABEL, Mode.LOCAL);
+		visibleCheck = createVisibilityControl();
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -76,11 +75,6 @@ class LineTemplateOptionsPanel extends OptionsPanel {
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
 		add(new JPanel(), c);
-	}
-
-	@Override
-	LineTemplate getElement() {
-		return template;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -125,11 +119,11 @@ class LineTemplateOptionsPanel extends OptionsPanel {
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 
-			if (gridLocation.distance((Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_X),
-					(Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_Y)) < 2.0d
-					&& gridLocation.distance((Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_X),
-							(Integer)template.getProperty(LineTemplate.PROPERTY_ORIGIN_Y))
-							< gridLocation.distance((Integer)template.getProperty(LineTemplate.PROPERTY_X), (Integer)template.getProperty(LineTemplate.PROPERTY_Y))) {
+			if (gridLocation.distance((Integer) element.getProperty(LineTemplate.PROPERTY_ORIGIN_X),
+					(Integer) element.getProperty(LineTemplate.PROPERTY_ORIGIN_Y)) < 2.0d
+					&& gridLocation.distance((Integer) element.getProperty(LineTemplate.PROPERTY_ORIGIN_X),
+							(Integer) element.getProperty(LineTemplate.PROPERTY_ORIGIN_Y))
+							< gridLocation.distance((Integer) element.getProperty(LineTemplate.PROPERTY_X), (Integer) element.getProperty(LineTemplate.PROPERTY_Y))) {
 				return LineTemplate.PROPERTY_ORIGIN_LOCATION;
 			} else {
 				return LineTemplate.PROPERTY_TARGET_LOCATION;

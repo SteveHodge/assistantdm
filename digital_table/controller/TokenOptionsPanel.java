@@ -8,6 +8,8 @@ import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -38,12 +40,12 @@ import combat.InitiativeListModel;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
+import digital_table.elements.Label;
 import digital_table.elements.MapElement;
 import digital_table.elements.Token;
 
 @SuppressWarnings("serial")
-public class TokenOptionsPanel extends OptionsPanel {
-	private Token token;
+public class TokenOptionsPanel extends OptionsPanel<Token> {
 	private JTextField xField;
 	private JTextField yField;
 	private JComboBox rotationsCombo;
@@ -64,42 +66,42 @@ public class TokenOptionsPanel extends OptionsPanel {
 	private JComboBox statusCombo;
 	private JComboBox statusDisplayCombo;
 	private JCheckBox visibleCheck;
+	private JCheckBox floatingLabelCheck;
+	private LabelOptionsPanel floatingLabel = null;
 	private Creature creature;
 	private File imageFile = null;
 
 	// TODO shouldn't be public - default directories should be moved to a global config class
 	public static File lastDir = new File(".");	// last selected image - used to keep the current directory
 
-	TokenOptionsPanel(MapElement parent, DisplayManager r) {
+	TokenOptionsPanel(MapElement parent, DisplayManager r, final ElementFactory<LabelOptionsPanel> labelFactory) {
 		super(r);
-		token = new Token();
-		display.addElement(token, parent);
-		token.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		token.addPropertyChangeListener(listener);
+		element = new Token();
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		xField = createIntegerControl(token, Token.PROPERTY_X);
-		yField = createIntegerControl(token, Token.PROPERTY_Y);
-		colorPanel = createColorControl(token, Token.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(token, Token.PROPERTY_ALPHA);
-		reachField = createIntegerControl(token, Token.PROPERTY_REACH);
-		rotationsCombo = createRotationControl(token, Token.PROPERTY_ROTATIONS, Mode.ALL);
-		labelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.LOCAL);
-		remoteLabelField = createStringControl(token, Token.PROPERTY_LABEL, Mode.REMOTE);
-		visibleCheck = createVisibilityControl(token);
-		localReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.LOCAL, "local");
-		remoteReach = createCheckBox(token, Token.PROPERTY_SHOWREACH, Mode.REMOTE, "remote");
-		reachWeapon = createCheckBox(token, Token.PROPERTY_REACHWEAPON, Mode.ALL, "Reach weapon?");
-		maxHPsField = createNullableIntegerControl(token, Token.PROPERTY_MAX_HPS, Mode.ALL);
-		currentHPsField = createNullableIntegerControl(token, Token.PROPERTY_CURRENT_HPS, Mode.ALL);
-		statusCombo = createComboControl(token, Token.PROPERTY_STATUS_TYPE, Token.StatusType.values());
-		statusDisplayCombo = createComboControl(token, Token.PROPERTY_STATUS_DISPLAY, Token.StatusDisplay.values());
+		xField = createIntegerControl(Token.PROPERTY_X);
+		yField = createIntegerControl(Token.PROPERTY_Y);
+		colorPanel = createColorControl(Token.PROPERTY_COLOR);
+		alphaSlider = createSliderControl(Token.PROPERTY_ALPHA);
+		reachField = createIntegerControl(Token.PROPERTY_REACH);
+		labelField = createStringControl(Token.PROPERTY_LABEL, Mode.LOCAL);
+		visibleCheck = createVisibilityControl();
+		localReach = createCheckBox(Token.PROPERTY_SHOWREACH, Mode.LOCAL, "local");
+		remoteReach = createCheckBox(Token.PROPERTY_SHOWREACH, Mode.REMOTE, "remote");
+		reachWeapon = createCheckBox(Token.PROPERTY_REACHWEAPON, Mode.ALL, "Reach weapon?");
+		maxHPsField = createHPControl(Token.PROPERTY_MAX_HPS);
+		currentHPsField = createHPControl(Token.PROPERTY_CURRENT_HPS);
+		statusCombo = createStatusControl(Token.PROPERTY_STATUS_TYPE, Token.StatusType.values());
+		statusDisplayCombo = createStatusControl(Token.PROPERTY_STATUS_DISPLAY, Token.StatusDisplay.values());
 
 		webLabelField = new JTextField(30);
 		webLabelField.setText("");
 		webLabelField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				display.setProperty(token, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText(), Mode.OVERLAY);
+				display.setProperty(element, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText(), Mode.OVERLAY);
 			}
 		});
 
@@ -110,19 +112,19 @@ public class TokenOptionsPanel extends OptionsPanel {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox combo = (JComboBox) e.getSource();
 				CreatureSize selected = (CreatureSize) combo.getSelectedItem();
-				display.setProperty(token, Token.PROPERTY_SPACE, selected.getSpace());
-				display.setProperty(token, Token.PROPERTY_REACH, selected.getReach());
+				display.setProperty(element, Token.PROPERTY_SPACE, selected.getSpace());
+				display.setProperty(element, Token.PROPERTY_REACH, selected.getReach());
 			}
 		});
 
 		spaceField = new JTextField(8);
-		int space = (Integer) token.getProperty(Token.PROPERTY_SPACE);
+		int space = (Integer) element.getProperty(Token.PROPERTY_SPACE);
 		spaceField.setText("" + ((float) space) / 2);
 		spaceField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int newSpace = (int) (Double.parseDouble(spaceField.getText()) * 2);
-				display.setProperty(token, Token.PROPERTY_SPACE, newSpace);
+				display.setProperty(element, Token.PROPERTY_SPACE, newSpace);
 			}
 		});
 
@@ -143,6 +145,64 @@ public class TokenOptionsPanel extends OptionsPanel {
 				} else {
 					System.out.println("Cancelled");
 				}
+			}
+		});
+
+		floatingLabelCheck = new JCheckBox("Floating labels");
+		floatingLabelCheck.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				JCheckBox check = (JCheckBox) e.getSource();
+				if (check.isSelected()) {
+					if (floatingLabel == null) {
+						floatingLabel = labelFactory.addElement(element);
+					}
+					// configure the floating label
+					Label l = floatingLabel.getElement();
+					display.setProperty(l, Label.PROPERTY_TEXT, remoteLabelField.getText(), Mode.ALL);
+					// default position is right under the token
+					// TODO this should account for rotation
+					double space = Double.parseDouble(spaceField.getText()) / 5.0d;
+					display.setProperty(l, Label.PROPERTY_Y, space, Mode.ALL);
+					display.setProperty(l, Label.PROPERTY_ROTATIONS, rotationsCombo.getSelectedIndex(), Mode.ALL);
+					display.setProperty(l, Label.PROPERTY_VISIBLE, true, Mode.REMOTE);
+					floatingLabel.visibleCheck.setSelected(true);
+					// remove the label from the remote token
+					display.setProperty(element, Token.PROPERTY_LABEL, "", Mode.REMOTE);
+					updateFloatingStatus();
+				} else if (floatingLabel != null) {
+					// remove the floating label
+					labelFactory.removeElement(floatingLabel);
+					floatingLabel = null;
+					// replace the existing label
+					display.setProperty(element, Token.PROPERTY_LABEL, remoteLabelField.getText(), Mode.REMOTE);
+				}
+			}
+		});
+
+		remoteLabelField = new JTextField(30);
+		remoteLabelField.setText("" + element.getProperty(Token.PROPERTY_LABEL));
+		remoteLabelField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (floatingLabel == null) {
+					display.setProperty(element, Token.PROPERTY_LABEL, remoteLabelField.getText(), Mode.REMOTE);
+				} else {
+					display.setProperty(floatingLabel.getElement(), Label.PROPERTY_TEXT, remoteLabelField.getText(), Mode.ALL);
+				}
+			}
+		});
+
+		rotationsCombo = new JComboBox(options);
+		rotationsCombo.setSelectedIndex((Integer) element.getProperty(Token.PROPERTY_ROTATIONS));
+		rotationsCombo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox combo = (JComboBox) e.getSource();
+				int index = combo.getSelectedIndex();
+				display.setProperty(element, Token.PROPERTY_ROTATIONS, index, Mode.ALL);
+				// TODO should reposition the floating label too
+				if (floatingLabel != null) display.setProperty(floatingLabel.getElement(), Token.PROPERTY_ROTATIONS, index, Mode.ALL);
 			}
 		});
 
@@ -175,10 +235,13 @@ public class TokenOptionsPanel extends OptionsPanel {
 		c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0;
+		c.gridwidth = 2;
 		add(labelField, c);
 		c.gridy = GridBagConstraints.RELATIVE;
 		add(remoteLabelField, c);
+		c.gridwidth = 1;
 		add(webLabelField, c);
+		c.gridwidth = 2;
 		if (CombatPanel.getCombatPanel() != null) {
 			add(creatureCombo, c);
 		}
@@ -205,9 +268,46 @@ public class TokenOptionsPanel extends OptionsPanel {
 		c.weighty = 1.0d;
 		c.gridx = 0;
 		c.gridy++;
-		c.gridwidth = 2;
+		c.gridwidth = 3;
 		add(new JPanel(), c);
-		//@formatter:on
+
+		c.gridx = 2;
+		c.gridy = 2;
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.NONE;
+		c.weightx = 0;
+		c.weighty = 0;
+		add(floatingLabelCheck, c);
+	}
+
+	private JTextField createHPControl(final String property) {
+		final JTextField field = new JTextField(8);
+		if (element.getProperty(property) != null) field.setText("" + element.getProperty(property));
+		field.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Integer newValue = null;
+				if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
+				display.setProperty(element, property, newValue, Mode.ALL);
+				updateFloatingStatus();
+			}
+		});
+		return field;
+	}
+
+	private JComboBox createStatusControl(final String property, Object[] values) {
+		final JComboBox typeCombo = new JComboBox(values);
+		typeCombo.setSelectedItem(element.getProperty(property));
+		typeCombo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox combo = (JComboBox) e.getSource();
+				Object selected = combo.getSelectedItem();
+				display.setProperty(element, property, selected, Mode.ALL);
+				updateFloatingStatus();
+			}
+		});
+		return typeCombo;
 	}
 
 	void setImage(File f) {
@@ -225,8 +325,8 @@ public class TokenOptionsPanel extends OptionsPanel {
 				e.printStackTrace();
 			}
 		}
-		display.setProperty(token, Token.PROPERTY_IMAGE, bytes, Mode.REMOTE);
-		token.setImage(imageFile);
+		display.setProperty(element, Token.PROPERTY_IMAGE, bytes, Mode.REMOTE);
+		element.setImage(imageFile);
 	}
 
 	void setCreature(Creature c) {
@@ -236,9 +336,9 @@ public class TokenOptionsPanel extends OptionsPanel {
 		}
 		creature = c;
 		if (creature == null) {
-			display.setProperty(token, Token.PROPERTY_MAX_HPS, 0);
-			display.setProperty(token, Token.PROPERTY_CURRENT_HPS, 0);
-			display.setProperty(token, Token.PROPERTY_LABEL, "");
+			display.setProperty(element, Token.PROPERTY_MAX_HPS, 0);
+			display.setProperty(element, Token.PROPERTY_CURRENT_HPS, 0);
+			display.setProperty(element, Token.PROPERTY_LABEL, "");
 			maxHPsField.setText("");
 			currentHPsField.setText("");
 			labelField.setText("");
@@ -250,11 +350,11 @@ public class TokenOptionsPanel extends OptionsPanel {
 			spaceField.setText("" + ((float) creature.getSpace()) / 2);
 			reachField.setText("" + creature.getReach());
 			sizeCombo.setSelectedItem(CreatureSize.getSize(creature.getSize(), creature.getReach()));
-			display.setProperty(token, Token.PROPERTY_SPACE, creature.getSpace());
-			display.setProperty(token, Token.PROPERTY_REACH, creature.getReach());
+			display.setProperty(element, Token.PROPERTY_SPACE, creature.getSpace());
+			display.setProperty(element, Token.PROPERTY_REACH, creature.getReach());
 
 			labelField.setText(creature.getName());
-			display.setProperty(token, Token.PROPERTY_LABEL, creature.getName());
+			display.setProperty(element, Token.PROPERTY_LABEL, creature.getName());
 			remoteLabelField.setText(creature.getName());
 		}
 
@@ -274,28 +374,34 @@ public class TokenOptionsPanel extends OptionsPanel {
 				}
 				if (evt.getPropertyName().equals(Creature.PROPERTY_SPACE) || evt.getPropertyName().equals(Creature.PROPERTY_SIZE)) {
 					spaceField.setText("" + ((float) creature.getSpace()) / 2);
-					display.setProperty(token, Token.PROPERTY_SPACE, creature.getSpace());
+					display.setProperty(element, Token.PROPERTY_SPACE, creature.getSpace());
 				} else if (evt.getPropertyName().equals(Creature.PROPERTY_REACH) || evt.getPropertyName().equals(Creature.PROPERTY_SIZE)) {
 					reachField.setText("" + creature.getReach());
-					display.setProperty(token, Token.PROPERTY_REACH, creature.getReach());
+					display.setProperty(element, Token.PROPERTY_REACH, creature.getReach());
 				}
 			}
 		}
 	};
 
+	private void updateFloatingStatus() {
+		if (floatingLabel == null || statusDisplayCombo.getSelectedItem() != Token.StatusDisplay.LABEL) return;
+		String s = remoteLabelField.getText();
+		if (s.length() > 0) s += " ";
+		s += element.getStatusDescription();
+		display.setProperty(floatingLabel.getElement(), Label.PROPERTY_TEXT, s, Mode.ALL);
+	}
+
+	// TODO needs to account for temporary hitpoints
 	private void updateHPs() {
 		if (creature == null) return;
 		int max = creature.getMaximumHitPoints();
 		int curr = max - creature.getWounds() - creature.getNonLethal();
-		display.setProperty(token, Token.PROPERTY_MAX_HPS, max);
-		display.setProperty(token, Token.PROPERTY_CURRENT_HPS, curr);
+		display.setProperty(element, Token.PROPERTY_MAX_HPS, max);
+		display.setProperty(element, Token.PROPERTY_CURRENT_HPS, curr);
 		maxHPsField.setText("" + max);
 		currentHPsField.setText("" + curr);
-	}
 
-	@Override
-	Token getElement() {
-		return token;
+		updateFloatingStatus();
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -372,13 +478,13 @@ public class TokenOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(token, Token.PROPERTY_X, (int) p.getX());
-			display.setProperty(token, Token.PROPERTY_Y, (int) p.getY());
+			display.setProperty(element, Token.PROPERTY_X, (int) p.getX());
+			display.setProperty(element, Token.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point((Integer) token.getProperty(Token.PROPERTY_X), (Integer) token.getProperty(Token.PROPERTY_Y));
+			return new Point((Integer) element.getProperty(Token.PROPERTY_X), (Integer) element.getProperty(Token.PROPERTY_Y));
 		}
 	};
 
@@ -527,7 +633,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 		if (webLabelField.getText().length() > 0) setAttribute(e, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText());
 		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_SHOWREACH, remoteReach.isSelected());
 		if (imageFile != null) setAttribute(e, FILE_ATTRIBUTE_NAME, imageFile.getPath());
-		Point2D location = (Point2D) token.getProperty(Group.PROPERTY_LOCATION);
+		Point2D location = (Point2D) element.getProperty(Group.PROPERTY_LOCATION);
 		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
 		return e;
 	}
@@ -565,7 +671,7 @@ public class TokenOptionsPanel extends OptionsPanel {
 			Double x = Double.parseDouble(coords[0]);
 			Double y = Double.parseDouble(coords[1]);
 			Point2D value = new Point2D.Double(x, y);
-			display.setProperty(token, Group.PROPERTY_LOCATION, value);
+			display.setProperty(element, Group.PROPERTY_LOCATION, value);
 //			} catch (NumberFormatException e) {
 //			}
 		}

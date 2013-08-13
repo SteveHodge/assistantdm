@@ -23,36 +23,34 @@ import digital_table.elements.MapImage;
 
 // TODO save latest image when saving?
 
-class CameraOptionsPanel extends OptionsPanel {
-	private static final long serialVersionUID = 1L;
-
-	private MapImage image;
+@SuppressWarnings("serial")
+class CameraOptionsPanel extends OptionsPanel<MapImage> {
 	private JSlider alphaSlider;
 	private CameraPanel camera;
 	private JCheckBox visibleCheck;
 
 	CameraOptionsPanel(MapElement parent, DisplayManager r, CameraPanel cam) {
 		super(r);
-		image = new MapImage("Camera");
-		image.setProperty(MapImage.PROPERTY_ROTATIONS, 1);
-		image.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
-		image.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
-		image.setProperty(MapImage.PROPERTY_Y, -1.0d);
-		display.addElement(image, parent);
-		image.addPropertyChangeListener(listener);
+		element = new MapImage("Camera");
+		element.setProperty(MapImage.PROPERTY_ROTATIONS, 1);
+		element.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
+		element.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
+		element.setProperty(MapImage.PROPERTY_Y, -1.0d);
+		display.addElement(element, parent);
+		element.addPropertyChangeListener(listener);
 		this.camera = cam;
 
-		alphaSlider = createSliderControl(image, MapImage.PROPERTY_ALPHA);
-		visibleCheck = createCheckBox(image, MapElement.PROPERTY_VISIBLE, Mode.ALL, "visible?");
+		alphaSlider = createSliderControl(MapImage.PROPERTY_ALPHA);
+		visibleCheck = createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.ALL, "visible?");
 
 		JButton updateButton = new JButton("Update");
 		updateButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				byte[] bytes = camera.getLatestCorrectedImage();
-				display.setProperty(image, MapImage.PROPERTY_IMAGE, bytes);
-				display.setProperty(image, MapImage.PROPERTY_WIDTH, 32.0d);
-				display.setProperty(image, MapImage.PROPERTY_HEIGHT, 39.0d);
+				display.setProperty(element, MapImage.PROPERTY_IMAGE, bytes);
+				display.setProperty(element, MapImage.PROPERTY_WIDTH, 32.0d);
+				display.setProperty(element, MapImage.PROPERTY_HEIGHT, 39.0d);
 			}
 		});
 
@@ -78,11 +76,6 @@ class CameraOptionsPanel extends OptionsPanel {
 		c.gridwidth = 2;
 		add(new JPanel(), c);
 		//@formatter:on
-	}
-
-	@Override
-	MapImage getElement() {
-		return image;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {

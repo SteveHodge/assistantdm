@@ -19,23 +19,22 @@ import digital_table.elements.MapElement;
 import digital_table.elements.ScreenBounds;
 
 @SuppressWarnings("serial")
-class BoundsOptionsPanel extends OptionsPanel {
-	private ScreenBounds bounds;
+class BoundsOptionsPanel extends OptionsPanel<ScreenBounds> {
 	private JPanel colorPanel;
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
 
 	BoundsOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		bounds = new ScreenBounds();
-		display.addElement(bounds, parent);	// XXX should we send to remote?
-		bounds.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		bounds.addPropertyChangeListener(listener);
+		element = new ScreenBounds();
+		display.addElement(element, parent);	// XXX should we send to remote?
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		colorPanel = createColorControl(bounds, ScreenBounds.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(bounds, ScreenBounds.PROPERTY_ALPHA);
+		colorPanel = createColorControl(ScreenBounds.PROPERTY_COLOR);
+		alphaSlider = createSliderControl(ScreenBounds.PROPERTY_ALPHA);
 
-		visibleCheck = this.createCheckBox(bounds, MapElement.PROPERTY_VISIBLE, Mode.LOCAL, "local visible?");
+		visibleCheck = this.createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.LOCAL, "local visible?");
 		visibleCheck.setSelected(true);
 
 		setLayout(new GridBagLayout());
@@ -53,11 +52,6 @@ class BoundsOptionsPanel extends OptionsPanel {
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
-	}
-
-	@Override
-	ScreenBounds getElement() {
-		return bounds;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {

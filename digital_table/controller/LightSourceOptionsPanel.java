@@ -22,9 +22,7 @@ import digital_table.elements.MapElement;
 
 
 @SuppressWarnings("serial")
-class LightSourceOptionsPanel extends OptionsPanel {
-	private LightSource light;
-
+class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 	private JTextField radiusField;
 	private JTextField xField;
 	private JTextField yField;
@@ -34,17 +32,17 @@ class LightSourceOptionsPanel extends OptionsPanel {
 
 	LightSourceOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		light = new LightSource(4, 0, 0);
-		display.addElement(light, parent);
-		light.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		light.addPropertyChangeListener(listener);
+		element = new LightSource(4, 0, 0);
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		radiusField = createIntegerControl(light, LightSource.PROPERTY_RADIUS);
-		xField = createIntegerControl(light, LightSource.PROPERTY_X);
-		yField = createIntegerControl(light, LightSource.PROPERTY_Y);
-		typeCombo = createComboControl(light, LightSource.PROPERTY_TYPE, LightSource.Type.values());
-		labelField = createStringControl(light, LightSource.PROPERTY_LABEL, Mode.LOCAL);
-		visibleCheck = createVisibilityControl(light);
+		radiusField = createIntegerControl(LightSource.PROPERTY_RADIUS);
+		xField = createIntegerControl(LightSource.PROPERTY_X);
+		yField = createIntegerControl(LightSource.PROPERTY_Y);
+		typeCombo = createComboControl(LightSource.PROPERTY_TYPE, LightSource.Type.values());
+		labelField = createStringControl(LightSource.PROPERTY_LABEL, Mode.LOCAL);
+		visibleCheck = createVisibilityControl();
 
 		// @formatter:off
 		setLayout(new GridBagLayout());
@@ -68,11 +66,6 @@ class LightSourceOptionsPanel extends OptionsPanel {
 		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
 		add(new JPanel(), c);
 		// @formatter:on
-	}
-
-	@Override
-	LightSource getElement() {
-		return light;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -112,14 +105,14 @@ class LightSourceOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(light, LightSource.PROPERTY_X, (int) p.getX());
-			display.setProperty(light, LightSource.PROPERTY_Y, (int) p.getY());
+			display.setProperty(element, LightSource.PROPERTY_X, (int) p.getX());
+			display.setProperty(element, LightSource.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point((Integer) light.getProperty(LightSource.PROPERTY_X),
-					(Integer) light.getProperty(LightSource.PROPERTY_Y));
+			return new Point((Integer) element.getProperty(LightSource.PROPERTY_X),
+					(Integer) element.getProperty(LightSource.PROPERTY_Y));
 		}
 	};
 

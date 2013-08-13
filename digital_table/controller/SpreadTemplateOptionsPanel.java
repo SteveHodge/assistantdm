@@ -26,8 +26,7 @@ import digital_table.elements.SpreadTemplate;
 
 
 @SuppressWarnings("serial")
-class SpreadTemplateOptionsPanel extends OptionsPanel {
-	private SpreadTemplate template;
+class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 	private JTextField radiusField;
 	private JTextField xField;
 	private JTextField yField;
@@ -40,18 +39,18 @@ class SpreadTemplateOptionsPanel extends OptionsPanel {
 
 	SpreadTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		template = new SpreadTemplate(4, 10, 10);
-		display.addElement(template, parent);
-		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		template.addPropertyChangeListener(listener);
+		element = new SpreadTemplate(4, 10, 10);
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		radiusField = createIntegerControl(template, SpreadTemplate.PROPERTY_RADIUS);
-		xField = createIntegerControl(template, SpreadTemplate.PROPERTY_X);
-		yField = createIntegerControl(template, SpreadTemplate.PROPERTY_Y);
-		colorPanel = createColorControl(template, SpreadTemplate.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(template, SpreadTemplate.PROPERTY_ALPHA);
+		radiusField = createIntegerControl(SpreadTemplate.PROPERTY_RADIUS);
+		xField = createIntegerControl(SpreadTemplate.PROPERTY_X);
+		yField = createIntegerControl(SpreadTemplate.PROPERTY_Y);
+		colorPanel = createColorControl(SpreadTemplate.PROPERTY_COLOR);
+		alphaSlider = createSliderControl(SpreadTemplate.PROPERTY_ALPHA);
 
-		typeCombo = createComboControl(template, SpreadTemplate.PROPERTY_TYPE, SpreadTemplate.Type.values());
+		typeCombo = createComboControl(SpreadTemplate.PROPERTY_TYPE, SpreadTemplate.Type.values());
 		typeCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -59,11 +58,11 @@ class SpreadTemplateOptionsPanel extends OptionsPanel {
 			}
 		});
 
-		directionCombo = createComboControl(template, SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.values());
-		directionCombo.setEnabled(template.getProperty(SpreadTemplate.PROPERTY_TYPE) == SpreadTemplate.Type.QUADRANT);
+		directionCombo = createComboControl(SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.values());
+		directionCombo.setEnabled(element.getProperty(SpreadTemplate.PROPERTY_TYPE) == SpreadTemplate.Type.QUADRANT);
 
-		labelField = createStringControl(template, SpreadTemplate.PROPERTY_LABEL, Mode.LOCAL);
-		visibleCheck = createVisibilityControl(template);
+		labelField = createStringControl(SpreadTemplate.PROPERTY_LABEL, Mode.LOCAL);
+		visibleCheck = createVisibilityControl();
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -91,11 +90,6 @@ class SpreadTemplateOptionsPanel extends OptionsPanel {
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
 		add(new JPanel(), c);
-	}
-
-	@Override
-	SpreadTemplate getElement() {
-		return template;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -144,14 +138,14 @@ class SpreadTemplateOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(template, SpreadTemplate.PROPERTY_X, (int) p.getX());
-			display.setProperty(template, SpreadTemplate.PROPERTY_Y, (int) p.getY());
+			display.setProperty(element, SpreadTemplate.PROPERTY_X, (int) p.getX());
+			display.setProperty(element, SpreadTemplate.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point((Integer)template.getProperty(SpreadTemplate.PROPERTY_X),
-					(Integer)template.getProperty(SpreadTemplate.PROPERTY_Y));
+			return new Point((Integer)element.getProperty(SpreadTemplate.PROPERTY_X),
+					(Integer)element.getProperty(SpreadTemplate.PROPERTY_Y));
 		}
 	};
 

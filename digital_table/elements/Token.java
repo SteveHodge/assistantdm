@@ -71,7 +71,7 @@ public class Token extends Group {
 	public enum StatusType {
 		EXACT("Exact HPs") {
 			@Override
-			CreatureStatus getStatus(final int max, final int current) {
+			public CreatureStatus getStatus(final int max, final int current) {
 				return new CreatureStatus() {
 					@Override
 					public String toString() {
@@ -87,18 +87,18 @@ public class Token extends Group {
 		},
 		SIMPLE_STATUS("Basic status") {
 			@Override
-			CreatureStatus getStatus(int m, int c) {
+			public CreatureStatus getStatus(int m, int c) {
 				return SimpleStatus.getStatus(m, c);
 			}
 		},
 		STATUS("Detailed status") {
 			@Override
-			CreatureStatus getStatus(int m, int c) {
+			public CreatureStatus getStatus(int m, int c) {
 				return Status.getStatus(m, c);
 			}
 		};
 
-		abstract CreatureStatus getStatus(int max, int current);
+		public abstract CreatureStatus getStatus(int max, int current);
 
 		@Override
 		public String toString() {
@@ -272,31 +272,41 @@ public class Token extends Group {
 		return statusType.getValue().getStatus(maxHPs.getValue(), currentHPs.getValue());
 	}
 
-	private String getLabel() {
-		StringBuffer s = new StringBuffer();
+	public String getStatusDescription() {
+		StringBuilder s = new StringBuilder();
 
-		if (label.getValue() != null) s.append(label.getValue());
-		if (statusDisplay.getValue() == StatusDisplay.LABEL) {
-			if (statusType.getValue() == StatusType.EXACT) {
-				if (maxHPs.getValue() != null || currentHPs.getValue() != null) {
-					s.append("(");
-					if (currentHPs.getValue() != null) {
-						s.append(currentHPs.getValue());
-						if (maxHPs.getValue() != null) s.append("/");
-					} else {
-						s.append("max ");
-					}
-					if (maxHPs.getValue() != null) {
-						s.append(maxHPs.getValue());
-					}
-					s.append(" hps)");
+		if (statusType.getValue() == StatusType.EXACT) {
+			if (maxHPs.getValue() != null || currentHPs.getValue() != null) {
+				s.append("(");
+				if (currentHPs.getValue() != null) {
+					s.append(currentHPs.getValue());
+					if (maxHPs.getValue() != null) s.append("/");
+				} else {
+					s.append("max ");
 				}
-			} else {
-				CreatureStatus status = getStatus();
-				if (status != null) s.append("(").append(status).append(")");
+				if (maxHPs.getValue() != null) {
+					s.append(maxHPs.getValue());
+				}
+				s.append(" hps)");
+			}
+		} else {
+			CreatureStatus status = getStatus();
+			if (status != null) s.append("(").append(status).append(")");
+		}
+
+		return s.toString();
+	}
+
+	private String getLabel() {
+		String s = "";
+
+		if (label.getValue() != null && label.getValue().length() > 0) {
+			s = label.getValue();
+			if (statusDisplay.getValue() == StatusDisplay.LABEL) {
+				s += " " + getStatusDescription();
 			}
 		}
-		return s.toString();
+		return s;
 	}
 
 	private void paintReach(Graphics2D g) {
@@ -316,7 +326,7 @@ public class Token extends Group {
 		g.setComposite(c);
 	}
 
-	// returns the space is grid units
+// returns the space is grid units
 	int getSpace() {
 		int space = this.space.getValue() / 10;
 		if (space < 1) space = 1;
@@ -363,7 +373,7 @@ public class Token extends Group {
 		return false;
 	}
 
-	// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
+// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
 	private Area getRectangularArea(int x1, int y1, int x2, int y2) {
 		Point p1 = canvas.getDisplayCoordinates(x1, y1, null);
 		Point p2 = canvas.getDisplayCoordinates(x2, y2, null);
@@ -406,42 +416,42 @@ public class Token extends Group {
 		return new BasicStroke(6);
 	}
 
-	//
-	//	protected void paintRaisedBevel(Graphics2D g, int x, int y, int width, int height, int outer, int inner)  {
-	//		Color oldColor = g.getColor();
-	//		int h = height;
-	//		int w = width;
-	//
-	//		g.translate(x, y);
-	//
-	//		int total = outer + inner;
-	//		g.setColor(oldColor.brighter().brighter());
-	//		for (int i = 0; i < outer; i++) {
-	//			g.drawLine(i, i, i, h-2-i);		// left
-	//			g.drawLine(1+i, i, w-2-i, i);	// top
-	//		}
-	//
-	//		g.setColor(oldColor.brighter());
-	//		for (int i = outer; i < total; i++) {
-	//			g.drawLine(i, i, i, h-2-i);		// left
-	//			g.drawLine(1+i, i, w-2-i, i);	// top
-	//		}
-	//
-	//		g.setColor(oldColor.darker().darker());
-	//		for (int i = 0; i < outer; i++) {
-	//			g.drawLine(i, h-1-i, w-1-i, h-1-i);
-	//			g.drawLine(w-1-i, i, w-1-i, h-2-i);
-	//		}
-	//
-	//		g.setColor(oldColor.darker());
-	//		for (int i = outer; i < total; i++) {
-	//			g.drawLine(i, h-1-i, w-1-i, h-1-i);
-	//			g.drawLine(w-1-i, i, w-1-i, h-2-i);
-	//		}
-	//
-	//		g.translate(-x, -y);
-	//		g.setColor(oldColor);
-	//	}
+//
+//	protected void paintRaisedBevel(Graphics2D g, int x, int y, int width, int height, int outer, int inner)  {
+//		Color oldColor = g.getColor();
+//		int h = height;
+//		int w = width;
+//
+//		g.translate(x, y);
+//
+//		int total = outer + inner;
+//		g.setColor(oldColor.brighter().brighter());
+//		for (int i = 0; i < outer; i++) {
+//			g.drawLine(i, i, i, h-2-i);		// left
+//			g.drawLine(1+i, i, w-2-i, i);	// top
+//		}
+//
+//		g.setColor(oldColor.brighter());
+//		for (int i = outer; i < total; i++) {
+//			g.drawLine(i, i, i, h-2-i);		// left
+//			g.drawLine(1+i, i, w-2-i, i);	// top
+//		}
+//
+//		g.setColor(oldColor.darker().darker());
+//		for (int i = 0; i < outer; i++) {
+//			g.drawLine(i, h-1-i, w-1-i, h-1-i);
+//			g.drawLine(w-1-i, i, w-1-i, h-2-i);
+//		}
+//
+//		g.setColor(oldColor.darker());
+//		for (int i = outer; i < total; i++) {
+//			g.drawLine(i, h-1-i, w-1-i, h-1-i);
+//			g.drawLine(w-1-i, i, w-1-i, h-2-i);
+//		}
+//
+//		g.translate(-x, -y);
+//		g.setColor(oldColor);
+//	}
 
 	@Override
 	public String toString() {

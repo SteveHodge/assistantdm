@@ -22,8 +22,7 @@ import digital_table.elements.MapElement;
 import digital_table.elements.PersonalEmanation;
 
 @SuppressWarnings("serial")
-class PersonalEmanationOptionsPanel extends OptionsPanel {
-	private PersonalEmanation template;
+class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 	private JTextField radiusField;
 	private JTextField xField;
 	private JTextField yField;
@@ -35,19 +34,19 @@ class PersonalEmanationOptionsPanel extends OptionsPanel {
 
 	PersonalEmanationOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		template = new PersonalEmanation(2, 0, 0);
-		display.addElement(template, parent);
-		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		template.addPropertyChangeListener(listener);
+		element = new PersonalEmanation(2, 0, 0);
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		radiusField = createIntegerControl(template, PersonalEmanation.PROPERTY_RADIUS);
-		xField = createIntegerControl(template, PersonalEmanation.PROPERTY_X);
-		yField = createIntegerControl(template, PersonalEmanation.PROPERTY_Y);
-		colorPanel = createColorControl(template, PersonalEmanation.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(template, PersonalEmanation.PROPERTY_ALPHA);
-		spaceField = createIntegerControl(template, PersonalEmanation.PROPERTY_SPACE);
-		labelField = createStringControl(template, PersonalEmanation.PROPERTY_LABEL, Mode.LOCAL);
-		visibleCheck = createVisibilityControl(template);
+		radiusField = createIntegerControl(PersonalEmanation.PROPERTY_RADIUS);
+		xField = createIntegerControl(PersonalEmanation.PROPERTY_X);
+		yField = createIntegerControl(PersonalEmanation.PROPERTY_Y);
+		colorPanel = createColorControl(PersonalEmanation.PROPERTY_COLOR);
+		alphaSlider = createSliderControl(PersonalEmanation.PROPERTY_ALPHA);
+		spaceField = createIntegerControl(PersonalEmanation.PROPERTY_SPACE);
+		labelField = createStringControl(PersonalEmanation.PROPERTY_LABEL, Mode.LOCAL);
+		visibleCheck = createVisibilityControl();
 
 		//@formatter:off
 		setLayout(new GridBagLayout());
@@ -75,11 +74,6 @@ class PersonalEmanationOptionsPanel extends OptionsPanel {
 		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
 		add(new JPanel(), c);
 		//@formatter:on
-	}
-
-	@Override
-	PersonalEmanation getElement() {
-		return template;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -125,14 +119,14 @@ class PersonalEmanationOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(template, PersonalEmanation.PROPERTY_X, (int) p.getX());
-			display.setProperty(template, PersonalEmanation.PROPERTY_Y, (int) p.getY());
+			display.setProperty(element, PersonalEmanation.PROPERTY_X, (int) p.getX());
+			display.setProperty(element, PersonalEmanation.PROPERTY_Y, (int) p.getY());
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point((Integer) template.getProperty(PersonalEmanation.PROPERTY_X),
-					(Integer) template.getProperty(PersonalEmanation.PROPERTY_Y));
+			return new Point((Integer) element.getProperty(PersonalEmanation.PROPERTY_X),
+					(Integer) element.getProperty(PersonalEmanation.PROPERTY_Y));
 		}
 	};
 

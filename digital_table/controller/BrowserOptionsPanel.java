@@ -33,9 +33,7 @@ import digital_table.elements.BrowserRemote;
 import digital_table.elements.MapElement;
 
 @SuppressWarnings("serial")
-class BrowserOptionsPanel extends OptionsPanel {
-	private Browser browser;
-
+class BrowserOptionsPanel extends OptionsPanel<Browser> {
 	private JTextField urlField;
 	private JLabel titleLabel;
 	private JLabel rolloverLabel;
@@ -53,31 +51,31 @@ class BrowserOptionsPanel extends OptionsPanel {
 	BrowserOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		BrowserRemote remote = new BrowserRemote();
-		browser = new BrowserLocal(remote);
-		browser.addPropertyChangeListener(listener);
-		display.addElement(remote, parent, browser);
+		element = new BrowserLocal(remote);
+		element.addPropertyChangeListener(listener);
+		display.addElement(remote, parent, element);
 
-		urlField = createStringControl(browser, Browser.PROPERTY_URL);
-		titleLabel = createLabelControl(browser, Browser.PROPERTY_TITLE);
-		rolloverLabel = createLabelControl(browser, Browser.PROPERTY_ROLLOVER);
-		rotationsCombo = createRotationControl(browser, Browser.PROPERTY_ROTATIONS, Mode.REMOTE);
+		urlField = createStringControl(Browser.PROPERTY_URL);
+		titleLabel = createReadOnlyControl(Browser.PROPERTY_TITLE);
+		rolloverLabel = createReadOnlyControl(Browser.PROPERTY_ROLLOVER);
+		rotationsCombo = createRotationControl(Browser.PROPERTY_ROTATIONS, Mode.REMOTE);
 
 		String[] screens = new String[DisplayConfig.screens.size()];
 		for (int i = 0; i < screens.length; i++) {
 			screens[i] = "" + i;
 		}
 		screenCombo = new JComboBox(screens);
-		screenCombo.setSelectedIndex((Integer)browser.getProperty(Browser.PROPERTY_SCREEN));
+		screenCombo.setSelectedIndex((Integer)element.getProperty(Browser.PROPERTY_SCREEN));
 		screenCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JComboBox combo = (JComboBox)e.getSource();
 				int index = combo.getSelectedIndex();
-				display.setProperty(browser, Browser.PROPERTY_SCREEN, index, Mode.ALL);
+				display.setProperty(element, Browser.PROPERTY_SCREEN, index, Mode.ALL);
 			}
 		});
 
-		remoteVisibleCheck = this.createCheckBox(browser, MapElement.PROPERTY_VISIBLE, Mode.ALL, "remote visible?");
+		remoteVisibleCheck = this.createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.ALL, "remote visible?");
 
 		localVisibleCheck = new JCheckBox("local visible?");
 		localVisibleCheck.setSelected(false);
@@ -119,9 +117,10 @@ class BrowserOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
-	@Override
-	Browser getElement() {
-		return browser;
+	private JLabel createReadOnlyControl(final String property) {
+		final JLabel label = new JLabel();
+		label.setText("" + element.getProperty(property));
+		return label;
 	}
 
 	private JFrame createFrame() {
@@ -130,12 +129,12 @@ class BrowserOptionsPanel extends OptionsPanel {
 		statusLabel = new JLabel();
 
 		JButton goButton = new JButton("Go");
-		frameURLField = new JTextField(browser.getProperty(Browser.PROPERTY_URL).toString());
+		frameURLField = new JTextField(element.getProperty(Browser.PROPERTY_URL).toString());
 
 		ActionListener listener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				display.setProperty(browser, Browser.PROPERTY_URL, frameURLField.getText(), Mode.ALL);
+				display.setProperty(element, Browser.PROPERTY_URL, frameURLField.getText(), Mode.ALL);
 			}
 		};
 		goButton.addActionListener(listener);
@@ -179,11 +178,11 @@ class BrowserOptionsPanel extends OptionsPanel {
 		statusBar.add(progressBar, BorderLayout.EAST);
 
 		panel.add(topBar, BorderLayout.NORTH);
-		panel.add(browser.getComponent(), BorderLayout.CENTER);
+		panel.add(element.getComponent(), BorderLayout.CENTER);
 		panel.add(statusBar, BorderLayout.SOUTH);
 
-		frame.setTitle((String)browser.getProperty(Browser.PROPERTY_TITLE));
-		statusLabel.setText((String)browser.getProperty(Browser.PROPERTY_ROLLOVER));
+		frame.setTitle((String)element.getProperty(Browser.PROPERTY_TITLE));
+		statusLabel.setText((String)element.getProperty(Browser.PROPERTY_ROLLOVER));
 
 		frame.getContentPane().add(panel);
 		frame.pack();
@@ -195,7 +194,7 @@ class BrowserOptionsPanel extends OptionsPanel {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Browser.PROPERTY_URL)) {
 				urlField.setText(e.getNewValue().toString());
-				display.setProperty(browser, Browser.PROPERTY_URL, e.getNewValue(), Mode.REMOTE);
+				display.setProperty(element, Browser.PROPERTY_URL, e.getNewValue(), Mode.REMOTE);
 				if (frame != null) frameURLField.setText(e.getNewValue().toString());
 
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_TITLE)) {

@@ -16,19 +16,18 @@ import digital_table.elements.Callibrate;
 import digital_table.elements.MapElement;
 
 @SuppressWarnings("serial")
-class CallibrateOptionsPanel extends OptionsPanel {
-	private Callibrate callibrate;
+class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 	private JCheckBox visibleCheck;
 	private JCheckBox showBGCheck;
 
 	CallibrateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		callibrate = new Callibrate();
-		display.addElement(callibrate, parent);
-		callibrate.addPropertyChangeListener(listener);
+		element = new Callibrate();
+		display.addElement(element, parent);
+		element.addPropertyChangeListener(listener);
 
-		showBGCheck = createCheckBox(callibrate, Callibrate.PROPERTY_SHOW_BACKGROUND, Mode.ALL, "show background?");
-		visibleCheck = createCheckBox(callibrate, MapElement.PROPERTY_VISIBLE, Mode.ALL, "visible?");
+		showBGCheck = createCheckBox(Callibrate.PROPERTY_SHOW_BACKGROUND, Mode.ALL, "show background?");
+		visibleCheck = createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.ALL, "visible?");
 
 		// @formatter:off
 		setLayout(new GridBagLayout());
@@ -45,11 +44,6 @@ class CallibrateOptionsPanel extends OptionsPanel {
 		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
 		// @formatter:on
-	}
-
-	@Override
-	Callibrate getElement() {
-		return callibrate;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {

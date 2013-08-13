@@ -3,6 +3,8 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -22,8 +24,7 @@ import digital_table.elements.MapElement;
 // TODO clean up nullable-Integer fields - maybe promote code to super
 
 @SuppressWarnings("serial")
-class GridOptionsPanel extends OptionsPanel {
-	private Grid grid;
+class GridOptionsPanel extends OptionsPanel<Grid> {
 	private JTextField rulerRowField;
 	private JTextField rulerColumnField;
 	private JPanel colorPanel;
@@ -33,22 +34,22 @@ class GridOptionsPanel extends OptionsPanel {
 
 	GridOptionsPanel(DisplayManager r) {
 		super(r);
-		grid = new Grid();
-		display.addElement(grid, null);
-		grid.addPropertyChangeListener(listener);
+		element = new Grid();
+		display.addElement(element, null);
+		element.addPropertyChangeListener(listener);
 
-		rulerRowField = createNullableIntegerControl(grid, Grid.PROPERTY_RULER_ROW, Mode.REMOTE);
-		rulerColumnField = createNullableIntegerControl(grid, Grid.PROPERTY_RULER_COLUMN, Mode.REMOTE);
+		rulerRowField = createNullableIntegerControl(Grid.PROPERTY_RULER_ROW, Mode.REMOTE);
+		rulerColumnField = createNullableIntegerControl(Grid.PROPERTY_RULER_COLUMN, Mode.REMOTE);
 
 		// set local options
-		grid.setProperty(Grid.PROPERTY_RULER_COLUMN, 0);
-		grid.setProperty(Grid.PROPERTY_RULER_ROW, 0);
+		element.setProperty(Grid.PROPERTY_RULER_COLUMN, 0);
+		element.setProperty(Grid.PROPERTY_RULER_ROW, 0);
 
-		colorPanel = createColorControl(grid, Grid.PROPERTY_COLOR);
-		bgColorPanel = createColorControl(grid, Grid.PROPERTY_BACKGROUND_COLOR);
-		alphaSlider = this.createSliderControl(grid, Grid.PROPERTY_ALPHA);
+		colorPanel = createColorControl(Grid.PROPERTY_COLOR);
+		bgColorPanel = createColorControl(Grid.PROPERTY_BACKGROUND_COLOR);
+		alphaSlider = createSliderControl(Grid.PROPERTY_ALPHA);
 
-		visibleCheck = createVisibilityControl(grid);
+		visibleCheck = createVisibilityControl();
 		visibleCheck.setSelected(true);
 
 		setLayout(new GridBagLayout());
@@ -74,9 +75,18 @@ class GridOptionsPanel extends OptionsPanel {
 		add(new JPanel(), c);
 	}
 
-	@Override
-	Grid getElement() {
-		return grid;
+	private JTextField createNullableIntegerControl(final String property, final Mode mode) {
+		final JTextField field = new JTextField(8);
+		if (element.getProperty(property) != null) field.setText("" + element.getProperty(property));
+		field.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Integer newValue = null;
+				if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
+				display.setProperty(element, property, newValue, mode);
+			}
+		});
+		return field;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {

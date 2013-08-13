@@ -27,9 +27,7 @@ import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 
 @SuppressWarnings("serial")
-class InitiativeOptionsPanel extends OptionsPanel {
-	private Initiative initiative;
-
+class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 	private JTextField xField;
 	private JTextField yField;
 	private JSlider alphaSlider;
@@ -40,26 +38,26 @@ class InitiativeOptionsPanel extends OptionsPanel {
 
 	InitiativeOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		initiative = new Initiative();
-		display.addElement(initiative, parent);
-		initiative.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element = new Initiative();
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
 		if (CombatPanel.getCombatPanel() != null) {
 			CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
 				@Override
 				public void initiativeUpdated(String text) {
-					display.setProperty(initiative, Label.PROPERTY_TEXT, text);
+					display.setProperty(element, Label.PROPERTY_TEXT, text);
 				}
 			});
 		}
-		initiative.addPropertyChangeListener(listener);
+		element.addPropertyChangeListener(listener);
 
-		xField = createDoubleControl(initiative, Initiative.PROPERTY_X);
-		yField = createDoubleControl(initiative, Initiative.PROPERTY_Y);
-		alphaSlider = createSliderControl(initiative, Initiative.PROPERTY_ALPHA);
-		colorPanel = createColorControl(initiative, Initiative.PROPERTY_COLOR);
-		bgColorPanel = createColorControl(initiative, Initiative.PROPERTY_BACKGROUND_COLOR);
-		rotationsCombo = createRotationControl(initiative, Initiative.PROPERTY_ROTATIONS, Mode.ALL);
-		visibleCheck = createVisibilityControl(initiative);
+		xField = createDoubleControl(Initiative.PROPERTY_X);
+		yField = createDoubleControl(Initiative.PROPERTY_Y);
+		alphaSlider = createSliderControl(Initiative.PROPERTY_ALPHA);
+		colorPanel = createColorControl(Initiative.PROPERTY_COLOR);
+		bgColorPanel = createColorControl(Initiative.PROPERTY_BACKGROUND_COLOR);
+		rotationsCombo = createRotationControl(Initiative.PROPERTY_ROTATIONS, Mode.ALL);
+		visibleCheck = createVisibilityControl();
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -84,11 +82,6 @@ class InitiativeOptionsPanel extends OptionsPanel {
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
-	}
-
-	@Override
-	Initiative getElement() {
-		return initiative;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -131,14 +124,14 @@ class InitiativeOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(initiative, Initiative.PROPERTY_X, p.getX());
-			display.setProperty(initiative, Initiative.PROPERTY_Y, p.getY());
+			display.setProperty(element, Initiative.PROPERTY_X, p.getX());
+			display.setProperty(element, Initiative.PROPERTY_Y, p.getY());
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point2D.Double((Double)initiative.getProperty(Initiative.PROPERTY_X),
-					(Double)initiative.getProperty(Initiative.PROPERTY_Y));
+			return new Point2D.Double((Double)element.getProperty(Initiative.PROPERTY_X),
+					(Double)element.getProperty(Initiative.PROPERTY_Y));
 		}
 	};
 

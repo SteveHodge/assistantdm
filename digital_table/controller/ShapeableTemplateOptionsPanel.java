@@ -23,8 +23,7 @@ import digital_table.elements.MapElement;
 import digital_table.elements.ShapeableTemplate;
 
 @SuppressWarnings("serial")
-class ShapeableTemplateOptionsPanel extends OptionsPanel {
-	private ShapeableTemplate template;
+class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 	private JPanel colorPanel;
 	private JTextField labelField;
 	private JTextField maximumField;
@@ -34,16 +33,16 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel {
 
 	ShapeableTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		template = new ShapeableTemplate();
-		display.addElement(template, parent);
-		template.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		template.addPropertyChangeListener(listener);
+		element = new ShapeableTemplate();
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		colorPanel = createColorControl(template, ShapeableTemplate.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(template, ShapeableTemplate.PROPERTY_ALPHA);
-		maximumField = createIntegerControl(template, ShapeableTemplate.PROPERTY_MAXIMUM);
-		labelField = createStringControl(template, ShapeableTemplate.PROPERTY_LABEL, Mode.LOCAL);
-		visibleCheck = createVisibilityControl(template);
+		colorPanel = createColorControl(ShapeableTemplate.PROPERTY_COLOR);
+		alphaSlider = createSliderControl(ShapeableTemplate.PROPERTY_ALPHA);
+		maximumField = createIntegerControl(ShapeableTemplate.PROPERTY_MAXIMUM);
+		labelField = createStringControl(ShapeableTemplate.PROPERTY_LABEL, Mode.LOCAL);
+		visibleCheck = createVisibilityControl();
 		updateRemaining();
 
 		setLayout(new GridBagLayout());
@@ -69,17 +68,12 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel {
 
 	}
 
-	@Override
-	ShapeableTemplate getElement() {
-		return template;
-	}
-
 	private void updateRemaining() {
-		int max = (Integer)template.getProperty(ShapeableTemplate.PROPERTY_MAXIMUM);
+		int max = (Integer) element.getProperty(ShapeableTemplate.PROPERTY_MAXIMUM);
 		if (max == 0) {
 			remaining.setText("");
 		} else {
-			remaining.setText("" + (max - template.getPlaced()));
+			remaining.setText("" + (max - element.getPlaced()));
 		}
 	}
 
@@ -123,12 +117,12 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel {
 			int x = (int)(gridloc.getX() + 0.5d);
 			int y = (int)(gridloc.getY() + 0.5d);
 			Point p = new Point(x,y);
-			if (template.contains(p)) {
-				display.setProperty(template, ShapeableTemplate.PROPERTY_REMOVECUBE, p, Mode.REMOTE);
-				template.removeCube(p);
+			if (element.contains(p)) {
+				display.setProperty(element, ShapeableTemplate.PROPERTY_REMOVECUBE, p, Mode.REMOTE);
+				element.removeCube(p);
 			} else {
-				display.setProperty(template, ShapeableTemplate.PROPERTY_ADDCUBE, p, Mode.REMOTE);
-				template.addCube(p);
+				display.setProperty(element, ShapeableTemplate.PROPERTY_ADDCUBE, p, Mode.REMOTE);
+				element.addCube(p);
 			}
 		}
 
@@ -153,7 +147,7 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel {
 		// output the current list of points in an attribute (might be better to have a more
 		// structured output but that will complicate general parsing of child elements).
 		// points are output as a list of coordinates, one point at a time, x then y coordinate.
-		Point[] points = template.getCubes();
+		Point[] points = element.getCubes();
 		String attr = "";
 		for (int i = 0; i < points.length; i++) {
 			attr += points[i].x + "," + points[i].y + ",";
@@ -180,8 +174,8 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel {
 			String[] coords = e.getAttribute(CUBE_LIST_ATTRIBUTE).split("\\s*,\\s*");
 			for (int i = 0; i < coords.length; i += 2) {
 				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
-				display.setProperty(template, ShapeableTemplate.PROPERTY_ADDCUBE, p, Mode.REMOTE);
-				template.addCube(p);
+				display.setProperty(element, ShapeableTemplate.PROPERTY_ADDCUBE, p, Mode.REMOTE);
+				element.addCube(p);
 			}
 		}
 	}

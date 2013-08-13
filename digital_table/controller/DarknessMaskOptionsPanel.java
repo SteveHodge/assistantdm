@@ -23,9 +23,7 @@ import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 
 @SuppressWarnings("serial")
-class DarknessMaskOptionsPanel extends OptionsPanel {
-	private DarknessMask darkness;
-
+class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 	private JPanel colorPanel;
 	private JSlider alphaSlider;
 	private JCheckBox lowLightCheck;
@@ -33,16 +31,16 @@ class DarknessMaskOptionsPanel extends OptionsPanel {
 
 	DarknessMaskOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		darkness = new DarknessMask();
-		darkness.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		display.addElement(darkness, parent);
-		darkness.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
-		darkness.addPropertyChangeListener(listener);
+		element = new DarknessMask();
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		display.addElement(element, parent);
+		element.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
+		element.addPropertyChangeListener(listener);
 
-		colorPanel = createColorControl(darkness, DarknessMask.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(darkness, DarknessMask.PROPERTY_ALPHA, Mode.LOCAL);
-		lowLightCheck = this.createCheckBox(darkness, DarknessMask.PROPERTY_LOW_LIGHT, Mode.ALL, "Lowlight vision");
-		visibleCheck = createVisibilityControl(darkness);
+		colorPanel = createColorControl(DarknessMask.PROPERTY_COLOR);
+		alphaSlider = createSliderControl(DarknessMask.PROPERTY_ALPHA, Mode.LOCAL);
+		lowLightCheck = createCheckBox(DarknessMask.PROPERTY_LOW_LIGHT, Mode.ALL, "Lowlight vision");
+		visibleCheck = createVisibilityControl();
 		visibleCheck.setSelected(true);
 
 		//@formatter:off
@@ -64,11 +62,6 @@ class DarknessMaskOptionsPanel extends OptionsPanel {
 		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
 		//@formatter:on
-	}
-
-	@Override
-	DarknessMask getElement() {
-		return darkness;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -100,11 +93,11 @@ class DarknessMaskOptionsPanel extends OptionsPanel {
 		private boolean dragClear;	// when dragging if true then we clear cells, otherwise we reset cells
 
 		private void setMasked(Point p, boolean mask) {
-			darkness.setMasked(p, mask);
+			element.setMasked(p, mask);
 			if (mask) {
-				display.setProperty(darkness, DarknessMask.PROPERTY_MASKCELL, p, Mode.REMOTE);
+				display.setProperty(element, DarknessMask.PROPERTY_MASKCELL, p, Mode.REMOTE);
 			} else {
-				display.setProperty(darkness, DarknessMask.PROPERTY_UNMASKCELL, p, Mode.REMOTE);
+				display.setProperty(element, DarknessMask.PROPERTY_UNMASKCELL, p, Mode.REMOTE);
 			}
 		}
 
@@ -112,7 +105,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel {
 		public void mousePressed(MouseEvent e, Point2D gridloc) {
 			button = e.getButton();
 			Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
-			dragClear = darkness.isMasked(p);
+			dragClear = element.isMasked(p);
 		}
 
 		@Override
@@ -130,7 +123,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel {
 			if (e.getClickCount() != 1) return;
 
 			Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
-			setMasked(p, !darkness.isMasked(p));
+			setMasked(p, !element.isMasked(p));
 		}
 
 		@Override

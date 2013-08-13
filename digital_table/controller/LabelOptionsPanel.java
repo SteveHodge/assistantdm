@@ -22,9 +22,7 @@ import digital_table.elements.Label;
 import digital_table.elements.MapElement;
 
 @SuppressWarnings("serial")
-class LabelOptionsPanel extends OptionsPanel {
-	private Label label;
-
+class LabelOptionsPanel extends OptionsPanel<Label> {
 	private JTextField xField;
 	private JTextField yField;
 	private JSlider alphaSlider;
@@ -34,25 +32,26 @@ class LabelOptionsPanel extends OptionsPanel {
 	private JCheckBox bgCheck;
 	private JTextField fontSizeField;
 	private JTextField textField;
-	private JCheckBox visibleCheck;
+
+	JCheckBox visibleCheck;	// TokenOptionPanel needs to access this
 
 	LabelOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		label= new Label();
-		display.addElement(label, parent);
-		label.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		label.addPropertyChangeListener(listener);
+		element= new Label();
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		xField = createDoubleControl(label, Label.PROPERTY_X);
-		yField = createDoubleControl(label, Label.PROPERTY_Y);
-		alphaSlider = createSliderControl(label, Label.PROPERTY_ALPHA);
-		colorPanel = createColorControl(label, Label.PROPERTY_COLOR);
-		bgColorPanel = createColorControl(label, Label.PROPERTY_BACKGROUND_COLOR);
-		rotationsCombo = createRotationControl(label, Label.PROPERTY_ROTATIONS, Mode.ALL);
-		visibleCheck = createVisibilityControl(label);
-		bgCheck = createCheckBox(label, Label.PROPERTY_SOLID_BACKGROUND, Mode.ALL, "show background?");
-		fontSizeField = createDoubleControl(label, Label.PROPERTY_FONT_SIZE);
-		textField = createStringControl(label, Label.PROPERTY_TEXT);
+		xField = createDoubleControl(Label.PROPERTY_X);
+		yField = createDoubleControl(Label.PROPERTY_Y);
+		alphaSlider = createSliderControl(Label.PROPERTY_ALPHA);
+		colorPanel = createColorControl(Label.PROPERTY_COLOR);
+		bgColorPanel = createColorControl(Label.PROPERTY_BACKGROUND_COLOR);
+		rotationsCombo = createRotationControl(Label.PROPERTY_ROTATIONS, Mode.ALL);
+		visibleCheck = createVisibilityControl();
+		bgCheck = createCheckBox(Label.PROPERTY_SOLID_BACKGROUND, Mode.ALL, "show background?");
+		fontSizeField = createDoubleControl(Label.PROPERTY_FONT_SIZE);
+		textField = createStringControl(Label.PROPERTY_TEXT);
 
 		//@formatter:off
 		setLayout(new GridBagLayout());
@@ -89,11 +88,6 @@ class LabelOptionsPanel extends OptionsPanel {
 		c.gridwidth = 2;
 		add(new JPanel(), c);
 		//@formatter:on
-	}
-
-	@Override
-	Label getElement() {
-		return label;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -145,14 +139,14 @@ class LabelOptionsPanel extends OptionsPanel {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(label, Label.PROPERTY_X, p.getX());
-			display.setProperty(label, Label.PROPERTY_Y, p.getY());
+			display.setProperty(element, Label.PROPERTY_X, p.getX());
+			display.setProperty(element, Label.PROPERTY_Y, p.getY());
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point2D.Double((Double) label.getProperty(Label.PROPERTY_X),
-					(Double) label.getProperty(Label.PROPERTY_Y));
+			return new Point2D.Double((Double) element.getProperty(Label.PROPERTY_X),
+					(Double) element.getProperty(Label.PROPERTY_Y));
 		}
 	};
 

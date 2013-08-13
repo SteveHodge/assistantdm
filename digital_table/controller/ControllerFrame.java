@@ -57,7 +57,7 @@ public class ControllerFrame extends JFrame {
 	private TokenOverlay overlay = null;
 	private CameraPanel camera;
 	private JPanel elementPanel = new JPanel();
-	private Map<MapElement, OptionsPanel> optionPanels = new HashMap<MapElement, OptionsPanel>();
+	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<MapElement, OptionsPanel<?>>();
 	private JList availableList;
 	//private JList elementList;
 	private JTree elementTree;
@@ -152,7 +152,10 @@ public class ControllerFrame extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				AddElementAction<?> action = (AddElementAction<?>) availableList.getSelectedValue();
-				if (action != null) action.actionPerformed(arg0);
+				if (action != null) {
+					OptionsPanel<?> options = action.addElement(null);
+					elementTree.setSelectionPath(miniMapPanel.getTreePath(options.getElement()));
+				}
 			}
 		});
 
@@ -163,7 +166,8 @@ public class ControllerFrame extends JFrame {
 				AddElementAction<?> action = (AddElementAction<?>) availableList.getSelectedValue();
 				MapElement parent = getSelectedElement();
 				if (action != null && parent != null && parent instanceof Group) {
-					action.addElement(parent);
+					OptionsPanel<?> options = action.addElement(parent);
+					elementTree.setSelectionPath(miniMapPanel.getTreePath(options.getElement()));
 				}
 			}
 		});
@@ -276,6 +280,7 @@ public class ControllerFrame extends JFrame {
 			TokenOptionsPanel panel = instance.tokenAction.addElement(null);
 			panel.setCreature(m);
 			panel.setImage(imageFile);
+			instance.elementTree.setSelectionPath(instance.miniMapPanel.getTreePath(panel.getElement()));
 		}
 	}
 
@@ -283,7 +288,7 @@ public class ControllerFrame extends JFrame {
 		protected MapElementMouseListener getOptionsPanel() {
 			MapElement element = getSelectedElement();
 			if (element != null) {
-				OptionsPanel options = optionPanels.get(element);
+				OptionsPanel<?> options = optionPanels.get(element);
 				if (options != null) {
 					return options.getMouseListener();
 				}
@@ -382,7 +387,7 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
-	private abstract class AddElementAction<P extends OptionsPanel> extends AbstractAction {
+	private abstract class AddElementAction<P extends OptionsPanel<?>> extends AbstractAction implements ElementFactory<P> {
 		String name;
 
 		protected AddElementAction(String name) {
@@ -397,16 +402,22 @@ public class ControllerFrame extends JFrame {
 			addElement(null);
 		}
 
-		protected P addElement(MapElement parent) {
+		@Override
+		public P addElement(MapElement parent) {
 			P panel = createOptionsPanel(parent);
 			if (panel != null) {
 				MapElement element = panel.getElement();
 				element.addPropertyChangeListener(labelListener);
 				optionPanels.put(element, panel);
-				elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
-				//elementList.setSelectedValue(element, true);
 			}
 			return panel;
+		}
+
+		@Override
+		public void removeElement(P panel) {
+			// TODO if this element is selected then need to clear the option panel (see remove button action)
+			display.removeElement(panel.getElement());
+			optionPanels.remove(panel.getElement());
 		}
 
 		@Override
@@ -488,7 +499,7 @@ public class ControllerFrame extends JFrame {
 	private AddElementAction<TokenOptionsPanel> tokenAction = new AddElementAction<TokenOptionsPanel>("Token") {
 		@Override
 		protected TokenOptionsPanel createOptionsPanel(MapElement parent) {
-			return new TokenOptionsPanel(parent, display);
+			return new TokenOptionsPanel(parent, display, labelAction);
 		}
 	};
 
@@ -530,7 +541,7 @@ public class ControllerFrame extends JFrame {
 	private void addChildren(Document doc, Element docParent, TreeModel tree, Object treeParent) {
 		for (int i = 0; i < tree.getChildCount(treeParent); i++) {
 			Object mapElement = tree.getChild(treeParent, i);
-			OptionsPanel p = this.optionPanels.get(mapElement);
+			OptionsPanel<?> p = this.optionPanels.get(mapElement);
 			Element e = p.getElement(doc);
 			if (e != null) {
 				docParent.appendChild(e);
@@ -548,7 +559,7 @@ public class ControllerFrame extends JFrame {
 
 	public void parseNode(Element e, MapElement parent) {
 		String tag = e.getTagName();
-		OptionsPanel p = null;
+		OptionsPanel<?> p = null;
 
 		if (tag.equals(GridOptionsPanel.XML_TAG)) {
 			p = gridPanel;
@@ -585,7 +596,6 @@ public class ControllerFrame extends JFrame {
 				MapElement element = p.getElement();
 				element.addPropertyChangeListener(labelListener);
 				optionPanels.put(element, p);
-				elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
 			}
 		}
 
@@ -605,6 +615,7 @@ public class ControllerFrame extends JFrame {
 		if (!el.getTagName().equals("Elements")) return;
 
 		parseNode(el, null);
+		elementTree.setSelectionPath(miniMapPanel.getTreePath(gridPanel.getElement()));
 	}
 
 	public void updateOverlay(int width, int height) {

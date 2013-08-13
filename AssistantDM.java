@@ -72,8 +72,8 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * Allow multi-select and grouping in tree
- * Improve Tokens element: floating label
+ * Allow multi-select and grouping in tree (also fix deleting elements with children)
+ * token floating labels serialisation
  * 
  * get rid of XMLUtils. findNode is used in monsters and magicitems packages
  * size (where is up to?)
@@ -97,8 +97,7 @@ import digital_table.controller.DigitalTableController;
  * equipment, particularly magic item slots, armor, weapons
  */
 /* TODO digital tabletop (dtt) priorities:
- * BUG Issue with image scaling before remote visible - fix handling of image size when image changes
- * Implement Creature Size
+ * Load/Save
  * Improve camera integration, fix ui for camera panel
  * Refactor common utility methods into MapElement (e.g. template creation)
  * Alternate button dragging (e.g. resize)

@@ -27,9 +27,7 @@ import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
 
 @SuppressWarnings("serial")
-class ImageOptionsPanel extends OptionsPanel {
-	private MapImage image;
-
+class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private File file = null;
 
 	private JTextField xField;
@@ -55,19 +53,19 @@ class ImageOptionsPanel extends OptionsPanel {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		image = new MapImage(bytes, file.getName());
-		display.addElement(image, parent);
-		image.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		image.addPropertyChangeListener(listener);
+		element = new MapImage(bytes, file.getName());
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		xField = createDoubleControl(image, MapImage.PROPERTY_X);
-		yField = createDoubleControl(image, MapImage.PROPERTY_Y);
-		widthField = createDoubleControl(image, MapImage.PROPERTY_WIDTH);
-		heightField = createDoubleControl(image, MapImage.PROPERTY_HEIGHT);
-		alphaSlider = createSliderControl(image, MapImage.PROPERTY_ALPHA);
-		rotationsCombo = createRotationControl(image, MapImage.PROPERTY_ROTATIONS, Mode.ALL);
-		labelField = createStringControl(image, MapImage.PROPERTY_LABEL, Mode.LOCAL);
-		visibleCheck = createVisibilityControl(image);
+		xField = createDoubleControl(MapImage.PROPERTY_X);
+		yField = createDoubleControl(MapImage.PROPERTY_Y);
+		widthField = createDoubleControl(MapImage.PROPERTY_WIDTH);
+		heightField = createDoubleControl(MapImage.PROPERTY_HEIGHT);
+		alphaSlider = createSliderControl(MapImage.PROPERTY_ALPHA);
+		rotationsCombo = createRotationControl(MapImage.PROPERTY_ROTATIONS, Mode.ALL);
+		labelField = createStringControl(MapImage.PROPERTY_LABEL, Mode.LOCAL);
+		visibleCheck = createVisibilityControl();
 
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
@@ -97,11 +95,6 @@ class ImageOptionsPanel extends OptionsPanel {
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
-	}
-
-	@Override
-	MapImage getElement() {
-		return image;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -153,14 +146,14 @@ class ImageOptionsPanel extends OptionsPanel {
 				x = Math.floor(x);
 				y = Math.floor(y);
 			}
-			display.setProperty(image, MapImage.PROPERTY_X, x);
-			display.setProperty(image, MapImage.PROPERTY_Y, y);
+			display.setProperty(element, MapImage.PROPERTY_X, x);
+			display.setProperty(element, MapImage.PROPERTY_Y, y);
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point2D.Double((Double)image.getProperty(MapImage.PROPERTY_X),
-					(Double)image.getProperty(MapImage.PROPERTY_Y));
+			return new Point2D.Double((Double)element.getProperty(MapImage.PROPERTY_X),
+					(Double)element.getProperty(MapImage.PROPERTY_Y));
 		}
 
 		@Override
@@ -169,12 +162,12 @@ class ImageOptionsPanel extends OptionsPanel {
 			if (e.getClickCount() != 1) return;
 
 			Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
-			boolean clear = !image.isCleared(p);
-			image.setCleared(p, clear);
+			boolean clear = !element.isCleared(p);
+			element.setCleared(p, clear);
 			if (clear) {
-				display.setProperty(image, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
+				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
 			} else {
-				display.setProperty(image, MapImage.PROPERTY_UNCLEARCELL, p, Mode.REMOTE);
+				display.setProperty(element, MapImage.PROPERTY_UNCLEARCELL, p, Mode.REMOTE);
 			}
 		}
 	};
@@ -194,7 +187,7 @@ class ImageOptionsPanel extends OptionsPanel {
 		// output the current list of points in an attribute (might be better to have a more
 		// structured output but that will complicate general parsing of child elements).
 		// points are output as a list of coordinates, one point at a time, x then y coordinate.
-		Point[] points = image.getCells();
+		Point[] points = element.getCells();
 		String attr = "";
 		for (int i = 0; i < points.length; i++) {
 			attr += points[i].x + "," + points[i].y + ",";
@@ -224,8 +217,8 @@ class ImageOptionsPanel extends OptionsPanel {
 			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");
 			for (int i = 0; i < coords.length; i += 2) {
 				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
-				image.setCleared(p, true);
-				display.setProperty(image, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
+				element.setCleared(p, true);
+				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
 			}
 		}
 	}

@@ -19,21 +19,19 @@ import digital_table.elements.MapElement;
 import digital_table.elements.Token;
 
 @SuppressWarnings("serial")
-class GroupOptionsPanel extends OptionsPanel {
-	private Group group;
-
+class GroupOptionsPanel extends OptionsPanel<Group> {
 	private JTextField labelField;
 	private JCheckBox visibleCheck;
 
 	GroupOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		group = new Group();
-		display.addElement(group, parent);
-		group.setProperty(MapElement.PROPERTY_VISIBLE, true);
-		group.addPropertyChangeListener(listener);
+		element = new Group();
+		display.addElement(element, parent);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.addPropertyChangeListener(listener);
 
-		visibleCheck = createVisibilityControl(group);
-		labelField = createStringControl(group, Token.PROPERTY_LABEL);
+		visibleCheck = createVisibilityControl();
+		labelField = createStringControl(Token.PROPERTY_LABEL);
 
 		//@formatter:off
 		setLayout(new GridBagLayout());
@@ -53,11 +51,6 @@ class GroupOptionsPanel extends OptionsPanel {
 		c.gridwidth = 2;
 		add(new JPanel(), c);
 		//@formatter:on
-	}
-
-	@Override
-	Group getElement() {
-		return group;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -90,8 +83,8 @@ class GroupOptionsPanel extends OptionsPanel {
 	@Override
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
-		setAttribute(e, Group.PROPERTY_LABEL, group.getProperty(Group.PROPERTY_LABEL));
-		Point2D location = (Point2D)group.getProperty(Group.PROPERTY_LOCATION);
+		setAttribute(e, Group.PROPERTY_LABEL, element.getProperty(Group.PROPERTY_LABEL));
+		Point2D location = (Point2D) element.getProperty(Group.PROPERTY_LOCATION);
 		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
 		setAttribute(e, REMOTE_PREFIX + Group.PROPERTY_VISIBLE, visibleCheck.isSelected());
 		return e;
@@ -110,7 +103,7 @@ class GroupOptionsPanel extends OptionsPanel {
 			Double x = Double.parseDouble(coords[0]);
 			Double y = Double.parseDouble(coords[1]);
 			Point2D value = new Point2D.Double(x, y);
-			display.setProperty(group, Group.PROPERTY_LOCATION, value);
+			display.setProperty(element, Group.PROPERTY_LOCATION, value);
 //			} catch (NumberFormatException e) {
 //			}
 		}
