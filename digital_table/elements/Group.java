@@ -25,10 +25,12 @@ public class Group extends MapElement {
 	}
 
 	public void addChild(MapElement e) {
+		// TODO should adjust the child's location if any
 		e.parent = this;
 	}
 
 	public void removeChild(MapElement e) {
+		// TODO should adjust the child's location if any
 		if (e.parent == this) e.parent = null;
 	}
 

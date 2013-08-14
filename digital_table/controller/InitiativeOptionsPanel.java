@@ -147,7 +147,7 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseColorAttribute(Initiative.PROPERTY_COLOR, e, Mode.ALL);

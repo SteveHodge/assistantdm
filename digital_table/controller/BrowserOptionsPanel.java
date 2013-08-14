@@ -236,7 +236,7 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(Browser.PROPERTY_URL, e, Mode.ALL);

@@ -72,8 +72,8 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * Allow multi-select and grouping in tree (also fix deleting elements with children)
- * token floating labels serialisation
+ * group dragging - uneven movement because of snap to grid
+ * groupping - changing parent should modify children to maintain position
  * 
  * get rid of XMLUtils. findNode is used in monsters and magicitems packages
  * size (where is up to?)

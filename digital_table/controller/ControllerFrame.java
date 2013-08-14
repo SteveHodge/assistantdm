@@ -2,6 +2,8 @@ package digital_table.controller;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,14 +22,19 @@ import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.EventListenerList;
 import javax.swing.event.MouseInputListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
@@ -59,9 +66,7 @@ public class ControllerFrame extends JFrame {
 	private JPanel elementPanel = new JPanel();
 	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<MapElement, OptionsPanel<?>>();
 	private JList availableList;
-	//private JList elementList;
 	private JTree elementTree;
-	//private DefaultListModel elements;
 	private GridOptionsPanel gridPanel;
 
 	private File last_file = null;
@@ -83,7 +88,6 @@ public class ControllerFrame extends JFrame {
 
 		miniMapPanel.addMouseMotionListener(miniMapMouseListener);
 		miniMapPanel.addMouseListener(miniMapMouseListener);
-		//elements = (DefaultListModel) miniMapPanel.getModel();
 		add(miniMapPanel);
 
 		AddElementAction<?>[] availableElements = {
@@ -106,26 +110,6 @@ public class ControllerFrame extends JFrame {
 		availableList = new JList(availableElements);
 		availableList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		//		elementList = new JList(elements);
-		//		elementList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		//		elementList.addListSelectionListener(new ListSelectionListener() {
-		//			@Override
-		//			public void valueChanged(ListSelectionEvent e) {
-		//				if (!e.getValueIsAdjusting()) {
-		//					MapElement element = (MapElement) elementList.getSelectedValue();
-		//					if (element != null) {
-		//						JPanel options = optionPanels.get(element);
-		//						if (options != null) {
-		//							elementPanel.removeAll();
-		//							elementPanel.add(options);
-		//							options.revalidate();
-		//							options.repaint();
-		//							//System.out.println(""+element);
-		//						}
-		//					}
-		//				}
-		//			}
-		//		});
 		elementTree = new JTree(miniMapPanel.getTreeModel());
 		elementTree.setRootVisible(false);
 		elementTree.setVisibleRowCount(10);
@@ -169,6 +153,14 @@ public class ControllerFrame extends JFrame {
 					OptionsPanel<?> options = action.addElement(parent);
 					elementTree.setSelectionPath(miniMapPanel.getTreePath(options.getElement()));
 				}
+			}
+		});
+
+		JButton groupsButton = new JButton("Groups...");
+		groupsButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new GroupsDialog();
 			}
 		});
 
@@ -225,6 +217,7 @@ public class ControllerFrame extends JFrame {
 		buttonPanel.add(upButton);
 		buttonPanel.add(downButton);
 		buttonPanel.add(addChildButton);
+		buttonPanel.add(groupsButton);
 		//		buttonPanel.add(quitButton);
 
 		JPanel rightPanel = new JPanel();
@@ -386,6 +379,216 @@ public class ControllerFrame extends JFrame {
 			}
 		}
 	};
+
+	private class GroupsDialog extends JDialog {
+		// TODO apply dialog should only be enabled when selections have been made in both trees
+		private JTree elements;
+		private JTree groups;
+
+		GroupsDialog() {
+			super(ControllerFrame.this, "Rearrange hierarchy", true);
+
+			elements = new JTree(miniMapPanel.getTreeModel());
+			elements.setRootVisible(false);
+			elements.setVisibleRowCount(10);
+			elements.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+
+			groups = new JTree(groupsTreeModel);
+			groups.setVisibleRowCount(10);
+			groups.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+
+			JButton okButton = new JButton("Ok");
+			okButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					apply();
+					dispose();
+				}
+			});
+
+			JButton cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					dispose();
+				}
+			});
+
+			JButton applyButton = new JButton("Apply");
+			applyButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					apply();
+				}
+			});
+
+			JPanel trees = new JPanel();
+			trees.setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridy = 0;
+			c.weightx = 1.0d;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			trees.add(new JLabel("Elements to move"), c);
+			trees.add(new JLabel("Group to move to"), c);
+
+			c.gridy = 1;
+			c.weighty = 1.0d;
+			c.fill = GridBagConstraints.BOTH;
+			JScrollPane scroller = new JScrollPane(elements);
+			trees.add(scroller, c);
+			scroller = new JScrollPane(groups);
+			trees.add(scroller, c);
+
+			JPanel buttons = new JPanel();
+			buttons.add(okButton);
+			buttons.add(cancelButton);
+			buttons.add(applyButton);
+
+			add(trees);
+			add(buttons, BorderLayout.SOUTH);
+
+			pack();
+			setVisible(true);
+		}
+
+		void apply() {
+			TreePath targetPath = groups.getSelectionPath();
+			TreePath[] elementPaths = elements.getSelectionPaths();
+			if (targetPath == null || elementPaths.length == 0) return;
+
+			MapElement newParent = null;
+			if (targetPath.getLastPathComponent() == addNode) {
+				GroupOptionsPanel panel = groupAction.addElement(null);
+				newParent = panel.getElement();
+			} else if (targetPath.getLastPathComponent() != rootNode){
+				newParent = (MapElement)targetPath.getLastPathComponent();
+			}
+
+			for (TreePath elementPath : elementPaths) {
+				MapElement element = (MapElement) elementPath.getLastPathComponent();
+				if (element != newParent) display.changeParent(element, newParent);
+			}
+
+			// TODO reset selections - currently unnecessary because the change fires a structure changed event which rebuilds the trees
+		}
+
+		private String rootNode = new String("Top level");
+		private String addNode = new String("<new group>");
+
+		TreeModel groupsTreeModel = new TreeModel() {
+			private EventListenerList listeners = new EventListenerList();
+			private TreeModel m = miniMapPanel.getTreeModel();
+
+			{
+				m.addTreeModelListener(new TreeModelListener() {
+					// TODO converting all events to structure change events on the whole tree makes changes inefficient
+					@Override
+					public void treeNodesChanged(TreeModelEvent e) {
+						fireTreeStructureChanged();
+					}
+
+					@Override
+					public void treeNodesInserted(TreeModelEvent e) {
+						fireTreeStructureChanged();
+					}
+
+					@Override
+					public void treeNodesRemoved(TreeModelEvent e) {
+						fireTreeStructureChanged();
+					}
+
+					@Override
+					public void treeStructureChanged(TreeModelEvent e) {
+						fireTreeStructureChanged();
+					}
+
+					void fireTreeStructureChanged() {
+						Object[] list = listeners.getListenerList();
+						for (int i = list.length - 2; i >= 0; i -= 2) {
+							if (list[i] == TreeModelListener.class) {
+								TreePath path = new TreePath(rootNode);
+								TreeModelEvent e = new TreeModelEvent(this, path);
+								((TreeModelListener) list[i + 1]).treeStructureChanged(e);
+							}
+						}
+					}
+				});
+			}
+
+			@Override
+			public Object getRoot() {
+				return rootNode;
+			}
+
+			@Override
+			public Object getChild(Object parent, int index) {
+				if (parent == addNode) return null;
+				if (parent == rootNode) {
+					if (index == 0) return addNode;
+					parent = m.getRoot();
+					index--;
+				}
+				for (int i = 0; i < m.getChildCount(parent); i++) {
+					Object e = m.getChild(parent, i);
+					if (e instanceof Group && --index < 0) return e;
+				}
+				return null;
+			}
+
+			@Override
+			public int getChildCount(Object parent) {
+				if (parent == addNode) return 0;
+				int children = 0;
+				if (parent == rootNode) {
+					parent = m.getRoot();
+					children++;
+				}
+				for (int i = 0; i < m.getChildCount(parent); i++) {
+					Object e = m.getChild(parent, i);
+					if (e instanceof Group) children++;
+				}
+				return children;
+			}
+
+			@Override
+			public int getIndexOfChild(Object parent, Object child) {
+				if (parent == addNode) return -1;
+				int childIndex = 0;
+				if (parent == rootNode) {
+					if (child == addNode) return 0;
+					childIndex++;
+					parent = m.getRoot();
+				}
+				for (int i = 0; i < m.getChildCount(parent); i++) {
+					Object e = m.getChild(parent, i);
+					if (e instanceof Group) {
+						if (e == child) return childIndex;
+						childIndex++;
+					}
+				}
+				return -1;
+			}
+
+			@Override
+			public boolean isLeaf(Object node) {
+				return getChildCount(node) == 0;
+			}
+
+			@Override
+			public void valueForPathChanged(TreePath path, Object newValue) {
+			}
+
+			@Override
+			public void addTreeModelListener(TreeModelListener e) {
+				listeners.add(TreeModelListener.class, e);
+			}
+
+			@Override
+			public void removeTreeModelListener(TreeModelListener e) {
+				listeners.remove(TreeModelListener.class, e);
+			}
+		};
+	}
 
 	private abstract class AddElementAction<P extends OptionsPanel<?>> extends AbstractAction implements ElementFactory<P> {
 		String name;
@@ -557,9 +760,10 @@ public class ControllerFrame extends JFrame {
 		return root;
 	}
 
-	public void parseNode(Element e, MapElement parent) {
+	public void parseNode(Element e, OptionsPanel<?> parentPanel) {
 		String tag = e.getTagName();
 		OptionsPanel<?> p = null;
+		MapElement parent = parentPanel == null ? null : parentPanel.getElement();
 
 		if (tag.equals(GridOptionsPanel.XML_TAG)) {
 			p = gridPanel;
@@ -599,15 +803,12 @@ public class ControllerFrame extends JFrame {
 			}
 		}
 
-		if (p != null) {
-			p.parseDOM(e);
-			parent = p.getElement();
-		}
+		if (p != null) p.parseDOM(e, parentPanel);
 
 		NodeList nodes = e.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-			parseNode((Element) nodes.item(i), parent);
+			parseNode((Element) nodes.item(i), p);
 		}
 	}
 

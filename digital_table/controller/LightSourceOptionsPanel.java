@@ -128,7 +128,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(LightSource.PROPERTY_LABEL, e, Mode.LOCAL);

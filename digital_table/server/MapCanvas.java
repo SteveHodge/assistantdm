@@ -95,6 +95,20 @@ public class MapCanvas implements ListDataListener {
 		treeModel.fireTreeNodeInserted(element);
 	}
 
+	public void changeParent(MapElement element, MapElement parent) {
+		// TODO finer grained events would be better
+		if (element.parent != null) {
+			Group p = element.parent;
+			p.removeChild(element);
+			treeModel.fireTreeStructureChanged();
+		}
+		if (parent != null && parent instanceof Group) {
+			((Group) parent).addChild(element);
+			treeModel.fireTreeStructureChanged();
+		}
+		repaint();	// need this at the moment because changing the hierarchy can move the nodes
+	}
+
 	// TODO decide on standard argument - id or MapElement
 	public boolean removeElement(int id) {
 		MapElement e = getElement(id);
@@ -113,7 +127,6 @@ public class MapCanvas implements ListDataListener {
 						if (el.getParent() == e) {
 							reparented = true;
 							parent.addChild(el);
-							// TODO should also adjust offsets
 						}
 					}
 				}
@@ -440,9 +453,36 @@ public class MapCanvas implements ListDataListener {
 			}
 		}
 
+		void fireTreeStructureChanged() {
+			Object[] list = listeners.getListenerList();
+			for (int i = list.length - 2; i >= 0; i -= 2) {
+				if (list[i] == TreeModelListener.class) {
+					TreePath path = new TreePath(getRoot());
+					TreeModelEvent e = new TreeModelEvent(this, path);
+					((TreeModelListener) list[i + 1]).treeStructureChanged(e);
+				}
+			}
+		}
+
 		@Override
 		public void valueForPathChanged(TreePath path, Object newValue) {
 			// TODO not sure if i need implementation
 		}
+
+//		void printTree() {
+//			for (int i = 0; i < model.size(); i++) {
+//				MapElement e = (MapElement) model.get(i);
+//				if (e.parent == null) {
+//					printSubtree(e, "+-");
+//				}
+//			}
+//		}
+//
+//		void printSubtree(Object node, String prefix) {
+//			System.out.println(prefix + node.toString() + " (" + getChildCount(node) + ")");
+//			for (int i = 0; i < getChildCount(node); i++) {
+//				printSubtree(getChild(node, i), "  " + prefix);
+//			}
+//		}
 	};
 }

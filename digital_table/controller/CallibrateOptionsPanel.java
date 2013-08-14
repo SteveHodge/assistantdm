@@ -72,7 +72,7 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.ALL);

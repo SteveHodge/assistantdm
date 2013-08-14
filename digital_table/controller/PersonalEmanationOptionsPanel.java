@@ -142,7 +142,7 @@ class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(PersonalEmanation.PROPERTY_LABEL, e, Mode.LOCAL);

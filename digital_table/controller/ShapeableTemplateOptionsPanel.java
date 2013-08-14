@@ -161,7 +161,7 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(ShapeableTemplate.PROPERTY_LABEL, e, Mode.LOCAL);

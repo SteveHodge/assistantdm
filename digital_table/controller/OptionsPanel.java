@@ -257,12 +257,9 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	// ---- XML serialisation methods ----
 	static final String REMOTE_PREFIX = "remote_";	// prefix for properties intended for remote element
 
-	Element getElement(Document doc) {
-		return null;
-	}
+	abstract Element getElement(Document doc);
 
-	void parseDOM(Element e) {
-	}
+	abstract void parseDOM(Element e, OptionsPanel<?> parent);
 
 	// sets attributes for all properties of the local MapElement
 	void setAllAttributes(Element e) {

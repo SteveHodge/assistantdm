@@ -83,7 +83,7 @@ class BoundsOptionsPanel extends OptionsPanel<ScreenBounds> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseColorAttribute(ScreenBounds.PROPERTY_COLOR, e, Mode.LOCAL);

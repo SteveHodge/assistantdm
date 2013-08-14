@@ -129,7 +129,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseColorAttribute(Grid.PROPERTY_COLOR, e, Mode.ALL);

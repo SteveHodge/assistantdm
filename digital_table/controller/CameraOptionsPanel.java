@@ -99,7 +99,7 @@ class CameraOptionsPanel extends OptionsPanel<MapImage> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.ALL);

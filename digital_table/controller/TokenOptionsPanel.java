@@ -67,7 +67,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	private JComboBox statusDisplayCombo;
 	private JCheckBox visibleCheck;
 	private JCheckBox floatingLabelCheck;
-	private LabelOptionsPanel floatingLabel = null;
+	LabelOptionsPanel floatingLabel = null;	// accessed by LabelOptionsPanel
 	private Creature creature;
 	private File imageFile = null;
 
@@ -156,6 +156,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 				if (check.isSelected()) {
 					if (floatingLabel == null) {
 						floatingLabel = labelFactory.addElement(element);
+						floatingLabel.setFloating();
 					}
 					// configure the floating label
 					Label l = floatingLabel.getElement();
@@ -166,7 +167,6 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 					display.setProperty(l, Label.PROPERTY_Y, space, Mode.ALL);
 					display.setProperty(l, Label.PROPERTY_ROTATIONS, rotationsCombo.getSelectedIndex(), Mode.ALL);
 					display.setProperty(l, Label.PROPERTY_VISIBLE, true, Mode.REMOTE);
-					floatingLabel.visibleCheck.setSelected(true);
 					// remove the label from the remote token
 					display.setProperty(element, Token.PROPERTY_LABEL, "", Mode.REMOTE);
 					updateFloatingStatus();
@@ -639,7 +639,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(Token.PROPERTY_LABEL, e, Mode.LOCAL);

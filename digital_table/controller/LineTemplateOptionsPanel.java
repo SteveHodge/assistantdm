@@ -143,7 +143,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(LineTemplate.PROPERTY_LABEL, e, Mode.LOCAL);

@@ -201,7 +201,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(MapImage.PROPERTY_LABEL, e, Mode.LOCAL);

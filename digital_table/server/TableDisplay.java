@@ -22,6 +22,8 @@ public interface TableDisplay extends Remote {
 
 	public void removeElement(int id) throws RemoteException;
 
+	public void changeParent(int id, int parent) throws RemoteException;
+
 	public void promoteElement(int id) throws RemoteException;
 
 	public void demoteElement(int id) throws RemoteException;

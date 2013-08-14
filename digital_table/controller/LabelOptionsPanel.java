@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
+import digital_table.elements.Token;
 
 @SuppressWarnings("serial")
 class LabelOptionsPanel extends OptionsPanel<Label> {
@@ -32,8 +33,9 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 	private JCheckBox bgCheck;
 	private JTextField fontSizeField;
 	private JTextField textField;
+	private JCheckBox visibleCheck;
 
-	JCheckBox visibleCheck;	// TokenOptionPanel needs to access this
+	private boolean isFloating = false;
 
 	LabelOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -88,6 +90,12 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 		c.gridwidth = 2;
 		add(new JPanel(), c);
 		//@formatter:on
+	}
+
+	void setFloating() {
+		visibleCheck.setSelected(true);
+		isFloating = true;
+		textField.setEditable(false);
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -152,17 +160,19 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 
 	// ---- XML serialisation methods ----
 	final static String XML_TAG = "Label";
+	private final static String FLOATING_ATTRIBUTE_NAME = "floating";
 
 	@Override
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + Label.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		if (isFloating) setAttribute(e, FLOATING_ATTRIBUTE_NAME, isFloating);
 		return e;
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(Label.PROPERTY_TEXT, e, Mode.ALL);
@@ -175,5 +185,13 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 		parseDoubleAttribute(Label.PROPERTY_FONT_SIZE, e, Mode.ALL);
 		parseBooleanAttribute(Label.PROPERTY_SOLID_BACKGROUND, e, Mode.ALL);
 		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+
+		if (e.hasAttribute(FLOATING_ATTRIBUTE_NAME)) {
+			isFloating = Boolean.parseBoolean(e.getAttribute(FLOATING_ATTRIBUTE_NAME));
+			if (isFloating && parent instanceof TokenOptionsPanel) {
+				((TokenOptionsPanel) parent).floatingLabel = this;
+				display.setProperty(parent.element, Token.PROPERTY_LABEL, "", Mode.REMOTE);
+			}
+		}
 	}
 }

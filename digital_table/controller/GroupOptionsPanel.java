@@ -91,7 +91,7 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(Group.PROPERTY_LABEL, e, Mode.LOCAL);

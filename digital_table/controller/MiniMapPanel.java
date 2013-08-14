@@ -35,7 +35,7 @@ public class MiniMapPanel extends JPanel implements RepaintListener {
 			return getHeight() / rows;
 		}
 
-		// get the grid coordinates of the grid cell containing (x,y) 
+		// get the grid coordinates of the grid cell containing (x,y)
 		@Override
 		public Point getGridCellCoordinates(int x, int y) {
 			int col = x * columns / getWidth();
@@ -111,6 +111,11 @@ public class MiniMapPanel extends JPanel implements RepaintListener {
 
 	public void removeElement(int id) {
 		if (canvas.removeElement(id)) repaint();
+	}
+
+	public void changeParent(MapElement e, MapElement parent) {
+		if (e.parent == parent) return;
+		canvas.changeParent(e, parent);
 	}
 
 	public void promoteElement(MapElement e) {

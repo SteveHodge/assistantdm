@@ -1589,6 +1589,7 @@ public class Character extends Creature {
 
 		e = hps.getElement(doc);
 		e.setAttribute("info", hps.getSummary());
+		e.setAttribute("current", Integer.toString(hps.getHPs()));
 		charEl.appendChild(e);
 
 		e = doc.createElement("Initiative");

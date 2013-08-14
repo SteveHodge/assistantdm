@@ -198,9 +198,16 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	@Override
 	public void addElement(MapElement element, int parent) {
 		MapElement p = canvas.getElement(parent);
-		if (p != null) {
-			element.setScreenMananger(this);
-			canvas.addElement(element, p);
+		element.setScreenMananger(this);
+		canvas.addElement(element, p);
+	}
+
+	@Override
+	public void changeParent(int id, int parent) throws RemoteException {
+		MapElement e = canvas.getElement(id);
+		MapElement p = canvas.getElement(parent);
+		if (e != null) {
+			canvas.changeParent(e, p);
 		}
 	}
 

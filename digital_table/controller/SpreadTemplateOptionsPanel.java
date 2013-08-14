@@ -161,7 +161,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseEnumAttribute(SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.class, e, Mode.ALL);

@@ -96,6 +96,15 @@ class DisplayManager {
 		}
 	}
 
+	void changeParent(MapElement element, MapElement parent) {
+		local.changeParent(element, parent);
+		try {
+			remote.changeParent(element.getID(), parent == null ? -1 : parent.getID());
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+
 	void promoteElement(MapElement element) {
 		local.promoteElement(element);
 		if (overlay != null) overlay.promoteElement(element);

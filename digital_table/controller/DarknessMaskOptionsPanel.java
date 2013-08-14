@@ -149,7 +149,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 	}
 
 	@Override
-	void parseDOM(Element e) {
+	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseColorAttribute(DarknessMask.PROPERTY_COLOR, e, Mode.ALL);
