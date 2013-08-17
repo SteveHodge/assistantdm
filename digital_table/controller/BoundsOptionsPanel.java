@@ -3,6 +3,8 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -16,6 +18,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.ScreenBounds;
 
 @SuppressWarnings("serial")
@@ -28,14 +31,21 @@ class BoundsOptionsPanel extends OptionsPanel<ScreenBounds> {
 		super(r);
 		element = new ScreenBounds();
 		display.addElement(element, parent);	// XXX should we send to remote?
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		colorPanel = createColorControl(ScreenBounds.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(ScreenBounds.PROPERTY_ALPHA);
 
-		visibleCheck = this.createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.LOCAL, "local visible?");
+		visibleCheck = new JCheckBox("local visible?");
 		visibleCheck.setSelected(true);
+		visibleCheck.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				JCheckBox check = (JCheckBox) e.getSource();
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.LOCAL);
+			}
+		});
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -63,8 +73,9 @@ class BoundsOptionsPanel extends OptionsPanel<ScreenBounds> {
 			} else if (e.getPropertyName().equals(ScreenBounds.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
 
-			} else if (e.getPropertyName().equals(ScreenBounds.PROPERTY_VISIBLE)) {
-				visibleCheck.setSelected((Boolean) e.getNewValue());
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				Visibility v = (Visibility) e.getNewValue();
+				visibleCheck.setSelected(v != Visibility.HIDDEN);
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
@@ -88,6 +99,11 @@ class BoundsOptionsPanel extends OptionsPanel<ScreenBounds> {
 
 		parseColorAttribute(ScreenBounds.PROPERTY_COLOR, e, Mode.LOCAL);
 		parseFloatAttribute(ScreenBounds.PROPERTY_ALPHA, e, Mode.LOCAL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.LOCAL);
+
+		if (e.hasAttribute(MapElement.PROPERTY_VISIBLE)) {
+			Visibility v = Visibility.valueOf(e.getAttribute(MapElement.PROPERTY_VISIBLE));
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, v, Mode.LOCAL);
+			visibleCheck.setSelected(v != Visibility.HIDDEN);
+		}
 	}
 }

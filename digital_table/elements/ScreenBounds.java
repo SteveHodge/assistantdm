@@ -28,7 +28,7 @@ public class ScreenBounds extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (canvas == null || !isVisible()) return;
+		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		Composite c = g.getComposite();
 		g.setColor(color.getValue());

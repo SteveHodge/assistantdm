@@ -26,7 +26,7 @@ public class Callibrate extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (canvas == null || !isVisible()) return;
+		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		if (!showBackground.getValue()) {
 			g.setColor(Color.WHITE);

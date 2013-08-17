@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Grid;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 // TODO clean up nullable-Integer fields - maybe promote code to super
 
@@ -122,7 +123,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_ROW, rulerRowField.getText());
 		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_COLUMN, rulerColumnField.getText());
 		return e;
@@ -135,7 +136,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		parseColorAttribute(Grid.PROPERTY_COLOR, e, Mode.ALL);
 		parseColorAttribute(Grid.PROPERTY_BACKGROUND_COLOR, e, Mode.ALL);
 		parseFloatAttribute(Grid.PROPERTY_ALPHA, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 		parseIntegerAttribute(Grid.PROPERTY_RULER_ROW, e, rulerRowField);
 		parseIntegerAttribute(Grid.PROPERTY_RULER_COLUMN, e, rulerColumnField);
 	}

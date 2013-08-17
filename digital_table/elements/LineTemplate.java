@@ -28,7 +28,7 @@ public class LineTemplate extends MapElement {
 	Property<Integer> originX, originY, targetX, targetY;
 	Property<Integer> range = new Property<Integer>(PROPERTY_RANGE, 12, Integer.class);
 	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
 	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
 
 	public LineTemplate(int ox, int oy, int tx, int ty) {
@@ -40,17 +40,17 @@ public class LineTemplate extends MapElement {
 
 	@Override
 	public Order getDefaultOrder() {
-		return Order.BELOWGRID;
+		return Order.TOP;
 	}
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (canvas == null || !isVisible()) return;
+		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
 		g.translate(o.getX(), o.getY());
 
 		Composite c = g.getComposite();
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
 		int tx = targetX.getValue();
 		int ox = originX.getValue();

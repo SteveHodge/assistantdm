@@ -45,12 +45,12 @@ public class Label extends MapElement {
 
 	@Override
 	public Order getDefaultOrder() {
-		return Order.TOP;
+		return Order.ABOVEGRID;
 	}
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (!isVisible() || canvas == null) return;
+		if (getVisibility() == Visibility.HIDDEN || canvas == null) return;
 		Point2D o = canvas.getDisplayCoordinates(offset);
 		g.translate(o.getX(), o.getY());
 
@@ -74,7 +74,7 @@ public class Label extends MapElement {
 
 		if (width > 0) {
 			Composite c = g.getComposite();
-			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
+			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
 			Point p = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
 

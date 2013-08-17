@@ -27,7 +27,7 @@ public class PersonalEmanation extends MapElement {
 	Property<Integer> x, y;
 	Property<Integer> radius;
 	Property<Integer> space = new Property<Integer>(PROPERTY_SPACE, 1, Integer.class);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
 	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
 	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
 
@@ -41,19 +41,19 @@ public class PersonalEmanation extends MapElement {
 
 	@Override
 	public Order getDefaultOrder() {
-		return Order.BELOWGRID;
+		return Order.TOP;
 	}
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (canvas == null || !isVisible()) return;
+		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
 		g.translate(o.getX(), o.getY());
 
 		Stroke oldStroke = g.getStroke();
 		g.setColor(color.getValue());
 		Composite c = g.getComposite();
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
 		// build the shape
 		Area area = new Area();

@@ -2,6 +2,8 @@ package digital_table.controller;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -14,6 +16,7 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Callibrate;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
@@ -27,7 +30,15 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 		element.addPropertyChangeListener(listener);
 
 		showBGCheck = createCheckBox(Callibrate.PROPERTY_SHOW_BACKGROUND, Mode.ALL, "show background?");
-		visibleCheck = createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.ALL, "visible?");
+		visibleCheck = new JCheckBox("visible?");
+		visibleCheck.setSelected(false);
+		visibleCheck.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				JCheckBox check = (JCheckBox) e.getSource();
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
+			}
+		});
 
 		// @formatter:off
 		setLayout(new GridBagLayout());
@@ -52,8 +63,9 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 			if (e.getPropertyName().equals(Callibrate.PROPERTY_SHOW_BACKGROUND)) {
 				showBGCheck.setSelected((Boolean) e.getNewValue());
 
-			} else if (e.getPropertyName().equals(Callibrate.PROPERTY_VISIBLE)) {
-				visibleCheck.setSelected((Boolean) e.getNewValue());
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				Visibility v = (Visibility) e.getNewValue();
+				visibleCheck.setSelected(v != Visibility.HIDDEN);
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
@@ -75,7 +87,12 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.ALL);
 		parseBooleanAttribute(Callibrate.PROPERTY_SHOW_BACKGROUND, e, Mode.ALL);
+
+		if (e.hasAttribute(MapElement.PROPERTY_VISIBLE)) {
+			Visibility v = Visibility.valueOf(e.getAttribute(MapElement.PROPERTY_VISIBLE));
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, v, Mode.ALL);
+			visibleCheck.setSelected(v != Visibility.HIDDEN);
+		}
 	}
 }

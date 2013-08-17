@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.PersonalEmanation;
 
 @SuppressWarnings("serial")
@@ -36,7 +37,7 @@ class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 		super(r);
 		element = new PersonalEmanation(2, 0, 0);
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		radiusField = createIntegerControl(PersonalEmanation.PROPERTY_RADIUS);
@@ -137,7 +138,7 @@ class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + PersonalEmanation.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + PersonalEmanation.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 
@@ -152,6 +153,6 @@ class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 		parseIntegerAttribute(PersonalEmanation.PROPERTY_Y, e, Mode.ALL);
 		parseIntegerAttribute(PersonalEmanation.PROPERTY_RADIUS, e, Mode.ALL);
 		parseIntegerAttribute(PersonalEmanation.PROPERTY_SPACE, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 	}
 }

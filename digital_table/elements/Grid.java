@@ -28,7 +28,7 @@ public class Grid extends MapElement {
 	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 
 	public Grid() {
-		visible.value = true;
+		visible.setValue(Visibility.VISIBLE);
 	}
 
 	public String getLetterIndex(int index) {
@@ -42,7 +42,7 @@ public class Grid extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (canvas == null || !isVisible()) return;
+		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		g.setColor(color.getValue());
 

@@ -26,10 +26,19 @@ public abstract class MapElement implements Serializable {
 	protected MapCanvas canvas = null;
 	protected ScreenManager screenManager = null;
 	protected Map<String, Property<?>> properties = new HashMap<String, Property<?>>();
-	protected Property<Boolean> visible = new Property<Boolean>(PROPERTY_VISIBLE, true, false, Boolean.class);
+	protected Property<Visibility> visible = new Property<Visibility>(PROPERTY_VISIBLE, true, Visibility.HIDDEN, Visibility.class);
 	public Group parent = null;	// TODO should be private
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+	public enum Visibility {
+		HIDDEN, FADED, VISIBLE;	// order is significant for the minimumVisibility method
+
+		public static Visibility minimumVisibility(Visibility v1, Visibility v2) {
+			int ord = Math.min(v1.ordinal(), v2.ordinal());
+			return Visibility.values()[ord];
+		}
+	}
 
 	protected class Property<T> implements Serializable {
 		private static final long serialVersionUID = 1L;
@@ -128,9 +137,9 @@ public abstract class MapElement implements Serializable {
 	}
 
 	// returns true if this element and all ancestor elements are visible
-	protected boolean isVisible() {
+	public Visibility getVisibility() {
 		if (parent == null) return visible.getValue();
-		return visible.getValue() && parent.isVisible();
+		return Visibility.minimumVisibility(visible.getValue(), parent.getVisibility());
 	}
 
 	public abstract void paint(Graphics2D g, Point2D offset);

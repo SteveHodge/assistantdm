@@ -37,7 +37,7 @@ public class DarknessMask extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (canvas == null || !isVisible()) return;
+		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		// build the shape
 		Area dark = new Area(g.getClip());
@@ -59,7 +59,7 @@ public class DarknessMask extends MapElement {
 			Object e = m.getElementAt(i);
 			if (e instanceof LightSource) {
 				LightSource l = (LightSource) e;
-				if (l.visible.getValue()) {
+				if (l.visible.getValue() != Visibility.HIDDEN) {
 					dark.subtract(l.getBrightArea());
 					dark.subtract(l.getShadowArea());
 					shadow.add(l.getShadowArea());
@@ -75,7 +75,7 @@ public class DarknessMask extends MapElement {
 			Object e = m.getElementAt(i);
 			if (e instanceof LightSource) {
 				LightSource l = (LightSource) e;
-				if (l.visible.getValue()) {
+				if (l.visible.getValue() != Visibility.HIDDEN) {
 					shadow.subtract(l.getBrightArea());
 					if (this.lowLight.getValue()) {
 						lowLight.subtract(l.getBrightArea());

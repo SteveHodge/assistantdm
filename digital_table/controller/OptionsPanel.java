@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 abstract class OptionsPanel<E extends MapElement> extends JPanel {
@@ -114,6 +115,23 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		return createSliderControl(property, Mode.ALL);
 	}
 
+//	JSlider createAlphaSlider(final JCheckBox visibilityCheck) {
+//		JSlider alphaSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
+//		alphaSlider.setValue((int) (100 * (Float) element.getProperty(Token.PROPERTY_ALPHA)));
+//		alphaSlider.addChangeListener(new ChangeListener() {
+//			@Override
+//			public void stateChanged(ChangeEvent e) {
+//				JSlider slider = (JSlider) e.getSource();
+//				float alpha = slider.getValue() / 100f;
+//				element.setProperty(Token.PROPERTY_ALPHA, alpha * (visibilityCheck.isSelected() ? 1.0f : 0.5f));
+//				if (!slider.getValueIsAdjusting()) {
+//					display.setProperty(element, Token.PROPERTY_ALPHA, alpha, Mode.REMOTE);	// send to remote because we've already done local
+//				}
+//			}
+//		});
+//		return alphaSlider;
+//	}
+
 	JSlider createSliderControl(final String property, final Mode mode) {
 		JSlider alphaSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
 		alphaSlider.setValue((int) (100 * (Float) element.getProperty(property)));
@@ -174,11 +192,18 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		return check;
 	}
 
-	// this control does not apply the changes to the local MapElement - it's intended for visibility
 	JCheckBox createVisibilityControl() {
-		JCheckBox cb = createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.REMOTE, "visible?");
-		cb.setSelected(false);
-		return cb;
+		JCheckBox check = new JCheckBox("visible?");
+		check.setSelected(false);
+		check.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				JCheckBox check = (JCheckBox) e.getSource();
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.REMOTE);
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.FADED, Mode.LOCAL);
+			}
+		});
+		return check;
 	}
 
 	final static String[] options = { "0", "90", "180", "270" };
@@ -374,6 +399,15 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 			display.setProperty(element, property, value, mode);
 //			} catch (IllegalArgumentException e) {
 //			}
+		}
+	}
+
+	void parseVisibility(Element domElement, JCheckBox visibleCheck) {
+		String domProp = REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE;
+		if (domElement.hasAttribute(domProp)) {
+			Visibility v = Visibility.valueOf(domElement.getAttribute(domProp));
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, v, Mode.REMOTE);
+			visibleCheck.setSelected(v != Visibility.HIDDEN);
 		}
 	}
 

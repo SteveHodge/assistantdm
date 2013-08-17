@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Shape;
@@ -24,13 +25,16 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.JPanel;
 
 import util.Updater;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 import digital_table.server.MapCanvas;
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.RepaintListener;
 
 /**
  * Generates overlay images to be layered on top of the calibrated camera image to highlight the tokens. Token elements
@@ -43,8 +47,8 @@ import digital_table.server.MapCanvas.Order;
 class TokenOverlay {
 	static final String PROPERTY_WEB_LABEL = "web_label";
 
-	private int rows = 39;
-	private int columns = 32;
+	final int rows = 39;
+	final int columns = 32;
 
 	private CameraOverlayCanvas canvas;
 	private Map<Integer, MapElement> elements = new HashMap<Integer, MapElement>();
@@ -145,7 +149,7 @@ class TokenOverlay {
 
 		@Override
 		public void paint(Graphics2D g, Point2D offset) {
-			if (canvas == null || !isVisible()) return;
+			if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 			Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
 			g.translate(o.getX(), o.getY());
 
@@ -250,6 +254,38 @@ class TokenOverlay {
 		canvas = new CameraOverlayCanvas();
 	}
 
+	// intended for debugging
+	@SuppressWarnings("serial")
+	JPanel getPanel() {
+		return new JPanel() {
+			{
+				canvas.addRepaintListener(new RepaintListener() {
+					@Override
+					public void repaint() {
+						repaintPanel();
+					}
+				});
+			}
+
+			SortedMap<String, String> descriptions = new TreeMap<String, String>();
+
+			private void repaintPanel() {
+				repaint();
+			}
+
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				assignLabels(descriptions);
+				((Graphics2D) g).rotate(Math.toRadians(-90), getWidth() / 2, getHeight() / 2);
+				g.translate((getWidth() - getHeight()) / 2, canvas.getRowHeight() + (getHeight() - getWidth()) / 2);
+				canvas.width = getWidth();
+				canvas.height = getHeight();
+				canvas.paint((Graphics2D) g);
+			}
+		};
+	}
+
 	void updateOverlay(int width, int height) {
 		SortedMap<String, String> descriptions = new TreeMap<String, String>();
 		try {
@@ -304,7 +340,7 @@ class TokenOverlay {
 				MapElement copy = (MapElement) is.readObject();
 				is.close();
 
-				copy.setProperty(MapElement.PROPERTY_VISIBLE, false);
+				copy.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
 
 				canvas.addElement(copy, parent);
 				elements.put(copy.getID(), copy);
@@ -314,6 +350,12 @@ class TokenOverlay {
 				e1.printStackTrace();
 			}
 		}
+	}
+
+	public void changeParent(int id, int parentid) {
+		MapElement element = elements.get(id);
+		MapElement parent = elements.get(parentid);
+		if (element != null) canvas.changeParent(element, parent);
 	}
 
 	void removeElement(int id) {
@@ -332,7 +374,7 @@ class TokenOverlay {
 
 	void setProperty(int id, String property, Object value) {
 		MapElement e = elements.get(id);
-		if (e != null && e instanceof MaskToken) {
+		if (e != null && (e instanceof MaskToken || e instanceof Group)) {
 			e.setProperty(property, value);
 		}
 	}
@@ -348,7 +390,7 @@ class TokenOverlay {
 			MapElement e = elements.get(id);
 			if (e instanceof MaskToken) {
 				MaskToken t = (MaskToken) e;
-				if (t.hasWebLabel || ((Boolean) t.getProperty(MapElement.PROPERTY_VISIBLE) && t.webLabel != null)) {
+				if (t.hasWebLabel || (t.getProperty(MapElement.PROPERTY_VISIBLE) == Visibility.VISIBLE && t.webLabel != null)) {
 					descriptions.put(t.webLabel, (String) t.getProperty(Token.PROPERTY_LABEL));
 				} else {
 					t.webLabel = null;
@@ -362,7 +404,7 @@ class TokenOverlay {
 			MapElement e = elements.get(id);
 			if (e instanceof MaskToken) {
 				MaskToken t = (MaskToken) e;
-				if ((Boolean) t.getProperty(MapElement.PROPERTY_VISIBLE) && t.webLabel == null) {
+				if (t.getProperty(MapElement.PROPERTY_VISIBLE) == Visibility.VISIBLE && t.webLabel == null) {
 					// find the next available label
 					do {
 						nextLabel++;

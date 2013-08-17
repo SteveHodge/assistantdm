@@ -31,6 +31,7 @@ import digital_table.elements.Browser;
 import digital_table.elements.BrowserLocal;
 import digital_table.elements.BrowserRemote;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 class BrowserOptionsPanel extends OptionsPanel<Browser> {
@@ -75,7 +76,15 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 			}
 		});
 
-		remoteVisibleCheck = this.createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.ALL, "remote visible?");
+		remoteVisibleCheck = new JCheckBox("remote visible?");
+		remoteVisibleCheck.setSelected(false);
+		remoteVisibleCheck.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				JCheckBox check = (JCheckBox) e.getSource();
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.REMOTE);
+			}
+		});
 
 		localVisibleCheck = new JCheckBox("local visible?");
 		localVisibleCheck.setSelected(false);
@@ -210,8 +219,9 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_ROTATIONS)) {
 				rotationsCombo.setSelectedIndex((Integer)e.getNewValue());
 
-			} else if (e.getPropertyName().equals(Browser.PROPERTY_VISIBLE)) {
-				localVisibleCheck.setSelected((Boolean) e.getNewValue());
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				Visibility v = (Visibility) e.getNewValue();
+				localVisibleCheck.setSelected(v != Visibility.HIDDEN);
 
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_LABEL)) {
 
@@ -230,7 +240,7 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, remoteVisibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, remoteVisibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		setAttribute(e, REMOTE_PREFIX + Browser.PROPERTY_ROTATIONS, rotationsCombo.getSelectedIndex());
 		return e;
 	}
@@ -241,8 +251,6 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 
 		parseStringAttribute(Browser.PROPERTY_URL, e, Mode.ALL);
 		parseIntegerAttribute(Browser.PROPERTY_SCREEN, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, remoteVisibleCheck);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, Mode.LOCAL);
 
 		parseIntegerAttribute(Browser.PROPERTY_ROTATIONS, e, Mode.LOCAL);
 		if (e.hasAttribute(REMOTE_PREFIX + Browser.PROPERTY_ROTATIONS)) {
@@ -253,5 +261,12 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 //			} catch (NumberFormatException e) {
 //			}
 		}
+
+		if (e.hasAttribute(MapElement.PROPERTY_VISIBLE)) {
+			Visibility v = Visibility.valueOf(e.getAttribute(MapElement.PROPERTY_VISIBLE));
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, v, Mode.LOCAL);
+			localVisibleCheck.setSelected(v != Visibility.HIDDEN);
+		}
+		parseVisibility(e, remoteVisibleCheck);
 	}
 }

@@ -2,6 +2,7 @@ package digital_table.controller;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -16,6 +17,7 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 
 @SuppressWarnings("serial")
@@ -27,7 +29,7 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 		super(r);
 		element = new Group();
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		visibleCheck = createVisibilityControl();
@@ -75,6 +77,12 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 		protected String getDragTarget(Point2D gridLocation) {
 			return Group.PROPERTY_LOCATION;
 		}
+
+		@Override
+		void setTargetLocation(Point2D p) {
+			Point gridP = new Point((int) p.getX(), (int) p.getY());
+			display.setProperty(element, Group.PROPERTY_LOCATION, gridP);
+		}
 	};
 
 	// ---- XML serialisation methods ----
@@ -86,7 +94,7 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 		setAttribute(e, Group.PROPERTY_LABEL, element.getProperty(Group.PROPERTY_LABEL));
 		Point2D location = (Point2D) element.getProperty(Group.PROPERTY_LOCATION);
 		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
-		setAttribute(e, REMOTE_PREFIX + Group.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + Group.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 
@@ -95,7 +103,6 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(Group.PROPERTY_LABEL, e, Mode.LOCAL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 
 		if (e.hasAttribute(Group.PROPERTY_LOCATION)) {
 //			try {
@@ -107,5 +114,7 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 //			} catch (NumberFormatException e) {
 //			}
 		}
+
+		parseVisibility(e, visibleCheck);
 	}
 }

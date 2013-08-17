@@ -27,11 +27,11 @@ public class BrowserRemote extends Browser {
 			}
 
 		};
-		visible = new Property<Boolean>(PROPERTY_VISIBLE, false, false, Boolean.class) {
+		visible = new Property<Visibility>(PROPERTY_VISIBLE, false, Visibility.HIDDEN, Visibility.class) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void setValue(Boolean visible) {
+			public void setValue(Visibility visible) {
 				super.setValue(visible);
 				checkScreenSetup();
 			}
@@ -40,13 +40,13 @@ public class BrowserRemote extends Browser {
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (isVisible() && panel != null) {
+		if (getVisibility() != Visibility.HIDDEN && panel != null) {
 			panel.repaint();	// without this the underlying map will often get painted ontop of the panel. with this there can still be flickering
 		}
 	}
 
 	public void checkScreenSetup() {
-		if (!visible.getValue()) {
+		if (visible.getValue() == Visibility.HIDDEN) {
 			// make the panel not visible if it exists
 			if (panel != null) {
 				panel.setVisible(false);

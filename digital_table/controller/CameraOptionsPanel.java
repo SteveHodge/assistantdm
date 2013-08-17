@@ -4,6 +4,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -19,6 +21,7 @@ import org.w3c.dom.Element;
 import camera.CameraPanel;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
 
 // TODO save latest image when saving?
@@ -41,7 +44,15 @@ class CameraOptionsPanel extends OptionsPanel<MapImage> {
 		this.camera = cam;
 
 		alphaSlider = createSliderControl(MapImage.PROPERTY_ALPHA);
-		visibleCheck = createCheckBox(MapElement.PROPERTY_VISIBLE, Mode.ALL, "visible?");
+		visibleCheck = new JCheckBox("visible?");
+		visibleCheck.setSelected(false);
+		visibleCheck.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				JCheckBox check = (JCheckBox) e.getSource();
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
+			}
+		});
 
 		JButton updateButton = new JButton("Update");
 		updateButton.addActionListener(new ActionListener() {
@@ -94,7 +105,7 @@ class CameraOptionsPanel extends OptionsPanel<MapImage> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 
@@ -103,6 +114,6 @@ class CameraOptionsPanel extends OptionsPanel<MapImage> {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 	}
 }

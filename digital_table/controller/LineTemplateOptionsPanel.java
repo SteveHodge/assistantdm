@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
@@ -36,7 +37,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		super(r);
 		element = new LineTemplate(18, 14, 21, 7);
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		xField = createIntegerControl(LineTemplate.PROPERTY_X);
@@ -138,7 +139,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 
@@ -154,6 +155,6 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_X, e, Mode.ALL);
 		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_Y, e, Mode.ALL);
 		parseIntegerAttribute(LineTemplate.PROPERTY_RANGE, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 	}
 }

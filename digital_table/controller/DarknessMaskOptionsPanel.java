@@ -19,8 +19,8 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.DarknessMask;
-import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
@@ -32,7 +32,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 	DarknessMaskOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		element = new DarknessMask();
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		display.addElement(element, parent);
 		element.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
 		element.addPropertyChangeListener(listener);
@@ -144,7 +144,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + LineTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 
@@ -155,6 +155,6 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		parseColorAttribute(DarknessMask.PROPERTY_COLOR, e, Mode.ALL);
 		parseFloatAttribute(DarknessMask.PROPERTY_ALPHA, e, Mode.LOCAL);
 		parseBooleanAttribute(DarknessMask.PROPERTY_LOW_LIGHT, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 	}
 }

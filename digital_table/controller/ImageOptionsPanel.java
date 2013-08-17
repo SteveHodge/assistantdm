@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
 
 @SuppressWarnings("serial")
@@ -55,7 +56,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		}
 		element = new MapImage(bytes, file.getName());
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		xField = createDoubleControl(MapImage.PROPERTY_X);
@@ -181,7 +182,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		e.setAttribute(FILE_ATTRIBUTE_NAME, file.getPath());
 
 		// output the current list of points in an attribute (might be better to have a more
@@ -211,7 +212,6 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
 		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 
 		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
 			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");
@@ -221,5 +221,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
 			}
 		}
+
+		parseVisibility(e, visibleCheck);
 	}
 }

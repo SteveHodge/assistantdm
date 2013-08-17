@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.LightSource;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 
 @SuppressWarnings("serial")
@@ -34,7 +35,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		super(r);
 		element = new LightSource(4, 0, 0);
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		radiusField = createIntegerControl(LightSource.PROPERTY_RADIUS);
@@ -123,7 +124,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 
@@ -136,6 +137,6 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		parseIntegerAttribute(LightSource.PROPERTY_Y, e, Mode.ALL);
 		parseIntegerAttribute(LightSource.PROPERTY_RADIUS, e, Mode.ALL);
 		parseEnumAttribute(LightSource.PROPERTY_TYPE, LightSource.Type.class, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 	}
 }

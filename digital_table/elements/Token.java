@@ -165,7 +165,7 @@ public class Token extends Group {
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (canvas == null || !isVisible()) return;
+		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
 		g.translate(o.getX(), o.getY());
 
@@ -183,7 +183,7 @@ public class Token extends Group {
 		float inset = stroke.getLineWidth() / 2;
 
 		Composite c = g.getComposite();
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
 		CreatureStatus status = getStatus();
 

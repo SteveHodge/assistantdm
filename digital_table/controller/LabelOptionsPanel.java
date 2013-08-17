@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 
 @SuppressWarnings("serial")
@@ -41,7 +42,7 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 		super(r);
 		element= new Label();
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		xField = createDoubleControl(Label.PROPERTY_X);
@@ -166,7 +167,7 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + Label.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + Label.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		if (isFloating) setAttribute(e, FLOATING_ATTRIBUTE_NAME, isFloating);
 		return e;
 	}
@@ -184,7 +185,6 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 		parseIntegerAttribute(Label.PROPERTY_ROTATIONS, e, Mode.ALL);
 		parseDoubleAttribute(Label.PROPERTY_FONT_SIZE, e, Mode.ALL);
 		parseBooleanAttribute(Label.PROPERTY_SOLID_BACKGROUND, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 
 		if (e.hasAttribute(FLOATING_ATTRIBUTE_NAME)) {
 			isFloating = Boolean.parseBoolean(e.getAttribute(FLOATING_ATTRIBUTE_NAME));
@@ -193,5 +193,7 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 				display.setProperty(parent.element, Token.PROPERTY_LABEL, "", Mode.REMOTE);
 			}
 		}
+
+		parseVisibility(e, visibleCheck);
 	}
 }

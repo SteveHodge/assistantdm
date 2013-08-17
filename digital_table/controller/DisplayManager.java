@@ -98,6 +98,7 @@ class DisplayManager {
 
 	void changeParent(MapElement element, MapElement parent) {
 		local.changeParent(element, parent);
+		if (overlay != null) overlay.changeParent(element.getID(), parent == null ? -1 : parent.getID());
 		try {
 			remote.changeParent(element.getID(), parent == null ? -1 : parent.getID());
 		} catch (RemoteException e) {

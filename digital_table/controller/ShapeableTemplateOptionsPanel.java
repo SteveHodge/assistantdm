@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.ShapeableTemplate;
 
 @SuppressWarnings("serial")
@@ -35,7 +36,7 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 		super(r);
 		element = new ShapeableTemplate();
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		colorPanel = createColorControl(ShapeableTemplate.PROPERTY_COLOR);
@@ -142,7 +143,7 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 
 		// output the current list of points in an attribute (might be better to have a more
 		// structured output but that will complicate general parsing of child elements).
@@ -168,7 +169,6 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 		parseColorAttribute(ShapeableTemplate.PROPERTY_COLOR, e, Mode.ALL);
 		parseFloatAttribute(ShapeableTemplate.PROPERTY_ALPHA, e, Mode.ALL);
 		parseIntegerAttribute(ShapeableTemplate.PROPERTY_MAXIMUM, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
 
 		if (e.hasAttribute(CUBE_LIST_ATTRIBUTE)) {
 			String[] coords = e.getAttribute(CUBE_LIST_ATTRIBUTE).split("\\s*,\\s*");
@@ -178,5 +178,7 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 				element.addCube(p);
 			}
 		}
+
+		parseVisibility(e, visibleCheck);
 	}
 }

@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.SpreadTemplate;
 
 
@@ -41,7 +42,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		super(r);
 		element = new SpreadTemplate(4, 10, 10);
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
 		radiusField = createIntegerControl(SpreadTemplate.PROPERTY_RADIUS);
@@ -156,7 +157,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + SpreadTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + SpreadTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 
@@ -172,6 +173,6 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_RADIUS, e, Mode.ALL);
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_X, e, Mode.ALL);
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_Y, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 	}
 }

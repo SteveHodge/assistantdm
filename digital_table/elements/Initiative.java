@@ -52,7 +52,7 @@ public class Initiative extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g, Point2D offset) {
-		if (!isVisible() || canvas == null) return;
+		if (getVisibility() == Visibility.HIDDEN || canvas == null) return;
 		Point2D o = canvas.getDisplayCoordinates(offset);
 		g.translate(o.getX(), o.getY());
 

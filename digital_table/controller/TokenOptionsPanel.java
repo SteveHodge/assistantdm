@@ -42,6 +42,7 @@ import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 
 @SuppressWarnings("serial")
@@ -78,16 +79,16 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		super(r);
 		element = new Token();
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
+		visibleCheck = createVisibilityControl();
+		alphaSlider = createSliderControl(Token.PROPERTY_ALPHA);
 		xField = createIntegerControl(Token.PROPERTY_X);
 		yField = createIntegerControl(Token.PROPERTY_Y);
 		colorPanel = createColorControl(Token.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(Token.PROPERTY_ALPHA);
 		reachField = createIntegerControl(Token.PROPERTY_REACH);
 		labelField = createStringControl(Token.PROPERTY_LABEL, Mode.LOCAL);
-		visibleCheck = createVisibilityControl();
 		localReach = createCheckBox(Token.PROPERTY_SHOWREACH, Mode.LOCAL, "local");
 		remoteReach = createCheckBox(Token.PROPERTY_SHOWREACH, Mode.REMOTE, "remote");
 		reachWeapon = createCheckBox(Token.PROPERTY_REACHWEAPON, Mode.ALL, "Reach weapon?");
@@ -166,7 +167,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 					double space = Double.parseDouble(spaceField.getText()) / 5.0d;
 					display.setProperty(l, Label.PROPERTY_Y, space, Mode.ALL);
 					display.setProperty(l, Label.PROPERTY_ROTATIONS, rotationsCombo.getSelectedIndex(), Mode.ALL);
-					display.setProperty(l, Label.PROPERTY_VISIBLE, true, Mode.REMOTE);
+					display.setProperty(l, Label.PROPERTY_VISIBLE, Visibility.VISIBLE, Mode.REMOTE);
 					// remove the label from the remote token
 					display.setProperty(element, Token.PROPERTY_LABEL, "", Mode.REMOTE);
 					updateFloatingStatus();
@@ -408,7 +409,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(Token.PROPERTY_ALPHA)) {
-				alphaSlider.setValue((int) (100 * (Float) e.getNewValue()));
+				alphaSlider.setValue((int) ((Float) e.getNewValue() * 100));
 
 			} else if (e.getPropertyName().equals(Token.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color) e.getNewValue());
@@ -628,7 +629,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_LABEL, remoteLabelField.getText());
 		if (webLabelField.getText().length() > 0) setAttribute(e, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText());
 		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_SHOWREACH, remoteReach.isSelected());
@@ -684,6 +685,6 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			webLabelField.setText("");
 		}
 
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 	}
 }

@@ -72,20 +72,21 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * group dragging - uneven movement because of snap to grid
- * groupping - changing parent should modify children to maintain position
- * 
+ * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
  * get rid of XMLUtils. findNode is used in monsters and magicitems packages
+ * highlight selected element (at least for tokens)
+ * rearrange images. also find animal names - stats blocks
+ * alternate token image for dead creatures
+ * animated images
+ * 
  * size (where is up to?)
  * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
  * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
  * add combat panel section for pending xp/defeated monsters
  * live character sheet: fix up incomplete fading of character sheet when dialog appears
- * fix automatic updates due to extra_attacks
  * ui: add info dialog for remaining statistics (ac, weapons, armor, level, size)
  * live character sheet: add calculations for remaining statistics (attacks, ac, weapon damage, armor, level, size)
  * live character sheet: consider adding list of buffs/effects
- * live character sheet: consider adding current hps box
  * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
  * camera: EOS camera support + refactoring of camera library
  * camera/dtt: Detect token movement

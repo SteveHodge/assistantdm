@@ -133,7 +133,7 @@ public class MapImage extends MapElement {
 	 */
 	@Override
 	public void paint(Graphics2D g, Point2D off) {
-		if (canvas == null || !isVisible()) return;
+		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		Point2D o = canvas.getDisplayCoordinates((int) off.getX(), (int) off.getY());
 		g.translate(o.getX(), o.getY());
 
@@ -157,7 +157,7 @@ public class MapImage extends MapElement {
 			g.setClip(area);
 
 			Composite c = g.getComposite();
-			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
+			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
 			Point2D p = new Point2D.Double(width.getValue(),height.getValue());
 			Point bottomRight = canvas.getDisplayCoordinates(p);

@@ -25,6 +25,7 @@ import digital_table.elements.Initiative;
 import digital_table.elements.Label;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
@@ -40,7 +41,7 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 		super(r);
 		element = new Initiative();
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, true);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		if (CombatPanel.getCombatPanel() != null) {
 			CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
 				@Override
@@ -142,7 +143,7 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + LineTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected());
+		setAttribute(e, REMOTE_PREFIX + LineTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 
@@ -156,7 +157,7 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 		parseDoubleAttribute(Initiative.PROPERTY_X, e, Mode.ALL);
 		parseDoubleAttribute(Initiative.PROPERTY_Y, e, Mode.ALL);
 		parseIntegerAttribute(Initiative.PROPERTY_ROTATIONS, e, Mode.ALL);
-		parseBooleanAttribute(MapElement.PROPERTY_VISIBLE, e, visibleCheck);
+		parseVisibility(e, visibleCheck);
 	}
 }
 
