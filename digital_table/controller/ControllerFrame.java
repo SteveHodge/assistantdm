@@ -122,10 +122,16 @@ public class ControllerFrame extends JFrame {
 		elementTree.setVisibleRowCount(10);
 		elementTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		elementTree.addTreeSelectionListener(new TreeSelectionListener() {
+			MapElement previous = null;
 			@Override
 			public void valueChanged(TreeSelectionEvent e) {
+				if (previous != null) {
+					previous.setSelected(false);
+				}
 				MapElement element = getSelectedElement();
 				if (element != null) {
+					element.setSelected(true);
+					previous = element;
 					JPanel options = optionPanels.get(element);
 					if (options != null) {
 						elementPanel.removeAll();

@@ -65,6 +65,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		} catch (Exception e) {
 			System.err.println("DigitalTable exception:");
 			e.printStackTrace();
+			System.exit(0);
 		}
 	}
 

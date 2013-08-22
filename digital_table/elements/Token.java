@@ -200,7 +200,9 @@ public class Token extends Group {
 		g.fill(s);
 
 		// paint border:
-		if (statusDisplay.getValue() == StatusDisplay.BORDER && status != null) {
+		if (selected) {
+			g.setColor(Color.BLUE);
+		} else if (statusDisplay.getValue() == StatusDisplay.BORDER && status != null) {
 			g.setColor(status.getColor());
 		} else {
 			g.setColor(Color.BLACK);

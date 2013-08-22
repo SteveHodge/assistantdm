@@ -29,6 +29,8 @@ public abstract class MapElement implements Serializable {
 	protected Property<Visibility> visible = new Property<Visibility>(PROPERTY_VISIBLE, true, Visibility.HIDDEN, Visibility.class);
 	public Group parent = null;	// TODO should be private
 
+	protected boolean selected = false;
+
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public enum Visibility {
@@ -140,6 +142,13 @@ public abstract class MapElement implements Serializable {
 	public Visibility getVisibility() {
 		if (parent == null) return visible.getValue();
 		return Visibility.minimumVisibility(visible.getValue(), parent.getVisibility());
+	}
+
+	public void setSelected(boolean sel) {
+		if (sel != selected) {
+			selected = sel;
+			if (canvas != null) canvas.repaint();
+		}
 	}
 
 	public abstract void paint(Graphics2D g, Point2D offset);

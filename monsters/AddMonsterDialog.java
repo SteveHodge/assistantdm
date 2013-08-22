@@ -5,12 +5,14 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
@@ -49,14 +51,24 @@ public class AddMonsterDialog extends JDialog {
 	private JList monsterList;
 	private DefaultListModel monsterListModel;
 	private Monster selected;
-	private File imageFile = null;	// TODO make per-token
-	private ImagePanel image = new ImagePanel(null);
 
-	AddMonsterDialog(Window owner, final StatisticsBlock stats) {
-		super(owner, "Add new " + stats.getName(), Dialog.ModalityType.MODELESS);
+	private ImagePanel image;
+	private URL[] imageURLs;
+	private int currentImageIndex = -1;	// TODO make per-token
+	private File imageFile = null;	// TODO make per-token
+
+	AddMonsterDialog(Window owner, final StatisticsBlock s) {
+		super(owner, "Add new " + s.getName(), Dialog.ModalityType.MODELESS);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-		this.stats = stats;
+		stats = s;
+		imageURLs = stats.getImageURLs();
+		if (imageURLs != null && imageURLs.length > 0) {
+			currentImageIndex = 0;
+			image = new ImagePanel(getImage(currentImageIndex));
+		} else {
+			image = new ImagePanel(null);
+		}
 
 		nameField = new JTextField(20);
 		SpinnerModel model = new SpinnerNumberModel(1, 1, 100, 1);
@@ -80,6 +92,7 @@ public class AddMonsterDialog extends JDialog {
 		updateFields();
 		JScrollPane scroller = new JScrollPane(monsterList);
 
+		JPanel buttonPanel = new JPanel();
 		JButton imageButton = new JButton("Set Image");
 		imageButton.addActionListener(new ActionListener() {
 			JFileChooser chooser = new JFileChooser();
@@ -100,6 +113,38 @@ public class AddMonsterDialog extends JDialog {
 				}
 			}
 		});
+		buttonPanel.add(imageButton);
+
+		if (imageURLs != null && imageURLs.length > 0) {
+			final JButton prevImageButton = new JButton("<");
+			final JButton nextImageButton = new JButton(">");
+
+			prevImageButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					currentImageIndex--;
+					if (currentImageIndex < 0) currentImageIndex = 0;
+					image.setImage(getImage(currentImageIndex));
+					prevImageButton.setEnabled(currentImageIndex > 0);
+					nextImageButton.setEnabled(currentImageIndex < imageURLs.length - 1);
+				}
+			});
+
+			nextImageButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					currentImageIndex++;
+					if (currentImageIndex >= imageURLs.length) currentImageIndex = imageURLs.length - 1;
+					image.setImage(getImage(currentImageIndex));
+					prevImageButton.setEnabled(currentImageIndex > 0);
+					nextImageButton.setEnabled(currentImageIndex < imageURLs.length - 1);
+				}
+			});
+
+			prevImageButton.setEnabled(false);
+			buttonPanel.add(prevImageButton);
+			buttonPanel.add(nextImageButton);
+		}
 
 		//@formatter:off
 		JPanel main = new JPanel();
@@ -111,7 +156,7 @@ public class AddMonsterDialog extends JDialog {
 		c.gridx = 1; main.add(nameField, c);
 
 		c.gridx = 0; c.gridy++; c.gridwidth = 2;
-		main.add(imageButton, c);
+		main.add(buttonPanel, c);
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridy++;
@@ -179,6 +224,17 @@ public class AddMonsterDialog extends JDialog {
 		add(buttons, BorderLayout.SOUTH);
 		pack();
 		setVisible(true);
+	}
+
+	private Image getImage(int index) {
+		URL url = imageURLs[index];
+		BufferedImage image = null;
+		try {
+			image = ImageIO.read(url);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return image;
 	}
 
 	private void updateFields() {

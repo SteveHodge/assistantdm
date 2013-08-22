@@ -113,9 +113,11 @@ public class StatisticsBlock {
 	}
 
 	static final String STATBLOCKCLASS = "statBlock";
+	static final String IMAGECLASS = "monsterImage";
 
 	private Source source;
 	private Map<Property, String> properties = new HashMap<Property, String>();
+	private URL[] images = null;
 
 	String get(Property key) {
 		return properties.get(key);
@@ -235,6 +237,11 @@ public class StatisticsBlock {
 
 	Source getSource() {
 		return source;
+	}
+
+	// TODO should return a copy
+	URL[] getImageURLs() {
+		return images;
 	}
 
 	private int getInitiativeModifier() {
@@ -360,6 +367,7 @@ public class StatisticsBlock {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		Document dom;
 		List<StatisticsBlock> blocks = new ArrayList<StatisticsBlock>();
+		List<URL> images = new ArrayList<URL>();
 		try {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			builder.setEntityResolver(new LocalEntityResolver());
@@ -409,6 +417,19 @@ public class StatisticsBlock {
 								blocks.add(block);
 							}
 						}
+					} else if (child.getTagName().equals("a")) {
+						String classString = child.getAttribute("class");
+						if (classString != null && classString.contains(IMAGECLASS)) {
+							String href = child.getAttribute("href");
+							URL u;
+							if (source != null) {
+								u = new File(source.getLocation() + "\\" + file.getName()).toURI().toURL();
+								u = new URL(u, href);
+							} else {
+								u = new URL(file.toURI().toURL(), href);
+							}
+							images.add(u);
+						}
 					}
 				}
 			}
@@ -421,6 +442,10 @@ public class StatisticsBlock {
 			e.printStackTrace();
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
+		}
+
+		for (StatisticsBlock s : blocks) {
+			s.images = images.toArray(new URL[images.size()]);
 		}
 
 		return blocks;

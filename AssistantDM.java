@@ -72,12 +72,13 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * clean up image code in AddMonsterDialog
+ * performance improvements in animation code
  * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
- * get rid of XMLUtils. findNode is used in monsters and magicitems packages
- * highlight selected element (at least for tokens)
+ * get rid of XMLUtils. make sure all classes are converted to parseDOM style code
  * rearrange images. also find animal names - stats blocks
  * alternate token image for dead creatures
- * animated images
+ * website: simplify updating - updates can be missed at the moment
  * 
  * size (where is up to?)
  * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
@@ -98,6 +99,7 @@ import digital_table.controller.DigitalTableController;
  * equipment, particularly magic item slots, armor, weapons
  */
 /* TODO digital tabletop (dtt) priorities:
+ * Consider expanding "selected" support. Would need hierarchy support as with visibility
  * Load/Save
  * Improve camera integration, fix ui for camera panel
  * Refactor common utility methods into MapElement (e.g. template creation)
