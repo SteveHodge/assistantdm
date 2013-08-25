@@ -72,8 +72,7 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * clean up image code in AddMonsterDialog
- * performance improvements in animation code
+ * performance improvements in animation code - bounding boxes for elements
  * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
  * get rid of XMLUtils. make sure all classes are converted to parseDOM style code
  * rearrange images. also find animal names - stats blocks

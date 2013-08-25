@@ -7,10 +7,12 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -23,6 +25,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
+import digital_table.elements.Animation;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
@@ -44,15 +47,31 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	ImageOptionsPanel(File f, MapElement parent, DisplayManager r) {
 		super(r);
 		file = f;
-		byte[] bytes = new byte[(int) file.length()];
-		try {
-			FileInputStream stream = new FileInputStream(file);
-			stream.read(bytes);
-		} catch (FileNotFoundException e) {
-			// TODO handle exceptions correctly
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		byte[] bytes;
+		int dotIndex = f.getName().lastIndexOf('.');
+		if (dotIndex >= 0 && f.getName().substring(dotIndex + 1).toLowerCase().equals("xml")) {
+			Animation a = new Animation(f);
+			ByteArrayOutputStream bs = new ByteArrayOutputStream();
+			ObjectOutputStream oos;
+			try {
+				oos = new ObjectOutputStream(bs);
+				oos.writeObject(a);
+				oos.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			bytes = bs.toByteArray();
+		} else {
+			bytes = new byte[(int) file.length()];
+			try {
+				FileInputStream stream = new FileInputStream(file);
+				stream.read(bytes);
+			} catch (FileNotFoundException e) {
+				// TODO handle exceptions correctly
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		element = new MapImage(bytes, file.getName());
 		display.addElement(element, parent);

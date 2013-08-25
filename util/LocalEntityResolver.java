@@ -36,12 +36,12 @@ public class LocalEntityResolver implements EntityResolver {
 			final String file_name = dtd_system_id.substring(
 					dtd_system_id.lastIndexOf('/') + 1, dtd_system_id.length());
 
-			InputStream input_stream = getClass().getClassLoader().getResourceAsStream("html//"+file_name);
+			InputStream input_stream = getClass().getClassLoader().getResourceAsStream("html/" + file_name);
 			if (input_stream != null) {
 				//LOG.debug(Logger.EVENT_SUCCESS, "Found local file [" + file_name + "]!");
 				input_source = new InputSource(input_stream);
 			} else {
-				System.out.println("Failed to find '"+"html//"+file_name+"'");
+				System.out.println("Failed to find '" + "html/" + file_name + "'");
 			}
 		}
 

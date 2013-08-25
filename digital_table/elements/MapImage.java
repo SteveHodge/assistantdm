@@ -14,10 +14,11 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -141,8 +142,10 @@ public class MapImage extends MapElement {
 			right = (bounds.x + bounds.width - offset.x) * img.getWidth() / bottomRight.x;
 			bottom = (bounds.y + bounds.height - offset.y) * img.getHeight() / bottomRight.y;
 
+//			g.drawImage(img, bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height,
+//					left, top, right, bottom, new Color(255,255,255,0), null);
 			g.drawImage(img, bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height,
-					left, top, right, bottom, new Color(255,255,255,0), null);
+					left, top, right, bottom, null);
 
 			g.setComposite(c);
 			g.setClip(oldClip);
@@ -212,58 +215,56 @@ public class MapImage extends MapElement {
 	private class ImageManager {
 		BufferedImage sourceImage = null;
 		BufferedImage rotatedImage = null;
-		ImageFrame[] frames = null;
+		AnimationFrame[] frames = null;
 		int index;
 		Timer timer = null;
 
-		BufferedImage getImage() {
-			if (sourceImage == null) {
-				if (bytes == null) {
-					return null;
-				} else {
-					try {
-						if (timer != null) timer.stop();
-						ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-						ImageInputStream iis = ImageIO.createImageInputStream(stream);
-						ImageReader reader = ImageIO.getImageReaders(iis).next();
-						reader.setInput(iis);
-						if (reader.getFormatName().equals("gif")) {
-							frames = readGIF(reader);
-						} else {
-							BufferedImage img = reader.read(reader.getMinIndex());
-							frames = new ImageFrame[1];
-							frames[0] = new ImageFrame(img, 0, null);
-						}
-						index = 0;
-						sourceImage = frames[index].getImage();
-						if (frames.length > 1) {
-							timer = new Timer(0, new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent arg0) {
-									canvas.repaint();
-									index++;
-									if (index >= frames.length) index = 0;
-									sourceImage = frames[index].getImage();
-									rotatedImage = null;
-									timer.setInitialDelay(frames[index].getDelay() * 10);
-									timer.start();
-								}
-							});
-							timer.setRepeats(false);
-							timer.start();
-						}
-
-						// we could now drop the bytes array at the cost of no longer being serializable
-						// TODO strictly speaking we should calculate the bottom right corner and then use that to determine the size
-						if (width.getValue() == 0 || height.getValue() == 0) {
-							Point2D size = canvas.getRemoteGridCellCoords(sourceImage.getWidth(), sourceImage.getHeight());
-							width.setValue(size.getX());
-							height.setValue(size.getY());
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
+		void readImages() {
+			if (bytes == null) return;
+			try {
+				if (timer != null) timer.stop();
+				Animation a = null;
+				try {
+					// see if this is a serialized Animation
+					ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+					ObjectInputStream in = new ObjectInputStream(stream);
+					a = (Animation) in.readObject();
+					in.close();
+					frames = a.getFrames(new File("C:\\Users\\Steve\\Documents\\Animations"));
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				} catch (StreamCorruptedException e) {
+					// not a serialized animation. perhaps it's an image file
+					ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+					ImageInputStream iis = ImageIO.createImageInputStream(stream);
+					ImageReader reader = ImageIO.getImageReaders(iis).next();
+					reader.setInput(iis);
+					if (reader.getFormatName().equals("gif")) {
+						frames = readGIF(reader);
+					} else {
+						BufferedImage img = reader.read(reader.getMinIndex());
+						frames = new AnimationFrame[1];
+						frames[0] = new AnimationFrame(img, 0);
 					}
 				}
+
+				initImages();
+
+				// we could now drop the bytes array at the cost of no longer being serializable
+				// TODO strictly speaking we should calculate the bottom right corner and then use that to determine the size
+				if (width.getValue() == 0 || height.getValue() == 0) {
+					Point2D size = canvas.getRemoteGridCellCoords(sourceImage.getWidth(), sourceImage.getHeight());
+					width.setValue(size.getX());
+					height.setValue(size.getY());
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		BufferedImage getImage() {
+			if (sourceImage == null) {
+				readImages();
 			}
 
 			if (rotatedImage == null) {
@@ -271,6 +272,27 @@ public class MapImage extends MapElement {
 			}
 
 			return rotatedImage;
+		}
+
+		private void initImages() {
+			index = 0;
+			sourceImage = frames[index].getImage();
+			if (frames.length > 1) {
+				timer = new Timer(frames[0].getDelay(), new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						index++;
+						if (index >= frames.length) index = 0;
+						sourceImage = frames[index].getImage();
+						rotatedImage = null;
+						canvas.repaint();
+						timer.setInitialDelay(frames[index].getDelay());
+						timer.start();
+					}
+				});
+				timer.setRepeats(false);
+				timer.start();
+			}
 		}
 
 		protected void createRotatedImage() {
@@ -295,59 +317,31 @@ public class MapImage extends MapElement {
 			}
 		}
 
-		private ImageFrame[] readGIF(ImageReader reader) throws IOException {
-			ArrayList<ImageFrame> frames = new ArrayList<ImageFrame>(2);
-
-			int lastx = 0;
-			int lasty = 0;
+		private AnimationFrame[] readGIF(ImageReader reader) throws IOException {
+			ArrayList<AnimationFrame> frames = new ArrayList<AnimationFrame>(2);
 
 			int width = -1;
 			int height = -1;
 
 			IIOMetadata metadata = reader.getStreamMetadata();
-
-			Color backgroundColor = null;
-
 			if (metadata != null) {
 				IIOMetadataNode globalRoot = (IIOMetadataNode) metadata.getAsTree(metadata.getNativeMetadataFormatName());
 
-				NodeList globalColorTable = globalRoot.getElementsByTagName("GlobalColorTable");
-				NodeList globalScreeDescriptor = globalRoot.getElementsByTagName("LogicalScreenDescriptor");
+				NodeList globalScreenDescriptor = globalRoot.getElementsByTagName("LogicalScreenDescriptor");
 
-				if (globalScreeDescriptor != null && globalScreeDescriptor.getLength() > 0) {
-					IIOMetadataNode screenDescriptor = (IIOMetadataNode) globalScreeDescriptor.item(0);
+				if (globalScreenDescriptor != null && globalScreenDescriptor.getLength() > 0) {
+					IIOMetadataNode screenDescriptor = (IIOMetadataNode) globalScreenDescriptor.item(0);
 
 					if (screenDescriptor != null) {
 						width = Integer.parseInt(screenDescriptor.getAttribute("logicalScreenWidth"));
 						height = Integer.parseInt(screenDescriptor.getAttribute("logicalScreenHeight"));
 					}
 				}
-
-				if (globalColorTable != null && globalColorTable.getLength() > 0) {
-					IIOMetadataNode colorTable = (IIOMetadataNode) globalColorTable.item(0);
-
-					if (colorTable != null) {
-						String bgIndex = colorTable.getAttribute("backgroundColorIndex");
-
-						IIOMetadataNode colorEntry = (IIOMetadataNode) colorTable.getFirstChild();
-						while (colorEntry != null) {
-							if (colorEntry.getAttribute("index").equals(bgIndex)) {
-								int red = Integer.parseInt(colorEntry.getAttribute("red"));
-								int green = Integer.parseInt(colorEntry.getAttribute("green"));
-								int blue = Integer.parseInt(colorEntry.getAttribute("blue"));
-
-								backgroundColor = new Color(red, green, blue);
-								break;
-							}
-
-							colorEntry = (IIOMetadataNode) colorEntry.getNextSibling();
-						}
-					}
-				}
 			}
 
 			BufferedImage master = null;
-			boolean hasBackround = false;
+			Graphics2D masterGraphics = null;
+			int lastComplete = 0;	// index of the last frame that did not have RestorePrevious as the disposal method
 
 			for (int frameIndex = 0;; frameIndex++) {
 				BufferedImage image;
@@ -364,103 +358,47 @@ public class MapImage extends MapElement {
 
 				IIOMetadataNode root = (IIOMetadataNode) reader.getImageMetadata(frameIndex).getAsTree("javax_imageio_gif_image_1.0");
 				IIOMetadataNode gce = (IIOMetadataNode) root.getElementsByTagName("GraphicControlExtension").item(0);
-				NodeList children = root.getChildNodes();
-
 				int delay = Integer.valueOf(gce.getAttribute("delayTime"));
-
 				String disposal = gce.getAttribute("disposalMethod");
+
+				int x = 0;
+				int y = 0;
 
 				if (master == null) {
 					master = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-					master.createGraphics().setColor(backgroundColor);
-					master.createGraphics().fillRect(0, 0, master.getWidth(), master.getHeight());
-
-					hasBackround = image.getWidth() == width && image.getHeight() == height;
-
-					master.createGraphics().drawImage(image, 0, 0, null);
+					masterGraphics = master.createGraphics();
+					masterGraphics.setBackground(new Color(0, 0, 0, 0));
 				} else {
-					int x = 0;
-					int y = 0;
-
+					NodeList children = root.getChildNodes();
 					for (int nodeIndex = 0; nodeIndex < children.getLength(); nodeIndex++) {
 						Node nodeItem = children.item(nodeIndex);
-
 						if (nodeItem.getNodeName().equals("ImageDescriptor")) {
 							NamedNodeMap map = nodeItem.getAttributes();
-
 							x = Integer.valueOf(map.getNamedItem("imageLeftPosition").getNodeValue());
 							y = Integer.valueOf(map.getNamedItem("imageTopPosition").getNodeValue());
 						}
 					}
-
-					if (disposal.equals("restoreToPrevious")) {
-						BufferedImage from = null;
-						for (int i = frameIndex - 1; i >= 0; i--) {
-							if (!frames.get(i).getDisposal().equals("restoreToPrevious") || frameIndex == 0) {
-								from = frames.get(i).getImage();
-								break;
-							}
-						}
-
-						{
-							ColorModel model = from.getColorModel();
-							boolean alpha = from.isAlphaPremultiplied();
-							WritableRaster raster = from.copyData(null);
-							master = new BufferedImage(model, raster, alpha, null);
-						}
-					} else if (disposal.equals("restoreToBackgroundColor") && backgroundColor != null) {
-						if (!hasBackround || frameIndex > 1) {
-							master.createGraphics().fillRect(lastx, lasty, frames.get(frameIndex - 1).getImage().getWidth(), frames.get(frameIndex - 1).getImage().getHeight());
-						}
-					}
-					master.createGraphics().drawImage(image, x, y, null);
-
-					lastx = x;
-					lasty = y;
 				}
+				masterGraphics.drawImage(image, x, y, null);
 
-				{
-					BufferedImage copy;
+				BufferedImage copy = new BufferedImage(master.getColorModel(), master.copyData(null), master.isAlphaPremultiplied(), null);
+				frames.add(new AnimationFrame(copy, delay * 10));
 
-					{
-						ColorModel model = master.getColorModel();
-						boolean alpha = master.isAlphaPremultiplied();
-						WritableRaster raster = master.copyData(null);
-						copy = new BufferedImage(model, raster, alpha, null);
+				if (disposal.equals("restoreToPrevious")) {
+					BufferedImage from = frames.get(lastComplete).getImage();
+					master = new BufferedImage(from.getColorModel(), from.copyData(null), from.isAlphaPremultiplied(), null);
+					masterGraphics = master.createGraphics();
+					masterGraphics.setBackground(new Color(0, 0, 0, 0));
+				} else {
+					lastComplete = frameIndex;
+					if (disposal.equals("restoreToBackgroundColor")) {
+						masterGraphics.clearRect(x, y, image.getWidth(), image.getHeight());
 					}
-					frames.add(new ImageFrame(copy, delay, disposal));
 				}
-
-				master.flush();
 			}
 			reader.dispose();
 
-			return frames.toArray(new ImageFrame[frames.size()]);
+			return frames.toArray(new AnimationFrame[frames.size()]);
 		}
-
-		public class ImageFrame {
-			private final int delay;
-			private final BufferedImage image;
-			private final String disposal;
-
-			public ImageFrame(BufferedImage image, int delay, String disposal) {
-				this.image = image;
-				this.delay = delay;
-				this.disposal = disposal;
-			}
-
-			public BufferedImage getImage() {
-				return image;
-			}
-
-			public int getDelay() {
-				return delay;
-			}
-
-			public String getDisposal() {
-				return disposal;
-			}
-		}
-
 	}
 }

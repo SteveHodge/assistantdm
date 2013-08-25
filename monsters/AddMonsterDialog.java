@@ -5,14 +5,18 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
@@ -52,23 +56,19 @@ public class AddMonsterDialog extends JDialog {
 	private DefaultListModel monsterListModel;
 	private Monster selected;
 
-	private ImagePanel image;
-	private URL[] imageURLs;
+	private ImagePanel imagePanel;
+	private JButton prevImageButton;
+	private JButton nextImageButton;
+
+	private List<URL> imageURLs = new ArrayList<URL>();
 	private int currentImageIndex = -1;	// TODO make per-token
-	private File imageFile = null;	// TODO make per-token
 
 	AddMonsterDialog(Window owner, final StatisticsBlock s) {
 		super(owner, "Add new " + s.getName(), Dialog.ModalityType.MODELESS);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		stats = s;
-		imageURLs = stats.getImageURLs();
-		if (imageURLs != null && imageURLs.length > 0) {
-			currentImageIndex = 0;
-			image = new ImagePanel(getImage(currentImageIndex));
-		} else {
-			image = new ImagePanel(null);
-		}
+		Collections.addAll(imageURLs, stats.getImageURLs());
 
 		nameField = new JTextField(20);
 		SpinnerModel model = new SpinnerNumberModel(1, 1, 100, 1);
@@ -92,8 +92,11 @@ public class AddMonsterDialog extends JDialog {
 		updateFields();
 		JScrollPane scroller = new JScrollPane(monsterList);
 
+		imagePanel = new ImagePanel(null);
+		imagePanel.setPreferredSize(new Dimension(300, 300));
+
 		JPanel buttonPanel = new JPanel();
-		JButton imageButton = new JButton("Set Image");
+		JButton imageButton = new JButton("Load Image");
 		imageButton.addActionListener(new ActionListener() {
 			JFileChooser chooser = new JFileChooser();
 
@@ -101,11 +104,11 @@ public class AddMonsterDialog extends JDialog {
 			public void actionPerformed(ActionEvent arg0) {
 				if (TokenOptionsPanel.lastDir != null) chooser.setCurrentDirectory(TokenOptionsPanel.lastDir);
 				if (chooser.showOpenDialog(AddMonsterDialog.this) == JFileChooser.APPROVE_OPTION) {
-					imageFile = chooser.getSelectedFile();
 					try {
-						BufferedImage img = ImageIO.read(imageFile);
-						image.setImage(img);
-					} catch (IOException e) {
+						File imageFile = chooser.getSelectedFile();
+						imageURLs.add(imageFile.toURI().toURL());
+						setSelectedImage(imageURLs.size() - 1);
+					} catch (MalformedURLException e) {
 						e.printStackTrace();
 					}
 				} else {
@@ -115,36 +118,23 @@ public class AddMonsterDialog extends JDialog {
 		});
 		buttonPanel.add(imageButton);
 
-		if (imageURLs != null && imageURLs.length > 0) {
-			final JButton prevImageButton = new JButton("<");
-			final JButton nextImageButton = new JButton(">");
+		prevImageButton = new JButton("<");
+		prevImageButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				setSelectedImage(currentImageIndex - 1);
+			}
+		});
+		buttonPanel.add(prevImageButton);
 
-			prevImageButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					currentImageIndex--;
-					if (currentImageIndex < 0) currentImageIndex = 0;
-					image.setImage(getImage(currentImageIndex));
-					prevImageButton.setEnabled(currentImageIndex > 0);
-					nextImageButton.setEnabled(currentImageIndex < imageURLs.length - 1);
-				}
-			});
-
-			nextImageButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					currentImageIndex++;
-					if (currentImageIndex >= imageURLs.length) currentImageIndex = imageURLs.length - 1;
-					image.setImage(getImage(currentImageIndex));
-					prevImageButton.setEnabled(currentImageIndex > 0);
-					nextImageButton.setEnabled(currentImageIndex < imageURLs.length - 1);
-				}
-			});
-
-			prevImageButton.setEnabled(false);
-			buttonPanel.add(prevImageButton);
-			buttonPanel.add(nextImageButton);
-		}
+		nextImageButton = new JButton(">");
+		nextImageButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				setSelectedImage(currentImageIndex + 1);
+			}
+		});
+		buttonPanel.add(nextImageButton);
 
 		//@formatter:off
 		JPanel main = new JPanel();
@@ -160,7 +150,7 @@ public class AddMonsterDialog extends JDialog {
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridy++;
-		main.add(image, c);
+		main.add(imagePanel, c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 0.5d; c.weighty = 0d;
 		c.gridwidth = 1;
@@ -192,7 +182,16 @@ public class AddMonsterDialog extends JDialog {
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
 					Monster m = (Monster) monsterListModel.get(i);
-					ControllerFrame.addMonster(m, imageFile);
+					File f = null;
+					if (currentImageIndex >= 0) {
+						URL url = imageURLs.get(currentImageIndex);
+						// TODO fix this. probably addMonster should take a URL for the image
+						try {
+							f = new File(url.toURI());
+						} catch (URISyntaxException e) {
+						}
+					}
+					ControllerFrame.addMonster(m, f);
 				}
 			}
 		});
@@ -215,26 +214,37 @@ public class AddMonsterDialog extends JDialog {
 		});
 
 		JPanel buttons = new JPanel();
+		buttons.add(detailsButton);
 		buttons.add(addCombatButton);
 		buttons.add(addTokenButton);
 		buttons.add(cancelButton);
-		buttons.add(detailsButton);
 
 		add(main, BorderLayout.CENTER);
 		add(buttons, BorderLayout.SOUTH);
 		pack();
+
+		setSelectedImage(0);
+
 		setVisible(true);
 	}
 
-	private Image getImage(int index) {
-		URL url = imageURLs[index];
+	// handles out of range indexes
+	private void setSelectedImage(int index) {
+		if (index < 0) index = 0;
+		if (index >= imageURLs.size()) index = imageURLs.size() - 1;
+		currentImageIndex = index;
 		BufferedImage image = null;
-		try {
-			image = ImageIO.read(url);
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (currentImageIndex >= 0) {
+			URL url = imageURLs.get(currentImageIndex);
+			try {
+				image = ImageIO.read(url);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		return image;
+		imagePanel.setImage(image);
+		prevImageButton.setEnabled(currentImageIndex > 0);
+		nextImageButton.setEnabled(currentImageIndex < imageURLs.size() - 1);
 	}
 
 	private void updateFields() {

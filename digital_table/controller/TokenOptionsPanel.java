@@ -596,9 +596,12 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		@Override
 		public void setSelectedItem(Object sel) {
-			if (sel == selected) return;
-			setCreature((Creature) sel);
-			fireListDataEvent(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, -1, -1));
+			if ((selected != null && !selected.equals(sel)) ||
+					selected == null && sel != null) {
+				selected = (Creature) sel;
+				setCreature((Creature) sel);
+				fireListDataEvent(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, -1, -1));
+			}
 		}
 
 		private void fireListDataEvent(ListDataEvent e) {

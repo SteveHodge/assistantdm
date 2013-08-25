@@ -80,18 +80,18 @@ public class ControllerFrame extends JFrame {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(windowListener);
 
-		//if (camera != null) {
 		overlay = new TokenOverlay();
-		//	camera.setOverlayGenerator(this);
-		//}
+		if (camera != null) {
+			camera.setOverlayGenerator(this);
+		} else {
+			JFrame overlayFrame = new JFrame("Token Overlay");
+			JPanel overlayPanel = overlay.getPanel();
+			overlayPanel.setPreferredSize(new Dimension(20 * overlay.rows, 20 * overlay.columns));
+			overlayFrame.add(overlayPanel);
+			overlayFrame.pack();
+			overlayFrame.setVisible(true);
+		}
 		display = new DisplayManager(remote, miniMapPanel, overlay);
-
-		JFrame overlayFrame = new JFrame("Token Overlay");
-		JPanel overlayPanel = overlay.getPanel();
-		overlayPanel.setPreferredSize(new Dimension(20 * overlay.rows, 20 * overlay.columns));
-		overlayFrame.add(overlayPanel);
-		overlayFrame.pack();
-		overlayFrame.setVisible(true);
 
 		miniMapPanel.addMouseMotionListener(miniMapMouseListener);
 		miniMapPanel.addMouseListener(miniMapMouseListener);
