@@ -201,7 +201,10 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(Browser.PROPERTY_URL)) {
+			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				localVisibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(Browser.PROPERTY_URL)) {
 				urlField.setText(e.getNewValue().toString());
 				display.setProperty(element, Browser.PROPERTY_URL, e.getNewValue(), Mode.REMOTE);
 				if (frame != null) frameURLField.setText(e.getNewValue().toString());
@@ -218,10 +221,6 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_ROTATIONS)) {
 				rotationsCombo.setSelectedIndex((Integer)e.getNewValue());
-
-			} else if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
-				Visibility v = (Visibility) e.getNewValue();
-				localVisibleCheck.setSelected(v != Visibility.HIDDEN);
 
 			} else if (e.getPropertyName().equals(Browser.PROPERTY_LABEL)) {
 

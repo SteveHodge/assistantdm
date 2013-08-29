@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javafx.application.Platform;
 
@@ -32,19 +34,15 @@ import digital_table.elements.MapElement;
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
 public class DigitalTable implements TableDisplay, ScreenManager {
-	static final String SERVICE_NAME = "TableDisplay";
+	private static final String SERVICE_NAME = "TableDisplay";
 
-	//static final int[] xOffsets = {65, 1421, 64, 1425, 63, 1421};	// relative x location of each screen
-	//static final int[] yOffsets = {0, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
-	//static final int[] yOffsets = {250, 3, 1101, 1106, 2202, 2207};	// relative y location of each screen
+	private static final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-	JFrame[] idFrames = null;
-	JFrame[] screens = new JFrame[6];
+	private JFrame[] idFrames = null;
+	private JFrame[] screens = new JFrame[6];
 
-	Map<Integer, List<JComponent>> components = new HashMap<Integer, List<JComponent>>();
-	MapCanvas canvas = new MapCanvas();
-
-	Registry registry = null;
+	private Map<Integer, List<JComponent>> components = new HashMap<Integer, List<JComponent>>();
+	private MapCanvas canvas = new MapCanvas();
 
 	public DigitalTable() {
 		super();
@@ -54,6 +52,9 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
+
+		logger.setLevel(Level.OFF);
+
 		try {
 			TableDisplay engine = new DigitalTable();
 			TableDisplay stub = (TableDisplay) UnicastRemoteObject.exportObject(engine, 0);
@@ -61,10 +62,12 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 			Registry registry = LocateRegistry.createRegistry(1099);
 			registry.rebind(SERVICE_NAME, stub);
 			System.out.println("DigitalTable bound");
+			logger.info("DigitalTable bound");
 			Platform.setImplicitExit(false);
 		} catch (Exception e) {
 			System.err.println("DigitalTable exception:");
 			e.printStackTrace();
+			logger.log(Level.SEVERE, e.getMessage(), e);
 			System.exit(0);
 		}
 	}
@@ -104,7 +107,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	/*
 	 * x, y define the position of the top left of the screen in the virtual space
 	 */
-	JFrame makeFrame(GraphicsConfiguration config, Point viewOffset) {
+	private JFrame makeFrame(GraphicsConfiguration config, Point viewOffset) {
 		JFrame frame = new JFrame(config);
 		frame.setBounds(config.getBounds());
 		frame.setUndecorated(true);
@@ -124,7 +127,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		if (visible) showIDs();
 	}
 
-	protected void showIDs() {
+	private void showIDs() {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] devs = ge.getScreenDevices();
 
@@ -145,7 +148,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		}
 	}
 
-	protected void hideIDs() {
+	private void hideIDs() {
 		if (idFrames != null) {
 			for (int i = 0; i < idFrames.length; i++) {
 				if (idFrames[i] != null) {
@@ -158,6 +161,8 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 
 	@Override
 	public void requestExit() throws RemoteException {
+		logger.info("Quit requested");
+
 		hideIDs();
 		for (int i = 0; i < screens.length; i++) {
 			if (screens[i] != null) {
@@ -174,6 +179,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 				try {
 					sleep(2000);
 					System.out.println("Shutting down");
+					logger.info("Shutting down");
 					Registry registry = LocateRegistry.getRegistry();
 					try {
 						registry.unbind(SERVICE_NAME);
@@ -186,8 +192,6 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 				System.exit(0);
 			}
 		}.start();
-
-		System.out.println("Quit complete");
 	}
 
 	@Override

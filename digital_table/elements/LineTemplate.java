@@ -7,7 +7,10 @@ import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 
 import digital_table.server.MapCanvas.Order;
 
@@ -24,12 +27,17 @@ public class LineTemplate extends MapElement {
 	public final static String PROPERTY_LABEL = "label";
 	public static final String PROPERTY_TARGET_LOCATION = "target";	// Point
 	public static final String PROPERTY_ORIGIN_LOCATION = "origin";	// Point
+	public final static String PROPERTY_IMAGE = "image";	// byte[] - write only
+	public final static String PROPERTY_IMAGE_VISIBLE = "image_visible";	// boolean
 
-	Property<Integer> originX, originY, targetX, targetY;
-	Property<Integer> range = new Property<Integer>(PROPERTY_RANGE, 12, Integer.class);
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
-	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
+	private Property<Integer> originX, originY, targetX, targetY;
+	private Property<Integer> range = new Property<Integer>(PROPERTY_RANGE, 12, Integer.class);
+	private Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
+	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
+	private Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
+	private Property<Boolean> imageVisible = new Property<Boolean>(PROPERTY_IMAGE_VISIBLE, true, false, Boolean.class);
+
+	private transient ImageManager image = null;	// don't access directly as it's transient
 
 	public LineTemplate(int ox, int oy, int tx, int ty) {
 		originX = new Property<Integer>(PROPERTY_ORIGIN_X, ox, Integer.class);
@@ -129,8 +137,24 @@ public class LineTemplate extends MapElement {
 		Point t = canvas.getDisplayCoordinates(tx, ty);
 		g.fillOval(t.x - 5, t.y - 5, 10, 10);
 		g.setStroke(oldStroke);
-
 		g.setComposite(c);
+
+		if (imageVisible.getValue() && image != null) {
+			BufferedImage img = image.getImage();
+			long startTime = System.nanoTime();
+			AffineTransform xform = new AffineTransform();
+			// TODO should probably calculate width based on right - left
+			Point size = canvas.getDisplayCoordinates(new Point(range.getValue(), 3));
+			xform.setToRotation(e.x - s.x, e.y - s.y);
+			xform.scale(size.getX() / img.getWidth(), size.getY() / img.getHeight());
+			xform.translate(0, -img.getHeight() / 2);
+			AffineTransformOp op = new AffineTransformOp(xform, AffineTransformOp.TYPE_BICUBIC);
+			g.drawImage(img, op, s.x, s.y);
+			long micros = (System.nanoTime() - startTime) / 1000;
+			//logger.info("Image drawn for " + this + " in " + micros + "ms");
+			//System.out.println("Image took " + micros + "ms");
+		}
+
 		g.translate(-o.getX(), -o.getY());
 	}
 
@@ -206,6 +230,8 @@ public class LineTemplate extends MapElement {
 			Point2D p = (Point2D) value;
 			targetX.setValue((int) p.getX());
 			targetY.setValue((int) p.getY());
+		} else if (property.equals(PROPERTY_IMAGE)) {
+			image = ImageManager.createImageManager(canvas, (byte[]) value);
 		} else {
 			super.setProperty(property, value);
 		}

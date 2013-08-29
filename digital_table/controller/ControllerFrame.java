@@ -49,6 +49,7 @@ import org.w3c.dom.NodeList;
 import party.Monster;
 import camera.CameraPanel;
 import digital_table.elements.Group;
+import digital_table.elements.Label;
 import digital_table.elements.MapElement;
 import digital_table.elements.SpreadTemplate;
 import digital_table.server.TableDisplay;
@@ -385,7 +386,8 @@ public class ControllerFrame extends JFrame {
 	private PropertyChangeListener labelListener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_LABEL)) {
+			if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_LABEL)
+					|| (e.getSource() instanceof Label && e.getPropertyName().equals(Label.PROPERTY_TEXT))) {
 				MapElement element = (MapElement) e.getSource();
 				miniMapPanel.updateTreeNode(element);
 				//elementTree.repaint();

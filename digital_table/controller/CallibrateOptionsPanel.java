@@ -60,12 +60,11 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(Callibrate.PROPERTY_SHOW_BACKGROUND)) {
-				showBGCheck.setSelected((Boolean) e.getNewValue());
+			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
 
-			} else if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
-				Visibility v = (Visibility) e.getNewValue();
-				visibleCheck.setSelected(v != Visibility.HIDDEN);
+			} else if (e.getPropertyName().equals(Callibrate.PROPERTY_SHOW_BACKGROUND)) {
+				showBGCheck.setSelected((Boolean) e.getNewValue());
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());

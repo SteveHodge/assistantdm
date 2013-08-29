@@ -58,9 +58,15 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(Group.PROPERTY_LABEL)) {
+			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(Group.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
+
 			} else if (e.getPropertyName().equals(Group.PROPERTY_LOCATION)) {
+				// nothing to update
+
 			} else {
 				System.out.println(toString() + ": Unknown property: " + e.getPropertyName());
 			}

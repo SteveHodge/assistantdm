@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import digital_table.server.MapCanvas;
 import digital_table.server.MapCanvas.Order;
@@ -17,6 +18,11 @@ import digital_table.server.ScreenManager;
 // TODO should all MapElement's have a position? if so then it should be implemented here. otherwise could move the dragging stuff to a subclass
 // TODO move screenmanger stuff out of here. should be an interface to indicate an element can do popups - also allows more coordination between DisplayTable and element (such as popup sizing etc)
 public abstract class MapElement implements Serializable {
+	static final Logger logger = Logger.getLogger(MapElement.class.getName());
+//	{
+//		logger.setLevel(Level.FINEST);
+//	}
+
 	private static final long serialVersionUID = 1L;
 
 	public static final String PROPERTY_VISIBLE = "visible";
@@ -163,8 +169,8 @@ public abstract class MapElement implements Serializable {
 		if (prop != null) {
 			prop.setValueUntyped(value);
 		} else {
-			//new Exception().printStackTrace();
 			System.out.println("Unknown property (set) " + property);
+			//new Exception().printStackTrace();
 		}
 	}
 

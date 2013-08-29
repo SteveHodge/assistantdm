@@ -72,7 +72,10 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(LightSource.PROPERTY_LABEL)) {
+			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(LightSource.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
 
 			} else if (e.getPropertyName().equals(LightSource.PROPERTY_RADIUS)) {

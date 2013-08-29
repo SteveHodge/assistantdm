@@ -21,6 +21,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+// TODO this class is used to send the contents of the animation xml file to the remote display. but maybe it would be better just to send the filename. that would allow different effect configurations 
+
 public class Animation implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -50,7 +52,8 @@ public class Animation implements Serializable {
 		}
 	}
 
-	AnimationFrame[] getFrames(File defaultDir) {
+	// TODO move this to PNGSequenceIM. parsing could be done here so that a list of frame filenames is available
+	AnimationFrame[] getFrames(ImageManager mgr, File defaultDir) {
 		if (frames != null) return frames;
 
 		if (animationNode == null) return null;
@@ -72,6 +75,7 @@ public class Animation implements Serializable {
 					File imgFile = new File(defaultDir, frameEl.getAttribute("filename"));
 					System.out.println("Adding frame " + imgFile);
 					BufferedImage image = ImageIO.read(imgFile);
+					image = mgr.resizeImage(image);
 					AnimationFrame frame = new AnimationFrame(image, delay);
 					frameList.add(frame);
 				} catch (IOException e) {

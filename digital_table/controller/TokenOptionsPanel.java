@@ -408,7 +408,10 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(Token.PROPERTY_ALPHA)) {
+			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(Token.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int) ((Float) e.getNewValue() * 100));
 
 			} else if (e.getPropertyName().equals(Token.PROPERTY_COLOR)) {

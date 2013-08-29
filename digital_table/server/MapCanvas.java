@@ -109,7 +109,17 @@ public class MapCanvas implements ListDataListener {
 		repaint();	// need this at the moment because changing the hierarchy can move the nodes
 	}
 
-	// TODO decide on standard argument - id or MapElement
+	private void removeChildren(Group parent) {
+		for (int i = 0; i < model.getSize(); i++) {
+			MapElement el = (MapElement) model.get(i);
+			if (el.getParent() == parent) {
+				if (el instanceof Group) removeChildren((Group) el);
+				parent.removeChild(el);
+				model.removeElement(el);
+			}
+		}
+	}
+
 	public boolean removeElement(int id) {
 		MapElement e = getElement(id);
 		if (e != null) {
@@ -117,24 +127,11 @@ public class MapCanvas implements ListDataListener {
 			int index = treeModel.getIndexOfChild(parent, e);
 			boolean removed = model.removeElement(e);
 			if (removed) {
+				if (e instanceof Group) removeChildren((Group) e);
 				if (parent != null) {
 					parent.removeChild(e);
 				}
-				boolean reparented = false;
-				if (e instanceof Group) {
-					for (int i = 0; i < model.getSize(); i++) {
-						MapElement el = (MapElement) model.get(i);
-						if (el.getParent() == e) {
-							reparented = true;
-							parent.addChild(el);
-						}
-					}
-				}
-				if (reparented) {
-					treeModel.fireTreeStructureChanged(parent);
-				} else {
-					treeModel.fireTreeNodeRemoved(e, parent, index);
-				}
+				treeModel.fireTreeNodeRemoved(e, parent, index);
 			}
 			return removed;
 		}

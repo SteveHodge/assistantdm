@@ -80,7 +80,10 @@ class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(PersonalEmanation.PROPERTY_ALPHA)) {
+			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(PersonalEmanation.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
 
 			} else if (e.getPropertyName().equals(PersonalEmanation.PROPERTY_COLOR)) {

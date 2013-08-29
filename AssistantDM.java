@@ -73,6 +73,7 @@ import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
  * performance improvements in animation code - bounding boxes for elements
+ * parsing display xml resets the node positions
  * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
  * get rid of XMLUtils. make sure all classes are converted to parseDOM style code
  * rearrange images. also find animal names - stats blocks

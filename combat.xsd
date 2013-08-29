@@ -39,6 +39,7 @@
 <!-- =========== EffectList structure =========== -->
 <xs:element name="EffectEntry">
 	<xs:complexType>
+		<xs:attribute name="buff_id" type="xs:integer"/>
 		<xs:attribute name="effect" type="xs:string" use="required"/>
 		<xs:attribute name="source" type="xs:string" use="required"/>
 		<xs:attribute name="initiative" type="xs:integer" use="required"/>

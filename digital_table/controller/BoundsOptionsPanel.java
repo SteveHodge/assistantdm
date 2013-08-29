@@ -67,15 +67,14 @@ class BoundsOptionsPanel extends OptionsPanel<ScreenBounds> {
 	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(ScreenBounds.PROPERTY_ALPHA)) {
+			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
+				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(ScreenBounds.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
 
 			} else if (e.getPropertyName().equals(ScreenBounds.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
-
-			} else if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
-				Visibility v = (Visibility) e.getNewValue();
-				visibleCheck.setSelected(v != Visibility.HIDDEN);
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
