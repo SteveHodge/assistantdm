@@ -7,12 +7,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.net.URI;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -25,14 +20,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
-import digital_table.elements.Animation;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
+import digital_table.server.MediaManager;
 
 @SuppressWarnings("serial")
 class ImageOptionsPanel extends OptionsPanel<MapImage> {
-	private File file = null;
+	private URI uri = null;
 
 	private JTextField xField;
 	private JTextField yField;
@@ -44,37 +39,13 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JCheckBox snapCheck;
 	private JCheckBox visibleCheck;
 
-	ImageOptionsPanel(File f, MapElement parent, DisplayManager r) {
+	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r) {
 		super(r);
-		file = f;
-		byte[] bytes;
-		int dotIndex = f.getName().lastIndexOf('.');
-		if (dotIndex >= 0 && f.getName().substring(dotIndex + 1).toLowerCase().equals("xml")) {
-			Animation a = new Animation(f);
-			ByteArrayOutputStream bs = new ByteArrayOutputStream();
-			ObjectOutputStream oos;
-			try {
-				oos = new ObjectOutputStream(bs);
-				oos.writeObject(a);
-				oos.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			bytes = bs.toByteArray();
-		} else {
-			bytes = new byte[(int) file.length()];
-			try {
-				FileInputStream stream = new FileInputStream(file);
-				stream.read(bytes);
-			} catch (FileNotFoundException e) {
-				// TODO handle exceptions correctly
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		element = new MapImage(bytes, file.getName());
+		this.uri = uri;
+		String label = MediaManager.INSTANCE.getName(uri);
+		element = new MapImage(label);
 		display.addElement(element, parent);
+		display.setMedia(element, MapImage.PROPERTY_IMAGE, uri);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
@@ -197,7 +168,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 	// ---- XML serialisation methods ----
 	final static String XML_TAG = "Image";
-	final static String FILE_ATTRIBUTE_NAME = "path";
+	final static String FILE_ATTRIBUTE_NAME = "uri";
 	private final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
 
 	@Override
@@ -205,7 +176,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
-		e.setAttribute(FILE_ATTRIBUTE_NAME, file.getPath());
+		e.setAttribute(FILE_ATTRIBUTE_NAME, uri.toASCIIString());
 
 		// output the current list of points in an attribute (might be better to have a more
 		// structured output but that will complicate general parsing of child elements).

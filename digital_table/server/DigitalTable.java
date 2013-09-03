@@ -8,6 +8,7 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.net.URI;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -281,5 +282,15 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 			parent.remove(component);
 			parent.repaint();
 		}
+	}
+
+	@Override
+	public boolean hasMedia(URI uri) throws RemoteException {
+		return MediaManager.INSTANCE.hasMedia(uri);
+	}
+
+	@Override
+	public void addMedia(URI uri, byte[] bytes) throws RemoteException {
+		MediaManager.INSTANCE.addMedia(uri, bytes);
 	}
 }

@@ -2,6 +2,7 @@ package digital_table.server;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.net.URI;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -29,4 +30,8 @@ public interface TableDisplay extends Remote {
 	public void demoteElement(int id) throws RemoteException;
 
 	public void setElementProperty(int id, String property, Object value) throws RemoteException;
+
+	public boolean hasMedia(URI uri) throws RemoteException;
+
+	public void addMedia(URI uri, byte[] bytes) throws RemoteException;
 }

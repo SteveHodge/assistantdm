@@ -1,4 +1,4 @@
-package digital_table.elements;
+package digital_table.server;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -11,9 +11,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.StreamCorruptedException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -21,52 +21,50 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
 import javax.swing.Timer;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.SchemaFactory;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import digital_table.server.MapCanvas;
+import org.xml.sax.SAXException;
 
 // TODO if the source image has been resized and the user subsequently wants a larger size then we should re-read the higher resolution source
 // TODO don't like the rotated image handling here
 
-abstract class ImageManager {
-	protected BufferedImage sourceImage = null;
-	BufferedImage rotatedImage = null;	// TODO make private
-	protected AnimationFrame[] frames = null;	// TODO move to animated subclasses
-	protected int index;	// TODO move to animated subclasses
-	protected Timer timer = null;	// TODO move to animated subclasses
-	protected MapCanvas canvas;
-	protected double sourceGridWidth = 0;
-	protected double sourceGridHeight = 0;
+public abstract class ImageMedia {
+	BufferedImage sourceImage = null;
+	public BufferedImage rotatedImage = null;	// TODO should not be public
+	MapCanvas canvas;
+	double sourceGridWidth = 0;
+	double sourceGridHeight = 0;
 
-	private ImageManager() {
+	private ImageMedia() {
 	}
 
-	static ImageManager createImageManager(MapCanvas canvas, byte[] bytes) {
-		ImageManager m = null;
+	static ImageMedia createImageManager(MapCanvas canvas, byte[] bytes) {
+		ImageMedia m = null;
 		try {
-			try {
-				// see if this is a serialized Animation
-				ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-				ObjectInputStream in = new ObjectInputStream(stream);
-				Animation a = (Animation) in.readObject();
-				in.close();
-				m = new PNGSequenceIM(a);
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			} catch (StreamCorruptedException e) {
-				// not a serialized animation. perhaps it's an image file
-				ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-				ImageInputStream iis = ImageIO.createImageInputStream(stream);
-				ImageReader reader = ImageIO.getImageReaders(iis).next();
+			ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+			ImageInputStream iis = ImageIO.createImageInputStream(stream);
+			Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+			if (readers.hasNext()) {
+				ImageReader reader = readers.next();
 				reader.setInput(iis);
 				if (reader.getFormatName().equals("gif")) {
 					m = new GIFIM(reader);
 				} else {
 					m = new ImageIM(reader);
 				}
+
+			} else {
+				// it's not an image so assume it's an Animation xml file
+				m = new ImageSequenceIM(new ByteArrayInputStream(bytes));
 			}
 
 			m.canvas = canvas;
@@ -77,7 +75,7 @@ abstract class ImageManager {
 		return m;
 	}
 
-	BufferedImage getImage(int rotations) {
+	public BufferedImage getImage(int rotations) {
 		if (sourceImage == null) {
 			readImages();
 		}
@@ -89,30 +87,23 @@ abstract class ImageManager {
 		return rotatedImage;
 	}
 
-	BufferedImage getImage() {
+	public BufferedImage getImage() {
 		if (sourceImage == null) {
 			readImages();
 		}
 		return sourceImage;
 	}
 
-	double getSourceGridWidth() {
+	public double getSourceGridWidth() {
 		return sourceGridWidth;
 	}
 
-	double getSourceGridHeight() {
+	public double getSourceGridHeight() {
 		return sourceGridHeight;
 	}
 
 	// rescales the image based on the canvas resolution (assumes source image resolution matches the remote screen)
 	BufferedImage resizeImage(BufferedImage source) {
-		// TODO ugly having this here
-		if (sourceGridWidth == 0 || sourceGridHeight == 0) {
-			Point2D gridSize = canvas.getRemoteGridCellCoords(source.getWidth(), source.getHeight());
-			sourceGridWidth = gridSize.getX();
-			sourceGridHeight = gridSize.getY();
-		}
-
 		int srcW = source.getWidth();
 		int srcH = source.getHeight();
 
@@ -137,35 +128,7 @@ abstract class ImageManager {
 		return source;
 	}
 
-	protected abstract void readImages();
-
-	protected void initImages() {
-		index = 0;
-		sourceImage = frames[index].getImage();
-
-		if (sourceGridWidth == 0 || sourceGridHeight == 0) {
-			Point2D gridSize = canvas.getRemoteGridCellCoords(sourceImage.getWidth(), sourceImage.getHeight());
-			sourceGridWidth = gridSize.getX();
-			sourceGridHeight = gridSize.getY();
-		}
-
-		if (frames.length > 1) {
-			timer = new Timer(frames[0].getDelay(), new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					index++;
-					if (index >= frames.length) index = 0;
-					sourceImage = frames[index].getImage();
-					rotatedImage = null;
-					canvas.repaint();
-					timer.setInitialDelay(frames[index].getDelay());
-					timer.start();
-				}
-			});
-			timer.setRepeats(false);
-			timer.start();
-		}
-	}
+	abstract void readImages();
 
 	private void createRotatedImage(int rotations) {
 		if (sourceImage != null) {
@@ -189,7 +152,7 @@ abstract class ImageManager {
 		}
 	}
 
-	private static class ImageIM extends ImageManager {
+	private static class ImageIM extends ImageMedia {
 		private ImageReader reader;
 
 		public ImageIM(ImageReader reader) {
@@ -197,65 +160,181 @@ abstract class ImageManager {
 		}
 
 		@Override
-		protected void readImages() {
-			BufferedImage img = null;
+		void readImages() {
+			sourceImage = null;
 			try {
-				img = reader.read(reader.getMinIndex());
+				sourceImage = reader.read(reader.getMinIndex());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			if (img == null) return;
+			if (sourceImage == null) return;
 
-			frames = new AnimationFrame[1];
-			frames[0] = new AnimationFrame(img, 0);
-
-			index = 0;
-			sourceImage = frames[index].getImage();
-
-			if (sourceGridWidth == 0 || sourceGridHeight == 0) {
-				Point2D gridSize = canvas.getRemoteGridCellCoords(sourceImage.getWidth(), sourceImage.getHeight());
-				sourceGridWidth = gridSize.getX();
-				sourceGridHeight = gridSize.getY();
-			}
+			Point2D gridSize = canvas.getRemoteGridCellCoords(sourceImage.getWidth(), sourceImage.getHeight());
+			sourceGridWidth = gridSize.getX();
+			sourceGridHeight = gridSize.getY();
 		}
 	};
 
-	private static class PNGSequenceIM extends ImageManager {
-		private Animation animation;
+	private static abstract class AnimationIM extends ImageMedia {
+		BufferedImage[] frames = null;
+		int index;
+		Timer timer = null;
 
-		public PNGSequenceIM(Animation a) {
-			animation = a;
+		abstract int getDelay(int frame);
+
+		void initImages() {
+			index = 0;
+			sourceImage = frames[index];
+
+			if (frames.length > 1) {
+				timer = new Timer(getDelay(0), new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						index++;
+						if (index >= frames.length) index = 0;
+						sourceImage = frames[index];
+						rotatedImage = null;
+						canvas.repaint();
+						timer.setInitialDelay(getDelay(index));
+						timer.start();
+					}
+				});
+				timer.setRepeats(false);
+				timer.start();
+			}
+		}
+	}
+
+	// XXX perhaps better to parse the XML entirely rather than using the DOM as state
+	private static class ImageSequenceIM extends AnimationIM {
+		private Element animationNode = null;
+
+		private ImageSequenceIM(InputStream xmlIS) {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			InputStream xsdIS = getClass().getClassLoader().getResourceAsStream("animation.xsd");
+			try {
+				factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(xsdIS)));
+				Document dom = factory.newDocumentBuilder().parse(xmlIS);
+
+				NodeList nodes = dom.getChildNodes();
+				for (int i = 0; i < nodes.getLength(); i++) {
+					Node node = nodes.item(i);
+					if (node.getNodeName().equals("Animation")) {
+						animationNode = (Element) node;
+					}
+				}
+			} catch (SAXException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override
-		protected void readImages() {
-			frames = animation.getFrames(this, new File("media"));
-			initImages();
+		int getDelay(int frame) {
+			int framerate = 20;
+			if (animationNode != null && animationNode.hasAttribute("framerate")) {
+				framerate = Integer.parseInt(animationNode.getAttribute("framerate"));
+			}
+			int delay = 1000 / framerate;
+
+			return delay;
 		}
 
+		private int getFrameCount() {
+			if (animationNode == null) return 0;
+
+			NodeList nodes = animationNode.getChildNodes();
+			int count = 0;
+			for (int i = 0; i < nodes.getLength(); i++) {
+				Node node = nodes.item(i);
+				if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("Frame")) count++;
+			}
+			return count;
+		}
+
+		private String getImageFileName(int frame) {
+			if (animationNode == null) return null;
+
+			NodeList nodes = animationNode.getChildNodes();
+			for (int i = 0; i < nodes.getLength(); i++) {
+				Node node = nodes.item(i);
+				if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("Frame")) {
+					if (--frame < 0) {
+						return ((Element) node).getAttribute("filename");
+					}
+				}
+			}
+			return null;
+		}
+
+		@Override
+		void readImages() {
+			frames = new BufferedImage[getFrameCount()];
+
+			for (int i = 0; i < frames.length; i++) {
+				String filename = getImageFileName(i);
+
+				try {
+					// TODO more sophisticated filename parsing - detect if it has path or not
+					File imgFile = new File(new File("media"), filename);
+					System.out.println("Adding frame " + imgFile);
+					BufferedImage image = ImageIO.read(imgFile);
+
+					if (i == 0) {
+						Point2D gridSize = canvas.getRemoteGridCellCoords(image.getWidth(), image.getHeight());
+						sourceGridWidth = gridSize.getX();
+						sourceGridHeight = gridSize.getY();
+					}
+
+					image = resizeImage(image);
+					frames[i] = image;
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			initImages();
+		}
 	};
 
-	private static class GIFIM extends ImageManager {
+	private static class GIFIM extends AnimationIM {
 		private ImageReader reader;
+		private int[] delays;
 
 		public GIFIM(ImageReader reader) {
 			this.reader = reader;
 		}
 
 		@Override
-		protected void readImages() {
+		int getDelay(int frame) {
+			int delay = delays[frame];
+			if (delay < 100) delay = 100;
+			return delay;
+		}
+
+		@Override
+		void readImages() {
 			try {
-				frames = readGIF(reader);
+				readGIF(reader);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return;
 			}
 
+			Point2D gridSize = canvas.getRemoteGridCellCoords(frames[0].getWidth(), frames[0].getHeight());
+			sourceGridWidth = gridSize.getX();
+			sourceGridHeight = gridSize.getY();
+
 			initImages();
 		}
 
-		private AnimationFrame[] readGIF(ImageReader reader) throws IOException {
-			ArrayList<AnimationFrame> frames = new ArrayList<AnimationFrame>(2);
+		private void readGIF(ImageReader reader) throws IOException {
+			ArrayList<BufferedImage> frames = new ArrayList<BufferedImage>();
+			ArrayList<Integer> delays = new ArrayList<Integer>();
 
 			int width = -1;
 			int height = -1;
@@ -319,10 +398,11 @@ abstract class ImageManager {
 				masterGraphics.drawImage(image, x, y, null);
 
 				BufferedImage copy = new BufferedImage(master.getColorModel(), master.copyData(null), master.isAlphaPremultiplied(), null);
-				frames.add(new AnimationFrame(copy, delay * 10));
+				frames.add(copy);
+				delays.add(delay * 10);
 
 				if (disposal.equals("restoreToPrevious")) {
-					BufferedImage from = frames.get(lastComplete).getImage();
+					BufferedImage from = frames.get(lastComplete);
 					master = new BufferedImage(from.getColorModel(), from.copyData(null), from.isAlphaPremultiplied(), null);
 					masterGraphics = master.createGraphics();
 					masterGraphics.setBackground(new Color(0, 0, 0, 0));
@@ -335,7 +415,11 @@ abstract class ImageManager {
 			}
 			reader.dispose();
 
-			return frames.toArray(new AnimationFrame[frames.size()]);
+			this.frames = frames.toArray(new BufferedImage[frames.size()]);
+			this.delays = new int[delays.size()];
+			for (int i = 0; i < delays.size(); i++) {
+				this.delays[i] = delays.get(i);
+			}
 		}
 	};
 }

@@ -8,16 +8,10 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.net.URI;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -27,11 +21,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
-import digital_table.elements.Animation;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
-import digital_table.elements.Token;
+import digital_table.server.MediaManager;
 
 @SuppressWarnings("serial")
 class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
@@ -45,11 +38,6 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
 	private JCheckBox imageVisibleCheck;
-
-	private File imageFile = null;
-
-	// TODO shouldn't be public - default directories should be moved to a global config class
-	public static File lastDir = new File(".");	// last selected image - used to keep the current directory
 
 	LineTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -71,16 +59,10 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 
 		JButton imageButton = new JButton("Set Image");
 		imageButton.addActionListener(new ActionListener() {
-			JFileChooser chooser = new JFileChooser();
-
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (lastDir != null) chooser.setCurrentDirectory(lastDir);
-				if (chooser.showOpenDialog(LineTemplateOptionsPanel.this) == JFileChooser.APPROVE_OPTION) {
-					setImage(chooser.getSelectedFile());
-				} else {
-					System.out.println("Cancelled");
-				}
+				URI uri = MediaManager.INSTANCE.showFileChooser(LineTemplateOptionsPanel.this);
+				if (uri != null) display.setMedia(element, LineTemplate.PROPERTY_IMAGE, uri);
 			}
 		});
 
@@ -119,42 +101,6 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		add(colorPanel, c);
 		add(alphaSlider, c);
 		add(imageButton, c);
-	}
-
-	void setImage(File f) {
-		imageFile = f;
-		lastDir = f;
-		byte bytes[];
-		if (f == null) {
-			bytes = null;
-		} else {
-			int dotIndex = f.getName().lastIndexOf('.');
-			if (dotIndex >= 0 && f.getName().substring(dotIndex + 1).toLowerCase().equals("xml")) {
-				Animation a = new Animation(f);
-				ByteArrayOutputStream bs = new ByteArrayOutputStream();
-				ObjectOutputStream oos;
-				try {
-					oos = new ObjectOutputStream(bs);
-					oos.writeObject(a);
-					oos.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				bytes = bs.toByteArray();
-			} else {
-				bytes = new byte[(int) imageFile.length()];
-				try {
-					FileInputStream stream = new FileInputStream(imageFile);
-					stream.read(bytes);
-				} catch (FileNotFoundException e) {
-					// TODO handle exceptions correctly
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		display.setProperty(element, Token.PROPERTY_IMAGE, bytes, Mode.ALL);
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {

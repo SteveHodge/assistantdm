@@ -13,6 +13,8 @@ import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +25,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -52,6 +53,7 @@ import digital_table.elements.Group;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
 import digital_table.elements.SpreadTemplate;
+import digital_table.server.MediaManager;
 import digital_table.server.TableDisplay;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
@@ -69,8 +71,6 @@ public class ControllerFrame extends JFrame {
 	private JList availableList;
 	private JTree elementTree;
 	private GridOptionsPanel gridPanel;
-
-	private File last_file = null;
 
 	public ControllerFrame(TableDisplay remote, CameraPanel camera) {
 		super("DigitalTable Controller");
@@ -645,13 +645,11 @@ public class ControllerFrame extends JFrame {
 	};
 
 	private AddElementAction<ImageOptionsPanel> imageElementAction = new AddElementAction<ImageOptionsPanel>("Image") {
-		JFileChooser chooser = new JFileChooser(last_file);
-
 		@Override
 		protected ImageOptionsPanel createOptionsPanel(MapElement parent) {
-			if (chooser.showOpenDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
-				last_file = chooser.getSelectedFile();
-				return new ImageOptionsPanel(chooser.getSelectedFile(), parent, display);
+			URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
+			if (uri != null) {
+				return new ImageOptionsPanel(uri, parent, display);
 			}
 			return null;
 		}
@@ -810,11 +808,16 @@ public class ControllerFrame extends JFrame {
 			p = browserAction.addElement(parent);
 		} else if (tag.equals(ImageOptionsPanel.XML_TAG)) {
 			if (e.hasAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME)) {
-				File file = new File(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
-				p = new ImageOptionsPanel(file, parent, display);
-				MapElement element = p.getElement();
-				element.addPropertyChangeListener(labelListener);
-				optionPanels.put(element, p);
+				URI uri;
+				try {
+					uri = new URI(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
+					p = new ImageOptionsPanel(uri, parent, display);
+					MapElement element = p.getElement();
+					element.addPropertyChangeListener(labelListener);
+					optionPanels.put(element, p);
+				} catch (URISyntaxException e1) {
+					e1.printStackTrace();
+				}
 			}
 		}
 

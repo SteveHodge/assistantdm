@@ -10,10 +10,13 @@ import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.ImageMedia;
+import digital_table.server.MediaManager;
 
 // TODO cache scaled image for performance
 // TODO should have some sort of persistent cache so we don't have to keep the image file bytes in memory and don't have to resend the image each time
@@ -32,10 +35,10 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_Y = "y";	// double
 	public final static String PROPERTY_CLEARCELL = "clear";	// Point - when this property is set the specified cell will be cleared
 	public final static String PROPERTY_UNCLEARCELL = "unclear";	// Point - when this property is set the specified cell will be shown again
-	public final static String PROPERTY_IMAGE = "image";	// byte[]
+	public final static String PROPERTY_IMAGE = "image";	// URI currently read-only (but change to read-write)
 
-	private transient ImageManager image = null;
-	private byte[] bytes = null;	// used to store the raw bytes so we can be serialised
+	private transient ImageMedia image = null;
+	private URI uri = null;
 
 	// position in grid coordinate-space:
 	private Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
@@ -66,9 +69,9 @@ public class MapImage extends MapElement {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
 	}
 
-	public MapImage(byte[] b, String label) {
+	public MapImage(URI uri, String label) {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
-		bytes = b;
+		this.uri = uri;
 	}
 
 	protected MapImage(int id, String label) {
@@ -83,7 +86,7 @@ public class MapImage extends MapElement {
 
 	private BufferedImage getImage() {
 		if (image == null) {
-			image = ImageManager.createImageManager(canvas, bytes);
+			image = MediaManager.INSTANCE.getImageMedia(canvas, uri);
 		}
 		BufferedImage img = image.getImage(rotations.getValue());
 		if (width.getValue() == 0 || height.getValue() == 0) {
@@ -99,7 +102,7 @@ public class MapImage extends MapElement {
 	@Override
 	public void paint(Graphics2D g, Point2D off) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
-		long startTime = System.nanoTime();
+		//long startTime = System.nanoTime();
 		Point2D o = canvas.getDisplayCoordinates((int) off.getX(), (int) off.getY());
 		g.translate(o.getX(), o.getY());
 
@@ -144,7 +147,7 @@ public class MapImage extends MapElement {
 			g.setClip(oldClip);
 		}
 		g.translate(-o.getX(), -o.getY());
-		long micros = (System.nanoTime() - startTime) / 1000;
+		//long micros = (System.nanoTime() - startTime) / 1000;
 		//logger.info("Painting complete for " + this + " in " + micros + "ms");
 		//System.out.println("Image painting took "+micros+"ms");
 	}
@@ -179,8 +182,8 @@ public class MapImage extends MapElement {
 		} else if (property.equals(PROPERTY_UNCLEARCELL)) {
 			setCleared((Point)value, false);
 		} else if (property.equals(PROPERTY_IMAGE)) {
-			bytes = (byte[]) value;
-			image = ImageManager.createImageManager(canvas, bytes);
+			uri = (URI) value;
+			image = MediaManager.INSTANCE.getImageMedia(canvas, uri);
 		} else {
 			super.setProperty(property, value);
 		}

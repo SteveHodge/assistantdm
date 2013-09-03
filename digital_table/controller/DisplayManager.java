@@ -1,8 +1,10 @@
 package digital_table.controller;
 
+import java.net.URI;
 import java.rmi.RemoteException;
 
 import digital_table.elements.MapElement;
+import digital_table.server.MediaManager;
 import digital_table.server.TableDisplay;
 
 /**
@@ -142,5 +144,21 @@ class DisplayManager {
 			if (overlay != null) overlay.setProperty(element.getID(), property, value);
 		}
 		if (mode != Mode.REMOTE && mode != Mode.OVERLAY) element.setProperty(property, value);
+	}
+
+	void setMedia(MapElement element, String property, URI uri) {
+		byte[] bytes = MediaManager.INSTANCE.getFile(uri);
+
+		try {
+			if (!remote.hasMedia(uri)) {
+				remote.addMedia(uri, bytes);
+			}
+			remote.setElementProperty(element.getID(), property, uri);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+
+		element.setProperty(property, uri);
 	}
 }
