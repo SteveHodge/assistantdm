@@ -183,6 +183,8 @@ public abstract class ImageMedia {
 		abstract int getDelay(int frame);
 
 		void initImages() {
+			if (frames == null) return;
+
 			index = 0;
 			sourceImage = frames[index];
 

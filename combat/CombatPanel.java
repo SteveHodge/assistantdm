@@ -54,6 +54,7 @@ public class CombatPanel extends JPanel {
 	private InitiativeListModel initiativeListModel;
 	private EffectTableModel effectsTableModel;
 	private int round = 0;
+	private JLabel roundsLabel;
 	private List<InitiativeListener> listeners = new ArrayList<InitiativeListener>();
 
 	// TODO need to remove this static instance
@@ -131,7 +132,7 @@ public class CombatPanel extends JPanel {
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initiativePanel, effectsPanel);
 		splitPane.setOneTouchExpandable(true);
 
-		final JLabel roundsLabel = new JLabel("Round 0");
+		roundsLabel = new JLabel("Round " + round);
 
 		JButton resetCombatButton = new JButton("Reset Combat");
 		resetCombatButton.addActionListener(new ActionListener() {
@@ -231,6 +232,7 @@ public class CombatPanel extends JPanel {
 	}
 
 	public void parseXML(File xmlFile) {
+		System.out.println("Parsing combat.xml");
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			InputStream is = getClass().getClassLoader().getResourceAsStream("combat.xsd");
@@ -240,6 +242,11 @@ public class CombatPanel extends JPanel {
 
 			Node node = XMLUtils.findNode(dom,"Combat");
 			if (node != null) {
+				Element e = (Element) node;
+				if (e.hasAttribute("round")) {
+					round = Integer.parseInt(e.getAttribute("round"));
+					roundsLabel.setText("Round " + round);
+				}
 				NodeList children = node.getChildNodes();
 				for (int i=0; i<children.getLength(); i++) {
 					if (children.item(i).getNodeName().equals("InitiativeList")) {
@@ -257,6 +264,7 @@ public class CombatPanel extends JPanel {
 
 	public Element getElement(Document doc) {
 		Element el = doc.createElement("Combat");
+		el.setAttribute("round", Integer.toString(round));
 		el.appendChild(initiativeListModel.getElement(doc));
 		el.appendChild(effectsTableModel.getElement(doc));
 		return el;

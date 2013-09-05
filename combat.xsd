@@ -65,6 +65,7 @@
 			<xs:element ref="InitiativeList" minOccurs="0" maxOccurs="1"/>
 			<xs:element ref="EffectList" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
+		<xs:attribute name="round" type="xs:integer"/>
 	</xs:complexType>
 </xs:element>
 

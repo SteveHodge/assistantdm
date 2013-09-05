@@ -72,6 +72,9 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * BUG deleting a buff from the combat panel doesn't work for all characters after reload because there is a separate buff for each character (though they have the same id). either delete by id or merge buffs on character load
+ * when temporary hitpoints from a buff are gone the buff should be removed if it has no other effect
+ * should be able to temporarily disable armor/shield
  * add caching of loaded files in MediaManager
  * use MediaManager for loading animation frames
  * performance improvements in animation code - bounding boxes for elements

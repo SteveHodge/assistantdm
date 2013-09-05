@@ -67,6 +67,7 @@ public class Buff {
 	}
 
 	public Buff() {
+		System.out.println("Creating Buff with id " + nextid);
 		id = nextid++;
 	}
 
@@ -371,7 +372,10 @@ public class Buff {
 		Buff buff = new Buff();
 		if (b.hasAttribute("caster_level")) buff.casterLevel = Integer.parseInt(b.getAttribute("caster_level"));
 		buff.name = b.getAttribute("name");
-		if (b.hasAttribute("id")) buff.id = Integer.parseInt(b.getAttribute("id"));
+		if (b.hasAttribute("id")) {
+			buff.id = Integer.parseInt(b.getAttribute("id"));
+			if (buff.id >= nextid) nextid = buff.id + 1;	// prevent possible future reuse of this id
+		}
 		NodeList mods = b.getChildNodes();
 		for (int k=0; k<mods.getLength(); k++) {
 			if (mods.item(k).getNodeName().equals("Modifier")) {

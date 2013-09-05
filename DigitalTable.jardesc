@@ -15,6 +15,7 @@
         <javaElement handleIdentifier="=AssistantDM/&lt;ui{Status.java"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;ui{SimpleStatus.java"/>
+        <file path="/AssistantDM/animation.xsd"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;ui{CreatureStatus.java"/>
     </selectedElements>
 </jardesc>

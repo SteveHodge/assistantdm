@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
 <jardesc>
     <jar path="AssistantDM/AssistantDM.jar"/>
-    <options buildIfNeeded="true" compress="true" descriptionLocation="/AssistantDM/Jar Description.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/AssistantDM/AssistantDM.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
     <manifest generateManifest="true" mainClassHandleIdentifier="=AssistantDM/&lt;{AssistantDM.java[AssistantDM" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
@@ -16,16 +16,16 @@
         <file path="/CanonCDSDK/CDPTPCLS.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;{TreasureGenerator.java"/>
         <javaElement handleIdentifier="=CanonCDSDK/&lt;capture"/>
-        <file path="/CanonCDSDK/IWrap.dll"/>
         <file path="/CanonCDSDK/psCamDat.dll"/>
+        <file path="/CanonCDSDK/IWrap.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;{AssistantDM.java"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;util"/>
         <javaElement handleIdentifier="=CanonCDSDK/&lt;canon.cdsdk"/>
         <file path="/AssistantDM/shops.xsd"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;xml"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem.dice"/>
         <javaElement handleIdentifier="=Library/&lt;swing"/>
         <file path="/AssistantDM/party.xsd"/>
+        <file path="/AssistantDM/animation.xsd"/>
         <file path="/CanonCDSDK/CDSDK.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem"/>
         <file path="/AssistantDM/combat.xsd"/>

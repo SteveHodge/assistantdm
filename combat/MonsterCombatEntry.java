@@ -32,6 +32,7 @@ class MonsterCombatEntry extends CombatEntry {
 	}
 
 	MonsterCombatEntry(Monster m) {
+		System.out.println("new MonsterCombatEntry " + m.getName());
 		creature = m;
 		createEntry();
 		if (m.getStatsBlock() != null) setToolTipText(m.getStatsBlock().getHTML());
@@ -65,15 +66,13 @@ class MonsterCombatEntry extends CombatEntry {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// fire a delete action to all listeners
-				// Guaranteed to return a non-null array
 				Object[] listeners = listenerList.getListenerList();
-				// Process the listeners last to first, notifying
-				// those that are interested in this event
+				// Process the listeners last to first, notifying those that are interested in this event
 				for (int i = listeners.length - 2; i >= 0; i -= 2) {
 					if (listeners[i] == ChangeListener.class) {
 						// Lazily create the event:
 						if (actionEvent == null)
-							actionEvent = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "delete", e.getWhen(), e.getModifiers());
+							actionEvent = new ActionEvent(MonsterCombatEntry.this, ActionEvent.ACTION_PERFORMED, "delete", e.getWhen(), e.getModifiers());
 						((ActionListener) listeners[i + 1]).actionPerformed(actionEvent);
 					}
 				}

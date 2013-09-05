@@ -43,25 +43,30 @@ import party.Creature;
  * Implementation:
  * Need to track source and current value in order
  * When damage is sustained, selected the first source. remove the damage from all temp hps of that source
- * If an effect has no hps left it should notify
+ * If an effect has no hps left it should be be notified
  */
 
 public class HPs extends Statistic {
-	protected Level level;	// used for applying con changes
-	protected Modifier conMod;
-	protected int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
-	protected int hps, wounds, nonLethal;
-	protected List<TempHPs> tempHPs = new ArrayList<TempHPs>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
-	protected Map<Modifier,TempHPs> modMap = new HashMap<Modifier,TempHPs>();
+	private Level level;	// used for applying con changes
+	private Modifier conMod;
+	private int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
+	private int hps, wounds, nonLethal;
+	private List<TempHPs> tempHPs = new ArrayList<TempHPs>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
+	private Map<Modifier, TempHPs> modMap = new HashMap<Modifier, TempHPs>();
 
 	// interested parties can register listeners as with other Modifier subclasses. if damage reduces a hps to 0, the TempHPs will be removed from the HPs instance
-	protected class TempHPs extends AbstractModifier {
-		int hps;
-		String source;
-		boolean active = true;
-		int id;
+	private class TempHPs extends AbstractModifier {
+		private int hps;
+		private String source;
+		private int id;	// the id of the modifier that generated this instance
 
-		public TempHPs(String source, int hps) {
+		// 'active' marks this instance as the one with the highest hps remaining for the particular source.
+		// when damage is removed from an instance it is also removed from any other instance with the same source, but
+		// only active instances are considered when deciding which instance to remove hps from. the effective total temporary
+		// hps is the sum of all active instances. there should only be one active instance for each source
+		private boolean active = true;
+
+		private TempHPs(String source, int hps) {
 			this.hps = hps;
 			this.source = source;
 		}
@@ -91,7 +96,6 @@ public class HPs extends Statistic {
 		conMod = con.getModifier();
 		oldMod = conMod.getModifier();
 		conMod.addPropertyChangeListener(new PropertyChangeListener() {
-
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				int oldhps = getMaximumHitPoints();
@@ -178,6 +182,7 @@ public class HPs extends Statistic {
 					if (t.hps <= 0) {
 						t.hps = 0;
 						// if any temphps are reduced to 0 remove them
+						// TODO need to notify source / remove source if it has no other effect
 						iter.remove();
 					}
 					t.pcs.firePropertyChange(Creature.PROPERTY_HPS, old, t.hps);
@@ -216,7 +221,7 @@ public class HPs extends Statistic {
 		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, i);
 	}
 
-	protected Modifier addTemporaryHPs(TempHPs temps) {
+	private Modifier addTemporaryHPs(TempHPs temps) {
 		int old = getHPs();
 
 		// find the highest instance of this source - that instance is active, all others with the same source are inactive
@@ -237,7 +242,8 @@ public class HPs extends Statistic {
 		return temps;
 	}
 
-	protected void removeTemporaryHPs(Modifier hps) {
+	// assumes the source of the modifier knows it is being removed
+	private void removeTemporaryHPs(Modifier hps) {
 		int old = getHPs();
 		if (tempHPs.remove(hps)) {
 			TempHPs removed = (TempHPs)hps;
@@ -341,12 +347,12 @@ public class HPs extends Statistic {
 		return text.toString();
 	}
 
-	protected static void printTempHPs(List<TempHPs> tempHPs) {
+	private static void printTempHPs(List<TempHPs> tempHPs) {
 		for (TempHPs t : tempHPs) {
 			if (t.active) {
-				System.out.println("   "+t.source+": "+t.hps);
+				System.out.println("   " + t.source + ": " + t.hps);
 			} else {
-				System.out.println("   ("+t.source+": "+t.hps+")");
+				System.out.println("   (" + t.source + ": " + t.hps + ")");
 			}
 		}
 	}
@@ -377,6 +383,13 @@ public class HPs extends Statistic {
 		oldMod = conMod.getModifier();	// we need to set the oldMod so that any future con changes are correctly calculated
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
 
+		// set any existing temporary hps to 0. this prevents temporary hitpoints that have been used for a particular
+		// buff being reset. after we've parsed this element we'll remove any remaining temporary hitpoints.
+		for (TempHPs temp : tempHPs) {
+			System.out.println("TempHPs: " + temp.id + " = " + temp.hps);
+			temp.hps = 0;
+		}
+
 		NodeList temps = e.getChildNodes();
 		for (int k=0; k<temps.getLength(); k++) {
 			if (!temps.item(k).getNodeName().equals("TempHPs")) continue;
@@ -399,12 +412,36 @@ public class HPs extends Statistic {
 			if (!found) {
 				if (id > 0) {
 					// if we don't have a modifier then we set up a temp hps but we'll need to wait for the Buff to link it up
-					System.out.println("Unimplemented: parsing temporary hitpoints before buff");
+					System.err.println("Unimplemented: parsing temporary hitpoints before buff");
 				}
 				TempHPs temp = new TempHPs(source, hps);
 				temp.id = id;
 				addTemporaryHPs(temp);
 			}
 		}
+
+		// clean up: check active flags are correctly set and remove any tempHPs set to 0
+		List<TempHPs> toDelete = new ArrayList<TempHPs>();
+		Map<String, TempHPs> best = new HashMap<String, TempHPs>();
+		for (TempHPs temp : tempHPs) {
+			if (temp.hps == 0) {
+				toDelete.add(temp);
+			} else {
+				TempHPs currBest = best.get(temp.source);
+				if (currBest == null || currBest.hps < temp.hps) {
+					if (currBest != null) currBest.active = false;
+					best.put(temp.source, temp);
+					temp.active = true;
+				} else {
+					temp.active = false;
+				}
+			}
+		}
+		for (TempHPs temp : toDelete) {
+			System.out.println("Deleting " + temp.id);
+			tempHPs.remove(temp);
+			// TODO need to notify source / remove source if it has no other effect
+		}
+		printTempHPs(tempHPs);
 	}
 }
