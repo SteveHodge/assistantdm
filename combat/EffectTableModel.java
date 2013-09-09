@@ -225,7 +225,10 @@ public class EffectTableModel extends AbstractTableModel {
 				int option = JOptionPane.showConfirmDialog(parent, text + " from " + targetList + "?", title, JOptionPane.YES_NO_OPTION);
 				if (option == JOptionPane.YES_OPTION) {
 					for (Character c : targets) {
-						c.removeBuff(buff);
+						// remove by id because if the buff was loaded from xml then the particular
+						// character's copy of the buff might not be the same object as 'buff', though
+						// it will have the same id.
+						c.removeBuff(buff.id);
 					}
 					removeEntry(index);
 				}

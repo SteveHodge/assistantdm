@@ -67,7 +67,7 @@ public class Buff {
 	}
 
 	public Buff() {
-		System.out.println("Creating Buff with id " + nextid);
+		//System.out.println("Creating Buff with id " + nextid);
 		id = nextid++;
 	}
 

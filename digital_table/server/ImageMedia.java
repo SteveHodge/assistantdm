@@ -7,12 +7,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import javax.imageio.ImageIO;
@@ -94,12 +96,30 @@ public abstract class ImageMedia {
 		return sourceImage;
 	}
 
+	public BufferedImage getImage(AffineTransform xform) {
+		// TODO implement
+		return null;
+	}
+
+	public double getTransformedXOffset() {
+		return 0;
+	}
+
+	public double getTransformedYOffset() {
+		return 0;
+	}
+
 	public double getSourceGridWidth() {
 		return sourceGridWidth;
 	}
 
 	public double getSourceGridHeight() {
 		return sourceGridHeight;
+	}
+
+	// if this media is animated then this returns the current frame number
+	public int getCurrentFrameIndex() {
+		return 0;
 	}
 
 	// rescales the image based on the canvas resolution (assumes source image resolution matches the remote screen)
@@ -118,6 +138,7 @@ public abstract class ImageMedia {
 			BufferedImage scaled = new BufferedImage(destW, destH, source.getType());
 			Graphics2D g = scaled.createGraphics();
 			g.drawImage(source, 0, 0, destW, destH, null);
+			g.dispose();
 
 //			Runtime.getRuntime().gc();
 //			long freed = Runtime.getRuntime().freeMemory() - free;
@@ -182,6 +203,13 @@ public abstract class ImageMedia {
 
 		abstract int getDelay(int frame);
 
+		@Override
+		public int getCurrentFrameIndex() {
+			return index;
+		}
+
+		// using swing timers means that slow painting will cause slow animation, not just slow framerate
+		// TODO consider switching to general timers
 		void initImages() {
 			if (frames == null) return;
 
@@ -211,6 +239,10 @@ public abstract class ImageMedia {
 	private static class ImageSequenceIM extends AnimationIM {
 		private Element animationNode = null;
 
+		private BufferedImage[] transformed;
+		private AffineTransform transform = null;
+		private double tWidth, tHeight, tx, ty;
+
 		private ImageSequenceIM(InputStream xmlIS) {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			InputStream xsdIS = getClass().getClassLoader().getResourceAsStream("animation.xsd");
@@ -232,6 +264,9 @@ public abstract class ImageMedia {
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
 			}
+
+			frames = new BufferedImage[getFrameCount()];
+			transformed = new BufferedImage[getFrameCount()];
 		}
 
 		@Override
@@ -243,6 +278,56 @@ public abstract class ImageMedia {
 			int delay = 1000 / framerate;
 
 			return delay;
+		}
+
+		@Override
+		public BufferedImage getImage(AffineTransform xform) {
+			if (xform == null) return getImage();
+
+			if (!xform.equals(transform)) {
+				transform = xform;
+				Arrays.fill(transformed, null);
+
+				Point2D[] points = new Point2D[5];
+				points[0] = new Point2D.Double(0, 0);
+				points[1] = new Point2D.Double(frames[index].getWidth(), 0);
+				points[2] = new Point2D.Double(frames[index].getWidth(), frames[index].getHeight());
+				points[3] = new Point2D.Double(0, frames[index].getHeight());
+				xform.transform(points, 0, points, 0, 4);
+				tx = points[0].getX();
+				ty = points[0].getY();
+				tWidth = points[0].getX();
+				tHeight = points[0].getY();
+				for (int i = 1; i < 4; i++) {
+					tx = Math.min(tx, points[i].getX());
+					ty = Math.min(ty, points[i].getY());
+					tWidth = Math.max(tWidth, points[i].getX());
+					tHeight = Math.max(tHeight, points[i].getY());
+				}
+				tWidth = tWidth - tx;
+				tHeight = tHeight - ty;
+			}
+
+			if (transformed[index] == null && frames[index] != null) {
+				AffineTransformOp op = new AffineTransformOp(xform, AffineTransformOp.TYPE_BILINEAR);
+				transformed[index] = new BufferedImage((int) Math.ceil(tWidth), (int) Math.ceil(tHeight), BufferedImage.TYPE_INT_ARGB);
+				//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
+				Graphics2D g = (Graphics2D) transformed[index].getGraphics();
+				g.drawImage(frames[index], op, (int) -tx, (int) -ty);
+				g.dispose();
+			}
+
+			return transformed[index];
+		}
+
+		@Override
+		public double getTransformedXOffset() {
+			return tx;
+		}
+
+		@Override
+		public double getTransformedYOffset() {
+			return ty;
 		}
 
 		private int getFrameCount() {
@@ -274,8 +359,6 @@ public abstract class ImageMedia {
 
 		@Override
 		void readImages() {
-			frames = new BufferedImage[getFrameCount()];
-
 			for (int i = 0; i < frames.length; i++) {
 				String filename = getImageFileName(i);
 

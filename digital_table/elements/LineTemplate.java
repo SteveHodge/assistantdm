@@ -9,12 +9,11 @@ import java.awt.Point;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.net.URI;
 
-import digital_table.server.MapCanvas.Order;
 import digital_table.server.ImageMedia;
+import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
 
 public class LineTemplate extends MapElement {
@@ -143,23 +142,39 @@ public class LineTemplate extends MapElement {
 		g.setComposite(c);
 
 		if (imageVisible.getValue() && image != null) {
+//			BufferedImage src = image.getImage();
+//			BufferedImage img = new BufferedImage(src.getWidth() / 2, src.getHeight() / 2, src.getType());
+//			img.createGraphics().drawImage(src, 0, 0, img.getWidth(), img.getHeight(), null);
 			BufferedImage img = image.getImage();
-			//long startTime = System.nanoTime();
+			int frame = image.getCurrentFrameIndex();
+
+			long startTime = System.nanoTime();
 			AffineTransform xform = new AffineTransform();
+			xform.setToRotation(e.x - s.x, e.y - s.y);
 			// TODO should probably calculate width based on right - left
 			Point size = canvas.getDisplayCoordinates(new Point(range.getValue(), 3));
-			xform.setToRotation(e.x - s.x, e.y - s.y);
 			xform.scale(size.getX() / img.getWidth(), size.getY() / img.getHeight());
 			xform.translate(0, -img.getHeight() / 2);
-			AffineTransformOp op = new AffineTransformOp(xform, AffineTransformOp.TYPE_BICUBIC);
-			g.drawImage(img, op, s.x, s.y);
-			//long micros = (System.nanoTime() - startTime) / 1000;
+//			AffineTransformOp op = new AffineTransformOp(xform, AffineTransformOp.TYPE_BILINEAR);
+//			g.drawImage(img, op, s.x, s.y);
+			g.drawImage(image.getImage(xform), s.x + (int) image.getTransformedXOffset(), s.y + (int) image.getTransformedYOffset(), null);
+
+			// try transforming the line in two parts
+
+			long nanos = System.nanoTime() - startTime;
+			totalNanos += nanos;
+			totalFrames++;
+			double millis = (double) nanos / 1000000;
+			double avgMillis = (double) totalNanos / totalFrames / 1000000;
 			//logger.info("Image drawn for " + this + " in " + micros + "ms");
-			//System.out.println("Image took " + micros + "ms");
+			System.out.println(String.format("Image " + frame + " took %.3f ms, fps = %.1f. Average after %d: %.3f ms, fps = %.1f", millis, 1000d / millis, totalFrames, avgMillis, 1000d / avgMillis));
 		}
 
 		g.translate(-o.getX(), -o.getY());
 	}
+
+	private long totalNanos = 0;
+	private int totalFrames = 0;
 
 	protected Point getVerticalRange(int x, int targetX, double endX, double endY) {
 		int minY, maxY;	// the range of cells to paint for this column. note that for lines with negative gradiant minY will be larger than maxY

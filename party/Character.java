@@ -206,6 +206,7 @@ public class Character extends Creature {
 				return;
 			}
 
+			//System.out.println("Change to " + evt.getSource() + ", property = " + evt.getPropertyName());
 			// only care about "value" updates from other statistics except skills
 			// TODO not sure this is what we want to do
 			// TODO need to handle extra_attacks at least
@@ -337,6 +338,18 @@ public class Character extends Creature {
 		b.removeBuff(this);
 		buffs.removeElement(b);
 		if (autoSave) saveCharacterSheet();
+	}
+
+	// remove a buff by id
+	public void removeBuff(int id) {
+		for (int i = 0; i < buffs.getSize(); i++) {
+			Buff b = (Buff) buffs.get(i);
+			if (b.id == id) {
+				b.removeBuff(this);
+				buffs.removeElement(b);
+				if (autoSave) saveCharacterSheet();
+			}
+		}
 	}
 
 	// TODO refactor the BuffListModel class and this accessor

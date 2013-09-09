@@ -347,15 +347,15 @@ public class HPs extends Statistic {
 		return text.toString();
 	}
 
-	private static void printTempHPs(List<TempHPs> tempHPs) {
-		for (TempHPs t : tempHPs) {
-			if (t.active) {
-				System.out.println("   " + t.source + ": " + t.hps);
-			} else {
-				System.out.println("   (" + t.source + ": " + t.hps + ")");
-			}
-		}
-	}
+//	private static void printTempHPs(List<TempHPs> tempHPs) {
+//		for (TempHPs t : tempHPs) {
+//			if (t.active) {
+//				System.out.println("   " + t.source + ": " + t.hps);
+//			} else {
+//				System.out.println("   (" + t.source + ": " + t.hps + ")");
+//			}
+//		}
+//	}
 
 	@Override
 	public Element getElement(Document doc) {
@@ -386,7 +386,7 @@ public class HPs extends Statistic {
 		// set any existing temporary hps to 0. this prevents temporary hitpoints that have been used for a particular
 		// buff being reset. after we've parsed this element we'll remove any remaining temporary hitpoints.
 		for (TempHPs temp : tempHPs) {
-			System.out.println("TempHPs: " + temp.id + " = " + temp.hps);
+			//System.out.println("TempHPs: " + temp.id + " = " + temp.hps);
 			temp.hps = 0;
 		}
 
@@ -438,10 +438,10 @@ public class HPs extends Statistic {
 			}
 		}
 		for (TempHPs temp : toDelete) {
-			System.out.println("Deleting " + temp.id);
+			//System.out.println("Deleting " + temp.id);
 			tempHPs.remove(temp);
 			// TODO need to notify source / remove source if it has no other effect
 		}
-		printTempHPs(tempHPs);
+		//printTempHPs(tempHPs);
 	}
 }
