@@ -2,25 +2,20 @@ package digital_table.elements;
 
 import java.awt.AlphaComposite;
 import java.awt.Composite;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
-import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import digital_table.server.MapCanvas.Order;
 import digital_table.server.ImageMedia;
+import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
-
-// TODO cache scaled image for performance
-// TODO should have some sort of persistent cache so we don't have to keep the image file bytes in memory and don't have to resend the image each time
-// TODO create grid-aligned property
 
 public class MapImage extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -38,7 +33,6 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_IMAGE = "image";	// URI currently read-only (but change to read-write)
 
 	private transient ImageMedia image = null;
-	private URI uri = null;
 
 	// position in grid coordinate-space:
 	private Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
@@ -54,9 +48,28 @@ public class MapImage extends MapElement {
 		@Override
 		public void setValue(Integer r) {
 			r = r % 4;
-			if (rotations.getValue().equals(r)) return;
-			if (image != null) image.rotatedImage = null;	// TODO remove - shouldn't be visible
+			int oldR = rotations.getValue();
+			if (oldR == r) return;
 			super.setValue(r);
+
+			AffineTransform transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
+			Point2D size;
+			if (oldR % 2 == 0) {
+				size = new Point2D.Double(width.getValue(), height.getValue());
+			} else {
+				size = new Point2D.Double(height.getValue(), width.getValue());
+			}
+			Point bottomRight = canvas.getDisplayCoordinates(size);
+			// TODO should probably calculate width based on right - left
+			transform.scale(bottomRight.getX() / image.getSourceWidth(), bottomRight.getY() / image.getSourceHeight());
+			image.setTransform(transform);
+
+			if ((r + oldR) % 2 == 1) {
+				// change is an odd number of quadrants so we need to swap width and height
+				double w = width.getValue();
+				width.setValue(height.getValue());
+				height.setValue(w);
+			}
 		}
 	};
 
@@ -71,7 +84,7 @@ public class MapImage extends MapElement {
 
 	public MapImage(URI uri, String label) {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
-		this.uri = uri;
+		setURI(uri);
 	}
 
 	protected MapImage(int id, String label) {
@@ -84,77 +97,38 @@ public class MapImage extends MapElement {
 		return Order.BOTTOM;
 	}
 
-	private BufferedImage getImage() {
-		if (image == null) {
-			image = MediaManager.INSTANCE.getImageMedia(canvas, uri);
-		}
-		BufferedImage img = image.getImage(rotations.getValue());
-		if (width.getValue() == 0 || height.getValue() == 0) {
-			width.setValue(image.getSourceGridWidth());
-			height.setValue(image.getSourceGridHeight());
-		}
-		return img;
-	}
-
-	/* (non-Javadoc)
-	 * @see server.MapRenderer#paint(java.awt.Graphics2D)
-	 */
 	@Override
 	public void paint(Graphics2D g, Point2D off) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
+		if (image.getImage() == null) return;
 		//long startTime = System.nanoTime();
 		Point2D o = canvas.getDisplayCoordinates((int) off.getX(), (int) off.getY());
 		g.translate(o.getX(), o.getY());
 
-		Rectangle bounds = g.getClipBounds();
-		//System.out.println("Clip = "+bounds);
-
-		BufferedImage img = getImage();
-		if (img != null) {
-			Shape oldClip = g.getClip();
-			// build the shape
-			Area area = new Area(g.getClip());
-			// using indexed loop instead of iterator to avoid concurrency issues
-			for (int i = 0; i < cleared.size(); i++) {
-				Point p = cleared.get(i);
-				Point tl = canvas.getDisplayCoordinates(p.x, p.y);
-				Point br = canvas.getDisplayCoordinates(p.x+1, p.y+1);
-				area.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
-			}
-			g.setClip(area);
-
-			Composite c = g.getComposite();
-			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
-
-			Point2D p = new Point2D.Double(width.getValue(),height.getValue());
-			Point bottomRight = canvas.getDisplayCoordinates(p);
-			Point offset = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
-			//System.out.println("Grid coordinates: ("+x+","+y+") x ("+p.getX()+","+p.getY()+")");
-			//System.out.println("Display coordinates: "+offset+" x "+bottomRight);
-
-			int left, right, top, bottom;
-			left = (bounds.x - offset.x) * img.getWidth() / bottomRight.x;
-			top = (bounds.y - offset.y) * img.getHeight() / bottomRight.y;
-			right = (bounds.x + bounds.width - offset.x) * img.getWidth() / bottomRight.x;
-			bottom = (bounds.y + bounds.height - offset.y) * img.getHeight() / bottomRight.y;
-
-//			g.drawImage(img, bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height,
-//					left, top, right, bottom, new Color(255,255,255,0), null);
-			g.drawImage(img, bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height,
-					left, top, right, bottom, null);
-
-			g.setComposite(c);
-			g.setClip(oldClip);
+		Shape oldClip = g.getClip();
+		// build the shape
+		Area area = new Area(g.getClip());
+		// using indexed loop instead of iterator to avoid concurrency issues
+		for (int i = 0; i < cleared.size(); i++) {
+			Point p = cleared.get(i);
+			Point tl = canvas.getDisplayCoordinates(p.x, p.y);
+			Point br = canvas.getDisplayCoordinates(p.x+1, p.y+1);
+			area.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
 		}
+		g.setClip(area);
+
+		Composite c = g.getComposite();
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
+
+		Point offset = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
+		g.drawImage(image.getImage(), offset.x, offset.y, null);
+
+		g.setComposite(c);
+		g.setClip(oldClip);
 		g.translate(-o.getX(), -o.getY());
 		//long micros = (System.nanoTime() - startTime) / 1000;
 		//logger.info("Painting complete for " + this + " in " + micros + "ms");
 		//System.out.println("Image painting took "+micros+"ms");
-	}
-
-	public Dimension getImageSize() {
-		BufferedImage img = getImage();
-		return new Dimension(img.getWidth(), img.getHeight());
 	}
 
 	/**
@@ -175,6 +149,12 @@ public class MapImage extends MapElement {
 		return "Image ("+label+")";
 	}
 
+	private void setURI(URI uri) {
+		image = MediaManager.INSTANCE.getImageMedia(canvas, uri);
+		width.setValue(image.getSourceGridWidth());
+		height.setValue(image.getSourceGridHeight());
+	}
+
 	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_CLEARCELL)) {
@@ -182,10 +162,21 @@ public class MapImage extends MapElement {
 		} else if (property.equals(PROPERTY_UNCLEARCELL)) {
 			setCleared((Point)value, false);
 		} else if (property.equals(PROPERTY_IMAGE)) {
-			uri = (URI) value;
-			image = MediaManager.INSTANCE.getImageMedia(canvas, uri);
+			setURI((URI) value);
 		} else {
 			super.setProperty(property, value);
+		}
+		if (property.equals(PROPERTY_WIDTH) || property.equals(PROPERTY_HEIGHT)) {
+			AffineTransform transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
+			Point2D size;
+			if (rotations.getValue() % 2 == 0) {
+				size = new Point2D.Double(width.getValue(), height.getValue());
+			} else {
+				size = new Point2D.Double(height.getValue(), width.getValue());
+			}
+			Point bottomRight = canvas.getDisplayCoordinates(size);
+			transform.scale(bottomRight.getX() / image.getSourceWidth(), bottomRight.getY() / image.getSourceHeight());
+			image.setTransform(transform);
 		}
 	}
 

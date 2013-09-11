@@ -40,11 +40,16 @@ import org.xml.sax.SAXException;
 // TODO don't like the rotated image handling here
 
 public abstract class ImageMedia {
-	BufferedImage sourceImage = null;
-	public BufferedImage rotatedImage = null;	// TODO should not be public
 	MapCanvas canvas;
 	double sourceGridWidth = 0;
 	double sourceGridHeight = 0;
+
+	BufferedImage[] frames = null;
+	int index;
+
+	AffineTransform transform = null;
+	BufferedImage[] transformed;
+	double tWidth, tHeight, tx, ty;
 
 	private ImageMedia() {
 	}
@@ -59,14 +64,14 @@ public abstract class ImageMedia {
 				ImageReader reader = readers.next();
 				reader.setInput(iis);
 				if (reader.getFormatName().equals("gif")) {
-					m = new GIFIM(reader);
+					m = new GIFMedia(reader);
 				} else {
-					m = new ImageIM(reader);
+					m = new StaticImageMdia(reader);
 				}
 
 			} else {
 				// it's not an image so assume it's an Animation xml file
-				m = new ImageSequenceIM(new ByteArrayInputStream(bytes));
+				m = new ImageSequenceMedia(new ByteArrayInputStream(bytes));
 			}
 
 			m.canvas = canvas;
@@ -77,36 +82,81 @@ public abstract class ImageMedia {
 		return m;
 	}
 
-	public BufferedImage getImage(int rotations) {
-		if (sourceImage == null) {
-			readImages();
-		}
+	public void setTransform(AffineTransform xform) {
+		if (transformed == null) readImages();		// ensures transformed is allocated
 
-		if (rotatedImage == null) {
-			createRotatedImage(rotations);
-		}
+		if (xform == null) {
+			transform = null;
+			Arrays.fill(transformed, null);
+			tx = 0;
+			ty = 0;
+			tWidth = frames[index].getWidth();
+			tHeight = frames[index].getHeight();
 
-		return rotatedImage;
+		} else if (!xform.equals(transform)) {
+			transform = xform;
+			Arrays.fill(transformed, null);
+
+			// determine the bounds of the transformed image
+			Point2D[] points = new Point2D[4];
+			points[0] = new Point2D.Double(0, 0);
+			points[1] = new Point2D.Double(frames[index].getWidth(), 0);
+			points[2] = new Point2D.Double(frames[index].getWidth(), frames[index].getHeight());
+			points[3] = new Point2D.Double(0, frames[index].getHeight());
+			xform.transform(points, 0, points, 0, 4);
+			tx = points[0].getX();
+			ty = points[0].getY();
+			tWidth = points[0].getX();
+			tHeight = points[0].getY();
+			for (int i = 1; i < 4; i++) {
+				tx = Math.min(tx, points[i].getX());
+				ty = Math.min(ty, points[i].getY());
+				tWidth = Math.max(tWidth, points[i].getX());
+				tHeight = Math.max(tHeight, points[i].getY());
+			}
+			tWidth = tWidth - tx;
+			tHeight = tHeight - ty;
+		}
 	}
 
 	public BufferedImage getImage() {
-		if (sourceImage == null) {
-			readImages();
-		}
-		return sourceImage;
-	}
+		if (transform == null) return getSourceImage();
 
-	public BufferedImage getImage(AffineTransform xform) {
-		// TODO implement
-		return null;
+		if (transformed[index] == null && frames[index] != null) {
+			AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+			transformed[index] = new BufferedImage((int) Math.ceil(tWidth), (int) Math.ceil(tHeight), BufferedImage.TYPE_INT_ARGB);
+			//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
+			Graphics2D g = (Graphics2D) transformed[index].getGraphics();
+			g.drawImage(frames[index], op, (int) -tx, (int) -ty);
+			g.dispose();
+		}
+
+		return transformed[index];
 	}
 
 	public double getTransformedXOffset() {
-		return 0;
+		return tx;
 	}
 
 	public double getTransformedYOffset() {
-		return 0;
+		return ty;
+	}
+
+	BufferedImage getSourceImage() {
+		if (frames == null || frames[index] == null) {
+			readImages();
+		}
+		return frames[index];
+	}
+
+	public int getSourceWidth() {
+		BufferedImage img = getSourceImage();
+		return img == null ? 0 : img.getWidth();
+	}
+
+	public int getSourceHeight() {
+		BufferedImage img = getSourceImage();
+		return img == null ? 0 : img.getHeight();
 	}
 
 	public double getSourceGridWidth() {
@@ -117,9 +167,8 @@ public abstract class ImageMedia {
 		return sourceGridHeight;
 	}
 
-	// if this media is animated then this returns the current frame number
 	public int getCurrentFrameIndex() {
-		return 0;
+		return index;
 	}
 
 	// rescales the image based on the canvas resolution (assumes source image resolution matches the remote screen)
@@ -151,54 +200,33 @@ public abstract class ImageMedia {
 
 	abstract void readImages();
 
-	private void createRotatedImage(int rotations) {
-		if (sourceImage != null) {
-			AffineTransform t = AffineTransform.getQuadrantRotateInstance(rotations);
-			Point p = new Point(sourceImage.getWidth(), sourceImage.getHeight());
-			t.transform(p, p);	// transform to get new dimensions
-
-			rotatedImage = new BufferedImage(Math.abs(p.x), Math.abs(p.y), BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g2d = (Graphics2D) rotatedImage.getGraphics();
-			g2d.rotate(Math.toRadians(rotations * 90), rotatedImage.getWidth() / 2, rotatedImage.getHeight() / 2);
-			g2d.translate((rotatedImage.getWidth() - sourceImage.getWidth()) / 2, (rotatedImage.getHeight() - sourceImage.getHeight()) / 2);
-			g2d.drawImage(sourceImage, 0, 0, sourceImage.getWidth(), sourceImage.getHeight(), null);
-			g2d.dispose();
-
-			// get the dimensions in grid-coordinate space of the remote display:
-			// TODO setting sizes here means we lose any user set size which is not what we want - but we should swap the values if we've rotated 90 degrees
-			// TODO strictly speaking we should calculate the bottom right corner and then use that to determine the size
-//				Point2D size = canvas.getRemoteGridCellCoords(rotatedImage.getWidth(), rotatedImage.getHeight());
-//				width.setValue(size.getX());
-//				height.setValue(size.getY());
-		}
-	}
-
-	private static class ImageIM extends ImageMedia {
+	private static class StaticImageMdia extends ImageMedia {
 		private ImageReader reader;
 
-		public ImageIM(ImageReader reader) {
+		public StaticImageMdia(ImageReader reader) {
 			this.reader = reader;
 		}
 
 		@Override
 		void readImages() {
-			sourceImage = null;
+			frames = new BufferedImage[1];
+			transformed = new BufferedImage[1];
+			index = 0;
+
 			try {
-				sourceImage = reader.read(reader.getMinIndex());
+				frames[0] = reader.read(reader.getMinIndex());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			if (sourceImage == null) return;
+			if (frames[0] == null) return;
 
-			Point2D gridSize = canvas.getRemoteGridCellCoords(sourceImage.getWidth(), sourceImage.getHeight());
+			Point2D gridSize = canvas.getRemoteGridCellCoords(frames[0].getWidth(), frames[0].getHeight());
 			sourceGridWidth = gridSize.getX();
 			sourceGridHeight = gridSize.getY();
 		}
 	};
 
-	private static abstract class AnimationIM extends ImageMedia {
-		BufferedImage[] frames = null;
-		int index;
+	private static abstract class AnimatedMedia extends ImageMedia {
 		Timer timer = null;
 
 		abstract int getDelay(int frame);
@@ -214,7 +242,6 @@ public abstract class ImageMedia {
 			if (frames == null) return;
 
 			index = 0;
-			sourceImage = frames[index];
 
 			if (frames.length > 1) {
 				timer = new Timer(getDelay(0), new ActionListener() {
@@ -222,8 +249,6 @@ public abstract class ImageMedia {
 					public void actionPerformed(ActionEvent arg0) {
 						index++;
 						if (index >= frames.length) index = 0;
-						sourceImage = frames[index];
-						rotatedImage = null;
 						canvas.repaint();
 						timer.setInitialDelay(getDelay(index));
 						timer.start();
@@ -236,14 +261,10 @@ public abstract class ImageMedia {
 	}
 
 	// XXX perhaps better to parse the XML entirely rather than using the DOM as state
-	private static class ImageSequenceIM extends AnimationIM {
+	private static class ImageSequenceMedia extends AnimatedMedia {
 		private Element animationNode = null;
 
-		private BufferedImage[] transformed;
-		private AffineTransform transform = null;
-		private double tWidth, tHeight, tx, ty;
-
-		private ImageSequenceIM(InputStream xmlIS) {
+		private ImageSequenceMedia(InputStream xmlIS) {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			InputStream xsdIS = getClass().getClassLoader().getResourceAsStream("animation.xsd");
 			try {
@@ -278,56 +299,6 @@ public abstract class ImageMedia {
 			int delay = 1000 / framerate;
 
 			return delay;
-		}
-
-		@Override
-		public BufferedImage getImage(AffineTransform xform) {
-			if (xform == null) return getImage();
-
-			if (!xform.equals(transform)) {
-				transform = xform;
-				Arrays.fill(transformed, null);
-
-				Point2D[] points = new Point2D[5];
-				points[0] = new Point2D.Double(0, 0);
-				points[1] = new Point2D.Double(frames[index].getWidth(), 0);
-				points[2] = new Point2D.Double(frames[index].getWidth(), frames[index].getHeight());
-				points[3] = new Point2D.Double(0, frames[index].getHeight());
-				xform.transform(points, 0, points, 0, 4);
-				tx = points[0].getX();
-				ty = points[0].getY();
-				tWidth = points[0].getX();
-				tHeight = points[0].getY();
-				for (int i = 1; i < 4; i++) {
-					tx = Math.min(tx, points[i].getX());
-					ty = Math.min(ty, points[i].getY());
-					tWidth = Math.max(tWidth, points[i].getX());
-					tHeight = Math.max(tHeight, points[i].getY());
-				}
-				tWidth = tWidth - tx;
-				tHeight = tHeight - ty;
-			}
-
-			if (transformed[index] == null && frames[index] != null) {
-				AffineTransformOp op = new AffineTransformOp(xform, AffineTransformOp.TYPE_BILINEAR);
-				transformed[index] = new BufferedImage((int) Math.ceil(tWidth), (int) Math.ceil(tHeight), BufferedImage.TYPE_INT_ARGB);
-				//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
-				Graphics2D g = (Graphics2D) transformed[index].getGraphics();
-				g.drawImage(frames[index], op, (int) -tx, (int) -ty);
-				g.dispose();
-			}
-
-			return transformed[index];
-		}
-
-		@Override
-		public double getTransformedXOffset() {
-			return tx;
-		}
-
-		@Override
-		public double getTransformedYOffset() {
-			return ty;
 		}
 
 		private int getFrameCount() {
@@ -386,11 +357,11 @@ public abstract class ImageMedia {
 		}
 	};
 
-	private static class GIFIM extends AnimationIM {
+	private static class GIFMedia extends AnimatedMedia {
 		private ImageReader reader;
 		private int[] delays;
 
-		public GIFIM(ImageReader reader) {
+		public GIFMedia(ImageReader reader) {
 			this.reader = reader;
 		}
 
@@ -501,6 +472,7 @@ public abstract class ImageMedia {
 			reader.dispose();
 
 			this.frames = frames.toArray(new BufferedImage[frames.size()]);
+			transformed = new BufferedImage[frames.size()];
 			this.delays = new int[delays.size()];
 			for (int i = 0; i < delays.size(); i++) {
 				this.delays[i] = delays.get(i);

@@ -9,7 +9,6 @@ import java.awt.Point;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.image.BufferedImage;
 import java.net.URI;
 
 import digital_table.server.ImageMedia;
@@ -40,6 +39,7 @@ public class LineTemplate extends MapElement {
 	private Property<Boolean> imageVisible = new Property<Boolean>(PROPERTY_IMAGE_VISIBLE, true, false, Boolean.class);
 
 	private transient ImageMedia image = null;	// don't access directly as it's transient
+	private transient AffineTransform transform = null;
 
 	public LineTemplate(int ox, int oy, int tx, int ty) {
 		originX = new Property<Integer>(PROPERTY_ORIGIN_X, ox, Integer.class);
@@ -142,22 +142,19 @@ public class LineTemplate extends MapElement {
 		g.setComposite(c);
 
 		if (imageVisible.getValue() && image != null) {
-//			BufferedImage src = image.getImage();
-//			BufferedImage img = new BufferedImage(src.getWidth() / 2, src.getHeight() / 2, src.getType());
-//			img.createGraphics().drawImage(src, 0, 0, img.getWidth(), img.getHeight(), null);
-			BufferedImage img = image.getImage();
 			int frame = image.getCurrentFrameIndex();
 
 			long startTime = System.nanoTime();
-			AffineTransform xform = new AffineTransform();
-			xform.setToRotation(e.x - s.x, e.y - s.y);
-			// TODO should probably calculate width based on right - left
-			Point size = canvas.getDisplayCoordinates(new Point(range.getValue(), 3));
-			xform.scale(size.getX() / img.getWidth(), size.getY() / img.getHeight());
-			xform.translate(0, -img.getHeight() / 2);
-//			AffineTransformOp op = new AffineTransformOp(xform, AffineTransformOp.TYPE_BILINEAR);
-//			g.drawImage(img, op, s.x, s.y);
-			g.drawImage(image.getImage(xform), s.x + (int) image.getTransformedXOffset(), s.y + (int) image.getTransformedYOffset(), null);
+			if (transform == null) {
+				transform = new AffineTransform();
+				transform.setToRotation(e.x - s.x, e.y - s.y);
+				// TODO should probably calculate width based on right - left
+				Point size = canvas.getDisplayCoordinates(new Point(range.getValue(), 3));
+				transform.scale(size.getX() / image.getSourceWidth(), size.getY() / image.getSourceHeight());
+				transform.translate(0, -image.getSourceHeight() / 2);
+				image.setTransform(transform);
+			}
+			g.drawImage(image.getImage(), s.x + (int) image.getTransformedXOffset(), s.y + (int) image.getTransformedYOffset(), null);
 
 			// try transforming the line in two parts
 
@@ -252,6 +249,16 @@ public class LineTemplate extends MapElement {
 			image = MediaManager.INSTANCE.getImageMedia(canvas, (URI) value);
 		} else {
 			super.setProperty(property, value);
+		}
+		if (property.equals(PROPERTY_X)
+				|| property.equals(PROPERTY_Y)
+				|| property.equals(PROPERTY_ORIGIN_X)
+				|| property.equals(PROPERTY_ORIGIN_Y)
+				|| property.equals(PROPERTY_ORIGIN_LOCATION)
+				|| property.equals(PROPERTY_TARGET_LOCATION)
+				|| property.equals(PROPERTY_RANGE)) {
+			// position of the line has changed so reset the transform
+			transform = null;
 		}
 	}
 }
