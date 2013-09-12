@@ -30,6 +30,8 @@ public class LineTemplate extends MapElement {
 	public static final String PROPERTY_ORIGIN_LOCATION = "origin";	// Point
 	public final static String PROPERTY_IMAGE = "image";	// URI - write only (change to read/write)
 	public final static String PROPERTY_IMAGE_VISIBLE = "image_visible";	// boolean
+	public final static String PROPERTY_IMAGE_PLAY = "play";	// write only
+	public final static String PROPERTY_IMAGE_STOP = "stop";	// write only
 
 	private Property<Integer> originX, originY, targetX, targetY;
 	private Property<Integer> range = new Property<Integer>(PROPERTY_RANGE, 12, Integer.class);
@@ -247,6 +249,10 @@ public class LineTemplate extends MapElement {
 			targetY.setValue((int) p.getY());
 		} else if (property.equals(PROPERTY_IMAGE)) {
 			image = MediaManager.INSTANCE.getImageMedia(canvas, (URI) value);
+		} else if (property.equals(PROPERTY_IMAGE_PLAY)) {
+			if (image != null) image.playOrPause();
+		} else if (property.equals(PROPERTY_IMAGE_STOP)) {
+			if (image != null) image.stop();
 		} else {
 			super.setProperty(property, value);
 		}

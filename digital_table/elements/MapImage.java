@@ -30,7 +30,9 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_Y = "y";	// double
 	public final static String PROPERTY_CLEARCELL = "clear";	// Point - when this property is set the specified cell will be cleared
 	public final static String PROPERTY_UNCLEARCELL = "unclear";	// Point - when this property is set the specified cell will be shown again
-	public final static String PROPERTY_IMAGE = "image";	// URI currently read-only (but change to read-write)
+	public final static String PROPERTY_IMAGE = "image";	// URI currently write-only (but change to read-write)
+	public final static String PROPERTY_IMAGE_PLAY = "play";	// write only no value
+	public final static String PROPERTY_IMAGE_STOP = "stop";	// write only no value
 
 	private transient ImageMedia image = null;
 
@@ -163,6 +165,10 @@ public class MapImage extends MapElement {
 			setCleared((Point)value, false);
 		} else if (property.equals(PROPERTY_IMAGE)) {
 			setURI((URI) value);
+		} else if (property.equals(PROPERTY_IMAGE_PLAY)) {
+			if (image != null) image.playOrPause();
+		} else if (property.equals(PROPERTY_IMAGE_STOP)) {
+			if (image != null) image.stop();
 		} else {
 			super.setProperty(property, value);
 		}

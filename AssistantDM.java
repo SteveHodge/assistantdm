@@ -72,11 +72,16 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * show the image selected for a template. also perhaps a way to clear the image
+ * consolidate image related code, at least for template option panels
+ * images for quadrant templates
+ * placeholder visibility type (mainly for images)
+ * clear all for images. also cleared squares should be translucent on local
+ * soft references for ImageMedia - at least for transformed images
  * character is not registered as a listener on the attack forms so it doesn't get notified of changes. probably should revisit the whole property/statistic notification system
  * when temporary hitpoints from a buff are gone the buff should be removed if it has no other effect
  * should be able to temporarily disable armor/shield
  * add caching of loaded files in MediaManager
- * use MediaManager for loading animation frames
  * performance improvements in animation code - bounding boxes for elements
  * parsing display xml resets the node priorty - need to save the list model order
  * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this

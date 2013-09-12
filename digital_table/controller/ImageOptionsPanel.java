@@ -3,12 +3,15 @@ package digital_table.controller;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URI;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -20,6 +23,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
+import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
@@ -61,30 +65,55 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
 
+		JButton playButton = new JButton("Play");
+		playButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
+			}
+		});
+
+		JButton stopButton = new JButton("Stop");
+		stopButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
+			}
+		});
+
+		JPanel imagePanel = new JPanel();
+		imagePanel.add(playButton);
+		imagePanel.add(stopButton);
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0; add(visibleCheck, c);
-		c.gridy++; add(new JLabel("Left edge column:"), c);
-		c.gridy++; add(new JLabel("Top edge Row:"), c);
-		c.gridy++; add(new JLabel("Width:"), c);
-		c.gridy++; add(new JLabel("Height:"), c);
-		c.gridy++; add(new JLabel("Rotation:"), c);
-		c.gridy++; add(new JLabel("Transparency:"), c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("Left edge column:"), c);
+		add(new JLabel("Top edge Row:"), c);
+		add(new JLabel("Width:"), c);
+		add(new JLabel("Height:"), c);
+		add(new JLabel("Rotation:"), c);
+		add(new JLabel("Transparency:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0; add(labelField, c);
-		c.gridy++; add(xField, c);
-		c.gridy++; add(yField, c);
-		c.gridy++; add(widthField, c);
-		c.gridy++; add(heightField, c);
-		c.gridy++; add(rotationsCombo, c);
-		c.gridy++; add(alphaSlider, c);
-		c.gridy++; add(snapCheck, c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(xField, c);
+		add(yField, c);
+		add(widthField, c);
+		add(heightField, c);
+		add(rotationsCombo, c);
+		add(alphaSlider, c);
+		add(snapCheck, c);
+		add(imagePanel, c);
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0; c.gridy++; c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridy = 9;
+		c.gridwidth = 2;
 		add(new JPanel(), c);
 	}
 

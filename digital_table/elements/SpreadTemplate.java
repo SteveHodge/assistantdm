@@ -8,10 +8,14 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
+import java.net.URI;
 
+import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MediaManager;
 
 // TODO convert PROPERTY constants to enum?
 // TODO cache area when drawing?
@@ -27,6 +31,10 @@ public class SpreadTemplate extends MapElement {
 	public final static String PROPERTY_DIRECTION = "direction";	// int, using constants below
 	public final static String PROPERTY_ALPHA = "alpha";	// float
 	public final static String PROPERTY_LABEL = "label";
+	public final static String PROPERTY_IMAGE = "image";	// URI - write only (change to read/write)
+	public final static String PROPERTY_IMAGE_VISIBLE = "image_visible";	// boolean
+	public final static String PROPERTY_IMAGE_PLAY = "play";	// write only
+	public final static String PROPERTY_IMAGE_STOP = "stop";	// write only
 
 	public enum Type {
 		CIRCLE("Circle"),
@@ -70,15 +78,18 @@ public class SpreadTemplate extends MapElement {
 		private final int xDir, yDir;
 	}
 
-	Property<Integer> x, y;
-	Property<Integer> radius;
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
-	Property<Type> type = new Property<Type>(PROPERTY_TYPE, Type.CIRCLE, Type.class);
-	Property<Direction> direction = new Property<Direction>(PROPERTY_DIRECTION, Direction.SE, Direction.class);
-	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
+	private Property<Integer> x, y;
+	private Property<Integer> radius;
+	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
+	private Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.RED, Color.class);
+	private Property<Type> type = new Property<Type>(PROPERTY_TYPE, Type.CIRCLE, Type.class);
+	private Property<Direction> direction = new Property<Direction>(PROPERTY_DIRECTION, Direction.SE, Direction.class);
+	private Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
+	private Property<Boolean> imageVisible = new Property<Boolean>(PROPERTY_IMAGE_VISIBLE, true, false, Boolean.class);
 
-	transient boolean affected[][];
+	private transient ImageMedia image = null;	// don't access directly as it's transient
+
+	private transient boolean affected[][];
 
 	public SpreadTemplate(int radius, int x, int y) {
 		this.x = new Property<Integer>(PROPERTY_X, true, x, Integer.class);
@@ -139,6 +150,16 @@ public class SpreadTemplate extends MapElement {
 		if (type.getValue() == Type.CIRCLE) {
 			Point t = canvas.getDisplayCoordinates(x.getValue(), y.getValue());
 			g.fillOval(t.x - 5, t.y - 5, 10, 10);
+
+			g.setComposite(c);
+			if (imageVisible.getValue() && image != null) {
+				AffineTransform transform = new AffineTransform();
+				// TODO should probably calculate width based on right - left
+				Point size = canvas.getDisplayCoordinates(new Point(radius.getValue() * 2, radius.getValue() * 2));
+				transform.scale(size.getX() / image.getSourceWidth(), size.getY() / image.getSourceHeight());
+				image.setTransform(transform);
+				g.drawImage(image.getImage(), t.x - size.x / 2, t.y - size.y / 2, null);
+			}
 		}
 		g.setStroke(oldStroke);
 		g.setComposite(c);
@@ -428,5 +449,18 @@ public class SpreadTemplate extends MapElement {
 	public String toString() {
 		if (label == null || label.getValue().length() == 0) return "Template (" + getID() + ")";
 		return "Template (" + label + ")";
+	}
+
+	@Override
+	public void setProperty(String property, Object value) {
+		if (property.equals(PROPERTY_IMAGE)) {
+			image = MediaManager.INSTANCE.getImageMedia(canvas, (URI) value);
+		} else if (property.equals(PROPERTY_IMAGE_PLAY)) {
+			if (image != null) image.playOrPause();
+		} else if (property.equals(PROPERTY_IMAGE_STOP)) {
+			if (image != null) image.stop();
+		} else {
+			super.setProperty(property, value);
+		}
 	}
 }

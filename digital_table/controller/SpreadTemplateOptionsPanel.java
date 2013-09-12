@@ -9,7 +9,10 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.net.URI;
+import java.net.URISyntaxException;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -21,9 +24,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
+import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.SpreadTemplate;
+import digital_table.server.MediaManager;
 
 
 @SuppressWarnings("serial")
@@ -37,6 +42,8 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 	private JTextField labelField;
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
+	private JCheckBox imageVisibleCheck;
+	private URI uri = null;
 
 	SpreadTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -64,32 +71,68 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 
 		labelField = createStringControl(SpreadTemplate.PROPERTY_LABEL, Mode.LOCAL);
 		visibleCheck = createVisibilityControl();
+		imageVisibleCheck = createCheckBox(LineTemplate.PROPERTY_IMAGE_VISIBLE, Mode.ALL, "Image visible?");
+
+		JButton imageButton = new JButton("Set Image");
+		imageButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				uri = MediaManager.INSTANCE.showFileChooser(SpreadTemplateOptionsPanel.this);
+				display.setMedia(element, LineTemplate.PROPERTY_IMAGE, uri);
+			}
+		});
+
+		JButton playButton = new JButton("Play");
+		playButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
+			}
+		});
+
+		JButton stopButton = new JButton("Stop");
+		stopButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
+			}
+		});
+
+		JPanel imagePanel = new JPanel();
+		imagePanel.add(imageButton);
+		imagePanel.add(playButton);
+		imagePanel.add(stopButton);
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0; add(visibleCheck, c);
-		c.gridy = 1; add(new JLabel("Radius:"), c);
-		c.gridy = 2; add(new JLabel("Column:"), c);
-		c.gridy = 3; add(new JLabel("Row:"), c);
-		c.gridy = 4; add(new JLabel("Colour:"), c);
-		c.gridy = 5; add(new JLabel("Transparency:"), c);
-		c.gridy = 6; add(new JLabel("Type:"), c);
-		c.gridy = 7; add(new JLabel("Direction:"), c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("Radius:"), c);
+		add(new JLabel("Column:"), c);
+		add(new JLabel("Row:"), c);
+		add(new JLabel("Colour:"), c);
+		add(new JLabel("Transparency:"), c);
+		add(new JLabel("Type:"), c);
+		add(new JLabel("Direction:"), c);
+		add(imageVisibleCheck, c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0; add(labelField, c);
-		c.gridy = 1; add(radiusField, c);
-		c.gridy = 2; add(xField, c);
-		c.gridy = 3; add(yField, c);
-		c.gridy = 4; add(colorPanel, c);
-		c.gridy = 5; add(alphaSlider, c);
-		c.gridy = 6; add(typeCombo, c);
-		c.gridy = 7; add(directionCombo, c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(radiusField, c);
+		add(xField, c);
+		add(yField, c);
+		add(colorPanel, c);
+		add(alphaSlider, c);
+		add(typeCombo, c);
+		add(directionCombo, c);
+		add(imagePanel, c);
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridwidth = 2;
 		add(new JPanel(), c);
 	}
 
@@ -155,12 +198,14 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 
 	// ---- XML serialisation methods ----
 	final static String XML_TAG = "SpreadTemplate";
+	private final static String FILE_ATTRIBUTE_NAME = "uri";
 
 	@Override
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + SpreadTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
+		if (uri != null) e.setAttribute(FILE_ATTRIBUTE_NAME, uri.toASCIIString());
 		return e;
 	}
 
@@ -177,5 +222,14 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_X, e, Mode.ALL);
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_Y, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
+
+		if (e.hasAttribute(FILE_ATTRIBUTE_NAME)) {
+			try {
+				uri = new URI(e.getAttribute(FILE_ATTRIBUTE_NAME));
+				display.setMedia(element, LineTemplate.PROPERTY_IMAGE, uri);
+			} catch (URISyntaxException e1) {
+				e1.printStackTrace();
+			}
+		}
 	}
 }

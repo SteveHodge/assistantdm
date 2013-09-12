@@ -3,7 +3,7 @@
 
 <xs:element name="Frame">
 	<xs:complexType>
-		<xs:attribute name="filename" type="xs:string" use="required"/>
+		<xs:attribute name="uri" type="xs:string" use="required"/>
 	</xs:complexType>
 </xs:element>
 <xs:element name="Animation">
@@ -12,6 +12,9 @@
 			<xs:element ref="Frame" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="framerate" type="xs:int"/>
+		<xs:attribute name="gridwidth" type="xs:decimal"/>
+		<xs:attribute name="gridheight" type="xs:decimal"/>
+		<xs:attribute name="loopframe" type="xs:int"/>
 	</xs:complexType>
 </xs:element>
 

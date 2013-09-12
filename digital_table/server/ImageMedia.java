@@ -10,9 +10,10 @@ import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -41,8 +42,7 @@ import org.xml.sax.SAXException;
 
 public abstract class ImageMedia {
 	MapCanvas canvas;
-	double sourceGridWidth = 0;
-	double sourceGridHeight = 0;
+	Point2D sourceGridSize = null;		// stores the original size (in grid units) of the first image prescaleImage() processes. if left unset then it will be calculated when required from the presumably unscaled frames[0]
 
 	BufferedImage[] frames = null;
 	int index;
@@ -54,7 +54,7 @@ public abstract class ImageMedia {
 	private ImageMedia() {
 	}
 
-	static ImageMedia createImageManager(MapCanvas canvas, byte[] bytes) {
+	static ImageMedia createImageMedia(MapCanvas canvas, byte[] bytes) {
 		ImageMedia m = null;
 		try {
 			ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
@@ -160,23 +160,51 @@ public abstract class ImageMedia {
 	}
 
 	public double getSourceGridWidth() {
-		return sourceGridWidth;
+		if (sourceGridSize == null) {
+			BufferedImage image = getSourceImage();
+			if (image == null) return 0;
+			if (sourceGridSize == null) {
+				// sourceGridSize may have already been set as a consequence of getSourceImage()
+				sourceGridSize = canvas.getRemoteGridCellCoords(image.getWidth(), image.getHeight());
+			}
+		}
+		return sourceGridSize.getX();
 	}
 
 	public double getSourceGridHeight() {
-		return sourceGridHeight;
+		if (sourceGridSize == null) {
+			BufferedImage image = getSourceImage();
+			if (image == null) return 0;
+			if (sourceGridSize == null) {
+				// sourceGridSize may have already been set as a consequence of getSourceImage()
+				sourceGridSize = canvas.getRemoteGridCellCoords(image.getWidth(), image.getHeight());
+			}
+		}
+		return sourceGridSize.getY();
 	}
 
 	public int getCurrentFrameIndex() {
 		return index;
 	}
 
-	// rescales the image based on the canvas resolution (assumes source image resolution matches the remote screen)
-	BufferedImage resizeImage(BufferedImage source) {
+	public int getFrameCount() {
+		if (frames == null) return 0;
+		return frames.length;
+	}
+
+	public void stop() {
+	}
+
+	public void playOrPause() {
+	}
+
+	// prescales the image based on the canvas resolution (assumes source image resolution matches the remote screen)
+	BufferedImage prescaleImage(BufferedImage source) {
 		int srcW = source.getWidth();
 		int srcH = source.getHeight();
 
 		Point2D gridSize = canvas.getRemoteGridCellCoords(srcW, srcH);
+		if (sourceGridSize == null) sourceGridSize = gridSize;
 		Point size = canvas.getDisplayCoordinates(gridSize);
 		int destW = size.x;
 		int destH = size.y;
@@ -218,16 +246,12 @@ public abstract class ImageMedia {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			if (frames[0] == null) return;
-
-			Point2D gridSize = canvas.getRemoteGridCellCoords(frames[0].getWidth(), frames[0].getHeight());
-			sourceGridWidth = gridSize.getX();
-			sourceGridHeight = gridSize.getY();
 		}
 	};
 
 	private static abstract class AnimatedMedia extends ImageMedia {
 		Timer timer = null;
+		int loopFrame = -1;		// frame number to go to after the last frame. -1 means don't loop
 
 		abstract int getDelay(int frame);
 
@@ -236,9 +260,32 @@ public abstract class ImageMedia {
 			return index;
 		}
 
+		@Override
+		public void stop() {
+			if (timer != null) {
+				timer.stop();
+				canvas.repaint();
+				timer.setInitialDelay(getDelay(0));
+			}
+			index = 0;
+		}
+
+		@Override
+		public void playOrPause() {
+			if (timer == null) {
+				initTimer();
+			} else {
+				if (timer.isRunning()) {
+					timer.stop();
+				} else {
+					timer.start();
+				}
+			}
+		}
+
 		// using swing timers means that slow painting will cause slow animation, not just slow framerate
 		// TODO consider switching to general timers
-		void initImages() {
+		void initTimer() {
 			if (frames == null) return;
 
 			index = 0;
@@ -248,8 +295,15 @@ public abstract class ImageMedia {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						index++;
-						if (index >= frames.length) index = 0;
 						canvas.repaint();
+						if (index >= frames.length) {
+							if (loopFrame == -1) {
+								index = 0;
+								timer.stop();
+								return;
+							}
+							index = loopFrame;
+						}
 						timer.setInitialDelay(getDelay(index));
 						timer.start();
 					}
@@ -286,8 +340,18 @@ public abstract class ImageMedia {
 				e.printStackTrace();
 			}
 
-			frames = new BufferedImage[getFrameCount()];
-			transformed = new BufferedImage[getFrameCount()];
+			if (animationNode != null) {
+				frames = new BufferedImage[getFrameCount()];
+				transformed = new BufferedImage[getFrameCount()];
+				if (animationNode.hasAttribute("loopframe")) {
+					loopFrame = Integer.parseInt(animationNode.getAttribute("loopframe"));
+				}
+				if (animationNode.hasAttribute("gridwidth") && animationNode.hasAttribute("gridheight")) {
+					double width = Double.parseDouble(animationNode.getAttribute("gridwidth"));
+					double height = Double.parseDouble(animationNode.getAttribute("gridheight"));
+					sourceGridSize = new Point2D.Double(width, height);
+				}
+			}
 		}
 
 		@Override
@@ -301,7 +365,8 @@ public abstract class ImageMedia {
 			return delay;
 		}
 
-		private int getFrameCount() {
+		@Override
+		public int getFrameCount() {
 			if (animationNode == null) return 0;
 
 			NodeList nodes = animationNode.getChildNodes();
@@ -313,7 +378,7 @@ public abstract class ImageMedia {
 			return count;
 		}
 
-		private String getImageFileName(int frame) {
+		private URI getImageURI(int frame) {
 			if (animationNode == null) return null;
 
 			NodeList nodes = animationNode.getChildNodes();
@@ -321,7 +386,13 @@ public abstract class ImageMedia {
 				Node node = nodes.item(i);
 				if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("Frame")) {
 					if (--frame < 0) {
-						return ((Element) node).getAttribute("filename");
+						URI uri = null;
+						try {
+							uri = new URI(((Element) node).getAttribute("uri"));
+						} catch (URISyntaxException e) {
+							e.printStackTrace();
+						}
+						return uri;
 					}
 				}
 			}
@@ -331,21 +402,12 @@ public abstract class ImageMedia {
 		@Override
 		void readImages() {
 			for (int i = 0; i < frames.length; i++) {
-				String filename = getImageFileName(i);
-
 				try {
-					// TODO more sophisticated filename parsing - detect if it has path or not
-					File imgFile = new File(new File("media"), filename);
-					System.out.println("Adding frame " + imgFile);
-					BufferedImage image = ImageIO.read(imgFile);
+					byte[] bytes = MediaManager.INSTANCE.getFile(getImageURI(i));
+					ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+					BufferedImage image = ImageIO.read(in);
 
-					if (i == 0) {
-						Point2D gridSize = canvas.getRemoteGridCellCoords(image.getWidth(), image.getHeight());
-						sourceGridWidth = gridSize.getX();
-						sourceGridHeight = gridSize.getY();
-					}
-
-					image = resizeImage(image);
+					image = prescaleImage(image);
 					frames[i] = image;
 
 				} catch (IOException e) {
@@ -353,7 +415,7 @@ public abstract class ImageMedia {
 				}
 			}
 
-			initImages();
+			initTimer();
 		}
 	};
 
@@ -380,12 +442,7 @@ public abstract class ImageMedia {
 				e.printStackTrace();
 				return;
 			}
-
-			Point2D gridSize = canvas.getRemoteGridCellCoords(frames[0].getWidth(), frames[0].getHeight());
-			sourceGridWidth = gridSize.getX();
-			sourceGridHeight = gridSize.getY();
-
-			initImages();
+			initTimer();
 		}
 
 		private void readGIF(ImageReader reader) throws IOException {

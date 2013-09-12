@@ -9,6 +9,7 @@ import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -38,6 +39,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
 	private JCheckBox imageVisibleCheck;
+	private URI uri = null;
 
 	LineTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -61,10 +63,31 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		imageButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				URI uri = MediaManager.INSTANCE.showFileChooser(LineTemplateOptionsPanel.this);
-				if (uri != null) display.setMedia(element, LineTemplate.PROPERTY_IMAGE, uri);
+				uri = MediaManager.INSTANCE.showFileChooser(LineTemplateOptionsPanel.this);
+				display.setMedia(element, LineTemplate.PROPERTY_IMAGE, uri);
 			}
 		});
+
+		JButton playButton = new JButton("Play");
+		playButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
+			}
+		});
+
+		JButton stopButton = new JButton("Stop");
+		stopButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
+			}
+		});
+
+		JPanel imagePanel = new JPanel();
+		imagePanel.add(imageButton);
+		imagePanel.add(playButton);
+		imagePanel.add(stopButton);
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -100,7 +123,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		add(rangeField, c);
 		add(colorPanel, c);
 		add(alphaSlider, c);
-		add(imageButton, c);
+		add(imagePanel, c);
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -165,12 +188,14 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 
 	// ---- XML serialisation methods ----
 	final static String XML_TAG = "LineTemplate";
+	private final static String FILE_ATTRIBUTE_NAME = "uri";
 
 	@Override
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
+		if (uri != null) e.setAttribute(FILE_ATTRIBUTE_NAME, uri.toASCIIString());
 		return e;
 	}
 
@@ -186,6 +211,16 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_X, e, Mode.ALL);
 		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_Y, e, Mode.ALL);
 		parseIntegerAttribute(LineTemplate.PROPERTY_RANGE, e, Mode.ALL);
+		parseBooleanAttribute(LineTemplate.PROPERTY_IMAGE_VISIBLE, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
+
+		if (e.hasAttribute(FILE_ATTRIBUTE_NAME)) {
+			try {
+				uri = new URI(e.getAttribute(FILE_ATTRIBUTE_NAME));
+				display.setMedia(element, LineTemplate.PROPERTY_IMAGE, uri);
+			} catch (URISyntaxException e1) {
+				e1.printStackTrace();
+			}
+		}
 	}
 }

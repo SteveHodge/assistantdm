@@ -56,7 +56,7 @@ public enum MediaManager {
 		}
 
 		if (bytes == null) return null;
-		return ImageMedia.createImageManager(canvas, bytes);
+		return ImageMedia.createImageMedia(canvas, bytes);
 	}
 
 	// presents a file chooser dialog using the supplied component as the parent component for the dialog.
