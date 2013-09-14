@@ -144,9 +144,9 @@ public class LineTemplate extends MapElement {
 		g.setComposite(c);
 
 		if (imageVisible.getValue() && image != null) {
-			int frame = image.getCurrentFrameIndex();
-
-			long startTime = System.nanoTime();
+//			int frame = image.getCurrentFrameIndex();
+//
+//			long startTime = System.nanoTime();
 			if (transform == null) {
 				transform = new AffineTransform();
 				transform.setToRotation(e.x - s.x, e.y - s.y);
@@ -160,20 +160,20 @@ public class LineTemplate extends MapElement {
 
 			// try transforming the line in two parts
 
-			long nanos = System.nanoTime() - startTime;
-			totalNanos += nanos;
-			totalFrames++;
-			double millis = (double) nanos / 1000000;
-			double avgMillis = (double) totalNanos / totalFrames / 1000000;
-			//logger.info("Image drawn for " + this + " in " + micros + "ms");
-			System.out.println(String.format("Image " + frame + " took %.3f ms, fps = %.1f. Average after %d: %.3f ms, fps = %.1f", millis, 1000d / millis, totalFrames, avgMillis, 1000d / avgMillis));
+//			long nanos = System.nanoTime() - startTime;
+//			totalNanos += nanos;
+//			totalFrames++;
+//			double millis = (double) nanos / 1000000;
+//			double avgMillis = (double) totalNanos / totalFrames / 1000000;
+//			//logger.info("Image drawn for " + this + " in " + micros + "ms");
+//			System.out.println(String.format("Image " + frame + " took %.3f ms, fps = %.1f. Average after %d: %.3f ms, fps = %.1f", millis, 1000d / millis, totalFrames, avgMillis, 1000d / avgMillis));
 		}
 
 		g.translate(-o.getX(), -o.getY());
 	}
 
-	private long totalNanos = 0;
-	private int totalFrames = 0;
+//	private long totalNanos = 0;
+//	private int totalFrames = 0;
 
 	protected Point getVerticalRange(int x, int targetX, double endX, double endY) {
 		int minY, maxY;	// the range of cells to paint for this column. note that for lines with negative gradiant minY will be larger than maxY
@@ -248,7 +248,13 @@ public class LineTemplate extends MapElement {
 			targetX.setValue((int) p.getX());
 			targetY.setValue((int) p.getY());
 		} else if (property.equals(PROPERTY_IMAGE)) {
-			image = MediaManager.INSTANCE.getImageMedia(canvas, (URI) value);
+			URI uri = (URI) value;
+			if (uri == null) {
+				if (image != null) image.stop();
+				image = null;
+			} else {
+				image = MediaManager.INSTANCE.getImageMedia(canvas, (URI) value);
+			}
 		} else if (property.equals(PROPERTY_IMAGE_PLAY)) {
 			if (image != null) image.playOrPause();
 		} else if (property.equals(PROPERTY_IMAGE_STOP)) {

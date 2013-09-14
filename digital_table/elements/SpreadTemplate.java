@@ -70,6 +70,13 @@ public class SpreadTemplate extends MapElement {
 			return yDir;
 		}
 
+		// rotate clockwise by the specified number of octants
+		public Direction rotate(int octants) {
+			int ord = ordinal() + octants % values().length;
+			if (ord < 0) ord += values().length;
+			return values()[ord];
+		}
+
 		private Direction(int xdir, int ydir) {
 			xDir = xdir;
 			yDir = ydir;
@@ -147,22 +154,29 @@ public class SpreadTemplate extends MapElement {
 		g.setColor(darken(color.getValue()));
 		g.setStroke(getThickStroke());
 		g.draw(area);
+		Point t = canvas.getDisplayCoordinates(x.getValue(), y.getValue());
 		if (type.getValue() == Type.CIRCLE) {
-			Point t = canvas.getDisplayCoordinates(x.getValue(), y.getValue());
 			g.fillOval(t.x - 5, t.y - 5, 10, 10);
-
-			g.setComposite(c);
-			if (imageVisible.getValue() && image != null) {
-				AffineTransform transform = new AffineTransform();
-				// TODO should probably calculate width based on right - left
+		}
+		g.setComposite(c);
+		if (imageVisible.getValue() && image != null) {
+			AffineTransform transform = new AffineTransform();
+			// TODO should probably calculate width based on right - left
+			if (type.getValue() == Type.CIRCLE) {
 				Point size = canvas.getDisplayCoordinates(new Point(radius.getValue() * 2, radius.getValue() * 2));
 				transform.scale(size.getX() / image.getSourceWidth(), size.getY() / image.getSourceHeight());
 				image.setTransform(transform);
 				g.drawImage(image.getImage(), t.x - size.x / 2, t.y - size.y / 2, null);
+			} else if (type.getValue() == Type.QUADRANT) {
+				Point size = canvas.getDisplayCoordinates(new Point(radius.getValue(), radius.getValue()));
+				Direction d = direction.getValue().rotate(-1);	// expected native orientation is SE but transform expects E
+				transform.rotate(d.getXDirection(), d.getYDirection());
+				transform.scale(size.getX() / image.getSourceWidth(), size.getY() / image.getSourceHeight());
+				image.setTransform(transform);
+				g.drawImage(image.getImage(), t.x + (int) image.getTransformedXOffset(), t.y + (int) image.getTransformedYOffset(), null);
 			}
 		}
 		g.setStroke(oldStroke);
-		g.setComposite(c);
 		g.translate(-o.getX(), -o.getY());
 	}
 
@@ -454,7 +468,13 @@ public class SpreadTemplate extends MapElement {
 	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_IMAGE)) {
-			image = MediaManager.INSTANCE.getImageMedia(canvas, (URI) value);
+			URI uri = (URI) value;
+			if (uri == null) {
+				if (image != null) image.stop();
+				image = null;
+			} else {
+				image = MediaManager.INSTANCE.getImageMedia(canvas, (URI) value);
+			}
 		} else if (property.equals(PROPERTY_IMAGE_PLAY)) {
 			if (image != null) image.playOrPause();
 		} else if (property.equals(PROPERTY_IMAGE_STOP)) {

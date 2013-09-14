@@ -12,7 +12,6 @@ import java.beans.PropertyChangeListener;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -28,7 +27,6 @@ import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.SpreadTemplate;
-import digital_table.server.MediaManager;
 
 
 @SuppressWarnings("serial")
@@ -42,8 +40,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 	private JTextField labelField;
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
-	private JCheckBox imageVisibleCheck;
-	private URI uri = null;
+	private ImageMediaOptionsPanel imagePanel;
 
 	SpreadTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -71,37 +68,8 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 
 		labelField = createStringControl(SpreadTemplate.PROPERTY_LABEL, Mode.LOCAL);
 		visibleCheck = createVisibilityControl();
-		imageVisibleCheck = createCheckBox(LineTemplate.PROPERTY_IMAGE_VISIBLE, Mode.ALL, "Image visible?");
 
-		JButton imageButton = new JButton("Set Image");
-		imageButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				uri = MediaManager.INSTANCE.showFileChooser(SpreadTemplateOptionsPanel.this);
-				display.setMedia(element, LineTemplate.PROPERTY_IMAGE, uri);
-			}
-		});
-
-		JButton playButton = new JButton("Play");
-		playButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
-			}
-		});
-
-		JButton stopButton = new JButton("Stop");
-		stopButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
-			}
-		});
-
-		JPanel imagePanel = new JPanel();
-		imagePanel.add(imageButton);
-		imagePanel.add(playButton);
-		imagePanel.add(stopButton);
+		imagePanel = new ImageMediaOptionsPanel();
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -115,7 +83,6 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		add(new JLabel("Transparency:"), c);
 		add(new JLabel("Type:"), c);
 		add(new JLabel("Direction:"), c);
-		add(imageVisibleCheck, c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
@@ -128,11 +95,12 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		add(alphaSlider, c);
 		add(typeCombo, c);
 		add(directionCombo, c);
-		add(imagePanel, c);
 
-		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0;
 		c.gridwidth = 2;
+		add(imagePanel, c);
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
 		add(new JPanel(), c);
 	}
 
@@ -165,6 +133,9 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_Y)) {
 				yField.setText(e.getNewValue().toString());
+
+			} else if (e.getPropertyName().equals(LineTemplate.PROPERTY_IMAGE_VISIBLE)) {
+				imagePanel.imageVisibleCheck.setSelected((Boolean) e.getNewValue());
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
@@ -205,7 +176,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + SpreadTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
-		if (uri != null) e.setAttribute(FILE_ATTRIBUTE_NAME, uri.toASCIIString());
+		if (imagePanel.uri != null) e.setAttribute(FILE_ATTRIBUTE_NAME, imagePanel.uri.toASCIIString());
 		return e;
 	}
 
@@ -221,12 +192,13 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_RADIUS, e, Mode.ALL);
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_X, e, Mode.ALL);
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_Y, e, Mode.ALL);
+		parseBooleanAttribute(SpreadTemplate.PROPERTY_IMAGE_VISIBLE, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 
 		if (e.hasAttribute(FILE_ATTRIBUTE_NAME)) {
 			try {
-				uri = new URI(e.getAttribute(FILE_ATTRIBUTE_NAME));
-				display.setMedia(element, LineTemplate.PROPERTY_IMAGE, uri);
+				URI uri = new URI(e.getAttribute(FILE_ATTRIBUTE_NAME));
+				imagePanel.setURI(uri);
 			} catch (URISyntaxException e1) {
 				e1.printStackTrace();
 			}

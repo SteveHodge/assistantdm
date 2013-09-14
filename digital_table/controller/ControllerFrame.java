@@ -186,6 +186,7 @@ public class ControllerFrame extends JFrame {
 				if (element != null && element != gridPanel.getElement()) {
 					elementPanel.removeAll();
 					elementPanel.revalidate();
+					elementPanel.repaint();
 					display.removeElement(element);
 					optionPanels.remove(element);
 				}

@@ -147,16 +147,25 @@ class DisplayManager {
 	}
 
 	void setMedia(MapElement element, String property, URI uri) {
-		byte[] bytes = MediaManager.INSTANCE.getFile(uri);
-
-		try {
-			if (!remote.hasMedia(uri)) {
-				remote.addMedia(uri, bytes);
+		if (uri == null) {
+			try {
+				remote.setElementProperty(element.getID(), property, null);
+			} catch (RemoteException e) {
+				e.printStackTrace();
 			}
-			remote.setElementProperty(element.getID(), property, uri);
 
-		} catch (RemoteException e) {
-			e.printStackTrace();
+		} else {
+			byte[] bytes = MediaManager.INSTANCE.getFile(uri);
+
+			try {
+				if (!remote.hasMedia(uri)) {
+					remote.addMedia(uri, bytes);
+				}
+				remote.setElementProperty(element.getID(), property, uri);
+
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 		}
 
 		element.setProperty(property, uri);
