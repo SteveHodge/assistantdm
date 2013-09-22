@@ -268,7 +268,6 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
 		c.gridx = 0;
-		c.gridy++;
 		c.gridwidth = 3;
 		add(new JPanel(), c);
 

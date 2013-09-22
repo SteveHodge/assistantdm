@@ -76,13 +76,16 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 			}
 		});
 
+		// note that the remoteVisibleCheck sets the VISIBLE property on both local and remote elements. this allows
+		// the local element to show the remote element's bounds. the localVisibleCheck controls whether the seperate
+		// browser window is visible or not
 		remoteVisibleCheck = new JCheckBox("remote visible?");
 		remoteVisibleCheck.setSelected(false);
 		remoteVisibleCheck.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				JCheckBox check = (JCheckBox) e.getSource();
-				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.REMOTE);
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
 			}
 		});
 
@@ -91,7 +94,6 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 		localVisibleCheck.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				display.setProperty(element, MapElement.PROPERTY_VISIBLE, localVisibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.LOCAL);
 				if (localVisibleCheck.isSelected()) {
 					if (frame == null) {
 						frame = createFrame();

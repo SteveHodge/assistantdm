@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import javax.swing.JPanel;
 
 import digital_table.elements.MapElement;
+import digital_table.server.CoordinateConverter;
 import digital_table.server.MapCanvas;
 import digital_table.server.RepaintListener;
 
@@ -15,16 +16,17 @@ import digital_table.server.RepaintListener;
 @SuppressWarnings("serial")
 class MiniMapCanvas extends MapCanvas {
 	public final static int DEFAULT_CELL_SIZE = 20;
+	private final static int DEFAULT_ROWS = 38;
+	private final static int DEFAULT_COLUMNS = 32;
 
-	private int rows = 38;
-	private int columns = 32;
-
+	private int cellSize = DEFAULT_CELL_SIZE;
 	private MiniMapPanel panel;
+	private CoordinateConverter remote;
 
 	private class MiniMapPanel extends JPanel implements RepaintListener {
 		@Override
 		public Dimension getPreferredSize() {
-			return new Dimension(columns * DEFAULT_CELL_SIZE, rows * DEFAULT_CELL_SIZE);
+			return new Dimension(DEFAULT_COLUMNS * DEFAULT_CELL_SIZE, DEFAULT_ROWS * DEFAULT_CELL_SIZE);
 		}
 
 		@Override
@@ -41,6 +43,15 @@ class MiniMapCanvas extends MapCanvas {
 
 	JPanel getPanel() {
 		return panel;
+	}
+
+	void setRemote(CoordinateConverter remote) {
+		this.remote = remote;
+	}
+
+	@Override
+	public CoordinateConverter getRemote() {
+		return remote;
 	}
 
 	@Override
@@ -78,21 +89,34 @@ class MiniMapCanvas extends MapCanvas {
 
 	@Override
 	protected int getResolutionNumeratorX() {
-		return panel.getWidth();
+		//return panel.getWidth();
+		return cellSize;
 	}
 
 	@Override
 	protected int getResolutionDenominatorX() {
-		return columns;
+		//return DEFAULT_COLUMNS;
+		return 1;
 	}
 
 	@Override
 	protected int getResolutionNumeratorY() {
-		return panel.getHeight();
+		//return panel.getHeight();
+		return cellSize;
 	}
 
 	@Override
 	protected int getResolutionDenominatorY() {
-		return rows;
+		//return DEFAULT_ROWS;
+		return 1;
+	}
+
+	void setCellSize(int size) {
+		cellSize = size;
+		repaint();
+	}
+
+	int getCellSize() {
+		return cellSize;
 	}
 }

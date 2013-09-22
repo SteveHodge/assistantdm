@@ -32,7 +32,7 @@ import digital_table.elements.MapElement;
 // TODO reimplement models and clean up
 // TODO probably should have root MapElement to avoid all the special cases
 
-public class MapCanvas implements ListDataListener {
+public class MapCanvas implements ListDataListener, CoordinateConverter {
 	private DefaultListModel model;
 	private List<RepaintListener> listeners = new ArrayList<RepaintListener>();
 	private Grid grid;	// used to position other element above or below the grid
@@ -203,6 +203,17 @@ public class MapCanvas implements ListDataListener {
 	}
 
 	// ----------------------- coordinate conversion related methods -----------------------
+	// returns a CoordinateConverter that can convert values expressed in remote display units (pixels) into remote
+	// grid units. the default implementation simply returns 'this' (i.e. this MapCanvas already operates in remote
+	// display units).
+	// this is a bit hackish - the local MapCanvas shouldn't really need to know about the remote MapCanvas. however
+	// the local MapCanvas is already passed to all methods that are interested in coordinate conversions so it is
+	// the most convenient place at the moment
+	// TODO consider refactoring to move this elsewhere
+	public CoordinateConverter getRemote() {
+		return this;
+	}
+
 	public void setOffset(int offx, int offy) {
 		xoffset = offx;
 		yoffset = offy;
@@ -221,8 +232,8 @@ public class MapCanvas implements ListDataListener {
 	// methods rather than reimplementing the entire set of coordinate conversion methods.
 	// the default implementations give a resolution of one inch per grid cell on a 0.294 mm dot pitch monitor:
 	// (25400 mm per 100 inches / 294 mm per 100 dots = 86.39 dots per inch)
-	private final static int RESOLUTION_NUMERATOR = 25400;
-	private final static int RESOLUTION_DENOMINATOR = 294;
+	public final static int RESOLUTION_NUMERATOR = 25400;
+	public final static int RESOLUTION_DENOMINATOR = 294;
 
 	protected int getResolutionNumeratorX() {
 		return RESOLUTION_NUMERATOR;
@@ -261,6 +272,8 @@ public class MapCanvas implements ListDataListener {
 //	public Dimension2D getRemoteGridDimension(int left, int top, int right, int bottom) {
 //	}
 
+	// returns a Dimension representing the size on pixel units of a rectangle with the width and height specified (in grid
+	// units).
 	public Dimension getDisplayDimension(double width, double height) {
 		int w = (int) (width * getResolutionNumeratorX() / getResolutionDenominatorX());
 		int h = (int) (height * getResolutionNumeratorY() / getResolutionDenominatorY());
@@ -268,12 +281,12 @@ public class MapCanvas implements ListDataListener {
 	}
 
 	// returns the precise size in grid units of the rectangle located at (0,0) with the specified width and height
-	// (which are in the coordinate system of the remote display). note that this may give imprecise results due to
+	// (which are in the coordinate system of the display). note that this may give imprecise results due to
 	// round in the coordinate conversions
-	// TODO should probably return a Dimension2D. and it should be a method on the remote display
-	public Point2D getRemoteGridDimension(int width, int height) {
-		double col = (double) width * RESOLUTION_DENOMINATOR / RESOLUTION_NUMERATOR;
-		double row = (double) height * RESOLUTION_DENOMINATOR / RESOLUTION_NUMERATOR;
+	@Override
+	public Point2D getGridDimension(int width, int height) {
+		double col = (double) width * getResolutionDenominatorX() / getResolutionNumeratorX();
+		double row = (double) height * getResolutionDenominatorY() / getResolutionNumeratorY();
 		return new Point2D.Double(col, row);
 	}
 
@@ -302,23 +315,6 @@ public class MapCanvas implements ListDataListener {
 //
 //	}
 
-	// TODO this should probably accessed through the DisplayManager
-	/**
-	 * Get the precise (potentially fractional) grid coordinates of the pixel (x,y) where the pixel coordinates
-	 * are in the coordinate system of the remote display.
-	 * 
-	 * @param x
-	 *            the pixel's x coordinate
-	 * @param y
-	 *            the pixel's y coordinate
-	 * @return a Point2D.Double containing the grid coordinates
-	 */
-	public Point2D getRemoteGridCoordinates(int x, int y) {
-		double col = (double) x * RESOLUTION_DENOMINATOR / RESOLUTION_NUMERATOR;
-		double row = (double) y * RESOLUTION_DENOMINATOR / RESOLUTION_NUMERATOR;
-		return new Point2D.Double(col + xoffset, row + yoffset);
-	}
-
 	/**
 	 * Get the precise (potentially fractional) grid coordinates of the pixel (x,y)
 	 * 
@@ -328,6 +324,7 @@ public class MapCanvas implements ListDataListener {
 	 *            the pixel's y coordinate
 	 * @return a Point2D.Double containing the grid coordinates
 	 */
+	@Override
 	public Point2D getGridCoordinates(int x, int y) {
 		double col = (double) x * getResolutionDenominatorX() / getResolutionNumeratorX();
 		double row = (double) y * getResolutionDenominatorY() / getResolutionNumeratorY();

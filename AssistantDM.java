@@ -74,8 +74,6 @@ import digital_table.controller.DigitalTableController;
 /* TODO current priorities:
  * load/save encounter
  * placeholder visibility type (mainly for images)
- * Zoomed view on controller
- * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
  * parsing display xml resets the node priorty - need to save the list model order
  *
  * BUG handle io exceptions while reading display.xml

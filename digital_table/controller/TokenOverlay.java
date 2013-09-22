@@ -28,7 +28,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import util.Updater;
-import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
@@ -317,7 +316,8 @@ class TokenOverlay {
 				MapElement copy = (MapElement) is.readObject();
 				is.close();
 
-				if (!(copy instanceof Grid)) copy.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
+				//if (!(copy instanceof Grid))
+				copy.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
 
 				canvas.addElement(copy, parent);
 				elements.put(copy.getID(), copy);

@@ -1,9 +1,12 @@
 package digital_table.controller;
 
+import java.awt.geom.Point2D;
 import java.net.URI;
 import java.rmi.RemoteException;
 
 import digital_table.elements.MapElement;
+import digital_table.server.CoordinateConverter;
+import digital_table.server.MapCanvas;
 import digital_table.server.MediaManager;
 import digital_table.server.TableDisplay;
 
@@ -18,7 +21,7 @@ import digital_table.server.TableDisplay;
  * 
  */
 
-class DisplayManager {
+class DisplayManager implements CoordinateConverter {
 	enum Mode {
 		ALL,		// all displays
 		LOCAL,		// only the local (DM's) display
@@ -29,6 +32,9 @@ class DisplayManager {
 	private TableDisplay remote;
 	private MiniMapCanvas local;
 	private TokenOverlay overlay;
+
+	private int xoffset = 0;	// cached values of any offsets applied to the remote display
+	private int yoffset = 0;
 
 	DisplayManager(TableDisplay remote, MiniMapCanvas local, TokenOverlay overlay) {
 		this.remote = remote;
@@ -70,11 +76,12 @@ class DisplayManager {
 //		}
 //	}
 
-	void setOffset(int offx, int offy) {
+	void setRemoteOffset(int offx, int offy) {
 		try {
 			remote.setOffset(offx, offy);
 			if (overlay != null) overlay.setOffset(offx, offy);
-			local.setOffset(offx, offy);
+			xoffset = offx;
+			yoffset = offy;
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -179,5 +186,33 @@ class DisplayManager {
 		}
 
 		element.setProperty(property, uri);
+	}
+
+	// CoordinateConverter methods
+	// these convert coordinates in the remote display's coordinate system to the remote grid coordinate system
+	// the conversion is performed locally using cached information on the required coordinate systems
+
+	@Override
+	public Point2D getGridDimension(int width, int height) {
+		double col = (double) width * MapCanvas.RESOLUTION_DENOMINATOR / MapCanvas.RESOLUTION_NUMERATOR;
+		double row = (double) height * MapCanvas.RESOLUTION_DENOMINATOR / MapCanvas.RESOLUTION_NUMERATOR;
+		return new Point2D.Double(col, row);
+	}
+
+	@Override
+	public Point2D getGridCoordinates(int x, int y) {
+		double col = (double) x * MapCanvas.RESOLUTION_DENOMINATOR / MapCanvas.RESOLUTION_NUMERATOR;
+		double row = (double) y * MapCanvas.RESOLUTION_DENOMINATOR / MapCanvas.RESOLUTION_NUMERATOR;
+		return new Point2D.Double(col + xoffset, row + yoffset);
+	}
+
+	@Override
+	public int getXOffset() {
+		return xoffset;
+	}
+
+	@Override
+	public int getYOffset() {
+		return yoffset;
 	}
 }

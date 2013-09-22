@@ -36,8 +36,8 @@ public class ScreenBounds extends MapElement {
 		Area area = new Area(g.getClip());
 		for (DisplayConfig.Screen screen : DisplayConfig.screens) {
 			if (screen.open) {
-				Point2D topLeft = canvas.getRemoteGridCoordinates(screen.location.x, screen.location.y);
-				Point2D bottomRight = canvas.getRemoteGridCoordinates(screen.location.x + screen.size.width, screen.location.y + screen.size.height);
+				Point2D topLeft = canvas.getRemote().getGridCoordinates(screen.location.x, screen.location.y);
+				Point2D bottomRight = canvas.getRemote().getGridCoordinates(screen.location.x + screen.size.width, screen.location.y + screen.size.height);
 				Point tl = canvas.getDisplayCoordinates(topLeft);
 				Point br = canvas.getDisplayCoordinates(bottomRight);
 				Area a = new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y));

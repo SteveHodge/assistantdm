@@ -34,8 +34,8 @@ public class BrowserLocal extends Browser {
 		int browserSize = Math.min(s.size.width, s.size.height);
 		int x = s.location.x + (s.size.width - browserSize) / 2;
 		int y = s.location.y + (s.size.height - browserSize) / 2;
-		Point2D topLeft = canvas.getRemoteGridCoordinates(x, y);
-		Point2D bottomRight = canvas.getRemoteGridCoordinates(x + browserSize, y + browserSize);
+		Point2D topLeft = canvas.getRemote().getGridCoordinates(x, y);
+		Point2D bottomRight = canvas.getRemote().getGridCoordinates(x + browserSize, y + browserSize);
 		Point tl = canvas.getDisplayCoordinates(topLeft);
 		Point br = canvas.getDisplayCoordinates(bottomRight);
 		g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);

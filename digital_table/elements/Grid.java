@@ -85,7 +85,7 @@ public class Grid extends MapElement {
 			int row = rulerRow.getValue();
 			for (int col = tlCell.x; col <= brCell.x; col++) {
 				canvas.getDisplayCoordinates(col, row + canvas.getYOffset(), p);
-				String s = getLetterIndex(col - canvas.getXOffset());
+				String s = getLetterIndex(col - canvas.getRemote().getXOffset());
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 				g.setColor(backgroundColor.getValue());
 				g.fillRect(p.x, p.y, cellWidth+1, (int)(-strBounds.getY() + 4));
@@ -108,7 +108,7 @@ public class Grid extends MapElement {
 			int col = rulerColumn.getValue();
 			for (int row = tlCell.y; row <= brCell.y; row++) {
 				canvas.getDisplayCoordinates(col + canvas.getXOffset(), row, p);
-				String s = "" + (row + 1 - canvas.getYOffset());
+				String s = "" + (row + 1 - canvas.getRemote().getYOffset());
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 				g.setColor(backgroundColor.getValue());
 				g.fillRect((int)(p.x + cellWidth + strBounds.getY()-2), p.y,

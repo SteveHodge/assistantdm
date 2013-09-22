@@ -8,9 +8,11 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 
@@ -33,13 +35,13 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
 
-	private int xoffset = 0;
-	private int yoffset = 0;
 	private JTextField xOffsetField;
 	private JTextField yOffsetField;
+	private MiniMapCanvas canvas;
 
-	GridOptionsPanel(DisplayManager r) {
+	GridOptionsPanel(DisplayManager r, MiniMapCanvas mmc) {
 		super(r);
+		canvas = mmc;
 		element = new Grid();
 		display.addElement(element, null);
 		element.addPropertyChangeListener(listener);
@@ -52,8 +54,10 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		xOffsetField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				xoffset = Integer.parseInt(xOffsetField.getText());
-				display.setOffset(xoffset, yoffset);
+				int xoffset = Integer.parseInt(xOffsetField.getText());
+				int delta = display.getXOffset();
+				display.setRemoteOffset(xoffset, display.getYOffset());
+				canvas.setOffset(canvas.getXOffset() + delta, canvas.getYOffset());
 			}
 		});
 		yOffsetField = new JTextField(8);
@@ -61,8 +65,10 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		yOffsetField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				yoffset = Integer.parseInt(yOffsetField.getText());
-				display.setOffset(xoffset, yoffset);
+				int yoffset = Integer.parseInt(yOffsetField.getText());
+				int delta = display.getYOffset();
+				display.setRemoteOffset(display.getXOffset(), yoffset);
+				canvas.setOffset(canvas.getXOffset(), canvas.getYOffset() + delta);
 			}
 		});
 
@@ -77,6 +83,31 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		visibleCheck = createVisibilityControl();
 		visibleCheck.setSelected(true);
 
+		JButton zoomInButton = new JButton("Zoom in");
+		zoomInButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int size = canvas.getCellSize();
+				size = size + 10;
+				canvas.setCellSize(size);
+			}
+		});
+
+		JButton zoomOutButton = new JButton("Zoom out");
+		zoomOutButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int size = canvas.getCellSize();
+				size = size - 10;
+				if (size < 10) size = 10;
+				canvas.setCellSize(size);
+			}
+		});
+
+		JPanel buttons = new JPanel();
+		buttons.add(zoomInButton);
+		buttons.add(zoomOutButton);
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -86,7 +117,9 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		add(new JLabel("Colour:"), c);
 		add(new JLabel("Background:"), c);
 		add(new JLabel("Transparency:"), c);
+		c.gridy = 7;	// leave a gap for the separator
 		add(new JLabel("X Offset:"), c);
+		c.gridy = GridBagConstraints.RELATIVE;
 		add(new JLabel("Y Offset:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
@@ -98,12 +131,20 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		add(colorPanel, c);
 		add(bgColorPanel, c);
 		add(alphaSlider, c);
+		c.gridy = 7;
 		add(xOffsetField, c);
+		c.gridy = GridBagConstraints.RELATIVE;
 		add(yOffsetField, c);
+		add(buttons, c);
 
-		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0;
 		c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridy = 6;
+		add(new JSeparator(JSeparator.HORIZONTAL), c);
+
+		c.gridy = 10;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
 		add(new JPanel(), c);
 	}
 
@@ -121,12 +162,10 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		return field;
 	}
 
-	void setOffset(int x, int y) {
-		xoffset = x;
-		yoffset = y;
-		display.setOffset(xoffset, yoffset);
-		xOffsetField.setText(Integer.toString(xoffset));
-		yOffsetField.setText(Integer.toString(yoffset));
+	void setRemoteOffset(int x, int y) {
+		display.setRemoteOffset(x, y);
+		xOffsetField.setText(Integer.toString(x));
+		yOffsetField.setText(Integer.toString(y));
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -170,8 +209,8 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_ROW, rulerRowField.getText());
 		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_COLUMN, rulerColumnField.getText());
-		setAttribute(e, X_OFFSET_ATTRIBUTE, Integer.toString(xoffset));
-		setAttribute(e, Y_OFFSET_ATTRIBUTE, Integer.toString(yoffset));
+		setAttribute(e, X_OFFSET_ATTRIBUTE, Integer.toString(display.getXOffset()));
+		setAttribute(e, Y_OFFSET_ATTRIBUTE, Integer.toString(display.getYOffset()));
 		return e;
 	}
 
@@ -187,10 +226,11 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		parseIntegerAttribute(Grid.PROPERTY_RULER_COLUMN, e, rulerColumnField);
 		String xoff = e.getAttribute(X_OFFSET_ATTRIBUTE);
 		String yoff = e.getAttribute(Y_OFFSET_ATTRIBUTE);
+		int xoffset = 0;
+		int yoffset = 0;
 		if (xoff.length() > 0) xoffset = Integer.parseInt(xoff);
 		if (yoff.length() > 0) yoffset = Integer.parseInt(yoff);
-		if (xoff.length() > 0 || yoff.length() > 0) {
-			setOffset(xoffset, yoffset);
-		}
+		setRemoteOffset(xoffset, yoffset);
+		canvas.setOffset(xoffset, yoffset);
 	}
 }

@@ -74,7 +74,7 @@ public class Initiative extends MapElement {
 			Composite c = g.getComposite();
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
-			Point p = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
+			Point p = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue() + canvas.getRemote().getXOffset(), y.getValue() + canvas.getRemote().getYOffset()));
 			int x0 = p.x + 5;
 			int x1 = p.x + 5 + col1Width + 10;
 			int y = p.y + 5 + metrics.getAscent();

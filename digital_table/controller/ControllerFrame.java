@@ -92,6 +92,7 @@ public class ControllerFrame extends JFrame {
 			overlayFrame.setVisible(true);
 		}
 		display = new DisplayManager(remote, miniMapCanvas, overlay);
+		miniMapCanvas.setRemote(display);
 
 		miniMapCanvas.getPanel().addMouseMotionListener(miniMapMouseListener);
 		miniMapCanvas.getPanel().addMouseListener(miniMapMouseListener);
@@ -283,7 +284,7 @@ public class ControllerFrame extends JFrame {
 
 		pack();
 
-		gridPanel = new GridOptionsPanel(display);
+		gridPanel = new GridOptionsPanel(display, miniMapCanvas);
 		optionPanels.put(gridPanel.getElement(), gridPanel);
 
 		setVisible(true);
@@ -330,20 +331,25 @@ public class ControllerFrame extends JFrame {
 		private boolean dragging = false;
 		private int button;
 		private Point offset;
-		private int originalx, originaly;
+		private int startOffsetX, startOffsetY;	// original offsets for remote
+		private int localOffsetX, localOffsetY;	// original offsets for local
 
 		private void setOffset(Point p) {
 			int x = (offset.x - p.x) / miniMapCanvas.getColumnWidth();
 			int y = (offset.y - p.y) / miniMapCanvas.getRowHeight();
-			gridPanel.setOffset(originalx + x, originaly + y);
+			if (button == MouseEvent.BUTTON3)
+				gridPanel.setRemoteOffset(startOffsetX + x, startOffsetY + y);
+			miniMapCanvas.setOffset(localOffsetX + x, localOffsetY + y);
 		}
 
 		@Override
 		public void mousePressed(MouseEvent e, Point2D gridloc) {
 			button = e.getButton();
 			offset = e.getPoint();
-			originalx = miniMapCanvas.getXOffset();
-			originaly = miniMapCanvas.getYOffset();
+			startOffsetX = display.getXOffset();
+			startOffsetY = display.getYOffset();
+			localOffsetX = miniMapCanvas.getXOffset();
+			localOffsetY = miniMapCanvas.getYOffset();
 		}
 
 		@Override
@@ -356,7 +362,7 @@ public class ControllerFrame extends JFrame {
 
 		@Override
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {
-			if (button == MouseEvent.BUTTON1) {
+			if (button == MouseEvent.BUTTON1 || button == MouseEvent.BUTTON3) {
 				dragging = true;
 			}
 			if (dragging) {
