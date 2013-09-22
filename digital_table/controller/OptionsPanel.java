@@ -386,39 +386,45 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 
 	void parseBooleanAttribute(String property, Element domElement, JCheckBox check) {
 		String domProp = REMOTE_PREFIX + property;
-		if (domElement.hasAttribute(domProp)) {
-			boolean value = Boolean.parseBoolean(domElement.getAttribute(domProp));
+		String attr = domElement.getAttribute(domProp);
+		if (attr.length() > 0) {
+			boolean value = Boolean.parseBoolean(attr);
 			display.setProperty(element, property, value, Mode.REMOTE);
 			check.setSelected(value);
 		}
 	}
 
 	void parseBooleanAttribute(String property, Element domElement, Mode mode) {
-		if (domElement.hasAttribute(property)) {
-			boolean value = Boolean.parseBoolean(domElement.getAttribute(property));
+		String attr = domElement.getAttribute(property);
+		if (attr.length() > 0) {
+			boolean value = Boolean.parseBoolean(attr);
 			display.setProperty(element, property, value, mode);
 		}
 	}
 
 	void parseIntegerAttribute(String property, Element domElement, JTextComponent field) {
 		String domProp = REMOTE_PREFIX + property;
-		if (domElement.hasAttribute(domProp)) {
-//			try {
-			int value = Integer.parseInt(domElement.getAttribute(domProp));
-			display.setProperty(element, property, value, Mode.REMOTE);
-			field.setText(Integer.toString(value));
-//			} catch (NumberFormatException e) {
-//			}
+		String attr = domElement.getAttribute(domProp);
+		if (attr.length() > 0) {
+			try {
+				int value = Integer.parseInt(attr);
+				display.setProperty(element, property, value, Mode.REMOTE);
+				field.setText(Integer.toString(value));
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	void parseIntegerAttribute(String property, Element domElement, Mode mode) {
-		if (domElement.hasAttribute(property)) {
-//			try {
-			int value = Integer.parseInt(domElement.getAttribute(property));
-			display.setProperty(element, property, value, mode);
-//			} catch (NumberFormatException e) {
-//			}
+		String attr = domElement.getAttribute(property);
+		if (attr.length() > 0) {
+			try {
+				int value = Integer.parseInt(attr);
+				display.setProperty(element, property, value, mode);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -441,51 +447,64 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	}
 
 	void parseFloatAttribute(String property, Element domElement, Mode mode) {
-		if (domElement.hasAttribute(property)) {
-//			try {
-			float value = Float.parseFloat(domElement.getAttribute(property));
-			display.setProperty(element, property, value, mode);
-//			} catch (NumberFormatException e) {
-//			}
+		String attr = domElement.getAttribute(property);
+		if (attr.length() > 0) {
+			try {
+				float value = Float.parseFloat(attr);
+				display.setProperty(element, property, value, mode);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	void parseDoubleAttribute(String property, Element domElement, Mode mode) {
-		if (domElement.hasAttribute(property)) {
-//			try {
-			double value = Double.parseDouble(domElement.getAttribute(property));
-			display.setProperty(element, property, value, mode);
-//			} catch (NumberFormatException e) {
-//			}
+		String attr = domElement.getAttribute(property);
+		if (attr.length() > 0) {
+			try {
+				double value = Double.parseDouble(attr);
+				display.setProperty(element, property, value, mode);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	void parseColorAttribute(String property, Element domElement, Mode mode) {
-		if (domElement.hasAttribute(property)) {
-//			try {
-			Color value = Color.decode(domElement.getAttribute(property));
-			display.setProperty(element, property, value, mode);
-//			} catch (NumberFormatException e) {
-//			}
+		String attr = domElement.getAttribute(property);
+		if (attr.length() > 0) {
+			try {
+				Color value = Color.decode(attr);
+				display.setProperty(element, property, value, mode);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	<T extends Enum<T>> void parseEnumAttribute(String property, Class<T> enumType, Element domElement, Mode mode) {
-		if (domElement.hasAttribute(property)) {
-//			try {
-			T value = Enum.valueOf(enumType, domElement.getAttribute(property));
-			display.setProperty(element, property, value, mode);
-//			} catch (IllegalArgumentException e) {
-//			}
+		String attr = domElement.getAttribute(property);
+		if (attr.length() > 0) {
+			try {
+				T value = Enum.valueOf(enumType, attr);
+				display.setProperty(element, property, value, mode);
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	void parseVisibility(Element domElement, JCheckBox visibleCheck) {
 		String domProp = REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE;
-		if (domElement.hasAttribute(domProp)) {
-			Visibility v = Visibility.valueOf(domElement.getAttribute(domProp));
-			display.setProperty(element, MapElement.PROPERTY_VISIBLE, v, Mode.REMOTE);
-			visibleCheck.setSelected(v != Visibility.HIDDEN);
+		String attr = domElement.getAttribute(domProp);
+		if (attr.length() > 0) {
+			try {
+				Visibility v = Visibility.valueOf(attr);
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, v, Mode.REMOTE);
+				visibleCheck.setSelected(v != Visibility.HIDDEN);
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

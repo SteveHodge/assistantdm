@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Stroke;
@@ -151,8 +152,8 @@ public class LineTemplate extends MapElement {
 				transform = new AffineTransform();
 				transform.setToRotation(e.x - s.x, e.y - s.y);
 				// TODO should probably calculate width based on right - left
-				Point size = canvas.getDisplayCoordinates(new Point(range.getValue(), 3));
-				transform.scale(size.getX() / image.getSourceWidth(), size.getY() / image.getSourceHeight());
+				Dimension size = canvas.getDisplayDimension(range.getValue(), 3);
+				transform.scale(size.getWidth() / image.getSourceWidth(), size.getHeight() / image.getSourceHeight());
 				transform.translate(0, -image.getSourceHeight() / 2);
 				image.setTransform(transform);
 			}

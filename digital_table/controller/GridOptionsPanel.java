@@ -33,6 +33,11 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
 
+	private int xoffset = 0;
+	private int yoffset = 0;
+	private JTextField xOffsetField;
+	private JTextField yOffsetField;
+
 	GridOptionsPanel(DisplayManager r) {
 		super(r);
 		element = new Grid();
@@ -41,6 +46,25 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 
 		rulerRowField = createNullableIntegerControl(Grid.PROPERTY_RULER_ROW, Mode.REMOTE);
 		rulerColumnField = createNullableIntegerControl(Grid.PROPERTY_RULER_COLUMN, Mode.REMOTE);
+
+		xOffsetField = new JTextField(8);
+		xOffsetField.setText("0");
+		xOffsetField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				xoffset = Integer.parseInt(xOffsetField.getText());
+				display.setOffset(xoffset, yoffset);
+			}
+		});
+		yOffsetField = new JTextField(8);
+		yOffsetField.setText("0");
+		yOffsetField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				yoffset = Integer.parseInt(yOffsetField.getText());
+				display.setOffset(xoffset, yoffset);
+			}
+		});
 
 		// set local options
 		element.setProperty(Grid.PROPERTY_RULER_COLUMN, 0);
@@ -56,23 +80,30 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 0; add(visibleCheck, c);
-		c.gridy = 1; add(new JLabel("Ruler Row:"), c);
-		c.gridy = 2; add(new JLabel("Ruler Column:"), c);
-		c.gridy = 3; add(new JLabel("Colour:"), c);
-		c.gridy = 4; add(new JLabel("Background:"), c);
-		c.gridy = 5; add(new JLabel("Transparency:"), c);
+		add(visibleCheck, c);
+		add(new JLabel("Ruler Row:"), c);
+		add(new JLabel("Ruler Column:"), c);
+		add(new JLabel("Colour:"), c);
+		add(new JLabel("Background:"), c);
+		add(new JLabel("Transparency:"), c);
+		add(new JLabel("X Offset:"), c);
+		add(new JLabel("Y Offset:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 1; add(rulerRowField, c);
-		c.gridy = 2; add(rulerColumnField, c);
-		c.gridy = 3; add(colorPanel, c);
-		c.gridy = 4; add(bgColorPanel, c);
-		c.gridy = 5; add(alphaSlider, c);
+		c.gridy = 1;
+		add(rulerRowField, c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(rulerColumnField, c);
+		add(colorPanel, c);
+		add(bgColorPanel, c);
+		add(alphaSlider, c);
+		add(xOffsetField, c);
+		add(yOffsetField, c);
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0; c.gridy = 6; c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridwidth = 2;
 		add(new JPanel(), c);
 	}
 
@@ -88,6 +119,14 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 			}
 		});
 		return field;
+	}
+
+	void setOffset(int x, int y) {
+		xoffset = x;
+		yoffset = y;
+		display.setOffset(xoffset, yoffset);
+		xOffsetField.setText(Integer.toString(xoffset));
+		yOffsetField.setText(Integer.toString(yoffset));
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -121,6 +160,8 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 
 	// ---- XML serialisation methods ----
 	final static String XML_TAG = "Grid";
+	private final static String X_OFFSET_ATTRIBUTE = "xoffset";
+	private final static String Y_OFFSET_ATTRIBUTE = "yoffset";
 
 	@Override
 	Element getElement(Document doc) {
@@ -129,6 +170,8 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_ROW, rulerRowField.getText());
 		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_COLUMN, rulerColumnField.getText());
+		setAttribute(e, X_OFFSET_ATTRIBUTE, Integer.toString(xoffset));
+		setAttribute(e, Y_OFFSET_ATTRIBUTE, Integer.toString(yoffset));
 		return e;
 	}
 
@@ -142,5 +185,12 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		parseVisibility(e, visibleCheck);
 		parseIntegerAttribute(Grid.PROPERTY_RULER_ROW, e, rulerRowField);
 		parseIntegerAttribute(Grid.PROPERTY_RULER_COLUMN, e, rulerColumnField);
+		String xoff = e.getAttribute(X_OFFSET_ATTRIBUTE);
+		String yoff = e.getAttribute(Y_OFFSET_ATTRIBUTE);
+		if (xoff.length() > 0) xoffset = Integer.parseInt(xoff);
+		if (yoff.length() > 0) yoffset = Integer.parseInt(yoff);
+		if (xoff.length() > 0 || yoff.length() > 0) {
+			setOffset(xoffset, yoffset);
+		}
 	}
 }

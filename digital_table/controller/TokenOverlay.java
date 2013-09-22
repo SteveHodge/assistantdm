@@ -28,6 +28,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import util.Updater;
+import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
@@ -57,51 +58,23 @@ class TokenOverlay {
 		int width, height;
 
 		@Override
-		public int getColumnWidth() {
-			//return getWidth() / columns;
-			return height / columns;
+		protected int getResolutionNumeratorX() {
+			return height;
 		}
 
 		@Override
-		public int getRowHeight() {
-			//return getHeight() / rows;
-			return width / rows;
-		}
-
-		// get the grid coordinates of the grid cell containing (x,y)
-		@Override
-		public Point getGridCellCoordinates(int x, int y) {
-			int col = x * columns / height;
-			int row = y * rows / width;
-			return new Point(col, row);
-		}
-
-		// get the pixel location of the top left corner of the grid cell at (col, row)
-		// if p is not null the the location is stored in p and returned
-		@Override
-		public Point getDisplayCoordinates(int col, int row, Point p) {
-			if (p == null) p = new Point();
-			p.x = col * height / columns;
-			p.y = row * width / rows;
-			return p;
+		protected int getResolutionDenominatorX() {
+			return columns;
 		}
 
 		@Override
-		public Point getDisplayCoordinates(int col, int row) {
-			return getDisplayCoordinates(col, row, null);
+		protected int getResolutionNumeratorY() {
+			return width;
 		}
 
 		@Override
-		public Point2D getGridCoordinates(int x, int y) {
-			return new Point2D.Double((double) x * columns / height, (double) y * rows / width);
-		}
-
-		@Override
-		public Point getDisplayCoordinates(Point2D p) {
-			Point p2 = new Point();
-			p2.x = (int) (p.getX() * height / columns);
-			p2.y = (int) (p.getY() * width / rows);
-			return p2;
+		protected int getResolutionDenominatorY() {
+			return rows;
 		}
 	};
 
@@ -254,6 +227,10 @@ class TokenOverlay {
 		canvas = new CameraOverlayCanvas();
 	}
 
+	void setOffset(int offx, int offy) {
+		canvas.setOffset(offx, offy);
+	}
+
 	// intended for debugging
 	@SuppressWarnings("serial")
 	JPanel getPanel() {
@@ -340,7 +317,7 @@ class TokenOverlay {
 				MapElement copy = (MapElement) is.readObject();
 				is.close();
 
-				copy.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
+				if (!(copy instanceof Grid)) copy.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
 
 				canvas.addElement(copy, parent);
 				elements.put(copy.getID(), copy);

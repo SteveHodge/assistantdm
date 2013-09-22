@@ -27,10 +27,10 @@ class DisplayManager {
 	}
 
 	private TableDisplay remote;
-	private MiniMapPanel local;
+	private MiniMapCanvas local;
 	private TokenOverlay overlay;
 
-	DisplayManager(TableDisplay remote, MiniMapPanel local, TokenOverlay overlay) {
+	DisplayManager(TableDisplay remote, MiniMapCanvas local, TokenOverlay overlay) {
 		this.remote = remote;
 		this.local = local;
 		this.overlay = overlay;
@@ -69,6 +69,16 @@ class DisplayManager {
 //			e.printStackTrace();
 //		}
 //	}
+
+	void setOffset(int offx, int offy) {
+		try {
+			remote.setOffset(offx, offy);
+			if (overlay != null) overlay.setOffset(offx, offy);
+			local.setOffset(offx, offy);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
 
 	void addElement(MapElement element, MapElement parent) {
 		addElement(element, parent, element);

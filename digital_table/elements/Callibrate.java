@@ -2,6 +2,7 @@ package digital_table.elements;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 
 import digital_table.server.MapCanvas.Order;
@@ -33,16 +34,14 @@ public class Callibrate extends MapElement {
 			g.fill(g.getClip());
 		}
 
+		Point tl = canvas.getDisplayCoordinates(left + canvas.getXOffset(), top + canvas.getYOffset());
+		Point br = canvas.getDisplayCoordinates(right + canvas.getXOffset(), bottom + canvas.getYOffset());
 		g.setColor(Color.RED);
-		Point2D p = canvas.getDisplayCoordinates(left, top);
-		g.fillOval((int) p.getX() - size / 2, (int) p.getY() - size / 2, size, size);
-		p = canvas.getDisplayCoordinates(left, bottom);
-		g.fillOval((int) p.getX() - size / 2, (int) p.getY() - size / 2, size, size);
+		g.fillOval(tl.x - size / 2, tl.y - size / 2, size, size);
+		g.fillOval(tl.x - size / 2, br.y - size / 2, size, size);
 		g.setColor(Color.BLUE);
-		p = canvas.getDisplayCoordinates(right, top);
-		g.fillOval((int) p.getX() - size / 2, (int) p.getY() - size / 2, size, size);
-		p = canvas.getDisplayCoordinates(right, bottom);
-		g.fillOval((int) p.getX() - size / 2, (int) p.getY() - size / 2, size, size);
+		g.fillOval(br.x - size / 2, tl.y - size / 2, size, size);
+		g.fillOval(br.x - size / 2, br.y - size / 2, size, size);
 	}
 
 	@Override

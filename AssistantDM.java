@@ -72,7 +72,14 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * load/save encounter
  * placeholder visibility type (mainly for images)
+ * Zoomed view on controller
+ * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
+ * parsing display xml resets the node priorty - need to save the list model order
+ *
+ * BUG handle io exceptions while reading display.xml
+ * BUG exception if image width or height is set to 0
  * clear all for images. also cleared squares should be translucent on local
  * asynchronous loading of images
  * soft references for ImageMedia - at least for transformed images
@@ -81,7 +88,6 @@ import digital_table.controller.DigitalTableController;
  * should be able to temporarily disable armor/shield
  * add caching of loaded files in MediaManager
  * performance improvements in animation code - bounding boxes for elements
- * parsing display xml resets the node priorty - need to save the list model order
  * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
  * get rid of XMLUtils. make sure all classes are converted to parseDOM style code
  * rearrange images. also find animal names - stats blocks
@@ -108,17 +114,13 @@ import digital_table.controller.DigitalTableController;
  */
 /* TODO digital tabletop (dtt) priorities:
  * Consider expanding "selected" support. Would need hierarchy support as with visibility
- * Load/Save
  * Improve camera integration, fix ui for camera panel
  * Refactor common utility methods into MapElement (e.g. template creation)
  * Alternate button dragging (e.g. resize)
  * Recalibrate - could be done using screen bounds element
  * Auto configure - set defaults according to OS screen layout
- * Fix MapImage so that rotation preseves scale
  * Make line and spread templates editable?
  * Swarm Token (editable token with replicated painting)
- * Zoomed view on controller
- * MiniMapPanel should maintain aspect ratio when resizing (at least optionally)
  * Convert MapElements to use location property instead of X and Y properties - will reduce dragging code in OptionsPanel subclasses
  * dice roller element?
  * thrown object scatter?

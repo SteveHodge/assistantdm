@@ -57,9 +57,9 @@ public class Label extends MapElement {
 		Font f = g.getFont();
 		float newSize;
 		if (rotations.getValue() % 2 == 0) {
-			newSize = canvas.getDisplayCoordinates(new Point2D.Float(0, fontSize.getValue().floatValue())).y;
+			newSize = canvas.getDisplayDimension(0, fontSize.getValue()).height;
 		} else {
-			newSize = canvas.getDisplayCoordinates(new Point2D.Float(fontSize.getValue().floatValue(), 0)).x;
+			newSize = canvas.getDisplayDimension(fontSize.getValue(), 0).width;
 		}
 		g.setFont(f.deriveFont(newSize));
 

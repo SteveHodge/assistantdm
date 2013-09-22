@@ -2,6 +2,7 @@ package digital_table.elements;
 
 import java.awt.AlphaComposite;
 import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -53,18 +54,6 @@ public class MapImage extends MapElement {
 			int oldR = rotations.getValue();
 			if (oldR == r) return;
 			super.setValue(r);
-
-			AffineTransform transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
-			Point2D size;
-			if (oldR % 2 == 0) {
-				size = new Point2D.Double(width.getValue(), height.getValue());
-			} else {
-				size = new Point2D.Double(height.getValue(), width.getValue());
-			}
-			Point bottomRight = canvas.getDisplayCoordinates(size);
-			// TODO should probably calculate width based on right - left
-			transform.scale(bottomRight.getX() / image.getSourceWidth(), bottomRight.getY() / image.getSourceHeight());
-			image.setTransform(transform);
 
 			if ((r + oldR) % 2 == 1) {
 				// change is an odd number of quadrants so we need to swap width and height
@@ -123,7 +112,22 @@ public class MapImage extends MapElement {
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
 		Point offset = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
+		// update the image transform. this needs to be done on every repaint as the grid size may have changed
+		AffineTransform transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
+		double w, h;
+		if (rotations.getValue() % 2 == 0) {
+			w = width.getValue();
+			h = height.getValue();
+		} else {
+			w = height.getValue();
+			h = width.getValue();
+		}
+		Dimension displaySize = canvas.getDisplayDimension(w, h);
+		transform.scale(displaySize.getWidth() / image.getSourceWidth(), displaySize.getHeight() / image.getSourceHeight());
+		image.setTransform(transform);
 		g.drawImage(image.getImage(), offset.x, offset.y, null);
+//		g.setColor(Color.RED);
+//		g.drawRect(offset.x, offset.y, image.getImage().getWidth(), image.getImage().getHeight());
 
 		g.setComposite(c);
 		g.setClip(oldClip);
@@ -171,18 +175,6 @@ public class MapImage extends MapElement {
 			if (image != null) image.stop();
 		} else {
 			super.setProperty(property, value);
-		}
-		if (property.equals(PROPERTY_WIDTH) || property.equals(PROPERTY_HEIGHT)) {
-			AffineTransform transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
-			Point2D size;
-			if (rotations.getValue() % 2 == 0) {
-				size = new Point2D.Double(width.getValue(), height.getValue());
-			} else {
-				size = new Point2D.Double(height.getValue(), width.getValue());
-			}
-			Point bottomRight = canvas.getDisplayCoordinates(size);
-			transform.scale(bottomRight.getX() / image.getSourceWidth(), bottomRight.getY() / image.getSourceHeight());
-			image.setTransform(transform);
 		}
 	}
 

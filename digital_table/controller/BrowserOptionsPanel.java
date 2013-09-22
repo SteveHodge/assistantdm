@@ -91,6 +91,7 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 		localVisibleCheck.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, localVisibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.LOCAL);
 				if (localVisibleCheck.isSelected()) {
 					if (frame == null) {
 						frame = createFrame();

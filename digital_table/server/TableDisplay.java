@@ -17,6 +17,8 @@ public interface TableDisplay extends Remote {
 
 	public void showScreens(int[] screenNums, Point[] offsets) throws RemoteException;
 
+	public void setOffset(int offx, int offy) throws RemoteException;
+
 	public void addElement(MapElement element) throws RemoteException;
 
 	public void addElement(MapElement element, int parent) throws RemoteException;

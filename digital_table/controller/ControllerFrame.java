@@ -4,34 +4,33 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import javafx.application.Platform;
 
 import javax.swing.AbstractAction;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.MouseInputListener;
 import javax.swing.event.TreeModelEvent;
@@ -63,12 +62,12 @@ public class ControllerFrame extends JFrame {
 	private static ControllerFrame instance = null;	// TODO remove
 
 	private DisplayManager display;
-	private MiniMapPanel miniMapPanel = new MiniMapPanel();
+	private MiniMapCanvas miniMapCanvas = new MiniMapCanvas();
 	private TokenOverlay overlay = null;
 	private CameraPanel camera;
 	private JPanel elementPanel = new JPanel();
 	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<MapElement, OptionsPanel<?>>();
-	private JList availableList;
+	private JComboBox availableCombo;
 	private JTree elementTree;
 	private GridOptionsPanel gridPanel;
 
@@ -92,11 +91,11 @@ public class ControllerFrame extends JFrame {
 			overlayFrame.pack();
 			overlayFrame.setVisible(true);
 		}
-		display = new DisplayManager(remote, miniMapPanel, overlay);
+		display = new DisplayManager(remote, miniMapCanvas, overlay);
 
-		miniMapPanel.addMouseMotionListener(miniMapMouseListener);
-		miniMapPanel.addMouseListener(miniMapMouseListener);
-		add(miniMapPanel);
+		miniMapCanvas.getPanel().addMouseMotionListener(miniMapMouseListener);
+		miniMapCanvas.getPanel().addMouseListener(miniMapMouseListener);
+		add(miniMapCanvas.getPanel());
 
 		AddElementAction<?>[] availableElements = {
 				tokenAction,
@@ -115,10 +114,9 @@ public class ControllerFrame extends JFrame {
 				screensAction,
 				callibrateAction
 		};
-		availableList = new JList(availableElements);
-		availableList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		availableCombo = new JComboBox(availableElements);
 
-		elementTree = new JTree(miniMapPanel.getTreeModel());
+		elementTree = new JTree(miniMapCanvas.getTreeModel());
 		elementTree.setRootVisible(false);
 		elementTree.setVisibleRowCount(10);
 		elementTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -149,10 +147,10 @@ public class ControllerFrame extends JFrame {
 		addButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				AddElementAction<?> action = (AddElementAction<?>) availableList.getSelectedValue();
+				AddElementAction<?> action = (AddElementAction<?>) availableCombo.getSelectedItem();
 				if (action != null) {
 					OptionsPanel<?> options = action.addElement(null);
-					elementTree.setSelectionPath(miniMapPanel.getTreePath(options.getElement()));
+					elementTree.setSelectionPath(miniMapCanvas.getTreePath(options.getElement()));
 				}
 			}
 		});
@@ -161,11 +159,11 @@ public class ControllerFrame extends JFrame {
 		addChildButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				AddElementAction<?> action = (AddElementAction<?>) availableList.getSelectedValue();
+				AddElementAction<?> action = (AddElementAction<?>) availableCombo.getSelectedItem();
 				MapElement parent = getSelectedElement();
 				if (action != null && parent != null && parent instanceof Group) {
 					OptionsPanel<?> options = action.addElement(parent);
-					elementTree.setSelectionPath(miniMapPanel.getTreePath(options.getElement()));
+					elementTree.setSelectionPath(miniMapCanvas.getTreePath(options.getElement()));
 				}
 			}
 		});
@@ -193,6 +191,34 @@ public class ControllerFrame extends JFrame {
 			}
 		});
 
+		JButton resetButton = new JButton("Reset");
+		resetButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO should traverse the element tree instead of scanning the optionpanels
+				Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
+				while (panels.hasNext()) {
+					OptionsPanel<?> panel = panels.next();
+					if (panel != gridPanel
+							&& !(panel instanceof BoundsOptionsPanel)
+							&& !(panel instanceof CallibrateOptionsPanel)
+							&& !(panel instanceof InitiativeOptionsPanel)
+							&& !(panel instanceof CameraOptionsPanel)
+							&& !(panel instanceof GroupOptionsPanel)) {
+						// will also want to skip tokens that are bound to characters and descendents of such tokens
+						display.removeElement(panel.getElement());
+						panels.remove();
+					}
+				}
+				// TODO should remove any empty groups
+				elementPanel.removeAll();
+				elementPanel.add(gridPanel);
+				gridPanel.revalidate();
+				gridPanel.repaint();
+				elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
+			}
+		});
+
 		JButton upButton = new JButton("Up");
 		upButton.addActionListener(new ActionListener() {
 			@Override
@@ -200,7 +226,7 @@ public class ControllerFrame extends JFrame {
 				MapElement element = getSelectedElement();
 				if (element != null) {
 					display.promoteElement(element);
-					elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
+					elementTree.setSelectionPath(miniMapCanvas.getTreePath(element));
 				}
 			}
 		});
@@ -212,7 +238,7 @@ public class ControllerFrame extends JFrame {
 				MapElement element = getSelectedElement();
 				if (element != null) {
 					display.demoteElement(element);
-					elementTree.setSelectionPath(miniMapPanel.getTreePath(element));
+					elementTree.setSelectionPath(miniMapCanvas.getTreePath(element));
 				}
 			}
 		});
@@ -225,26 +251,33 @@ public class ControllerFrame extends JFrame {
 			}
 		});
 
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setLayout(new GridLayout(0, 4));
-		buttonPanel.add(addButton);
-		buttonPanel.add(removeButton);
-		buttonPanel.add(upButton);
-		buttonPanel.add(downButton);
-		buttonPanel.add(addChildButton);
-		buttonPanel.add(groupsButton);
+		JPanel rightPanel = new JPanel();
+		rightPanel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridy = 0;
+		c.weightx = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		rightPanel.add(availableCombo, c);
+		rightPanel.add(addButton, c);
+		rightPanel.add(addChildButton, c);
+		rightPanel.add(groupsButton, c);
+
+		c.gridy++;
+		rightPanel.add(upButton, c);
+		rightPanel.add(downButton, c);
+		rightPanel.add(removeButton, c);
+		rightPanel.add(resetButton, c);
 		//		buttonPanel.add(quitButton);
 
-		JPanel rightPanel = new JPanel();
-		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
-		rightPanel.add(Box.createHorizontalStrut(420));
-		rightPanel.add(new JScrollPane(availableList));
-		rightPanel.add(buttonPanel);
-		rightPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-		rightPanel.add(new JScrollPane(elementTree));
-		rightPanel.add(elementPanel);
+		c.gridy = GridBagConstraints.RELATIVE;
+		c.gridx = 0;
+		c.gridwidth = 4;
+		rightPanel.add(new JScrollPane(elementTree), c);
+
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1;
+		rightPanel.add(elementPanel, c);
 		elementPanel.setLayout(new BorderLayout());
-		rightPanel.add(Box.createVerticalGlue());
 
 		add(rightPanel, BorderLayout.EAST);
 
@@ -288,16 +321,61 @@ public class ControllerFrame extends JFrame {
 			TokenOptionsPanel panel = instance.tokenAction.addElement(null);
 			panel.setCreature(m);
 			panel.setImage(imageFile);
-			instance.elementTree.setSelectionPath(instance.miniMapPanel.getTreePath(panel.getElement()));
+			instance.elementTree.setSelectionPath(instance.miniMapCanvas.getTreePath(panel.getElement()));
 		}
 	}
 
+	// this MapElementMouseListener changes the canvas offset when it detects mouse dragging
+	private MapElementMouseListener gridMouseListener = new MapElementMouseListener() {
+		private boolean dragging = false;
+		private int button;
+		private Point offset;
+		private int originalx, originaly;
+
+		private void setOffset(Point p) {
+			int x = (offset.x - p.x) / miniMapCanvas.getColumnWidth();
+			int y = (offset.y - p.y) / miniMapCanvas.getRowHeight();
+			gridPanel.setOffset(originalx + x, originaly + y);
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e, Point2D gridloc) {
+			button = e.getButton();
+			offset = e.getPoint();
+			originalx = miniMapCanvas.getXOffset();
+			originaly = miniMapCanvas.getYOffset();
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e, Point2D gridloc) {
+			if (dragging) {
+				setOffset(e.getPoint());
+				dragging = false;
+			}
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent e, Point2D gridloc) {
+			if (button == MouseEvent.BUTTON1) {
+				dragging = true;
+			}
+			if (dragging) {
+				setOffset(e.getPoint());
+			}
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e, Point2D gridloc) {
+		}
+	};
+
 	private MouseInputListener miniMapMouseListener = new MouseInputListener() {
-		protected MapElementMouseListener getOptionsPanel() {
+		protected MapElementMouseListener getElementMouseListener() {
 			MapElement element = getSelectedElement();
 			if (element != null) {
 				OptionsPanel<?> options = optionPanels.get(element);
 				if (options != null) {
+					if (options == gridPanel) return gridMouseListener;
 					return options.getMouseListener();
 				}
 			}
@@ -306,36 +384,36 @@ public class ControllerFrame extends JFrame {
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			MapElementMouseListener l = getOptionsPanel();
+			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mousePressed(e, miniMapPanel.getGridCoordinates(e.getX(), e.getY()));
+				l.mousePressed(e, miniMapCanvas.getGridCoordinates(e.getX(), e.getY()));
 				return;
 			}
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			MapElementMouseListener l = getOptionsPanel();
+			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseReleased(e, miniMapPanel.getGridCoordinates(e.getX(), e.getY()));
+				l.mouseReleased(e, miniMapCanvas.getGridCoordinates(e.getX(), e.getY()));
 				return;
 			}
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			MapElementMouseListener l = getOptionsPanel();
+			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseDragged(e, miniMapPanel.getGridCoordinates(e.getX(), e.getY()));
+				l.mouseDragged(e, miniMapCanvas.getGridCoordinates(e.getX(), e.getY()));
 				return;
 			}
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			MapElementMouseListener l = getOptionsPanel();
+			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseClicked(e, miniMapPanel.getGridCoordinates(e.getX(), e.getY()));
+				l.mouseClicked(e, miniMapCanvas.getGridCoordinates(e.getX(), e.getY()));
 				return;
 			}
 		}
@@ -390,7 +468,7 @@ public class ControllerFrame extends JFrame {
 			if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_LABEL)
 					|| (e.getSource() instanceof Label && e.getPropertyName().equals(Label.PROPERTY_TEXT))) {
 				MapElement element = (MapElement) e.getSource();
-				miniMapPanel.updateTreeNode(element);
+				miniMapCanvas.updateTreeNode(element);
 				//elementTree.repaint();
 			}
 		}
@@ -404,7 +482,7 @@ public class ControllerFrame extends JFrame {
 		GroupsDialog() {
 			super(ControllerFrame.this, "Rearrange hierarchy", true);
 
-			elements = new JTree(miniMapPanel.getTreeModel());
+			elements = new JTree(miniMapCanvas.getTreeModel());
 			elements.setRootVisible(false);
 			elements.setVisibleRowCount(10);
 			elements.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
@@ -493,7 +571,7 @@ public class ControllerFrame extends JFrame {
 
 		TreeModel groupsTreeModel = new TreeModel() {
 			private EventListenerList listeners = new EventListenerList();
-			private TreeModel m = miniMapPanel.getTreeModel();
+			private TreeModel m = miniMapCanvas.getTreeModel();
 
 			{
 				m.addTreeModelListener(new TreeModelListener() {
@@ -758,7 +836,7 @@ public class ControllerFrame extends JFrame {
 	private void addChildren(Document doc, Element docParent, TreeModel tree, Object treeParent) {
 		for (int i = 0; i < tree.getChildCount(treeParent); i++) {
 			Object mapElement = tree.getChild(treeParent, i);
-			OptionsPanel<?> p = this.optionPanels.get(mapElement);
+			OptionsPanel<?> p = optionPanels.get(mapElement);
 			Element e = p.getElement(doc);
 			if (e != null) {
 				docParent.appendChild(e);
@@ -769,7 +847,7 @@ public class ControllerFrame extends JFrame {
 
 	public Node getElement(Document doc) {
 		Element root = doc.createElement("Elements");
-		TreeModel tree = miniMapPanel.getTreeModel();
+		TreeModel tree = miniMapCanvas.getTreeModel();
 		addChildren(doc, root, tree, tree.getRoot());
 		return root;
 	}
@@ -835,7 +913,7 @@ public class ControllerFrame extends JFrame {
 		if (!el.getTagName().equals("Elements")) return;
 
 		parseNode(el, null);
-		elementTree.setSelectionPath(miniMapPanel.getTreePath(gridPanel.getElement()));
+		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
 	}
 
 	public void updateOverlay(int width, int height) {

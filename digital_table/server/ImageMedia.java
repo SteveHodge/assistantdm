@@ -165,7 +165,7 @@ public abstract class ImageMedia {
 			if (image == null) return 0;
 			if (sourceGridSize == null) {
 				// sourceGridSize may have already been set as a consequence of getSourceImage()
-				sourceGridSize = canvas.getRemoteGridCellCoords(image.getWidth(), image.getHeight());
+				sourceGridSize = canvas.getRemoteGridDimension(image.getWidth(), image.getHeight());
 			}
 		}
 		return sourceGridSize.getX();
@@ -177,7 +177,7 @@ public abstract class ImageMedia {
 			if (image == null) return 0;
 			if (sourceGridSize == null) {
 				// sourceGridSize may have already been set as a consequence of getSourceImage()
-				sourceGridSize = canvas.getRemoteGridCellCoords(image.getWidth(), image.getHeight());
+				sourceGridSize = canvas.getRemoteGridDimension(image.getWidth(), image.getHeight());
 			}
 		}
 		return sourceGridSize.getY();
@@ -203,7 +203,7 @@ public abstract class ImageMedia {
 		int srcW = source.getWidth();
 		int srcH = source.getHeight();
 
-		Point2D gridSize = canvas.getRemoteGridCellCoords(srcW, srcH);
+		Point2D gridSize = canvas.getRemoteGridDimension(srcW, srcH);
 		if (sourceGridSize == null) sourceGridSize = gridSize;
 		Point size = canvas.getDisplayCoordinates(gridSize);
 		int destW = size.x;

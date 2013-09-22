@@ -196,6 +196,11 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	}
 
 	@Override
+	public void setOffset(int offx, int offy) {
+		canvas.setOffset(offx, offy);
+	}
+
+	@Override
 	public void addElement(MapElement element) {
 		element.setScreenMananger(this);
 		canvas.addElement(element, null);

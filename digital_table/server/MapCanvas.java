@@ -1,5 +1,6 @@
 package digital_table.server;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -36,11 +37,16 @@ public class MapCanvas implements ListDataListener {
 	private List<RepaintListener> listeners = new ArrayList<RepaintListener>();
 	private Grid grid;	// used to position other element above or below the grid
 
+	// xoffset and yoffset specify the number of grid squares that are added to grid coordinates during conversions
+	// the grid square at grid coordinates (xoffset,yoffset) will be the top left square of the "standard" display
+	protected int xoffset = 0;
+	protected int yoffset = 0;
+
 	public enum Order {
 		TOP,		// use for popups, informational elements
 		ABOVEGRID,	// use for creatures
 		BELOWGRID,	// use for templates
-		BOTTOM;		// use for backgrounds images
+		BOTTOM;		// use for background images
 	}
 
 	public MapCanvas() {
@@ -175,14 +181,16 @@ public class MapCanvas implements ListDataListener {
 		for (int i = model.getSize() - 1; i >= 0; i--) {
 			MapElement r = (MapElement) model.getElementAt(i);
 			if (r != null) {
-				//System.out.println("Painting "+r);
-				// get offset
+				// get ancestor's relative position
 				Point2D offset = new Point2D.Double();
 				Group parent = r.getParent();
 				while (parent != null) {
 					offset = parent.translate(offset);
 					parent = parent.getParent();
 				}
+				// we need to adjust the offset because this element's paint will add the parent's position
+				// to it's own which will result in the offset being applied twice.
+				offset.setLocation(offset.getX() + xoffset, offset.getY() + yoffset);	// TODO this is hacky - elements should not sum pixel positions - they should sum grid position and then convert
 				r.paint(g, offset);
 			}
 		}
@@ -194,17 +202,110 @@ public class MapCanvas implements ListDataListener {
 		}
 	}
 
+	// ----------------------- coordinate conversion related methods -----------------------
+	public void setOffset(int offx, int offy) {
+		xoffset = offx;
+		yoffset = offy;
+		repaint();
+	}
+
+	public int getXOffset() {
+		return xoffset;
+	}
+
+	public int getYOffset() {
+		return yoffset;
+	}
+
+	// the getResolution... methods are used in coordinate conversions. subclasses can override these
+	// methods rather than reimplementing the entire set of coordinate conversion methods.
+	// the default implementations give a resolution of one inch per grid cell on a 0.294 mm dot pitch monitor:
+	// (25400 mm per 100 inches / 294 mm per 100 dots = 86.39 dots per inch)
+	private final static int RESOLUTION_NUMERATOR = 25400;
+	private final static int RESOLUTION_DENOMINATOR = 294;
+
+	protected int getResolutionNumeratorX() {
+		return RESOLUTION_NUMERATOR;
+	}
+
+	protected int getResolutionDenominatorX() {
+		return RESOLUTION_DENOMINATOR;
+	}
+
+	protected int getResolutionNumeratorY() {
+		return RESOLUTION_NUMERATOR;
+	}
+
+	protected int getResolutionDenominatorY() {
+		return RESOLUTION_DENOMINATOR;
+	}
+
+	// this should be used for calculating the size of element features that are relative to the grid size (e.g. font
+	// sizes, line thicknesses, etc). it should not be used for calculating sizes of features that need to align to the
+	// grid (as it returns an integer approximation of the true grid cell width)
 	public int getColumnWidth() {
-		return 25400 / 294;
+		return getResolutionNumeratorX() / getResolutionDenominatorX();
 	}
 
+	// this should be used for calculating the size of element features that are relative to the grid size (e.g. font
+	// sizes, line thicknesses, etc). it should not be used for calculating sizes of features that need to align to the
+	// grid (as it returns an integer approximation of the true grid cell width)
 	public int getRowHeight() {
-		return 25400 / 294;
+		return getResolutionNumeratorY() / getResolutionDenominatorY();
 	}
 
+	// TODO implement top-left-bottom-right versions of the get...Dimension() methods. could convert the existing methods to top-left-width-height
+
+	// returns the precise size in grid units of the rectangle defined by the supplied coordinates (which are in the
+	// coordinate system of the remote display)
+//	public Dimension2D getRemoteGridDimension(int left, int top, int right, int bottom) {
+//	}
+
+	public Dimension getDisplayDimension(double width, double height) {
+		int w = (int) (width * getResolutionNumeratorX() / getResolutionDenominatorX());
+		int h = (int) (height * getResolutionNumeratorY() / getResolutionDenominatorY());
+		return new Dimension(w, h);
+	}
+
+	// returns the precise size in grid units of the rectangle located at (0,0) with the specified width and height
+	// (which are in the coordinate system of the remote display). note that this may give imprecise results due to
+	// round in the coordinate conversions
+	// TODO should probably return a Dimension2D. and it should be a method on the remote display
+	public Point2D getRemoteGridDimension(int width, int height) {
+		double col = (double) width * RESOLUTION_DENOMINATOR / RESOLUTION_NUMERATOR;
+		double row = (double) height * RESOLUTION_DENOMINATOR / RESOLUTION_NUMERATOR;
+		return new Point2D.Double(col, row);
+	}
+
+//	private static class Dimension2DDouble extends Dimension2D {
+//		private double width, height;
+//
+//		Dimension2DDouble(double w, double h) {
+//			setSize(w, h);
+//		}
+//
+//		@Override
+//		public double getHeight() {
+//			return height;
+//		}
+//
+//		@Override
+//		public double getWidth() {
+//			return width;
+//		}
+//
+//		@Override
+//		public void setSize(double w, double h) {
+//			width = w;
+//			height = h;
+//		}
+//
+//	}
+
+	// TODO this should probably accessed through the DisplayManager
 	/**
 	 * Get the precise (potentially fractional) grid coordinates of the pixel (x,y) where the pixel coordinates
-	 * are in the coordinate system of the remote display
+	 * are in the coordinate system of the remote display.
 	 * 
 	 * @param x
 	 *            the pixel's x coordinate
@@ -212,25 +313,10 @@ public class MapCanvas implements ListDataListener {
 	 *            the pixel's y coordinate
 	 * @return a Point2D.Double containing the grid coordinates
 	 */
-	public Point2D getRemoteGridCellCoords(int x, int y) {
-		double col = (double) x * 294 / 25400;
-		double row = (double) y * 294 / 25400;
-		return new Point2D.Double(col, row);
-	}
-
-	/**
-	 * Get the integer grid coordinates of the grid cell containing (x,y)
-	 * 
-	 * @param x
-	 *            the pixel's x coordinate
-	 * @param y
-	 *            the pixel's y coordinate
-	 * @return a Point containing the grid coordinates
-	 */
-	public Point getGridCellCoordinates(int x, int y) {
-		int col = x * 294 / 25400;
-		int row = y * 294 / 25400;
-		return new Point(col, row);
+	public Point2D getRemoteGridCoordinates(int x, int y) {
+		double col = (double) x * RESOLUTION_DENOMINATOR / RESOLUTION_NUMERATOR;
+		double row = (double) y * RESOLUTION_DENOMINATOR / RESOLUTION_NUMERATOR;
+		return new Point2D.Double(col + xoffset, row + yoffset);
 	}
 
 	/**
@@ -243,7 +329,9 @@ public class MapCanvas implements ListDataListener {
 	 * @return a Point2D.Double containing the grid coordinates
 	 */
 	public Point2D getGridCoordinates(int x, int y) {
-		return getRemoteGridCellCoords(x, y);
+		double col = (double) x * getResolutionDenominatorX() / getResolutionNumeratorX();
+		double row = (double) y * getResolutionDenominatorY() / getResolutionNumeratorY();
+		return new Point2D.Double(col + xoffset, row + yoffset);
 	}
 
 	/**
@@ -259,8 +347,8 @@ public class MapCanvas implements ListDataListener {
 	 */
 	public Point getDisplayCoordinates(int col, int row, Point p) {
 		if (p == null) p = new Point();
-		p.x = col * 25400 / 294;
-		p.y = row * 25400 / 294;
+		p.x = (col - xoffset) * getResolutionNumeratorX() / getResolutionDenominatorX();
+		p.y = (row - yoffset) * getResolutionNumeratorY() / getResolutionDenominatorY();
 		return p;
 	}
 
@@ -285,10 +373,12 @@ public class MapCanvas implements ListDataListener {
 	 * @return a new Point containing the pixel coordinates corresponding the grid point p
 	 */
 	public Point getDisplayCoordinates(Point2D p) {
-		int x = (int) (p.getX() * 25400 / 294);
-		int y = (int) (p.getY() * 25400 / 294);
+		int x = (int) ((p.getX() - xoffset) * getResolutionNumeratorX() / getResolutionDenominatorX());
+		int y = (int) ((p.getY() - yoffset) * getResolutionNumeratorY() / getResolutionDenominatorY());
 		return new Point(x, y);
 	}
+
+	// ----------------------- tree model related methods -----------------------
 
 	@Override
 	public void contentsChanged(ListDataEvent arg0) {

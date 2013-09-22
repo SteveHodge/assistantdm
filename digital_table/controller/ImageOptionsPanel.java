@@ -231,9 +231,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_X, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_Y, e, Mode.ALL);
+		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.ALL);	// must be done before dimensions
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
-		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.ALL);
 
 		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
 			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");

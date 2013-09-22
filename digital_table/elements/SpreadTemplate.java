@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -162,16 +163,17 @@ public class SpreadTemplate extends MapElement {
 		if (imageVisible.getValue() && image != null) {
 			AffineTransform transform = new AffineTransform();
 			// TODO should probably calculate width based on right - left
+
 			if (type.getValue() == Type.CIRCLE) {
-				Point size = canvas.getDisplayCoordinates(new Point(radius.getValue() * 2, radius.getValue() * 2));
-				transform.scale(size.getX() / image.getSourceWidth(), size.getY() / image.getSourceHeight());
+				Dimension newSize = canvas.getDisplayDimension(radius.getValue() * 2, radius.getValue() * 2);
+				transform.scale(newSize.getWidth() / image.getSourceWidth(), newSize.getHeight() / image.getSourceHeight());
 				image.setTransform(transform);
-				g.drawImage(image.getImage(), t.x - size.x / 2, t.y - size.y / 2, null);
+				g.drawImage(image.getImage(), t.x - newSize.width / 2, t.y - newSize.height / 2, null);
 			} else if (type.getValue() == Type.QUADRANT) {
-				Point size = canvas.getDisplayCoordinates(new Point(radius.getValue(), radius.getValue()));
+				Dimension size = canvas.getDisplayDimension(radius.getValue(), radius.getValue());
 				Direction d = direction.getValue().rotate(-1);	// expected native orientation is SE but transform expects E
 				transform.rotate(d.getXDirection(), d.getYDirection());
-				transform.scale(size.getX() / image.getSourceWidth(), size.getY() / image.getSourceHeight());
+				transform.scale(size.getWidth() / image.getSourceWidth(), size.getHeight() / image.getSourceHeight());
 				image.setTransform(transform);
 				g.drawImage(image.getImage(), t.x + (int) image.getTransformedXOffset(), t.y + (int) image.getTransformedYOffset(), null);
 			}

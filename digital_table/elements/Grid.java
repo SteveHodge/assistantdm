@@ -11,6 +11,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+// TODO consider breaking this into separate grid and coordinate elements so that the coordinate labels can be show above all other elements
+
 public class Grid extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -50,8 +52,12 @@ public class Grid extends MapElement {
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
 		Rectangle bounds = g.getClipBounds();
-		Point tlCell = canvas.getGridCellCoordinates(bounds.x, bounds.y);
-		Point brCell = canvas.getGridCellCoordinates(bounds.x + bounds.width, bounds.y + bounds.height);
+		Point2D tl = canvas.getGridCoordinates(bounds.x, bounds.y);
+		Point tlCell = new Point();
+		tlCell.setLocation(tl.getX(), tl.getY());
+		Point2D br = canvas.getGridCoordinates(bounds.x + bounds.width, bounds.y + bounds.height);
+		Point brCell = new Point();
+		brCell.setLocation(br.getX(), br.getY());
 
 		Point p = new Point();
 		int cellWidth = canvas.getColumnWidth();
@@ -61,7 +67,7 @@ public class Grid extends MapElement {
 			for (int row = tlCell.y; row <= brCell.y; row++) {
 				for (int col = tlCell.x; col <= brCell.x; col++) {
 					canvas.getDisplayCoordinates(col, row, p);
-					String s = ""+col+","+row;
+					String s = "" + (col - canvas.getXOffset()) + "," + (row - canvas.getYOffset());
 					Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 					g.drawString(s,
 							(int)(p.x + (cellWidth - strBounds.getWidth())/2 - strBounds.getX()),
@@ -78,8 +84,8 @@ public class Grid extends MapElement {
 			g.setFont(f.deriveFont(newSize));
 			int row = rulerRow.getValue();
 			for (int col = tlCell.x; col <= brCell.x; col++) {
-				canvas.getDisplayCoordinates(col, row, p);
-				String s = getLetterIndex(col);
+				canvas.getDisplayCoordinates(col, row + canvas.getYOffset(), p);
+				String s = getLetterIndex(col - canvas.getXOffset());
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 				g.setColor(backgroundColor.getValue());
 				g.fillRect(p.x, p.y, cellWidth+1, (int)(-strBounds.getY() + 4));
@@ -101,8 +107,8 @@ public class Grid extends MapElement {
 			g.setFont(f.deriveFont(newSize).deriveFont(rot));
 			int col = rulerColumn.getValue();
 			for (int row = tlCell.y; row <= brCell.y; row++) {
-				canvas.getDisplayCoordinates(col, row, p);
-				String s = ""+(row+1);
+				canvas.getDisplayCoordinates(col + canvas.getXOffset(), row, p);
+				String s = "" + (row + 1 - canvas.getYOffset());
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 				g.setColor(backgroundColor.getValue());
 				g.fillRect((int)(p.x + cellWidth + strBounds.getY()-2), p.y,

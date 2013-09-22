@@ -57,7 +57,7 @@ public class Initiative extends MapElement {
 		g.translate(o.getX(), o.getY());
 
 		Font f = g.getFont();
-		float newSize = canvas.getDisplayCoordinates(new Point2D.Float(fontSize, 0)).x;
+		float newSize = canvas.getDisplayDimension(0, fontSize).height;
 		g.setFont(f.deriveFont(newSize));
 
 		List<String[]> text = getTable();
