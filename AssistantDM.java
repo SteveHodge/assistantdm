@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -38,14 +37,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableModel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
@@ -65,6 +56,7 @@ import ui.SelectPartyDialog;
 import ui.UpdateCharacterDialog;
 import ui.XPEntryDialog;
 import util.Updater;
+import util.XMLUtils;
 import camera.CameraPanel;
 
 import combat.CombatPanel;
@@ -72,9 +64,22 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * load/save encounter
- * placeholder visibility type (mainly for images)
+ * implement monsters with statistics, make them targettable
+ *
+ * rework attacks - they need an interface to filter properties like type etc. then filters can be used to build
+ * target lists (e.g  "type=bludgeoning and subclass=one handed melee")
+ *
+ * rework statistc notification system. a listener registered with the top of a tree (like Skills or Attacks)
+ * should get notification of all sub-statistics. consider whether statistics need to provide old and new values
+ * (this is desirable for mutable Modifiers at least)
+ * 
+ * consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
+ * level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
+ * 
  * parsing display xml resets the node priorty - need to save the list model order
+ * fix quit code so that closing the main window correctly closes the digital table controller
+ * allow the digital table controller to run without a remote
+ * look at standardising attribute naming style in xml documents - currently have camel case for combat.xml, lower with underscores most other cases but a few cases of lower with dashes in party.xml
  *
  * BUG handle io exceptions while reading display.xml
  * BUG exception if image width or height is set to 0
@@ -87,7 +92,6 @@ import digital_table.controller.DigitalTableController;
  * add caching of loaded files in MediaManager
  * performance improvements in animation code - bounding boxes for elements
  * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
- * get rid of XMLUtils. make sure all classes are converted to parseDOM style code
  * rearrange images. also find animal names - stats blocks
  * alternate token image for dead creatures
  * website: simplify updating - updates can be missed at the moment
@@ -439,8 +443,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	}
 
 	public void saveParty(File f) {
-		FileWriter outputStream = null;
-
 		// check if file exists
 		if (f.exists()) {
 			String filename = f.getName();
@@ -463,31 +465,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			doc.appendChild(party.getElement(doc));
-			doc.setXmlStandalone(true);
-			Transformer trans = TransformerFactory.newInstance().newTransformer();
-			trans.setOutputProperty(OutputKeys.INDENT, "yes");
-			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-			outputStream = new FileWriter(f);
-			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
-
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		} catch (TransformerConfigurationException e) {
-			e.printStackTrace();
-		} catch (TransformerFactoryConfigurationError e) {
-			e.printStackTrace();
+			XMLUtils.writeDOM(doc, f);
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
-		} catch (TransformerException e) {
-			e.printStackTrace();
-		} finally {
-			if (outputStream != null) {
-				try {
-					outputStream.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
 		}
 	}
 
@@ -515,36 +495,12 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 	}
 
 	public void saveCombat() {
-		String filename = "combat.xml";
-		FileWriter outputStream = null;
-
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			doc.appendChild(combatPanel.getElement(doc));
-			doc.setXmlStandalone(true);
-			Transformer trans = TransformerFactory.newInstance().newTransformer();
-			trans.setOutputProperty(OutputKeys.INDENT, "yes");
-			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-			outputStream = new FileWriter(filename);
-			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
-		} catch (IOException ex) {
-			ex.printStackTrace();
+			XMLUtils.writeDOM(doc, new File("combat.xml"));
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
-		} catch (TransformerConfigurationException e) {
-			e.printStackTrace();
-		} catch (TransformerFactoryConfigurationError e) {
-			e.printStackTrace();
-		} catch (TransformerException e) {
-			e.printStackTrace();
-		} finally {
-			if (outputStream != null) {
-				try {
-					outputStream.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
 		}
 	}
 

@@ -14,11 +14,13 @@ import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 
 import javafx.application.Platform;
 
@@ -26,28 +28,43 @@ import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.MouseInputListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import party.Monster;
+import util.XMLUtils;
 import camera.CameraPanel;
+
+import combat.CombatEntry;
+import combat.CombatPanel;
+import combat.MonsterCombatEntry;
+
+import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
@@ -244,6 +261,65 @@ public class ControllerFrame extends JFrame {
 			}
 		});
 
+		JButton loadButton = new JButton("Load...");
+		loadButton.addActionListener(new ActionListener() {
+			// TODO should load effects as well
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fc = new JFileChooser();
+				fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
+				fc.setCurrentDirectory(new File("."));
+				int returnVal = fc.showOpenDialog(ControllerFrame.this);
+				if (returnVal != JFileChooser.APPROVE_OPTION) return;
+
+				File file = fc.getSelectedFile();
+				System.out.println("Opening encounter " + file.getAbsolutePath());
+
+				Document dom = null;
+				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+				//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
+				//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
+				try {
+					dom = factory.newDocumentBuilder().parse(file);
+				} catch (SAXException ex) {
+					ex.printStackTrace();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				} catch (ParserConfigurationException ex) {
+					ex.printStackTrace();
+				}
+
+				if (dom != null) {
+					Element displayEl = null;
+					NodeList nodes = dom.getDocumentElement().getChildNodes();
+					for (int i = 0; i < nodes.getLength(); i++) {
+						Node node = nodes.item(i);
+						if (node.getNodeName().equals("Elements")) {
+							displayEl = (Element) node;
+						} else if (node.getNodeName().equals("Creatures") && CombatPanel.getCombatPanel() != null) {
+							NodeList children = node.getChildNodes();
+							for (int j = 0; j < children.getLength(); i++) {
+								if (children.item(j).getNodeName().equals("MonsterEntry")) {
+									MonsterCombatEntry m = MonsterCombatEntry.parseDOM((Element) children.item(j));
+									CombatPanel.getCombatPanel().getInitiativeListModel().addEntry(m);
+								}
+							}
+						}
+					}
+
+					if (displayEl != null) parseDOM(displayEl);
+				}
+			}
+		});
+
+		JButton saveButton = new JButton("Save...");
+		saveButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new SaveDialog();
+			}
+		});
+
 		JButton quitButton = new JButton("Quit");
 		quitButton.addActionListener(new ActionListener() {
 			@Override
@@ -268,6 +344,12 @@ public class ControllerFrame extends JFrame {
 		rightPanel.add(downButton, c);
 		rightPanel.add(removeButton, c);
 		rightPanel.add(resetButton, c);
+
+		c.gridy++;
+		c.gridx = 2;
+		rightPanel.add(loadButton, c);
+		c.gridx = 3;
+		rightPanel.add(saveButton, c);
 		//		buttonPanel.add(quitButton);
 
 		c.gridy = GridBagConstraints.RELATIVE;
@@ -326,7 +408,7 @@ public class ControllerFrame extends JFrame {
 		}
 	}
 
-	// this MapElementMouseListener changes the canvas offset when it detects mouse dragging
+// this MapElementMouseListener changes the canvas offset when it detects mouse dragging
 	private MapElementMouseListener gridMouseListener = new MapElementMouseListener() {
 		private boolean dragging = false;
 		private int button;
@@ -690,6 +772,133 @@ public class ControllerFrame extends JFrame {
 		};
 	}
 
+	private class SaveDialog extends JDialog {
+		private JList elements;
+		private JList creatures = null;
+
+		SaveDialog() {
+			super(ControllerFrame.this, "Save...", true);
+
+			Vector<MapElement> list = new Vector<MapElement>();
+			ListModel m = miniMapCanvas.getModel();
+			for (int i = 0; i < m.getSize(); i++) {
+				MapElement e = (MapElement) m.getElementAt(i);
+				if (e.getParent() == null && !(e instanceof Grid)) list.add(e);
+			}
+
+			elements = new JList(list);
+			elements.setVisibleRowCount(10);
+			elements.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+			if (CombatPanel.getCombatPanel() != null) {
+				// TODO need to filter out blank entry and sync the tokens and creatures
+				creatures = new JList(CombatPanel.getCombatPanel().getInitiativeListModel());
+				creatures.setVisibleRowCount(10);
+				creatures.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+			}
+
+			JButton okButton = new JButton("Ok");
+			okButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					dispose();
+					JFileChooser chooser = new JFileChooser();
+					chooser.setCurrentDirectory(new File("."));
+					chooser.setSelectedFile(new File("Encounter.xml"));
+					if (chooser.showSaveDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
+						File f = chooser.getSelectedFile();
+						if (f != null) {
+							save(f);
+						}
+					}
+				}
+			});
+
+			JButton cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					dispose();
+				}
+			});
+
+			JPanel content = new JPanel();
+			content.setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridy = 0;
+			c.weightx = 1.0d;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			content.add(new JLabel("Elements to save"), c);
+			if (creatures != null) content.add(new JLabel("Creatures to save"), c);
+
+			c.gridy = 1;
+			c.weighty = 1.0d;
+			c.fill = GridBagConstraints.BOTH;
+			JScrollPane scroller = new JScrollPane(elements);
+			content.add(scroller, c);
+			if (creatures != null) {
+				scroller = new JScrollPane(creatures);
+				content.add(scroller, c);
+			}
+
+			JPanel buttons = new JPanel();
+			buttons.add(okButton);
+			buttons.add(cancelButton);
+
+			add(content);
+			add(buttons, BorderLayout.SOUTH);
+
+			pack();
+			setVisible(true);
+		}
+
+		private void save(File f) {
+			System.out.println("Save to " + f);
+
+			// TODO if f exists then confirm overwrite or confirm add/replace display config if it's an encounter file
+
+			try {
+				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+				Element root = doc.createElement("Encounter");
+				doc.appendChild(root);
+
+				Element el = doc.createElement("Elements");
+				Object[] selected = elements.getSelectedValues();
+				for (int i = 0; i < selected.length; i++) {
+					MapElement element = (MapElement) selected[i];
+					if (!(element instanceof Grid)) {
+						addElement(doc, el, element);
+					}
+				}
+				root.appendChild(el);
+
+				if (creatures != null) {
+					// TODO will need to save full monster block, and any effects in play rather than just the combat entry
+					el = doc.createElement("Creatures");
+					selected = creatures.getSelectedValues();
+					for (int i = 0; i < selected.length; i++) {
+						CombatEntry creature = (CombatEntry) selected[i];
+						el.appendChild(creature.getElement(doc));
+					}
+				}
+				root.appendChild(el);
+
+				XMLUtils.writeDOM(doc, f);
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void addElement(Document doc, Element docParent, MapElement mapElement) {
+			OptionsPanel<?> p = optionPanels.get(mapElement);
+			Element e = p.getElement(doc);
+			if (e != null) {
+				docParent.appendChild(e);
+				addChildren(doc, e, mapElement);
+			}
+		}
+	}
+
 	private abstract class AddElementAction<P extends OptionsPanel<?>> extends AbstractAction implements ElementFactory<P> {
 		String name;
 
@@ -839,14 +1048,15 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
-	private void addChildren(Document doc, Element docParent, TreeModel tree, Object treeParent) {
+	private void addChildren(Document doc, Element docParent, Object treeParent) {
+		TreeModel tree = miniMapCanvas.getTreeModel();
 		for (int i = 0; i < tree.getChildCount(treeParent); i++) {
 			Object mapElement = tree.getChild(treeParent, i);
 			OptionsPanel<?> p = optionPanels.get(mapElement);
 			Element e = p.getElement(doc);
 			if (e != null) {
 				docParent.appendChild(e);
-				addChildren(doc, e, tree, mapElement);
+				addChildren(doc, e, mapElement);
 			}
 		}
 	}
@@ -854,7 +1064,7 @@ public class ControllerFrame extends JFrame {
 	public Node getElement(Document doc) {
 		Element root = doc.createElement("Elements");
 		TreeModel tree = miniMapCanvas.getTreeModel();
-		addChildren(doc, root, tree, tree.getRoot());
+		addChildren(doc, root, tree.getRoot());
 		return root;
 	}
 

@@ -4,7 +4,6 @@ package digital_table.controller;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -14,19 +13,12 @@ import javafx.application.Platform;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+import util.XMLUtils;
 import camera.CameraPanel;
 import digital_table.server.TableDisplay;
 
@@ -90,7 +82,7 @@ public class DigitalTableController {
 			try {
 				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 				doc.appendChild(controller.getElement(doc));
-				writeDOM(doc, "display.xml");
+				XMLUtils.writeDOM(doc, new File("display.xml"));
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
 			}
@@ -156,37 +148,6 @@ public class DigitalTableController {
 	protected Node getElement(Document doc) {
 		if (controller == null) return null;
 		return controller.getElement(doc);
-	}
-
-	// TODO should move this to XMLUtils
-	void writeDOM(Document doc, String filename) {
-		FileWriter outputStream = null;
-
-		try {
-			doc.setXmlStandalone(true);
-			Transformer trans = TransformerFactory.newInstance().newTransformer();
-			trans.setOutputProperty(OutputKeys.INDENT, "yes");
-			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-			outputStream = new FileWriter(filename);
-			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
-
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		} catch (TransformerConfigurationException e) {
-			e.printStackTrace();
-		} catch (TransformerFactoryConfigurationError e) {
-			e.printStackTrace();
-		} catch (TransformerException e) {
-			e.printStackTrace();
-		} finally {
-			if (outputStream != null) {
-				try {
-					outputStream.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
-		}
 	}
 
 	public static void main(String[] args) {

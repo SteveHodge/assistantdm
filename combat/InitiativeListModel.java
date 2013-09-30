@@ -295,7 +295,7 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	void addEntry(CombatEntry e) {
+	public void addEntry(CombatEntry e) {
 		list.add(e);
 		e.addChangeListener(this);
 		e.addActionListener(this);
@@ -463,7 +463,8 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		}
 	}
 
-	void parseDOM(Element el) {
+	// TODO should probably just match characters up on ids
+	public void parseDOM(Element el) {
 		if (!el.getNodeName().equals("InitiativeList")) return;
 		reset();
 		NodeList nodes = el.getChildNodes();
@@ -477,6 +478,10 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 					if (ce instanceof CharacterCombatEntry && name.equals(ce.getCreatureName())) {
 						ce.setRoll(Integer.parseInt(e.getAttribute("roll")));
 						ce.setTieBreak(Integer.parseInt(e.getAttribute("tieBreak")));
+						String idStr = e.getAttribute("creatureID");
+						if (idStr.length() > 0) {
+							ce.creature.setID(Integer.parseInt(idStr));
+						}
 					}
 				}
 			} else if (tag.equals("MonsterEntry")) {

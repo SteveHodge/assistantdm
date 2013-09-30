@@ -1,6 +1,7 @@
 package digital_table.elements;
 
 import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -18,6 +19,8 @@ import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
 
+// TODO could have border color property
+
 public class MapImage extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -34,6 +37,7 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_IMAGE = "image";	// URI currently write-only (but change to read-write)
 	public final static String PROPERTY_IMAGE_PLAY = "play";	// write only no value
 	public final static String PROPERTY_IMAGE_STOP = "stop";	// write only no value
+	public final static String PROPERTY_SHOW_BORDER = "show_border";	// boolean
 
 	private transient ImageMedia image = null;
 
@@ -66,6 +70,7 @@ public class MapImage extends MapElement {
 
 	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	private Property<String> label;
+	private Property<Boolean> border = new Property<Boolean>(PROPERTY_SHOW_BORDER, false, Boolean.class);
 
 	private List<Point> cleared = new ArrayList<Point>();
 
@@ -126,8 +131,12 @@ public class MapImage extends MapElement {
 		transform.scale(displaySize.getWidth() / image.getSourceWidth(), displaySize.getHeight() / image.getSourceHeight());
 		image.setTransform(transform);
 		g.drawImage(image.getImage(), offset.x, offset.y, null);
-//		g.setColor(Color.RED);
-//		g.drawRect(offset.x, offset.y, image.getImage().getWidth(), image.getImage().getHeight());
+
+		// border
+		if (border.getValue()) {
+			g.setColor(Color.RED);
+			g.drawRect(offset.x, offset.y, image.getImage().getWidth(), image.getImage().getHeight());
+		}
 
 		g.setComposite(c);
 		g.setClip(oldClip);

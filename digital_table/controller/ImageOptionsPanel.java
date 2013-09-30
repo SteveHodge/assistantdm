@@ -42,6 +42,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JComboBox rotationsCombo;
 	private JCheckBox snapCheck;
 	private JCheckBox visibleCheck;
+	private JCheckBox borderCheck;
 
 	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r) {
 		super(r);
@@ -61,6 +62,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		rotationsCombo = createRotationControl(MapImage.PROPERTY_ROTATIONS, Mode.ALL);
 		labelField = createStringControl(MapImage.PROPERTY_LABEL, Mode.LOCAL);
 		visibleCheck = createVisibilityControl();
+		borderCheck = createCheckBox(MapImage.PROPERTY_SHOW_BORDER, Mode.LOCAL, "Show border?");
 
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
@@ -90,6 +92,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.gridx = 0;
 		c.gridy = 0; add(visibleCheck, c);
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("Local label:"), c);
 		add(new JLabel("Left edge column:"), c);
 		add(new JLabel("Top edge Row:"), c);
 		add(new JLabel("Width:"), c);
@@ -99,8 +102,8 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 0; add(labelField, c);
-		c.gridy = GridBagConstraints.RELATIVE;
+		add(borderCheck, c);
+		add(labelField, c);
 		add(xField, c);
 		add(yField, c);
 		add(widthField, c);
@@ -112,7 +115,6 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0;
-		c.gridy = 9;
 		c.gridwidth = 2;
 		add(new JPanel(), c);
 	}
@@ -143,6 +145,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_ROTATIONS)) {
 				rotationsCombo.setSelectedIndex((Integer)e.getNewValue());
+
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_SHOW_BORDER)) {
+				borderCheck.setSelected((Boolean) e.getNewValue());
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
@@ -234,6 +239,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.ALL);	// must be done before dimensions
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
+		parseBooleanAttribute(MapImage.PROPERTY_SHOW_BORDER, e, Mode.LOCAL);
 
 		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
 			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");

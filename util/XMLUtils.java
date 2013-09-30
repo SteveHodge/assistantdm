@@ -1,5 +1,20 @@
 package util;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -7,6 +22,41 @@ import org.w3c.dom.NodeList;
 
 final public class XMLUtils {
 	private XMLUtils() {};
+
+	public static void writeDOM(Document doc, File f) {
+		FileWriter outputStream = null;
+		try {
+			outputStream = new FileWriter(f);
+			writeDOM(doc, outputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public static void writeDOM(Document doc, Writer outputStream) {
+		try {
+			doc.setXmlStandalone(true);
+			Transformer trans = TransformerFactory.newInstance().newTransformer();
+			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
+
+		} catch (TransformerConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerFactoryConfigurationError e) {
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public static Element findNode(Node parent, String name) {
 		NodeList nodes = parent.getChildNodes();

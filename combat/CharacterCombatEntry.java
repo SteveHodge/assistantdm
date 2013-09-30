@@ -164,11 +164,12 @@ class CharacterCombatEntry extends CombatEntry {
 	}
 
 	@Override
-	Element getElement(Document doc) {
+	public Element getElement(Document doc) {
 		Element e = doc.createElement("CharacterEntry");
-		e.setAttribute("name", getCharacter().getName());
-		e.setAttribute("roll", "" + getRoll());
-		e.setAttribute("tieBreak", "" + getTieBreak());
+		e.setAttribute("name", creature.getName());
+		e.setAttribute("roll", Integer.toString(getRoll()));
+		e.setAttribute("tieBreak", Integer.toString(getTieBreak()));
+		e.setAttribute("creatureID", Integer.toString(creature.getID()));
 		return e;
 	}
 

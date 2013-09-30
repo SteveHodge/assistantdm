@@ -14,6 +14,7 @@
 		<xs:attribute name="fullAC" type="xs:integer"/>
 		<xs:attribute name="touchAC" type="xs:integer"/>
 		<xs:attribute name="flatFootedAC" type="xs:integer"/>
+		<xs:attribute name="creatureID" type="xs:integer"/>
 	</xs:complexType>
 </xs:element>
 
@@ -22,6 +23,7 @@
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="roll" type="xs:integer"/>
 		<xs:attribute name="tieBreak" type="xs:integer"/>
+		<xs:attribute name="creatureID" type="xs:integer"/>
 	</xs:complexType>
 </xs:element>
 

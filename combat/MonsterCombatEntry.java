@@ -24,7 +24,7 @@ import ui.BoundIntegerField;
 //TODO tooltips get lost on reload - the connection to the stat block is not stored in the xml file
 
 @SuppressWarnings("serial")
-class MonsterCombatEntry extends CombatEntry {
+public class MonsterCombatEntry extends CombatEntry {
 	// creates a new MonsterCombatEntry backed by a new Monster
 	MonsterCombatEntry() {
 		creature = new Monster();
@@ -121,7 +121,7 @@ class MonsterCombatEntry extends CombatEntry {
 		}
 	}
 
-	static MonsterCombatEntry parseDOM(Element el) {
+	public static MonsterCombatEntry parseDOM(Element el) {
 		if (!el.getNodeName().equals("MonsterEntry")) return null;
 		MonsterCombatEntry c = new MonsterCombatEntry(new Monster());
 		c.nameField.setText(el.getAttribute("name"));
@@ -134,22 +134,25 @@ class MonsterCombatEntry extends CombatEntry {
 		c.creature.setAC(Integer.parseInt(el.getAttribute("fullAC")));
 		c.creature.setTouchAC(Integer.parseInt(el.getAttribute("touchAC")));
 		c.creature.setFlatFootedAC(Integer.parseInt(el.getAttribute("flatFootedAC")));
+		String idStr = el.getAttribute("creatureID");
+		if (idStr.length() > 0) c.creature.setID(Integer.parseInt(idStr));
 		return c;
 	}
 
 	@Override
-	Element getElement(Document doc) {
+	public Element getElement(Document doc) {
 		Element e = doc.createElement("MonsterEntry");
+		e.setAttribute("creatureID", Integer.toString(creature.getID()));
 		e.setAttribute("name", creature.getName());
-		e.setAttribute("roll", "" + getRoll());
-		e.setAttribute("tieBreak", "" + getTieBreak());
-		e.setAttribute("initMod", "" + creature.getInitiativeModifier());
-		e.setAttribute("maxHPs", "" + creature.getMaximumHitPoints());
-		e.setAttribute("wounds", "" + creature.getWounds());
-		e.setAttribute("nonLethal", "" + creature.getNonLethal());
-		e.setAttribute("fullAC", "" + creature.getAC());
-		e.setAttribute("touchAC", "" + creature.getTouchAC());
-		e.setAttribute("flatFootedAC", "" + creature.getFlatFootedAC());
+		e.setAttribute("roll", Integer.toString(getRoll()));
+		e.setAttribute("tieBreak", Integer.toString(getTieBreak()));
+		e.setAttribute("initMod", Integer.toString(creature.getInitiativeModifier()));
+		e.setAttribute("maxHPs", Integer.toString(creature.getMaximumHitPoints()));
+		e.setAttribute("wounds", Integer.toString(creature.getWounds()));
+		e.setAttribute("nonLethal", Integer.toString(creature.getNonLethal()));
+		e.setAttribute("fullAC", Integer.toString(creature.getAC()));
+		e.setAttribute("touchAC", Integer.toString(creature.getTouchAC()));
+		e.setAttribute("flatFootedAC", Integer.toString(creature.getFlatFootedAC()));
 		return e;
 	}
 }

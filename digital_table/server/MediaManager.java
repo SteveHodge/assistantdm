@@ -67,12 +67,13 @@ public enum MediaManager {
 		if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
 			File f = chooser.getSelectedFile();
 			if (f != null) {
+				lastDir = f;
 				URI uri = f.toURI();
 				uri = mediaURI.relativize(uri);
 				return uri;
 			}
-		} else {
-			System.out.println("Cancelled");
+//		} else {
+//			System.out.println("Cancelled");
 		}
 		return null;
 	}

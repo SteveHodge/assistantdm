@@ -232,7 +232,7 @@ public class CombatPanel extends JPanel {
 	}
 
 	public void parseXML(File xmlFile) {
-		System.out.println("Parsing combat.xml");
+		System.out.println("Parsing " + xmlFile);
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			InputStream is = getClass().getClassLoader().getResourceAsStream("combat.xsd");
@@ -241,24 +241,26 @@ public class CombatPanel extends JPanel {
 			//XMLUtils.printNode(dom, "");
 
 			Node node = XMLUtils.findNode(dom,"Combat");
-			if (node != null) {
-				Element e = (Element) node;
-				if (e.hasAttribute("round")) {
-					round = Integer.parseInt(e.getAttribute("round"));
-					roundsLabel.setText("Round " + round);
-				}
-				NodeList children = node.getChildNodes();
-				for (int i=0; i<children.getLength(); i++) {
-					if (children.item(i).getNodeName().equals("InitiativeList")) {
-						initiativeListModel.parseDOM((Element)children.item(i));
-					} else if (children.item(i).getNodeName().equals("EffectList")) {
-						effectsTableModel.parseDOM((Element)children.item(i));
-					}
-				}
-			}
+			if (node != null) parseDOM((Element) node);
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	public void parseDOM(Element e) {
+		if (e.hasAttribute("round")) {
+			round = Integer.parseInt(e.getAttribute("round"));
+			roundsLabel.setText("Round " + round);
+		}
+		NodeList children = e.getChildNodes();
+		for (int i = 0; i < children.getLength(); i++) {
+			if (children.item(i).getNodeName().equals("InitiativeList")) {
+				initiativeListModel.reset();
+				initiativeListModel.parseDOM((Element) children.item(i));
+			} else if (children.item(i).getNodeName().equals("EffectList")) {
+				effectsTableModel.parseDOM((Element) children.item(i));
+			}
 		}
 	}
 

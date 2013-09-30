@@ -355,7 +355,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 				+", modifier="+getModifier()+", tiebreak="+tiebreakField.getValue()+")";
 	}
 
-	boolean isBlank() {
+	public boolean isBlank() {
 		return blank;
 	}
 
@@ -381,5 +381,5 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 				ie2.getTotal(), ie2.getModifier(), ie2.getTieBreak());
 	}
 
-	abstract Element getElement(Document doc);
+	public abstract Element getElement(Document doc);
 }

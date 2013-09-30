@@ -4,6 +4,8 @@ import gamesystem.SizeCategory;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.HashMap;
+import java.util.Map;
 
 // TODO should probably convert these constants to enums
 public abstract class Creature {
@@ -94,6 +96,34 @@ public abstract class Creature {
 
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		pcs.removePropertyChangeListener(listener);
+	}
+
+	// TODO this id stuff might be better off in CombatPanel for now
+	private static int nextID = 1;
+	private static Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();
+	int id = -1;
+
+	public int getID() {
+		if (id == -1) {
+			do {
+				id = nextID++;
+			} while (idMap.containsKey(id));
+			idMap.put(id, this);
+		}
+		return id;
+	}
+
+	// TODO shouldn't be here. should check for existing use of new id
+	public void setID(int newID) {
+		if (id != -1) {
+			idMap.remove(id);
+		}
+		id = newID;
+		idMap.put(id, this);
+	}
+
+	public static Creature getCreature(int id) {
+		return idMap.get(id);
 	}
 
 	abstract public String getName();

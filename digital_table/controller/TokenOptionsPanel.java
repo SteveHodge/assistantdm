@@ -35,6 +35,7 @@ import org.w3c.dom.Element;
 
 import party.Creature;
 
+import combat.CombatEntry;
 import combat.CombatPanel;
 import combat.InitiativeListModel;
 
@@ -69,7 +70,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	private JCheckBox visibleCheck;
 	private JCheckBox floatingLabelCheck;
 	LabelOptionsPanel floatingLabel = null;	// accessed by LabelOptionsPanel
-	private Creature creature;
+	private Creature creature = null;
 	private File imageFile = null;
 
 	// TODO shouldn't be public - default directories should be moved to a global config class
@@ -547,7 +548,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 	private class CreatureListModel implements ComboBoxModel {
 		InitiativeListModel list;
-		Creature selected = null;
+//		Creature selected = null;
 		EventListenerList listeners = new EventListenerList();
 
 		CreatureListModel(InitiativeListModel m) {
@@ -578,7 +579,9 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		@Override
 		public Creature getElementAt(int index) {
-			return list.getElementAt(index).getSource();
+			CombatEntry entry = list.getElementAt(index);
+			if (entry.isBlank()) return null;
+			return entry.getSource();
 		}
 
 		@Override
@@ -593,14 +596,17 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		@Override
 		public Creature getSelectedItem() {
-			return selected;
+			//return selected;
+			return creature;
 		}
 
 		@Override
 		public void setSelectedItem(Object sel) {
-			if ((selected != null && !selected.equals(sel)) ||
-					selected == null && sel != null) {
-				selected = (Creature) sel;
+//			if ((selected != null && !selected.equals(sel)) ||
+//					selected == null && sel != null) {
+//				selected = (Creature) sel;
+			if ((creature != null && !creature.equals(sel)) ||
+					creature == null && sel != null) {
 				setCreature((Creature) sel);
 				fireListDataEvent(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, -1, -1));
 			}
@@ -629,6 +635,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	// ---- XML serialisation methods ----
 	final static String XML_TAG = "Token";
 	private final static String FILE_ATTRIBUTE_NAME = "image_path";
+	private final static String CREATURE_ID = "creature_id";
 
 	@Override
 	Element getElement(Document doc) {
@@ -636,9 +643,13 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_LABEL, remoteLabelField.getText());
-		if (webLabelField.getText().length() > 0) setAttribute(e, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText());
 		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_SHOWREACH, remoteReach.isSelected());
+		if (webLabelField.getText().length() > 0) setAttribute(e, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText());
 		if (imageFile != null) setAttribute(e, FILE_ATTRIBUTE_NAME, imageFile.getPath());
+		if (CombatPanel.getCombatPanel() != null) {
+			Creature c = (Creature) creatureCombo.getSelectedItem();
+			if (c != null) e.setAttribute(CREATURE_ID, Integer.toString(c.getID()));
+		}
 		Point2D location = (Point2D) element.getProperty(Group.PROPERTY_LOCATION);
 		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
 		return e;
@@ -648,6 +659,13 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
+		if (CombatPanel.getCombatPanel() != null) {
+			String idStr = e.getAttribute(CREATURE_ID);
+			if (idStr.length() > 0) {
+				Creature c = Creature.getCreature(Integer.parseInt(idStr));
+				setCreature(c);
+			}
+		}
 		parseStringAttribute(Token.PROPERTY_LABEL, e, Mode.LOCAL);
 		parseStringAttribute(Token.PROPERTY_LABEL, e, remoteLabelField);
 		parseColorAttribute(Token.PROPERTY_COLOR, e, Mode.ALL);
