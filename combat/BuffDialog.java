@@ -24,7 +24,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import party.Character;
+import party.Creature;
 import swing.JListWithToolTips;
 import ui.BuffUI;
 
@@ -34,7 +34,7 @@ class BuffDialog extends JDialog {
 	private BuffUI ui;
 
 	private boolean okSelected = false;
-	private Map<JCheckBox, Character> targets = new HashMap<JCheckBox, Character>();
+	private Map<JCheckBox, Creature> targets = new HashMap<JCheckBox, Creature>();
 
 	BuffDialog(JComponent own, InitiativeListModel ilm) {
 		super(SwingUtilities.windowForComponent(own), "Choose buff", Dialog.ModalityType.APPLICATION_MODAL);
@@ -62,12 +62,11 @@ class BuffDialog extends JDialog {
 		right.add(separator);
 
 		for (int i = 0; i < ilm.getSize(); i++) {
-			Object e = ilm.getElementAt(i);
-			if (e instanceof CharacterCombatEntry) {
-				Character c = ((CharacterCombatEntry) e).getCharacter();
-				JCheckBox cb = new JCheckBox(c.getName());
+			CombatEntry e = ilm.getElementAt(i);
+			if (!e.blank) {
+				JCheckBox cb = new JCheckBox(e.creature.getName());
 				right.add(cb);
-				targets.put(cb, c);
+				targets.put(cb, e.creature);
 			}
 		}
 
@@ -105,8 +104,8 @@ class BuffDialog extends JDialog {
 		return null;
 	}
 
-	Set<Character> getTargets() {
-		HashSet<Character> targetted = new HashSet<Character>();
+	Set<Creature> getTargets() {
+		HashSet<Creature> targetted = new HashSet<Creature>();
 		if (okSelected) {
 			for (JCheckBox cb : targets.keySet()) {
 				if (cb.isSelected()) targetted.add(targets.get(cb));

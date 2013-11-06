@@ -9,7 +9,7 @@ public class InitiativeModifier extends Statistic {
 
 	public InitiativeModifier(AbilityScore dex) {
 		super("Initiative");
-		addModifier(dex.getModifier());
+		if (dex != null) addModifier(dex.getModifier());
 	}
 
 	@Override

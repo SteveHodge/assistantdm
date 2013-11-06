@@ -84,8 +84,8 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 			if (s.length() > 0) s.append("   ");
 			s.append(t.getAbbreviation());
 			s.append(" ");
-			if (character.getAbilityModifier(t) >= 0) s.append("+");
-			s.append(character.getAbilityModifier(t));
+			if (character.getAbilityModifierValue(t) >= 0) s.append("+");
+			s.append(character.getAbilityModifierValue(t));
 		}
 		return s.toString();
 	}
@@ -155,7 +155,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 				AbilityScore s = (AbilityScore) character.getStatistic(Creature.STATISTIC_ABILITY[row]);
 				return s.getValue()+((s.hasConditionalModifier() && s.getOverride() == 0)?"*":"");
 			}
-			if (column == 4) return character.getAbilityModifier(AbilityScore.Type.values()[row]);
+			if (column == 4) return character.getAbilityModifierValue(AbilityScore.Type.values()[row]);
 			return null;
 		}
 

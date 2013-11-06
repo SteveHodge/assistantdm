@@ -25,7 +25,7 @@ class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChan
 		super(c);
 		summary = (character.getInitiativeModifier() >= 0 ? "+" : "") + character.getInitiativeModifier();
 
-		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifier(AbilityScore.Type.DEXTERITY));
+		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
 		add(dexLabel);
 
 		add(new JLabel("Base:"));
@@ -67,7 +67,7 @@ class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChan
 	@Override
 	public void propertyChange(PropertyChangeEvent arg0) {
 		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.Type.DEXTERITY)) {
-			dexLabel.setText("Dex Mod: "+character.getAbilityModifier(AbilityScore.Type.DEXTERITY));
+			dexLabel.setText("Dex Mod: "+character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
 		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
 			InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
 			totLabel.setText("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));

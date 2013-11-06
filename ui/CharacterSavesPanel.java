@@ -69,7 +69,7 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 			miscSaveFields[type].setValue(new Integer(character.getSavingThrowMisc(SavingThrow.Type.values()[type])));
 			miscSaveFields[type].setColumns(3);
 			miscSaveFields[type].addPropertyChangeListener("value", new MiscFieldPropertyListener(type));
-			modLabels[type] = new JLabel(""+character.getAbilityModifier(SavingThrow.Type.values()[type].getAbilityType()));
+			modLabels[type] = new JLabel(""+character.getAbilityModifierValue(SavingThrow.Type.values()[type].getAbilityType()));
 			SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[type]);
 			totalLabels[type] = new JLabel(""+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 			vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
@@ -147,7 +147,7 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 			for (int i = 0; i < 3; i++) {
 				if (prop.equals(SavingThrow.Type.values()[i].getAbilityType().toString())) {
 					//System.out.println("Ability "+prop+" modified for save "+SavingThrow.Type.values()[i].getAbilityType().toString());
-					modLabels[i].setText(""+character.getAbilityModifier(SavingThrow.Type.values()[i].getAbilityType()));
+					modLabels[i].setText(""+character.getAbilityModifierValue(SavingThrow.Type.values()[i].getAbilityType()));
 				}
 			}
 		} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {

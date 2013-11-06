@@ -15,7 +15,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import party.Character;
+import party.Creature;
 
 // TODO check args, particular index/row args
 @SuppressWarnings("serial")
@@ -191,19 +191,16 @@ public class EffectTableModel extends AbstractTableModel {
 		int buffId = getBuffID(index);
 		if (buffId > 0) {
 			// there is a buff attached to the effect so confirm it should be removed
-			List<Character> targets = new ArrayList<Character>();
+			List<Creature> targets = new ArrayList<Creature>();
 			Buff buff = null;
 			for (int i = 0; i < potentials.getSize(); i++) {
-				Object t = potentials.getElementAt(i);
-				if (t instanceof CharacterCombatEntry) {
-					Character c = ((CharacterCombatEntry) t).getCharacter();
-					ListModel list = c.getBuffListModel();
-					for (int j = 0; j < list.getSize(); j++) {
-						Buff b = (Buff) list.getElementAt(j);
-						if (b.id == buffId) {
-							buff = b;
-							targets.add(c);
-						}
+				CombatEntry t = potentials.getElementAt(i);
+				ListModel list = t.creature.getBuffListModel();
+				for (int j = 0; j < list.getSize(); j++) {
+					Buff b = (Buff) list.getElementAt(j);
+					if (b.id == buffId) {
+						buff = b;
+						targets.add(t.creature);
 					}
 				}
 			}
@@ -216,7 +213,7 @@ public class EffectTableModel extends AbstractTableModel {
 					targetList = targets.get(0).getName();
 				} else {
 					StringBuilder s = new StringBuilder();
-					for (Character c : targets) {
+					for (Creature c : targets) {
 						if (s.length() > 0) s.append(",\n");
 						s.append(c.getName());
 					}
@@ -224,7 +221,7 @@ public class EffectTableModel extends AbstractTableModel {
 				}
 				int option = JOptionPane.showConfirmDialog(parent, text + " from " + targetList + "?", title, JOptionPane.YES_NO_OPTION);
 				if (option == JOptionPane.YES_OPTION) {
-					for (Character c : targets) {
+					for (Creature c : targets) {
 						// remove by id because if the buff was loaded from xml then the particular
 						// character's copy of the buff might not be the same object as 'buff', though
 						// it will have the same id.

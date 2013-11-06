@@ -1,12 +1,15 @@
 package monsters;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
-public class HitDice {
+public class HitDice implements gamesystem.HitDice {
 	public static java.util.Random rand = new Random();
 
+	// the length of these lists are always identical
 	private List<Integer> number = new ArrayList<Integer>();		// num of 0 means 1/2, -1 means 1/4
 	private List<Integer> type = new ArrayList<Integer>();
 	private List<Integer> modifier = new ArrayList<Integer>();
@@ -39,10 +42,43 @@ public class HitDice {
 	int getNumber() {
 		int num = 0;
 		for (int n : number) {
-			if (n < 0) n = 1;
+			if (n <= 0) n = 1;
 			num += n;
 		}
 		return num;
+	}
+
+	int getComponentCount() {
+		return type.size();
+	}
+
+	int getModifier(int i) {
+		return modifier.get(i);
+	}
+
+	int getNumber(int i) {
+		return number.get(i);
+	}
+
+	int getType(int i) {
+		return type.get(i);
+	}
+
+	// returns the components of this HitDice separately. Each of the returned HitDice will have exactly one
+	// dice and modifier. All the returned HitDice are newly created even if this HitDice only has a single
+	// component
+	Set<HitDice> getComponents() {
+		Set<HitDice> components = new HashSet<HitDice>();
+		for (int i = 0; i < type.size(); i++) {
+			HitDice d = new HitDice(number.get(i), type.get(i), modifier.get(i));
+			components.add(d);
+		}
+		return components;
+	}
+
+	@Override
+	public int getHitDiceCount() {
+		return getNumber();
 	}
 
 	int roll() {

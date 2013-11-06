@@ -13,7 +13,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import party.Character;
 import party.Creature;
 
 /*
@@ -95,7 +94,7 @@ public class Buff {
 		rolls.put(d, r);
 	}
 
-	public void applyBuff(Character c) {
+	public void applyBuff(Creature c) {
 		if (!realised) {
 			// create modifiers/properties for each Effect. this will fix the specifics of the Effects
 			for (Effect e : effects) {
@@ -125,7 +124,7 @@ public class Buff {
 		}
 	}
 
-	public void removeBuff(Character c) {
+	public void removeBuff(Creature c) {
 		for (Modifier m : modifiers.keySet()) {
 			// remove modifier from target stat
 			for (Statistic s : getTargetStats(c, modifiers.get(m))) {
@@ -175,7 +174,7 @@ public class Buff {
 		return target;
 	}
 
-	protected Statistic[] getTargetStats(Character c, String target) {
+	protected Statistic[] getTargetStats(Creature c, String target) {
 		Statistic[] stats;
 		if (target.equals(Creature.STATISTIC_SAVING_THROWS)) {
 			stats = new Statistic[3];
@@ -186,6 +185,7 @@ public class Buff {
 			stats = new Statistic[1];
 			stats[0] = c.getStatistic(target);
 		}
+		if (stats[0] == null) return new Statistic[0];
 		return stats;
 	}
 

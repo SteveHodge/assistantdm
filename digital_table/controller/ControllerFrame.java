@@ -56,6 +56,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import party.Creature;
 import party.Monster;
 import util.XMLUtils;
 import camera.CameraPanel;
@@ -402,7 +403,7 @@ public class ControllerFrame extends JFrame {
 	public static void addMonster(Monster m, File imageFile) {
 		if (instance != null) {
 			TokenOptionsPanel panel = instance.tokenAction.addElement(null);
-			panel.setCreature(m);
+			panel.setCreature((Creature) m);
 			panel.setImage(imageFile);
 			instance.elementTree.setSelectionPath(instance.miniMapCanvas.getTreePath(panel.getElement()));
 		}

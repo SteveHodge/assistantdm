@@ -6,22 +6,31 @@ import java.beans.PropertyChangeListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+// XXX might have to manage ability scores together otherwise some of the other statistics that use ability
+// modifiers will need special case handling for non-abilities (e.g. should use dex modifier for all attack if
+// str is missing, int modifier should be used for initiative if dex is missing - and that means supplying extra
+// abilities to those statistics which will almost never be used)
+
 // TODO overrides are a bit unintuituve - they ignore modifiers, which is fine, but the modifiers are reapplied once the override is removed (which at the moment happens if the override is set to the baseValue in the ui)
 public class AbilityScore extends Statistic {
 	public enum Type {
-		STRENGTH ("Strength", "STR"),
-		DEXTERITY("Dexterity", "DEX"),
-		CONSTITUTION("Constitution", "CON"),
-		INTELLIGENCE("Intelligence", "INT"),
-		WISDOM("Wisdom", "WIS"),
-		CHARISMA("Charisma", "CHA");
+		STRENGTH("Strength"),
+		DEXTERITY("Dexterity"),
+		CONSTITUTION("Constitution"),
+		INTELLIGENCE("Intelligence"),
+		WISDOM("Wisdom"),
+		CHARISMA("Charisma");
 
-		private Type(String d, String a) {description = d; abbreviation = a;}
+		private Type(String d) {
+			description = d;
+		}
 
 		@Override
 		public String toString() {return description;}
 
-		public String getAbbreviation() {return abbreviation;}
+		public String getAbbreviation() {
+			return description.substring(0, 3).toUpperCase();
+		}
 
 		// XXX brute force implementation - could keep a map
 		public static Type getAbilityType(String d) {
@@ -31,7 +40,7 @@ public class AbilityScore extends Statistic {
 			return null;	// TODO probably better to throw an exception
 		}
 
-		private final String description, abbreviation;
+		private final String description;
 	}
 
 	protected final Modifier modifier;

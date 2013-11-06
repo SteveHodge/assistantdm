@@ -32,6 +32,7 @@ public class ImmutableModifier implements Modifier {
 		this.condition = condition;
 	}
 
+	@Override
 	public String toString() {
 		String s = "";
 		if (type != null) s += " "+type;
@@ -46,27 +47,47 @@ public class ImmutableModifier implements Modifier {
 		return s;
 	}
 
+	@Override
 	public int getModifier() {
 		return modifier;
 	}
 
+	@Override
 	public String getType() {
 		return type;
 	}
 
+	@Override
 	public String getSource() {
 		return source;
 	}
 
+	@Override
 	public String getCondition() {
 		return condition;
 	}
 
+	@Override
 	public int getID() {
 		return id;
 	}
 
+	// returns true if all modifier, source, type, and condition match (currently implemented
+	// by comparing the string representations)
+	@Override
+	public boolean equals(Object obj) {
+		return toString().equals(obj.toString());
+	}
+
+	@Override
+	public int hashCode() {
+		// TODO Auto-generated method stub
+		return super.hashCode();
+	}
+
 	// ImmutableModifiers never change so we can ignore listeners
+	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {}
+	@Override
 	public void removePropertyChangeListener(PropertyChangeListener listener) {}
 }

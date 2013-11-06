@@ -1,11 +1,16 @@
 package party;
 
+import gamesystem.Buff;
 import gamesystem.SizeCategory;
+import gamesystem.Statistic;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
 import java.util.Map;
+
+import swing.ListModelWithToolTips;
+import ui.BuffUI;
 
 // TODO should probably convert these constants to enums
 public abstract class Creature {
@@ -84,7 +89,7 @@ public abstract class Creature {
 
 	// ************************* Non static members and methods **************************
 
-	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
@@ -128,6 +133,41 @@ public abstract class Creature {
 
 	abstract public String getName();
 	abstract public void setName(String name);
+
+	// buff related methods
+	abstract public Statistic getStatistic(String target);
+
+	BuffUI.BuffListModel buffs = new BuffUI.BuffListModel();
+
+	// TODO refactor the BuffListModel class and this accessor
+	public ListModelWithToolTips getBuffListModel() {
+		return buffs;
+	}
+
+	public void addBuff(Buff b) {
+		b.applyBuff(this);
+		buffs.addElement(b);
+	}
+
+//	public void removeBuff(Buff b) {
+//		b.removeBuff(this);
+//		buffs.removeElement(b);
+//	}
+
+// remove a buff by id
+	public void removeBuff(int id) {
+		for (int i = 0; i < buffs.getSize(); i++) {
+			Buff b = (Buff) buffs.get(i);
+			if (b.id == id) {
+				b.removeBuff(this);
+				buffs.removeElement(b);
+			}
+		}
+	}
+
+
+	// Standard properties
+	// TODO these should probably go away
 
 //	abstract public int getAbilityScore(int score);
 //	abstract public void setAbilityScore(int score, int value);

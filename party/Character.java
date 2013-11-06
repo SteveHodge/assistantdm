@@ -40,7 +40,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
-import swing.ListModelWithToolTips;
 import ui.BuffUI;
 import util.Updater;
 
@@ -48,7 +47,7 @@ import util.Updater;
  * @author Steve
  *
  */
-public class Character extends Creature {
+public class Character extends DetailedCreature {
 	// TODO the armor component override may go away
 	public enum ACComponentType {
 		//ARMOR("Armor"),
@@ -68,7 +67,6 @@ public class Character extends Creature {
 		private final String description;
 	}
 
-	private String name;
 	private String classDescription;
 	private String player;
 	private String region;
@@ -88,29 +86,18 @@ public class Character extends Creature {
 	private String arcaneSpellFailure;
 	private String actionPoints;
 
-	private InitiativeModifier initiative;
-
-	private EnumMap<SavingThrow.Type, SavingThrow> saves = new EnumMap<SavingThrow.Type, SavingThrow>(SavingThrow.Type.class);
 	private EnumMap<SavingThrow.Type, Modifier> saveMisc = new EnumMap<SavingThrow.Type, Modifier>(SavingThrow.Type.class);
-
-	private EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<AbilityScore.Type, AbilityScore>(AbilityScore.Type.class);
 
 	private Skills skills;
 
 //	private Set<Feat> feats = new HashSet<Feat>();
 
-	private HPs hps;
 	private Level level;
 	private int xp = 0;
 
-	private AC ac;
 	private EnumMap<ACComponentType, Modifier> acMods = new EnumMap<ACComponentType, Modifier>(ACComponentType.class); // TODO should move to AC panel
-	private int tempAC, tempTouch, tempFF;	// ac overrides
-	private boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 
-	private Attacks attacks;
-
-	private Size size;
+	public List<CharacterAttackForm> attackForms = new ArrayList<CharacterAttackForm>();
 
 	private BuffUI.BuffListModel buffs = new BuffUI.BuffListModel();
 	public BuffUI.BuffListModel feats = new BuffUI.BuffListModel();	// TODO reimplement for better encapsulation
@@ -290,21 +277,11 @@ public class Character extends Creature {
 		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), level);
 		hps.addPropertyChangeListener(statListener);
 
-		attacks = new Attacks(abilities.get(AbilityScore.Type.STRENGTH), abilities.get(AbilityScore.Type.DEXTERITY), this);
+		attacks = new Attacks(this);
 		attacks.addPropertyChangeListener(statListener);
 
 		size = new Size();
 		size.addPropertyChangeListener(statListener);
-	}
-
-	@Override
-	public String toString() {
-		return name;
-	}
-
-	@Override
-	public String getName() {
-		return name;
 	}
 
 	@Override
@@ -313,13 +290,14 @@ public class Character extends Creature {
 		throw new UnsupportedOperationException();
 	}
 
-	public void firePropertyChange(String property, Object oldValue, Object newValue) {
+	@Override
+	void firePropertyChange(String property, Object oldValue, Object newValue) {
 		if (autoSave) {
 			// if there has been no change we don't trigger an update (pcs.firePropertyChange() also implements this logic)
 			if (oldValue == null) {
 				if (newValue == null) return;
-			} else {
-				if (oldValue.equals(newValue)) return;
+			} else if (oldValue.equals(newValue)) {
+				return;
 			}
 			System.out.println("Autosave "+name+" triggered by property change on "+property);
 			saveCharacterSheet();
@@ -328,19 +306,21 @@ public class Character extends Creature {
 		pcs.firePropertyChange(property, oldValue, newValue);
 	}
 
-	public void addBuff(Buff b) {
-		b.applyBuff(this);
-		buffs.addElement(b);
-		if (autoSave) saveCharacterSheet();
-	}
-
 	public void removeBuff(Buff b) {
 		b.removeBuff(this);
 		buffs.removeElement(b);
 		if (autoSave) saveCharacterSheet();
 	}
 
+	@Override
+	public void addBuff(Buff b) {
+		b.applyBuff(this);
+		buffs.addElement(b);
+		if (autoSave) saveCharacterSheet();
+	}
+
 	// remove a buff by id
+	@Override
 	public void removeBuff(int id) {
 		for (int i = 0; i < buffs.getSize(); i++) {
 			Buff b = (Buff) buffs.get(i);
@@ -350,11 +330,6 @@ public class Character extends Creature {
 				if (autoSave) saveCharacterSheet();
 			}
 		}
-	}
-
-	// TODO refactor the BuffListModel class and this accessor
-	public ListModelWithToolTips getBuffListModel() {
-		return buffs;
 	}
 
 //------------------- Ability Scores -------------------
@@ -388,7 +363,7 @@ public class Character extends Creature {
 	 * @param type  the ability score to get the modifier of: one of the ABILITY constants from {@link Creature}
 	 * @return      the modifier calculated from the current score of the specified ability
 	 */
-	public int getAbilityModifier(AbilityScore.Type type) {
+	public int getAbilityModifierValue(AbilityScore.Type type) {
 		return abilities.get(type).getModifierValue();
 	}
 
@@ -475,11 +450,6 @@ public class Character extends Creature {
 //------------------- Initiative -------------------
 // Initiative has a total value, a base value and is modified by dexterity
 
-	@Override
-	public int getInitiativeModifier() {
-		return initiative.getValue();
-	}
-
 	public int getBaseInitiative() {
 		return initiative.getBaseValue();
 	}
@@ -512,7 +482,7 @@ public class Character extends Creature {
 		firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, saves.get(save).getValue());
 	}
 
-	// TODO currently this works by removing the old modifier and adding a new one. could make the modifiers mutable instead
+// TODO currently this works by removing the old modifier and adding a new one. could make the modifiers mutable instead
 	public void setSavingThrowMisc(SavingThrow.Type save, int misc) {
 		int old = getSavingThrow(save);
 		if (saveMisc.containsKey(save)) saves.get(save).removeModifier(saveMisc.get(save));
@@ -530,7 +500,7 @@ public class Character extends Creature {
 	 * @param save   the saving throw to set
 	 * @param total  the total required
 	 */
-	// TODO this is used by RollsPanel. it should probably be removed
+// TODO this is used by RollsPanel. it should probably be removed
 	public void setSavingThrow(SavingThrow.Type save, int total) {
 		int old = getSavingThrow(save);
 		saves.get(save).setBaseValue(total-saves.get(save).getModifiersTotal());
@@ -538,48 +508,10 @@ public class Character extends Creature {
 		firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
 	}
 
-//------------------- Hit Points -------------------
-// Hit points have a maximum value, wounds taken, non-lethal taken and a calculated
-// current value
-
-	@Override
-	public int getMaximumHitPoints() {
-		return hps.getMaximumHitPoints();
-	}
-
-	@Override
-	public void setMaximumHitPoints(int hp) {
-		hps.setMaximumHitPoints(hp);
-	}
-
-	@Override
-	public int getWounds() {
-		return hps.getWounds();
-	}
-
-	@Override
-	public void setWounds(int i) {
-		hps.setWounds(i);
-	}
-
-	@Override
-	public int getNonLethal() {
-		return hps.getNonLethal();
-	}
-
-	@Override
-	public void setNonLethal(int i) {
-		hps.setNonLethal(i);
-	}
-
-	public int getHPs() {
-		return hps.getHPs();
-	}
-
 //------------------- Armor Class -------------------
 // AC has a total value, a touch value and a flat footed value
 // it is made up of a number of different components
-	// TODO dex modifier should be filtered by armor/sheild max dex bonus
+// TODO dex modifier should be filtered by armor/sheild max dex bonus
 	public void setACComponent(ACComponentType type, int value) {
 		//if (type == ACComponentType.DEX) return;	// TODO temporary hack to filter out dex because it is added automatically
 		if (acMods.containsKey(type)) {
@@ -587,132 +519,132 @@ public class Character extends Creature {
 			acMods.remove(type);
 		}
 		if (value != 0) {
-			acMods.put(type, new ImmutableModifier(value,type.toString(),"user set"));
+			acMods.put(type, new ImmutableModifier(value, type.toString(), "user set"));
 			ac.addModifier(acMods.get(type));
 		}
 	}
 
-	// value of the user-set modifier, or 0 if none has been set
+// value of the user-set modifier, or 0 if none has been set
 	public int getACComponent(ACComponentType type) {
 		if (acMods.containsKey(type)) return acMods.get(type).getModifier();
 		return 0;
 	}
-
-	/**
-	 * Returns the temporary ac if there is one, otherwise calculates the total ac
-	 * from the ac components
-	 * 
-	 * @return current total ac
-	 */
-	@Override
-	public int getAC() {
-		return getAC(true);
-	}
-
-	private int getAC(boolean allowTemp) {
-		if (allowTemp && hasTempAC) return tempAC;
-		return ac.getValue();
-	}
-
-	/**
-	 * Returns the temporary flat-footed ac if there is one, otherwise calculates the
-	 * flat-footed ac from the ac components with any positive dexterity modifier
-	 * ignored.
-	 * 
-	 * @return current flat-footed ac
-	 */
-	@Override
-	public int getFlatFootedAC() {
-		return getFlatFootedAC(true);
-	}
-
-	private int getFlatFootedAC(boolean allowTemp) {
-		if (allowTemp && hasTempFF) return tempFF;
-		return ac.getFlatFootedAC().getValue();
-	}
-
-	/**
-	 * Returns the temporary touch ac if there is one, otherwise calculates the touch
-	 * ac from the ac components with all armor, shield and natural armor bonuses
-	 * ignored.
-	 * 
-	 * @return current touch ac
-	 */
-	@Override
-	public int getTouchAC() {
-		return getTouchAC(true);
-	}
-
-	private int getTouchAC(boolean allowTemp) {
-		if (allowTemp && hasTempTouch) return tempTouch;
-		return ac.getTouchAC().getValue();
-	}
-
-	/**
-	 * Sets a temporary full ac score. Setting this to the normal value will remove
-	 * the temporary score (as will <code>clearTemporaryAC()</code>)
-	 * 
-	 * @param ac the score to set the full ac to
-	 */
-	@Override
-	public void setAC(int tempac) {
-		if (hasTempTouch) {
-			int totAC = getAC(false);
-			if (totAC == tempac) {
-				hasTempAC = false;
-				firePropertyChange(PROPERTY_AC, tempAC, totAC);
-				return;
-			}
-		}
-		int old = getAC();
-		tempAC = tempac;
-		hasTempAC = true;
-		firePropertyChange(PROPERTY_AC, old, ac);
-	}
-
-	/**
-	 * Sets a temporary touch ac score. Setting this to the normal value will remove
-	 * the temporary score (as will <code>clearTemporaryTouchAC()</code>
-	 * 
-	 * @param ac the score to set the touch ac to
-	 */
-	@Override
-	public void setTouchAC(int tempac) {
-		if (hasTempTouch) {
-			int totAC = getTouchAC(false);
-			if (totAC == tempac) {
-				hasTempTouch = false;
-				firePropertyChange(PROPERTY_AC, tempTouch, totAC);
-				return;
-			}
-		}
-		int old = getTouchAC();
-		tempTouch = tempac;
-		hasTempTouch = true;
-		firePropertyChange(PROPERTY_AC, old, ac);
-	}
-
-	/**
-	 * Sets a temporary flat-footed ac score. Setting this to the normal value will
-	 * remove the temporary score (as will <code>clearTemporaryFlatFootedAC()</code>
-	 * 
-	 * @param ac the score to set the flat-footed ac to
-	 */
-	@Override
-	public void setFlatFootedAC(int tempac) {
-		if (hasTempFF) {
-			int totAC = getFlatFootedAC(false);
-			if (totAC == tempac) {
-				hasTempFF = false;
-				firePropertyChange(PROPERTY_AC, tempFF, totAC);
-				return;
-			}
-		}
-		int old = getFlatFootedAC();
-		tempFF = tempac;
-		hasTempFF = true;
-		firePropertyChange(PROPERTY_AC, old, ac);
-	}
+//
+//	/**
+//	 * Returns the temporary ac if there is one, otherwise calculates the total ac
+//	 * from the ac components
+//	 *
+//	 * @return current total ac
+//	 */
+//	@Override
+//	public int getAC() {
+//		return getAC(true);
+//	}
+//
+//	private int getAC(boolean allowTemp) {
+//		if (allowTemp && hasTempAC) return tempAC;
+//		return ac.getValue();
+//	}
+//
+//	/**
+//	 * Returns the temporary flat-footed ac if there is one, otherwise calculates the
+//	 * flat-footed ac from the ac components with any positive dexterity modifier
+//	 * ignored.
+//	 *
+//	 * @return current flat-footed ac
+//	 */
+//	@Override
+//	public int getFlatFootedAC() {
+//		return getFlatFootedAC(true);
+//	}
+//
+//	private int getFlatFootedAC(boolean allowTemp) {
+//		if (allowTemp && hasTempFF) return tempFF;
+//		return ac.getFlatFootedAC().getValue();
+//	}
+//
+//	/**
+//	 * Returns the temporary touch ac if there is one, otherwise calculates the touch
+//	 * ac from the ac components with all armor, shield and natural armor bonuses
+//	 * ignored.
+//	 *
+//	 * @return current touch ac
+//	 */
+//	@Override
+//	public int getTouchAC() {
+//		return getTouchAC(true);
+//	}
+//
+//	private int getTouchAC(boolean allowTemp) {
+//		if (allowTemp && hasTempTouch) return tempTouch;
+//		return ac.getTouchAC().getValue();
+//	}
+//
+//	/**
+//	 * Sets a temporary full ac score. Setting this to the normal value will remove
+//	 * the temporary score (as will <code>clearTemporaryAC()</code>)
+//	 *
+//	 * @param ac the score to set the full ac to
+//	 */
+//	@Override
+//	public void setAC(int tempac) {
+//		if (hasTempTouch) {
+//			int totAC = getAC(false);
+//			if (totAC == tempac) {
+//				hasTempAC = false;
+//				firePropertyChange(PROPERTY_AC, tempAC, totAC);
+//				return;
+//			}
+//		}
+//		int old = getAC();
+//		tempAC = tempac;
+//		hasTempAC = true;
+//		firePropertyChange(PROPERTY_AC, old, ac);
+//	}
+//
+//	/**
+//	 * Sets a temporary touch ac score. Setting this to the normal value will remove
+//	 * the temporary score (as will <code>clearTemporaryTouchAC()</code>
+//	 *
+//	 * @param ac the score to set the touch ac to
+//	 */
+//	@Override
+//	public void setTouchAC(int tempac) {
+//		if (hasTempTouch) {
+//			int totAC = getTouchAC(false);
+//			if (totAC == tempac) {
+//				hasTempTouch = false;
+//				firePropertyChange(PROPERTY_AC, tempTouch, totAC);
+//				return;
+//			}
+//		}
+//		int old = getTouchAC();
+//		tempTouch = tempac;
+//		hasTempTouch = true;
+//		firePropertyChange(PROPERTY_AC, old, ac);
+//	}
+//
+//	/**
+//	 * Sets a temporary flat-footed ac score. Setting this to the normal value will
+//	 * remove the temporary score (as will <code>clearTemporaryFlatFootedAC()</code>
+//	 *
+//	 * @param ac the score to set the flat-footed ac to
+//	 */
+//	@Override
+//	public void setFlatFootedAC(int tempac) {
+//		if (hasTempFF) {
+//			int totAC = getFlatFootedAC(false);
+//			if (totAC == tempac) {
+//				hasTempFF = false;
+//				firePropertyChange(PROPERTY_AC, tempFF, totAC);
+//				return;
+//			}
+//		}
+//		int old = getFlatFootedAC();
+//		tempFF = tempac;
+//		hasTempFF = true;
+//		firePropertyChange(PROPERTY_AC, old, ac);
+//	}
 
 //------------------- XP and level -------------------
 	public int getXP() {
@@ -723,7 +655,7 @@ public class Character extends Creature {
 		return XP.getXPRequired(level.getLevel()+1);
 	}
 
-	/*public String getXPHistory() {
+/*public String getXPHistory() {
 		StringBuilder b = new StringBuilder();
 		int total = 0;
 		for (XPHistoryItem item : xpChanges) {
@@ -829,37 +761,6 @@ public class Character extends Creature {
 			if (f.name.equals(name)) return true;
 		}
 		return false;
-	}
-
-//------------- Size --------------
-	@Override
-	public SizeCategory getSize() {
-		return size.getSize();
-	}
-
-	@Override
-	public void setSize(SizeCategory s) {
-		size.setBaseSize(s);
-	}
-
-	@Override
-	public int getSpace() {
-		return size.getSpace();
-	}
-
-	@Override
-	public void setSpace(int s) {
-		size.setBaseSpace(s);
-	}
-
-	@Override
-	public int getReach() {
-		return size.getReach();
-	}
-
-	@Override
-	public void setReach(int r) {
-		size.setBaseReach(r);
 	}
 
 //------------ getters and setters for informational fields -------------
@@ -991,6 +892,7 @@ public class Character extends Creature {
 	}
 
 //------------------- Import/Export and other methods -------------------
+	@Override
 	public Statistic getStatistic(String name) {
 		if (name.equals(STATISTIC_STRENGTH)) {
 			return abilities.get(AbilityScore.Type.STRENGTH);
@@ -1181,6 +1083,15 @@ public class Character extends Creature {
 
 		if (attacksElement != null) {
 			c.attacks.parseDOM(attacksElement);
+			NodeList children = attacksElement.getChildNodes();
+			for (int j = 0; j < children.getLength(); j++) {
+				if (children.item(j).getNodeName().equals("AttackForm")) {
+					Element attackEl = (Element) children.item(j);
+					CharacterAttackForm atk = new CharacterAttackForm(c, c.attacks.addAttackForm(attackEl.getAttribute("name")));
+					atk.parseDOM(attackEl);
+					c.attackForms.add(atk);
+				}
+			}
 		}
 
 		if (c.name.equals("Cain Warforger")) {
@@ -1190,7 +1101,7 @@ public class Character extends Creature {
 		return c;
 	}
 
-//	public String getXML() {
+	//	public String getXML() {
 //		return getXML("","    ");
 //	}
 //
@@ -1257,9 +1168,9 @@ public class Character extends Creature {
 //		return b.toString();
 //	}
 
-	// Prints the differences between this and inChar
-	// XXX does not include level or xp
-	// TODO add attacks and other new statistcs here
+// Prints the differences between this and inChar
+// XXX does not include level or xp
+// TODO add attacks and other new statistcs here
 	public void showDiffs(Character inChar) {
 		if (!name.equals(inChar.name)) {
 			// new attribute
@@ -1308,8 +1219,8 @@ public class Character extends Creature {
 		}
 	}
 
-	// Returns a list of the properties that differ between this and inChar
-	// The list is ordered by the type of property
+// Returns a list of the properties that differ between this and inChar
+// The list is ordered by the type of property
 	public List<String> getDifferences(Character inChar) {
 		List<String> diffs = new ArrayList<String>();
 
@@ -1358,7 +1269,7 @@ public class Character extends Creature {
 		return diffs;
 	}
 
-	// TODO not sure this is right for ability scores. probably needs reimplementing now
+// TODO not sure this is right for ability scores. probably needs reimplementing now
 	@Override
 	public Object getProperty(String prop) {
 		if (prop.equals(PROPERTY_NAME)) return name;
@@ -1576,7 +1487,7 @@ public class Character extends Creature {
 		}
 	}
 
-	// TODO this should include all the same data as the regular save as well as additional stuff
+// TODO this should include all the same data as the regular save as well as additional stuff
 	public Element getCharacterSheet(Document doc) {
 		Element charEl = getCharacterElement(doc);
 
@@ -1677,6 +1588,9 @@ public class Character extends Creature {
 		e.setAttribute("temp", "");					// TODO implement
 		e.setAttribute("size-modifier", "+0");			// TODO implement
 		e.setAttribute("attacks", attacks.getAttacksDescription(attacks.getBAB()));
+		for (CharacterAttackForm a : attackForms) {
+			e.appendChild(a.getElement(doc, true));
+		}
 		Element e1 = doc.createElement("Attack");
 		e1.setAttribute("type","Grapple");
 		e1.setAttribute("total",getModifierString(attacks.getGrappleValue()));
@@ -1760,7 +1674,11 @@ public class Character extends Creature {
 		}
 		charEl.appendChild(e);
 
-		charEl.appendChild(attacks.getElement(doc));
+		e = attacks.getElement(doc);
+		for (CharacterAttackForm a : attackForms) {
+			e.appendChild(a.getElement(doc, false));
+		}
+		charEl.appendChild(e);
 
 		e = doc.createElement("Feats");
 		for (int i = 0; i < feats.getSize(); i++) {

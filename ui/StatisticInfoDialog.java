@@ -2,6 +2,7 @@ package ui;
 
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
+import gamesystem.Modifier;
 import gamesystem.Statistic;
 
 import java.awt.Dialog;
@@ -30,11 +31,6 @@ import party.Character;
 // TODO should probably convert to factory class
 @SuppressWarnings("serial")
 public class StatisticInfoDialog extends JDialog {
-	static final String[] types = { "", "Alchemical", "Armor", "Circumstance", "Competence", "Deflection",
-		"Enhancement", "Inherent", "Insight", "Luck", "Morale", "Natural Armor", "Profane", "Racial",
-		"Resistance", "Sacred", "Shield", "Size"
-	};
-
 	Character character;
 	Statistic statistic;
 
@@ -103,7 +99,7 @@ public class StatisticInfoDialog extends JDialog {
 	}
 
 	JPanel getAdhocPanel(final String statName) {
-		final JComboBox typeBox = new JComboBox(types);
+		final JComboBox typeBox = new JComboBox(Modifier.StandardType.values());
 		typeBox.setSelectedItem("Enhancement");
 		typeBox.setEditable(true);
 

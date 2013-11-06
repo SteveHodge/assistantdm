@@ -37,8 +37,10 @@ public class Feat extends BuffFactory {
 	public static final String FEAT_WEAPON_FINESSE = "Weapon Finesse";
 	public static final String FEAT_COMBAT_EXPERTISE = "Combat Expertise";
 	public static final String FEAT_POWER_ATTACK = "Power Attack";
+	public static final String FEAT_MULTIATTACK = "Multiattack";
+	public static final String FEAT_MULTI_WEAPON_FIGHTING = "Multiweapon Fighting";
 
-	public static Feat[] FEATS = { 
+	public static Feat[] FEATS = {
 		/*
 		 * Buff-like feats:
 		 */
@@ -61,12 +63,12 @@ public class Feat extends BuffFactory {
 		(new Feat("Nimble Fingers")).addSkillBonuses("Disable Device", "Open Locks"),
 		(new Feat("Persuasive")).addSkillBonuses("Bluff", "Intimidate"),
 		(new Feat("Self-Sufficient")).addSkillBonuses("Heal", "Survival"),
-		new Feat("Skill Focus",true), 
+		new Feat("Skill Focus",true),
 		(new Feat("Stealthy")).addSkillBonuses("Hide", "Move Silently"),
 		new Feat("Toughness",true),	// TODO modifier to HPs, but non-temporary
 		(new Feat("Run")).addBonus(Creature.STATISTIC_SKILLS+".Jump", 4, "with running start"),	// TODO also affects run speed multiplier
 		/*
-		 * combat ralated feats: 
+		 * combat ralated feats:
 		 */
 		new Feat("Armor Proficiency (light)"),
 		new Feat("Armor Proficiency (medium)"),

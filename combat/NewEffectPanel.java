@@ -20,7 +20,7 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import party.Character;
+import party.Creature;
 
 // TODO consider moving into CombatPanel class
 
@@ -41,7 +41,7 @@ class NewEffectPanel extends JPanel {
 	private JTable table;
 
 	private Buff buff = null;
-	private Set<Character> targets;
+	private Set<Creature> targets;
 
 	private class SourceModel implements ComboBoxModel {
 		private InitiativeListModel initiativeModel;
@@ -182,7 +182,7 @@ class NewEffectPanel extends JPanel {
 				if (unitsField.getSelectedItem().equals("Hours")) d *= 600;
 
 				if (buff != null) {
-					for (Character c : targets) {
+					for (Creature c : targets) {
 						c.addBuff(buff);
 					}
 				}

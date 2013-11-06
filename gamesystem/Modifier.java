@@ -5,12 +5,12 @@ import java.beans.PropertyChangeListener;
 /*
  * Modifiers are bonuses or penalties that can be applied to various statistics. Bonuses generally have a type and do not stack
  * with other bonuses of the same type - only the higher value is used. Dodge bonuses, circumstance bonuses, and bonuses with no
- * type do stack (PHB 171 also includes racial bonuses). Penalties typically do not have a type, but in cases where they do they 
+ * type do stack (PHB 171 also includes racial bonuses). Penalties typically do not have a type, but in cases where they do they
  * do not stack with other penalties of the same type - only the larger penalty is used (PHB 171, Rules Compendum, but note that
- * the PHB glossary page 311 states that penalties always stack). 
+ * the PHB glossary page 311 states that penalties always stack).
  * 
  * Two modifiers from the same source don't stack (e.g. two ray of enfeeblements), even if they are untyped. PHB 171 (combining
- * magical effects). 
+ * magical effects).
  *
  * Bonus types as listed in the DMG:
  * Alchemical
@@ -18,6 +18,7 @@ import java.beans.PropertyChangeListener;
  * Circumstance
  * Competence
  * Deflection
+ * Dodge
  * Enhancement
  * Inherent
  * Insight
@@ -53,6 +54,39 @@ import java.beans.PropertyChangeListener;
  */
 
 public interface Modifier {
+	public enum StandardType {
+		UNTYPED(null),
+		ALCHEMICAL("Alchemical"),
+		ARMOR("Armor"),
+		CIRCUMSTANCE("Circumstance"),
+		COMPETENCE("Competence"),
+		DEFLECTION("Deflection"),
+		DODGE("Dodge"),
+		ENHANCEMENT("Enhancement"),
+		INHERENT("Inherent"),
+		INSIGHT("Insight"),
+		LUCK("Luck"),
+		MORALE("Morale"),
+		NATURAL_ARMOR("Natural Armor"),
+		PROFANE("Profane"),
+		RACIAL("Racial"),
+		RESISTANCE("Resistance"),
+		SACRED("Sacred"),
+		SHIELD("Shield"),
+		SIZE("Size");
+
+		private StandardType(String desc) {
+			description = desc;
+		}
+
+		@Override
+		public String toString() {
+			return description;
+		}
+
+		private String description;
+	}
+
 	public int getModifier();
 	public String getType();
 	public String getSource();		// returns null if no specific source (typically source is only necessary for magic spells

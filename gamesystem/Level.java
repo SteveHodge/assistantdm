@@ -9,7 +9,7 @@ import org.w3c.dom.Element;
 // TODO should XP be here too or separate?
 // TODO support monsters?
 
-public class Level extends Statistic {
+public class Level extends Statistic implements HitDice {
 	int level = 1;
 
 	public Level() {
@@ -20,10 +20,16 @@ public class Level extends Statistic {
 		return level;
 	}
 
+	@Override
+	public int getHitDiceCount() {
+		return level;
+	}
+
 	public void setLevel(int l) {
 		level = l;
 	}
 
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("Level");
 		e.setAttribute("level", ""+level);

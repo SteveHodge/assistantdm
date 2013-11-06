@@ -64,7 +64,10 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * implement monsters with statistics, make them targettable
+ * implement remaining monster statistics
+ * cleanup AttackForms in Attack, StatisticBlock and DetailedMonster
+ * cleanup Creature class hierarchy
+ * look at refactoring creature, monster, and character into gamesystem and party/character related ui into party
  *
  * rework attacks - they need an interface to filter properties like type etc. then filters can be used to build
  * target lists (e.g  "type=bludgeoning and subclass=one handed melee")
@@ -148,6 +151,25 @@ import digital_table.controller.DigitalTableController;
  *  Skill named versions (Crafting, Profession etc)
  *  Size
  *  Speed
+ */
+
+/* Architecture:
+ * Packages:
+ * camera - camera panel ui and functionality
+ * combat - combat panel ui and functionality
+ * digital_table - local and remote digital table functionality
+ * digital_table.controller - local digital table controller ui
+ * digital_table.elements - displayable elements common to both local and remote displays
+ * digital_table.server - core functionality for both local and remote displays and remote only classes
+ * gamesystem - core code related to the 3.5 mechanics
+ * gamesystem.dice - classes representing dice
+ * magicgenerator - random magic item generator
+ * magicitems - shop panel ui and functionality
+ * monsters - monsters panel ui and functionality
+ * party - party panel functionality (should also contain ui for party and rolls panels)
+ * swing - extended generic swing components
+ * ui - ui for party and rolls panel and dialogs. should contain only common ui and dialogs
+ * util - util classes for external communication (XML handling, file uploading, logging)
  */
 
 //WISH would be nice to have a library of creatures that could be selected for the combat panel

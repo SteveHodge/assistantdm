@@ -6,14 +6,22 @@ import org.w3c.dom.Element;
 
 public class SavingThrow extends Statistic {
 	public enum Type {
-		FORTITUDE("Fortitude", AbilityScore.Type.CONSTITUTION),
-		REFLEX("Reflex", AbilityScore.Type.DEXTERITY),
-		WILL("Will", AbilityScore.Type.WISDOM);
+		FORTITUDE("Fortitude", "Fort", AbilityScore.Type.CONSTITUTION),
+		REFLEX("Reflex", "Ref", AbilityScore.Type.DEXTERITY),
+		WILL("Will", "Will", AbilityScore.Type.WISDOM);
 
-		private Type(String d, AbilityScore.Type a) {description = d; ability = a;}
+		private Type(String d, String ab, AbilityScore.Type a) {
+			description = d;
+			abbreviation = ab;
+			ability = a;
+		}
 
 		@Override
 		public String toString() {return description;}
+
+		public String getAbbreviation() {
+			return abbreviation;
+		}
 
 		public AbilityScore.Type getAbilityType() {return ability;}
 
@@ -25,6 +33,7 @@ public class SavingThrow extends Statistic {
 		}
 
 		private final String description;
+		private final String abbreviation;
 		private final AbilityScore.Type ability;
 	}
 
@@ -35,7 +44,7 @@ public class SavingThrow extends Statistic {
 	public SavingThrow(Type type, AbilityScore ability) {
 		super(type.toString());
 		this.type = type;
-		addModifier(ability.getModifier());
+		if (ability != null) addModifier(ability.getModifier());
 	}
 
 	@Override

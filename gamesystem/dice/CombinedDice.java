@@ -3,8 +3,8 @@ package gamesystem.dice;
 import java.util.HashMap;
 import java.util.Map;
 
-// DiceCombiner is similar to DiceList except that it only accepts SimpleDice and it will combine dice of the same type
-// (e.g. 1d6 + 1d6 becomes 2d6).
+// CombinedDice is similar to DiceList except that it only accepts SimpleDice and it will combine dice of the same type
+// (e.g. 1d6 + 1d6 becomes 2d6). It also includes a constant modifier.
 public class CombinedDice implements Dice {
 	Map<Integer,SimpleDice> dice = new HashMap<Integer,SimpleDice>();
 	int constant = 0;
@@ -38,6 +38,7 @@ public class CombinedDice implements Dice {
 		constant = c;
 	}
 
+	@Override
 	public int roll() {
 		int roll = 0;
 		for (Dice d : dice.values()) {
@@ -47,6 +48,7 @@ public class CombinedDice implements Dice {
 	}
 
 	// TODO this should return the dice in a constant order
+	@Override
 	public String toString() {
 		String s = "";
 		for (Dice d : dice.values()) {
@@ -59,6 +61,7 @@ public class CombinedDice implements Dice {
 		return s;
 	}
 
+	@Override
 	public int getMinimum() {
 		int min = 0;
 		for (Dice d : dice.values()) {
@@ -67,6 +70,7 @@ public class CombinedDice implements Dice {
 		return min+constant;
 	}
 
+	@Override
 	public int getMaximum() {
 		int max = 0;
 		for (Dice d : dice.values()) {

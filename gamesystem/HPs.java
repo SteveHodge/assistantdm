@@ -17,6 +17,7 @@ import party.Creature;
 
 // TODO change temp hitpoints to a property
 // TODO there are difference in how damage and healing are handled (particularly with temporary hitpoints). going to need undo
+// TODO i think hps should be a property rather than a statistic
 
 /* Temporary hit points rules
  * 1. If temporary hit points are granted more than once then only the best one applies (FAQ)
@@ -47,8 +48,7 @@ import party.Creature;
  */
 
 public class HPs extends Statistic {
-	private Level level;	// used for applying con changes
-	private Modifier conMod;
+	private Modifier conMod = null;
 	private int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
 	private int hps, wounds, nonLethal;
 	private List<TempHPs> tempHPs = new ArrayList<TempHPs>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
@@ -87,25 +87,26 @@ public class HPs extends Statistic {
 		}
 	}
 
-	public HPs(AbilityScore con, Level lvl) {
+	// TODO should add a listener to level
+	public HPs(AbilityScore con, final HitDice level) {
 		super("Hit Points");
 
-		level = lvl;
-		// TODO could add a listener
-
-		conMod = con.getModifier();
-		oldMod = conMod.getModifier();
-		conMod.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent e) {
-				int oldhps = getMaximumHitPoints();
-				int newhps = oldhps + (level.getLevel() * (conMod.getModifier() - oldMod));
-				if (newhps < level.getLevel()) newhps = level.getLevel();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
-				//System.out.println("changing max hps from "+oldhps+" to "+newhps);
-				setMaximumHitPoints(newhps);
-				oldMod = conMod.getModifier();
-			}
-		});
+		if (con != null) {
+			conMod = con.getModifier();
+			oldMod = conMod.getModifier();
+			conMod.addPropertyChangeListener(new PropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent e) {
+					int oldhps = getMaximumHitPoints();
+					int newhps = oldhps + (level.getHitDiceCount() * (conMod.getModifier() - oldMod));
+					System.out.println("hitdice = " + level.getHitDiceCount() + " oldMod = " + oldMod + ", newMod = " + conMod.getModifier());
+					if (newhps < level.getHitDiceCount()) newhps = level.getHitDiceCount();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
+					System.out.println("changing max hps from " + oldhps + " to " + newhps);
+					setMaximumHitPoints(newhps);
+					oldMod = conMod.getModifier();
+				}
+			});
+		}
 	}
 
 	public int getMaximumHitPoints() {
@@ -380,7 +381,9 @@ public class HPs extends Statistic {
 		hps = Integer.parseInt(e.getAttribute("maximum"));
 		if (e.hasAttribute("wounds")) wounds = Integer.parseInt(e.getAttribute("wounds"));
 		if (e.hasAttribute("non-lethal")) nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
-		oldMod = conMod.getModifier();	// we need to set the oldMod so that any future con changes are correctly calculated
+		if (conMod != null) {
+			oldMod = conMod.getModifier();	// we need to set the oldMod so that any future con changes are correctly calculated
+		}
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
 
 		// set any existing temporary hps to 0. this prevents temporary hitpoints that have been used for a particular

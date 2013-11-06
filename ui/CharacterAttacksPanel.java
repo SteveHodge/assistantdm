@@ -4,6 +4,7 @@ import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.BuffFactory;
 import gamesystem.Feat;
+import gamesystem.Modifier;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -16,6 +17,7 @@ import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -36,6 +38,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import party.Character;
+import party.CharacterAttackForm;
 import party.Creature;
 
 // TODO make power attack and combat expertise filtered/numeric fields or combos or cycles
@@ -55,6 +58,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 	private Attacks attacks;
 	private AttackFormPanel attackPanel;
 	private JList weaponList;
+	private AttackFormListModel attackFormsModel = new AttackFormListModel();
 
 	CharacterAttacksPanel(Character chr) {
 		super(chr);
@@ -202,7 +206,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 		@Override
 		JPanel getAdhocPanel(final String statName) {
-			final JComboBox typeBox = new JComboBox(types);
+			final JComboBox typeBox = new JComboBox(Modifier.StandardType.values());
 			typeBox.setSelectedItem("Enhancement");
 			typeBox.setEditable(true);
 
@@ -393,7 +397,8 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		newButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Attacks.AttackForm a = attacks.addAttackForm();
+				CharacterAttackForm a = new CharacterAttackForm(character, attacks.addAttackForm("new weapon"));
+				attackFormsModel.addElement(a);
 				weaponList.setSelectedValue(a, true);
 			}
 		});
@@ -402,10 +407,10 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		deleteButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Attacks.AttackForm a = (Attacks.AttackForm)weaponList.getSelectedValue();
+				CharacterAttackForm a = (CharacterAttackForm) weaponList.getSelectedValue();
 				if (a != null) {
-					attacks.removeAttackForm(a);
-					attackPanel.setAttackForm((Attacks.AttackForm)weaponList.getSelectedValue());
+					attacks.removeAttackForm(a.attack);
+					attackPanel.setAttackForm((CharacterAttackForm) weaponList.getSelectedValue());
 				}
 			}
 		});
@@ -416,7 +421,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 			public void actionPerformed(ActionEvent e) {
 				int i = weaponList.getSelectedIndex();
 				if (i >= 1) {
-					attacks.moveAttackForm(i, i-1);
+					attackFormsModel.move(i, i - 1);
 					weaponList.setSelectedIndex(i-1);
 				}
 			}
@@ -427,8 +432,8 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int i = weaponList.getSelectedIndex();
-				if (i != -1 && i < attacks.getAttackFormsCount()-1) {
-					attacks.moveAttackForm(i, i+1);
+				if (i != -1 && i < attackFormsModel.getSize() - 1) {
+					attackFormsModel.move(i, i + 1);
 					weaponList.setSelectedIndex(i+1);
 				}
 			}
@@ -447,14 +452,14 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		c.anchor = GridBagConstraints.NORTH;
 		bottom.add(buttonPanel, c);
 
-		weaponList = new JList(attacks.getAttackFormsListModel());
+		weaponList = new JList(attackFormsModel);
 		weaponList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		weaponList.setVisibleRowCount(6);
 		weaponList.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!e.getValueIsAdjusting()) {
-					attackPanel.setAttackForm((Attacks.AttackForm)weaponList.getSelectedValue());
+					attackPanel.setAttackForm((CharacterAttackForm) weaponList.getSelectedValue());
 				}
 			}
 		});
@@ -480,13 +485,13 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 	}
 
 	private void updateLabels() {
-		strLabel.setText(""+character.getAbilityModifier(AbilityScore.Type.STRENGTH));
+		strLabel.setText(""+character.getAbilityModifierValue(AbilityScore.Type.STRENGTH));
 		String melee = attacks.getAttacksDescription(attacks.getValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {
 			melee = "<html><body><s>"+melee+"</s></body></html>";
 		}
 		meleeLabel.setText(melee);
-		dexLabel.setText(""+character.getAbilityModifier(AbilityScore.Type.DEXTERITY));
+		dexLabel.setText(""+character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
 		String ranged = attacks.getAttacksDescription(attacks.getRangedValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {
 			ranged = "<html><body><s>"+ranged+"</s></body></html>";
@@ -525,5 +530,54 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		updateLabels();
 		updateToolTip();
 		updateSummaries(getSummary());
+	}
+
+	// ------------ Attack forms / weapons list related ------------
+	protected class AttackFormListModel extends AbstractListModel {
+		public CharacterAttackForm get(int i) {
+			return character.attackForms.get(i);
+		}
+
+		@Override
+		public Object getElementAt(int i) {
+			return get(i);
+		}
+
+		@Override
+		public int getSize() {
+			return character.attackForms.size();
+		}
+
+		public void addElement(final CharacterAttackForm a) {
+			character.attackForms.add(a);
+			a.addPropertyChangeListener(new PropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent evt) {
+					int i = character.attackForms.indexOf(a);
+					if (i > -1) fireContentsChanged(this, i, i);
+				}
+			});
+			fireIntervalAdded(this, character.attackForms.size() - 1, character.attackForms.size() - 1);
+		}
+
+		public void removeElement(CharacterAttackForm a) {
+			int i = character.attackForms.indexOf(a);
+			if (i > -1) {
+				character.attackForms.remove(a);
+				fireIntervalRemoved(this, i, i);
+			}
+		}
+
+		public void move(int fromIndex, int toIndex) {
+			if (fromIndex < 0 || fromIndex > attackFormsModel.getSize() - 1
+					|| toIndex < 0 || toIndex > attackFormsModel.getSize() - 1) {
+				throw new IndexOutOfBoundsException();	// TODO message
+			}
+
+			CharacterAttackForm a = character.attackForms.remove(fromIndex);
+			fireIntervalRemoved(this, fromIndex, fromIndex);
+			character.attackForms.add(toIndex, a);
+			fireIntervalAdded(this, toIndex, toIndex);
+		}
 	}
 }

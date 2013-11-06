@@ -1,7 +1,6 @@
 package ui;
 
-import gamesystem.Attacks;
-import gamesystem.Attacks.AttackForm;
+import gamesystem.Modifier;
 import gamesystem.SizeCategory;
 import gamesystem.dice.CombinedDice;
 
@@ -33,12 +32,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import party.CharacterAttackForm;
+
 // TODO only attack and damage labels are updated on changes from the attack, other changes will be ignored (needs fixing if something other than this panel makes changes to the attack)
 
 @SuppressWarnings("serial")
 class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	//Attacks attacks;
-	private AttackForm attack;
+	private CharacterAttackForm attack;
 
 	private JTextField nameField = new JTextField(20);
 	private JTextField attackBonusField = new JTextField(20);
@@ -60,11 +61,11 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		this(null);
 	}
 
-	private AttackFormPanel(AttackForm atk) {
+	private AttackFormPanel(CharacterAttackForm atk) {
 		super(new GridBagLayout());
 
-		kindCombo = new JComboBox(Attacks.Kind.values());
-		usageCombo = new JComboBox(Attacks.Usage.values());
+		kindCombo = new JComboBox(CharacterAttackForm.Kind.values());
+		usageCombo = new JComboBox(CharacterAttackForm.Usage.values());
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.insets = new Insets(1,2,1,2);
@@ -142,7 +143,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (attack != null) {
-					attack.setKind((Attacks.Kind)kindCombo.getSelectedItem());
+					attack.setKind((CharacterAttackForm.Kind) kindCombo.getSelectedItem());
 				}
 			}
 		});
@@ -150,7 +151,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (attack != null) {
-					attack.size = (SizeCategory) sizeCombo.getSelectedItem();
+					attack.attack.size = (SizeCategory) sizeCombo.getSelectedItem();
 				}
 			}
 		});
@@ -158,7 +159,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (attack != null) {
-					attack.setUsage((Attacks.Usage)usageCombo.getSelectedItem());
+					attack.setUsage((CharacterAttackForm.Usage) usageCombo.getSelectedItem());
 				}
 			}
 		});
@@ -223,7 +224,6 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 			// TODO ugly. find a better way
 			if (e.getDocument() == nameField.getDocument()) {
-				// TODO this should notify the model as well
 				attack.setName(nameField.getText());
 			} else if (e.getDocument() == attackBonusField.getDocument()) {
 				try {
@@ -296,7 +296,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		usageCombo.setSelectedItem(null);
 	}
 
-	void setAttackForm(AttackForm attack) {
+	void setAttackForm(CharacterAttackForm attack) {
 		if (attack == null) {
 			clearAttackForm();
 
@@ -322,12 +322,12 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			attackBonusField.setText(""+attack.getAttackEnhancement());
 			damageField.setText(attack.getBaseDamage());
 			criticalField.setText(attack.critical);
-			rangeField.setText(""+attack.range);
-			weightField.setText(""+attack.weight);
+			rangeField.setText("" + attack.range);
+			weightField.setText("" + attack.weight);
 			typeField.setText(attack.damage_type);
 			propertiesField.setText(attack.properties);
 			ammunitionField.setText(attack.ammunition);
-			sizeCombo.setSelectedItem(attack.size);
+			sizeCombo.setSelectedItem(attack.attack.size);
 			kindCombo.setSelectedItem(attack.getKind());
 			usageCombo.setSelectedItem(attack.getUsage());
 			update();
@@ -416,7 +416,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		}
 
 		JPanel getAdhocPanel() {
-			final JComboBox typeBox = new JComboBox(StatisticInfoDialog.types);
+			final JComboBox typeBox = new JComboBox(Modifier.StandardType.values());
 			typeBox.setSelectedItem("Enhancement");
 			typeBox.setEditable(true);
 

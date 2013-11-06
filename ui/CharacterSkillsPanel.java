@@ -152,7 +152,7 @@ class CharacterSkillsPanel extends JPanel {
 			if (col == 3) {
 				AbilityScore.Type ability = skills[row].getAbility();
 				if (ability == null) return null;
-				return character.getAbilityModifier(ability);
+				return character.getAbilityModifierValue(ability);
 			}
 			if (col == 4) return character.getSkillMisc(skills[row]);
 			if (col == 5) {

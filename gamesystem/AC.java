@@ -19,32 +19,39 @@ import org.w3c.dom.NodeList;
  * on AC, but that should never happen.
  * A alternative implementation would be to treat enhancements to NA as a modifiers to AC (e.g. "Enhancement to NA" becomes
  * "NA Enhancement to AC"). This would be a simplier implementation and should achieve the same results, but is not according
- * to the rules as written. It also means using "non-standard" modifier types. 
+ * to the rules as written. It also means using "non-standard" modifier types.
  */
 // TODO proficiencies - acp to attacks when not proficient
+// XXX should touch and flatfooted ac be statistics? can they be targeted by modifiers?
+// TODO handle null dex more elegantly
 public class AC extends Statistic {
-	final protected ArmorCheckPenalty armorCheckPenalty = new ArmorCheckPenalty();
-	final protected Armor armor = new Armor();
-	final protected Shield shield = new Shield();
-	final protected Statistic naturalArmor = new Statistic("Natural Armor");	// statistic that captures modifiers to NA
-	protected LimitModifier dexMod;
+	final ArmorCheckPenalty armorCheckPenalty = new ArmorCheckPenalty();
+	final Armor armor = new Armor();
+	final Shield shield = new Shield();
+	final Statistic naturalArmor = new Statistic("Natural Armor");	// statistic that captures modifiers to NA
+	LimitModifier dexMod = null;
 
 	public AC(AbilityScore dex) {
 		super("AC");
-		dexMod = new LimitModifier(dex.getModifier());
-		addModifier(dexMod);
+		if (dex != null) {
+			dexMod = new LimitModifier(dex.getModifier());
+			addModifier(dexMod);
+		}
 
 		naturalArmor.addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				firePropertyChange("value", null, getValue());
 			}
 		});
 	}
 
+	@Override
 	public int getValue() {
 		return 10 + super.getValue();
 	}
 
+	@Override
 	public Map<Modifier, Boolean> getModifiers() {
 		Map<Modifier, Boolean> mods = super.getModifiers();
 		if (naturalArmor.getValue() != 0) {
@@ -67,10 +74,12 @@ public class AC extends Statistic {
 		return mods;
 	}
 
+	@Override
 	public int getModifiersTotal() {
 		return getModifiersTotal(getModifierSet(), null) + naturalArmor.getValue();
 	}
 
+	@Override
 	public int getModifiersTotal(String type) {
 		int total = getModifiersTotal(getModifierSet(), type);
 		if (type != null && type.equals("Natural Armor")) {
@@ -103,6 +112,7 @@ public class AC extends Statistic {
 		return armorCheckPenalty;
 	}
 
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("AC");
 		e.appendChild(armor.getElement(doc));
@@ -126,39 +136,51 @@ public class AC extends Statistic {
 	// note that listener requests are forwarded to the outer AC instance. this means the source of events will be the AC instance,
 	// not the touchAC instance
 	protected final Statistic touchAC = new Statistic("Touch AC") {
+		@Override
 		public void addPropertyChangeListener(PropertyChangeListener listener) {
 			AC.this.addPropertyChangeListener(listener);
 		}
 
+		@Override
 		public void removePropertyChangeListener(PropertyChangeListener listener) {
 			AC.this.removePropertyChangeListener(listener);
 		}
 
+		@Override
 		public void addModifier(Modifier m) {
 			AC.this.addModifier(m);
 		}
 
+		@Override
 		public void removeModifier(Modifier m) {
 			AC.this.removeModifier(m);
 		}
 
-		// this implementation matches the definition in the Rule Compendium (take the total AC and subtract Dex and dodge modifiers)
+		// this implementation matches the definition in the Rule Compendium (take the total AC and subtract armor, shield and natural)
+		@Override
 		public int getValue() {
 			int ac = AC.this.getValue();
 
 			Map<Modifier,Boolean> map = AC.this.getModifiers();
 			for (Modifier m : map.keySet()) {
-				if (map.get(m) && m.getCondition() == null && m.getType() != null && (m.getType().equals("Armor") || m.getType().equals("Shield") || m.getType().equals("Natural"))) {
+				if (map.get(m) && m.getCondition() == null && m.getType() != null
+						&& (m.getType().equals(Modifier.StandardType.ARMOR.toString())
+								|| m.getType().equals(Modifier.StandardType.SHIELD.toString())
+								|| m.getType().equals(Modifier.StandardType.NATURAL_ARMOR.toString()))) {
 					ac -= m.getModifier();
 				}
 			}
 			return ac;
 		}
 
+		@Override
 		protected Set<Modifier> getModifierSet() {
 			Set<Modifier> mods = new HashSet<Modifier>(AC.this.modifiers);
 			for (Modifier m : AC.this.modifiers) {
-				if (m.getType() != null && (m.getType().equals("Armor") || m.getType().equals("Shield") || m.getType().equals("Natural"))) {
+				if (m.getType() != null
+						&& (m.getType().equals(Modifier.StandardType.ARMOR.toString())
+								|| m.getType().equals(Modifier.StandardType.SHIELD.toString())
+								|| m.getType().equals(Modifier.StandardType.NATURAL_ARMOR.toString()))) {
 					mods.remove(m);
 				}
 			}
@@ -169,30 +191,35 @@ public class AC extends Statistic {
 	// note that listener requests are forwarded to the outer AC instance. this means the source of events will be the AC instance,
 	// not the flatFootedAC instance
 	protected final Statistic flatFootedAC = new Statistic("Flat-footed AC") {
+		@Override
 		public void addPropertyChangeListener(PropertyChangeListener listener) {
 			AC.this.addPropertyChangeListener(listener);
 		}
 
+		@Override
 		public void removePropertyChangeListener(PropertyChangeListener listener) {
 			AC.this.removePropertyChangeListener(listener);
 		}
 
+		@Override
 		public void addModifier(Modifier m) {
 			AC.this.addModifier(m);
 		}
 
+		@Override
 		public void removeModifier(Modifier m) {
 			AC.this.removeModifier(m);
 		}
 
 		// this implementation matches the definition in the Rule Compendium (take the total AC and subtract Dex and dodge modifiers)
+		@Override
 		public int getValue() {
 			int ac = AC.this.getValue();
 
 			Map<Modifier,Boolean> map = AC.this.getModifiers();
 			for (Modifier m : map.keySet()) {
-				if (map.get(m) && m.getCondition() == null && m.getType() != null && 
-						(m.getType().equals("Dexterity") && m.getModifier() > 0 || m.getType().equals("Dodge"))) {
+				if (map.get(m) && m.getCondition() == null && m.getType() != null &&
+						(m.getType().equals(AbilityScore.Type.DEXTERITY.toString()) && m.getModifier() > 0 || m.getType().equals(Modifier.StandardType.DODGE.toString()))) {
 					// note: only dex bonuses are removed, penalties should remain
 					ac -= m.getModifier();
 				}
@@ -200,10 +227,11 @@ public class AC extends Statistic {
 			return ac;
 		}
 
+		@Override
 		protected Set<Modifier> getModifierSet() {
 			Set<Modifier> mods = new HashSet<Modifier>(AC.this.modifiers);
 			for (Modifier m : AC.this.modifiers) {
-				if (m.getType() != null && (m.getType().equals("Dexterity") && m.getModifier() > 0 || m.getType().equals("Dodge"))) {
+				if (m.getType() != null && (m.getType().equals(AbilityScore.Type.DEXTERITY.toString()) && m.getModifier() > 0 || m.getType().equals(Modifier.StandardType.DODGE.toString()))) {
 					mods.remove(m);
 				}
 			}
@@ -230,15 +258,18 @@ public class AC extends Statistic {
 			super(n);
 		}
 
+		@Override
 		public int getValue() {
 			return bonus + super.getValue();
 		}
 
+		@Override
 		public void addModifier(Modifier m) {
 			super.addModifier(m);
 			updateModifier();
 		}
 
+		@Override
 		public void removeModifier(Modifier m) {
 			super.removeModifier(m);
 			updateModifier();
@@ -296,6 +327,7 @@ public class AC extends Statistic {
 			armorCheckPenalty.update();
 		}
 
+		@Override
 		public Element getElement(Document doc) {
 			Element e = doc.createElement(name);
 			e.setAttribute("description", description);
@@ -306,7 +338,7 @@ public class AC extends Statistic {
 			e.setAttribute("weight", ""+weight);
 			e.setAttribute("acp", ""+acp);
 			e.setAttribute("spell_failure", ""+spellFailure);
-			e.setAttribute("properties", ""+properties);			
+			e.setAttribute("properties", ""+properties);
 			return e;
 		}
 
@@ -322,6 +354,7 @@ public class AC extends Statistic {
 			if (e.hasAttribute("spell_failure")) spellFailure = Integer.parseInt(e.getAttribute("spell_failure"));
 		}
 
+		@Override
 		public String toString() {
 			StringBuilder s = new StringBuilder();
 			s.append(name);
@@ -345,22 +378,24 @@ public class AC extends Statistic {
 		}
 
 		public int getMaxDex() {
-			return dexMod.getLimit();
+			return dexMod == null ? 0 : dexMod.getLimit();
 		}
 
 		public void setMaxDex(int v) {
-			if (v == dexMod.getLimit()) return;
+			if (dexMod == null || v == dexMod.getLimit()) return;
 			dexMod.setLimit(v);
 		}
 
+		@Override
 		public Element getElement(Document doc) {
 			Element e = super.getElement(doc);
 			e.setAttribute("type", type);
 			e.setAttribute("speed", ""+speed);
-			e.setAttribute("max_dex", ""+dexMod.getLimit());
+			if (dexMod != null) e.setAttribute("max_dex", "" + dexMod.getLimit());
 			return e;
 		}
 
+		@Override
 		public void parseDOM(Element e) {
 			if (!e.getTagName().equals(name)) return;
 			super.parseDOM(e);
@@ -371,14 +406,16 @@ public class AC extends Statistic {
 		}
 	}
 
-	// TODO not sure if this should have type set or source set or if it should depend on where the penalty is from
-	// TODO will need to include encumberance eventually
-	// TODO should possibly be separate modifiers for armor and shield. will need separate modifiers or separate implementation for non-proficiency
+// TODO not sure if this should have type set or source set or if it should depend on where the penalty is from
+// TODO will need to include encumberance eventually
+// TODO should possibly be separate modifiers for armor and shield. will need separate modifiers or separate implementation for non-proficiency
 	protected class ArmorCheckPenalty extends AbstractModifier {
+		@Override
 		public int getModifier() {
 			return armor.acp + shield.acp;
 		}
 
+		@Override
 		public String getType() {
 			return "Armor Check Penalty";
 		}

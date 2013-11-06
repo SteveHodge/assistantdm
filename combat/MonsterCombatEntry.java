@@ -4,6 +4,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.JButton;
@@ -17,7 +18,9 @@ import javax.swing.event.DocumentListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import party.AdhocMonster;
 import party.Creature;
+import party.DetailedMonster;
 import party.Monster;
 import ui.BoundIntegerField;
 
@@ -27,22 +30,28 @@ import ui.BoundIntegerField;
 public class MonsterCombatEntry extends CombatEntry {
 	// creates a new MonsterCombatEntry backed by a new Monster
 	MonsterCombatEntry() {
-		creature = new Monster();
+		creature = new AdhocMonster();
 		createEntry();
+		setToolTipText(((Monster) creature).getStatsBlockHTML());
 	}
 
 	MonsterCombatEntry(Monster m) {
-		System.out.println("new MonsterCombatEntry " + m.getName());
-		creature = m;
+		creature = (Creature) m;
+		System.out.println("new MonsterCombatEntry " + creature.getName());
 		createEntry();
-		if (m.getStatsBlock() != null) setToolTipText(m.getStatsBlock().getHTML());
+		setToolTipText(m.getStatsBlockHTML());
 		initBlank();
 	}
 
+	@Override
+	public String getToolTipText(MouseEvent e) {
+		return ((Monster) creature).getStatsBlockHTML();
+	}
+
 	void createEntry() {
-		acComp = new BoundIntegerField(creature, Monster.PROPERTY_AC, 4);
-		touchACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_TOUCH, 4);
-		flatFootedACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_FLATFOOTED, 4);
+		acComp = new BoundIntegerField(creature, Creature.PROPERTY_AC, 4);
+		touchACComp = new BoundIntegerField(creature, DetailedMonster.PROPERTY_AC_TOUCH, 4);
+		flatFootedACComp = new BoundIntegerField(creature, DetailedMonster.PROPERTY_AC_FLATFOOTED, 4);
 
 		modifierComp = new BoundIntegerField(creature, Creature.PROPERTY_INITIATIVE, 3);
 
@@ -123,7 +132,7 @@ public class MonsterCombatEntry extends CombatEntry {
 
 	public static MonsterCombatEntry parseDOM(Element el) {
 		if (!el.getNodeName().equals("MonsterEntry")) return null;
-		MonsterCombatEntry c = new MonsterCombatEntry(new Monster());
+		MonsterCombatEntry c = new MonsterCombatEntry(new AdhocMonster());
 		c.nameField.setText(el.getAttribute("name"));
 		c.rollField.setValue(Integer.parseInt(el.getAttribute("roll")));
 		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));

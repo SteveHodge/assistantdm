@@ -38,7 +38,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import party.Monster;
+import party.DetailedMonster;
 import swing.ImagePanel;
 
 import combat.CombatPanel;
@@ -54,7 +54,7 @@ public class AddMonsterDialog extends JDialog {
 	private JSpinner countSpinner;
 	private JList monsterList;
 	private DefaultListModel monsterListModel;
-	private Monster selected;
+	private DetailedMonster selected;
 
 	private ImagePanel imagePanel;
 	private JButton prevImageButton;
@@ -77,7 +77,7 @@ public class AddMonsterDialog extends JDialog {
 		// select image control
 
 		monsterListModel = new DefaultListModel();
-		selected = stats.createMonster();
+		selected = new DetailedMonster(stats);
 		monsterListModel.addElement(selected);
 		monsterList = new JList(monsterListModel);
 		monsterList.setPreferredSize(new Dimension(200, 100));
@@ -170,7 +170,7 @@ public class AddMonsterDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
-					Monster m = (Monster) monsterListModel.get(i);
+					DetailedMonster m = (DetailedMonster) monsterListModel.get(i);
 					CombatPanel.addMonster(m);
 				}
 			}
@@ -181,7 +181,7 @@ public class AddMonsterDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
-					Monster m = (Monster) monsterListModel.get(i);
+					DetailedMonster m = (DetailedMonster) monsterListModel.get(i);
 					File f = null;
 					if (currentImageIndex >= 0) {
 						URL url = imageURLs.get(currentImageIndex);
@@ -248,7 +248,7 @@ public class AddMonsterDialog extends JDialog {
 	}
 
 	private void updateFields() {
-		Monster m = (Monster) monsterList.getSelectedValue();
+		DetailedMonster m = (DetailedMonster) monsterList.getSelectedValue();
 		if (m != selected) {
 			if (selected != null) selected.setName(nameField.getText());
 			selected = m;
@@ -269,11 +269,11 @@ public class AddMonsterDialog extends JDialog {
 			int oldSize = monsterListModel.getSize();
 			monsterListModel.setSize(newSize);
 			for (int i = oldSize; i < newSize; i++) {
-				Monster m = stats.createMonster();
+				DetailedMonster m = new DetailedMonster(stats);
 				m.setName(m.getName() + " " + (i + 1));
 				monsterListModel.set(i, m);
 			}
-			Monster m = (Monster) monsterListModel.get(0);
+			DetailedMonster m = (DetailedMonster) monsterListModel.get(0);
 			if (oldSize == 1 && newSize > 1 && !m.getName().endsWith(" 1")) {
 				m.setName(m.getName() + " 1");
 			} else if (newSize == 1 && m.getName().endsWith(" 1")) {

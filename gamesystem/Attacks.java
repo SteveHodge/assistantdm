@@ -12,23 +12,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.AbstractListModel;
-import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import party.Character;
 import party.Creature;
+import party.DetailedCreature;
 
 // TODO attack form specific combat options (+DOM)
 // TODO damage
 // TODO implement modifier particular to one attack mode (ranged/grapple etc) (note that grapple size modifier is different from regular attack size modifier)
 // TODO think about grapple - most modifier to attack shouldn't apply...
 // TODO consider if it is worth including situational modifiers (e.g. flanking, squeezing, higher, shooting into combat etc)
+// TODO cleanup AttackForm - hide public fields and update modifier type methods
 
 /*
  * Statistics provided:
@@ -41,52 +40,12 @@ import party.Creature;
  */
 
 public class Attacks extends Statistic {
-	public enum Usage {
-		ONE_HANDED("One-handed"),
-		TWO_HANDED("Two-handed"),
-		PRIMARY("Two-Weapon (Primary)"),
-		SECONDARY("Two-Weapon (Secondary)"),
-		THROWN("Thown");
-
-		private Usage(String d) {description = d;}
-
-		@Override
-		public String toString() {return description;}
-
-		private final String description;
-	}
-
-	// TODO the Kind enum value are really shorthand for a bunch of different properties. will need to split the properties out
-	// properties include permitted use (1h,2h,thrown,ranged), stat for damage adjustment, flag if weapon finesse can be applied, etc
-	public enum Kind {
-		LIGHT("Light Melee"),				// can't be used 2 handed, adds str
-		ONE_HANDED("One-handed Melee"),		// can be used 1 or 2 handed. adds str for primary hand use, 1/2 str for off hand use, 3/2 str for 2 handed use
-		TWO_HANDED("Two-handed Melee"),		// must be used 2 handed. adds 3/2 str
-		THROWN("Ranged - Thrown"),			// adds str. can be thrown in off hand
-		MISSILE("Ranged - Projectile");		// adds str only if mighty bow or sling
-
-		private Kind(String d) {description = d;}
-
-		@Override
-		public String toString() {return description;}
-
-		public static Kind getKind(String d) {
-			for (Kind k : values()) {
-				if (k.description.equals(d)) return k;
-			}
-			return null;	// TODO probably better to throw an exception
-		}
-
-		private final String description;
-	}
-
 	private int BAB = 0;
-	private Modifier strMod;
-	private Modifier dexMod;
-	private Character character;
+	private Modifier strMod;	// may be null (if the creature has no strength score)
+	private Modifier dexMod;	// may be null (if the creature has no dex score)
+	private DetailedCreature creature;
 	private AC ac;
-	private AttackFormListModel attackFormsModel = new AttackFormListModel();
-	private List<AttackForm> attackForms = new ArrayList<AttackForm>();
+	private Set<AttackForm> attackForms = new HashSet<AttackForm>();
 	private Modifier powerAttack = null;
 	private Modifier combatExpertise = null;
 	private Modifier combatExpertiseAC = null;	// assumed to be null/not-null in sync with combatExpertise
@@ -122,18 +81,20 @@ public class Attacks extends Statistic {
 	};
 
 	// TODO would prefer not to require a Character. however we do need abilityscores, feats, and AC for some combat options
-	public Attacks(AbilityScore str, AbilityScore dex, Character c) {
+	public Attacks(DetailedCreature c) {
 		super("Attacks");
 
-		character = c;
-		character.feats.addListDataListener(featsListener);
-		ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
+		creature = c;
+		if (creature instanceof Character) {
+			((Character) creature).feats.addListDataListener(featsListener);
+		}
+		ac = (AC) creature.getStatistic(Creature.STATISTIC_AC);
 
-		strMod = str.getModifier();
-		strMod.addPropertyChangeListener(listener);
+		strMod = creature.getAbilityModifier(AbilityScore.Type.STRENGTH);
+		if (strMod != null) strMod.addPropertyChangeListener(listener);
 
-		dexMod = dex.getModifier();
-		dexMod.addPropertyChangeListener(listener);
+		dexMod = creature.getAbilityModifier(AbilityScore.Type.DEXTERITY);
+		if (dexMod != null) dexMod.addPropertyChangeListener(listener);
 	}
 
 	@Override
@@ -213,7 +174,11 @@ public class Attacks extends Statistic {
 	protected Set<Modifier> getModifierSet() {
 		Set<Modifier> mods = new HashSet<Modifier>();
 		mods.addAll(modifiers);
-		mods.add(strMod);
+		if (strMod != null) {
+			mods.add(strMod);
+		} else if (dexMod != null) {
+			mods.add(dexMod);	// creatures with no strength score add dex mod to attack
+		}
 		if (powerAttack != null) mods.add(powerAttack);
 		return mods;
 	}
@@ -221,14 +186,14 @@ public class Attacks extends Statistic {
 	public int getRangedValue() {
 		Set<Modifier> mods = new HashSet<Modifier>();
 		mods.addAll(modifiers);
-		mods.add(dexMod);
+		if (dexMod != null) mods.add(dexMod);
 		return BAB + getModifiersTotal(mods,null);
 	}
 
 	public Map<Modifier,Boolean> getRangedModifiers() {
 		Set<Modifier> mods = new HashSet<Modifier>();
 		mods.addAll(modifiers);
-		mods.add(dexMod);
+		if (dexMod != null) mods.add(dexMod);
 		return getModifiers(mods);
 	}
 
@@ -236,12 +201,22 @@ public class Attacks extends Statistic {
 		return getValue();
 	}
 
+	public AttackForm addAttackForm(String name) {
+		AttackForm a = new AttackForm(name);
+		attackForms.add(a);
+		return a;
+	}
+
+	public void removeAttackForm(AttackForm a) {
+		attackForms.remove(a);
+	}
+
 	// --------------------- combat options -----------------
 	// sets up the new power attack modifier if the value has changed.
 	// note it doesn't add the modifier, instead the modifier is included in getValue() and AttackForms for melee attacks
 	// TODO bounds checking?
 	public void setPowerAttack(int value) {
-		if (!character.hasFeat(Feat.FEAT_POWER_ATTACK)) value = 0;
+		if (!creature.hasFeat(Feat.FEAT_POWER_ATTACK)) value = 0;
 
 		if (powerAttack == null && value == 0) return;
 		if (powerAttack != null && powerAttack.getModifier() == value) return;
@@ -263,7 +238,7 @@ public class Attacks extends Statistic {
 	// combat expertise applies to all attacks so we add it as a modifier
 	// TODO bounds checking?
 	public void setCombatExpertise(int value) {
-		if (!character.hasFeat(Feat.FEAT_COMBAT_EXPERTISE)) value = 0;
+		if (!creature.hasFeat(Feat.FEAT_COMBAT_EXPERTISE)) value = 0;
 
 		if (combatExpertise == null && value == 0) return;	// unchanged value
 
@@ -364,10 +339,6 @@ public class Attacks extends Statistic {
 		}
 		if (isTotalDefense) e.setAttribute("total_defense","true");
 		if (isFightingDefensively) e.setAttribute("fighting_defensively","true");
-
-		for (AttackForm a : attackForms) {
-			e.appendChild(a.getElement(doc, include_info));
-		}
 		return e;
 	}
 
@@ -380,14 +351,6 @@ public class Attacks extends Statistic {
 		if (e.hasAttribute("combat_expertise")) setCombatExpertise(Integer.parseInt(e.getAttribute("combat_expertise")));
 		if (e.getAttribute("total_defense").equals("true") || e.getAttribute("total_defense").equals("1")) setTotalDefense(true);
 		if (e.getAttribute("fighting_defensively").equals("true") || e.getAttribute("total_defense").equals("1")) setFightingDefensively(true);
-
-		NodeList children = e.getChildNodes();
-		for (int j=0; j<children.getLength(); j++) {
-			if (children.item(j).getNodeName().equals("AttackForm")) {
-				Attacks.AttackForm w = addAttackForm();
-				w.parseDOM((Element)children.item(j));
-			}
-		}
 	}
 
 	// ------------ Damage statstic --------------
@@ -425,83 +388,6 @@ public class Attacks extends Statistic {
 
 	public Statistic getDamageStatistic() {
 		return damageStat;
-	}
-
-	// ------------ Attack forms / weapons list related ------------
-	@SuppressWarnings("serial")
-	protected class AttackFormListModel extends AbstractListModel {
-		public AttackForm get(int i) {
-			return attackForms.get(i);
-		}
-
-		@Override
-		public Object getElementAt(int i) {
-			return get(i);
-		}
-
-		@Override
-		public int getSize() {
-			return attackForms.size();
-		}
-
-		public void addElement(AttackForm a) {
-			attackForms.add(a);
-			fireIntervalAdded(this, attackForms.size()-1, attackForms.size()-1);
-		}
-
-		public void removeElement(AttackForm a) {
-			int i = attackForms.indexOf(a);
-			if (i > -1) {
-				attackForms.remove(a);
-				fireIntervalRemoved(this, i, i);
-			}
-		}
-
-		public void move(int fromIndex, int toIndex) {
-			if (fromIndex < 0 || fromIndex > attackFormsModel.getSize()-1
-					|| toIndex < 0 || toIndex > attackFormsModel.getSize()-1) {
-				throw new IndexOutOfBoundsException();	// TODO message
-			}
-
-			AttackForm a = attackForms.remove(fromIndex);
-			fireIntervalRemoved(this, fromIndex, fromIndex);
-			attackForms.add(toIndex, a);
-			fireIntervalAdded(this, toIndex, toIndex);
-		}
-
-		/*
-		 * Tell the list model to signal its listeners that the specified element has been updated
-		 */
-		public void updated(AttackForm attackForm) {
-			int i = attackForms.indexOf(attackForm);
-			if (i > -1) fireContentsChanged(this, i, i);
-		}
-	}
-
-	public ListModel getAttackFormsListModel() {
-		return attackFormsModel;
-	}
-
-	public int getAttackFormsCount() {
-		return attackFormsModel.getSize();
-	}
-
-	public AttackForm getAttackForm(int i) {
-		return attackFormsModel.get(i);
-	}
-
-	public AttackForm addAttackForm() {
-		AttackForm a = new AttackForm("new weapon");
-		attackFormsModel.addElement(a);
-		return a;
-	}
-
-	public void removeAttackForm(AttackForm a) {
-		attackFormsModel.removeElement(a);
-	}
-
-	public void moveAttackForm(int fromIndex, int toIndex) {
-		attackFormsModel.move(fromIndex, toIndex);
 	}
 
 	public String getAttacksDescription(int total) {
@@ -563,29 +449,32 @@ public class Attacks extends Statistic {
 
 	// TODO some of the stuff in here is defining the weapon, some is defining the attack. eventually will want to separate
 	public class AttackForm extends Statistic {
-		protected Modifier twoWeaponPenalty = null;
-		protected Modifier enhancement = null;
-		protected Modifier powerAttackMod = null;
-		protected Modifier combatExpertiseMod = null;
+		private Modifier twoWeaponPenalty = null;	// TODO rename as this includes natural secondary attacks
+		private Modifier enhancement = null;
+		private boolean masterwork = false;		// if true then enhancement should not be added to damage (enhancement should be +1)
 
-		protected CombinedDice damage = new CombinedDice();				// TODO change to dice
-		public String critical;				// TODO split into range and multiplier
-		public int range;
-		public int weight;
-		public String damage_type;			// TODO convert to enum/constants/bitfield - not sure if it's practical since multiple values can be "and" or "or"
-		public String properties;			// TODO eventually will be derived
-		public String ammunition;
+		private CombinedDice damage = new CombinedDice();
 		public SizeCategory size = SizeCategory.MEDIUM;	// weapon size // TODO should default to character's size
-		protected Kind  kind;					// weapon kind (melee/ranged/thrown etc)
-		protected Usage usage;					// style of use (one-handed, two-handed, primary, etc) // TODO when we have weapon definitions this should default to the correct "normal" use of the weapon
 
-		public AttackForm(String name) {
+		public boolean natural = false;	// natural weapons use -5 penalty for all non-primary attacks (-2 with multiattack)
+		public boolean primary = true;
+		public boolean twoWeaponFighting = false;	// only valid if natural == false
+		public boolean offhandLight = false;		// only valid if twoWeaponFighting == true (valid for primary and secondary)
+		public boolean ranged = false;		// if true then must use dex instead of strength
+		public boolean canUseDex = false;	// if true then can use dex if it is better than strength (e.g. weapon finesse)
+		public int strMultiplier = 2;		// strength multiplier to apply to damage in units of 1/2 str mod
+		public int strLimit = Integer.MAX_VALUE;	// maximum str bonus to apply (generally only compound bows)
+		public boolean doublePADmg = false;	// true if the power attack damage bonus is double the penalty taken (ie. two handed melee weapon)
+		public int maxAttacks = 4;	// limit on number of attacks with due to high BAB (e.g. weapons that need to be reloaded)
+		public boolean weaponSpecApplies = false;	// TODO remove when we move to full embedded Statistic for damage
+		public Set<Modifier> damageMods = null;	// TODO remove when we move to full Statistic for damage
+
+		private AttackForm(String name) {
 			super(name);
 		}
 
 		public void setName(String s) {
 			name = s;
-			attackFormsModel.updated(this);
 		}
 
 		// convenient passthrough of Attacks method:
@@ -618,26 +507,12 @@ public class Attacks extends Statistic {
 			return enhancement.getModifier();
 		}
 
-		public void setKind(Kind k) {
-			// TODO check argument for validity? (kind will go away at some point so is there any point?)
-			kind = k;
-			updateModifiers();
-			pcs.firePropertyChange("damage", null, getDamage());
-		}
-
-		public Kind getKind() {
-			return kind;
-		}
-
-		public void setUsage(Usage u) {
-			// TODO validate argument
-			usage = u;
-			updateModifiers();
-			pcs.firePropertyChange("damage", null, getDamage());
-		}
-
-		public Usage getUsage() {
-			return usage;
+		public void setMasterwork(boolean val) {
+			masterwork = val;
+			if (enhancement != null) removeModifier(enhancement);
+			if (!masterwork) return;
+			enhancement = new ImmutableModifier(1, null, "Masterwork weapon");
+			addModifier(enhancement);
 		}
 
 		// returns the String version of the base damage
@@ -659,81 +534,70 @@ public class Attacks extends Statistic {
 			return dmg;
 		}
 
+		public void addDamageModifier(Modifier mod) {
+			if (damageMods == null) damageMods = new HashSet<Modifier>();
+			damageMods.add(mod);
+			pcs.firePropertyChange("damage", null, damage.toString());
+		}
+
 		public Map<Modifier,Boolean> getDamageModifiers() {
 			return getModifiers(getDamageModifiersSet());
 		}
 
-		// rules adopted here:
-		// strength penalties apply fully to melee weapons, thrown weapons (including sling), and non-composite bows
-		// 0.5x strength bonus applies to light or one-handed melee weapon in off-hand
-		// 1x strength bonus applies to light or one-handed melee weapon in primary hand, thrown weapons (including sling),
-		// and mighty bows (up to mighty limit)
-		// 1.5x strength bonus applies to one- or two-handed melee weapons used two-handed
 		public Set<Modifier> getDamageModifiersSet() {
 			Set<Modifier> mods = new HashSet<Modifier>();
 			mods.addAll(damageStat.modifiers);
 
-			// calculate strength modifier
-			int mod = strMod.getModifier();
-			if (mod < 0 && kind != Kind.MISSILE) {
-				// TODO should also apply to non-composite bows and slings
-				mods.add(new ImmutableModifier(mod, null, "Strength"));
-			} else if (mod > 0) {
-				int s = 0;
-				if (usage == Usage.SECONDARY) {
-					s = mod/2;
-				} else if (usage == Usage.TWO_HANDED && (kind == Kind.ONE_HANDED || kind == Kind.TWO_HANDED)) {
-					s = 3*mod/2;
-				} else {
-					if (kind == Kind.THROWN	// TODO should include sling
-							|| ((kind == Kind.LIGHT || kind == Kind.ONE_HANDED) && (usage == Usage.PRIMARY || usage == Usage.ONE_HANDED)))
-					{
-						s = mod;
-					}
-					// TODO mighty bows
-					//if (kind == Kind.MISSILE && ...mighty...)
-				}
-				if (s > 0) {
-					mods.add(new ImmutableModifier(s, null, "Strength"));
+			if (strMod != null) {
+				// strength modifier
+				int mod = strMod.getModifier();
+				if (mod < 0 && strMultiplier > 0) {
+					// penalty normal applies (an exception is some missile weapons)
+					mods.add(new ImmutableModifier(mod, null, "Strength"));
+				} else if (mod > 0) {
+					// TODO think this should add a live multipier strmod
+					mods.add(new ImmutableModifier(Math.min(mod * strMultiplier / 2, strLimit), null, "Strength"));
 				}
 			}
 
-			// note powerAttack modifier is the attack penalty, so we need to negate it
+			// powerAttack modifier
 			if (powerAttack != null && powerAttack.getModifier() < 0) {
-				if (usage == Usage.TWO_HANDED && (kind == Kind.ONE_HANDED || kind == Kind.TWO_HANDED)) {
-					mods.add(new ImmutableModifier(-powerAttack.getModifier() * 2, null, "Power Attack"));
-				} else if (kind == Kind.ONE_HANDED && (usage == Usage.PRIMARY || usage == Usage.ONE_HANDED || usage == Usage.SECONDARY)) {
-					mods.add(new ImmutableModifier(-powerAttack.getModifier(), null, "Power Attack"));
-				}
+				mods.add(new ImmutableModifier(-powerAttack.getModifier() * (doublePADmg ? 2 : 1), null, "Power Attack"));
+			}
+
+			// enhancement modifier
+			if (enhancement != null && !masterwork) mods.add(enhancement);
+
+			// weapon specialization
+			// TODO should recheck this against feats rather than using a stored value. or have the client set it
+			if (weaponSpecApplies) mods.add(new ImmutableModifier(2, null, "Weapon specialization"));
+
+			if (damageMods != null) {
+				mods.addAll(damageMods);
 			}
 
 			return mods;
 		}
 
-		// calculates any penalties and applies them
-		protected void updateModifiers() {
+		// recalculates the two-weapon fighting penalty
+		public void updateModifiers() {
 			// two-weapon fighting modifiers:
 			Modifier newMod = null;
 
-			if (usage == Usage.PRIMARY) {
-				int penalty = 6;
-				if (character.hasFeat(Feat.FEAT_TWO_WEAPON_FIGHTING)) penalty = 4;
-
-				// find the next "secondary" weapon - if it's light then penalty is reduced by 2
-				for (int i = attackForms.indexOf(this)+1; i < attackForms.size(); i++) {
-					AttackForm a = attackForms.get(i);
-					if (a.usage == Usage.SECONDARY) {
-						if (a.kind == Kind.LIGHT) penalty -= 2;
-						break;
-					}
-				}
-
-				newMod = new ImmutableModifier(-penalty,null,"Two-weapon fighting (primary)");
-			} else if (usage == Usage.SECONDARY) {
+			if (twoWeaponFighting) {
 				int penalty = 10;
-				if (character.hasFeat(Feat.FEAT_TWO_WEAPON_FIGHTING)) penalty = 4;
-				if (kind == Kind.LIGHT) penalty -= 2;
-				newMod = new ImmutableModifier(-penalty,null,"Two-weapon fighting (secondary)");
+				if (primary) penalty -= 4;
+				if (creature.hasFeat(Feat.FEAT_TWO_WEAPON_FIGHTING) || creature.hasFeat(Feat.FEAT_MULTI_WEAPON_FIGHTING)) penalty = 4;
+				if (offhandLight) penalty -= 2;
+				if (creature.hasFeat("enhanced multiweapon fighting")) penalty -= 2;
+				newMod = new ImmutableModifier(-penalty, null, "Two-weapon fighting (" + (primary ? "primary" : "secondary") + ")");
+			}
+
+			if (!primary && (natural || !twoWeaponFighting)) {
+				// secondary natural attack or manufactured weapon secondary to natural primary
+				int penalty = 5;
+				if (creature.hasFeat(Feat.FEAT_MULTIATTACK)) penalty = 2;
+				newMod = new ImmutableModifier(-penalty, null, "Secondary attack");
 			}
 
 			if (twoWeaponPenalty == null) {
@@ -756,21 +620,18 @@ public class Attacks extends Statistic {
 			}
 		}
 
-		// if kind is unset then it is assumed to be a melee weapon
 		@Override
 		public Set<Modifier> getModifierSet() {
 			Set<Modifier> mods = new HashSet<Modifier>(modifiers);
 			mods.addAll(Attacks.this.modifiers);
-			if (kind == Kind.THROWN || kind == Kind.MISSILE) {
-				mods.add(dexMod);
+			if (ranged) {
+				if (dexMod != null) mods.add(dexMod);
 			} else {
-				// melee attack
 				if (powerAttack != null) mods.add(powerAttack);
-				if (kind == Kind.LIGHT && character.hasFeat(Feat.FEAT_WEAPON_FINESSE) && dexMod.getModifier() > strMod.getModifier()) {
-					// TODO weapon finesse also applies to some other weapons...
-					mods.add(dexMod);
+				if (strMod == null || (canUseDex && dexMod.getModifier() > strMod.getModifier())) {
+					if (dexMod != null) mods.add(dexMod);
 				} else {
-					mods.add(strMod);
+					if (strMod != null) mods.add(strMod);
 				}
 			}
 			return mods;
@@ -783,6 +644,7 @@ public class Attacks extends Statistic {
 		// secondary weapon + greater 2 weapon fighting - returns max of 3 attacks
 		// missile weapon + rapid shot - returns extra attack at the top bonus
 		// flurry of blows - provides 1 or 2 extra attacks at the top bonus (depends on level)
+		// natural weapons - returns max of 1 attack
 		public String getAttacksDescription() {
 			StringBuilder s = new StringBuilder();
 
@@ -798,11 +660,17 @@ public class Attacks extends Statistic {
 			}
 
 			int max = 3;	// limit for PHB rules is BAB of 20 which gives 4 attacks
-			if (usage == Usage.SECONDARY) {
+			if (natural) {
+				// generally the rules say natural weapons should have a single attack, but there are exceptions
+				// in the MM. we'll use the maxAttacks value which is derived from the statblock
+				max = maxAttacks - 1;
+			} else if (!primary) {
 				max = 0;
-				if (character.hasFeat(Feat.FEAT_IMPROVED_TWO_WEAPON_FIGHTING)) max++;
-				if (character.hasFeat(Feat.FEAT_GREATER_TWO_WEAPON_FIGHTING)) max++;
+				if (creature.hasFeat(Feat.FEAT_IMPROVED_TWO_WEAPON_FIGHTING)) max++;
+				if (creature.hasFeat(Feat.FEAT_GREATER_TWO_WEAPON_FIGHTING)) max++;
 			}
+
+			if (max > maxAttacks - 1) max = maxAttacks - 1;
 
 			int bab = getBAB() - 5;
 			while (bab >= 1 && max > 0) {
@@ -859,19 +727,7 @@ public class Attacks extends Statistic {
 			}
 			e.setAttribute("base_damage", damage.toString());
 			e.setAttribute("damage", getDamage());
-			e.setAttribute("critical", critical);
-			if (range > 0) e.setAttribute("range", ""+range);
-			if (weight > 0) e.setAttribute("weight", ""+weight);
-			e.setAttribute("type", damage_type);
 			e.setAttribute("size", ""+size);
-			if (properties == null || properties.length() == 0) {
-				e.setAttribute("properties", usage.toString());
-			} else {
-				e.setAttribute("properties", properties);
-			}
-			e.setAttribute("ammunition", ammunition);
-			e.setAttribute("kind", kind.toString());
-			e.setAttribute("usage", ""+usage.ordinal());
 
 			// informational attributes:
 			e.setAttribute("total", ""+getValue());
@@ -886,23 +742,11 @@ public class Attacks extends Statistic {
 		public void parseDOM(Element e) {
 			if (!e.getTagName().equals("AttackForm")) return;
 
-			name = e.getAttribute("name");
 			if (e.hasAttribute("enhancement")) {
 				setAttackEnhancement(Integer.parseInt(e.getAttribute("enhancement")));
 			}
 			damage = CombinedDice.parse(e.getAttribute("base_damage"));
-			critical = e.getAttribute("critical");
-			if (e.hasAttribute("range")) range = Integer.parseInt(e.getAttribute("range"));
-			if (e.hasAttribute("weight")) weight = Integer.parseInt(e.getAttribute("weight"));
-			damage_type = e.getAttribute("type");
 			if (e.hasAttribute("size")) size = SizeCategory.getSize(e.getAttribute("size"));
-			ammunition = e.getAttribute("ammunition");
-			kind = Kind.getKind(e.getAttribute("kind"));
-			if (e.hasAttribute("usage")) usage = Usage.values()[Integer.parseInt(e.getAttribute("usage"))];
-			String s = e.getAttribute("properties");
-			if (s != null && !s.equals(usage)) {
-				properties = s;
-			}
 			updateModifiers();
 		}
 	}
