@@ -40,7 +40,7 @@ import util.LocalEntityResolver;
 
 /**
  * Represents a parsed statistics block from a source (usual an HTML table). The values stored in the
- * StatisticsBlock are accessed via keys (Property values). The raw values are strings which may contain
+ * StatisticsBlock are accessed via keys (Field values). The raw values are strings which may contain
  * any text. Specific getX() methods attempt to further parse concrete values from these strings.
  * 
  * This is an immutable type.
@@ -50,7 +50,7 @@ import util.LocalEntityResolver;
  */
 
 public class StatisticsBlock {
-	public enum Property {
+	public enum Field {
 		NAME("Name:"),
 		URL("URL:"),
 
@@ -82,19 +82,19 @@ public class StatisticsBlock {
 		@Override
 		public String toString() {return label;}
 
-		public static Property fromString(String p) {
+		public static Field fromString(String p) {
 			// TODO more efficient implementation
-			for (Property prop : Property.values()) {
+			for (Field prop : Field.values()) {
 				if (prop.toString().equals(p)) return prop;
 			}
 			return null;
 		}
 
-		public static Property[] getStandardOrder() {
+		public static Field[] getStandardOrder() {
 			return Arrays.copyOf(standardOrder, standardOrder.length);
 		}
 
-		private static final Property[] standardOrder = {
+		private static final Field[] standardOrder = {
 			SIZE_TYPE,
 			HITDICE,
 			INITIATIVE,
@@ -119,7 +119,7 @@ public class StatisticsBlock {
 			LEVEL_ADJUSTMENT
 		};
 
-		private Property(String l) {label = l;}
+		private Field(String l) {label = l;}
 
 		private String label;
 	}
@@ -128,26 +128,26 @@ public class StatisticsBlock {
 	static final String IMAGECLASS = "monsterImage";
 
 	private Source source;
-	private Map<Property, String> properties = new HashMap<Property, String>();
+	private Map<Field, String> fields = new HashMap<Field, String>();
 	private URL[] images = null;
 
-	public String get(Property key) {
-		return properties.get(key);
+	public String get(Field key) {
+		return fields.get(key);
 	}
 
 	public String getName() {
-		return get(Property.NAME);
+		return get(Field.NAME);
 	}
 
 	URL getURL() throws MalformedURLException {
-		return new URL(get(Property.URL));
+		return new URL(get(Field.URL));
 	}
 
 	// type of the creature
-	// property has format "<Size> <Type> [(Subtypes)]"
-	// returns null if the property has the incorrect format or if the type is unknown
+	// field has format "<Size> <Type> [(Subtypes)]"
+	// returns null if the field has the incorrect format or if the type is unknown
 	MonsterType getType() {
-		String sizeType = get(Property.SIZE_TYPE);
+		String sizeType = get(Field.SIZE_TYPE);
 		if (sizeType == null || sizeType.indexOf(' ') < 1) return null;
 		sizeType = sizeType.substring(sizeType.indexOf(' ')+1);
 		if (sizeType.indexOf('(') > 1) {
@@ -170,7 +170,7 @@ public class StatisticsBlock {
 	Set<String> getSubtypes() {
 		Set<String> subtypes = new HashSet<String>();
 
-		String sizeType = get(Property.SIZE_TYPE);
+		String sizeType = get(Field.SIZE_TYPE);
 		if (sizeType == null || sizeType.indexOf('(') < 0) return subtypes;
 		sizeType = sizeType.substring(sizeType.indexOf('(') + 1);
 		if (sizeType.indexOf(')') >= 0) {
@@ -184,26 +184,26 @@ public class StatisticsBlock {
 	}
 
 	/**
-	 * Parses the SIZE_TYPE property value and returns the size category (which is the first word of the property).
+	 * Parses the SIZE_TYPE field value and returns the size category (which is the first word of the field).
 	 * If SIZE_TYPE can't be parsed then null is returned
 	 * 
 	 * @return the SizeCategory of the creature or null
 	 */
 	public SizeCategory getSize() {
-		String sizeType = get(Property.SIZE_TYPE);
+		String sizeType = get(Field.SIZE_TYPE);
 		if (sizeType == null || sizeType.indexOf(' ') < 1) return null;
 		return SizeCategory.getSize(sizeType.substring(0, sizeType.indexOf(' ')));
 	}
 
 	/**
-	 * Parses the SPACE_REACH property value and returns the space taken by the creature in 6" units.
+	 * Parses the SPACE_REACH field value and returns the space taken by the creature in 6" units.
 	 * The SPACE_REACH value should be of the form "X ft./...". X should be an integer or either "2 1/2" or "2½".
 	 * If SPACE_REACH has no value or it can't be parsed to extract the space value then -1 is returned
 	 * 
-	 * @return the space taken by the creature in 6" units or -1 if the SPACE_REACH property can't be parsed
+	 * @return the space taken by the creature in 6" units or -1 if the SPACE_REACH field can't be parsed
 	 */
 	public int getSpace() {
-		String space = get(Property.SPACE_REACH);
+		String space = get(Field.SPACE_REACH);
 		if (space == null || space.indexOf(" ft./") < 1) return -1;
 		space = space.substring(0, space.indexOf(" ft./"));
 		if (space.equals("2 1/2") || space.equals("2½")) return 5;
@@ -217,15 +217,15 @@ public class StatisticsBlock {
 	}
 
 	/**
-	 * Parses the SPACE_REACH property value and returns the normal reach of the creature in feet.
+	 * Parses the SPACE_REACH field value and returns the normal reach of the creature in feet.
 	 * The SPACE_REACH value should be of the form ".../X ft....". X should be an integer.
 	 * Any additional information (e.g. "20 ft. with tentacles") is ignored.
 	 * If SPACE_REACH has no value or it can't be parsed to extract the reach value then -1 is returned
 	 * 
-	 * @return the reach of the creature in feet or -1 if the SPACE_REACH property can't be parsed
+	 * @return the reach of the creature in feet or -1 if the SPACE_REACH field can't be parsed
 	 */
 	public int getReach() {
-		String reach = get(Property.SPACE_REACH);
+		String reach = get(Field.SPACE_REACH);
 		if (reach == null || reach.indexOf(" ft./") < 1) return -1;
 		reach = reach.substring(reach.indexOf(" ft./") + 5);
 		if (reach.indexOf(" ft.") < 1) return -1;
@@ -239,24 +239,24 @@ public class StatisticsBlock {
 		return s;
 	}
 
-	// format of property is:
+	// format of field is:
 	// Str 25, Dex 10, Con —, Int 1, Wis 11, Cha 1
 	// returns -1 for a missing ability
 	// TODO should throw exceptions for invalid formats (or at least return -1)
 	public int getAbilityScore(Type ability) {
-		String[] abilities = get(Property.ABILITIES).split("\\s*,\\s*");
+		String[] abilities = get(Field.ABILITIES).split("\\s*,\\s*");
 		String a = abilities[ability.ordinal()].substring(abilities[ability.ordinal()].indexOf(' ')+1);
 		if (a.equals("-") || a.equals("—") || a.equals("Ø")) return -1;
 		if (a.endsWith("*")) a = a.substring(0, a.length() - 1);	// strip any asterisk
 		return Integer.parseInt(a);
 	}
 
-	// format of property is:
+	// format of field is:
 	// Fort +2, Ref +6, Will +1
 	// returns Integer.MIN_VALUE for a missing save
 	// TODO should throw exceptions for invalid formats (or at least return -1)
 	public int getSavingThrow(SavingThrow.Type save) {
-		String[] saves = get(Property.SAVES).split("\\s*,\\s*");
+		String[] saves = get(Field.SAVES).split("\\s*,\\s*");
 		String s = saves[save.ordinal()].substring(saves[save.ordinal()].indexOf(' ') + 1);
 		if (s.contains(" ")) s = s.substring(0, s.indexOf(' '));	// strip any conditional version
 		if (s.endsWith("*")) s = s.substring(0, s.length() - 1);	// strip any asterisk
@@ -265,7 +265,7 @@ public class StatisticsBlock {
 	}
 
 //	private CR getCR() {
-//		String s = get(Property.CR);
+//		String s = get(Field.CR);
 //		if (s.equals("¼")) s = "1/4";
 //		if (s.equals("½")) s = "1/2";
 //		try {
@@ -288,7 +288,7 @@ public class StatisticsBlock {
 	}
 
 	public int getInitiativeModifier() {
-		String init = get(Property.INITIATIVE);
+		String init = get(Field.INITIATIVE);
 		if (init == null) {
 			System.out.println("WARN: "+getName()+" has no initiative");
 			return 0;
@@ -298,7 +298,7 @@ public class StatisticsBlock {
 
 	// returns the parsed BAB.
 	public int getBAB() {
-		String babStr = get(Property.BASE_ATTACK_GRAPPLE);
+		String babStr = get(Field.BASE_ATTACK_GRAPPLE);
 		return parseModifier(babStr.substring(0, babStr.indexOf('/')));
 	}
 
@@ -307,7 +307,7 @@ public class StatisticsBlock {
 	public Map<CharacterClass, Integer> getClassLevels() {
 		Map<CharacterClass,Integer> classLevels = new HashMap<CharacterClass,Integer>();
 
-		String classLevelStr = get(Property.CLASS_LEVELS);
+		String classLevelStr = get(Field.CLASS_LEVELS);
 		if (classLevelStr != null && !classLevelStr.equals("—")) {
 			for (String classLevel : classLevelStr.split("\\s*,\\s+")) {
 				String[] pieces = classLevel.split("\\s+");
@@ -325,7 +325,7 @@ public class StatisticsBlock {
 	// hitdice section ends with " (# hp)"
 	// first number may be "½ "
 	public HitDice getHitDice() {
-		String hd = get(Property.HITDICE);
+		String hd = get(Field.HITDICE);
 		if (hd == null || hd.indexOf(" (") < 0) {
 			System.out.println("WARN: "+getName()+" has no default hp ending hitdice");
 			return null;
@@ -338,7 +338,7 @@ public class StatisticsBlock {
 	// pattern is "<hitdice> (# hp)"
 	public int getDefaultHPs() {
 		int hp = 0;
-		String hps = get(Property.HITDICE);
+		String hps = get(Field.HITDICE);
 		if (hps != null && hps.indexOf(" (") > 0 && hps.indexOf(" hp)") > 0) {
 			hps = hps.substring(hps.indexOf(" (")+2,hps.indexOf(" hp)"));
 			//System.out.println(block.get("Name:")+"HPs: "+hps);
@@ -359,7 +359,7 @@ public class StatisticsBlock {
 	// returns an array of integers: full, touch, and flat-footed ac totals respectively
 	// if multiple ac versions appear (separated by " or ") then the first one is parsed and returned
 	public int[] getACs() {
-		String acProp = get(Property.AC);
+		String acProp = get(Field.AC);
 		if (acProp == null) {
 			System.out.println("WARN: " + getName() + " has no AC");
 			return new int[3];
@@ -435,7 +435,7 @@ public class StatisticsBlock {
 	// <type> is a string which should be one of the standard Modifier types
 	// <description> is a string
 	public Set<Modifier> getACModifiers() {
-		String acProp = get(Property.AC);
+		String acProp = get(Field.AC);
 		if (acProp == null) {
 			System.out.println("WARN: " + getName() + " has no AC");
 			return null;
@@ -497,7 +497,7 @@ public class StatisticsBlock {
 	public List<AttackRoutine> getAttacks(boolean full) {
 		List<AttackRoutine> attackRoutines = new ArrayList<AttackRoutine>();
 
-		String prop = get(full ? Property.FULL_ATTACK : Property.ATTACK);
+		String prop = get(full ? Field.FULL_ATTACK : Field.ATTACK);
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+or\\s+", "($1 _OR_ ");	// temporarily translate any " or " found inside parentheses (i.e. inside a damage section)
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+and\\s+", "($1 _AND_ ");	// temporarily translate any " and " found inside parentheses (i.e. inside a damage section)
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+plus\\s+", "($1 _PLUS_ ");	// temporarily translate any " plus " found inside parentheses (i.e. inside a damage section)
@@ -721,7 +721,7 @@ public class StatisticsBlock {
 
 					int strMod = AbilityScore.getModifier(getAbilityScore(AbilityScore.Type.STRENGTH));
 
-					String feats = get(Property.FEATS);
+					String feats = get(Field.FEATS);
 					if (feats == null) feats = "";
 					feats = feats.toLowerCase();
 
@@ -887,11 +887,11 @@ public class StatisticsBlock {
 			}
 
 			public int calculateAttackBonus() {
-				String feats = get(Property.FEATS);
+				String feats = get(Field.FEATS);
 				if (feats == null) feats = "";
 				feats = feats.toLowerCase();
 
-				String special_qualities = get(Property.SPECIAL_QUALITIES);
+				String special_qualities = get(Field.SPECIAL_QUALITIES);
 				if (special_qualities == null) special_qualities = "";
 				special_qualities = special_qualities.toLowerCase();
 
@@ -1243,18 +1243,18 @@ public class StatisticsBlock {
 						} else {
 							while (col > statsBlock.size()) {
 								StatisticsBlock block = new StatisticsBlock();
-								block.properties.put(Property.NAME, defaultName);
-								block.properties.put(Property.URL, url);
+								block.fields.put(Field.NAME, defaultName);
+								block.fields.put(Field.URL, url);
 								statsBlock.add(block);
 								//System.out.println("Added block for "+col);
 							}
 							StatisticsBlock block = statsBlock.get(col-1);
 							if (stat.equals("")) {
-								block.properties.put(Property.NAME, el.getTextContent().trim());
-								//System.out.println("Set name to "+block.properties.get(Property.NAME));
+								block.fields.put(Field.NAME, el.getTextContent().trim());
+								//System.out.println("Set name to "+block.properties.get(Field.NAME));
 							} else {
-								Property p = Property.fromString(stat);
-								if (p != null) block.properties.put(p, el.getTextContent().trim());
+								Field p = Field.fromString(stat);
+								if (p != null) block.fields.put(p, el.getTextContent().trim());
 								//System.out.println(""+col+": "+stat+" = "+el.getTextContent());
 							}
 						}
@@ -1273,7 +1273,7 @@ public class StatisticsBlock {
 	public String getHTML() {
 		StringBuilder s = new StringBuilder();
 		s.append("<html><table><tr><td></td><td>").append(getName()).append("</td></tr>");
-		for (Property p : Property.getStandardOrder()) {
+		for (Field p : Field.getStandardOrder()) {
 			s.append("<tr><td>").append(p).append("</td><td>").append(get(p)).append("</td></tr>");
 		}
 		s.append("</table></html>");
@@ -1285,7 +1285,7 @@ public class StatisticsBlock {
 		StringBuilder s = new StringBuilder();
 		String nl = System.getProperty("line.separator");
 		s.append(getName()).append(nl);
-		for (Property p : Property.getStandardOrder()) {
+		for (Field p : Field.getStandardOrder()) {
 			s.append(p).append(" ").append(get(p)).append(nl);
 		}
 		return s.toString();

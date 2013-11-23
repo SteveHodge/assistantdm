@@ -105,6 +105,10 @@ public class BuffFactory {
 	}
 
 	//@formatter:off
+	public static final BuffFactory AUGMENTED_SUMMONING = (new BuffFactory("Augmented Summoning"))
+			.addEffect(Creature.STATISTIC_STRENGTH,"Enhancement",4)
+			.addEffect(Creature.STATISTIC_CONSTITUTION,"Resistence",4);
+
 	public static BuffFactory[] buffs = {
 		(new BuffFactory("Shield Other"))
 		.addEffect(Creature.STATISTIC_AC,"Deflection",1)

@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 import monsters.StatisticsBlock.AttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine.Attack;
-import monsters.StatisticsBlock.Property;
+import monsters.StatisticsBlock.Field;
 import party.DetailedMonster;
 import party.DetailedMonster.MonsterAttackForm;
 import party.DetailedMonster.MonsterAttackRoutine;
@@ -72,7 +72,7 @@ public class GetStatsBlock {
 		HashSet<String> names = new HashSet<String>();
 		for (StatisticsBlock block : blocks) {
 			if (names.contains(block.getName())) {
-				System.out.println("Found duplicate name: " + block.getName() + " in " + block.get(StatisticsBlock.Property.URL));
+				System.out.println("Found duplicate name: " + block.getName() + " in " + block.get(StatisticsBlock.Field.URL));
 				System.out.println(block);
 			} else {
 				names.add(block.getName());
@@ -218,12 +218,26 @@ public class GetStatsBlock {
 
 //		checkBABGrapple(blocks);
 
+		// check supplied default hitpoints matches the average of the hitdice
+		for (StatisticsBlock block : blocks) {
+			try {
+				HitDice dice = block.getHitDice();
+				if ((int) dice.getMeanRoll() != block.getDefaultHPs()) {
+					System.out.println("supplied = " + block.getDefaultHPs() + ", calculated = " + (int) dice.getMeanRoll() + ": " + getNameURL(block));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		System.exit(0);
+
 		boolean full = false;
 
 		// check that attacks are parsed correctly:
 		for (StatisticsBlock block : blocks) {
 			try {
-				String value = block.get(full ? Property.FULL_ATTACK : Property.ATTACK);
+				String value = block.get(full ? Field.FULL_ATTACK : Field.ATTACK);
 
 				DetailedMonster monster = new DetailedMonster(block);
 				StringBuilder b = new StringBuilder();
@@ -293,7 +307,7 @@ public class GetStatsBlock {
 		for (StatisticsBlock block : blocks) {
 			int str = block.getAbilityScore(AbilityScore.Type.STRENGTH);
 
-			String feats = block.get(Property.FEATS);
+			String feats = block.get(Field.FEATS);
 			if (feats == null) feats = "";
 			feats = feats.toLowerCase();
 
@@ -427,7 +441,7 @@ public class GetStatsBlock {
 					int strMod = AbilityScore.getModifier(str);
 					if (str == -1) strMod = dexMod;		// no strength so use dex
 					System.out.println("BAB = " + block.getBAB() + ", Str = " + strMod + ", Dex = " + dexMod + ", Size = " + sizeMod);
-					System.out.println("Feats = " + block.get(Property.FEATS));
+					System.out.println("Feats = " + block.get(Field.FEATS));
 					System.out.println("Attacks = " + b);
 					ok = true;
 				}
@@ -481,7 +495,7 @@ public class GetStatsBlock {
 		// check that attacks are parsed correctly:
 		for (StatisticsBlock block : blocks) {
 			try {
-				String value = block.get(full ? Property.FULL_ATTACK : Property.ATTACK);
+				String value = block.get(full ? Field.FULL_ATTACK : Field.ATTACK);
 
 				StringBuilder b = new StringBuilder();
 				List<AttackRoutine> attackRoutines = block.getAttacks(full);
@@ -523,11 +537,11 @@ public class GetStatsBlock {
 					System.out.println(getNameURL(block) + "\n calculated touch ac (" + m.getTouchAC() + ") does not match supplied touch ac (" + acs[1] + ")");
 				}
 				if (acs[2] != m.getFlatFootedAC()) {
-					if (!block.get(StatisticsBlock.Property.SPECIAL_QUALITIES).contains("uncanny dodge") || acs[2] != m.getAC()) {
+					if (!block.get(StatisticsBlock.Field.SPECIAL_QUALITIES).contains("uncanny dodge") || acs[2] != m.getAC()) {
 						System.out.println(getNameURL(block) + "\n calculated flat-footed ac (" + m.getFlatFootedAC() + ") does not match supplied flat-footed ac (" + acs[2] + ")");
 					}
 				} else {
-					if (block.get(StatisticsBlock.Property.SPECIAL_QUALITIES).contains("uncanny dodge") && m.getAC() != m.getFlatFootedAC()) {
+					if (block.get(StatisticsBlock.Field.SPECIAL_QUALITIES).contains("uncanny dodge") && m.getAC() != m.getFlatFootedAC()) {
 						System.out.println(getNameURL(block) + "\n calculated flat-footed ac (" + m.getFlatFootedAC() + ") does not match supplied ac with uncanny dodge (" + m.getAC() + ")");
 					}
 				}
@@ -544,7 +558,7 @@ public class GetStatsBlock {
 	public static void getACDetails(List<StatisticsBlock> blocks) {
 		Map<String, StatisticsBlock> uniqueComponents = new HashMap<String, StatisticsBlock>();
 		for (StatisticsBlock block : blocks) {
-			String ac = block.get(Property.AC);
+			String ac = block.get(Field.AC);
 			if (ac == null) {
 				System.out.println("WARN: " + getNameURL(block) + " has no AC");
 				continue;
@@ -615,7 +629,7 @@ public class GetStatsBlock {
 		List<StatisticsBlock> exceptions = new ArrayList<StatisticsBlock>();
 
 		for (StatisticsBlock block : blocks) {
-			String value = block.get(StatisticsBlock.Property.SAVES);
+			String value = block.get(StatisticsBlock.Field.SAVES);
 			try {
 				for (SavingThrow.Type save : SavingThrow.Type.values()) {
 					String[] savesTxt = value.split("\\s*,\\s*");
@@ -648,13 +662,13 @@ public class GetStatsBlock {
 		}
 		for (StatisticsBlock block : exceptions) {
 			System.out.println(getNameURL(block));
-			System.out.println(": " + block.get(Property.SAVES));
+			System.out.println(": " + block.get(Field.SAVES));
 		}
 	}
 
 	public static void checkBABGrapple(List<StatisticsBlock> blocks) {
 		for (StatisticsBlock block : blocks) {
-			if (block.get(Property.SIZE_TYPE) == null || block.get(Property.SIZE_TYPE) == "") {
+			if (block.get(Field.SIZE_TYPE) == null || block.get(Field.SIZE_TYPE) == "") {
 				System.out.println("No size/type: "+block.getName());
 				continue;
 			}
@@ -670,7 +684,7 @@ public class GetStatsBlock {
 
 				SizeCategory size = block.getSize();
 				if (size == null) {
-					System.out.println("unknown size in " + getNameURL(block) + ": " + block.get(StatisticsBlock.Property.SIZE_TYPE));
+					System.out.println("unknown size in " + getNameURL(block) + ": " + block.get(StatisticsBlock.Field.SIZE_TYPE));
 					continue;
 				}
 
@@ -742,10 +756,10 @@ public class GetStatsBlock {
 
 				int attack = bab + size.getSizeModifier() + strMod;
 				int grapple = bab + size.getGrappleModifier() + strMod;
-				if (block.get(Property.FEATS) != null && block.get(Property.FEATS).contains("Improved Grapple"))
+				if (block.get(Field.FEATS) != null && block.get(Field.FEATS).contains("Improved Grapple"))
 					grapple += 4;
 
-				String existing = block.get(Property.BASE_ATTACK_GRAPPLE).replace("–", "-");
+				String existing = block.get(Field.BASE_ATTACK_GRAPPLE).replace("–", "-");
 				Pattern p = Pattern.compile("[+-]\\d+\\/[+-]\\d+(\\s+\\((.*)\\))?((,.*))?");
 				Matcher m = p.matcher(existing);
 				// no match if grapple value is '-'
@@ -787,14 +801,14 @@ public class GetStatsBlock {
 				if (m.matches() && m.group(3) != null) property.append(m.group(3));
 
 				if (existing == null || !existing.equals(property.toString())) {
-					System.out.println(block.get(Property.URL) + " - " + block.getName() + ": BAB = " + bab + ", Grapple = " + grapple + ", Attack = " + attack);
-					System.out.println(block.get(Property.SIZE_TYPE) + ": " + block.getType());
-					System.out.println("Attack: " + block.get(Property.ATTACK));
-					String feats = block.get(Property.FEATS);
+					System.out.println(block.get(Field.URL) + " - " + block.getName() + ": BAB = " + bab + ", Grapple = " + grapple + ", Attack = " + attack);
+					System.out.println(block.get(Field.SIZE_TYPE) + ": " + block.getType());
+					System.out.println("Attack: " + block.get(Field.ATTACK));
+					String feats = block.get(Field.FEATS);
 					if (feats != null && feats.toLowerCase().contains("weapon")) {
 						System.out.println("Feats: "+feats);
 					}
-					String spAtt = block.get(Property.SPECIAL_ATTACKS);
+					String spAtt = block.get(Field.SPECIAL_ATTACKS);
 					if (spAtt != null && spAtt.toLowerCase().contains("grab")) {
 						System.out.println("Special Attacks: "+spAtt);
 					}
@@ -813,7 +827,7 @@ public class GetStatsBlock {
 	}
 
 // get unique values for specified property
-	public static Set<String> getUniqueValues(List<StatisticsBlock> blocks, StatisticsBlock.Property property) {
+	public static Set<String> getUniqueValues(List<StatisticsBlock> blocks, StatisticsBlock.Field property) {
 		HashSet<String> values = new HashSet<String>();
 		for (StatisticsBlock block : blocks) {
 			String value = block.get(property);
@@ -826,20 +840,20 @@ public class GetStatsBlock {
 		// Generate index:
 		for (StatisticsBlock block : blocks) {
 			String size = "", type = "";
-			String sizeAndType = block.get(StatisticsBlock.Property.SIZE_TYPE);
+			String sizeAndType = block.get(StatisticsBlock.Field.SIZE_TYPE);
 			if (sizeAndType != null) {
 				size = sizeAndType.split(" ")[0];
 				type = sizeAndType.substring(size.length()+1);
 			}
-			String cr = block.get(StatisticsBlock.Property.CR);
+			String cr = block.get(StatisticsBlock.Field.CR);
 			if (cr.equals("½")) cr = "1/2";
 			if (cr.equals("¼")) cr = "1/4";
 
 			System.out.println("<Monster name=\""+block.getName()
-					+ "\" url=\"" + block.get(StatisticsBlock.Property.URL)
+					+ "\" url=\"" + block.get(StatisticsBlock.Field.URL)
 					+"\" size=\""+size
 					+"\" type=\""+type
-					+ "\" environment=\"" + block.get(StatisticsBlock.Property.ENVIRONMENT)
+					+ "\" environment=\"" + block.get(StatisticsBlock.Field.ENVIRONMENT)
 					+"\" cr=\""+cr
 					+"\"/>");
 		}

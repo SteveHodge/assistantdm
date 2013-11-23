@@ -20,18 +20,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import monsters.HitDice;
 import monsters.StatisticsBlock;
 import monsters.StatisticsBlock.AttackRoutine;
-import monsters.StatisticsBlock.Property;
+import monsters.StatisticsBlock.Field;
 
 /*
  * Monster implemented with Statistics. Will probably be renamed to Monster once AdhocMonster is removed
  */
 
 public class DetailedMonster extends DetailedCreature implements Monster {
-	private StatisticsBlock stats;
+	public StatisticsBlock stats;
 	public List<MonsterAttackRoutine> attackList;
 	public List<MonsterAttackRoutine> fullAttackList;
+	private HitDice hitDice;
 
 	private PropertyChangeListener statListener = new PropertyChangeListener() {
 		@Override
@@ -101,7 +103,9 @@ public class DetailedMonster extends DetailedCreature implements Monster {
 			}
 		}
 
-		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), blk.getHitDice());
+		hitDice = blk.getHitDice();
+
+		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), hitDice);
 		hps.setMaximumHitPoints(blk.getDefaultHPs());
 		hps.addPropertyChangeListener(statListener);
 
@@ -159,6 +163,10 @@ public class DetailedMonster extends DetailedCreature implements Monster {
 		attackList = getAttackList(false);
 		fullAttackList = getAttackList(true);
 		attacks.addPropertyChangeListener(statListener);
+	}
+
+	public HitDice getHitDice() {
+		return hitDice;
 	}
 
 	private List<MonsterAttackRoutine> getAttackList(boolean full) {
@@ -397,6 +405,79 @@ public class DetailedMonster extends DetailedCreature implements Monster {
 		}
 	}
 
+	public String getField(Field p) {
+		StringBuilder s = new StringBuilder();
+		if (p == Field.INITIATIVE) {
+			if (getInitiativeModifier() >= 0) s.append("+");
+			s.append(getInitiativeModifier());
+		} else if (p == Field.AC) {
+			s.append(getAC());
+			Map<Modifier, Boolean> map = ac.getModifiers();
+			if (map.size() > 0) {
+				s.append(" (");
+				boolean first = true;
+				for (Modifier m : map.keySet()) {
+					if (map.get(m)) {
+						if (first) {
+							first = false;
+						} else {
+							s.append(", ");
+						}
+						s.append(m);
+					}
+				}
+				s.append(")");
+			}
+			s.append(", touch ").append(getTouchAC()).append(", flat-footed ").append(getFlatFootedAC());
+		} else if (p == Field.ABILITIES) {
+			for (AbilityScore.Type t : AbilityScore.Type.values()) {
+				s.append(t.toString().substring(0, 3)).append(" ");
+				AbilityScore score = abilities.get(t);
+				if (score != null) {
+					s.append(score.getValue());
+				} else {
+					s.append("-");
+				}
+				if (t != AbilityScore.Type.CHARISMA) s.append(", ");
+			}
+		} else if (p == Field.SAVES) {
+			for (SavingThrow.Type t : SavingThrow.Type.values()) {
+				s.append(t.getAbbreviation()).append(" ");
+				SavingThrow save = saves.get(t);
+				if (save != null) {
+					if (save.getValue() >= 0) s.append("+");
+					s.append(save.getValue());
+				} else {
+					s.append("-");
+				}
+				if (t != SavingThrow.Type.WILL) s.append(", ");
+			}
+		} else if (p == Field.HITDICE) {
+			// TODO need to add con mod to this:
+			s.append(hitDice).append(" (");
+			if (hps.getValue() != hps.getMaximumHitPoints()) {
+				s.append(hps.getValue()).append("/");
+			}
+			s.append(hps.getMaximumHitPoints()).append(" hp)");
+		} else if (p == Field.SIZE_TYPE) {
+			s.append(size.getSize());
+		} else if (p == Field.SPACE_REACH) {
+			s.append(size.getSpace() / 2);
+			if (size.getSpace() % 2 == 1) s.append("½");
+			s.append(" ft./").append(size.getReach()).append(" ft.");
+		} else if (p == Field.ATTACK) {
+			s.append(getAttackHTML(attackList));
+		} else if (p == Field.FULL_ATTACK) {
+			s.append(getAttackHTML(fullAttackList));
+		}
+
+		if (s.length() == 0) {
+			s.append(stats.get(p));
+		}
+
+		return s.toString();
+	}
+
 	@Override
 	public String getStatsBlockHTML() {
 //		return stats.getHTML();
@@ -404,69 +485,9 @@ public class DetailedMonster extends DetailedCreature implements Monster {
 		StringBuilder s = new StringBuilder();
 		s.append("<html><table><tr><td></td><td>").append(getName()).append("</td><td>").append(stats.getName()).append("</td></tr>");
 
-		for (Property p : Property.getStandardOrder()) {
+		for (Field p : Field.getStandardOrder()) {
 			s.append("<tr><td>").append(p).append("</td><td>");
-			if (p == Property.INITIATIVE) {
-				if (getInitiativeModifier() >= 0) s.append("+");
-				s.append(getInitiativeModifier());
-			} else if (p == Property.AC) {
-				s.append(getAC());
-				Map<Modifier,Boolean> map = ac.getModifiers();
-				if (map.size() > 0) {
-					s.append(" (");
-					boolean first = true;
-					for (Modifier m : map.keySet()) {
-						if (map.get(m)) {
-							if (first) {
-								first = false;
-							} else {
-								s.append(", ");
-							}
-							s.append(m);
-						}
-					}
-					s.append(")");
-				}
-				s.append(", touch ").append(getTouchAC()).append(", flat-footed ").append(getFlatFootedAC());
-			} else if (p == Property.ABILITIES) {
-				for (AbilityScore.Type t : AbilityScore.Type.values()) {
-					s.append(t.toString().substring(0, 3)).append(" ");
-					AbilityScore score = abilities.get(t);
-					if (score != null) {
-						s.append(score.getValue());
-					} else {
-						s.append("-");
-					}
-					if (t != AbilityScore.Type.CHARISMA) s.append(", ");
-				}
-			} else if (p == Property.SAVES) {
-				for (SavingThrow.Type t : SavingThrow.Type.values()) {
-					s.append(t.getAbbreviation()).append(" ");
-					SavingThrow save = saves.get(t);
-					if (save != null) {
-						if (save.getValue() >= 0) s.append("+");
-						s.append(save.getValue());
-					} else {
-						s.append("-");
-					}
-					if (t != SavingThrow.Type.WILL) s.append(", ");
-				}
-			} else if (p == Property.HITDICE) {
-				if (hps.getValue() != hps.getMaximumHitPoints()) {
-					s.append(hps.getValue()).append("/");
-				}
-				s.append(hps.getMaximumHitPoints()).append(" hp");
-			} else if (p == Property.SIZE_TYPE) {
-				s.append(size.getSize());
-			} else if (p == Property.SPACE_REACH) {
-				s.append(size.getSpace() / 2);
-				if (size.getSpace() % 2 == 1) s.append("½");
-				s.append(" ft./").append(size.getReach()).append(" ft.");
-			} else if (p == Property.ATTACK) {
-				s.append(getAttackHTML(attackList));
-			} else if (p == Property.FULL_ATTACK) {
-				s.append(getAttackHTML(fullAttackList));
-			}
+			s.append(getField(p));
 			s.append("</td><td>").append(stats.get(p)).append("</td></tr>");
 		}
 
@@ -496,7 +517,8 @@ public class DetailedMonster extends DetailedCreature implements Monster {
 
 	@Override
 	public void setName(String name) {
-		String old = name;
+//		System.out.println("setName('" + name + "')");
+		String old = this.name;
 		this.name = name;
 		firePropertyChange(PROPERTY_NAME, old, name);
 	}
@@ -512,9 +534,9 @@ public class DetailedMonster extends DetailedCreature implements Monster {
 	public boolean hasFeat(String feat) {
 		if (feat == null) return false;
 		String f = feat.toLowerCase();
-		String feats = stats.get(StatisticsBlock.Property.FEATS);
+		String feats = stats.get(StatisticsBlock.Field.FEATS);
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
-		feats = stats.get(StatisticsBlock.Property.SPECIAL_QUALITIES);
+		feats = stats.get(StatisticsBlock.Field.SPECIAL_QUALITIES);
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		return false;
 	}

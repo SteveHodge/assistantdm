@@ -1,6 +1,7 @@
 package monsters;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -8,28 +9,26 @@ import java.awt.GridBagLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import javax.imageio.ImageIO;
-import javax.swing.DefaultListModel;
+import javax.swing.AbstractListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
@@ -38,30 +37,35 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import monsters.StatisticsBlock.Field;
+import party.Creature;
 import party.DetailedMonster;
-import swing.ImagePanel;
 
 import combat.CombatPanel;
 
 import digital_table.controller.ControllerFrame;
-import digital_table.controller.TokenOptionsPanel;
+
+//TODO should keep a map of Field to DetailPanel so we can update them automatically and select the right one more easily
 
 @SuppressWarnings("serial")
 public class AddMonsterDialog extends JDialog {
+	private static final String BLANK_PANEL = "BLANK";
+
 	private StatisticsBlock stats;
 
-	private JTextField nameField;
 	private JSpinner countSpinner;
 	private JList monsterList;
-	private DefaultListModel monsterListModel;
+	private MonsterListModel monsterListModel;
 	private DetailedMonster selected;
 
-	private ImagePanel imagePanel;
-	private JButton prevImageButton;
-	private JButton nextImageButton;
+	private StatsBlockPanel statsPanel;
+
+	private CardLayout detailLayout;
+	private JPanel detailPanel;
+	private Map<Field, DetailPanel> detailPanels = new HashMap<Field, DetailPanel>();
 
 	private List<URL> imageURLs = new ArrayList<URL>();
-	private int currentImageIndex = -1;	// TODO make per-token
+	private Map<DetailedMonster, Integer> imageIndexes = new HashMap<DetailedMonster, Integer>();
 
 	AddMonsterDialog(Window owner, final StatisticsBlock s) {
 		super(owner, "Add new " + s.getName(), Dialog.ModalityType.MODELESS);
@@ -70,15 +74,19 @@ public class AddMonsterDialog extends JDialog {
 		stats = s;
 		Collections.addAll(imageURLs, stats.getImageURLs());
 
-		nameField = new JTextField(20);
+		NamePanel namePanel = new NamePanel(imageURLs, imageIndexes);
+		detailPanels.put(Field.NAME, namePanel);
+		detailPanels.put(Field.ABILITIES, new AbilitiesPanel());
+		detailPanels.put(Field.HITDICE, new HitPointsPanel());
+
 		SpinnerModel model = new SpinnerNumberModel(1, 1, 100, 1);
 		countSpinner = new JSpinner(model);
 		countSpinner.addChangeListener(spinnerListener);
 		// select image control
 
-		monsterListModel = new DefaultListModel();
+		monsterListModel = new MonsterListModel();
 		selected = new DetailedMonster(stats);
-		monsterListModel.addElement(selected);
+		monsterListModel.addMonster(selected);
 		monsterList = new JList(monsterListModel);
 		monsterList.setPreferredSize(new Dimension(200, 100));
 		monsterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -89,80 +97,50 @@ public class AddMonsterDialog extends JDialog {
 				updateFields();
 			}
 		});
-		updateFields();
-		JScrollPane scroller = new JScrollPane(monsterList);
 
-		imagePanel = new ImagePanel(null);
-		imagePanel.setPreferredSize(new Dimension(300, 300));
-
-		JPanel buttonPanel = new JPanel();
-		JButton imageButton = new JButton("Load Image");
-		imageButton.addActionListener(new ActionListener() {
-			JFileChooser chooser = new JFileChooser();
-
+		statsPanel = new StatsBlockPanel(selected);
+		statsPanel.setSelectionForeground(monsterList.getSelectionForeground());
+		statsPanel.setSelectionBackground(monsterList.getSelectionBackground());
+		statsPanel.addListSelectionListener(new ListSelectionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if (TokenOptionsPanel.lastDir != null) chooser.setCurrentDirectory(TokenOptionsPanel.lastDir);
-				if (chooser.showOpenDialog(AddMonsterDialog.this) == JFileChooser.APPROVE_OPTION) {
-					try {
-						File imageFile = chooser.getSelectedFile();
-						imageURLs.add(imageFile.toURI().toURL());
-						setSelectedImage(imageURLs.size() - 1);
-					} catch (MalformedURLException e) {
-						e.printStackTrace();
-					}
-				} else {
-					System.out.println("Cancelled");
-				}
+			public void valueChanged(ListSelectionEvent arg0) {
+				updateFields();
 			}
 		});
-		buttonPanel.add(imageButton);
 
-		prevImageButton = new JButton("<");
-		prevImageButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				setSelectedImage(currentImageIndex - 1);
-			}
-		});
-		buttonPanel.add(prevImageButton);
-
-		nextImageButton = new JButton(">");
-		nextImageButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				setSelectedImage(currentImageIndex + 1);
-			}
-		});
-		buttonPanel.add(nextImageButton);
+		detailLayout = new CardLayout();
+		detailPanel = new JPanel(detailLayout);
+		for (Field f : detailPanels.keySet()) {
+			detailPanel.add(detailPanels.get(f), f.name());
+		}
+		detailPanel.add(new JPanel(), BLANK_PANEL);
+		detailLayout.show(detailPanel, BLANK_PANEL);
 
 		//@formatter:off
 		JPanel main = new JPanel();
 		main.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.NONE; c.weightx = 0d; c.weighty = 0d;
 		c.gridy = 0;
-		c.gridx = 0; main.add(new JLabel("Name:"), c);
+		c.gridx = 0; main.add(new JLabel("Count:"), c);
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 0.5d;
-		c.gridx = 1; main.add(nameField, c);
+		c.gridx = 1; main.add(countSpinner, c);
 
-		c.gridx = 0; c.gridy++; c.gridwidth = 2;
-		main.add(buttonPanel, c);
-
-		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridy++;
-		main.add(imagePanel, c);
-
-		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 0.5d; c.weighty = 0d;
-		c.gridwidth = 1;
-		c.gridy = 0;
-		c.gridx = 2; main.add(new JLabel("Count:"), c);
-		c.gridx = 3; main.add(countSpinner, c);
-
-		c.fill = GridBagConstraints.BOTH; c.weightx = 1.0d; c.weighty = 1.0d;
+		c.fill = GridBagConstraints.BOTH; c.weightx = 0.5d; c.weighty = 1.0d;
 		c.gridwidth = 2;
+		c.gridx = 0; c.gridy = 1;
+		main.add(new JScrollPane(monsterList), c);
+
+		c.fill = GridBagConstraints.NONE; c.weightx = 0d; c.weighty = 0d;
+		c.gridwidth = 1;
 		c.gridheight = 2;
-		c.gridx = 2; c.gridy = 1;
-		main.add(scroller, c);
+		c.gridx = 2; c.gridy = 0;
+		main.add(statsPanel, c);
+
+		c.gridx = 3;
+		c.fill = GridBagConstraints.BOTH; c.weightx = 1.0d; c.weighty = 1.0d;
+		main.add(detailPanel, c);
+
 		// @formatter:on
 
 		JButton addCombatButton = new JButton("Add To Combat");
@@ -170,7 +148,7 @@ public class AddMonsterDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
-					DetailedMonster m = (DetailedMonster) monsterListModel.get(i);
+					DetailedMonster m = monsterListModel.getElementAt(i);
 					CombatPanel.addMonster(m);
 				}
 			}
@@ -181,10 +159,11 @@ public class AddMonsterDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
-					DetailedMonster m = (DetailedMonster) monsterListModel.get(i);
+					DetailedMonster m = monsterListModel.getElementAt(i);
+					Integer imgIndex = imageIndexes.get(m);
 					File f = null;
-					if (currentImageIndex >= 0) {
-						URL url = imageURLs.get(currentImageIndex);
+					if (imgIndex != null && imgIndex.intValue() >= 0) {
+						URL url = imageURLs.get(imgIndex.intValue());
 						// TODO fix this. probably addMonster should take a URL for the image
 						try {
 							f = new File(url.toURI());
@@ -223,63 +202,101 @@ public class AddMonsterDialog extends JDialog {
 		add(buttons, BorderLayout.SOUTH);
 		pack();
 
-		setSelectedImage(0);
+		for (DetailPanel p : detailPanels.values()) {
+			p.setMonster(selected);
+		}
+		updateFields();
+		namePanel.setSelectedImage(0);
 
 		setVisible(true);
 	}
 
-	// handles out of range indexes
-	private void setSelectedImage(int index) {
-		if (index < 0) index = 0;
-		if (index >= imageURLs.size()) index = imageURLs.size() - 1;
-		currentImageIndex = index;
-		BufferedImage image = null;
-		if (currentImageIndex >= 0) {
-			URL url = imageURLs.get(currentImageIndex);
-			try {
-				image = ImageIO.read(url);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		imagePanel.setImage(image);
-		prevImageButton.setEnabled(currentImageIndex > 0);
-		nextImageButton.setEnabled(currentImageIndex < imageURLs.size() - 1);
-	}
-
 	private void updateFields() {
 		DetailedMonster m = (DetailedMonster) monsterList.getSelectedValue();
+
 		if (m != selected) {
-			if (selected != null) selected.setName(nameField.getText());
 			selected = m;
+			statsPanel.setCreature(selected);
+			for (DetailPanel p : detailPanels.values()) {
+				p.setMonster(selected);
+			}
 		}
+
 		if (selected != null) {
-			nameField.setEnabled(true);
-			nameField.setText(selected.getName());
+			if (detailPanels.containsKey(statsPanel.getSelectedField())) {
+				detailLayout.show(detailPanel, statsPanel.getSelectedField().name());
+			} else {
+				detailLayout.show(detailPanel, BLANK_PANEL);
+			}
 		} else {
-			nameField.setEnabled(false);
-			nameField.setText("");
+			detailLayout.show(detailPanel, BLANK_PANEL);
 		}
 	}
 
+	// TODO name generation needs to be smarter now that individuals can be renamed
 	final private ChangeListener spinnerListener = new ChangeListener() {
 		@Override
 		public void stateChanged(ChangeEvent e) {
 			int newSize = (Integer) countSpinner.getValue();
 			int oldSize = monsterListModel.getSize();
-			monsterListModel.setSize(newSize);
+
+			// remove extra monsters if the size has got smaller:
+			for (int i = oldSize; i > newSize; i--) {
+				monsterListModel.removeElementAt(i - 1);
+			}
+
+			// add any extra monsters if the size has got larger:
 			for (int i = oldSize; i < newSize; i++) {
 				DetailedMonster m = new DetailedMonster(stats);
 				m.setName(m.getName() + " " + (i + 1));
-				monsterListModel.set(i, m);
+				monsterListModel.addMonster(m);
 			}
-			DetailedMonster m = (DetailedMonster) monsterListModel.get(0);
+
+			// fixup the name of the first monster if necessary
+			DetailedMonster m = monsterListModel.getElementAt(0);
 			if (oldSize == 1 && newSize > 1 && !m.getName().endsWith(" 1")) {
 				m.setName(m.getName() + " 1");
 			} else if (newSize == 1 && m.getName().endsWith(" 1")) {
 				m.setName(m.getName().substring(0, m.getName().length() - 2));
 			}
-			if (monsterList.getSelectedIndex() == 0) updateFields();
 		}
 	};
+
+	private class MonsterListModel extends AbstractListModel {
+		private List<DetailedMonster> monsters = new ArrayList<DetailedMonster>();
+
+		@Override
+		public DetailedMonster getElementAt(int i) {
+			return monsters.get(i);
+		}
+
+		public void removeElementAt(int i) {
+			DetailedMonster m = monsters.remove(i);
+			m.removePropertyChangeListener(listener);
+			fireIntervalRemoved(this, i, i);
+		}
+
+		public void addMonster(DetailedMonster m) {
+			m.addPropertyChangeListener(listener);
+			monsters.add(m);
+			fireIntervalAdded(this, monsters.size() - 1, monsters.size() - 1);
+		}
+
+		@Override
+		public int getSize() {
+			return monsters.size();
+		}
+
+		private PropertyChangeListener listener = new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getPropertyName().equals(Creature.PROPERTY_NAME)) {
+					int idx = monsters.indexOf(evt.getSource());
+					if (idx != -1) {
+						fireContentsChanged(this, idx, idx);
+					}
+				}
+			}
+		};
+	}
 }

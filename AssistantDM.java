@@ -64,6 +64,7 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * cleanup hitpoints/hitdice
  * implement remaining monster statistics
  * cleanup AttackForms in Attack, StatisticBlock and DetailedMonster
  * cleanup Creature class hierarchy

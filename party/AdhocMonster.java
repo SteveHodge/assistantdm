@@ -185,9 +185,9 @@ public class AdhocMonster extends Creature implements Monster {
 
 		// SIZE_TYPE
 		// HITDICE
-		s.append("<tr><td>").append(StatisticsBlock.Property.INITIATIVE).append("</td><td>").append(getInitiativeModifier()).append("</td></tr>");
+		s.append("<tr><td>").append(StatisticsBlock.Field.INITIATIVE).append("</td><td>").append(getInitiativeModifier()).append("</td></tr>");
 		// SPEED
-		s.append("<tr><td>").append(StatisticsBlock.Property.AC).append("</td><td>");
+		s.append("<tr><td>").append(StatisticsBlock.Field.AC).append("</td><td>");
 		s.append(getAC()).append(", touch ").append(getTouchAC()).append(", flat-footed ").append(getFlatFootedAC());
 		s.append("</td></tr>");
 		// BASE_ATTACK_GRAPPLE
