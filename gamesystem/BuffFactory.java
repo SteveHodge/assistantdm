@@ -6,7 +6,6 @@ import gamesystem.dice.HDDice;
 import java.util.HashSet;
 import java.util.Set;
 
-import party.Creature;
 
 
 /*

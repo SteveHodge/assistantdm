@@ -1,6 +1,7 @@
 package combat;
 
 import gamesystem.Buff;
+import gamesystem.Creature;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
@@ -24,7 +25,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import party.Creature;
 import swing.JListWithToolTips;
 import ui.BuffUI;
 

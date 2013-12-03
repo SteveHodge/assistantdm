@@ -13,7 +13,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import party.Creature;
 
 /*
  * A Buff is a particular instantiation of an effect of some sort (e.g. a casting of a spell). The specific details of a Buff

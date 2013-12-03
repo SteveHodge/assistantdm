@@ -1,6 +1,7 @@
 package ui;
 
 import gamesystem.AbilityScore;
+import gamesystem.Creature;
 import gamesystem.InitiativeModifier;
 
 import java.awt.event.MouseAdapter;
@@ -13,7 +14,6 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import party.Character;
-import party.Creature;
 
 @SuppressWarnings("serial")
 class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChangeListener {

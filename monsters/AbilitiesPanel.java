@@ -14,8 +14,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import party.Creature;
-import party.DetailedMonster;
 
 @SuppressWarnings("serial")
 class AbilitiesPanel extends DetailPanel {
@@ -23,7 +21,7 @@ class AbilitiesPanel extends DetailPanel {
 	private JLabel modLabel[] = new JLabel[AbilityScore.Type.values().length];
 	private JLabel totalLabel[] = new JLabel[AbilityScore.Type.values().length];
 	private JLabel abilityModLabel[] = new JLabel[AbilityScore.Type.values().length];
-	private DetailedMonster monster;
+	private Monster monster;
 
 	AbilitiesPanel() {
 		setLayout(new GridBagLayout());
@@ -58,12 +56,12 @@ class AbilitiesPanel extends DetailPanel {
 	}
 
 	@Override
-	void setMonster(DetailedMonster m) {
+	void setMonster(Monster m) {
 		if (monster == m) return;
 
 		if (monster != null) {
-			for (int i = 0; i < AbilityScore.Type.values().length; i++) {
-				AbilityScore s = (AbilityScore) monster.getStatistic(Creature.STATISTIC_ABILITY[i]);
+			for (AbilityScore.Type t : AbilityScore.Type.values()) {
+				AbilityScore s = monster.getAbilityStatistic(t);
 				if (s != null) {
 					s.removePropertyChangeListener(listener);
 				}
@@ -73,8 +71,8 @@ class AbilitiesPanel extends DetailPanel {
 		monster = m;
 
 		if (monster != null) {
-			for (int i = 0; i < AbilityScore.Type.values().length; i++) {
-				AbilityScore s = (AbilityScore) monster.getStatistic(Creature.STATISTIC_ABILITY[i]);
+			for (AbilityScore.Type t : AbilityScore.Type.values()) {
+				AbilityScore s = monster.getAbilityStatistic(t);
 				if (s != null) {
 					s.addPropertyChangeListener(listener);
 				}
@@ -87,7 +85,7 @@ class AbilitiesPanel extends DetailPanel {
 	private void update() {
 		if (monster != null) {
 			for (int i = 0; i < AbilityScore.Type.values().length; i++) {
-				AbilityScore s = (AbilityScore) monster.getStatistic(Creature.STATISTIC_ABILITY[i]);
+				AbilityScore s = monster.getAbilityStatistic(AbilityScore.Type.values()[i]);
 				if (s != null) {
 					spinners[i].setEnabled(true);
 					spinners[i].setValue(s.getBaseValue());
@@ -132,7 +130,7 @@ class AbilitiesPanel extends DetailPanel {
 			// figure out which stat has changed
 			for (int i = 0; i < spinners.length; i++) {
 				if (spinners[i] == e.getSource()) {
-					AbilityScore s = (AbilityScore) monster.getStatistic(Creature.STATISTIC_ABILITY[i]);
+					AbilityScore s = monster.getAbilityStatistic(AbilityScore.Type.values()[i]);
 					if (s != null) {
 						// should never be null
 						int newVal = (Integer) spinners[i].getValue();

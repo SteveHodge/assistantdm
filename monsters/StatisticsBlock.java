@@ -243,25 +243,33 @@ public class StatisticsBlock {
 	// Str 25, Dex 10, Con —, Int 1, Wis 11, Cha 1
 	// returns -1 for a missing ability
 	// TODO should throw exceptions for invalid formats (or at least return -1)
-	public int getAbilityScore(Type ability) {
-		String[] abilities = get(Field.ABILITIES).split("\\s*,\\s*");
+	static int parseAbilityScore(String field, Type ability) {
+		String[] abilities = field.split("\\s*,\\s*");
 		String a = abilities[ability.ordinal()].substring(abilities[ability.ordinal()].indexOf(' ')+1);
 		if (a.equals("-") || a.equals("—") || a.equals("Ø")) return -1;
 		if (a.endsWith("*")) a = a.substring(0, a.length() - 1);	// strip any asterisk
 		return Integer.parseInt(a);
 	}
 
+	public int getAbilityScore(Type ability) {
+		return parseAbilityScore(get(Field.ABILITIES), ability);
+	}
+
 	// format of field is:
 	// Fort +2, Ref +6, Will +1
 	// returns Integer.MIN_VALUE for a missing save
 	// TODO should throw exceptions for invalid formats (or at least return -1)
-	public int getSavingThrow(SavingThrow.Type save) {
-		String[] saves = get(Field.SAVES).split("\\s*,\\s*");
+	static int parseSavingThrow(String field, SavingThrow.Type save) {
+		String[] saves = field.split("\\s*,\\s*");
 		String s = saves[save.ordinal()].substring(saves[save.ordinal()].indexOf(' ') + 1);
 		if (s.contains(" ")) s = s.substring(0, s.indexOf(' '));	// strip any conditional version
 		if (s.endsWith("*")) s = s.substring(0, s.length() - 1);	// strip any asterisk
 		if (s.equals("—")) return Integer.MIN_VALUE;
 		return parseModifier(s);
+	}
+
+	public int getSavingThrow(SavingThrow.Type save) {
+		return parseSavingThrow(get(Field.SAVES), save);
 	}
 
 //	private CR getCR() {
@@ -287,6 +295,11 @@ public class StatisticsBlock {
 		return images;
 	}
 
+	// for completeness
+	static int parseInitiativeModifier(String field) {
+		return parseModifier(field);
+	}
+
 	public int getInitiativeModifier() {
 		String init = get(Field.INITIATIVE);
 		if (init == null) {
@@ -296,18 +309,20 @@ public class StatisticsBlock {
 		return parseModifier(init);
 	}
 
+	static int parseBAB(String field) {
+		return parseModifier(field.substring(0, field.indexOf('/')));
+	}
+
 	// returns the parsed BAB.
 	public int getBAB() {
-		String babStr = get(Field.BASE_ATTACK_GRAPPLE);
-		return parseModifier(babStr.substring(0, babStr.indexOf('/')));
+		return parseBAB(get(Field.BASE_ATTACK_GRAPPLE));
 	}
 
 	// parse class levels:
 	// pattern is "<name> <level>[, <name level]*"
-	public Map<CharacterClass, Integer> getClassLevels() {
+	Map<CharacterClass, Integer> parseClassLevels(String classLevelStr) {
 		Map<CharacterClass,Integer> classLevels = new HashMap<CharacterClass,Integer>();
 
-		String classLevelStr = get(Field.CLASS_LEVELS);
 		if (classLevelStr != null && !classLevelStr.equals("—")) {
 			for (String classLevel : classLevelStr.split("\\s*,\\s+")) {
 				String[] pieces = classLevel.split("\\s+");
@@ -319,19 +334,27 @@ public class StatisticsBlock {
 		return classLevels;
 	}
 
+	public Map<CharacterClass, Integer> getClassLevels() {
+		return parseClassLevels(get(Field.CLASS_LEVELS));
+	}
+
 	// parse hitdice:
 	// pattern for a dice roll is "#d#[+#]"
 	// multiple dice rolls can be separated by " plus "
 	// hitdice section ends with " (# hp)"
 	// first number may be "½ "
+	HitDice parseHitDice(String hd) {
+		hd = hd.substring(0, hd.indexOf(" ("));
+		return HitDice.parse(hd);
+	}
+
 	public HitDice getHitDice() {
 		String hd = get(Field.HITDICE);
 		if (hd == null || hd.indexOf(" (") < 0) {
 			System.out.println("WARN: "+getName()+" has no default hp ending hitdice");
 			return null;
 		}
-		hd = hd.substring(0,hd.indexOf(" ("));
-		return HitDice.parse(hd);
+		return parseHitDice(hd);
 	}
 
 	// parse default hitpoints:
@@ -364,48 +387,34 @@ public class StatisticsBlock {
 			System.out.println("WARN: " + getName() + " has no AC");
 			return new int[3];
 		}
-
-		String[] acStrs = acProp.split("\\s+or\\s+");
-		if (acStrs[0].endsWith(",")) acStrs[0] = acStrs[0].substring(0, acStrs[0].length() - 1);	// strip any trailing ','
-		return getACs(acStrs[0]);
-
+		return parseACs(acProp);
 	}
 
-	private int[] getACs(String acStr) {
+	// this version parses the first of any alternate ACs
+	static int[] parseACs(String acProp) {
+		String[] acStrs = acProp.split("\\s+or\\s+");
+		if (acStrs[0].endsWith(",")) acStrs[0] = acStrs[0].substring(0, acStrs[0].length() - 1);	// strip any trailing ','
+
 		int[] acs = new int[3];
 
-		int i = acStr.indexOf(", touch ");
+		int i = acStrs[0].indexOf(", touch ");
 		if (i == -1) {
-			System.out.println("WARN: "+getName()+" couldn't locate ', touch '");
-			return acs;
+			throw new IllegalArgumentException("Could not locate ', touch ' in '" + acStrs[0] + "'");
 		}
-		int j = acStr.indexOf(", flat-footed ");
+		int j = acStrs[0].indexOf(", flat-footed ");
 		if (j == -1) {
-			System.out.println("WARN: " + getName() + " couldn't locate ', flat-footed '");
-			return acs;
+			throw new IllegalArgumentException("Could not locate ', flat-footed ' in '" + acStrs[0] + "'");
 		}
-		String fullAC = acStr.substring(0, i);
+		String fullAC = acStrs[0].substring(0, i);
 		if (fullAC.indexOf(" (") > -1) {
 			fullAC = fullAC.substring(0, fullAC.indexOf(" ("));
 		}
-		String touchAC = acStr.substring(i+8,j);
-		String ffAC = acStr.substring(j+14);
+		String touchAC = acStrs[0].substring(i + 8, j);
+		String ffAC = acStrs[0].substring(j + 14);
 
-		try {
-			acs[0] = Integer.parseInt(fullAC);
-		} catch (NumberFormatException e) {
-			System.out.println(getName()+": "+e);
-		}
-		try {
-			acs[1] = Integer.parseInt(touchAC);
-		} catch (NumberFormatException e) {
-			System.out.println(getName()+": "+e);
-		}
-		try {
-			acs[2] = Integer.parseInt(ffAC);
-		} catch (NumberFormatException e) {
-			System.out.println(getName()+": "+e);
-		}
+		acs[0] = Integer.parseInt(fullAC);
+		acs[1] = Integer.parseInt(touchAC);
+		acs[2] = Integer.parseInt(ffAC);
 
 		return acs;
 	}
@@ -441,9 +450,7 @@ public class StatisticsBlock {
 			return null;
 		}
 
-		String[] acStrs = acProp.split("\\s+or\\s+");
-		if (acStrs[0].endsWith(",")) acStrs[0] = acStrs[0].substring(0, acStrs[0].length() - 1);	// strip any trailing ','
-		return getACModifiers(acStrs[0]);
+		return parseACModifiers(acProp);
 	}
 
 	private static int parseModifier(String valueStr) {
@@ -452,16 +459,18 @@ public class StatisticsBlock {
 		return Integer.parseInt(valueStr);
 	}
 
-	private Set<Modifier> getACModifiers(String acStr) {
+	static Set<Modifier> parseACModifiers(String acProp) {
+		String[] acStrs = acProp.split("\\s+or\\s+");
+		if (acStrs[0].endsWith(",")) acStrs[0] = acStrs[0].substring(0, acStrs[0].length() - 1);	// strip any trailing ','
+
 		Set<Modifier> components = new HashSet<Modifier>();
 
-		int i = acStr.indexOf(", touch ");
+		int i = acStrs[0].indexOf(", touch ");
 		if (i == -1) {
-			System.out.println("WARN: " + getName() + " couldn't locate ', touch '");
-			return null;
+			throw new IllegalArgumentException("Couldn't locate ', touch ' in '" + acStrs[0] + "'");
 		}
 
-		String fullAC = acStr.substring(0, i);
+		String fullAC = acStrs[0].substring(0, i);
 		if (fullAC.indexOf(" (") > -1) {
 			try {
 				String componentStr = fullAC.substring(fullAC.indexOf(" (") + 2, fullAC.lastIndexOf(')'));
@@ -481,9 +490,7 @@ public class StatisticsBlock {
 					components.add(m);
 				}
 			} catch (Exception e) {
-				System.err.println(getName() + " couldn't parse AC: " + acStr);
-				e.printStackTrace();
-				return null;
+				throw new IllegalArgumentException("Couldn't parse AC: '" + acStrs[0] + "'", e);
 			}
 		}
 		return components;
@@ -495,9 +502,43 @@ public class StatisticsBlock {
 	static final private Pattern routineSep = Pattern.compile(",?\\s+(and|plus)\\s+");
 
 	public List<AttackRoutine> getAttacks(boolean full) {
+		String prop = get(full ? Field.FULL_ATTACK : Field.ATTACK);
+		return parseAttacks(prop, new CreatureDetails() {
+			@Override
+			public int getDexterity() {
+				return getAbilityScore(AbilityScore.Type.DEXTERITY);
+			}
+
+			@Override
+			public int getStrength() {
+				return getAbilityScore(AbilityScore.Type.STRENGTH);
+			}
+
+			@Override
+			public String getFeats() {
+				return get(Field.FEATS);
+			}
+
+			@Override
+			public String getSpecialQualities() {
+				return get(Field.SPECIAL_QUALITIES);
+			}
+
+			@Override
+			public int getBAB() {
+				return StatisticsBlock.this.getBAB();
+			}
+
+			@Override
+			public SizeCategory getSize() {
+				return StatisticsBlock.this.getSize();
+			}
+		});
+	}
+
+	static List<AttackRoutine> parseAttacks(String prop, CreatureDetails creature) {
 		List<AttackRoutine> attackRoutines = new ArrayList<AttackRoutine>();
 
-		String prop = get(full ? Field.FULL_ATTACK : Field.ATTACK);
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+or\\s+", "($1 _OR_ ");	// temporarily translate any " or " found inside parentheses (i.e. inside a damage section)
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+and\\s+", "($1 _AND_ ");	// temporarily translate any " and " found inside parentheses (i.e. inside a damage section)
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+plus\\s+", "($1 _PLUS_ ");	// temporarily translate any " plus " found inside parentheses (i.e. inside a damage section)
@@ -505,7 +546,7 @@ public class StatisticsBlock {
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+plus\\s+", "($1 _PLUS_ ");
 
 		for (String attackStr : prop.split("[;,]*\\s+or\\s+")) {
-			AttackRoutine attackRoutine = new AttackRoutine();
+			AttackRoutine attackRoutine = new AttackRoutine(creature);
 
 			Matcher m = routineSep.matcher(attackStr);
 			List<String> attackForms = new ArrayList<String>();
@@ -617,36 +658,53 @@ public class StatisticsBlock {
 		plurals.put("hoof", "hooves");
 	}
 
-	public class AttackRoutine {
-		public class Attack {
-			public String description;
-			public int number = 1;
-			public int[] attackBonuses;
-			public Map<String, Integer> modifiers = new HashMap<String, Integer>();	// attack modifiers
-			public boolean ranged;
-			public boolean touch;
-			public boolean automatic = false;
-			public boolean primary = false;
-			public boolean manufactured = true;	// evenutally change this to link to the weapon details
-			public boolean non_light = false;	// valid only for secondary manufactured weapons - set in AttackRoutine.addAttack
+	// information required by the attack parsing classes.
+	static interface CreatureDetails {
+		int getDexterity();
+
+		int getStrength();
+
+		String getFeats();	// comma separated
+
+		String getSpecialQualities();	// comma separated
+
+		int getBAB();
+
+		SizeCategory getSize();
+	}
+
+	static class AttackRoutine {
+		CreatureDetails creature;
+
+		class Attack {
+			String description;
+			int number = 1;
+			int[] attackBonuses;
+			Map<String, Integer> modifiers = new HashMap<String, Integer>();	// attack modifiers
+			boolean ranged;
+			boolean touch;
+			boolean automatic = false;
+			boolean primary = false;
+			boolean manufactured = true;	// evenutally change this to link to the weapon details
+			boolean non_light = false;	// valid only for secondary manufactured weapons - set in AttackRoutine.addAttack
 
 			// calculated in calculateAttackBonus():
-			public boolean weaponFinesseApplies = false;	// true if the creature has weapon finesse and it's being applied to this attack
-			public boolean weaponFocusApplies = false;
-			public int enhancementBonus = 0;
-			public boolean masterwork = false;
+			boolean weaponFinesseApplies = false;	// true if the creature has weapon finesse and it's being applied to this attack
+			boolean weaponFocusApplies = false;
+			int enhancementBonus = 0;
+			boolean masterwork = false;
 
-			public String damage;	// first part of the damage description - this is the "regular" damage part (the full specifier including bonus and critical)
-			public String damageExtra = "";	// and extra damage (this part is unaffected by changes to the creature's stats)
-			public boolean damageParsed = false;	// true if 'damage' string was successfully parsed
-			public Map<String, Integer> damageModifiers = new HashMap<String, Integer>();	// damage modifiers
-			public int damageBonus = 0;
-			public int strMultiplier;
-			public String damageDice;	// string description of the regular damage dice (if any)
-			public String damageCritical;	// critical description for regular damage
-			public int strLimit = Integer.MAX_VALUE;
-			public boolean weaponSpecApplies = false;
-			public boolean byWeapon = false;
+			String damage;	// first part of the damage description - this is the "regular" damage part (the full specifier including bonus and critical)
+			String damageExtra = "";	// and extra damage (this part is unaffected by changes to the creature's stats)
+			boolean damageParsed = false;	// true if 'damage' string was successfully parsed
+			Map<String, Integer> damageModifiers = new HashMap<String, Integer>();	// damage modifiers
+			int damageBonus = 0;
+			int strMultiplier;
+			String damageDice;	// string description of the regular damage dice (if any)
+			String damageCritical;	// critical description for regular damage
+			int strLimit = Integer.MAX_VALUE;
+			boolean weaponSpecApplies = false;
+			boolean byWeapon = false;
 
 			void setDamage(String d) {
 				damage = d.replace("–", "-");
@@ -719,9 +777,9 @@ public class StatisticsBlock {
 				if (damageParsed && !automatic) {
 					calculateAttackBonus();	// TODO need enhancement bonus
 
-					int strMod = AbilityScore.getModifier(getAbilityScore(AbilityScore.Type.STRENGTH));
+					int strMod = AbilityScore.getModifier(creature.getStrength());
 
-					String feats = get(Field.FEATS);
+					String feats = creature.getFeats();
 					if (feats == null) feats = "";
 					feats = feats.toLowerCase();
 
@@ -793,7 +851,7 @@ public class StatisticsBlock {
 
 					if (supplied != calculated) {
 						// still no match
-						System.err.println(getName() + ": could not calculate damage bonus for " + this);
+						System.err.println("Could not calculate damage bonus for " + this);
 						System.err.println("supplied = " + supplied + ", calculated = " + calculated + ", mods = " + mods);
 					}
 				}
@@ -886,12 +944,12 @@ public class StatisticsBlock {
 				return modifiers;
 			}
 
-			public int calculateAttackBonus() {
-				String feats = get(Field.FEATS);
+			int calculateAttackBonus() {
+				String feats = creature.getFeats();
 				if (feats == null) feats = "";
 				feats = feats.toLowerCase();
 
-				String special_qualities = get(Field.SPECIAL_QUALITIES);
+				String special_qualities = creature.getSpecialQualities();
 				if (special_qualities == null) special_qualities = "";
 				special_qualities = special_qualities.toLowerCase();
 
@@ -902,10 +960,10 @@ public class StatisticsBlock {
 //					System.out.println(block.getName() + ": weapon focus = " + weaponFocus);
 				}
 
-				int bab = getBAB();
-				int sizeMod = getSize().getSizeModifier();
-				int dexMod = AbilityScore.getModifier(getAbilityScore(AbilityScore.Type.DEXTERITY));
-				int str = getAbilityScore(AbilityScore.Type.STRENGTH);
+				int bab = creature.getBAB();
+				int sizeMod = creature.getSize().getSizeModifier();
+				int dexMod = AbilityScore.getModifier(creature.getDexterity());
+				int str = creature.getStrength();
 				int strMod = AbilityScore.getModifier(str);
 				if (str == -1) strMod = dexMod;		// no strength so use dex
 
@@ -990,7 +1048,7 @@ public class StatisticsBlock {
 				return toString(false);
 			}
 
-			public String toString(boolean first) {
+			String toString(boolean first) {
 				StringBuilder s = new StringBuilder();
 				if (number > 1) s.append(number).append(" ");
 				s.append(description);
@@ -1049,10 +1107,14 @@ public class StatisticsBlock {
 			}
 		}
 
-		public List<Attack> attacks = new ArrayList<Attack>();
-		public boolean has_mfg_primary = false;
-		public boolean has_mfg_secondary = false;	// has at least one manufactured secondary attack
-		public boolean has_non_light_secondary = false;	// has at least one non-light manufactured secondary attack
+		List<Attack> attacks = new ArrayList<Attack>();
+		boolean has_mfg_primary = false;
+		boolean has_mfg_secondary = false;	// has at least one manufactured secondary attack
+		boolean has_non_light_secondary = false;	// has at least one non-light manufactured secondary attack
+
+		AttackRoutine(CreatureDetails c) {
+			creature = c;
+		}
 
 		private void addAttack(Attack a) {
 			if (a.manufactured && !a.automatic) {
@@ -1087,7 +1149,7 @@ public class StatisticsBlock {
 			return b.toString();
 		}
 
-		public String getDescription() {
+		String getDescription() {
 			StringBuilder attackList = new StringBuilder();
 			for (int j = 0; j < attacks.size(); j++) {
 				Attack a = attacks.get(j);

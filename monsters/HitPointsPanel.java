@@ -1,5 +1,6 @@
 package monsters;
 
+import gamesystem.Creature;
 import gamesystem.HPs;
 
 import java.awt.Color;
@@ -10,6 +11,8 @@ import java.awt.GridBagLayout;
 import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.math.BigInteger;
@@ -22,15 +25,17 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import party.Creature;
-import party.DetailedMonster;
+
+// TODO hitdice should show con bonus as read-only and auto-adjust with change to con
 
 @SuppressWarnings("serial")
 class HitPointsPanel extends DetailPanel {
-	private DetailedMonster creature;
-	private HPs hps;
+	private Monster creature;
+	private HPs hps;				// cached copy from creature
+	private HitDice hitdice;		// cached copy from creature
 
 	private JTextField hitDiceField;
+	private Color defaultBG;
 	private JFormattedTextField hitPointsField;	// TODO split into current and max. also should make this a spinner
 	private JLabel hpRangeLabel;
 	private JLabel statsLabel;
@@ -43,7 +48,25 @@ class HitPointsPanel extends DetailPanel {
 		setLayout(new GridBagLayout());
 
 		hitDiceField = new JTextField(20);
-		hitDiceField.setEditable(false);	// TODO make this editable
+		defaultBG = hitDiceField.getBackground();
+		hitDiceField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String s = hitDiceField.getText();
+				try {
+					HitDice test = HitDice.parse(s);
+					if (creature != null) {
+						hitdice = test;
+						creature.setHitDice(test);	// will fire property change that will trigger update
+					}
+					hitDiceField.setBackground(defaultBG);
+				} catch(Exception e) {
+					System.err.println(e);
+					hitDiceField.setBackground(Color.RED.brighter());
+				}
+			}
+		});
+
 		hitPointsField = new JFormattedTextField();
 		hitPointsField.setColumns(5);
 		hitPointsField.addPropertyChangeListener("value", new PropertyChangeListener() {
@@ -53,7 +76,6 @@ class HitPointsPanel extends DetailPanel {
 					//TODO some type checking should be done
 					if (creature != null) {
 						int value = (Integer) hitPointsField.getValue();
-						HitDice hitdice = creature.getHitDice();
 						if (value < hitdice.getMinimumRoll()) value = hitdice.getMinimumRoll();
 						if (value > hitdice.getMaximumRoll()) value = hitdice.getMaximumRoll();
 						creature.setProperty(Creature.PROPERTY_MAXHPS, value);
@@ -130,6 +152,15 @@ class HitPointsPanel extends DetailPanel {
 		HPGraphPanel() {
 			setMinimumSize(new Dimension(200, 100));
 			setPreferredSize(new Dimension(200, 100));
+			addMouseListener(new MouseAdapter() {
+
+				@Override
+				public void mousePressed(MouseEvent e) {
+					int len = hitdice.getMaximumRoll() - hitdice.getMinimumRoll() + 1;
+					int hps = e.getX() * len / getSize().width + hitdice.getMinimumRoll();
+					creature.setMaximumHitPoints(hps);
+				}
+			});
 		}
 
 		void update() {
@@ -142,54 +173,64 @@ class HitPointsPanel extends DetailPanel {
 			g.clearRect(0, 0, d.width, d.height);
 
 			if (creature == null) return;
-			HitDice hd = creature.getHitDice();
-			long[] probs = hd.getProbabilities();
 
-			int first = hd.getNumber();
+			int first = hitdice.getNumber();
+			int length = hitdice.getMaximumRoll() - hitdice.getModifier() + 1;
+			int possTotals = length - first;
 
-			long max = probs[first];
-			for (int i = first; i < probs.length; i++) {
-				if (probs[i] > max) max = probs[i];
+			BigInteger max = hitdice.getCombinations(first);
+			for (int i = first; i < length; i++) {
+				if (hitdice.getCombinations(i) != null && hitdice.getCombinations(i).compareTo(max) > 0) max = hitdice.getCombinations(i);
 			}
-			max--;
+//			max = max.subtract(BigInteger.ONE);
 
 			// stepwise
 			Polygon p = new Polygon();
-			int prevX = -1;
-			for (int i = first; i < probs.length; i++) {
-				int x = ((i - first + 1) * d.width) / (probs.length - first);
-				int y = d.height - 1 - (int) ((d.height - 1) * (probs[i] - 1) / max);
+			int prevX = 0;
+			p.addPoint(prevX, d.height - 1);
+			for (int i = first; i < length; i++) {
+				int x = ((i - first + 1) * (d.width - 1)) / possTotals;
+				//int y = d.height - 1 - (int) ((d.height - 1) * (probs[i] - 1) / max);
+				int y;
+				if (max.equals(BigInteger.ONE)) {
+					// no result has more than one combination - we'll draw 1 combination results as a bar 3/4 of the height of the graph
+					y = d.height - 1 - hitdice.getCombinations(i).multiply(BigInteger.valueOf(3 * (d.height - 1))).divide(BigInteger.valueOf(4)).intValue();
+				} else {
+					y = d.height - 1 - hitdice.getCombinations(i).multiply(BigInteger.valueOf(d.height - 1)).divide(max).intValue();
+				}
 				p.addPoint(prevX, y);
 				p.addPoint(x, y);
 				prevX = x;
 			}
+			p.addPoint(prevX, d.height - 1);
 
 			g.setColor(new Color(255, 150, 150));
 			g.fillPolygon(p);
 			g.setColor(Color.RED);
 			g.drawPolygon(p);
 
-			int hps = creature.getMaximumHitPoints() - hd.getModifier();
-			int minx = ((hps - first) * d.width) / (probs.length - first);
-			int maxx = ((hps - first + 1) * d.width) / (probs.length - first);
+			int hps = creature.getMaximumHitPoints() - hitdice.getModifier();
+			int minx = ((hps - first) * d.width) / possTotals;
+			int maxx = ((hps - first + 1) * d.width) / possTotals;
 			g.setColor(new Color(0f, 0f, 1f, 0.5f));
-			g.fillRect(minx, 0, maxx - minx + 1, d.height - 1);
+			g.fillRect(minx, 0, maxx - minx + 1, d.height);
 		}
 	};
 
 	@Override
-	void setMonster(DetailedMonster m) {
+	void setMonster(Monster m) {
 		if (creature == m) return;
 
 		if (creature != null) {
-			hps.removePropertyChangeListener(listener);
+			hps.removePropertyChangeListener(hpListener);
 		}
 
 		creature = m;
 
 		if (creature != null) {
-			hps = (HPs) creature.getStatistic(Creature.STATISTIC_HPS);
-			hps.addPropertyChangeListener(listener);
+			hps = creature.getHPStatistic();
+			hps.addPropertyChangeListener(hpListener);
+			hitdice = creature.getHitDice();
 		} else {
 			hps = null;
 		}
@@ -197,7 +238,7 @@ class HitPointsPanel extends DetailPanel {
 		update();
 	}
 
-	private PropertyChangeListener listener = new PropertyChangeListener() {
+	private PropertyChangeListener hpListener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			update();
@@ -206,7 +247,6 @@ class HitPointsPanel extends DetailPanel {
 
 	private void update() {
 		if (creature != null) {
-			HitDice hitdice = creature.getHitDice();
 			int maxHPs = hps.getMaximumHitPoints();
 			hitDiceField.setText(hitdice.toString());
 			hitPointsField.setValue(new Integer(maxHPs));
@@ -228,17 +268,18 @@ class HitPointsPanel extends DetailPanel {
 	// calculates percentile as the % of possible rolls that are less than hps. half of rolls equals to hps are counted
 	// as less.
 	private static int getPercentile(int hps, HitDice hd) {
-		long[] probs = hd.getProbabilities();
-
 		BigInteger total = BigInteger.ZERO;
 		BigInteger larger = BigInteger.ZERO;
 		BigInteger equal = BigInteger.ZERO;
 		hps -= hd.getModifier();	// remove constant modifier so hps represents index
 
-		for (int i = 0; i < probs.length; i++) {
-			total = total.add(BigInteger.valueOf(probs[i]));
-			if (i > hps) larger = larger.add(BigInteger.valueOf(probs[i]));
-			if (i == hps) equal = BigInteger.valueOf(probs[i]);
+		int length = hd.getMaximumRoll() - hd.getModifier();
+		for (int i = 0; i < length; i++) {
+			if (hd.getCombinations(i) != null) {
+				total = total.add(hd.getCombinations(i));
+				if (i > hps) larger = larger.add(hd.getCombinations(i));
+				if (i == hps) equal = hd.getCombinations(i);
+			}
 		}
 
 		BigInteger pct = (total.subtract(larger).subtract(equal.divide(BigInteger.valueOf(2))))
@@ -248,7 +289,6 @@ class HitPointsPanel extends DetailPanel {
 	}
 
 	private void setHPs() {
-		HitDice hitdice = creature.getHitDice();
 		int newVal = 0;
 		if (averageHPsButton.isSelected()) {
 			newVal = (int) hitdice.getMeanRoll();

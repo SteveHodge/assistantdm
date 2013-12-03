@@ -1,5 +1,6 @@
 package digital_table.controller;
 
+import gamesystem.Creature;
 import gamesystem.SizeCategory;
 
 import java.awt.Color;
@@ -33,7 +34,6 @@ import javax.swing.event.ListDataListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import party.Creature;
 
 import combat.CombatEntry;
 import combat.CombatPanel;

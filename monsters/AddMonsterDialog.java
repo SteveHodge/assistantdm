@@ -1,5 +1,7 @@
 package monsters;
 
+import gamesystem.Creature;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dialog;
@@ -38,8 +40,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import monsters.StatisticsBlock.Field;
-import party.Creature;
-import party.DetailedMonster;
 
 import combat.CombatPanel;
 
@@ -56,7 +56,7 @@ public class AddMonsterDialog extends JDialog {
 	private JSpinner countSpinner;
 	private JList monsterList;
 	private MonsterListModel monsterListModel;
-	private DetailedMonster selected;
+	private Monster selected;
 
 	private StatsBlockPanel statsPanel;
 
@@ -65,7 +65,7 @@ public class AddMonsterDialog extends JDialog {
 	private Map<Field, DetailPanel> detailPanels = new HashMap<Field, DetailPanel>();
 
 	private List<URL> imageURLs = new ArrayList<URL>();
-	private Map<DetailedMonster, Integer> imageIndexes = new HashMap<DetailedMonster, Integer>();
+	private Map<Monster, Integer> imageIndexes = new HashMap<Monster, Integer>();
 
 	AddMonsterDialog(Window owner, final StatisticsBlock s) {
 		super(owner, "Add new " + s.getName(), Dialog.ModalityType.MODELESS);
@@ -78,6 +78,18 @@ public class AddMonsterDialog extends JDialog {
 		detailPanels.put(Field.NAME, namePanel);
 		detailPanels.put(Field.ABILITIES, new AbilitiesPanel());
 		detailPanels.put(Field.HITDICE, new HitPointsPanel());
+		for (Field f : Field.getStandardOrder()) {
+			// TODO implement parsing these remaining fields:
+			if (f == Field.SIZE_TYPE
+					|| f == Field.AC
+					|| f == Field.SPACE_REACH
+					|| f == Field.SPECIAL_QUALITIES
+					|| f == Field.FEATS) continue;
+
+			if (!detailPanels.containsKey(f)) {
+				detailPanels.put(f, new DefaultDetailPanel(f));
+			}
+		}
 
 		SpinnerModel model = new SpinnerNumberModel(1, 1, 100, 1);
 		countSpinner = new JSpinner(model);
@@ -85,7 +97,7 @@ public class AddMonsterDialog extends JDialog {
 		// select image control
 
 		monsterListModel = new MonsterListModel();
-		selected = new DetailedMonster(stats);
+		selected = StatsBlockCreatureView.getMonster(stats);
 		monsterListModel.addMonster(selected);
 		monsterList = new JList(monsterListModel);
 		monsterList.setPreferredSize(new Dimension(200, 100));
@@ -148,7 +160,7 @@ public class AddMonsterDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
-					DetailedMonster m = monsterListModel.getElementAt(i);
+					Monster m = monsterListModel.getElementAt(i);
 					CombatPanel.addMonster(m);
 				}
 			}
@@ -159,7 +171,7 @@ public class AddMonsterDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
-					DetailedMonster m = monsterListModel.getElementAt(i);
+					Monster m = monsterListModel.getElementAt(i);
 					Integer imgIndex = imageIndexes.get(m);
 					File f = null;
 					if (imgIndex != null && imgIndex.intValue() >= 0) {
@@ -212,7 +224,7 @@ public class AddMonsterDialog extends JDialog {
 	}
 
 	private void updateFields() {
-		DetailedMonster m = (DetailedMonster) monsterList.getSelectedValue();
+		Monster m = (Monster) monsterList.getSelectedValue();
 
 		if (m != selected) {
 			selected = m;
@@ -247,13 +259,13 @@ public class AddMonsterDialog extends JDialog {
 
 			// add any extra monsters if the size has got larger:
 			for (int i = oldSize; i < newSize; i++) {
-				DetailedMonster m = new DetailedMonster(stats);
+				Monster m = StatsBlockCreatureView.getMonster(stats);
 				m.setName(m.getName() + " " + (i + 1));
 				monsterListModel.addMonster(m);
 			}
 
 			// fixup the name of the first monster if necessary
-			DetailedMonster m = monsterListModel.getElementAt(0);
+			Monster m = monsterListModel.getElementAt(0);
 			if (oldSize == 1 && newSize > 1 && !m.getName().endsWith(" 1")) {
 				m.setName(m.getName() + " 1");
 			} else if (newSize == 1 && m.getName().endsWith(" 1")) {
@@ -263,20 +275,20 @@ public class AddMonsterDialog extends JDialog {
 	};
 
 	private class MonsterListModel extends AbstractListModel {
-		private List<DetailedMonster> monsters = new ArrayList<DetailedMonster>();
+		private List<Monster> monsters = new ArrayList<Monster>();
 
 		@Override
-		public DetailedMonster getElementAt(int i) {
+		public Monster getElementAt(int i) {
 			return monsters.get(i);
 		}
 
 		public void removeElementAt(int i) {
-			DetailedMonster m = monsters.remove(i);
+			Monster m = monsters.remove(i);
 			m.removePropertyChangeListener(listener);
 			fireIntervalRemoved(this, i, i);
 		}
 
-		public void addMonster(DetailedMonster m) {
+		public void addMonster(Monster m) {
 			m.addPropertyChangeListener(listener);
 			monsters.add(m);
 			fireIntervalAdded(this, monsters.size() - 1, monsters.size() - 1);

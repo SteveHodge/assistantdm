@@ -1,5 +1,7 @@
 package combat;
 
+import gamesystem.Creature;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -26,7 +28,6 @@ import javax.swing.event.EventListenerList;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import party.Creature;
 import ui.Status;
 
 @SuppressWarnings("serial")

@@ -1,6 +1,5 @@
 package gamesystem;
 
-import party.Creature;
 
 // TODO should the Buff produced be the instance of the Feat that is applied to a character? probably...
 public class Feat extends BuffFactory {
@@ -39,6 +38,7 @@ public class Feat extends BuffFactory {
 	public static final String FEAT_POWER_ATTACK = "Power Attack";
 	public static final String FEAT_MULTIATTACK = "Multiattack";
 	public static final String FEAT_MULTI_WEAPON_FIGHTING = "Multiweapon Fighting";
+	public static final String FEAT_IMPROVED_GRAPPLE = "Improved Grapple";
 
 	public static Feat[] FEATS = {
 		/*

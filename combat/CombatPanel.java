@@ -31,12 +31,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 
+import monsters.Monster;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import party.Monster;
 import party.Party;
 import swing.ReorderableList;
 import swing.SpinnerCellEditor;

@@ -19,12 +19,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import monsters.Monster.MonsterAttackForm;
+import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine.Attack;
 import monsters.StatisticsBlock.Field;
-import party.DetailedMonster;
-import party.DetailedMonster.MonsterAttackForm;
-import party.DetailedMonster.MonsterAttackRoutine;
 
 
 public class GetStatsBlock {
@@ -219,27 +218,44 @@ public class GetStatsBlock {
 //		checkBABGrapple(blocks);
 
 		// check supplied default hitpoints matches the average of the hitdice
-		for (StatisticsBlock block : blocks) {
-			try {
-				HitDice dice = block.getHitDice();
-				if ((int) dice.getMeanRoll() != block.getDefaultHPs()) {
-					System.out.println("supplied = " + block.getDefaultHPs() + ", calculated = " + (int) dice.getMeanRoll() + ": " + getNameURL(block));
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+//		for (StatisticsBlock block : blocks) {
+//			try {
+//				HitDice dice = block.getHitDice();
+//				if ((int) dice.getMeanRoll() != block.getDefaultHPs()) {
+//					System.out.println("supplied = " + block.getDefaultHPs() + ", calculated = " + (int) dice.getMeanRoll() + ": " + getNameURL(block));
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
 
-		System.exit(0);
+//		checkBuiltAttacks(blocks, false);
+		checkBuiltAttacks(blocks, true);
 
-		boolean full = false;
+//		checkAllAttacks(blocks, false);
+//		checkAllAttacks(blocks, true);
 
+		// check statistic
+//		Field f = Field.BASE_ATTACK_GRAPPLE;
+//		for (StatisticsBlock block : blocks) {
+//			Monster monster = StatsBlockCreatureView.getMonster(block);
+//			StatsBlockCreatureView view = StatsBlockCreatureView.getView(monster);
+//			if (!view.getField(f).equals(block.get(f))) {
+//				System.out.println(getNameURL(block) + ":");
+//				System.out.println("  calculated: " + view.getField(Field.BASE_ATTACK_GRAPPLE));
+//				System.out.println("  supplied:   " + block.get(Field.BASE_ATTACK_GRAPPLE));
+//			}
+//		}
+
+	}
+
+	static void checkBuiltAttacks(List<StatisticsBlock> blocks, boolean full) {
 		// check that attacks are parsed correctly:
 		for (StatisticsBlock block : blocks) {
 			try {
 				String value = block.get(full ? Field.FULL_ATTACK : Field.ATTACK);
 
-				DetailedMonster monster = new DetailedMonster(block);
+				Monster monster = StatsBlockCreatureView.getMonster(block);
 				StringBuilder b = new StringBuilder();
 				StringBuilder parsedStr = new StringBuilder();
 				List<MonsterAttackRoutine> attackRoutines = full ? monster.fullAttackList : monster.attackList;
@@ -528,7 +544,7 @@ public class GetStatsBlock {
 	public static void testParse(List<StatisticsBlock> blocks) {
 		for (StatisticsBlock block : blocks) {
 			try {
-				DetailedMonster m = new DetailedMonster(block);
+				Monster m = StatsBlockCreatureView.getMonster(block);
 				int[] acs = block.getACs();
 				if (acs[0] != m.getAC()) {
 					System.out.println(getNameURL(block) + "\n calculated ac (" + m.getAC() + ") does not match supplied ac (" + acs[0] + ")");

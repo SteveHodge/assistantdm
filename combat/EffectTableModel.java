@@ -1,6 +1,7 @@
 package combat;
 
 import gamesystem.Buff;
+import gamesystem.Creature;
 
 import java.awt.Component;
 import java.util.ArrayList;
@@ -15,7 +16,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import party.Creature;
 
 // TODO check args, particular index/row args
 @SuppressWarnings("serial")

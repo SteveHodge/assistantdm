@@ -1,6 +1,7 @@
 package ui;
 
 import gamesystem.AbilityScore;
+import gamesystem.Creature;
 import gamesystem.Skill;
 import gamesystem.SkillType;
 import gamesystem.Skills;
@@ -26,7 +27,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import party.Character;
-import party.Creature;
 import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
 import swing.TableModelWithToolTips;

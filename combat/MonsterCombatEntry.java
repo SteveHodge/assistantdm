@@ -1,4 +1,6 @@
 package combat;
+import gamesystem.Creature;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -15,43 +17,47 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import monsters.Monster;
+import monsters.StatsBlockCreatureView;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import party.AdhocMonster;
-import party.Creature;
-import party.DetailedMonster;
-import party.Monster;
 import ui.BoundIntegerField;
 
 //TODO tooltips get lost on reload - the connection to the stat block is not stored in the xml file
+//TODO finish tooltip implementation
+//TODO ff/touch AC doesn't update for dex changes - it's setting an override value (the controls here should probably apply a misc. modifier)
 
 @SuppressWarnings("serial")
 public class MonsterCombatEntry extends CombatEntry {
 	// creates a new MonsterCombatEntry backed by a new Monster
 	MonsterCombatEntry() {
-		creature = new AdhocMonster();
+		creature = new Monster("");
 		createEntry();
-		setToolTipText(((Monster) creature).getStatsBlockHTML());
+		setToolTipText(getToolTipText(null));
 	}
 
 	MonsterCombatEntry(Monster m) {
-		creature = (Creature) m;
-		System.out.println("new MonsterCombatEntry " + creature.getName());
+		creature = m;
 		createEntry();
-		setToolTipText(m.getStatsBlockHTML());
+		setToolTipText(getToolTipText(null));
 		initBlank();
 	}
 
 	@Override
 	public String getToolTipText(MouseEvent e) {
-		return ((Monster) creature).getStatsBlockHTML();
+		if (creature instanceof Monster) {
+			StatsBlockCreatureView statsBlockView = StatsBlockCreatureView.getView((Monster) creature);
+			return statsBlockView.getHTML();
+		}
+		return "";
 	}
 
 	void createEntry() {
 		acComp = new BoundIntegerField(creature, Creature.PROPERTY_AC, 4);
-		touchACComp = new BoundIntegerField(creature, DetailedMonster.PROPERTY_AC_TOUCH, 4);
-		flatFootedACComp = new BoundIntegerField(creature, DetailedMonster.PROPERTY_AC_FLATFOOTED, 4);
+		touchACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_TOUCH, 4);
+		flatFootedACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_FLATFOOTED, 4);
 
 		modifierComp = new BoundIntegerField(creature, Creature.PROPERTY_INITIATIVE, 3);
 
@@ -132,8 +138,9 @@ public class MonsterCombatEntry extends CombatEntry {
 
 	public static MonsterCombatEntry parseDOM(Element el) {
 		if (!el.getNodeName().equals("MonsterEntry")) return null;
-		MonsterCombatEntry c = new MonsterCombatEntry(new AdhocMonster());
-		c.nameField.setText(el.getAttribute("name"));
+		String name = el.getAttribute("name");
+		MonsterCombatEntry c = new MonsterCombatEntry(new Monster(name));
+		c.nameField.setText(name);
 		c.rollField.setValue(Integer.parseInt(el.getAttribute("roll")));
 		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));
 		c.creature.setInitiativeModifier(Integer.parseInt(el.getAttribute("initMod")));

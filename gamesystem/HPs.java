@@ -13,7 +13,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import party.Creature;
 
 // TODO change temp hitpoints to a property
 // TODO there are difference in how damage and healing are handled (particularly with temporary hitpoints). going to need undo
@@ -49,6 +48,7 @@ import party.Creature;
 
 public class HPs extends Statistic {
 	private Modifier conMod = null;
+	private HitDice hitdice;
 	private int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
 	private int hps, wounds, nonLethal;
 	private List<TempHPs> tempHPs = new ArrayList<TempHPs>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
@@ -88,8 +88,9 @@ public class HPs extends Statistic {
 	}
 
 	// TODO should add a listener to level
-	public HPs(AbilityScore con, final HitDice level) {
+	public HPs(AbilityScore con, HitDice level) {
 		super("Hit Points");
+		hitdice = level;
 
 		if (con != null) {
 			conMod = con.getModifier();
@@ -98,15 +99,19 @@ public class HPs extends Statistic {
 				@Override
 				public void propertyChange(PropertyChangeEvent e) {
 					int oldhps = getMaximumHitPoints();
-					int newhps = oldhps + (level.getHitDiceCount() * (conMod.getModifier() - oldMod));
-					System.out.println("hitdice = " + level.getHitDiceCount() + " oldMod = " + oldMod + ", newMod = " + conMod.getModifier());
-					if (newhps < level.getHitDiceCount()) newhps = level.getHitDiceCount();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
+					int newhps = oldhps + (hitdice.getHitDiceCount() * (conMod.getModifier() - oldMod));
+					System.out.println("hitdice = " + hitdice.getHitDiceCount() + " oldMod = " + oldMod + ", newMod = " + conMod.getModifier());
+					if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
 					System.out.println("changing max hps from " + oldhps + " to " + newhps);
 					setMaximumHitPoints(newhps);
 					oldMod = conMod.getModifier();
 				}
 			});
 		}
+	}
+
+	public void setHitDice(HitDice level) {
+		hitdice = level;
 	}
 
 	public int getMaximumHitPoints() {

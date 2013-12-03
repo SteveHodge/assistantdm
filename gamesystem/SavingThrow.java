@@ -37,14 +37,18 @@ public class SavingThrow extends Statistic {
 		private final AbilityScore.Type ability;
 	}
 
-	protected Type type;
-	protected int baseValue = 0;
+	final private Type type;
+	private int baseValue = 0;
 
 	// TODO verify that the ability is the correct one. alternatively pass all ability scores
 	public SavingThrow(Type type, AbilityScore ability) {
 		super(type.toString());
 		this.type = type;
 		if (ability != null) addModifier(ability.getModifier());
+	}
+
+	public Type getType() {
+		return type;
 	}
 
 	@Override

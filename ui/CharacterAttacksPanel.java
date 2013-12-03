@@ -3,6 +3,7 @@ package ui;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.BuffFactory;
+import gamesystem.Creature;
 import gamesystem.Feat;
 import gamesystem.Modifier;
 
@@ -39,7 +40,6 @@ import javax.swing.event.ListSelectionListener;
 
 import party.Character;
 import party.CharacterAttackForm;
-import party.Creature;
 
 // TODO make power attack and combat expertise filtered/numeric fields or combos or cycles
 @SuppressWarnings("serial")

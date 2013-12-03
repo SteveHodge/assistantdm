@@ -1,6 +1,7 @@
 package ui;
 
 import gamesystem.AC;
+import gamesystem.Creature;
 import gamesystem.Modifier;
 import gamesystem.Statistic;
 
@@ -32,7 +33,6 @@ import javax.swing.table.TableModel;
 import javax.swing.text.Document;
 
 import party.Character;
-import party.Creature;
 import swing.SpinnerCellEditor;
 
 // TODO flag conditional modifiers for touch and flatfooted

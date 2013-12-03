@@ -1,5 +1,7 @@
 package monsters;
 
+import java.lang.ref.SoftReference;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -14,7 +16,7 @@ public class HitDice implements gamesystem.HitDice {
 	private List<Integer> type = new ArrayList<Integer>();
 	private List<Integer> modifier = new ArrayList<Integer>();
 
-	//private List<Boolean> class_levels = new ArrayList<Boolean>();	// later might want to distinguish between HD from base creature and HD from class levels
+	private SoftReference<BigInteger[]> probabilities;
 
 	private HitDice() {
 	}
@@ -31,37 +33,28 @@ public class HitDice implements gamesystem.HitDice {
 		this.modifier.add(mod);
 	}
 
-	public void printProbabilities() {
-		if (number.size() < 1) {
-			System.out.println("No dice");
-			return;
-		}
-
-		long[] probs = getProbabilities();
-
-		int totalMods = getModifier();
-		long sum = 0;
-		for (int i = 0; i < probs.length; i++) {
-			if (probs[i] == 0) continue;
-			System.out.println(Integer.toString(i + totalMods) + ": " + Long.toString(probs[i]));
-			sum += probs[i];
-		}
-		System.out.println("Total combinations = " + sum);
+	// returns the number of combinations on the dice in this HitDice that total i (note that any modifiers
+	// are not included in the total). E.g. for "2d6+2" this will return 1 for i = 2
+	BigInteger getCombinations(int i) {
+		return getCombinations()[i];
 	}
 
-	long[] getProbabilities() {
-		long time = System.nanoTime();
-		long[] probs = getProbabilities(number.get(0), type.get(0));
+	private BigInteger[] getCombinations() {
+		if (probabilities == null || probabilities.get() == null) {
+//			long time = System.nanoTime();
+			BigInteger[] probs = getCombinations(number.get(0), type.get(0));
 
-		for (int i = 1; i < number.size(); i++) {
-			long[] newProbs = getProbabilities(number.get(i), type.get(i));
-			probs = getProbabilities(probs, newProbs);
+			for (int i = 1; i < number.size(); i++) {
+				BigInteger[] newProbs = getCombinations(number.get(i), type.get(i));
+				probs = getCombinations(probs, newProbs);
+			}
+
+//			time = System.nanoTime() - time;
+//			System.out.println("Calculated probabilities in " + time + "ns");
+
+			probabilities = new SoftReference<BigInteger[]>(probs);
 		}
-
-		time = System.nanoTime() - time;
-		System.out.println("Calculated probabilities in " + time + "ns");
-
-		return probs;
+		return probabilities.get();
 	}
 
 	// returns 1 in the case of no dice
@@ -84,24 +77,27 @@ public class HitDice implements gamesystem.HitDice {
 
 	// returns an array containing the number of combinations of possible total of <num>d<type>. the array is indexed
 	// by total so initial element(s) will be 0.
-	private static long[] getProbabilities(int num, int type) {
-		if (num == 0) return getProbabilities(1, type / 2);
-		if (num == -1) return getProbabilities(1, type / 4);
+	private static BigInteger[] getCombinations(int num, int type) {
+		if (num == 0) return getCombinations(1, type / 2);
+		if (num == -1) return getCombinations(1, type / 4);
 
 		// set probabilities for first die
-		long[] totals = new long[type + 1];
+		BigInteger[] totals = new BigInteger[type + 1];
 		for (int i = 1; i <= type; i++)
-			totals[i] = 1;
+			totals[i] = BigInteger.ONE;
 
 		// add remaining dice
 		for (int i = 2; i <= num; i++) {
-			long[] newTotals = new long[totals.length + type];
+			BigInteger[] newTotals = new BigInteger[totals.length + type];
 			// copy the existing totals to new output array (at one higher index for the '1' on the new die)
 			System.arraycopy(totals, 0, newTotals, 1, totals.length);
 			// do the remaining faces:
 			for (int j = 2; j <= type; j++) {
 				for (int k = 0; k < totals.length; k++) {
-					newTotals[k + j] += totals[k];
+					if (totals[k] != null) {
+						if (newTotals[k + j] == null) newTotals[k + j] = BigInteger.ZERO;
+						newTotals[k + j] = newTotals[k + j].add(totals[k]);
+					}
 				}
 			}
 			totals = newTotals;
@@ -110,12 +106,15 @@ public class HitDice implements gamesystem.HitDice {
 		return totals;
 	}
 
-	private static long[] getProbabilities(long[] d1, long[] d2) {
-		long[] totals = new long[d1.length + d2.length];
+	private static BigInteger[] getCombinations(BigInteger[] d1, BigInteger[] d2) {
+		BigInteger[] totals = new BigInteger[d1.length + d2.length - 1];
 
 		for (int i = 0; i < d1.length; i++) {
 			for (int j = 0; j < d2.length; j++) {
-				totals[i + j] += d1[i] * d2[j];
+				if (d1[i] != null && d2[j] != null) {
+					if (totals[i + j] == null) totals[i + j] = BigInteger.ZERO;
+					totals[i + j] = totals[i + j].add(d1[i].multiply(d2[j]));
+				}
 			}
 		}
 
@@ -159,20 +158,20 @@ public class HitDice implements gamesystem.HitDice {
 	}
 
 	public double getStdDeviation() {
-		long[] probs = getProbabilities();
+		BigInteger[] probs = getCombinations();
 
-		long count = 0;
+		BigInteger count = BigInteger.ZERO;
 		double sum = 0;
 		double mean = getMeanRoll() - getModifier();
 
 		for (int i = 0; i < probs.length; i++) {
-			if (probs[i] == 0) continue;
+			if (probs[i] == null || probs[i].equals(BigInteger.ZERO)) continue;
 
-			count += probs[i];
-			sum += probs[i] * (i - mean) * (i - mean);
+			count = count.add(probs[i]);
+			sum += probs[i].doubleValue() * (i - mean) * (i - mean);
 		}
 
-		return Math.sqrt(sum / count);
+		return Math.sqrt(sum / count.doubleValue());
 	}
 
 // returns the total modifier applied to all dice

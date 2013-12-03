@@ -1,11 +1,12 @@
 package ui;
 
+import gamesystem.Creature;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JFormattedTextField;
 
-import party.Creature;
 
 // TODO this can be done with beans binding (JGoodies/JFace) - it's a more general solution
 

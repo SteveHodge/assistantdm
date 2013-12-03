@@ -1,6 +1,7 @@
 package combat;
 
 import gamesystem.AC;
+import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
@@ -16,7 +17,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import party.Character;
-import party.Creature;
 
 @SuppressWarnings("serial")
 class CharacterCombatEntry extends CombatEntry {

@@ -18,11 +18,10 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.text.View;
 
 import monsters.StatisticsBlock.Field;
-import party.DetailedMonster;
 
 @SuppressWarnings("serial")
 class StatsBlockPanel extends JPanel {
-	private DetailedMonster creature;
+	private StatsBlockCreatureView creature;
 	private JLabel[] labels;
 	private JLabel[] fields;
 	private int selected = -1;
@@ -32,7 +31,7 @@ class StatsBlockPanel extends JPanel {
 
 	private EventListenerList listenerList = new EventListenerList();
 
-	StatsBlockPanel(DetailedMonster m) {
+	StatsBlockPanel(Monster m) {
 		setLayout(new GridBagLayout());
 
 		int i = 0;
@@ -69,26 +68,18 @@ class StatsBlockPanel extends JPanel {
 		setSelected(0);
 	}
 
-	void setCreature(DetailedMonster m) {
+	void setCreature(Monster m) {
 		if (creature != null) {
 			creature.removePropertyChangeListener(listener);
 		}
 
-		creature = m;
+		creature = StatsBlockCreatureView.getView(m);
 		creature.addPropertyChangeListener(listener);
 
 		updateFields();
 
 		if (selected != -1) setSelected(selected);	// set the selected field again
 	}
-
-	private PropertyChangeListener listener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent e) {
-			// TODO should just update the altered fields
-			updateFields();
-		}
-	};
 
 	private void updateFields() {
 		if (creature == null) {
@@ -102,7 +93,7 @@ class StatsBlockPanel extends JPanel {
 
 		int i = 0;
 		fields[i++].setText(creature.getName());
-		fields[i++].setText(creature.stats.getName());
+		fields[i++].setText(creature.getMonsterName());
 		for (Field p : Field.getStandardOrder()) {
 			fields[i].setText("<html><body>" + creature.getField(p) + "</body></html>");
 
@@ -118,6 +109,44 @@ class StatsBlockPanel extends JPanel {
 			i++;
 		}
 	}
+
+	private PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
+		public void propertyChange(PropertyChangeEvent e) {
+//			updateFields();	//
+
+			try {
+				System.out.println("update to property " + e.getPropertyName());
+				Field f = Field.valueOf(e.getPropertyName());
+				System.out.println("  update to field " + f);
+				if (f != null) {
+					if (f == Field.NAME) {
+						fields[0].setText(creature.getName());
+					} else {
+						int i = 2;
+						for (Field p : Field.getStandardOrder()) {
+							if (p == f) {
+								System.out.println("  update to " + p);
+								fields[i].setText("<html><body>" + creature.getField(p) + "</body></html>");
+
+								// determine the required size to fit the wrapped html text
+								View view = (View) fields[i].getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
+								view.setSize(200, 0);
+								float h = view.getPreferredSpan(View.Y_AXIS);
+								Dimension d = new Dimension(200, (int) Math.ceil(h));
+
+								fields[i].setPreferredSize(d);
+								fields[i].setMinimumSize(d);
+							}
+							i++;
+						}
+					}
+				}
+			} catch (IllegalArgumentException ex) {
+				// the property didn't match a field name so it must be a property - so we're not interested
+			}
+		}
+	};
 
 	void setSelectionForeground(Color c) {
 		selectedForeground = c;

@@ -1,5 +1,6 @@
 package ui;
 
+import gamesystem.Creature;
 import gamesystem.XP;
 
 import java.awt.Dimension;
@@ -22,7 +23,6 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import party.Character;
-import party.Creature;
 
 // TODO better history dialog
 // FIXME: changing the level directly doesn't apply the comments or date
@@ -68,7 +68,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyChang
 		c.gridx = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0;
-		BoundIntegerField f = new BoundIntegerField(character, Creature.PROPERTY_LEVEL, 2);
+		BoundIntegerField f = new BoundIntegerField(character, Character.PROPERTY_LEVEL, 2);
 		f.setMinimumSize(new Dimension(40,f.getMinimumSize().height));
 		add(f,c);
 
@@ -136,8 +136,9 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyChang
 		character.addPropertyChangeListener(this);
 	}
 
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().equals(Creature.PROPERTY_LEVEL)
+		if (e.getPropertyName().equals(Character.PROPERTY_LEVEL)
 				|| e.getPropertyName().equals(Creature.PROPERTY_XP)) {
 			xpLabel.setText(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
 			float perc = ((float)character.getXP()-XP.getXPRequired(character.getLevel()))/(character.getLevel()*10);
@@ -147,6 +148,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyChang
 		}
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == levelButton) {
 			character.setLevel(character.getLevel()+1,commentsField.getText(),(Date)dateField.getValue());
@@ -160,7 +162,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyChang
 		} else if (e.getSource() == historyButton) {
 			//JTextArea area = new JTextArea(character.getXPHistory());
 			//JScrollPane scroll = new JScrollPane(area);
-			
+
 			XPHistoryPanel panel = new XPHistoryPanel(character);
 			JFrame popup = new JFrame(character.getName()+" XP History");
 			popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

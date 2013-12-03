@@ -1,5 +1,7 @@
 package ui;
 
+import gamesystem.Creature;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -8,7 +10,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
-import party.Creature;
 
 // TODO this can be done with beans binding (JGoodies/JFace) - it's a more general solution. the alternative would be to have character supply models for properties/statistics
 
@@ -16,7 +17,7 @@ import party.Creature;
 public class BoundTextField extends JTextField {
 	protected Creature creature;
 	protected String property;
-	protected boolean modifying = false; 
+	protected boolean modifying = false;
 
 	public BoundTextField(Creature c, String prop, int columns) {
 		creature = c;
@@ -33,21 +34,25 @@ public class BoundTextField extends JTextField {
 				}
 			}
 
+			@Override
 			public void changedUpdate(DocumentEvent e) {
 				update(e,"change");
 			}
 
+			@Override
 			public void insertUpdate(DocumentEvent e) {
 				update(e,"insert");
 			}
 
+			@Override
 			public void removeUpdate(DocumentEvent e) {
 				update(e,"remove");
 			}
-			
+
 		});
 
 		creature.addPropertyChangeListener(property, new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
 				//System.out.println("Notified "+BoundTextField.this.hashCode()+", setting value to "+creature.getProperty(property));
 				// we might get notified from the result of our own update (e.g. if there is another BoundTextField bound to the same property)

@@ -2,6 +2,7 @@ package monsters;
 
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
+import gamesystem.Creature;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -31,14 +32,12 @@ import javax.swing.ListModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import party.Creature;
-import party.DetailedMonster;
 import swing.ImagePanel;
 import digital_table.controller.TokenOptionsPanel;
 
 @SuppressWarnings("serial")
 class NamePanel extends DetailPanel {
-	private DetailedMonster monster;
+	private Monster monster;
 
 	private JTextField nameField;
 	private JCheckBox augSummonCheck;
@@ -48,11 +47,11 @@ class NamePanel extends DetailPanel {
 
 	// XXX shared from AddMonsterDialog - this is messy
 	private List<URL> imageURLs;
-	private Map<DetailedMonster, Integer> imageIndexes;
+	private Map<Monster, Integer> imageIndexes;
 
 	private static Buff augmentedSummoning = BuffFactory.AUGMENTED_SUMMONING.getBuff();
 
-	NamePanel(List<URL> urls, Map<DetailedMonster, Integer> indexes) {
+	NamePanel(List<URL> urls, Map<Monster, Integer> indexes) {
 		imageURLs = urls;
 		imageIndexes = indexes;
 
@@ -173,7 +172,7 @@ class NamePanel extends DetailPanel {
 	}
 
 	@Override
-	void setMonster(DetailedMonster m) {
+	void setMonster(Monster m) {
 //		System.out.println("NamePanel.setMonster('" + m.getName() + "')");
 		if (monster == m) return;
 		if (monster != null) {

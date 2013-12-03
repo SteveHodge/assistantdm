@@ -19,15 +19,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import party.Character;
-import party.Creature;
-import party.DetailedCreature;
 
 // TODO attack form specific combat options (+DOM)
 // TODO damage
 // TODO implement modifier particular to one attack mode (ranged/grapple etc) (note that grapple size modifier is different from regular attack size modifier)
 // TODO think about grapple - most modifier to attack shouldn't apply...
+// TODO promote grapple to full (sub) statistic. grapple size mod and improved grapple should be modifiers
 // TODO consider if it is worth including situational modifiers (e.g. flanking, squeezing, higher, shooting into combat etc)
 // TODO cleanup AttackForm - hide public fields and update modifier type methods
+// TODO need to listen for changes to attacks
 
 /*
  * Statistics provided:
@@ -43,7 +43,7 @@ public class Attacks extends Statistic {
 	private int BAB = 0;
 	private Modifier strMod;	// may be null (if the creature has no strength score)
 	private Modifier dexMod;	// may be null (if the creature has no dex score)
-	private DetailedCreature creature;
+	private Creature creature;
 	private AC ac;
 	private Set<AttackForm> attackForms = new HashSet<AttackForm>();
 	private Modifier powerAttack = null;
@@ -81,14 +81,14 @@ public class Attacks extends Statistic {
 	};
 
 	// TODO would prefer not to require a Character. however we do need abilityscores, feats, and AC for some combat options
-	public Attacks(DetailedCreature c) {
+	public Attacks(Creature c) {
 		super("Attacks");
 
 		creature = c;
 		if (creature instanceof Character) {
 			((Character) creature).feats.addListDataListener(featsListener);
 		}
-		ac = (AC) creature.getStatistic(Creature.STATISTIC_AC);
+		ac = creature.getACStatistic();
 
 		strMod = creature.getAbilityModifier(AbilityScore.Type.STRENGTH);
 		if (strMod != null) strMod.addPropertyChangeListener(listener);
@@ -198,7 +198,10 @@ public class Attacks extends Statistic {
 	}
 
 	public int getGrappleValue() {
-		return getValue();
+		int grapple = BAB + creature.getSize().getGrappleModifier();
+		if (strMod != null) grapple += strMod.getModifier();
+		if (creature.hasFeat(Feat.FEAT_IMPROVED_GRAPPLE)) grapple += 4;
+		return grapple;
 	}
 
 	public AttackForm addAttackForm(String name) {

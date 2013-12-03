@@ -1,5 +1,6 @@
 package ui;
 
+import gamesystem.Creature;
 import gamesystem.SavingThrow;
 
 import java.awt.Rectangle;
@@ -15,7 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import party.Character;
-import party.Creature;
 
 //TODO update to use the saving throw's ability modifier rather than looking at the ability score's modifier directly
 //TODO change to listen to the SavingThrow itself instead of the character

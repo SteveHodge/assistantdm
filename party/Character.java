@@ -3,6 +3,7 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Buff;
+import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
@@ -47,7 +48,29 @@ import util.Updater;
  * @author Steve
  *
  */
-public class Character extends DetailedCreature {
+public class Character extends Creature {
+	public final static String PROPERTY_LEVEL = "Level";
+
+	// informational string properties (these are simple values that can be set/retrieved)
+	public static final String PROPERTY_PLAYER = "Player";
+	public final static String PROPERTY_CLASS = "Class";
+	public final static String PROPERTY_REGION = "Region";
+	public final static String PROPERTY_RACE = "Race";
+	public final static String PROPERTY_GENDER = "Gender";
+	public final static String PROPERTY_ALIGNMENT = "Alignment";
+	public final static String PROPERTY_DEITY = "Deity";
+	public final static String PROPERTY_TYPE = "Type";
+	public final static String PROPERTY_AGE = "Age";
+	public final static String PROPERTY_HEIGHT = "Height";
+	public final static String PROPERTY_WEIGHT = "Weight";
+	public final static String PROPERTY_EYE_COLOUR = "Eye Colour";
+	public final static String PROPERTY_HAIR_COLOUR = "Hair Colour";
+	public final static String PROPERTY_SPEED = "Speed";
+	public final static String PROPERTY_DAMAGE_REDUCTION = "Damage Reduction";
+	public final static String PROPERTY_SPELL_RESISTANCE = "Spell Resistance";
+	public final static String PROPERTY_ARCANE_SPELL_FAILURE = "Arcane Spell Failure";
+	public final static String PROPERTY_ACTION_POINTS = "Action Points";
+
 	// TODO the armor component override may go away
 	public enum ACComponentType {
 		//ARMOR("Armor"),
@@ -291,7 +314,7 @@ public class Character extends DetailedCreature {
 	}
 
 	@Override
-	void firePropertyChange(String property, Object oldValue, Object newValue) {
+	protected void firePropertyChange(String property, Object oldValue, Object newValue) {
 		if (autoSave) {
 			// if there has been no change we don't trigger an update (pcs.firePropertyChange() also implements this logic)
 			if (oldValue == null) {
@@ -755,6 +778,7 @@ public class Character extends DetailedCreature {
 	}
 
 //------------ Feats -------------
+	@Override
 	public boolean hasFeat(String name) {
 		for (int i = 0; i < feats.size(); i++) {
 			Buff f = (Buff)feats.get(i);
@@ -894,35 +918,7 @@ public class Character extends DetailedCreature {
 //------------------- Import/Export and other methods -------------------
 	@Override
 	public Statistic getStatistic(String name) {
-		if (name.equals(STATISTIC_STRENGTH)) {
-			return abilities.get(AbilityScore.Type.STRENGTH);
-		} else if (name.equals(STATISTIC_INTELLIGENCE)) {
-			return abilities.get(AbilityScore.Type.INTELLIGENCE);
-		} else if (name.equals(STATISTIC_WISDOM)) {
-			return abilities.get(AbilityScore.Type.WISDOM);
-		} else if (name.equals(STATISTIC_DEXTERITY)) {
-			return abilities.get(AbilityScore.Type.DEXTERITY);
-		} else if (name.equals(STATISTIC_CONSTITUTION)) {
-			return abilities.get(AbilityScore.Type.CONSTITUTION);
-		} else if (name.equals(STATISTIC_CHARISMA)) {
-			return abilities.get(AbilityScore.Type.CHARISMA);
-		} else if (name.equals(STATISTIC_FORTITUDE_SAVE)) {
-			return saves.get(SavingThrow.Type.FORTITUDE);
-		} else if (name.equals(STATISTIC_WILL_SAVE)) {
-			return saves.get(SavingThrow.Type.WILL);
-		} else if (name.equals(STATISTIC_REFLEX_SAVE)) {
-			return saves.get(SavingThrow.Type.REFLEX);
-		} else if (name.equals(STATISTIC_AC)) {
-			return ac;
-		} else if (name.equals(STATISTIC_ARMOR)) {
-			return ac.getArmor();
-		} else if (name.equals(STATISTIC_SHIELD)) {
-			return ac.getShield();
-		} else if (name.equals(STATISTIC_NATURAL_ARMOR)) {
-			return ac.getNaturalArmor();
-		} else if (name.equals(STATISTIC_INITIATIVE)) {
-			return initiative;
-		} else if (name.equals(STATISTIC_SKILLS)) {
+		if (name.equals(STATISTIC_SKILLS)) {
 			return skills;
 		} else if (name.startsWith(STATISTIC_SKILLS+".")) {
 			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length()+1));
@@ -932,17 +928,8 @@ public class Character extends DetailedCreature {
 //			return null;
 		} else if (name.equals(STATISTIC_LEVEL)) {
 			return level;
-		} else if (name.equals(STATISTIC_HPS)) {
-			return hps;
-		} else if (name.equals(STATISTIC_ATTACKS)) {
-			return attacks;
-		} else if (name.equals(STATISTIC_DAMAGE)) {
-			return attacks.getDamageStatistic();
-		} else if (name.equals(STATISTIC_SIZE)) {
-			return size;
 		} else {
-			System.out.println("Unknown statistic "+name);
-			return null;
+			return super.getStatistic(name);
 		}
 	}
 

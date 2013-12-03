@@ -1,5 +1,6 @@
 package ui;
 
+import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.Modifier;
 
@@ -29,7 +30,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import party.Character;
-import party.Creature;
 
 // TODO probably don't want both damage and healing to be applied when user hits the apply button. either clear the other value when one value is changed or clear both fields after apply
 

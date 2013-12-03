@@ -1,5 +1,6 @@
 package combat;
 import gamesystem.Buff;
+import gamesystem.Creature;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -20,7 +21,6 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import party.Creature;
 
 // TODO consider moving into CombatPanel class
 

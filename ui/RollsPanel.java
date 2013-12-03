@@ -1,4 +1,5 @@
 package ui;
+import gamesystem.Creature;
 import gamesystem.SavingThrow;
 import gamesystem.SkillType;
 
@@ -20,7 +21,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
 import party.Character;
-import party.Creature;
 import party.Party;
 import party.PartyListener;
 import swing.SpinnerCellEditor;
