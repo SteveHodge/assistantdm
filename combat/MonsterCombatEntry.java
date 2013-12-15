@@ -38,7 +38,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		setToolTipText(getToolTipText(null));
 	}
 
-	MonsterCombatEntry(Monster m) {
+	MonsterCombatEntry(Creature m) {
 		creature = m;
 		createEntry();
 		setToolTipText(getToolTipText(null));

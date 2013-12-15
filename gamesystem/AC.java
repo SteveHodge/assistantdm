@@ -7,10 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 /*
  * Natural armor is implemented as both a Statistic and also as modifiers on AC. The modifiers provide the base NA value.
  * This does not stack, as is usual for modifiers of the same type (e.g. NA provided by race and by Tenser's Transformation).
@@ -110,27 +106,6 @@ public class AC extends Statistic {
 
 	public Modifier getArmorCheckPenalty() {
 		return armorCheckPenalty;
-	}
-
-	@Override
-	public Element getElement(Document doc) {
-		Element e = doc.createElement("AC");
-		e.appendChild(armor.getElement(doc));
-		e.appendChild(shield.getElement(doc));
-		return e;
-	}
-
-	public void parseDOM(Element e) {
-		if (!e.getTagName().equals("AC")) return;
-
-		NodeList children = e.getChildNodes();
-		for (int j=0; j<children.getLength(); j++) {
-			if (children.item(j).getNodeName().equals("Armor")) {
-				armor.parseDOM((Element)children.item(j));
-			} else if (children.item(j).getNodeName().equals("Shield")) {
-				shield.parseDOM((Element)children.item(j));
-			}
-		}
 	}
 
 	// note that listener requests are forwarded to the outer AC instance. this means the source of events will be the AC instance,
@@ -328,33 +303,6 @@ public class AC extends Statistic {
 		}
 
 		@Override
-		public Element getElement(Document doc) {
-			Element e = doc.createElement(name);
-			e.setAttribute("description", description);
-			e.setAttribute("bonus", ""+bonus);
-			if (enhancement != null) {
-				e.setAttribute("enhancement", ""+enhancement.getModifier());
-			}
-			e.setAttribute("weight", ""+weight);
-			e.setAttribute("acp", ""+acp);
-			e.setAttribute("spell_failure", ""+spellFailure);
-			e.setAttribute("properties", ""+properties);
-			return e;
-		}
-
-		public void parseDOM(Element e) {
-			if (!e.getTagName().equals(name)) return;
-
-			if (e.hasAttribute("description")) description = e.getAttribute("description");
-			if (e.hasAttribute("properties")) properties = e.getAttribute("properties");
-			if (e.hasAttribute("bonus")) setBonus(Integer.parseInt(e.getAttribute("bonus")));
-			if (e.hasAttribute("enhancement")) setEnhancement(Integer.parseInt(e.getAttribute("enhancement")));
-			if (e.hasAttribute("weight")) weight = Integer.parseInt(e.getAttribute("weight"));
-			if (e.hasAttribute("acp")) setACP(Integer.parseInt(e.getAttribute("acp")));
-			if (e.hasAttribute("spell_failure")) spellFailure = Integer.parseInt(e.getAttribute("spell_failure"));
-		}
-
-		@Override
 		public String toString() {
 			StringBuilder s = new StringBuilder();
 			s.append(name);
@@ -384,25 +332,6 @@ public class AC extends Statistic {
 		public void setMaxDex(int v) {
 			if (dexMod == null || v == dexMod.getLimit()) return;
 			dexMod.setLimit(v);
-		}
-
-		@Override
-		public Element getElement(Document doc) {
-			Element e = super.getElement(doc);
-			e.setAttribute("type", type);
-			e.setAttribute("speed", ""+speed);
-			if (dexMod != null) e.setAttribute("max_dex", "" + dexMod.getLimit());
-			return e;
-		}
-
-		@Override
-		public void parseDOM(Element e) {
-			if (!e.getTagName().equals(name)) return;
-			super.parseDOM(e);
-
-			if (e.hasAttribute("type")) type = e.getAttribute("type");
-			if (e.hasAttribute("speed")) speed = Integer.parseInt(e.getAttribute("speed"));
-			if (e.hasAttribute("max_dex")) setMaxDex(Integer.parseInt(e.getAttribute("max_dex")));
 		}
 	}
 

@@ -1,6 +1,7 @@
 package monsters;
 import gamesystem.AbilityScore;
 import gamesystem.CharacterClass;
+import gamesystem.Creature;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
 import gamesystem.SavingThrow;
@@ -544,7 +545,7 @@ public class GetStatsBlock {
 	public static void testParse(List<StatisticsBlock> blocks) {
 		for (StatisticsBlock block : blocks) {
 			try {
-				Monster m = StatsBlockCreatureView.getMonster(block);
+				Creature m = StatsBlockCreatureView.getMonster(block);
 				int[] acs = block.getACs();
 				if (acs[0] != m.getAC()) {
 					System.out.println(getNameURL(block) + "\n calculated ac (" + m.getAC() + ") does not match supplied ac (" + acs[0] + ")");

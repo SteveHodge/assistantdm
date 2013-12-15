@@ -309,14 +309,14 @@
 			<xs:element ref="Skills"/>
 			<xs:element ref="AC"/>
 			<xs:element ref="Attacks"/>
-			<xs:element name="Feats">
+			<xs:element name="Feats" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element ref="Feat" minOccurs="0" maxOccurs="unbounded"/>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="Buffs">
+			<xs:element name="Buffs" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element ref="Buff" minOccurs="0" maxOccurs="unbounded"/>

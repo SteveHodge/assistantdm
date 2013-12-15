@@ -2,19 +2,12 @@ package gamesystem;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /*
  * Skills is a compound Statistic - it represents all possible skills for a creature. Modifiers can be added to this class,
@@ -177,43 +170,5 @@ public class Skills extends Statistic {
 		String conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/>").append(conds);
 		return text.toString();
-	}
-
-	@Override
-	public Element getElement(Document doc) {
-		Element e = doc.createElement(name);
-
-		ArrayList<SkillType> set = new ArrayList<SkillType>(skills.keySet());
-		Collections.sort(set, new Comparator<SkillType>() {
-			@Override
-			public int compare(SkillType o1, SkillType o2) {
-				return o1.getName().compareTo(o2.getName());
-			}
-		});
-		for (SkillType s : set) {
-			Element se = doc.createElement("Skill");
-			se.setAttribute("type", s.name);
-			Skill skill = skills.get(s);
-			se.setAttribute("ranks", ""+skill.ranks);
-			if (skill.misc != 0) se.setAttribute("misc", ""+skill.misc);
-			e.appendChild(se);
-		}
-		return e;
-	}
-
-	public void parseDOM(Element e) {
-		if (!e.getTagName().equals("Skills")) return;
-
-		NodeList skills = e.getChildNodes();
-		for (int j=0; j<skills.getLength(); j++) {
-			if (!skills.item(j).getNodeName().equals("Skill")) continue;
-			Element s = (Element)skills.item(j);
-			String ranks = s.getAttribute("ranks");
-			String type = s.getAttribute("type");
-			SkillType skill = SkillType.getSkill(type);
-			setRanks(skill, Float.parseFloat(ranks));
-			String misc = s.getAttribute("misc");
-			if (misc != "") setMisc(skill, Integer.parseInt(misc));
-		}
 	}
 }

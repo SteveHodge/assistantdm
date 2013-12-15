@@ -7,9 +7,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 public class CharacterAttackForm {
 	// TODO the Kind enum value are really shorthand for a bunch of different properties. will need to split the properties out
 	// properties include permitted use (1h,2h,thrown,ranged), stat for damage adjustment, flag if weapon finesse can be applied, etc
@@ -66,8 +63,8 @@ public class CharacterAttackForm {
 	public String damage_type;			// TODO convert to enum/constants/bitfield - not sure if it's practical since multiple values can be "and" or "or"
 	public String properties;			// TODO eventually will be derived
 	public String ammunition;
-	private Kind kind;					// weapon kind (melee/ranged/thrown etc)
-	private Usage usage;					// style of use (one-handed, two-handed, primary, etc) // TODO when we have weapon definitions this should default to the correct "normal" use of the weapon
+	public Kind kind;					// weapon kind (melee/ranged/thrown etc)
+	public Usage usage;					// style of use (one-handed, two-handed, primary, etc) // TODO when we have weapon definitions this should default to the correct "normal" use of the weapon
 
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -232,37 +229,5 @@ public class CharacterAttackForm {
 
 	public String getDamageSummary() {
 		return attack.getDamageSummary();
-	}
-
-	public Element getElement(Document doc, boolean include_info) {
-		Element e = attack.getElement(doc, include_info);
-		e.setAttribute("critical", critical);
-		if (range > 0) e.setAttribute("range", "" + range);
-		if (weight > 0) e.setAttribute("weight", "" + weight);
-		e.setAttribute("type", damage_type);
-		if ((properties == null || properties.length() == 0) && usage != null) {
-			e.setAttribute("properties", usage.toString());
-		} else {
-			e.setAttribute("properties", properties);
-		}
-		e.setAttribute("ammunition", ammunition);
-		e.setAttribute("kind", kind.toString());
-		e.setAttribute("usage", "" + usage.ordinal());
-		return e;
-	}
-
-	public void parseDOM(Element e) {
-		attack.parseDOM(e);
-		critical = e.getAttribute("critical");
-		if (e.hasAttribute("range")) range = Integer.parseInt(e.getAttribute("range"));
-		if (e.hasAttribute("weight")) weight = Integer.parseInt(e.getAttribute("weight"));
-		damage_type = e.getAttribute("type");
-		ammunition = e.getAttribute("ammunition");
-		kind = Kind.getKind(e.getAttribute("kind"));
-		if (e.hasAttribute("usage")) usage = Usage.values()[Integer.parseInt(e.getAttribute("usage"))];
-		String s = e.getAttribute("properties");
-		if (s != null && !s.equals(usage)) {
-			properties = s;
-		}
 	}
 }

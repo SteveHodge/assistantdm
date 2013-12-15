@@ -20,6 +20,7 @@ import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.VerticalLayout;
 
 import party.Character;
+import party.CharacterSheetView;
 import party.Party;
 import party.PartyListener;
 import swing.JSubSection;
@@ -48,12 +49,14 @@ public class PartyPanel extends JPanel implements PartyListener {
 		add(tabbedPane, BorderLayout.CENTER);
 	}
 
+	@Override
 	public void characterAdded(Character c) {
 		JComponent tab = createCharacterPanel(c);
 		tabs.put(c, tab);
 		tabbedPane.addTab(c.getName(), null, tab, c.getName());
 	}
 
+	@Override
 	public void characterRemoved(Character c) {
 		JComponent tab = tabs.get(c);
 		if (tab != null) {
@@ -67,12 +70,14 @@ public class PartyPanel extends JPanel implements PartyListener {
 		final JPanel leftPanel = new JPanel();
 		leftPanel.setMinimumSize(new Dimension(450,300));
 		leftPanel.setLayout(new VerticalLayout(1));
-		
+
 		JXTaskPane actionsPane = new JXTaskPane("Actions");
 		JButton saveHTML = new JButton("Save HTML");
 		saveHTML.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				c.saveCharacterSheet();
+				CharacterSheetView view = new CharacterSheetView(c, false);
+				view.saveCharacterSheet();
 			}
 		});
 		actionsPane.add(saveHTML);
@@ -107,14 +112,14 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 		sub = new JSubSection("Buffs / Penalties", new CharacterBuffsPanel(c));
 		leftPanel.add(sub);
-		
+
 		sub = new JSubSection("Feats", new CharacterFeatsPanel(c));
 		leftPanel.add(sub);
 
 		final JPanel rightPanel = new JPanel();
 		rightPanel.setMinimumSize(new Dimension(300,300));
 		rightPanel.setLayout(new VerticalLayout(1));
-	
+
 		p = new CharacterInitiativePanel(c);
 		sub = new JSubSection("Initiative", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
@@ -141,6 +146,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 		scroller.setPreferredSize(new Dimension(1000,600));
 
 		debug.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Left PreferredSize = "+leftPanel.getPreferredSize());
 				System.out.println("Right PreferredSize = "+rightPanel.getPreferredSize());

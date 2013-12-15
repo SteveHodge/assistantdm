@@ -1,5 +1,7 @@
 package party;
 
+import gamesystem.XMLOutputProcessor;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -47,7 +49,7 @@ public class Party implements Iterable<Character> {
 	public boolean remove(Character c) {
 		if (characters.remove(c)) {
 			for (PartyListener l : listeners) l.characterRemoved(c);
-			return true;
+					return true;
 		}
 		return false;
 	}
@@ -71,6 +73,7 @@ public class Party implements Iterable<Character> {
 		return characters.size();
 	}
 
+	@Override
 	public Iterator<Character> iterator() {
 		return characters.iterator();
 	}
@@ -79,7 +82,7 @@ public class Party implements Iterable<Character> {
 		return parseXML(xmlFile, false);
 	}
 
-    /**
+	/**
 	 * Reads the supplied xml file are builds a party of characters from it. All
 	 * characters in the file are added to the <code>CharacterLibrary</code> unless
 	 * <code>update</code> is true. If the file has a &lt;Party&gt; block then the
@@ -87,14 +90,14 @@ public class Party implements Iterable<Character> {
 	 * it is set up with all the characters from the file.
 	 * 
 	 * @param xmlFile  the File to parse
-	 * @param update   if true then the incomming characters are not added to the CharacterLibrary 
+	 * @param update   if true then the incomming characters are not added to the CharacterLibrary
 	 * @return         the new Party
 	 */
 	public static Party parseXML(File xmlFile, boolean update) {
 		Party p = new Party();
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd"); 
+			InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
 			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 			//XMLUtils.printNode(dom, "");
@@ -156,6 +159,7 @@ public class Party implements Iterable<Character> {
 		Character[] allCharacters = new Character[CharacterLibrary.characters.size()];
 		allCharacters = CharacterLibrary.characters.toArray(allCharacters);
 		Arrays.sort(allCharacters, new Comparator<Character> () {
+			@Override
 			public int compare(Character arg0, Character arg1) {
 				return arg0.getName().compareTo(arg1.getName());
 			}
@@ -177,12 +181,15 @@ public class Party implements Iterable<Character> {
 		Character[] allCharacters = new Character[CharacterLibrary.characters.size()];
 		allCharacters = CharacterLibrary.characters.toArray(allCharacters);
 		Arrays.sort(allCharacters, new Comparator<Character> () {
+			@Override
 			public int compare(Character arg0, Character arg1) {
 				return arg0.getName().compareTo(arg1.getName());
 			}
 		});
 		for (Character c : allCharacters) {
-			e.appendChild(c.getElement(doc));
+			XMLOutputProcessor processor = new XMLOutputProcessor(doc);
+			c.executeProcess(processor);
+			e.appendChild(processor.getElement());
 		}
 		Element p = doc.createElement("Party");
 		for (Character c : characters) {

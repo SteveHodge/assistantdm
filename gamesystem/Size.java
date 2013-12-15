@@ -1,7 +1,5 @@
 package gamesystem;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 public class Size extends Statistic {
 	private SizeCategory category = SizeCategory.MEDIUM;
@@ -71,22 +69,4 @@ public class Size extends Statistic {
 		reach = r;
 		pcs.firePropertyChange("reach", null, reach);
 	}
-
-	@Override
-	public Element getElement(Document doc) {
-		Element e = doc.createElement("Size");
-		e.setAttribute("category", "" + category);
-		e.setAttribute("space", "" + space);
-		e.setAttribute("reach", "" + reach);
-		return e;
-	}
-
-	// TODO notify listeners?
-	public void parseDOM(Element e) {
-		if (!e.getTagName().equals("Size")) return;
-		category = SizeCategory.getSize(e.getAttribute("category"));
-		space = Integer.parseInt(e.getAttribute("space"));
-		reach = Integer.parseInt(e.getAttribute("reach"));
-	}
-
 }

@@ -1,5 +1,7 @@
 package combat;
 
+import gamesystem.Creature;
+
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -31,7 +33,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 
-import monsters.Monster;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -228,7 +229,7 @@ public class CombatPanel extends JPanel {
 //		return party.get(index).getName();
 //	}
 
-	public static void addMonster(Monster m) {
+	public static void addMonster(Creature m) {
 		combatPanel.initiativeListModel.addEntry(new MonsterCombatEntry(m));
 	}
 

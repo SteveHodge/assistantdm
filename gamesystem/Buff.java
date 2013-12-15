@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 
 /*
@@ -31,7 +30,7 @@ public class Buff {
 	public boolean maximized = false;
 	public boolean empowered = false;
 	public int id;
-	private static int nextid = 1;	// TODO not threadsafe
+	static int nextid = 1;	// TODO not threadsafe, should be private (used in parsing at the moment)
 
 	class PropertyChange {
 		String property;
@@ -364,46 +363,5 @@ public class Buff {
 		}
 
 		return e;
-	}
-
-	public static Buff parseDOM(Element b) {
-		//if (!b.getTagName().equals("Buff")) return null;
-		Buff buff = new Buff();
-		if (b.hasAttribute("caster_level")) buff.casterLevel = Integer.parseInt(b.getAttribute("caster_level"));
-		buff.name = b.getAttribute("name");
-		if (b.hasAttribute("id")) {
-			buff.id = Integer.parseInt(b.getAttribute("id"));
-			if (buff.id >= nextid) nextid = buff.id + 1;	// prevent possible future reuse of this id
-		}
-		NodeList mods = b.getChildNodes();
-		for (int k=0; k<mods.getLength(); k++) {
-			if (mods.item(k).getNodeName().equals("Modifier")) {
-				Element m = (Element)mods.item(k);
-				String target = m.getAttribute("target");
-				int value = Integer.parseInt(m.getAttribute("value"));
-				String type = m.getAttribute("type");
-				String condition = m.getAttribute("condition");
-				ImmutableModifier mod;
-				if (condition != null && condition.length() > 0) {
-					mod = new ImmutableModifier(value, type, buff.name, condition);
-				} else {
-					mod = new ImmutableModifier(value, type, buff.name);
-				}
-				mod.id = buff.id;
-				buff.modifiers.put(mod,target);
-
-			} else if (mods.item(k).getNodeName().equals("PropertyChange")) {
-				Element m = (Element)mods.item(k);
-				String target = m.getAttribute("target");
-				int value = Integer.parseInt(m.getAttribute("value"));
-				PropertyChange p = buff.new PropertyChange();
-				p.description = m.getAttribute("description");
-				p.property = m.getAttribute("property");
-				p.value = value;
-				buff.propertyChanges.put(p,target);
-
-			}
-		}
-		return buff;
 	}
 }

@@ -9,9 +9,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 /*
  * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
  * In many cases there is a base value that the modifiers are applied to. But the base value may not be editable so it's implementation
@@ -291,10 +288,5 @@ public class Statistic {
 
 		mods.addModifier(new ImmutableModifier(3,null,"spell"));	// should replace previous "spell" bonus
 		System.out.println(mods + "\n");
-	}
-
-	public Element getElement(Document doc) {
-		Element e = doc.createElement(name);
-		return e;
 	}
 }

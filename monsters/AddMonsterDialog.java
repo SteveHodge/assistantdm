@@ -160,7 +160,7 @@ public class AddMonsterDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
-					Monster m = monsterListModel.getElementAt(i);
+					Creature m = monsterListModel.getElementAt(i);
 					CombatPanel.addMonster(m);
 				}
 			}
@@ -171,7 +171,7 @@ public class AddMonsterDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				for (int i = 0; i < monsterListModel.getSize(); i++) {
-					Monster m = monsterListModel.getElementAt(i);
+					Creature m = monsterListModel.getElementAt(i);
 					Integer imgIndex = imageIndexes.get(m);
 					File f = null;
 					if (imgIndex != null && imgIndex.intValue() >= 0) {
@@ -265,7 +265,7 @@ public class AddMonsterDialog extends JDialog {
 			}
 
 			// fixup the name of the first monster if necessary
-			Monster m = monsterListModel.getElementAt(0);
+			Creature m = monsterListModel.getElementAt(0);
 			if (oldSize == 1 && newSize > 1 && !m.getName().endsWith(" 1")) {
 				m.setName(m.getName() + " 1");
 			} else if (newSize == 1 && m.getName().endsWith(" 1")) {
@@ -278,12 +278,12 @@ public class AddMonsterDialog extends JDialog {
 		private List<Monster> monsters = new ArrayList<Monster>();
 
 		@Override
-		public Monster getElementAt(int i) {
+		public Creature getElementAt(int i) {
 			return monsters.get(i);
 		}
 
 		public void removeElementAt(int i) {
-			Monster m = monsters.remove(i);
+			Creature m = monsters.remove(i);
 			m.removePropertyChangeListener(listener);
 			fireIntervalRemoved(this, i, i);
 		}

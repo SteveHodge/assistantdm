@@ -1,16 +1,10 @@
 package gamesystem;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 
 /* This class contains static methods and classes used to calculate and record xp.
@@ -30,6 +24,7 @@ public class XP {
 		public int number;
 		public String comment = "";
 
+		@Override
 		public String toString() {
 			if (number == 1) return comment + " CR " + cr;
 			return comment + " " + number + " x CR " + cr;
@@ -44,15 +39,7 @@ public class XP {
 			return b.toString();
 		}
 
-		public static Challenge parseDOM(Element e) {
-			if (!e.getNodeName().equals("XPChallenge")) return null;
-			Challenge c = new Challenge();
-			c.cr = new CR(e.getAttribute("cr"));
-			c.number = Integer.parseInt(e.getAttribute("number"));
-			c.comment = e.getTextContent();
-			return c;
-		}
-
+		@Override
 		public boolean equals(Object obj) {
 			if (!(obj instanceof Challenge)) return false;
 			Challenge o = (Challenge)obj;
@@ -60,14 +47,6 @@ public class XP {
 			if (!o.comment.equals(comment)) return false;
 			if (!o.cr.equals(cr)) return false;
 			return true;
-		}
-
-		public Element getElement(Document doc) {
-			Element e = doc.createElement("XPChallenge");
-			e.setAttribute("cr", cr.toString());
-			e.setAttribute("number", ""+number);
-			e.setTextContent(comment);
-			return e;
 		}
 	}
 
@@ -86,6 +65,7 @@ public class XP {
 
 		public String getComment() {return comment;}
 
+		@Override
 		public String toString() {
 			if (comment != null && comment.length() > 0) {
 				if (date != null) {
@@ -101,9 +81,7 @@ public class XP {
 			return "";
 		}
 
-		public abstract String getXML(String indent, String nextIndent);
-
-		public abstract Element getElement(Document doc);
+		public abstract void executeProcess(CreatureProcessor processor);
 	}
 
 	public static class XPChangeChallenges extends XPChange {
@@ -117,60 +95,12 @@ public class XP {
 			super(c,d);
 		}
 
+		@Override
 		public int getXP() {
 			return xp;
 		}
 
-		public String getXML(String indent, String nextIndent) {
-			StringBuilder b = new StringBuilder();
-			String nl = System.getProperty("line.separator");
-			b.append(indent).append("<XPAward xp=\"").append(xp);
-			b.append("\" level=\"").append(level);
-			b.append("\" party=\"").append(partyCount);
-			b.append("\" penalty=\"").append(penalty);
-			if (date != null) {
-				b.append("\" date=\"").append(dateFormat.format(date));
-			}
-			b.append("\">").append(nl);
-			if (comment != null && comment.length() > 0) {
-				b.append(indent+nextIndent).append("<Comment>").append(comment).append("</Comment>").append(nl);
-			}
-			for (Challenge c : challenges) {
-				b.append(c.getXML(indent+nextIndent,nextIndent));
-			}
-			b.append(indent).append("</XPAward>").append(nl);
-			return b.toString();
-		}
-	
-		public static XPChangeChallenges parseDOM(Element e) {
-			if (!e.getNodeName().equals("XPAward")) return null;
-			Date d = null;
-			try {
-				d = dateFormat.parse(e.getAttribute("date"));
-			} catch (ParseException e1) {
-			}
-			XPChangeChallenges c = new XPChangeChallenges(null,d);
-			c.xp = Integer.parseInt(e.getAttribute("xp"));
-			c.level = Integer.parseInt(e.getAttribute("level"));
-			c.partyCount = Integer.parseInt(e.getAttribute("party"));
-			if (e.hasAttribute("penalty")) c.penalty = Integer.parseInt(e.getAttribute("penalty"));
-	
-			NodeList nodes = e.getChildNodes();
-			for (int i=0; i<nodes.getLength(); i++) {
-				if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-				Element child = (Element)nodes.item(i);
-				String tag = child.getTagName();
-
-				if (tag.equals("XPChallenge")) {
-					Challenge chal = Challenge.parseDOM(child);
-					c.challenges.add(chal);
-				} else if (tag.equals("Comment")) {
-					c.comment = child.getTextContent();
-				}
-			}
-			return c;
-		}
-	
+		@Override
 		public String toString() {
 			StringBuilder b = new StringBuilder();
 			String nl = System.getProperty("line.separator");
@@ -189,61 +119,26 @@ public class XP {
 			return b.toString();
 		}
 
-		public Element getElement(Document doc) {
-			Element e = doc.createElement("XPAward");
-			e.setAttribute("xp", ""+xp);
-			e.setAttribute("level", ""+level);
-			e.setAttribute("party", ""+partyCount);
-			e.setAttribute("penalty", ""+penalty);
-			if (date != null) {
-				e.setAttribute("date",dateFormat.format(date));
-			}
-			if (comment != null && comment.length() > 0) {
-				Element c = doc.createElement("Comment");
-				c.setTextContent(comment);
-				e.appendChild(c);
-			}
-			for (Challenge c : challenges) {
-				e.appendChild(c.getElement(doc));
-			}
-			return e;
+		@Override
+		public void executeProcess(CreatureProcessor processor) {
+			processor.processXPChange(this);
 		}
 	}
 
 	public static class XPChangeAdhoc extends XPChange {
 		int xp;
-	
+
 		public XPChangeAdhoc(int xp, String c, Date d) {
 			super(c,d);
 			this.xp = xp;
 		}
-	
+
+		@Override
 		public int getXP() {
 			return xp;
 		}
 
-		public String getXML(String indent, String nextIndent) {
-			String xml =indent+"<XPChange xp=\""+xp+"\"";
-			if (date != null) {
-				xml += " date=\""+dateFormat.format(date)+"\"";
-			}
-			if (comment != null && comment.length() > 0) xml += ">"+comment+"</XPChange>";
-			else xml += "/>";
-			return xml+System.getProperty("line.separator");
-		}
-	
-		public static XPChangeAdhoc parseDOM(Element e) {
-			if (!e.getNodeName().equals("XPChange")) return null;
-			String comment = e.getTextContent();
-			Date d = null;
-			try {
-				d = dateFormat.parse(e.getAttribute("date"));
-			} catch (ParseException e1) {
-			}
-			XPChangeAdhoc c = new XPChangeAdhoc(Integer.parseInt(e.getAttribute("xp")),comment,d);
-			return c;
-		}
-	
+		@Override
 		public String toString() {
 			String txt = "Adhoc change of "+xp;
 			String c = super.toString();
@@ -251,59 +146,28 @@ public class XP {
 			return txt;
 		}
 
-		public Element getElement(Document doc) {
-			Element e = doc.createElement("XPChange");
-			e.setAttribute("xp", ""+xp);
-			if (date != null) {
-				e.setAttribute("date",dateFormat.format(date));
-			}
-			if (comment != null && comment.length() > 0) {
-				e.setTextContent(comment);
-			}
-			return e;
+		@Override
+		public void executeProcess(CreatureProcessor processor) {
+			processor.processXPChange(this);
 		}
 	}
 
 	public static class XPChangeLevel extends XPChange {
 		int oldLevel;
 		int newLevel;
-	
+
 		public XPChangeLevel(int o, int n, String c, Date d) {
 			super(c,d);
 			oldLevel = o;
 			newLevel = n;
 		}
 
+		@Override
 		public int getXP() {
 			return 0;
 		}
-	
-		public String getXML(String indent, String nextIndent) {
-			String xml =indent+"<XPLevelChange old=\""+oldLevel+"\" new=\""+newLevel+"\"";
-			if (date != null) {
-				xml += " date=\""+dateFormat.format(date)+"\"";
-			}
-			if (comment != null && comment.length() > 0) xml += ">"+comment+"</XPLevelChange>";
-			else xml += "/>";
-			return xml+System.getProperty("line.separator");
-		}
 
-		public static XPChangeLevel parseDOM(Element e) {
-			if (!e.getNodeName().equals("XPLevelChange")) return null;
-			String comment = e.getTextContent();
-			Date d = null;
-			try {
-				d = dateFormat.parse(e.getAttribute("date"));
-			} catch (ParseException e1) {
-			}
-			XPChangeLevel c = new XPChangeLevel(
-					Integer.parseInt(e.getAttribute("old")),
-					Integer.parseInt(e.getAttribute("new")),
-					comment, d
-			);
-			return c;
-		}
-
+		@Override
 		public String toString() {
 			String txt = "Changed level from "+oldLevel+" to "+newLevel;
 			String c = super.toString();
@@ -319,17 +183,9 @@ public class XP {
 			return newLevel;
 		}
 
-		public Element getElement(Document doc) {
-			Element e = doc.createElement("XPLevelChange");
-			e.setAttribute("old", ""+oldLevel);
-			e.setAttribute("new", ""+newLevel);
-			if (date != null) {
-				e.setAttribute("date",dateFormat.format(date));
-			}
-			if (comment != null && comment.length() > 0) {
-				e.setTextContent(comment);
-			}
-			return e;
+		@Override
+		public void executeProcess(CreatureProcessor processor) {
+			processor.processXPChange(this);
 		}
 	}
 
@@ -344,7 +200,7 @@ public class XP {
 			award = Math.round((float)award / members);
 			xp += award;
 		}
-		if (penalty != 0) xp = (int)(xp * (100-penalty) / 100);
+		if (penalty != 0) xp = (xp * (100-penalty) / 100);
 		return xp;
 	}
 /*
@@ -360,7 +216,7 @@ public class XP {
 		}
 		return xp;
 	}
-*/
+ */
 	/* this array holds the base xp values. in most cases a character of level 'L'
 	 * defeating an opponent of CR 'C' will receive xp = baseXP[C-L+7]*L/2
 	 */
@@ -387,5 +243,5 @@ public class XP {
 		}
 		return total;
 	}
-	
+
 }

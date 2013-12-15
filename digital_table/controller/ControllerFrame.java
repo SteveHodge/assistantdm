@@ -52,7 +52,6 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import monsters.Monster;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -402,7 +401,7 @@ public class ControllerFrame extends JFrame {
 		//			}
 	}
 
-	public static void addMonster(Monster m, File imageFile) {
+	public static void addMonster(Creature m, File imageFile) {
 		if (instance != null) {
 			TokenOptionsPanel panel = instance.tokenAction.addElement(null);
 			panel.setCreature((Creature) m);

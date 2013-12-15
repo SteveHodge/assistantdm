@@ -10,6 +10,7 @@ import java.util.Map;
 import swing.ListModelWithToolTips;
 import ui.BuffUI;
 
+// TODO the initiative property should either be the base value or the total - pick one
 // TODO should probably convert these constants to enums
 public abstract class Creature {
 	// properties
@@ -66,6 +67,23 @@ public abstract class Creature {
 
 	// ************************* Non static members and methods **************************
 
+	protected String name;
+
+	protected HPs hps;
+	protected Size size;
+	protected InitiativeModifier initiative;
+	protected EnumMap<SavingThrow.Type, SavingThrow> saves = new EnumMap<SavingThrow.Type, SavingThrow>(SavingThrow.Type.class);
+	protected EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<AbilityScore.Type, AbilityScore>(AbilityScore.Type.class);
+
+	protected AC ac;
+	protected int tempAC, tempTouch, tempFF;	// ac overrides
+	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
+
+	protected Attacks attacks;
+
+	public BuffUI.BuffListModel buffs = new BuffUI.BuffListModel();	// TODO should be protected
+	protected Map<String, Object> extraProperties = new HashMap<String, Object>();
+
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -109,20 +127,6 @@ public abstract class Creature {
 	}
 
 	abstract public void setName(String name);	// TODO shouldn't be abstract
-
-	protected String name;
-
-	protected HPs hps;
-	protected Size size;
-	protected InitiativeModifier initiative;
-	protected EnumMap<SavingThrow.Type, SavingThrow> saves = new EnumMap<SavingThrow.Type, SavingThrow>(SavingThrow.Type.class);
-	protected EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<AbilityScore.Type, AbilityScore>(AbilityScore.Type.class);
-
-	protected AC ac;
-	protected int tempAC, tempTouch, tempFF;	// ac overrides
-	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
-
-	protected Attacks attacks;
 
 	public HPs getHPStatistic() {
 		return hps;
@@ -206,8 +210,6 @@ public abstract class Creature {
 		}
 	}
 
-	BuffUI.BuffListModel buffs = new BuffUI.BuffListModel();
-
 	// TODO refactor the BuffListModel class and this accessor
 	public ListModelWithToolTips getBuffListModel() {
 		return buffs;
@@ -218,10 +220,10 @@ public abstract class Creature {
 		buffs.addElement(b);
 	}
 
-//	public void removeBuff(Buff b) {
-//		b.removeBuff(this);
-//		buffs.removeElement(b);
-//	}
+	public void removeBuff(Buff b) {
+		b.removeBuff(this);
+		buffs.removeElement(b);
+	}
 
 // remove a buff by id
 	public void removeBuff(int id) {
@@ -234,19 +236,62 @@ public abstract class Creature {
 		}
 	}
 
+	public Object getProperty(String prop) {
+		if (prop.equals(PROPERTY_NAME))
+			return name;
+		else if (prop.equals(PROPERTY_MAXHPS))
+			return getMaximumHitPoints();
+		else if (prop.equals(PROPERTY_WOUNDS))
+			return getWounds();
+		else if (prop.equals(PROPERTY_NONLETHAL))
+			return getNonLethal();
+		else if (prop.equals(PROPERTY_INITIATIVE))
+			return getInitiativeModifier();
+		else if (prop.equals(PROPERTY_AC))
+			return getAC();
+		else if (prop.equals(PROPERTY_SPACE))
+			return getSpace();
+		else if (prop.equals(PROPERTY_REACH))
+			return getReach();
+		else if (prop.equals(PROPERTY_BAB))
+			return attacks.getBAB();
+		else if (extraProperties.containsKey(prop)) {
+//			System.out.println("extra property '"+prop+"': "+extraProperties.get(prop));
+			return extraProperties.get(prop);
+		} else {
+//			System.out.println("Attempt to get unknown property: " + prop);
+			return null;
+		}
+	}
 
-	// Standard properties
-	// TODO these should probably go away
-
-//	abstract public int getAbilityScore(int score);
-//	abstract public void setAbilityScore(int score, int value);
-//	abstract public int getAbilityScoreModifier(int score);
-
-	abstract public void setInitiativeModifier(int init);	// TODO shouldn't be abstract
-
-	abstract public Object getProperty(String prop);	// TODO standard properties should be implemneted here
-
-	abstract public void setProperty(String prop, Object value);	// TODO standard properties should be implemneted here
+	public void setProperty(String prop, Object value) {
+		if (prop.equals(PROPERTY_NAME))
+			setName((String) value);
+		else if (prop.equals(PROPERTY_MAXHPS))
+			setMaximumHitPoints((Integer) value);
+		else if (prop.equals(PROPERTY_WOUNDS))
+			setWounds((Integer) value);
+		else if (prop.equals(PROPERTY_NONLETHAL))
+			setNonLethal((Integer) value);
+		else if (prop.equals(PROPERTY_INITIATIVE))
+			setInitiativeModifier((Integer) value);
+		else if (prop.equals(PROPERTY_AC))
+			setAC((Integer) value);
+		else if (prop.equals(PROPERTY_SIZE))
+			size.setBaseSize((SizeCategory) value);
+		else if (prop.equals(PROPERTY_SPACE))
+			setSpace((Integer) value);
+		else if (prop.equals(PROPERTY_REACH))
+			setReach((Integer) value);
+		else if (prop.equals(PROPERTY_BAB))
+			attacks.setBAB((Integer) value);
+		else {
+			//System.out.println("Attempt to set unknown property: " + prop + " to " + value);
+			Object old = extraProperties.get(prop);
+			extraProperties.put(prop, value);
+			pcs.firePropertyChange(prop, old, value);
+		}
+	}
 
 	protected void firePropertyChange(String property, Object oldValue, Object newValue) {
 		pcs.firePropertyChange(property, oldValue, newValue);
@@ -271,6 +316,10 @@ public abstract class Creature {
 
 	public int getInitiativeModifier() {
 		return initiative.getValue();
+	}
+
+	public void setInitiativeModifier(int i) {
+		initiative.setBaseValue(i - initiative.getValue());
 	}
 
 	//------------------- Hit Points -------------------
@@ -446,4 +495,38 @@ public abstract class Creature {
 
 	//------------- Others --------------
 	abstract public boolean hasFeat(String feat);
+
+	public boolean hasProperty(String name) {
+		return extraProperties.containsKey(name);
+	}
+
+	// ----- visitor pattern for processing -----
+	public void executeProcess(CreatureProcessor processor) {
+		processor.processCreature(this);
+
+		for (AbilityScore s : abilities.values()) {
+			processor.processAbilityScore(s);
+		}
+
+		processor.processHPs(hps);
+		processor.processInitiative(initiative);
+		processor.processSize(size);
+
+		for (SavingThrow.Type t : saves.keySet()) {
+			SavingThrow s = saves.get(t);
+			processor.processSavingThrow(s);
+		}
+
+		processor.processAC(ac);
+		processor.processAttacks(attacks);
+
+		for (int i = 0; i < buffs.getSize(); i++) {
+			Buff b = (Buff) buffs.get(i);
+			processor.processBuff(b);
+		}
+
+		for (String prop : extraProperties.keySet()) {
+			processor.processProperty(prop, extraProperties.get(prop));
+		}
+	}
 }

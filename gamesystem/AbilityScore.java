@@ -3,9 +3,6 @@ package gamesystem;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 // XXX might have to manage ability scores together otherwise some of the other statistics that use ability
 // modifiers will need special case handling for non-abilities (e.g. should use dex modifier for all attack if
 // str is missing, int modifier should be used for initiative if dex is missing - and that means supplying extra
@@ -162,23 +159,5 @@ public class AbilityScore extends Statistic {
 		if (getModifierValue() >= 0) text.append("+");
 		text.append(getModifierValue()).append(" ").append(getName()).append(" modifier");
 		return text.toString();
-	}
-
-	@Override
-	public Element getElement(Document doc) {
-		Element e = doc.createElement("AbilityScore");
-		e.setAttribute("type", type.toString());
-		e.setAttribute("value", ""+baseValue);
-		if (override != -1) e.setAttribute("temp", ""+override);
-		return e;
-	}
-
-	// TODO notify listeners?
-	public void parseDOM(Element e) {
-		if (!e.getTagName().equals("AbilityScore")) return;
-		if (!e.getAttribute("type").equals(type.toString())) return;
-
-		baseValue = Integer.parseInt(e.getAttribute("value"));
-		if (e.hasAttribute("temp")) override = Integer.parseInt(e.getAttribute("temp"));
 	}
 }

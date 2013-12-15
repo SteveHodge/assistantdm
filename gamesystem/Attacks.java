@@ -15,9 +15,6 @@ import java.util.Set;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import party.Character;
 
 // TODO attack form specific combat options (+DOM)
@@ -46,12 +43,12 @@ public class Attacks extends Statistic {
 	private Creature creature;
 	private AC ac;
 	private Set<AttackForm> attackForms = new HashSet<AttackForm>();
-	private Modifier powerAttack = null;
-	private Modifier combatExpertise = null;
+	Modifier powerAttack = null;
+	Modifier combatExpertise = null;
 	private Modifier combatExpertiseAC = null;	// assumed to be null/not-null in sync with combatExpertise
-	private boolean isTotalDefense = false;
+	boolean isTotalDefense = false;
 	private Modifier totalDefenseAC = new ImmutableModifier(4, "Dodge", "Total defense");
-	private boolean isFightingDefensively = false;
+	boolean isFightingDefensively = false;
 	private Modifier fightingDefensively = new ImmutableModifier(-4, null, "Fighting defensively");
 	private Modifier fightingDefensivelyAC = new ImmutableModifier(2, "Dodge", "Fighting defensively");
 
@@ -324,38 +321,6 @@ public class Attacks extends Statistic {
 		return text.toString();
 	}
 
-	// ------------ DOM conversion --------------
-	@Override
-	public Element getElement(Document doc) {
-		return getElement(doc, false);
-	}
-
-	public Element getElement(Document doc, boolean include_info) {
-		Element e = doc.createElement("Attacks");
-		e.setAttribute("base", ""+getBAB());
-		// combat options:
-		if (powerAttack != null) {
-			e.setAttribute("power_attack", ""+getPowerAttack());
-		}
-		if (combatExpertise != null) {
-			e.setAttribute("combat_expertise", ""+getCombatExpertise());
-		}
-		if (isTotalDefense) e.setAttribute("total_defense","true");
-		if (isFightingDefensively) e.setAttribute("fighting_defensively","true");
-		return e;
-	}
-
-	public void parseDOM(Element e) {
-		if (!e.getTagName().equals("Attacks")) return;
-
-		setBAB(Integer.parseInt(e.getAttribute("base")));
-
-		if (e.hasAttribute("power_attack")) setPowerAttack(Integer.parseInt(e.getAttribute("power_attack")));
-		if (e.hasAttribute("combat_expertise")) setCombatExpertise(Integer.parseInt(e.getAttribute("combat_expertise")));
-		if (e.getAttribute("total_defense").equals("true") || e.getAttribute("total_defense").equals("1")) setTotalDefense(true);
-		if (e.getAttribute("fighting_defensively").equals("true") || e.getAttribute("total_defense").equals("1")) setFightingDefensively(true);
-	}
-
 	// ------------ Damage statstic --------------
 	// TODO may need to split this into melee and ranged versions
 	// this is really just an interface for adding modifiers.
@@ -453,10 +418,10 @@ public class Attacks extends Statistic {
 	// TODO some of the stuff in here is defining the weapon, some is defining the attack. eventually will want to separate
 	public class AttackForm extends Statistic {
 		private Modifier twoWeaponPenalty = null;	// TODO rename as this includes natural secondary attacks
-		private Modifier enhancement = null;
+		Modifier enhancement = null;
 		private boolean masterwork = false;		// if true then enhancement should not be added to damage (enhancement should be +1)
 
-		private CombinedDice damage = new CombinedDice();
+		CombinedDice damage = new CombinedDice();
 		public SizeCategory size = SizeCategory.MEDIUM;	// weapon size // TODO should default to character's size
 
 		public boolean natural = false;	// natural weapons use -5 penalty for all non-primary attacks (-2 with multiattack)
@@ -713,44 +678,6 @@ public class Attacks extends Statistic {
 		@Override
 		public String toString() {
 			return name;
-		}
-
-		@Override
-		public Element getElement(Document doc) {
-			return getElement(doc, false);
-		}
-
-		public Element getElement(Document doc, boolean include_info) {
-			Element e = doc.createElement("AttackForm");
-			e.setAttribute("name", name);
-			if (enhancement != null) {
-				e.setAttribute("enhancement", ""+enhancement.getModifier());
-			} else {
-				e.setAttribute("enhancement", "0");
-			}
-			e.setAttribute("base_damage", damage.toString());
-			e.setAttribute("damage", getDamage());
-			e.setAttribute("size", ""+size);
-
-			// informational attributes:
-			e.setAttribute("total", ""+getValue());
-			if (include_info) {
-				e.setAttribute("attacks", getAttacksDescription());
-				e.setAttribute("info", getSummary());
-				e.setAttribute("damage_info", getDamageSummary());
-			}
-			return e;
-		}
-
-		public void parseDOM(Element e) {
-			if (!e.getTagName().equals("AttackForm")) return;
-
-			if (e.hasAttribute("enhancement")) {
-				setAttackEnhancement(Integer.parseInt(e.getAttribute("enhancement")));
-			}
-			damage = CombinedDice.parse(e.getAttribute("base_damage"));
-			if (e.hasAttribute("size")) size = SizeCategory.getSize(e.getAttribute("size"));
-			updateModifiers();
 		}
 	}
 }

@@ -1,7 +1,5 @@
 package gamesystem;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 
 public class SavingThrow extends Statistic {
@@ -74,22 +72,5 @@ public class SavingThrow extends Statistic {
 		text.append(getBaseValue()).append(" base<br/>");
 		text.append(super.getSummary());
 		return text.toString();
-	}
-
-	@Override
-	public Element getElement(Document doc) {
-		Element e = doc.createElement("Save");
-		e.setAttribute("type", type.toString());
-		e.setAttribute("base", ""+baseValue);
-		return e;
-	}
-
-	// TODO notify listeners?
-	public void parseDOM(Element e) {
-		if (!e.getTagName().equals("Save")) return;
-		if (!e.getAttribute("type").equals(type.toString())) return;
-
-		baseValue = Integer.parseInt(e.getAttribute("base"));
-		// TODO misc
 	}
 }

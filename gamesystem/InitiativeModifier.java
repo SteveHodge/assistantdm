@@ -1,7 +1,5 @@
 package gamesystem;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 
 public class InitiativeModifier extends Statistic {
@@ -35,18 +33,5 @@ public class InitiativeModifier extends Statistic {
 		text.append(getBaseValue()).append(" base<br/>");
 		text.append(super.getSummary());
 		return text.toString();
-	}
-
-	@Override
-	public Element getElement(Document doc) {
-		Element e = doc.createElement("Initiative");
-		e.setAttribute("value", ""+baseValue);
-		return e;
-	}
-
-	// TODO notify listeners?
-	public void parseDOM(Element e) {
-		if (!e.getTagName().equals("Initiative")) return;
-		baseValue = Integer.parseInt(e.getAttribute("value"));
 	}
 }

@@ -14,10 +14,8 @@ import gamesystem.Size;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import monsters.StatisticsBlock.Field;
@@ -33,7 +31,6 @@ public class Monster extends Creature {
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
 	HitDice hitDice;	// TODO should be notified
-	private Map<String, Object> extraProperties = new HashMap<String, Object>();	// TODO move to Creature
 
 	// this listener forwards events from Statstics as property changes
 	private PropertyChangeListener statListener = new PropertyChangeListener() {
@@ -308,70 +305,21 @@ public class Monster extends Creature {
 
 	@Override
 	public Object getProperty(String prop) {
-		if (prop.equals(PROPERTY_NAME))
-			return name;
-		else if (prop.equals(PROPERTY_MAXHPS))
-			return getMaximumHitPoints();
-		else if (prop.equals(PROPERTY_WOUNDS))
-			return getWounds();
-		else if (prop.equals(PROPERTY_NONLETHAL))
-			return getNonLethal();
-		else if (prop.equals(PROPERTY_INITIATIVE))
-			return getInitiativeModifier();
-		else if (prop.equals(PROPERTY_AC))
-			return getAC();
-		else if (prop.equals(PROPERTY_AC_FLATFOOTED))
+		if (prop.equals(PROPERTY_AC_FLATFOOTED))
 			return getFlatFootedAC();
 		else if (prop.equals(PROPERTY_AC_TOUCH))
 			return getTouchAC();
-		else if (prop.equals(PROPERTY_SPACE))
-			return getSpace();
-		else if (prop.equals(PROPERTY_REACH))
-			return getReach();
-		else if (prop.equals(PROPERTY_BAB))
-			return attacks.getBAB();
-		else if (extraProperties.containsKey(prop)) {
-//			System.out.println("extra property '"+prop+"': "+extraProperties.get(prop));
-			return extraProperties.get(prop);
-		} else {
-//			System.out.println("Attempt to get unknown property: " + prop);
-			return null;
-		}
+		else
+			return super.getProperty(prop);
 	}
 
 	@Override
 	public void setProperty(String prop, Object value) {
-		if (prop.equals(PROPERTY_NAME)) setName((String) value);
-		else if (prop.equals(PROPERTY_MAXHPS))
-			setMaximumHitPoints((Integer) value);
-		else if (prop.equals(PROPERTY_WOUNDS))
-			setWounds((Integer) value);
-		else if (prop.equals(PROPERTY_NONLETHAL))
-			setNonLethal((Integer) value);
-		else if (prop.equals(PROPERTY_INITIATIVE))
-			setInitiativeModifier((Integer) value);
-		else if (prop.equals(PROPERTY_AC))
-			setAC((Integer) value);
-		else if (prop.equals(PROPERTY_AC_FLATFOOTED))
+		if (prop.equals(PROPERTY_AC_FLATFOOTED))
 			setFlatFootedAC((Integer) value);
 		else if (prop.equals(PROPERTY_AC_TOUCH))
 			setTouchAC((Integer) value);
-		else if (prop.equals(PROPERTY_SPACE))
-			setSpace((Integer) value);
-		else if (prop.equals(PROPERTY_REACH))
-			setReach((Integer) value);
-		else if (prop.equals(PROPERTY_BAB))
-			attacks.setBAB((Integer) value);
-		else {
-			//System.out.println("Attempt to set unknown property: " + prop + " to " + value);
-			Object old = extraProperties.get(prop);
-			extraProperties.put(prop, value);
-			pcs.firePropertyChange(prop, old, value);
-		}
-	}
-
-	// TODO should probably return true for standard properties
-	public boolean hasProperty(String name) {
-		return extraProperties.containsKey(name);
+		else
+			super.setProperty(prop, value);
 	}
 }

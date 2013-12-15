@@ -1,6 +1,7 @@
 package monsters;
 
 import gamesystem.AbilityScore;
+import gamesystem.Creature;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -21,7 +22,7 @@ class AbilitiesPanel extends DetailPanel {
 	private JLabel modLabel[] = new JLabel[AbilityScore.Type.values().length];
 	private JLabel totalLabel[] = new JLabel[AbilityScore.Type.values().length];
 	private JLabel abilityModLabel[] = new JLabel[AbilityScore.Type.values().length];
-	private Monster monster;
+	private Creature monster;
 
 	AbilitiesPanel() {
 		setLayout(new GridBagLayout());
