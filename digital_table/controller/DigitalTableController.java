@@ -33,17 +33,24 @@ public class DigitalTableController {
 	ControllerFrame controller = null;
 
 	public DigitalTableController() {
-		this("corto");
+		openRemote("corto");
 		//		this("wintermute");
 	}
 
 	public DigitalTableController(String server) {
-		this(server, null);
+		openRemote(server);
 	}
 
 	public DigitalTableController(String server, CameraPanel camera) {
 		this.camera = camera;
+		openRemote(server);
+	}
 
+	public boolean isOpen() {
+		return controller != null;
+	}
+
+	public void openRemote(String server) {
 		try {
 			String name = "TableDisplay";
 			Registry registry = LocateRegistry.getRegistry(server);
@@ -74,6 +81,13 @@ public class DigitalTableController {
 				@Override
 				public void windowOpened(WindowEvent arg0) {}
 			});
+		}
+	}
+
+	public void close() {
+		saveDisplay();
+		if (controller != null) {
+			controller.quit();
 		}
 	}
 

@@ -160,11 +160,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 		}
 	}
 
-	@Override
-	public void requestExit() throws RemoteException {
-		logger.info("Quit requested");
-
-		hideIDs();
+	private void closeScreens() {
 		for (int i = 0; i < screens.length; i++) {
 			if (screens[i] != null) {
 				screens[i].setVisible(false);
@@ -172,6 +168,14 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 				screens[i] = null;
 			}
 		}
+	}
+
+	@Override
+	public void requestExit() throws RemoteException {
+		logger.info("Quit requested");
+
+		hideIDs();
+		closeScreens();
 		Platform.exit();
 
 		new Thread() {

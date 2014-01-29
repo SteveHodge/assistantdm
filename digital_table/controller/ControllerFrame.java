@@ -52,7 +52,6 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -404,7 +403,7 @@ public class ControllerFrame extends JFrame {
 	public static void addMonster(Creature m, File imageFile) {
 		if (instance != null) {
 			TokenOptionsPanel panel = instance.tokenAction.addElement(null);
-			panel.setCreature((Creature) m);
+			panel.setCreature(m);
 			panel.setImage(imageFile);
 			instance.elementTree.setSelectionPath(instance.miniMapCanvas.getTreePath(panel.getElement()));
 		}
@@ -528,6 +527,7 @@ public class ControllerFrame extends JFrame {
 
 		@Override
 		public void windowClosing(WindowEvent e) {
+			System.out.println("ControllerFrame windowClosing");
 			quit();
 		}
 
@@ -549,6 +549,7 @@ public class ControllerFrame extends JFrame {
 
 		@Override
 		public void windowClosed(WindowEvent e) {
+			System.out.println("ControllerFrame windowClosed");
 		}
 	};
 

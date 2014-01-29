@@ -64,12 +64,13 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * apply visitor pattern to creature xml output
+ * allow the digital table controller to run without a remote
+ * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
+ * Threaded remote communication
+ * 
  * cleanup hitpoints/hitdice
  * implement remaining monster statistics
  * cleanup AttackForms in Attack, StatisticBlock and DetailedMonster
- * cleanup Creature class hierarchy
- * look at refactoring creature, monster, and character into gamesystem and party/character related ui into party
  *
  * rework attacks - they need an interface to filter properties like type etc. then filters can be used to build
  * target lists (e.g  "type=bludgeoning and subclass=one handed melee")
@@ -82,8 +83,6 @@ import digital_table.controller.DigitalTableController;
  * level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
  * 
  * parsing display xml resets the node priorty - need to save the list model order
- * fix quit code so that closing the main window correctly closes the digital table controller
- * allow the digital table controller to run without a remote
  * look at standardising attribute naming style in xml documents - currently have camel case for combat.xml, lower with underscores most other cases but a few cases of lower with dashes in party.xml
  *
  * BUG handle io exceptions while reading display.xml
@@ -179,18 +178,17 @@ import digital_table.controller.DigitalTableController;
 //TODO add new party menu option, ask to save modified file
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
-	//private static final String DIGITAL_TABLE_SERVER = "corto";
-	//private static final String DIGITAL_TABLE_SERVER = "wintermute";
 	JMenuBar menuBar;
 	JMenu fileMenu, partyMenu;
-	JMenuItem saveItem, saveAsItem, openItem, updateItem;
+	JMenuItem saveItem, saveAsItem, openItem, updateItem, tableItem;
 	//	JMenuItem tableItem;
 	JMenuItem selectPartyItem, xpItem, xpHistoryItem, newCharacterItem;
 	ShoppingPanel shopPanel;
 	CombatPanel combatPanel;
-	CameraPanel cameraPanel = null;
+	CameraPanel cameraPanel;
 	JTabbedPane tabbedPane;
-	static String tableServer = null;
+	static String tableServer;
+	DigitalTableController controller;
 
 	Party party;
 	File file;
@@ -239,13 +237,13 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		openItem = new JMenuItem("Open...", KeyEvent.VK_O);
 		openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		openItem.addActionListener(this);
-		//		tableItem = new JMenuItem("Digital table controller...", KeyEvent.VK_T);
-		//		tableItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
-		//		tableItem.addActionListener(this);
+		tableItem = new JMenuItem("Digital tabletop controller...", KeyEvent.VK_T);
+		tableItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
+		tableItem.addActionListener(this);
 		fileMenu.add(openItem);
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAsItem);
-		//		fileMenu.add(tableItem);
+		fileMenu.add(tableItem);
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
 			public void actionPerformed(ActionEvent arg0) {exit();}}));
 		partyMenu = new JMenu("Party");
@@ -308,7 +306,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			System.out.println("Caught error: "+e);
 		}
 
-		new DigitalTableController(AssistantDM.tableServer, cameraPanel) {
+		controller = new DigitalTableController(AssistantDM.tableServer, cameraPanel) {
 			@Override
 			protected void quit() {
 				saveDisplay();
@@ -331,10 +329,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			setSize(newSize);
 		}
 	}
-
-	//	public void showDigitalTableController() {
-	//		new DigitalTableController(AssistantDM.tableServer);
-	//	}
 
 	// WISH provide checkbox on dialog to add new character to party (default:checked)
 	public void newCharacter() {
@@ -560,8 +554,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		} else if (e.getSource() == openItem) {
 			openParty();
 
-			//		} else if (e.getSource() == tableItem) {
-			//			showDigitalTableController();
+		} else if (e.getSource() == tableItem) {
+			if (!controller.isOpen())
+				controller.openRemote(AssistantDM.tableServer);
 
 		} else if (e.getSource() == xpItem) {
 			calculateXP();
@@ -627,6 +622,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		saveCombat();
 		if (cameraPanel != null) cameraPanel.disconnect();
 		Updater.updaterThread.quit();
+		controller.close();
 		System.exit(0);
 	}
 }
