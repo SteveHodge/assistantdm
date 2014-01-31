@@ -41,8 +41,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JTextField labelField;
 	private JComboBox rotationsCombo;
 	private JCheckBox snapCheck;
-	private JCheckBox visibleCheck;
+	JCheckBox visibleCheck;		// accessed by ControllerFrame
 	private JCheckBox borderCheck;
+	private JCheckBox aspectCheck;
 
 	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r) {
 		super(r);
@@ -62,8 +63,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		rotationsCombo = createRotationControl(MapImage.PROPERTY_ROTATIONS, Mode.ALL);
 		labelField = createStringControl(MapImage.PROPERTY_LABEL, Mode.LOCAL);
 		visibleCheck = createVisibilityControl();
-		borderCheck = createCheckBox(MapImage.PROPERTY_SHOW_BORDER, Mode.LOCAL, "Show border?");
-
+		borderCheck = createCheckBox(MapImage.PROPERTY_SHOW_BORDER, Mode.LOCAL, "show border?");
+		aspectCheck = createCheckBox(MapImage.PROPERTY_ASPECT_LOCKED, Mode.ALL, "aspect locked?");
+		aspectCheck.setSelected(true);
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
 
@@ -111,6 +113,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		add(rotationsCombo, c);
 		add(alphaSlider, c);
 		add(snapCheck, c);
+		add(aspectCheck, c);
 		add(imagePanel, c);
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
@@ -148,6 +151,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_SHOW_BORDER)) {
 				borderCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_ASPECT_LOCKED)) {
+				aspectCheck.setSelected((Boolean) e.getNewValue());
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
@@ -240,6 +246,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
 		parseBooleanAttribute(MapImage.PROPERTY_SHOW_BORDER, e, Mode.LOCAL);
+		parseBooleanAttribute(MapImage.PROPERTY_ASPECT_LOCKED, e, Mode.ALL);
 
 		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
 			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");

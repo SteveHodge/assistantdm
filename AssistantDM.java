@@ -119,6 +119,7 @@ import digital_table.controller.DigitalTableController;
  * equipment, particularly magic item slots, armor, weapons
  */
 /* TODO digital tabletop (dtt) priorities:
+ * Add colour to the overlay tokens. either indicator of health or settable
  * Consider expanding "selected" support. Would need hierarchy support as with visibility
  * Improve camera integration, fix ui for camera panel
  * Refactor common utility methods into MapElement (e.g. template creation)
@@ -309,7 +310,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		controller = new DigitalTableController(AssistantDM.tableServer, cameraPanel) {
 			@Override
 			protected void quit() {
-				saveDisplay();
+				close();
 			}
 		};
 

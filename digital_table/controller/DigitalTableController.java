@@ -88,6 +88,7 @@ public class DigitalTableController {
 		saveDisplay();
 		if (controller != null) {
 			controller.quit();
+			controller = null;
 		}
 	}
 
@@ -104,7 +105,7 @@ public class DigitalTableController {
 	}
 
 	protected void quit() {
-		saveDisplay();
+		close();
 		System.exit(0);
 	}
 

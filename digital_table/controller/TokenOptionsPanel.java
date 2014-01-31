@@ -34,7 +34,6 @@ import javax.swing.event.ListDataListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-
 import combat.CombatEntry;
 import combat.CombatPanel;
 import combat.InitiativeListModel;
@@ -72,11 +71,12 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	LabelOptionsPanel floatingLabel = null;	// accessed by LabelOptionsPanel
 	private Creature creature = null;
 	private File imageFile = null;
+	private JButton deadButton = null;
 
 	// TODO shouldn't be public - default directories should be moved to a global config class
 	public static File lastDir = new File(".");	// last selected image - used to keep the current directory
 
-	TokenOptionsPanel(MapElement parent, DisplayManager r, final ElementFactory<LabelOptionsPanel> labelFactory) {
+	TokenOptionsPanel(MapElement parent, DisplayManager r, final ElementFactory<LabelOptionsPanel> labelFactory, final ControllerFrame frame) {
 		super(r);
 		element = new Token();
 		display.addElement(element, parent);
@@ -147,6 +147,18 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 				} else {
 					System.out.println("Cancelled");
 				}
+			}
+		});
+
+		deadButton = new JButton("Replace with corpse");
+		deadButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int x = (Integer) element.getProperty(Token.PROPERTY_X);
+				int y = (Integer) element.getProperty(Token.PROPERTY_Y);
+				int cells = ((Integer) element.getProperty(Token.PROPERTY_SPACE)) / 10;
+				if (cells < 1) cells = 1;
+				frame.replaceToken(TokenOptionsPanel.this, x, y, cells, cells, visibleCheck.isSelected());
 			}
 		});
 
@@ -264,7 +276,10 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		p.add(remoteReach);
 		p.add(reachWeapon);
 		add(p, c);
-		add(imageButton, c);
+		p = new JPanel();
+		p.add(imageButton);
+		if (deadButton != null) p.add(deadButton);
+		add(p, c);
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
@@ -355,8 +370,15 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			display.setProperty(element, Token.PROPERTY_REACH, creature.getReach());
 
 			labelField.setText(creature.getName());
-			display.setProperty(element, Token.PROPERTY_LABEL, creature.getName());
 			remoteLabelField.setText(creature.getName());
+			display.setProperty(element, Token.PROPERTY_LABEL, creature.getName(), Mode.ALL);
+
+//			labelField.setText(creature.getName());
+//			display.setProperty(element, Token.PROPERTY_LABEL, creature.getName(), Mode.LOCAL);
+//			// remove any trailing number from the remote name (probably not what we want)
+//			String name = creature.getName().replaceAll("\\s\\d+$", "");
+//			remoteLabelField.setText(name);
+//			display.setProperty(element, Token.PROPERTY_LABEL, name, Mode.REMOTE);
 		}
 
 	}

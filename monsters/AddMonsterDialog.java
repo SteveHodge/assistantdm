@@ -4,7 +4,6 @@ import gamesystem.Creature;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -24,7 +23,6 @@ import java.util.Map;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -48,7 +46,7 @@ import digital_table.controller.ControllerFrame;
 //TODO should keep a map of Field to DetailPanel so we can update them automatically and select the right one more easily
 
 @SuppressWarnings("serial")
-public class AddMonsterDialog extends JDialog {
+public class AddMonsterDialog extends JFrame {
 	private static final String BLANK_PANEL = "BLANK";
 
 	private StatisticsBlock stats;
@@ -68,7 +66,7 @@ public class AddMonsterDialog extends JDialog {
 	private Map<Monster, Integer> imageIndexes = new HashMap<Monster, Integer>();
 
 	AddMonsterDialog(Window owner, final StatisticsBlock s) {
-		super(owner, "Add new " + s.getName(), Dialog.ModalityType.MODELESS);
+		super("Add new " + s.getName());
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		stats = s;
@@ -262,6 +260,7 @@ public class AddMonsterDialog extends JDialog {
 				Monster m = StatsBlockCreatureView.getMonster(stats);
 				m.setName(m.getName() + " " + (i + 1));
 				monsterListModel.addMonster(m);
+				if (imageURLs.size() > 0) imageIndexes.put(m, 0);
 			}
 
 			// fixup the name of the first monster if necessary

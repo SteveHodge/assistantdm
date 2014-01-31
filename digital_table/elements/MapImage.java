@@ -38,6 +38,7 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_IMAGE_PLAY = "play";	// write only no value
 	public final static String PROPERTY_IMAGE_STOP = "stop";	// write only no value
 	public final static String PROPERTY_SHOW_BORDER = "show_border";	// boolean
+	public final static String PROPERTY_ASPECT_LOCKED = "aspect_locked";	// boolean
 
 	private transient ImageMedia image = null;
 
@@ -71,6 +72,7 @@ public class MapImage extends MapElement {
 	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	private Property<String> label;
 	private Property<Boolean> border = new Property<Boolean>(PROPERTY_SHOW_BORDER, false, Boolean.class);
+	private Property<Boolean> aspectLocked = new Property<Boolean>(PROPERTY_ASPECT_LOCKED, true, Boolean.class);
 
 	private List<Point> cleared = new ArrayList<Point>();
 
@@ -182,6 +184,14 @@ public class MapImage extends MapElement {
 			if (image != null) image.playOrPause();
 		} else if (property.equals(PROPERTY_IMAGE_STOP)) {
 			if (image != null) image.stop();
+		} else if (property.equals(PROPERTY_WIDTH) && aspectLocked.value) {
+			double aspect = width.value / height.value;
+			super.setProperty(property, value);
+			super.setProperty(PROPERTY_HEIGHT, width.value / aspect);
+		} else if (property.equals(PROPERTY_HEIGHT) && aspectLocked.value) {
+			double aspect = width.value / height.value;
+			super.setProperty(property, value);
+			super.setProperty(PROPERTY_WIDTH, height.value * aspect);
 		} else {
 			super.setProperty(property, value);
 		}

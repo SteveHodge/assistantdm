@@ -121,6 +121,10 @@ public abstract class ImageMedia {
 
 	public BufferedImage getImage() {
 		if (transform == null) return getSourceImage();
+		if (Math.ceil(tWidth) == 0.0 || Math.ceil(tHeight) == 0.0) {
+			System.err.println("Image has invalid width (" + tWidth + ") or height (" + tHeight + ")");
+			return getSourceImage();
+		}
 
 		if (transformed[index] == null && frames[index] != null) {
 			AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);

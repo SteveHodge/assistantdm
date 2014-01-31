@@ -65,11 +65,14 @@ import combat.CombatEntry;
 import combat.CombatPanel;
 import combat.MonsterCombatEntry;
 
+import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapImage;
 import digital_table.elements.SpreadTemplate;
+import digital_table.elements.Token;
 import digital_table.server.MediaManager;
 import digital_table.server.TableDisplay;
 
@@ -407,6 +410,34 @@ public class ControllerFrame extends JFrame {
 			panel.setImage(imageFile);
 			instance.elementTree.setSelectionPath(instance.miniMapCanvas.getTreePath(panel.getElement()));
 		}
+	}
+
+	public void replaceToken(TokenOptionsPanel options, int x, int y, int width, int height, boolean visible) {
+//		int ret = JOptionPane.showConfirmDialog(this, "Replace this token with a corpse image?", "Replace token", JOptionPane.YES_NO_OPTION);
+//
+//		if (ret == JOptionPane.YES_OPTION) {
+
+		URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
+		if (uri != null) {
+			// XXX maybe should have dedicated group for corpses
+			ImageOptionsPanel imagePanel = new ImageOptionsPanel(uri, options.element.parent, display);
+			MapImage image = imagePanel.getElement();
+			display.setProperty(image, MapImage.PROPERTY_X, (double) x, Mode.ALL);
+			display.setProperty(image, MapImage.PROPERTY_Y, (double) y, Mode.ALL);
+			display.setProperty(image, MapImage.PROPERTY_ASPECT_LOCKED, false, Mode.ALL);
+			display.setProperty(image, MapImage.PROPERTY_WIDTH, (double) width, Mode.ALL);
+			display.setProperty(image, MapImage.PROPERTY_HEIGHT, (double) height, Mode.ALL);
+			imagePanel.visibleCheck.setSelected(visible);
+			display.setProperty(image, MapImage.PROPERTY_LABEL, options.element.getProperty(Token.PROPERTY_LABEL), Mode.LOCAL);
+			image.addPropertyChangeListener(labelListener);
+			optionPanels.put(image, imagePanel);
+
+			display.removeElement(options.getElement());
+			optionPanels.remove(options.getElement());
+
+			elementTree.setSelectionPath(miniMapCanvas.getTreePath(image));
+		}
+//		}
 	}
 
 // this MapElementMouseListener changes the canvas offset when it detects mouse dragging
@@ -1012,7 +1043,7 @@ public class ControllerFrame extends JFrame {
 	private AddElementAction<TokenOptionsPanel> tokenAction = new AddElementAction<TokenOptionsPanel>("Token") {
 		@Override
 		protected TokenOptionsPanel createOptionsPanel(MapElement parent) {
-			return new TokenOptionsPanel(parent, display, labelAction);
+			return new TokenOptionsPanel(parent, display, labelAction, ControllerFrame.this);
 		}
 	};
 
