@@ -64,30 +64,38 @@ import combat.CombatPanel;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * allow the digital table controller to run without a remote
- * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
- * Threaded remote communication
+ * EncounterDialog: calc encounter level, display CRs
+ * Encounterdialog should load/save buffs and DTT selected elements
+ * Combat panel should save full monsters, not just combat entries
+ * Open EncounterDialog from combat tab
+ * Monster list / webpages: popup to select which encounter to add to (if one is already open)
+ * 
+ * Allow the digital table controller to run without a remote
+ * Load/Save of encounters - recheck if functionality from DTT controller is complete -
+ * clear all for images. also cleared squares should be translucent on local
+ * spell lists webpage
+ * class levels
+ * spell lists in AssistantDM
  * 
  * cleanup hitpoints/hitdice
  * implement remaining monster statistics
  * cleanup AttackForms in Attack, StatisticBlock and DetailedMonster
  *
  * rework attacks - they need an interface to filter properties like type etc. then filters can be used to build
- * target lists (e.g  "type=bludgeoning and subclass=one handed melee")
+ *    target lists (e.g  "type=bludgeoning and subclass=one handed melee")
  *
  * rework statistc notification system. a listener registered with the top of a tree (like Skills or Attacks)
- * should get notification of all sub-statistics. consider whether statistics need to provide old and new values
- * (this is desirable for mutable Modifiers at least)
+ *    should get notification of all sub-statistics. consider whether statistics need to provide old and new values
+ *    (this is desirable for mutable Modifiers at least)
  * 
  * consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
- * level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
+ *    level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
  * 
  * parsing display xml resets the node priorty - need to save the list model order
  * look at standardising attribute naming style in xml documents - currently have camel case for combat.xml, lower with underscores most other cases but a few cases of lower with dashes in party.xml
  *
  * BUG handle io exceptions while reading display.xml
- * BUG exception if image width or height is set to 0
- * clear all for images. also cleared squares should be translucent on local
+ * BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
  * asynchronous loading of images
  * soft references for ImageMedia - at least for transformed images
  * character is not registered as a listener on the attack forms so it doesn't get notified of changes. probably should revisit the whole property/statistic notification system
@@ -119,6 +127,8 @@ import digital_table.controller.DigitalTableController;
  * equipment, particularly magic item slots, armor, weapons
  */
 /* TODO digital tabletop (dtt) priorities:
+ * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
+ * Threaded remote communication
  * Add colour to the overlay tokens. either indicator of health or settable
  * Consider expanding "selected" support. Would need hierarchy support as with visibility
  * Improve camera integration, fix ui for camera panel

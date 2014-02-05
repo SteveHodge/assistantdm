@@ -9,7 +9,6 @@ import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
-import gamesystem.SizeCategory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -25,8 +24,8 @@ import javax.swing.SwingUtilities;
 import monsters.Monster.MonsterAttackForm;
 import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine;
-import monsters.StatisticsBlock.CreatureDetails;
 import monsters.StatisticsBlock.Field;
+import monsters.StatisticsBlock.MonsterDetails;
 
 // StatsBlockCreatureView is an adapter that provides a traditional statistics block style view of a Monster.
 // Because listeners register with this class, there is the potential for updates to be missed if there are
@@ -104,7 +103,7 @@ public class StatsBlockCreatureView {
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		System.out.println(this + " addPropertyChangeListener");
+		//System.out.println(this + " addPropertyChangeListener");
 		pcs.addPropertyChangeListener(listener);
 	}
 
@@ -184,8 +183,8 @@ public class StatsBlockCreatureView {
 		m.setProperty(Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));
 		m.setProperty(Field.FEATS.name(), blk.get(Field.FEATS));
 
-		m.attackList = getAttackList(m, blk.getAttacks(false));
-		m.fullAttackList = getAttackList(m, blk.getAttacks(true));
+		setAttackList(m, blk.getAttacks(false));
+		setFullAttackList(m, blk.getAttacks(true));
 
 		// add fields we don't use as extra properties:
 		m.setProperty(Field.CLASS_LEVELS.name(), blk.get(Field.CLASS_LEVELS));
@@ -201,6 +200,14 @@ public class StatsBlockCreatureView {
 		m.setProperty(Field.LEVEL_ADJUSTMENT.name(), blk.get(Field.LEVEL_ADJUSTMENT));
 
 		return m;
+	}
+
+	static void setAttackList(Monster m, List<AttackRoutine> attacks) {
+		m.attackList = getAttackList(m, attacks);
+	}
+
+	static void setFullAttackList(Monster m, List<AttackRoutine> attacks) {
+		m.fullAttackList = getAttackList(m, attacks);
 	}
 
 	private static List<MonsterAttackRoutine> getAttackList(Monster m, List<AttackRoutine> attacks) {
@@ -331,12 +338,12 @@ public class StatsBlockCreatureView {
 			}
 		} else if (field == Field.ATTACK) {
 			// TODO this should trigger a property change on the Monster
-			creature.attackList = getAttackList(creature, StatisticsBlock.parseAttacks(value, creatureDetails));
+			setAttackList(creature, StatisticsBlock.parseAttacks(value, new MonsterDetails(creature)));
 			pcs.firePropertyChange(Field.ATTACK.name(), null, getField(Field.ATTACK));
 
 		} else if (field == Field.FULL_ATTACK) {
 			// TODO this should trigger a property change on the Monster
-			creature.fullAttackList = getAttackList(creature, StatisticsBlock.parseAttacks(value, creatureDetails));
+			setFullAttackList(creature, StatisticsBlock.parseAttacks(value, new MonsterDetails(creature)));
 			pcs.firePropertyChange(Field.FULL_ATTACK.name(), null, getField(Field.FULL_ATTACK));
 		}
 
@@ -344,38 +351,6 @@ public class StatsBlockCreatureView {
 			creature.setProperty(field.name(), value);
 		}
 	}
-
-	private CreatureDetails creatureDetails = new CreatureDetails() {
-		@Override
-		public int getDexterity() {
-			return creature.getAbilityStatistic(AbilityScore.Type.DEXTERITY).getValue();
-		}
-
-		@Override
-		public int getStrength() {
-			return creature.getAbilityStatistic(AbilityScore.Type.STRENGTH).getValue();
-		}
-
-		@Override
-		public String getFeats() {
-			return (String) creature.getProperty(Field.FEATS.name());
-		}
-
-		@Override
-		public String getSpecialQualities() {
-			return (String) creature.getProperty(Field.SPECIAL_QUALITIES.name());
-		}
-
-		@Override
-		public int getBAB() {
-			return creature.getAttacksStatistic().getBAB();
-		}
-
-		@Override
-		public SizeCategory getSize() {
-			return creature.getSize();
-		}
-	};
 
 	public String getField(Field field) {
 		StringBuilder s = new StringBuilder();
@@ -462,9 +437,9 @@ public class StatsBlockCreatureView {
 
 		StatisticsBlock stats = getStatsBlock();
 		if (s.length() == 0) {
-			if (creature.hasProperty(field.name())) {
+			if (creature.hasProperty(field.name()) && creature.getProperty(field.name()) != null) {
 				s.append(creature.getProperty(field.name()));
-			} else if (stats != null) {
+			} else if (stats != null && stats.get(field) != null) {
 				s.append(stats.get(field));
 			}
 		}
@@ -481,8 +456,13 @@ public class StatsBlockCreatureView {
 	// and semicolons, etc). Special cases are included for certain fields.
 	private boolean isEquivalent(Field field, String calculated) {
 		StatisticsBlock stats = getStatsBlock();
-		String cleanValue = stats.get(field).replace("–", "-").replaceAll("\\s+", " ");
-		String cleanBuilt = calculated.replace("–", "-");
+
+		if (calculated == null) calculated = "";
+		if (stats.get(field) == null && !calculated.equals("")) return false;
+
+		String cleanValue = "";
+		if (stats.get(field) != null) cleanValue = stats.get(field).replaceAll("[–—Ø]", "-").replaceAll("\\s+", " ");
+		String cleanBuilt = calculated.replaceAll("[–—]", "-");
 
 		if (field == Field.AC) {
 			cleanValue = cleanValue.replaceFirst("\\(.*\\)", "()");	// strip modifiers from ac

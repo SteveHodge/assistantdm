@@ -1,6 +1,5 @@
 package party;
 
-import gamesystem.XMLOutputProcessor;
 
 import java.io.File;
 import java.io.InputStream;
@@ -187,7 +186,7 @@ public class Party implements Iterable<Character> {
 			}
 		});
 		for (Character c : allCharacters) {
-			XMLOutputProcessor processor = new XMLOutputProcessor(doc);
+			XMLOutputCharacterProcessor processor = new XMLOutputCharacterProcessor(doc);
 			c.executeProcess(processor);
 			e.appendChild(processor.getElement());
 		}

@@ -19,7 +19,7 @@ import org.w3c.dom.Element;
 import party.Character;
 
 @SuppressWarnings("serial")
-class CharacterCombatEntry extends CombatEntry {
+public class CharacterCombatEntry extends CombatEntry {
 	CharacterCombatEntry(Character character) {
 		this.creature = character;
 
@@ -173,7 +173,7 @@ class CharacterCombatEntry extends CombatEntry {
 		return e;
 	}
 
-	Character getCharacter() {
+	public Character getCharacter() {
 		return (Character) creature;
 	}
 }

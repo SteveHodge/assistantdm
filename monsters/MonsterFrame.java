@@ -115,7 +115,7 @@ public class MonsterFrame extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
 					Window parentFrame = SwingUtilities.windowForComponent(MonsterFrame.this);
-					new AddMonsterDialog(parentFrame, block);
+					EncounterDialog.createOrExtendEncounter(parentFrame, block);
 				}
 			});
 		}

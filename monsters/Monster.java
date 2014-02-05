@@ -4,7 +4,9 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
+import gamesystem.Buff;
 import gamesystem.Creature;
+import gamesystem.CreatureProcessor;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
@@ -321,5 +323,47 @@ public class Monster extends Creature {
 			setTouchAC((Integer) value);
 		else
 			super.setProperty(prop, value);
+	}
+
+	// TODO this is reimplementation of Creature version. should fold into that
+	@Override
+	public void executeProcess(CreatureProcessor processor) {
+		processor.processCreature(this);
+
+		for (AbilityScore s : abilities.values()) {
+			processor.processAbilityScore(s);
+		}
+
+		processor.processHPs(hps);
+		processor.processInitiative(initiative);
+		processor.processSize(size);
+
+		for (SavingThrow.Type t : saves.keySet()) {
+			SavingThrow s = saves.get(t);
+			processor.processSavingThrow(s);
+		}
+
+		processor.processAC(ac);
+
+		processor.processAttacks(attacks);
+		for (MonsterAttackRoutine a : attackList) {
+			processor.processMonsterAttackForm(a);
+		}
+		for (MonsterAttackRoutine a : fullAttackList) {
+			processor.processMonsterFullAttackForm(a);
+		}
+
+//		for (int i = 0; i < feats.getSize(); i++) {
+//			processor.processFeat((Buff) feats.get(i));
+//		}
+
+		for (int i = 0; i < buffs.getSize(); i++) {
+			Buff b = (Buff) buffs.get(i);
+			processor.processBuff(b);
+		}
+
+		for (String prop : extraProperties.keySet()) {
+			processor.processProperty(prop, extraProperties.get(prop));
+		}
 	}
 }

@@ -1,8 +1,9 @@
 package util;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import javax.xml.transform.OutputKeys;
@@ -24,16 +25,25 @@ final public class XMLUtils {
 	private XMLUtils() {};
 
 	public static void writeDOM(Document doc, File f) {
-		FileWriter outputStream = null;
+		OutputStreamWriter writer = null;
+		FileOutputStream fos = null;
 		try {
-			outputStream = new FileWriter(f);
-			writeDOM(doc, outputStream);
+			fos = new FileOutputStream(f);
+			writer = new OutputStreamWriter(fos, "UTF-8");
+			writeDOM(doc, writer);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			if (outputStream != null) {
+			if (writer != null) {
 				try {
-					outputStream.close();
+					writer.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+			if (fos != null) {
+				try {
+					fos.close();
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}

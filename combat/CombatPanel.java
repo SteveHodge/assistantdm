@@ -11,7 +11,9 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -33,12 +35,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import party.Character;
 import party.Party;
 import swing.ReorderableList;
 import swing.SpinnerCellEditor;
@@ -272,5 +274,26 @@ public class CombatPanel extends JPanel {
 		el.appendChild(initiativeListModel.getElement(doc));
 		el.appendChild(effectsTableModel.getElement(doc));
 		return el;
+	}
+
+	public Map<Integer, Creature> getCharacterIDMap() {
+		Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();
+		for (int i = 0; i < initiativeListModel.getSize(); i++) {
+			CombatEntry c = initiativeListModel.getElementAt(i);
+			if (c instanceof CharacterCombatEntry) {
+				Character chr = ((CharacterCombatEntry) c).getCharacter();
+				idMap.put(chr.getID(), chr);
+			}
+		}
+		return idMap;
+	}
+
+	public Map<Integer, Creature> getIDMap() {
+		Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();
+		for (int i = 0; i < initiativeListModel.getSize(); i++) {
+			CombatEntry c = initiativeListModel.getElementAt(i);
+			if (!c.blank) idMap.put(c.creature.getID(), c.creature);
+		}
+		return idMap;
 	}
 }

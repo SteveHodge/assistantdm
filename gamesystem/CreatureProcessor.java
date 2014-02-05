@@ -3,6 +3,7 @@ package gamesystem;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
+import monsters.Monster.MonsterAttackRoutine;
 import party.CharacterAttackForm;
 
 // the visitor definition
@@ -40,4 +41,8 @@ public interface CreatureProcessor {
 	public void processXPChange(XPChangeLevel xp);
 
 	public void processCharacterAttackForm(CharacterAttackForm a);
+
+	public void processMonsterAttackForm(MonsterAttackRoutine a);
+
+	public void processMonsterFullAttackForm(MonsterAttackRoutine a);
 }

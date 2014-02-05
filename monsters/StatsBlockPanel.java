@@ -73,8 +73,12 @@ class StatsBlockPanel extends JPanel {
 			creature.removePropertyChangeListener(listener);
 		}
 
-		creature = StatsBlockCreatureView.getView(m);
-		creature.addPropertyChangeListener(listener);
+		if (m != null) {
+			creature = StatsBlockCreatureView.getView(m);
+			creature.addPropertyChangeListener(listener);
+		} else {
+			creature = null;
+		}
 
 		updateFields();
 

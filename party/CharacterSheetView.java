@@ -9,7 +9,6 @@ import gamesystem.Level;
 import gamesystem.SavingThrow;
 import gamesystem.SkillType;
 import gamesystem.Skills;
-import gamesystem.XMLOutputProcessor;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
@@ -81,7 +80,7 @@ public class CharacterSheetView {
 	}
 
 	// TODO this should probably include all the same data as the regular save as well as additional stuff
-	class CharacterSheetProcessor extends XMLOutputProcessor {
+	class CharacterSheetProcessor extends XMLOutputCharacterProcessor {
 		public CharacterSheetProcessor(Document doc) {
 			super(doc);
 		}
@@ -91,7 +90,7 @@ public class CharacterSheetView {
 			Element levelEl = doc.createElement("Level");
 			levelEl.setAttribute("level", "" + level.getLevel());
 			levelEl.setAttribute("class", (String) character.getProperty(Character.PROPERTY_CLASS));
-			charEl.appendChild(levelEl);
+			creatureEl.appendChild(levelEl);
 		}
 
 		// XP output is not required:
@@ -123,7 +122,7 @@ public class CharacterSheetView {
 
 		@Override
 		public void processAC(AC ac) {
-			if (charEl == null) return;
+			if (creatureEl == null) return;
 
 			Element e = doc.createElement("AC");
 			e.setAttribute("total", "" + ac.getValue());
@@ -139,7 +138,7 @@ public class CharacterSheetView {
 			setACComponent(doc, e, "Dexterity", ac.getModifiersTotal("Dexterity"));
 			setACComponent(doc, e, "Armor", ac.getArmor().getValue());
 			setACComponent(doc, e, "Shield", ac.getShield().getValue());
-			charEl.appendChild(e);
+			creatureEl.appendChild(e);
 		}
 
 		@Override
@@ -170,7 +169,7 @@ public class CharacterSheetView {
 			e1.setAttribute("attacks", attacks.getAttacksDescription(attacks.getRangedValue()));
 			e1.setAttribute("info", attacks.getRangedSummary());
 			e.appendChild(e1);
-			charEl.appendChild(e);
+			creatureEl.appendChild(e);
 		}
 
 		@Override
@@ -196,7 +195,7 @@ public class CharacterSheetView {
 
 		@Override
 		public void processSkills(Skills skills) {
-			if (charEl == null) return;
+			if (creatureEl == null) return;
 
 			Element e = doc.createElement("Skills");
 			ArrayList<SkillType> set = new ArrayList<SkillType>(character.getSkills());
@@ -223,7 +222,7 @@ public class CharacterSheetView {
 				if (character.skills.getMisc(s) != 0) se.setAttribute("misc", "" + character.skills.getMisc(s));
 				e.appendChild(se);
 			}
-			charEl.appendChild(e);
+			creatureEl.appendChild(e);
 		}
 
 		@Override

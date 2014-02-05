@@ -673,6 +673,44 @@ public class StatisticsBlock {
 		SizeCategory getSize();
 	}
 
+	static class MonsterDetails implements CreatureDetails {
+		private Monster creature;
+
+		public MonsterDetails(Monster m) {
+			creature = m;
+		}
+
+		@Override
+		public int getDexterity() {
+			return creature.getAbilityStatistic(AbilityScore.Type.DEXTERITY).getValue();
+		}
+
+		@Override
+		public int getStrength() {
+			return creature.getAbilityStatistic(AbilityScore.Type.STRENGTH).getValue();
+		}
+
+		@Override
+		public String getFeats() {
+			return (String) creature.getProperty(Field.FEATS.name());
+		}
+
+		@Override
+		public String getSpecialQualities() {
+			return (String) creature.getProperty(Field.SPECIAL_QUALITIES.name());
+		}
+
+		@Override
+		public int getBAB() {
+			return creature.getAttacksStatistic().getBAB();
+		}
+
+		@Override
+		public SizeCategory getSize() {
+			return creature.getSize();
+		}
+	};
+
 	static class AttackRoutine {
 		CreatureDetails creature;
 

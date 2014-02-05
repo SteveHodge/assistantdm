@@ -243,7 +243,7 @@ public class MonstersPanel extends JPanel implements MouseListener {
 
 				if (matched == 1) {
 					Window parentFrame = SwingUtilities.windowForComponent(this);
-					new AddMonsterDialog(parentFrame, selected);
+					EncounterDialog.createOrExtendEncounter(parentFrame, selected);
 				} else {
 					JFrame frame = new MonsterFrame(me, url);
 					frame.setVisible(true);

@@ -28,6 +28,7 @@ import javafx.application.Platform;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -52,6 +53,10 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import monsters.Monster;
+import monsters.XMLMonsterParser;
+import monsters.XMLOutputMonsterProcessor;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -61,7 +66,6 @@ import org.xml.sax.SAXException;
 import util.XMLUtils;
 import camera.CameraPanel;
 
-import combat.CombatEntry;
 import combat.CombatPanel;
 import combat.MonsterCombatEntry;
 
@@ -266,55 +270,7 @@ public class ControllerFrame extends JFrame {
 		});
 
 		JButton loadButton = new JButton("Load...");
-		loadButton.addActionListener(new ActionListener() {
-			// TODO should load effects as well
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fc = new JFileChooser();
-				fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
-				fc.setCurrentDirectory(new File("."));
-				int returnVal = fc.showOpenDialog(ControllerFrame.this);
-				if (returnVal != JFileChooser.APPROVE_OPTION) return;
-
-				File file = fc.getSelectedFile();
-				System.out.println("Opening encounter " + file.getAbsolutePath());
-
-				Document dom = null;
-				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-				//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
-				//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
-				try {
-					dom = factory.newDocumentBuilder().parse(file);
-				} catch (SAXException ex) {
-					ex.printStackTrace();
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				} catch (ParserConfigurationException ex) {
-					ex.printStackTrace();
-				}
-
-				if (dom != null) {
-					Element displayEl = null;
-					NodeList nodes = dom.getDocumentElement().getChildNodes();
-					for (int i = 0; i < nodes.getLength(); i++) {
-						Node node = nodes.item(i);
-						if (node.getNodeName().equals("Elements")) {
-							displayEl = (Element) node;
-						} else if (node.getNodeName().equals("Creatures") && CombatPanel.getCombatPanel() != null) {
-							NodeList children = node.getChildNodes();
-							for (int j = 0; j < children.getLength(); i++) {
-								if (children.item(j).getNodeName().equals("MonsterEntry")) {
-									MonsterCombatEntry m = MonsterCombatEntry.parseDOM((Element) children.item(j));
-									CombatPanel.getCombatPanel().getInitiativeListModel().addEntry(m);
-								}
-							}
-						}
-					}
-
-					if (displayEl != null) parseDOM(displayEl);
-				}
-			}
-		});
+		loadButton.addActionListener(loadListener);
 
 		JButton saveButton = new JButton("Save...");
 		saveButton.addActionListener(new ActionListener() {
@@ -806,9 +762,68 @@ public class ControllerFrame extends JFrame {
 		};
 	}
 
+	private ActionListener loadListener = new ActionListener() {
+		// TODO should load effects as well
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JFileChooser fc = new JFileChooser();
+			fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
+			fc.setCurrentDirectory(new File("."));
+			int returnVal = fc.showOpenDialog(ControllerFrame.this);
+			if (returnVal != JFileChooser.APPROVE_OPTION) return;
+
+			File file = fc.getSelectedFile();
+			System.out.println("Opening encounter " + file.getAbsolutePath());
+
+			Document dom = null;
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
+			//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
+			try {
+				dom = factory.newDocumentBuilder().parse(file);
+			} catch (SAXException ex) {
+				ex.printStackTrace();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			} catch (ParserConfigurationException ex) {
+				ex.printStackTrace();
+			}
+
+			if (dom != null) {
+				Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();	// map of ids in this file plus characters we've already loaded
+				if (CombatPanel.getCombatPanel() != null) {
+					idMap = CombatPanel.getCombatPanel().getCharacterIDMap();
+				}
+
+				Element displayEl = null;
+				NodeList nodes = dom.getDocumentElement().getChildNodes();
+				for (int i = 0; i < nodes.getLength(); i++) {
+					Node node = nodes.item(i);
+					if (node.getNodeName().equals("Elements")) {
+						displayEl = (Element) node;
+					} else if (node.getNodeName().equals("Creatures") && CombatPanel.getCombatPanel() != null) {
+						NodeList children = node.getChildNodes();
+						for (int j = 0; j < children.getLength(); j++) {
+							if (children.item(j).getNodeName().equals("Monster")) {
+								XMLMonsterParser parser = new XMLMonsterParser();
+								Monster m = parser.parseDOM((Element) children.item(j));
+								String idStr = ((Element) children.item(j)).getAttribute("id");
+								idMap.put(Integer.parseInt(idStr), m);
+								MonsterCombatEntry mce = new MonsterCombatEntry(m);
+								CombatPanel.getCombatPanel().getInitiativeListModel().addEntry(mce);
+							}
+						}
+					}
+				}
+
+				if (displayEl != null) parseDOM(displayEl, idMap);
+			}
+		}
+	};
+
 	private class SaveDialog extends JDialog {
 		private JList elements;
-		private JList creatures = null;
+		private JCheckBox saveCreatures;
 
 		SaveDialog() {
 			super(ControllerFrame.this, "Save...", true);
@@ -824,12 +839,7 @@ public class ControllerFrame extends JFrame {
 			elements.setVisibleRowCount(10);
 			elements.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
-			if (CombatPanel.getCombatPanel() != null) {
-				// TODO need to filter out blank entry and sync the tokens and creatures
-				creatures = new JList(CombatPanel.getCombatPanel().getInitiativeListModel());
-				creatures.setVisibleRowCount(10);
-				creatures.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			}
+			saveCreatures = new JCheckBox("Save monsters with tokens");
 
 			JButton okButton = new JButton("Ok");
 			okButton.addActionListener(new ActionListener() {
@@ -859,21 +869,19 @@ public class ControllerFrame extends JFrame {
 			JPanel content = new JPanel();
 			content.setLayout(new GridBagLayout());
 			GridBagConstraints c = new GridBagConstraints();
-			c.gridy = 0;
+			c.gridx = 0;
 			c.weightx = 1.0d;
 			c.fill = GridBagConstraints.HORIZONTAL;
 			content.add(new JLabel("Elements to save"), c);
-			if (creatures != null) content.add(new JLabel("Creatures to save"), c);
 
-			c.gridy = 1;
 			c.weighty = 1.0d;
 			c.fill = GridBagConstraints.BOTH;
 			JScrollPane scroller = new JScrollPane(elements);
 			content.add(scroller, c);
-			if (creatures != null) {
-				scroller = new JScrollPane(creatures);
-				content.add(scroller, c);
-			}
+
+			c.weighty = 0.0d;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			content.add(saveCreatures, c);
 
 			JPanel buttons = new JPanel();
 			buttons.add(okButton);
@@ -906,16 +914,26 @@ public class ControllerFrame extends JFrame {
 				}
 				root.appendChild(el);
 
-				if (creatures != null) {
-					// TODO will need to save full monster block, and any effects in play rather than just the combat entry
-					el = doc.createElement("Creatures");
-					selected = creatures.getSelectedValues();
+				if (saveCreatures.isSelected()) {
+					el = null;
+
+					// TODO will need to save any effects in play. should we save the combat entry if any as well?
 					for (int i = 0; i < selected.length; i++) {
-						CombatEntry creature = (CombatEntry) selected[i];
-						el.appendChild(creature.getElement(doc));
+						if (selected[i] instanceof Token) {
+							Token t = (Token)selected[i];
+							TokenOptionsPanel p = (TokenOptionsPanel) optionPanels.get(t);
+							if (p != null && p.getCreature() != null) {
+								if (el == null) el = doc.createElement("Creatures");
+								if (p.getCreature() instanceof Monster) {
+									XMLOutputMonsterProcessor processor = new XMLOutputMonsterProcessor(doc);
+									p.getCreature().executeProcess(processor);
+									el.appendChild(processor.getElement());
+								}
+							}
+						}
 					}
 				}
-				root.appendChild(el);
+				if (el != null) root.appendChild(el);
 
 				XMLUtils.writeDOM(doc, f);
 			} catch (ParserConfigurationException e) {
@@ -1102,7 +1120,7 @@ public class ControllerFrame extends JFrame {
 		return root;
 	}
 
-	public void parseNode(Element e, OptionsPanel<?> parentPanel) {
+	public void parseNode(Element e, OptionsPanel<?> parentPanel, Map<Integer, Creature> idMap) {
 		String tag = e.getTagName();
 		OptionsPanel<?> p = null;
 		MapElement parent = parentPanel == null ? null : parentPanel.getElement();
@@ -1131,6 +1149,7 @@ public class ControllerFrame extends JFrame {
 			p = callibrateAction.addElement(parent);
 		} else if (tag.equals(TokenOptionsPanel.XML_TAG)) {
 			p = tokenAction.addElement(parent);
+			((TokenOptionsPanel) p).setIDMap(idMap);
 		} else if (tag.equals(ShapeableTemplateOptionsPanel.XML_TAG)) {
 			p = shapeableAction.addElement(parent);
 		} else if (tag.equals(BrowserOptionsPanel.XML_TAG)) {
@@ -1155,14 +1174,25 @@ public class ControllerFrame extends JFrame {
 		NodeList nodes = e.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-			parseNode((Element) nodes.item(i), p);
+			parseNode((Element) nodes.item(i), p, idMap);
 		}
 	}
 
 	public void parseDOM(Element el) {
 		if (!el.getTagName().equals("Elements")) return;
 
-		parseNode(el, null);
+		Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();
+		if (CombatPanel.getCombatPanel() != null) {
+			idMap = CombatPanel.getCombatPanel().getIDMap();
+		}
+		parseNode(el, null, idMap);
+		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
+	}
+
+	public void parseDOM(Element el, Map<Integer, Creature> idMap) {
+		if (!el.getTagName().equals("Elements")) return;
+
+		parseNode(el, null, idMap);
 		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
 	}
 

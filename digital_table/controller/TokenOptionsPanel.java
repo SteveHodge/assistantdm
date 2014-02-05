@@ -17,6 +17,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
@@ -343,6 +344,10 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		}
 		display.setProperty(element, Token.PROPERTY_IMAGE, bytes, Mode.REMOTE);
 		element.setImage(imageFile);
+	}
+
+	Creature getCreature() {
+		return creature;
 	}
 
 	void setCreature(Creature c) {
@@ -677,6 +682,14 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		return e;
 	}
 
+	// idMap is used to find the creature for a given id. id's are really only valid within a file as it is loaded so this should be
+	// set each time the DOM is parsed
+	private Map<Integer, Creature> idMap;
+
+	void setIDMap(Map<Integer, Creature> map) {
+		idMap = map;
+	}
+
 	@Override
 	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
@@ -684,7 +697,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		if (CombatPanel.getCombatPanel() != null) {
 			String idStr = e.getAttribute(CREATURE_ID);
 			if (idStr.length() > 0) {
-				Creature c = Creature.getCreature(Integer.parseInt(idStr));
+//				Creature c = Creature.getCreature(Integer.parseInt(idStr));
+				Creature c = idMap.get(Integer.parseInt(idStr));
 				setCreature(c);
 			}
 		}

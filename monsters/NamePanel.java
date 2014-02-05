@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,12 +47,12 @@ class NamePanel extends DetailPanel {
 	private JButton nextImageButton;
 
 	// XXX shared from AddMonsterDialog - this is messy
-	private List<URL> imageURLs;
+	private Map<StatisticsBlock, List<URL>> imageURLs;
 	private Map<Monster, Integer> imageIndexes;
 
 	private static Buff augmentedSummoning = BuffFactory.AUGMENTED_SUMMONING.getBuff();
 
-	NamePanel(List<URL> urls, Map<Monster, Integer> indexes) {
+	NamePanel(Map<StatisticsBlock, List<URL>> urls, Map<Monster, Integer> indexes) {
 		imageURLs = urls;
 		imageIndexes = indexes;
 
@@ -107,7 +108,13 @@ class NamePanel extends DetailPanel {
 				if (chooser.showOpenDialog(NamePanel.this) == JFileChooser.APPROVE_OPTION) {
 					try {
 						File imageFile = chooser.getSelectedFile();
-						imageURLs.add(imageFile.toURI().toURL());
+						StatisticsBlock blk = (StatisticsBlock) monster.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+						List<URL> urls = imageURLs.get(blk);
+						if (urls == null) {
+							urls = new ArrayList<URL>();
+							imageURLs.put(blk, urls);
+						}
+						urls.add(imageFile.toURI().toURL());
 						setSelectedImage(imageURLs.size() - 1);
 					} catch (MalformedURLException e) {
 						e.printStackTrace();
@@ -201,12 +208,13 @@ class NamePanel extends DetailPanel {
 
 	// handles out of range indexes
 	void setSelectedImage(int index) {
+		List<URL> urls = imageURLs.get(monster.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK));
 		if (index < 0) index = 0;
-		if (index >= imageURLs.size()) index = imageURLs.size() - 1;
+		if (index >= urls.size()) index = urls.size() - 1;
 		imageIndexes.put(monster, index);
 		BufferedImage image = null;
 		if (getImageIndex() >= 0) {
-			URL url = imageURLs.get(getImageIndex());
+			URL url = urls.get(getImageIndex());
 			try {
 				image = ImageIO.read(url);
 			} catch (IOException e) {
@@ -215,7 +223,7 @@ class NamePanel extends DetailPanel {
 		}
 		imagePanel.setImage(image);
 		prevImageButton.setEnabled(getImageIndex() > 0);
-		nextImageButton.setEnabled(getImageIndex() < imageURLs.size() - 1);
+		nextImageButton.setEnabled(getImageIndex() < urls.size() - 1);
 	}
 
 	private void updateName() {

@@ -16,7 +16,6 @@ import gamesystem.Skill;
 import gamesystem.SkillType;
 import gamesystem.Skills;
 import gamesystem.Statistic;
-import gamesystem.XMLCreatureParser;
 import gamesystem.XP;
 import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChange;
@@ -755,7 +754,7 @@ public class Character extends Creature {
 	}
 
 	public static Character parseDOM(Element el) {
-		XMLCreatureParser parser = new XMLCreatureParser();
+		XMLCharacterParser parser = new XMLCharacterParser();
 		Character c = parser.parseDOM(el);
 
 		if (c != null && c.name.equals("Cain Warforger")) {
