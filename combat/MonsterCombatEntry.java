@@ -54,6 +54,11 @@ public class MonsterCombatEntry extends CombatEntry {
 		return "";
 	}
 
+	public Monster getMonster() {
+		if (creature instanceof Monster) return (Monster) creature;
+		return null;
+	}
+
 	void createEntry() {
 		acComp = new BoundIntegerField(creature, Creature.PROPERTY_AC, 4);
 		touchACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_TOUCH, 4);

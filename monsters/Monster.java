@@ -334,6 +334,7 @@ public class Monster extends Creature {
 			processor.processAbilityScore(s);
 		}
 
+		processor.processHitdice(hitDice);
 		processor.processHPs(hps);
 		processor.processInitiative(initiative);
 		processor.processSize(size);

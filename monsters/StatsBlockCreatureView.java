@@ -121,7 +121,7 @@ public class StatsBlockCreatureView {
 		return stats.getName();
 	}
 
-	public static Monster getMonster(StatisticsBlock blk) {
+	public static Monster createMonster(StatisticsBlock blk) {
 		String name = blk.getName();
 
 		int[] abilities = new int[6];
@@ -152,6 +152,7 @@ public class StatsBlockCreatureView {
 		size.setBaseReach(blk.getReach());
 		size.setBaseSpace(blk.getSpace());
 
+		// TODO should apply armor and shield bonuses correctly
 		AbilityScore dex = m.getAbilityStatistic(AbilityScore.Type.DEXTERITY);
 		AC ac = m.getACStatistic();
 		Set<Modifier> acMods = blk.getACModifiers();
@@ -165,9 +166,20 @@ public class StatsBlockCreatureView {
 				} else if (mod.getModifier() > dex.getModifierValue()) {
 					System.out.println("WARN: " + blk.getName() + " dex modifier in AC (" + mod.getModifier() + ") does not match ability score modifier (" + dex.getModifierValue() + ")");
 				}
+			} else if (mod.getType().equals(Modifier.StandardType.ARMOR.toString())) {
+				ac.getArmor().setBonus(mod.getModifier());
+				ac.getArmor().description = mod.getSource();
+			} else if (mod.getType().equals(Modifier.StandardType.SHIELD.toString())) {
+				ac.getShield().setBonus(mod.getModifier());
+				ac.getShield().description = mod.getSource();
 			} else {
 				if (mod.getType().equals(AbilityScore.Type.WISDOM.name())) {
-					mod = dex.getModifier();
+					AbilityScore wis = m.getAbilityStatistic(AbilityScore.Type.WISDOM);
+					if (wis == null) {
+						System.out.println("WARN: " + blk.getName() + " has wis modifier in AC (" + mod.getModifier() + ") but no wis score");
+					} else {
+						mod = wis.getModifier();
+					}
 				}
 				ac.addModifier(mod);
 			}

@@ -1,19 +1,22 @@
 package monsters;
 
+import gamesystem.AbilityScore;
 import gamesystem.Buff;
+import gamesystem.ImmutableModifier;
+import gamesystem.Modifier;
 import gamesystem.XMLParserHelper;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
+import monsters.StatisticsBlock.AttackRoutine;
 import monsters.StatisticsBlock.MonsterDetails;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import party.Character.ACComponentType;
 
 public class XMLMonsterParser extends XMLParserHelper {
 	public Monster parseDOM(Element el) {
@@ -36,7 +39,7 @@ public class XMLMonsterParser extends XMLParserHelper {
 					List<StatisticsBlock> blocks = StatisticsBlock.parseURL(url);
 					for (StatisticsBlock block : blocks) {
 						if (block.getName().equals(blockName)) {
-							m = StatsBlockCreatureView.getMonster(block);
+							m = StatsBlockCreatureView.createMonster(block);
 							m.setName(el.getAttribute("name"));
 						}
 					}
@@ -59,6 +62,11 @@ public class XMLMonsterParser extends XMLParserHelper {
 			if (tag.equals("HitPoints")) {
 				// processing hitpoints is deferred as it relies on con being already set and buffs being already loaded
 				hpElement = e;
+
+			} else if (tag.equals("HitDice")) {
+				String hdstr = e.getAttribute("dice");
+				HitDice dice = HitDice.parse(hdstr);
+				m.setHitDice(dice);
 
 			} else if (tag.equals("Initiative")) {
 				parseInitiativeModifier(e, m);
@@ -90,11 +98,17 @@ public class XMLMonsterParser extends XMLParserHelper {
 				for (int j = 0; j < acs.getLength(); j++) {
 					if (!acs.item(j).getNodeName().equals("ACComponent")) continue;
 					Element s = (Element) acs.item(j);
-					String value = s.getAttribute("value");
+					int value = Integer.parseInt(s.getAttribute("value"));
 					String type = s.getAttribute("type");
-					// TODO hacks to change type:
-					if (type.equals("Natural")) type = ACComponentType.NATURAL.toString();
-					if (type.equals("Deflect")) type = ACComponentType.DEFLECTION.toString();
+					if (type.equals(AbilityScore.Type.WISDOM.toString()) && m.getAbilityStatistic(AbilityScore.Type.WISDOM) != null) {
+						// setup using real wisdom modifier
+						m.getACStatistic().addModifier(m.getAbilityModifier(AbilityScore.Type.WISDOM));
+					} else if (!type.equals(Modifier.StandardType.ARMOR.toString())
+							&& !type.equals(Modifier.StandardType.SHIELD.toString())
+							&& !type.equals(AbilityScore.Type.DEXTERITY.toString())) {
+						System.out.println("found mod " + type);
+						m.getACStatistic().addModifier(new ImmutableModifier(value, type));
+					}
 				}
 
 			} else if (tag.equals("Attacks")) {
@@ -136,16 +150,25 @@ public class XMLMonsterParser extends XMLParserHelper {
 
 		if (attacksElement != null) {
 			parseAttacks(attacksElement, m);
+
+			List<AttackRoutine> attacks = new ArrayList<AttackRoutine>();
+			List<AttackRoutine> fullAttacks = new ArrayList<AttackRoutine>();
+
 			NodeList children = attacksElement.getChildNodes();
 			for (int j = 0; j < children.getLength(); j++) {
 				if (children.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
 				Element e = (Element) children.item(j);
 				String tag = e.getNodeName();
 				if (tag.equals("AttackForm")) {
-					StatsBlockCreatureView.setAttackList(m, StatisticsBlock.parseAttacks(e.getTextContent(), new MonsterDetails(m)));
+					attacks.addAll(StatisticsBlock.parseAttacks(e.getTextContent(), new MonsterDetails(m)));
 				} else if (tag.equals("FullAttackForm")) {
-					StatsBlockCreatureView.setFullAttackList(m, StatisticsBlock.parseAttacks(e.getTextContent(), new MonsterDetails(m)));
+					fullAttacks.addAll(StatisticsBlock.parseAttacks(e.getTextContent(), new MonsterDetails(m)));
 				}
+			}
+
+			if (attacks.size() > 0 || fullAttacks.size() > 0) {
+				StatsBlockCreatureView.setAttackList(m, attacks);
+				StatsBlockCreatureView.setFullAttackList(m, fullAttacks);
 			}
 		}
 		return m;

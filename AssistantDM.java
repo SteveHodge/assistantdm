@@ -5,8 +5,8 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -41,6 +42,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
 import magicitems.ShoppingPanel;
+import monsters.EncounterDialog;
 import monsters.MonstersPanel;
 
 import org.w3c.dom.Document;
@@ -60,18 +62,18 @@ import util.XMLUtils;
 import camera.CameraPanel;
 
 import combat.CombatPanel;
+import combat.InitiativeListModel;
+import combat.MonsterCombatEntry;
 
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * EncounterDialog: calc encounter level, display CRs
- * Encounterdialog should load/save buffs and DTT selected elements
+ *
+ * AC Size modifiers should be correctly linked to size stat
  * Combat panel should save full monsters, not just combat entries
- * Open EncounterDialog from combat tab
- * Monster list / webpages: popup to select which encounter to add to (if one is already open)
- * 
+ * EncounterDialog: calc encounter level, display CRs
+ * Encounterdialog should load/save buffs and maybe DTT selected elements
  * Allow the digital table controller to run without a remote
- * Load/Save of encounters - recheck if functionality from DTT controller is complete -
  * clear all for images. also cleared squares should be translucent on local
  * spell lists webpage
  * class levels
@@ -188,9 +190,9 @@ import digital_table.controller.DigitalTableController;
 //WISH refactor classes that should be in ui package
 //TODO add new party menu option, ask to save modified file
 @SuppressWarnings("serial")
-public class AssistantDM extends javax.swing.JFrame implements ActionListener, WindowListener {
+public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	JMenuBar menuBar;
-	JMenu fileMenu, partyMenu;
+	JMenu fileMenu, encounterMenu, partyMenu;
 	JMenuItem saveItem, saveAsItem, openItem, updateItem, tableItem;
 	//	JMenuItem tableItem;
 	JMenuItem selectPartyItem, xpItem, xpHistoryItem, newCharacterItem;
@@ -233,7 +235,12 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		file = new File("party.xml");
 
 		setTitle("Assistant DM - "+file.getName());
-		addWindowListener(this);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				exit();
+			}
+		});
 
 		// TODO convert to Actions where sensible
 		menuBar = new JMenuBar();
@@ -257,6 +264,14 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		fileMenu.add(tableItem);
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
 			public void actionPerformed(ActionEvent arg0) {exit();}}));
+
+		encounterMenu = new JMenu("Encounters");
+		encounterMenu.setMnemonic(KeyEvent.VK_E);
+		menuBar.add(encounterMenu);
+		encounterMenu.add(newEncounterAction);
+		encounterMenu.add(openEncounterAction);
+		encounterMenu.add(openCombatAsEncounterAction);
+
 		partyMenu = new JMenu("Party");
 		partyMenu.setMnemonic(KeyEvent.VK_P);
 		menuBar.add(partyMenu);
@@ -340,6 +355,35 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 			setSize(newSize);
 		}
 	}
+
+	private Action newEncounterAction = new AbstractAction("New encounter...") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			new EncounterDialog();
+		}
+	};
+
+	private Action openEncounterAction = new AbstractAction("Open encounter...") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			EncounterDialog d = new EncounterDialog(false);
+			d.load(AssistantDM.this);
+		}
+	};
+
+	private Action openCombatAsEncounterAction = new AbstractAction("Open monsters in encounter...") {
+		@Override
+		public void actionPerformed(ActionEvent ev) {
+			EncounterDialog e = new EncounterDialog();
+			InitiativeListModel ilm = combatPanel.getInitiativeListModel();
+			for (int i = 0; i < ilm.getSize(); i++) {
+				if (ilm.getElementAt(i) instanceof MonsterCombatEntry) {
+					MonsterCombatEntry p = (MonsterCombatEntry) ilm.getElementAt(i);
+					if (!p.isBlank() && p.getMonster() != null) e.addMonster(p.getMonster());
+				}
+			}
+		}
+	};
 
 	// WISH provide checkbox on dialog to add new character to party (default:checked)
 	public void newCharacter() {
@@ -606,24 +650,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener, W
 		} else {
 			System.err.println("ActionEvent from unknown source: "+e);
 		}
-	}
-
-	@Override
-	public void windowActivated(WindowEvent e) {}
-	@Override
-	public void windowClosed(WindowEvent e) {}
-	@Override
-	public void windowDeactivated(WindowEvent e) {}
-	@Override
-	public void windowDeiconified(WindowEvent e) {}
-	@Override
-	public void windowIconified(WindowEvent e) {}
-	@Override
-	public void windowOpened(WindowEvent e) {}
-
-	@Override
-	public void windowClosing(WindowEvent e) {
-		exit();
 	}
 
 	public void exit() {

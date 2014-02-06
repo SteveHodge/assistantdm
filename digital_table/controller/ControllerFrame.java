@@ -824,6 +824,7 @@ public class ControllerFrame extends JFrame {
 	private class SaveDialog extends JDialog {
 		private JList elements;
 		private JCheckBox saveCreatures;
+		private JCheckBox removeAfter;
 
 		SaveDialog() {
 			super(ControllerFrame.this, "Save...", true);
@@ -840,6 +841,8 @@ public class ControllerFrame extends JFrame {
 			elements.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
 			saveCreatures = new JCheckBox("Save monsters with tokens");
+			saveCreatures.setSelected(true);
+			removeAfter = new JCheckBox("Remove saved elements");
 
 			JButton okButton = new JButton("Ok");
 			okButton.addActionListener(new ActionListener() {
@@ -848,6 +851,7 @@ public class ControllerFrame extends JFrame {
 					dispose();
 					JFileChooser chooser = new JFileChooser();
 					chooser.setCurrentDirectory(new File("."));
+					chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
 					chooser.setSelectedFile(new File("Encounter.xml"));
 					if (chooser.showSaveDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
 						File f = chooser.getSelectedFile();
@@ -882,6 +886,7 @@ public class ControllerFrame extends JFrame {
 			c.weighty = 0.0d;
 			c.fill = GridBagConstraints.HORIZONTAL;
 			content.add(saveCreatures, c);
+			content.add(removeAfter, c);
 
 			JPanel buttons = new JPanel();
 			buttons.add(okButton);
@@ -898,6 +903,8 @@ public class ControllerFrame extends JFrame {
 			System.out.println("Save to " + f);
 
 			// TODO if f exists then confirm overwrite or confirm add/replace display config if it's an encounter file
+
+			boolean saved = false;
 
 			try {
 				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
@@ -936,8 +943,23 @@ public class ControllerFrame extends JFrame {
 				if (el != null) root.appendChild(el);
 
 				XMLUtils.writeDOM(doc, f);
+				saved = true;
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
+			}
+
+			if (saved && removeAfter.isSelected()) {
+				Object[] selected = elements.getSelectedValues();
+				for (int i = 0; i < selected.length; i++) {
+					MapElement element = (MapElement) selected[i];
+					if (!(element instanceof Grid)) {
+						display.removeElement(element);
+						optionPanels.remove(element);
+					}
+				}
+				elementPanel.removeAll();
+				elementPanel.revalidate();
+				elementPanel.repaint();
 			}
 		}
 

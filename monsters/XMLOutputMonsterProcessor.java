@@ -4,6 +4,7 @@ import gamesystem.AC;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Level;
+import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
 
@@ -31,8 +32,6 @@ public class XMLOutputMonsterProcessor extends XMLOutputHelper implements Creatu
 		creatureEl = doc.createElement("Monster");
 		creatureEl.setAttribute("name", c.getName());
 		creatureEl.setAttribute("id", Integer.toString(c.getID()));
-
-		// TODO hitdice
 	}
 
 	@Override
@@ -61,7 +60,18 @@ public class XMLOutputMonsterProcessor extends XMLOutputHelper implements Creatu
 
 	@Override
 	public void processAC(AC ac) {
-		creatureEl.appendChild(getACElement(ac));
+		Element e = getACElement(ac);
+
+		for (Modifier m : ac.getModifiers().keySet()) {
+			if (m.getModifier() != 0) {
+				Element comp = doc.createElement("ACComponent");
+				comp.setAttribute("type", m.getType());
+				comp.setAttribute("value", "" + m.getModifier());
+				e.appendChild(comp);
+			}
+		}
+
+		creatureEl.appendChild(e);
 	}
 
 	@Override
@@ -100,6 +110,15 @@ public class XMLOutputMonsterProcessor extends XMLOutputHelper implements Creatu
 		Element e = doc.createElement("FullAttackForm");
 		e.setTextContent(a.toString());
 		attacksEl.appendChild(e);
+	}
+
+	@Override
+	public void processHitdice(HitDice hitDice) {
+		if (creatureEl == null) return;
+
+		Element e = doc.createElement("HitDice");
+		e.setAttribute("dice", hitDice.toString());
+		creatureEl.appendChild(e);
 	}
 
 }

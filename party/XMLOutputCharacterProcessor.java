@@ -7,6 +7,7 @@ import gamesystem.Level;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
+import monsters.HitDice;
 import monsters.Monster.MonsterAttackRoutine;
 
 import org.w3c.dom.Document;
@@ -101,5 +102,9 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 
 	@Override
 	public void processMonsterFullAttackForm(MonsterAttackRoutine a) {
+	}
+
+	@Override
+	public void processHitdice(HitDice hitDice) {
 	}
 }

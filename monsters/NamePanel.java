@@ -208,6 +208,7 @@ class NamePanel extends DetailPanel {
 
 	// handles out of range indexes
 	void setSelectedImage(int index) {
+		if (monster == null) return;
 		List<URL> urls = imageURLs.get(monster.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK));
 		if (index < 0) index = 0;
 		if (index >= urls.size()) index = urls.size() - 1;

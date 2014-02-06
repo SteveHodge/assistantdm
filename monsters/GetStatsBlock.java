@@ -231,7 +231,7 @@ public class GetStatsBlock {
 //		}
 
 //		checkBuiltAttacks(blocks, false);
-		checkBuiltAttacks(blocks, true);
+//		checkBuiltAttacks(blocks, true);
 
 //		checkAllAttacks(blocks, false);
 //		checkAllAttacks(blocks, true);
@@ -248,6 +248,27 @@ public class GetStatsBlock {
 //			}
 //		}
 
+		getAllACComponents(blocks);
+	}
+
+	static void getAllACComponents(List<StatisticsBlock> blocks) {
+		Map<String, StatisticsBlock> examples = new HashMap<String, StatisticsBlock>();
+		Set<String> types = new HashSet<String>();
+
+		for (StatisticsBlock block : blocks) {
+			Set<Modifier> comps = block.getACModifiers();
+			for (Modifier m : comps) {
+				types.add(m.getType());
+				examples.put(m.getType(), block);
+			}
+		}
+
+		List<String> sorted = new ArrayList<String>(types);
+		Collections.sort(sorted);
+		System.out.println("--- AC Components ---");
+		for (String n : sorted) {
+			System.out.println(n + " - " + getNameURL(examples.get(n)));
+		}
 	}
 
 	static void checkBuiltAttacks(List<StatisticsBlock> blocks, boolean full) {
@@ -256,7 +277,7 @@ public class GetStatsBlock {
 			try {
 				String value = block.get(full ? Field.FULL_ATTACK : Field.ATTACK);
 
-				Monster monster = StatsBlockCreatureView.getMonster(block);
+				Monster monster = StatsBlockCreatureView.createMonster(block);
 				StringBuilder b = new StringBuilder();
 				StringBuilder parsedStr = new StringBuilder();
 				List<MonsterAttackRoutine> attackRoutines = full ? monster.fullAttackList : monster.attackList;
@@ -545,7 +566,7 @@ public class GetStatsBlock {
 	public static void testParse(List<StatisticsBlock> blocks) {
 		for (StatisticsBlock block : blocks) {
 			try {
-				Creature m = StatsBlockCreatureView.getMonster(block);
+				Creature m = StatsBlockCreatureView.createMonster(block);
 				int[] acs = block.getACs();
 				if (acs[0] != m.getAC()) {
 					System.out.println(getNameURL(block) + "\n calculated ac (" + m.getAC() + ") does not match supplied ac (" + acs[0] + ")");

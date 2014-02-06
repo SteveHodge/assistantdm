@@ -3,6 +3,7 @@ package gamesystem;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
+import monsters.HitDice;
 import monsters.Monster.MonsterAttackRoutine;
 import party.CharacterAttackForm;
 
@@ -45,4 +46,6 @@ public interface CreatureProcessor {
 	public void processMonsterAttackForm(MonsterAttackRoutine a);
 
 	public void processMonsterFullAttackForm(MonsterAttackRoutine a);
+
+	public void processHitdice(HitDice hitDice);
 }

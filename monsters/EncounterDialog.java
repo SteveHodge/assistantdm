@@ -4,6 +4,7 @@ import gamesystem.Creature;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -108,7 +109,19 @@ public class EncounterDialog extends JFrame {
 		new EncounterDialog(blk);
 	}
 
+	public EncounterDialog() {
+		this(null, true);
+	}
+
+	public EncounterDialog(boolean visible) {
+		this(null, visible);
+	}
+
 	EncounterDialog(final StatisticsBlock s) {
+		this(s, true);
+	}
+
+	private EncounterDialog(final StatisticsBlock s, boolean visible) {
 		super("Encounter " + ordinal++);
 		dialogs.add(this);
 
@@ -120,10 +133,14 @@ public class EncounterDialog extends JFrame {
 			}
 		});
 
-		selected = StatsBlockCreatureView.getMonster(s);
+		monsterListModel = new MonsterListModel();
 		List<URL> urls = new ArrayList<URL>();
-		Collections.addAll(urls, s.getImageURLs());
-		imageURLs.put(s, urls);
+		if (s != null) {
+			selected = StatsBlockCreatureView.createMonster(s);
+			monsterListModel.addMonster(selected);
+			Collections.addAll(urls, s.getImageURLs());
+			imageURLs.put(s, urls);
+		}
 
 		NamePanel namePanel = new NamePanel(imageURLs, imageIndexes);
 		detailPanels.put(Field.NAME, namePanel);
@@ -145,8 +162,6 @@ public class EncounterDialog extends JFrame {
 		SpinnerModel model = new SpinnerNumberModel(1, 1, 100, 1);
 		countSpinner = new JSpinner(model);
 
-		monsterListModel = new MonsterListModel();
-		monsterListModel.addMonster(selected);
 		monsterList = new JList(monsterListModel);
 		monsterList.setPreferredSize(new Dimension(200, 100));
 		monsterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -237,7 +252,12 @@ public class EncounterDialog extends JFrame {
 		// @formatter:on
 
 		JButton loadButton = new JButton("Load");
-		loadButton.addActionListener(loadButtonListener);
+		loadButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				load(EncounterDialog.this);
+			}
+		});
 
 		JButton saveButton = new JButton("Save");
 		saveButton.addActionListener(saveButtonListener);
@@ -256,7 +276,6 @@ public class EncounterDialog extends JFrame {
 
 		add(main, BorderLayout.CENTER);
 		add(buttons, BorderLayout.NORTH);
-		pack();
 
 		for (DetailPanel dp : detailPanels.values()) {
 			dp.setMonster(selected);
@@ -264,7 +283,11 @@ public class EncounterDialog extends JFrame {
 		updateFields();
 		namePanel.setSelectedImage(0);
 
-		setVisible(true);
+		if (visible) {
+			pack();
+			setLocationRelativeTo(null);
+			setVisible(true);
+		}
 	}
 
 	private final ActionListener addButtonListener = new ActionListener() {
@@ -287,7 +310,7 @@ public class EncounterDialog extends JFrame {
 			}
 
 			for (int i = 0; i < (Integer) countSpinner.getValue(); i++) {
-				Monster m = StatsBlockCreatureView.getMonster(blk);
+				Monster m = StatsBlockCreatureView.createMonster(blk);
 
 				// get the next ordinal that isn't in use
 				boolean ok;
@@ -338,53 +361,58 @@ public class EncounterDialog extends JFrame {
 		}
 	};
 
-	private final ActionListener loadButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent arg0) {
-			JFileChooser fc = new JFileChooser();
-			fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
-			fc.setCurrentDirectory(new File("."));
-			int returnVal = fc.showOpenDialog(EncounterDialog.this);
-			if (returnVal != JFileChooser.APPROVE_OPTION) return;
+	public void load(Component dialogParent) {
+		JFileChooser fc = new JFileChooser();
+		fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
+		fc.setCurrentDirectory(new File("."));
+		int returnVal = fc.showOpenDialog(dialogParent);
+		if (returnVal != JFileChooser.APPROVE_OPTION) return;
 
-			File file = fc.getSelectedFile();
-			System.out.println("Opening encounter " + file.getAbsolutePath());
+		File file = fc.getSelectedFile();
+		System.out.println("Opening encounter " + file.getAbsolutePath());
 
-			Document dom = null;
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
-			//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
-			try {
-				dom = factory.newDocumentBuilder().parse(file);
-			} catch (SAXException ex) {
-				ex.printStackTrace();
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			} catch (ParserConfigurationException ex) {
-				ex.printStackTrace();
-			}
+		Document dom = null;
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
+		//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
+		try {
+			dom = factory.newDocumentBuilder().parse(file);
+		} catch (SAXException ex) {
+			ex.printStackTrace();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} catch (ParserConfigurationException ex) {
+			ex.printStackTrace();
+		}
 
-			if (dom != null) {
+		if (dom != null) {
 //				Element displayEl = null;
-				NodeList nodes = dom.getDocumentElement().getChildNodes();
-				for (int i = 0; i < nodes.getLength(); i++) {
-					Node node = nodes.item(i);
-					if (node.getNodeName().equals("Elements")) {
+			NodeList nodes = dom.getDocumentElement().getChildNodes();
+			for (int i = 0; i < nodes.getLength(); i++) {
+				Node node = nodes.item(i);
+				if (node.getNodeName().equals("Elements")) {
 //						displayEl = (Element) node;
-					} else if (node.getNodeName().equals("Creatures") && CombatPanel.getCombatPanel() != null) {
-						NodeList children = node.getChildNodes();
-						for (int j = 0; j < children.getLength(); j++) {
-							if (children.item(j).getNodeName().equals("Monster")) {
-								XMLMonsterParser parser = new XMLMonsterParser();
-								Monster m = parser.parseDOM((Element) children.item(j));
-								addMonster(m);
-							}
+				} else if (node.getNodeName().equals("Creatures") && CombatPanel.getCombatPanel() != null) {
+					NodeList children = node.getChildNodes();
+					for (int j = 0; j < children.getLength(); j++) {
+						if (children.item(j).getNodeName().equals("Monster")) {
+							XMLMonsterParser parser = new XMLMonsterParser();
+							Monster m = parser.parseDOM((Element) children.item(j));
+							addMonster(m);
 						}
 					}
 				}
 			}
 		}
-	};
+
+		checkSelection();
+
+		if (!isVisible()) {
+			pack();
+			setLocationRelativeTo(null);
+			setVisible(true);
+		}
+	}
 
 	private final ActionListener saveButtonListener = new ActionListener() {
 		@Override
@@ -392,6 +420,7 @@ public class EncounterDialog extends JFrame {
 			JFileChooser chooser = new JFileChooser();
 			chooser.setCurrentDirectory(new File("."));
 			chooser.setSelectedFile(new File(getEncounterName() + ".xml"));
+			chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
 			if (chooser.showSaveDialog(EncounterDialog.this) == JFileChooser.APPROVE_OPTION) {
 				File f = chooser.getSelectedFile();
 				if (f != null) {
@@ -432,9 +461,16 @@ public class EncounterDialog extends JFrame {
 		return getTitle();
 	}
 
+	// if no monster is selected but there are monsters in the list, selects the first one
+	private void checkSelection() {
+		if (selected == null && monsterListModel.getSize() > 0) {
+			monsterList.setSelectedIndex(0);
+		}
+	}
+
 	void addMonster(StatisticsBlock s) {
 		// TODO check if the name is already in use, if so should change the existing name and add an ordinal
-		Monster m = StatsBlockCreatureView.getMonster(s);
+		Monster m = StatsBlockCreatureView.createMonster(s);
 		monsterListModel.addMonster(m);
 		if (!imageURLs.containsKey(s)) {
 			List<URL> urls = new ArrayList<URL>();
@@ -442,17 +478,19 @@ public class EncounterDialog extends JFrame {
 			imageURLs.put(s, urls);
 		}
 		if (imageURLs.get(s).size() > 0) imageIndexes.put(m, 0);
+		checkSelection();
 	}
 
-	void addMonster(Monster m) {
+	public void addMonster(Monster m) {
 		monsterListModel.addMonster(m);
 		StatisticsBlock s = (StatisticsBlock) m.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 		if (!imageURLs.containsKey(s)) {
 			List<URL> urls = new ArrayList<URL>();
-			Collections.addAll(urls, s.getImageURLs());
+			if (s != null) Collections.addAll(urls, s.getImageURLs());
 			imageURLs.put(s, urls);
 		}
 		if (imageURLs.get(s).size() > 0) imageIndexes.put(m, 0);
+		checkSelection();
 	}
 
 	private void updateFields() {
