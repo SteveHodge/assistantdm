@@ -31,7 +31,7 @@ import digital_table.server.MediaManager;
 
 @SuppressWarnings("serial")
 class ImageOptionsPanel extends OptionsPanel<MapImage> {
-	private URI uri = null;
+	protected URI uri = null;
 
 	private JTextField xField;
 	private JTextField yField;
@@ -45,11 +45,16 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JCheckBox borderCheck;
 	private JCheckBox aspectCheck;
 
+	// factory method to be overridden by subclasses
+	MapImage createElement(String label) {
+		return new MapImage(label);
+	}
+
 	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r) {
 		super(r);
 		this.uri = uri;
 		String label = MediaManager.INSTANCE.getName(uri);
-		element = new MapImage(label);
+		element = createElement(label);
 		display.addElement(element, parent);
 		display.setMedia(element, MapImage.PROPERTY_IMAGE, uri);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
@@ -68,26 +73,6 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		aspectCheck.setSelected(true);
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
-
-		JButton playButton = new JButton("Play");
-		playButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
-			}
-		});
-
-		JButton stopButton = new JButton("Stop");
-		stopButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
-			}
-		});
-
-		JPanel imagePanel = new JPanel();
-		imagePanel.add(playButton);
-		imagePanel.add(stopButton);
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -112,11 +97,46 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		add(heightField, c);
 		add(rotationsCombo, c);
 		add(alphaSlider, c);
-		add(snapCheck, c);
-		add(aspectCheck, c);
-		add(imagePanel, c);
+		JPanel checks = new JPanel();
+		checks.add(snapCheck);
+		checks.add(aspectCheck);
+		add(checks, c);
 
-		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
+		addExtraControls();
+	}
+
+	// add the animation control buttons and a blank panel for extra space
+	// subclasses can override this to add any extra controls
+	void addExtraControls() {
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1.0d;
+		c.gridx = 1;
+		c.gridy = GridBagConstraints.RELATIVE;
+
+		JButton playButton = new JButton("Play");
+		playButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
+			}
+		});
+
+		JButton stopButton = new JButton("Stop");
+		stopButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
+			}
+		});
+
+		JPanel panel = new JPanel();
+		panel.add(playButton);
+		panel.add(stopButton);
+		add(panel, c);
+
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
 		c.gridx = 0;
 		c.gridwidth = 2;
 		add(new JPanel(), c);
@@ -211,9 +231,14 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	final static String FILE_ATTRIBUTE_NAME = "uri";
 	private final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
 
+	// subclasses can override to use the following methods with custom tags
+	String getTag() {
+		return XML_TAG;
+	}
+
 	@Override
 	Element getElement(Document doc) {
-		Element e = doc.createElement(XML_TAG);
+		Element e = doc.createElement(getTag());
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		e.setAttribute(FILE_ATTRIBUTE_NAME, uri.toASCIIString());
@@ -236,7 +261,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 	@Override
 	void parseDOM(Element e, OptionsPanel<?> parent) {
-		if (!e.getTagName().equals(XML_TAG)) return;
+		if (!e.getTagName().equals(getTag())) return;
 
 		parseStringAttribute(MapImage.PROPERTY_LABEL, e, Mode.LOCAL);
 		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.ALL);

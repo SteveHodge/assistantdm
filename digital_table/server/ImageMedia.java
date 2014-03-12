@@ -127,12 +127,30 @@ public abstract class ImageMedia {
 		}
 
 		if (transformed[index] == null && frames[index] != null) {
+//			Runtime rt = Runtime.getRuntime();
+//			rt.gc();
+//			rt.gc();
+//			rt.gc();
+//			long used = rt.totalMemory() - rt.freeMemory();
+//			double usedMB = (double) used / (1024 * 1024);
+//			System.out.println(String.format("Transforming image... used mem = %.3f MB ", usedMB));
+
 			AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
 			transformed[index] = new BufferedImage((int) Math.ceil(tWidth), (int) Math.ceil(tHeight), BufferedImage.TYPE_INT_ARGB);
 			//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
 			Graphics2D g = (Graphics2D) transformed[index].getGraphics();
 			g.drawImage(frames[index], op, (int) -tx, (int) -ty);
 			g.dispose();
+
+//			rt.gc();
+//			rt.gc();
+//			rt.gc();
+//			used = rt.totalMemory() - rt.freeMemory();
+//			usedMB = (double) used / (1024 * 1024);
+//			System.out.println(String.format("Transformed image... used mem = %.3f MB ", usedMB));
+//			DataBuffer buff = transformed[index].getRaster().getDataBuffer();
+//			int kbytes = buff.getSize() * DataBuffer.getDataTypeSize(buff.getDataType()) / (8 * 1024);
+//			System.out.println("Transformed image data size (kB) = " + kbytes);
 		}
 
 		return transformed[index];

@@ -40,17 +40,17 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_SHOW_BORDER = "show_border";	// boolean
 	public final static String PROPERTY_ASPECT_LOCKED = "aspect_locked";	// boolean
 
-	private transient ImageMedia image = null;
+	transient ImageMedia image = null;
 
 	// position in grid coordinate-space:
-	private Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
-	private Property<Double> y = new Property<Double>(PROPERTY_Y, 0d, Double.class);
+	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
+	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d, Double.class);
 
 	// scaled dimensions in grid coordinate-space:
-	private Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d, Double.class);
-	private Property<Double> height = new Property<Double>(PROPERTY_HEIGHT, 0d, Double.class);
+	Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d, Double.class);
+	Property<Double> height = new Property<Double>(PROPERTY_HEIGHT, 0d, Double.class);
 
-	private Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
+	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
 		private static final long serialVersionUID = 1L;
 
 		@Override
@@ -69,12 +69,12 @@ public class MapImage extends MapElement {
 		}
 	};
 
-	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	private Property<String> label;
-	private Property<Boolean> border = new Property<Boolean>(PROPERTY_SHOW_BORDER, false, Boolean.class);
+	Property<Boolean> border = new Property<Boolean>(PROPERTY_SHOW_BORDER, false, Boolean.class);
 	private Property<Boolean> aspectLocked = new Property<Boolean>(PROPERTY_ASPECT_LOCKED, true, Boolean.class);
 
-	private List<Point> cleared = new ArrayList<Point>();
+	List<Point> cleared = new ArrayList<Point>();
 
 	public MapImage(String label) {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);

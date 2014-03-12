@@ -253,6 +253,12 @@ class TokenOverlay {
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				assignLabels(descriptions);
+				StringBuilder output = new StringBuilder();
+				for (String k : descriptions.keySet()) {
+					output.append(k).append("\t");
+					output.append(descriptions.get(k)).append("\n");
+				}
+//				System.out.println("Tokens:\n" + output);
 				((Graphics2D) g).rotate(Math.toRadians(-90), getWidth() / 2, getHeight() / 2);
 				g.translate((getWidth() - getHeight()) / 2, canvas.getRowHeight() + (getHeight() - getWidth()) / 2);
 				canvas.width = getWidth();
@@ -337,6 +343,7 @@ class TokenOverlay {
 
 	void removeElement(int id) {
 		canvas.removeElement(id);
+		elements.remove(id);
 	}
 
 	void promoteElement(MapElement e) {

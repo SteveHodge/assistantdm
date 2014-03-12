@@ -14,11 +14,9 @@
         <javaElement handleIdentifier="=AssistantDM/&lt;magicgenerator"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;monsters"/>
         <file path="/CanonCDSDK/CDPTPCLS.dll"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;{TreasureGenerator.java"/>
         <javaElement handleIdentifier="=CanonCDSDK/&lt;capture"/>
         <file path="/CanonCDSDK/psCamDat.dll"/>
         <file path="/CanonCDSDK/IWrap.dll"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;{AssistantDM.java"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;util"/>
         <javaElement handleIdentifier="=CanonCDSDK/&lt;canon.cdsdk"/>
         <file path="/AssistantDM/shops.xsd"/>
@@ -36,6 +34,7 @@
         <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements"/>
         <file path="/CanonCDSDK/CDPTPCLT.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;swing"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;"/>
         <file path="/CanonCDSDK/cdParse.dll"/>
         <file path="/CanonCDSDK/CDRAPCLS.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;camera"/>

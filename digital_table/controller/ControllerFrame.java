@@ -126,6 +126,7 @@ public class ControllerFrame extends JFrame {
 		AddElementAction<?>[] availableElements = {
 				tokenAction,
 				imageElementAction,
+				maskedImageAction,
 				cameraImageAction,
 				templateAction,
 				lineAction,
@@ -1023,6 +1024,17 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
+	private AddElementAction<MaskedImageOptionsPanel> maskedImageAction = new AddElementAction<MaskedImageOptionsPanel>("Masked Image") {
+		@Override
+		protected MaskedImageOptionsPanel createOptionsPanel(MapElement parent) {
+			URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
+			if (uri != null) {
+				return new MaskedImageOptionsPanel(uri, parent, display);
+			}
+			return null;
+		}
+	};
+
 	private AddElementAction<SpreadTemplateOptionsPanel> templateAction = new AddElementAction<SpreadTemplateOptionsPanel>("Template") {
 		@Override
 		protected SpreadTemplateOptionsPanel createOptionsPanel(MapElement parent) {
@@ -1176,12 +1188,17 @@ public class ControllerFrame extends JFrame {
 			p = shapeableAction.addElement(parent);
 		} else if (tag.equals(BrowserOptionsPanel.XML_TAG)) {
 			p = browserAction.addElement(parent);
-		} else if (tag.equals(ImageOptionsPanel.XML_TAG)) {
+		} else if (tag.equals(ImageOptionsPanel.XML_TAG) || tag.equals(MaskedImageOptionsPanel.XML_TAG)) {
 			if (e.hasAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME)) {
 				URI uri;
 				try {
-					uri = new URI(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
-					p = new ImageOptionsPanel(uri, parent, display);
+					if (tag.equals(ImageOptionsPanel.XML_TAG)) {
+						uri = new URI(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
+						p = new ImageOptionsPanel(uri, parent, display);
+					} else if (tag.equals(MaskedImageOptionsPanel.XML_TAG)) {
+						uri = new URI(e.getAttribute(MaskedImageOptionsPanel.FILE_ATTRIBUTE_NAME));
+						p = new MaskedImageOptionsPanel(uri, parent, display);
+					}
 					MapElement element = p.getElement();
 					element.addPropertyChangeListener(labelListener);
 					optionPanels.put(element, p);
@@ -1189,6 +1206,8 @@ public class ControllerFrame extends JFrame {
 					e1.printStackTrace();
 				}
 			}
+		} else if (!tag.equals(MaskedImageOptionsPanel.MASK_TAG)) {
+			System.err.println("Unrecognised element tag: " + tag);
 		}
 
 		if (p != null) p.parseDOM(e, parentPanel);

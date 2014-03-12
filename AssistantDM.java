@@ -68,11 +68,21 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * Copy in encounters dialog should copy the current creature, not the base
+ * In encounters dialog, adding an image should select it for the current creature
+ * Look at the map element order - should moving a tree move all children?
+ * Hidden elements in table display should clear ImageMedia transforms
+ * ImageMedia could use a soft/weak/strong reference for transformed images
+ * MapImage: option to show solid background (at least use the regular background color. allow select colour?)
+ * MaskedImageOptionsPanel: delete mask, reorder masks
+ * MaskedImageOptionsPanel: optimise masks by removing surrounding transparent pixels?
+ * MaskedImage: ideally children of this element should be painted between the map image and the mask
  *
- * AC Size modifiers should be correctly linked to size stat
  * Combat panel should save full monsters, not just combat entries
+ * AC Size modifiers should be correctly linked to size stat
  * EncounterDialog: calc encounter level, display CRs
  * Encounterdialog should load/save buffs and maybe DTT selected elements
+ * EncounterDialog: allow editing of AC, feats, size, SQ, etc
  * Allow the digital table controller to run without a remote
  * clear all for images. also cleared squares should be translucent on local
  * spell lists webpage
