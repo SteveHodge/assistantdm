@@ -11,6 +11,7 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ import digital_table.server.MediaManager;
 
 // TODO could have border color property
 
-public class MapImage extends MapElement {
+public class MapImage extends Group {
 	private static final long serialVersionUID = 1L;
 
 	public final static String PROPERTY_ALPHA = "alpha";	// float
@@ -41,10 +42,7 @@ public class MapImage extends MapElement {
 	public final static String PROPERTY_ASPECT_LOCKED = "aspect_locked";	// boolean
 
 	transient ImageMedia image = null;
-
-	// position in grid coordinate-space:
-	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
-	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d, Double.class);
+	transient Mask mask = null;
 
 	// scaled dimensions in grid coordinate-space:
 	Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d, Double.class);
@@ -69,12 +67,12 @@ public class MapImage extends MapElement {
 		}
 	};
 
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
+	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	private Property<String> label;
-	Property<Boolean> border = new Property<Boolean>(PROPERTY_SHOW_BORDER, false, Boolean.class);
+	private Property<Boolean> border = new Property<Boolean>(PROPERTY_SHOW_BORDER, false, Boolean.class);
 	private Property<Boolean> aspectLocked = new Property<Boolean>(PROPERTY_ASPECT_LOCKED, true, Boolean.class);
 
-	List<Point> cleared = new ArrayList<Point>();
+	private List<Point> cleared = new ArrayList<Point>();
 
 	public MapImage(String label) {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
@@ -96,10 +94,68 @@ public class MapImage extends MapElement {
 	}
 
 	@Override
+	public void addChild(MapElement e) {
+		super.addChild(e);
+		if (e instanceof Mask) {
+			if (mask != null) mask.setImageElement(null);
+			mask = (Mask) e;
+			mask.setImageElement(this);
+		}
+	}
+
+	@Override
+	public void removeChild(MapElement e) {
+		if (e == mask) {
+			mask.setImageElement(null);
+			mask = null;
+		}
+		super.removeChild(e);
+	}
+
+	private double getX() {
+		return location.getValue().getX();
+	}
+
+	private double getY() {
+		return location.getValue().getY();
+	}
+
+	private void setX(double x) {
+		Point2D p = new Point2D.Double(x, getY());
+		location.setValue(p);
+	}
+
+	private void setY(double y) {
+		Point2D p = new Point2D.Double(getX(), y);
+		location.setValue(p);
+	}
+
+	// returns the AffineTransform that would transform an image of the specified width and height to the
+	// dimensions of this element. the AffineTransform includes and rotations set on this element
+	AffineTransform getTransform(int srcWidth, int srcHeight) {
+		// get the unrotated size of the element in display coordinates
+		double w, h;
+		if (rotations.getValue() % 2 == 0) {
+			w = width.getValue();
+			h = height.getValue();
+		} else {
+			w = height.getValue();
+			h = width.getValue();
+		}
+		Dimension displaySize = canvas.getDisplayDimension(w, h);
+
+		AffineTransform transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
+		transform.scale(displaySize.getWidth() / srcWidth, displaySize.getHeight() / srcHeight);
+		return transform;
+	}
+
+	@Override
 	public void paint(Graphics2D g, Point2D off) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
-		if (image.getImage() == null) return;
-		//long startTime = System.nanoTime();
+		if (image == null || image.getImage() == null) return;
+
+//		long startTime = System.nanoTime();
+
 		Point2D o = canvas.getDisplayCoordinates((int) off.getX(), (int) off.getY());
 		g.translate(o.getX(), o.getY());
 
@@ -118,21 +174,24 @@ public class MapImage extends MapElement {
 		Composite c = g.getComposite();
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
-		Point offset = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
+		Point offset = canvas.getDisplayCoordinates(location.getValue());
+
 		// update the image transform. this needs to be done on every repaint as the grid size may have changed
-		AffineTransform transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
-		double w, h;
-		if (rotations.getValue() % 2 == 0) {
-			w = width.getValue();
-			h = height.getValue();
-		} else {
-			w = height.getValue();
-			h = width.getValue();
-		}
-		Dimension displaySize = canvas.getDisplayDimension(w, h);
-		transform.scale(displaySize.getWidth() / image.getSourceWidth(), displaySize.getHeight() / image.getSourceHeight());
+		AffineTransform transform = getTransform(image.getSourceWidth(), image.getSourceHeight());
 		image.setTransform(transform);
-		g.drawImage(image.getImage(), offset.x, offset.y, null);
+		BufferedImage img = image.getImage();
+
+		// if we have a visible mask then we combine it with our image before painting to guarantee that an unmasked image is never shown
+		if (mask != null && mask.getVisibility() == Visibility.VISIBLE) {
+			BufferedImage maskImg = mask.getMaskImage();
+			BufferedImage bgImg = img;
+			img = new BufferedImage(bgImg.getWidth(), bgImg.getHeight(), bgImg.getType());
+			Graphics2D imgG = img.createGraphics();
+			imgG.drawImage(bgImg, 0, 0, null);
+			imgG.drawImage(maskImg, 0, 0, null);
+		}
+
+		g.drawImage(img, offset.x, offset.y, null);
 
 		// border
 		if (border.getValue()) {
@@ -143,9 +202,10 @@ public class MapImage extends MapElement {
 		g.setComposite(c);
 		g.setClip(oldClip);
 		g.translate(-o.getX(), -o.getY());
-		//long micros = (System.nanoTime() - startTime) / 1000;
-		//logger.info("Painting complete for " + this + " in " + micros + "ms");
-		//System.out.println("Image painting took "+micros+"ms");
+
+//		long micros = (System.nanoTime() - startTime) / 1000;
+//		logger.info("Painting complete for " + this + " in " + micros + "us");
+//		System.out.println(String.format("Image painting took %.3fms", micros / 1000d));
 	}
 
 	/**
@@ -173,6 +233,17 @@ public class MapImage extends MapElement {
 	}
 
 	@Override
+	public Object getProperty(String property) {
+		if (property.equals(PROPERTY_X)) {
+			return getX();
+		} else if (property.equals(PROPERTY_Y)) {
+			return getY();
+		} else {
+			return super.getProperty(property);
+		}
+	}
+
+	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_CLEARCELL)) {
 			setCleared((Point)value, true);
@@ -180,6 +251,10 @@ public class MapImage extends MapElement {
 			setCleared((Point)value, false);
 		} else if (property.equals(PROPERTY_IMAGE)) {
 			setURI((URI) value);
+		} else if (property.equals(PROPERTY_X)) {
+			setX((Double) value);
+		} else if (property.equals(PROPERTY_Y)) {
+			setY((Double) value);
 		} else if (property.equals(PROPERTY_IMAGE_PLAY)) {
 			if (image != null) image.playOrPause();
 		} else if (property.equals(PROPERTY_IMAGE_STOP)) {

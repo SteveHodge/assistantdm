@@ -7,8 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +18,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -49,7 +53,7 @@ public abstract class ImageMedia {
 
 	AffineTransform transform = null;
 	BufferedImage[] transformed;
-	double tWidth, tHeight, tx, ty;
+	double tWidth, tHeight, tx, ty;		// TODO replace these with a Rectangle2D.Double
 
 	private ImageMedia() {
 	}
@@ -82,6 +86,41 @@ public abstract class ImageMedia {
 		return m;
 	}
 
+	public static Rectangle2D getBounds(AffineTransform xform, double width, double height) {
+		// determine the bounds of the transformed image
+		Point2D[] points = new Point2D[4];
+		points[0] = new Point2D.Double(0, 0);
+		points[1] = new Point2D.Double(width, 0);
+		points[2] = new Point2D.Double(width, height);
+		points[3] = new Point2D.Double(0, height);
+		xform.transform(points, 0, points, 0, 4);
+		Rectangle2D.Double bounds = new Rectangle2D.Double();
+		bounds.x = points[0].getX();
+		bounds.y = points[0].getY();
+		bounds.width = points[0].getX();
+		bounds.height = points[0].getY();
+		for (int i = 1; i < 4; i++) {
+			bounds.x = Math.min(bounds.x, points[i].getX());
+			bounds.y = Math.min(bounds.y, points[i].getY());
+			bounds.width = Math.max(bounds.width, points[i].getX());
+			bounds.height = Math.max(bounds.height, points[i].getY());
+		}
+		bounds.width = bounds.width - bounds.x;
+		bounds.height = bounds.height - bounds.y;
+		return bounds;
+	}
+
+	public static BufferedImage getTransformedImage(BufferedImage image, AffineTransform transform) {
+		AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+		Rectangle2D bounds = getBounds(transform, image.getWidth(), image.getHeight());
+		BufferedImage out = new BufferedImage((int) Math.ceil(bounds.getWidth()), (int) Math.ceil(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);
+		//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
+		Graphics2D g = (Graphics2D) out.getGraphics();
+		g.drawImage(image, op, (int) -bounds.getX(), (int) -bounds.getY());
+		g.dispose();
+		return out;
+	}
+
 	public void setTransform(AffineTransform xform) {
 		if (transformed == null) readImages();		// ensures transformed is allocated
 
@@ -97,25 +136,58 @@ public abstract class ImageMedia {
 			transform = xform;
 			Arrays.fill(transformed, null);
 
-			// determine the bounds of the transformed image
-			Point2D[] points = new Point2D[4];
-			points[0] = new Point2D.Double(0, 0);
-			points[1] = new Point2D.Double(frames[index].getWidth(), 0);
-			points[2] = new Point2D.Double(frames[index].getWidth(), frames[index].getHeight());
-			points[3] = new Point2D.Double(0, frames[index].getHeight());
-			xform.transform(points, 0, points, 0, 4);
-			tx = points[0].getX();
-			ty = points[0].getY();
-			tWidth = points[0].getX();
-			tHeight = points[0].getY();
-			for (int i = 1; i < 4; i++) {
-				tx = Math.min(tx, points[i].getX());
-				ty = Math.min(ty, points[i].getY());
-				tWidth = Math.max(tWidth, points[i].getX());
-				tHeight = Math.max(tHeight, points[i].getY());
+			Rectangle2D bounds = getBounds(xform, frames[index].getWidth(), frames[index].getHeight());
+			tx = bounds.getX();
+			ty = bounds.getY();
+			tWidth = bounds.getWidth();
+			tHeight = bounds.getHeight();
+
+//			// determine the bounds of the transformed image
+//			Point2D[] points = new Point2D[4];
+//			points[0] = new Point2D.Double(0, 0);
+//			points[1] = new Point2D.Double(frames[index].getWidth(), 0);
+//			points[2] = new Point2D.Double(frames[index].getWidth(), frames[index].getHeight());
+//			points[3] = new Point2D.Double(0, frames[index].getHeight());
+//			xform.transform(points, 0, points, 0, 4);
+//			tx = points[0].getX();
+//			ty = points[0].getY();
+//			tWidth = points[0].getX();
+//			tHeight = points[0].getY();
+//			for (int i = 1; i < 4; i++) {
+//				tx = Math.min(tx, points[i].getX());
+//				ty = Math.min(ty, points[i].getY());
+//				tWidth = Math.max(tWidth, points[i].getX());
+//				tHeight = Math.max(tHeight, points[i].getY());
+//			}
+//			tWidth = tWidth - tx;
+//			tHeight = tHeight - ty;
+		}
+	}
+
+	static Set<String> logged = new HashSet<String>();
+
+	public void printMemoryUsage() {
+		long srcBytes = 0;
+		for (int i = 0; i < frames.length; i++) {
+			DataBuffer buff = frames[i].getRaster().getDataBuffer();
+			srcBytes += buff.getSize() * DataBuffer.getDataTypeSize(buff.getDataType()) / 8;
+		}
+
+		long cacheBytes = 0;
+		if (transform != null) {
+			for (int i = 0; i < transformed.length; i++) {
+				if (transformed[i] != null && transformed[i].getRaster() != null) {
+					DataBuffer buff = transformed[i].getRaster().getDataBuffer();
+					cacheBytes += buff.getSize() * DataBuffer.getDataTypeSize(buff.getDataType()) / 8;
+				}
 			}
-			tWidth = tWidth - tx;
-			tHeight = tHeight - ty;
+		}
+
+		String out = String.format("Image %s frames: %d, total source size: %.3f MB, total cache size: %.3f MB",
+				this.toString(), frames.length, (float) srcBytes / (1024 * 1024), (float) cacheBytes / (1024 * 1024));
+		if (!logged.contains(out)) {
+			System.out.println(out);
+			logged.add(out);
 		}
 	}
 
@@ -220,7 +292,7 @@ public abstract class ImageMedia {
 	public void playOrPause() {
 	}
 
-	// prescales the image based on the canvas resolution (assumes source image resolution matches the remote screen)
+// prescales the image based on the canvas resolution (assumes source image resolution matches the remote screen)
 	BufferedImage prescaleImage(BufferedImage source) {
 		int srcW = source.getWidth();
 		int srcH = source.getHeight();
@@ -336,7 +408,7 @@ public abstract class ImageMedia {
 		}
 	}
 
-	// XXX perhaps better to parse the XML entirely rather than using the DOM as state
+// XXX perhaps better to parse the XML entirely rather than using the DOM as state
 	private static class ImageSequenceMedia extends AnimatedMedia {
 		private Element animationNode = null;
 

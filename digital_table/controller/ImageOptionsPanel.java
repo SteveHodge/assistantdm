@@ -23,6 +23,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
+import digital_table.elements.Group;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
@@ -45,16 +46,13 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JCheckBox borderCheck;
 	private JCheckBox aspectCheck;
 
-	// factory method to be overridden by subclasses
-	MapImage createElement(String label) {
-		return new MapImage(label);
-	}
+	private MaskOptionsPanel mask = null;
 
-	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r) {
+	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r, final ElementFactory<MaskOptionsPanel> maskFactory) {
 		super(r);
 		this.uri = uri;
 		String label = MediaManager.INSTANCE.getName(uri);
-		element = createElement(label);
+		element = new MapImage(label);
 		display.addElement(element, parent);
 		display.setMedia(element, MapImage.PROPERTY_IMAGE, uri);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
@@ -73,6 +71,36 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		aspectCheck.setSelected(true);
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
+
+		JButton playButton = new JButton("Play");
+		playButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
+			}
+		});
+
+		JButton stopButton = new JButton("Stop");
+		stopButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
+			}
+		});
+
+		JPanel imagePanel = new JPanel();
+		imagePanel.add(playButton);
+		imagePanel.add(stopButton);
+
+		final JButton addMaskButton = new JButton("Add Mask");
+		addMaskButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (mask == null) {
+					mask = maskFactory.addElement(element);
+				}
+			}
+		});
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -101,39 +129,10 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		checks.add(snapCheck);
 		checks.add(aspectCheck);
 		add(checks, c);
-
-		addExtraControls();
-	}
-
-	// add the animation control buttons and a blank panel for extra space
-	// subclasses can override this to add any extra controls
-	void addExtraControls() {
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1.0d;
-		c.gridx = 1;
-		c.gridy = GridBagConstraints.RELATIVE;
-
-		JButton playButton = new JButton("Play");
-		playButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
-			}
-		});
-
-		JButton stopButton = new JButton("Stop");
-		stopButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
-			}
-		});
-
 		JPanel panel = new JPanel();
-		panel.add(playButton);
-		panel.add(stopButton);
+		panel.add(addMaskButton);
 		add(panel, c);
+		add(imagePanel, c);
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
@@ -156,6 +155,11 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_Y)) {
 				yField.setText(e.getNewValue().toString());
+
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_LOCATION)) {
+				Point2D loc = (Point2D) e.getNewValue();
+				xField.setText(Double.toString(loc.getX()));
+				yField.setText(Double.toString(loc.getY()));
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_WIDTH)) {
 				widthField.setText(e.getNewValue().toString());
@@ -231,14 +235,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	final static String FILE_ATTRIBUTE_NAME = "uri";
 	private final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
 
-	// subclasses can override to use the following methods with custom tags
-	String getTag() {
-		return XML_TAG;
-	}
-
 	@Override
 	Element getElement(Document doc) {
-		Element e = doc.createElement(getTag());
+		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		e.setAttribute(FILE_ATTRIBUTE_NAME, uri.toASCIIString());
@@ -256,12 +255,14 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			e.setAttribute(CLEARED_CELL_LIST_ATTRIBUTE, attr);
 		}
 
+		Point2D location = (Point2D) element.getProperty(Group.PROPERTY_LOCATION);
+		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
 		return e;
 	}
 
 	@Override
 	void parseDOM(Element e, OptionsPanel<?> parent) {
-		if (!e.getTagName().equals(getTag())) return;
+		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseStringAttribute(MapImage.PROPERTY_LABEL, e, Mode.LOCAL);
 		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.ALL);
@@ -272,6 +273,17 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
 		parseBooleanAttribute(MapImage.PROPERTY_SHOW_BORDER, e, Mode.LOCAL);
+
+		if (e.hasAttribute(Group.PROPERTY_LOCATION)) {
+//			try {
+			String coords[] = e.getAttribute(Group.PROPERTY_LOCATION).split(",");
+			Double x = Double.parseDouble(coords[0]);
+			Double y = Double.parseDouble(coords[1]);
+			Point2D value = new Point2D.Double(x, y);
+			display.setProperty(element, Group.PROPERTY_LOCATION, value);
+//			} catch (NumberFormatException e) {
+//			}
+		}
 
 		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
 			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");

@@ -126,7 +126,6 @@ public class ControllerFrame extends JFrame {
 		AddElementAction<?>[] availableElements = {
 				tokenAction,
 				imageElementAction,
-				maskedImageAction,
 				cameraImageAction,
 				templateAction,
 				lineAction,
@@ -377,7 +376,7 @@ public class ControllerFrame extends JFrame {
 		URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
 		if (uri != null) {
 			// XXX maybe should have dedicated group for corpses
-			ImageOptionsPanel imagePanel = new ImageOptionsPanel(uri, options.element.parent, display);
+			ImageOptionsPanel imagePanel = new ImageOptionsPanel(uri, options.element.parent, display, maskAction);
 			MapImage image = imagePanel.getElement();
 			display.setProperty(image, MapImage.PROPERTY_X, (double) x, Mode.ALL);
 			display.setProperty(image, MapImage.PROPERTY_Y, (double) y, Mode.ALL);
@@ -1018,20 +1017,16 @@ public class ControllerFrame extends JFrame {
 		protected ImageOptionsPanel createOptionsPanel(MapElement parent) {
 			URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
 			if (uri != null) {
-				return new ImageOptionsPanel(uri, parent, display);
+				return new ImageOptionsPanel(uri, parent, display, maskAction);
 			}
 			return null;
 		}
 	};
 
-	private AddElementAction<MaskedImageOptionsPanel> maskedImageAction = new AddElementAction<MaskedImageOptionsPanel>("Masked Image") {
+	private AddElementAction<MaskOptionsPanel> maskAction = new AddElementAction<MaskOptionsPanel>("Image Mask") {
 		@Override
-		protected MaskedImageOptionsPanel createOptionsPanel(MapElement parent) {
-			URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
-			if (uri != null) {
-				return new MaskedImageOptionsPanel(uri, parent, display);
-			}
-			return null;
+		protected MaskOptionsPanel createOptionsPanel(MapElement parent) {
+			return new MaskOptionsPanel(parent, display);
 		}
 	};
 
@@ -1188,17 +1183,14 @@ public class ControllerFrame extends JFrame {
 			p = shapeableAction.addElement(parent);
 		} else if (tag.equals(BrowserOptionsPanel.XML_TAG)) {
 			p = browserAction.addElement(parent);
-		} else if (tag.equals(ImageOptionsPanel.XML_TAG) || tag.equals(MaskedImageOptionsPanel.XML_TAG)) {
+		} else if (tag.equals(MaskOptionsPanel.XML_TAG)) {
+			p = maskAction.addElement(parent);
+		} else if (tag.equals(ImageOptionsPanel.XML_TAG)) {
 			if (e.hasAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME)) {
 				URI uri;
 				try {
-					if (tag.equals(ImageOptionsPanel.XML_TAG)) {
-						uri = new URI(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
-						p = new ImageOptionsPanel(uri, parent, display);
-					} else if (tag.equals(MaskedImageOptionsPanel.XML_TAG)) {
-						uri = new URI(e.getAttribute(MaskedImageOptionsPanel.FILE_ATTRIBUTE_NAME));
-						p = new MaskedImageOptionsPanel(uri, parent, display);
-					}
+					uri = new URI(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
+					p = new ImageOptionsPanel(uri, parent, display, maskAction);
 					MapElement element = p.getElement();
 					element.addPropertyChangeListener(labelListener);
 					optionPanels.put(element, p);
@@ -1206,7 +1198,7 @@ public class ControllerFrame extends JFrame {
 					e1.printStackTrace();
 				}
 			}
-		} else if (!tag.equals(MaskedImageOptionsPanel.MASK_TAG)) {
+		} else if (!tag.equals(MaskOptionsPanel.MASK_TAG)) {
 			System.err.println("Unrecognised element tag: " + tag);
 		}
 
