@@ -83,9 +83,9 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 	}
 
 	private class MasksModel extends AbstractTableModel {
-		private List<URI> masks = new ArrayList<URI>();
-		private List<Boolean> visible = new ArrayList<Boolean>();
-		private List<String> names = new ArrayList<String>();
+		private List<URI> masks = new ArrayList<>();
+		private List<Boolean> visible = new ArrayList<>();
+		private List<String> names = new ArrayList<>();
 
 		private void add(URI uri) {
 			display.setProperty(element, Mask.PROPERTY_ADD_MASK, uri);

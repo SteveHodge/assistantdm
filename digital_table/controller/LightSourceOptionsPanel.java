@@ -18,6 +18,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.LightSource;
+import digital_table.elements.LightSource.Type;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 
@@ -28,7 +29,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 	private JTextField xField;
 	private JTextField yField;
 	private JTextField labelField;
-	private JComboBox typeCombo;
+	private JComboBox<Type> typeCombo;
 	private JCheckBox visibleCheck;
 
 	LightSourceOptionsPanel(MapElement parent, DisplayManager r) {

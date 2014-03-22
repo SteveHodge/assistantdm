@@ -27,7 +27,7 @@ public class DarknessMask extends MapElement {
 	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	Property<Boolean> lowLight = new Property<Boolean>(PROPERTY_LOW_LIGHT, false, Boolean.class);
 
-	List<Point> cleared = new ArrayList<Point>();
+	List<Point> cleared = new ArrayList<>();
 
 	@Override
 	public Order getDefaultOrder() {
@@ -51,7 +51,7 @@ public class DarknessMask extends MapElement {
 			dark.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
 		}
 
-		ListModel m = canvas.getModel();
+		ListModel<MapElement> m = canvas.getModel();
 		// go through and remove any illuminated areas from the mask
 		// also create a mask of all shadowed area
 		for (int i = 0; i < m.getSize(); i++) {

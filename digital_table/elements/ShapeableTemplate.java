@@ -35,7 +35,7 @@ public class ShapeableTemplate extends MapElement {
 	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
 	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
 
-	List<Point> squares = new ArrayList<Point>();
+	List<Point> squares = new ArrayList<>();
 
 	@Override
 	public Order getDefaultOrder() {

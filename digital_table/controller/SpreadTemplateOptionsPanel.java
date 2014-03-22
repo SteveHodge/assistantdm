@@ -34,8 +34,8 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 	private JTextField radiusField;
 	private JTextField xField;
 	private JTextField yField;
-	private JComboBox directionCombo;
-	private JComboBox typeCombo;
+	private JComboBox<SpreadTemplate.Direction> directionCombo;
+	private JComboBox<SpreadTemplate.Type> typeCombo;
 	private JPanel colorPanel;
 	private JTextField labelField;
 	private JSlider alphaSlider;

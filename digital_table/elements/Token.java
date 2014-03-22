@@ -472,17 +472,6 @@ public class Token extends Group {
 	}
 
 	@Override
-	public Object getProperty(String property) {
-		if (property.equals(PROPERTY_X)) {
-			return (int) getX();
-		} else if (property.equals(PROPERTY_Y)) {
-			return (int) getY();
-		} else {
-			return super.getProperty(property);
-		}
-	}
-
-	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_IMAGE)) {
 			setImage((byte[]) value);

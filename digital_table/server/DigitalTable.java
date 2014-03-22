@@ -42,7 +42,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	private JFrame[] idFrames = null;
 	private JFrame[] screens = new JFrame[6];
 
-	private Map<Integer, List<JComponent>> components = new HashMap<Integer, List<JComponent>>();
+	private Map<Integer, List<JComponent>> components = new HashMap<>();
 	private MapCanvas canvas = new MapCanvas();
 
 	public DigitalTable() {
@@ -271,7 +271,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 			l.add(component, 1);	// TODO should set the number according to the element's position
 			List<JComponent> comps = components.get(id);
 			if (comps == null) {
-				comps = new ArrayList<JComponent>();
+				comps = new ArrayList<>();
 				components.put(id, comps);
 			}
 			comps.add(component);

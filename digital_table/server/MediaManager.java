@@ -3,7 +3,6 @@ package digital_table.server;
 import java.awt.Component;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -31,7 +30,7 @@ public enum MediaManager {
 	private URI mediaURI = mediaPath.getAbsoluteFile().toURI();
 	private File cachePath = new File("media/cache/");
 
-	private Map<URI, File> cached = new HashMap<URI, File>();
+	private Map<URI, File> cached = new HashMap<>();
 
 	private JFileChooser chooser = new JFileChooser();
 	private File lastDir = mediaPath;
@@ -41,13 +40,10 @@ public enum MediaManager {
 		File f = cached.get(uri);
 		byte[] bytes = null;
 		if (f != null) {
-			try {
-				FileInputStream in = new FileInputStream(f);
+			try (FileInputStream in = new FileInputStream(f);) {
 				byte[] b = new byte[(int) f.length()];
 				in.read(b);
 				bytes = b;
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -104,14 +100,10 @@ public enum MediaManager {
 		System.out.println("getFile(" + uri + ")");
 		uri = mediaURI.resolve(uri.normalize());
 		File f = new File(uri);
-		FileInputStream in;
-		try {
-			in = new FileInputStream(f);
+		try (FileInputStream in = new FileInputStream(f);) {
 			byte[] bytes = new byte[(int) f.length()];
 			in.read(bytes);
 			return bytes;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -156,8 +148,6 @@ public enum MediaManager {
 			outStream = new FileOutputStream(mediaFile);
 			outStream.write(bytes);
 			outStream.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

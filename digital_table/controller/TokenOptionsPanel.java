@@ -50,23 +50,23 @@ import digital_table.elements.Token;
 public class TokenOptionsPanel extends OptionsPanel<Token> {
 	private JTextField xField;
 	private JTextField yField;
-	private JComboBox rotationsCombo;
+	private JComboBox<String> rotationsCombo;
 	private JPanel colorPanel;
 	private JTextField labelField;
 	private JTextField remoteLabelField;
 	private JTextField webLabelField;
 	private JSlider alphaSlider;
-	private JComboBox sizeCombo;
+	private JComboBox<CreatureSize> sizeCombo;
 	private JTextField spaceField;
 	private JTextField reachField;
 	private JCheckBox reachWeapon;
 	private JCheckBox remoteReach;
 	private JCheckBox localReach;
-	private JComboBox creatureCombo;
+	private JComboBox<Creature> creatureCombo;
 	private JTextField maxHPsField;
 	private JTextField currentHPsField;
-	private JComboBox statusCombo;
-	private JComboBox statusDisplayCombo;
+	private JComboBox<Token.StatusType> statusCombo;
+	private JComboBox<Token.StatusDisplay> statusDisplayCombo;
 	private JCheckBox visibleCheck;
 	private JCheckBox floatingLabelCheck;
 	LabelOptionsPanel floatingLabel = null;	// accessed by LabelOptionsPanel
@@ -108,13 +108,12 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			}
 		});
 
-		sizeCombo = new JComboBox(CreatureSize.values());
+		sizeCombo = new JComboBox<>(CreatureSize.values());
 		sizeCombo.setSelectedItem(CreatureSize.MEDIUM);
 		sizeCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox combo = (JComboBox) e.getSource();
-				CreatureSize selected = (CreatureSize) combo.getSelectedItem();
+				CreatureSize selected = sizeCombo.getItemAt(sizeCombo.getSelectedIndex());
 				display.setProperty(element, Token.PROPERTY_SPACE, selected.getSpace());
 				display.setProperty(element, Token.PROPERTY_REACH, selected.getReach());
 			}
@@ -132,8 +131,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		});
 
 		if (CombatPanel.getCombatPanel() != null) {
-			ComboBoxModel m = new CreatureListModel(CombatPanel.getCombatPanel().getInitiativeListModel());
-			creatureCombo = new JComboBox(m);
+			ComboBoxModel<Creature> m = new CreatureListModel(CombatPanel.getCombatPanel().getInitiativeListModel());
+			creatureCombo = new JComboBox<>(m);
 		}
 
 		JButton imageButton = new JButton("Set Image");
@@ -207,14 +206,12 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 				}
 			}
 		});
-
-		rotationsCombo = new JComboBox(options);
+		rotationsCombo = new JComboBox<>(options);
 		rotationsCombo.setSelectedIndex((Integer) element.getProperty(Token.PROPERTY_ROTATIONS));
 		rotationsCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox combo = (JComboBox) e.getSource();
-				int index = combo.getSelectedIndex();
+				int index = rotationsCombo.getSelectedIndex();
 				display.setProperty(element, Token.PROPERTY_ROTATIONS, index, Mode.ALL);
 				// TODO should reposition the floating label too
 				if (floatingLabel != null) display.setProperty(floatingLabel.getElement(), Token.PROPERTY_ROTATIONS, index, Mode.ALL);
@@ -312,14 +309,13 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		return field;
 	}
 
-	private JComboBox createStatusControl(final String property, Object[] values) {
-		final JComboBox typeCombo = new JComboBox(values);
+	private <T> JComboBox<T> createStatusControl(final String property, T[] values) {
+		final JComboBox<T> typeCombo = new JComboBox<>(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
 		typeCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox combo = (JComboBox) e.getSource();
-				Object selected = combo.getSelectedItem();
+				Object selected = typeCombo.getSelectedItem();
 				display.setProperty(element, property, selected, Mode.ALL);
 				updateFloatingStatus();
 			}
@@ -335,8 +331,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			bytes = null;
 		} else {
 			bytes = new byte[(int) imageFile.length()];
-			try {
-				FileInputStream stream = new FileInputStream(imageFile);
+			try (FileInputStream stream = new FileInputStream(imageFile);) {
 				stream.read(bytes);
 			} catch (IOException e) {
 				System.err.println("Could not set image for token: " + e.getLocalizedMessage());
@@ -573,7 +568,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		private boolean isLong = false;
 	}
 
-	private class CreatureListModel implements ComboBoxModel {
+	private class CreatureListModel implements ComboBoxModel<Creature> {
 		InitiativeListModel list;
 //		Creature selected = null;
 		EventListenerList listeners = new EventListenerList();

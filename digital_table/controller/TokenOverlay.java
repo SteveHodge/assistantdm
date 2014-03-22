@@ -51,7 +51,7 @@ class TokenOverlay {
 	final int columns = 32;
 
 	private CameraOverlayCanvas canvas;
-	private Map<Integer, MapElement> elements = new HashMap<Integer, MapElement>();
+	private Map<Integer, MapElement> elements = new HashMap<>();
 
 	private class CameraOverlayCanvas extends MapCanvas {
 		int width, height;
@@ -86,8 +86,8 @@ class TokenOverlay {
 //		public final static String PROPERTY_LABEL = "label";	// String
 //		public final static String PROPERTY_SPACE = "space";	// int - in 1/2 foot units
 
-//		private Property<Color> color = new Property<Color>(Token.PROPERTY_COLOR, Color.WHITE, Color.class);
-		private Property<Integer> space = new Property<Integer>(Token.PROPERTY_SPACE, 10, Integer.class);
+//		private Property<Color> color = new Property<>(Token.PROPERTY_COLOR, Color.WHITE, Color.class);
+		private Property<Integer> space = new Property<>(Token.PROPERTY_SPACE, 10, Integer.class);
 
 		private String webLabel = null;
 		private boolean hasWebLabel = false;
@@ -99,24 +99,6 @@ class TokenOverlay {
 		@Override
 		public Order getDefaultOrder() {
 			return Order.ABOVEGRID;
-		}
-
-		private int getX() {
-			return (int) location.getValue().getX();
-		}
-
-		private int getY() {
-			return (int) location.getValue().getY();
-		}
-
-		private void setX(int x) {
-			Point p = new Point(x, getY());
-			location.setValue(p);
-		}
-
-		private void setY(int y) {
-			Point p = new Point(getX(), y);
-			location.setValue(p);
 		}
 
 		@Override
@@ -132,8 +114,8 @@ class TokenOverlay {
 			float arcWidth = canvas.getColumnWidth() * space / 30;
 			float arcHeight = canvas.getRowHeight() * space / 30;
 			int cells = space / 10;
-			Point tl = canvas.convertGridCoordsToDisplay(getX(), getY());
-			Point br = canvas.convertGridCoordsToDisplay(getX() + cells, getY() + cells);
+			Point tl = canvas.convertGridCoordsToDisplay(location.getValue());
+			Point br = canvas.convertGridCoordsToDisplay((int) getX() + cells, (int) getY() + cells);
 			BasicStroke stroke = getThickStroke();
 			float inset = stroke.getLineWidth() / 2;
 
@@ -190,17 +172,6 @@ class TokenOverlay {
 		}
 
 		@Override
-		public Object getProperty(String property) {
-			if (property.equals(Token.PROPERTY_X)) {
-				return getX();
-			} else if (property.equals(Token.PROPERTY_Y)) {
-				return getY();
-			} else {
-				return super.getProperty(property);
-			}
-		}
-
-		@Override
 		public void setProperty(String property, Object value) {
 			if (property.equals(Token.PROPERTY_X)) {
 				setX((Integer) value);
@@ -244,7 +215,7 @@ class TokenOverlay {
 				});
 			}
 
-			SortedMap<String, String> descriptions = new TreeMap<String, String>();
+			SortedMap<String, String> descriptions = new TreeMap<>();
 
 			private void repaintPanel() {
 				repaint();
@@ -270,7 +241,7 @@ class TokenOverlay {
 	}
 
 	void updateOverlay(int width, int height) {
-		SortedMap<String, String> descriptions = new TreeMap<String, String>();
+		SortedMap<String, String> descriptions = new TreeMap<>();
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			ImageIO.write(getImage(width, height, descriptions), "png", stream);
@@ -283,7 +254,6 @@ class TokenOverlay {
 			Updater.update("http://armitage/assistantdm/upload.php/tokens1.txt", output.toString().getBytes());
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -311,6 +281,7 @@ class TokenOverlay {
 			elements.put(t.getID(), t);
 
 		} else {
+			// XXX would clone() work?
 			// we serialize the element to a byte array and then deserialize it to a new MapElement
 			// this produces a private copy of the element in it's current state
 			try {
@@ -328,9 +299,7 @@ class TokenOverlay {
 
 				canvas.addElement(copy, parent);
 				elements.put(copy.getID(), copy);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			} catch (ClassNotFoundException e1) {
+			} catch (IOException | ClassNotFoundException e1) {
 				e1.printStackTrace();
 			}
 		}

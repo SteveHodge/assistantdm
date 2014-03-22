@@ -164,7 +164,7 @@ public abstract class ImageMedia {
 		}
 	}
 
-	static Set<String> logged = new HashSet<String>();
+	static Set<String> logged = new HashSet<>();
 
 	public void printMemoryUsage() {
 		long srcBytes = 0;
@@ -426,11 +426,7 @@ public abstract class ImageMedia {
 						animationNode = (Element) node;
 					}
 				}
-			} catch (SAXException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ParserConfigurationException e) {
+			} catch (SAXException | IOException | ParserConfigurationException e) {
 				e.printStackTrace();
 			}
 
@@ -540,8 +536,8 @@ public abstract class ImageMedia {
 		}
 
 		private void readGIF(ImageReader reader) throws IOException {
-			ArrayList<BufferedImage> frames = new ArrayList<BufferedImage>();
-			ArrayList<Integer> delays = new ArrayList<Integer>();
+			ArrayList<BufferedImage> frames = new ArrayList<>();
+			ArrayList<Integer> delays = new ArrayList<>();
 
 			int width = -1;
 			int height = -1;

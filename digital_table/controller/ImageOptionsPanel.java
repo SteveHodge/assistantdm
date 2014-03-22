@@ -40,7 +40,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JTextField heightField;
 	private JSlider alphaSlider;
 	private JTextField labelField;
-	private JComboBox rotationsCombo;
+	private JComboBox<String> rotationsCombo;
 	private JCheckBox snapCheck;
 	JCheckBox visibleCheck;		// accessed by ControllerFrame
 	private JCheckBox borderCheck;

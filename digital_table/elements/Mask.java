@@ -37,7 +37,7 @@ public class Mask extends MapElement {
 	public final static String PROPERTY_CLEARCELL = "clear";		// Point - when this property is set the specified cell will be cleared
 	public final static String PROPERTY_UNCLEARCELL = "unclear";	// Point - when this property is set the specified cell will be shown again
 
-	private List<MaskImage> masks = new ArrayList<MaskImage>();
+	private List<MaskImage> masks = new ArrayList<>();
 
 	private static class MaskImage {
 //		URI uri;
@@ -49,7 +49,7 @@ public class Mask extends MapElement {
 	private transient BufferedImage combinedMask;
 	private transient AffineTransform transform;
 
-	private List<Point> cleared = new ArrayList<Point>();
+	private List<Point> cleared = new ArrayList<>();
 
 	void setImageElement(MapImage mapImage) {
 		image = mapImage;

@@ -38,8 +38,8 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 	private JTextField urlField;
 	private JLabel titleLabel;
 	private JLabel rolloverLabel;
-	private JComboBox rotationsCombo;
-	private JComboBox screenCombo;
+	private JComboBox<String> rotationsCombo;
+	private JComboBox<String> screenCombo;
 	private JCheckBox remoteVisibleCheck;
 	private JCheckBox localVisibleCheck;
 
@@ -65,13 +65,12 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 		for (int i = 0; i < screens.length; i++) {
 			screens[i] = "" + i;
 		}
-		screenCombo = new JComboBox(screens);
+		screenCombo = new JComboBox<>(screens);
 		screenCombo.setSelectedIndex((Integer)element.getProperty(Browser.PROPERTY_SCREEN));
 		screenCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox combo = (JComboBox)e.getSource();
-				int index = combo.getSelectedIndex();
+				int index = screenCombo.getSelectedIndex();
 				display.setProperty(element, Browser.PROPERTY_SCREEN, index, Mode.ALL);
 			}
 		});

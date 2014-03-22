@@ -30,7 +30,7 @@ public abstract class MapElement implements Serializable {
 	protected final int id;
 	protected MapCanvas canvas = null;
 	protected ScreenManager screenManager = null;
-	protected Map<String, Property<?>> properties = new HashMap<String, Property<?>>();
+	protected Map<String, Property<?>> properties = new HashMap<>();
 	protected Property<Visibility> visible = new Property<Visibility>(PROPERTY_VISIBLE, true, Visibility.HIDDEN, Visibility.class);
 	public Group parent = null;	// TODO should be private
 

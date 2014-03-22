@@ -110,7 +110,7 @@ public class Initiative extends MapElement {
 
 	protected List<String[]> getTable() {
 		String[] lines = text.getValue().split("\\r?\\n|\\r");
-		List<String[]> output = new ArrayList<String[]>();
+		List<String[]> output = new ArrayList<>();
 
 		String[] outLine = new String[2];
 		for (String line : lines) {

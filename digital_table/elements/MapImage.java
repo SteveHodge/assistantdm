@@ -71,7 +71,7 @@ public class MapImage extends Group {
 	private Property<Boolean> border = new Property<Boolean>(PROPERTY_SHOW_BORDER, false, Boolean.class);
 	private Property<Boolean> aspectLocked = new Property<Boolean>(PROPERTY_ASPECT_LOCKED, true, Boolean.class);
 
-	private List<Point> cleared = new ArrayList<Point>();
+	private List<Point> cleared = new ArrayList<>();
 
 	public MapImage(String label) {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);

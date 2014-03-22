@@ -41,20 +41,20 @@ public class Group extends MapElement {
 		return new Point2D.Double(loc.getX() + p.getX(), loc.getY() + p.getY());
 	}
 
-	double getX() {
+	protected double getX() {
 		return location.getValue().getX();
 	}
 
-	double getY() {
+	protected double getY() {
 		return location.getValue().getY();
 	}
 
-	void setX(double x) {
+	protected void setX(double x) {
 		Point2D p = new Point2D.Double(x, getY());
 		location.setValue(p);
 	}
 
-	void setY(double y) {
+	protected void setY(double y) {
 		Point2D p = new Point2D.Double(getX(), y);
 		location.setValue(p);
 	}

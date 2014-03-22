@@ -28,7 +28,7 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 	private JTextField xField;
 	private JTextField yField;
 	private JSlider alphaSlider;
-	private JComboBox rotationsCombo;
+	private JComboBox<String> rotationsCombo;
 	private JPanel colorPanel;
 	private JPanel bgColorPanel;
 	private JCheckBox bgCheck;

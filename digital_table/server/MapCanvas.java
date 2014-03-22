@@ -33,8 +33,8 @@ import digital_table.elements.MapElement;
 // TODO probably should have root MapElement to avoid all the special cases
 
 public class MapCanvas implements ListDataListener, CoordinateConverter {
-	private DefaultListModel model;
-	private List<RepaintListener> listeners = new ArrayList<RepaintListener>();
+	private DefaultListModel<MapElement> model;
+	private List<RepaintListener> listeners = new ArrayList<>();
 	private Grid grid;	// used to position other element above or below the grid
 
 	// xoffset and yoffset specify the number of grid squares that are added to grid coordinates during conversions
@@ -50,10 +50,10 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	}
 
 	public MapCanvas() {
-		setModel(new DefaultListModel());
+		setModel(new DefaultListModel<MapElement>());
 	}
 
-	public ListModel getModel() {
+	public ListModel<MapElement> getModel() {
 		return model;
 	}
 
@@ -61,7 +61,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		return treeModel;
 	}
 
-	public void setModel(DefaultListModel m) {
+	public void setModel(DefaultListModel<MapElement> m) {
 		if (model != null) {
 			model.removeListDataListener(this);
 		}
@@ -117,7 +117,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	private void removeChildren(Group parent) {
 		for (int i = 0; i < model.getSize(); i++) {
-			MapElement el = (MapElement) model.get(i);
+			MapElement el = model.get(i);
 			if (el.getParent() == parent) {
 				if (el instanceof Group) removeChildren((Group) el);
 				parent.removeChild(el);
@@ -162,7 +162,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	public MapElement getElement(int id) {
 		for (int i = 0; i < model.getSize(); i++) {
-			MapElement e = (MapElement) model.getElementAt(i);
+			MapElement e = model.getElementAt(i);
 			if (e.getID() == id) return e;
 		}
 		return null;
@@ -179,7 +179,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		Rectangle bounds = g.getClipBounds();
 		g.clearRect(bounds.x, bounds.y, bounds.width, bounds.height);
 		for (int i = model.getSize() - 1; i >= 0; i--) {
-			MapElement r = (MapElement) model.getElementAt(i);
+			MapElement r = model.getElementAt(i);
 			if (r != null) r.paint(g);
 		}
 	}
@@ -434,7 +434,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 			if (parent == MapCanvas.this) parent = null;
 			int count = 0;
 			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = (MapElement) model.get(i);
+				MapElement e = model.get(i);
 				if (e.getParent() == parent) count++;
 			}
 			return count;
@@ -445,7 +445,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 			if (parent == MapCanvas.this) parent = null;
 			int count = 0;
 			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = (MapElement) model.get(i);
+				MapElement e = model.get(i);
 				if (e.getParent() == parent) {
 					if (count++ == index) return e;
 				}
@@ -458,7 +458,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 			if (parent == MapCanvas.this) parent = null;
 			int count = 0;
 			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = (MapElement) model.get(i);
+				MapElement e = model.get(i);
 				if (e.getParent() == parent) {
 					if (e == child) return count;
 					count++;
@@ -471,14 +471,14 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		public boolean isLeaf(Object node) {
 			if (node == MapCanvas.this) return false;
 			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = (MapElement) model.get(i);
+				MapElement e = model.get(i);
 				if (e.getParent() == node) return false;
 			}
 			return true;
 		}
 
 		public TreePath getPathTo(Object node) {
-			List<Object> ancestry = new ArrayList<Object>();
+			List<Object> ancestry = new ArrayList<>();
 			if (node == MapCanvas.this) node = null;
 			while (node != null) {
 				ancestry.add(0, node);

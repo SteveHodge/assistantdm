@@ -127,11 +127,7 @@ public class DigitalTableController {
 				//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 				try {
 					dom = factory.newDocumentBuilder().parse(xmlFile);
-				} catch (SAXException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (ParserConfigurationException e) {
+				} catch (SAXException | IOException | ParserConfigurationException e) {
 					e.printStackTrace();
 				}
 			}

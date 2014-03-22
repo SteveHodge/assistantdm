@@ -18,12 +18,12 @@ public class DisplayConfig {
 		new Point(63,2202),
 		new Point(1421,2207)
 	};
-	
-	public static List<Screen> screens = new ArrayList<Screen>();
+
+	public static List<Screen> screens = new ArrayList<>();
 
 	static public class Screen {
 		public int index;
-		public Dimension size; 
+		public Dimension size;
 		public Point location;	// location (in remote-native pixels) of the screen on the canvas
 		public boolean open = false;
 	}

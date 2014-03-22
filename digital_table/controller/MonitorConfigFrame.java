@@ -4,6 +4,8 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -16,7 +18,9 @@ import digital_table.server.TableDisplay;
 
 @SuppressWarnings("serial")
 class MonitorConfigFrame extends JFrame {
-	private JComboBox[] screenCombos = new JComboBox[6];
+	private final static int NUM_SCREENS = 6;
+
+	private List<JComboBox<String>> screenCombos = new ArrayList<>();
 	private TableDisplay display;
 	boolean openScreens = false;
 	int[] screenNums;
@@ -34,11 +38,12 @@ class MonitorConfigFrame extends JFrame {
 				try {
 					// reset the combo boxes
 					DisplayConfig.getScreens(display);
-					for (int i = 0; i < screenCombos.length; i++) {
-						screenCombos[i].removeAllItems();
-						screenCombos[i].addItem("unassigned");
+					for (int i = 0; i < screenCombos.size(); i++) {
+						JComboBox<String> combo = screenCombos.get(i);
+						combo.removeAllItems();
+						combo.addItem("unassigned");
 						for (int j = 0; j < DisplayConfig.screens.size(); j++) {
-							screenCombos[i].addItem("" + (j+1));
+							combo.addItem("" + (j + 1));
 						}
 					}
 
@@ -52,9 +57,9 @@ class MonitorConfigFrame extends JFrame {
 		openButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				screenNums = new int[screenCombos.length];
-				for (int i = 0; i < screenCombos.length; i++) {
-					screenNums[i] = screenCombos[i].getSelectedIndex()-1;
+				screenNums = new int[screenCombos.size()];
+				for (int i = 0; i < screenCombos.size(); i++) {
+					screenNums[i] = screenCombos.get(i).getSelectedIndex() - 1;
 				}
 				openScreens = true;
 				dispose();
@@ -71,14 +76,15 @@ class MonitorConfigFrame extends JFrame {
 
 		// make the combo boxes
 		DisplayConfig.getScreens(display);
-		Object[] options = new Object[DisplayConfig.screens.size()+1];
+		String[] options = new String[DisplayConfig.screens.size() + 1];
 		options[0] = "unassigned";
 		for (int i = 1; i <= DisplayConfig.screens.size(); i++) {
 			options[i] = ""+i;
 		}
-		for (int i = 0; i < screenCombos.length; i++) {
-			screenCombos[i] = new JComboBox(options);
-			screensPanel.add(screenCombos[i]);
+		for (int i = 0; i < NUM_SCREENS; i++) {
+			JComboBox<String> combo = new JComboBox<>(options);
+			screenCombos.add(combo);
+			screensPanel.add(combo);
 		}
 		add(screensPanel, BorderLayout.CENTER);
 

@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -91,8 +92,8 @@ public class ControllerFrame extends JFrame {
 	private TokenOverlay overlay = null;
 	private CameraPanel camera;
 	private JPanel elementPanel = new JPanel();
-	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<MapElement, OptionsPanel<?>>();
-	private JComboBox availableCombo;
+	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<>();
+	private JComboBox<AddElementAction<?>> availableCombo;
 	private JTree elementTree;
 	private GridOptionsPanel gridPanel;
 
@@ -140,7 +141,7 @@ public class ControllerFrame extends JFrame {
 				screensAction,
 				callibrateAction
 		};
-		availableCombo = new JComboBox(availableElements);
+		availableCombo = new JComboBox<>(availableElements);
 
 		elementTree = new JTree(miniMapCanvas.getTreeModel());
 		elementTree.setRootVisible(false);
@@ -781,16 +782,12 @@ public class ControllerFrame extends JFrame {
 			//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 			try {
 				dom = factory.newDocumentBuilder().parse(file);
-			} catch (SAXException ex) {
-				ex.printStackTrace();
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			} catch (ParserConfigurationException ex) {
+			} catch (SAXException | IOException | ParserConfigurationException ex) {
 				ex.printStackTrace();
 			}
 
 			if (dom != null) {
-				Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();	// map of ids in this file plus characters we've already loaded
+				Map<Integer, Creature> idMap = new HashMap<>();	// map of ids in this file plus characters we've already loaded
 				if (CombatPanel.getCombatPanel() != null) {
 					idMap = CombatPanel.getCombatPanel().getCharacterIDMap();
 				}
@@ -822,21 +819,21 @@ public class ControllerFrame extends JFrame {
 	};
 
 	private class SaveDialog extends JDialog {
-		private JList elements;
+		private JList<MapElement> elements;
 		private JCheckBox saveCreatures;
 		private JCheckBox removeAfter;
 
 		SaveDialog() {
 			super(ControllerFrame.this, "Save...", true);
 
-			Vector<MapElement> list = new Vector<MapElement>();
-			ListModel m = miniMapCanvas.getModel();
+			Vector<MapElement> list = new Vector<>();
+			ListModel<MapElement> m = miniMapCanvas.getModel();
 			for (int i = 0; i < m.getSize(); i++) {
-				MapElement e = (MapElement) m.getElementAt(i);
+				MapElement e = m.getElementAt(i);
 				if (e.getParent() == null && !(e instanceof Grid)) list.add(e);
 			}
 
-			elements = new JList(list);
+			elements = new JList<>(list);
 			elements.setVisibleRowCount(10);
 			elements.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
@@ -912,9 +909,8 @@ public class ControllerFrame extends JFrame {
 				doc.appendChild(root);
 
 				Element el = doc.createElement("Elements");
-				Object[] selected = elements.getSelectedValues();
-				for (int i = 0; i < selected.length; i++) {
-					MapElement element = (MapElement) selected[i];
+				List<MapElement> selected = elements.getSelectedValuesList();
+				for (MapElement element : selected) {
 					if (!(element instanceof Grid)) {
 						addElement(doc, el, element);
 					}
@@ -925,9 +921,9 @@ public class ControllerFrame extends JFrame {
 					el = null;
 
 					// TODO will need to save any effects in play. should we save the combat entry if any as well?
-					for (int i = 0; i < selected.length; i++) {
-						if (selected[i] instanceof Token) {
-							Token t = (Token)selected[i];
+					for (MapElement element : selected) {
+						if (element instanceof Token) {
+							Token t = (Token) element;
 							TokenOptionsPanel p = (TokenOptionsPanel) optionPanels.get(t);
 							if (p != null && p.getCreature() != null) {
 								if (el == null) el = doc.createElement("Creatures");
@@ -949,9 +945,8 @@ public class ControllerFrame extends JFrame {
 			}
 
 			if (saved && removeAfter.isSelected()) {
-				Object[] selected = elements.getSelectedValues();
-				for (int i = 0; i < selected.length; i++) {
-					MapElement element = (MapElement) selected[i];
+				List<MapElement> selected = elements.getSelectedValuesList();
+				for (MapElement element : selected) {
 					if (!(element instanceof Grid)) {
 						display.removeElement(element);
 						optionPanels.remove(element);
@@ -1214,7 +1209,7 @@ public class ControllerFrame extends JFrame {
 	public void parseDOM(Element el) {
 		if (!el.getTagName().equals("Elements")) return;
 
-		Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();
+		Map<Integer, Creature> idMap = new HashMap<>();
 		if (CombatPanel.getCombatPanel() != null) {
 			idMap = CombatPanel.getCombatPanel().getIDMap();
 		}
