@@ -8,6 +8,8 @@ public class Group extends MapElement {
 
 	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_LOCATION = "location";
+	public final static String PROPERTY_X = "x";	// double
+	public final static String PROPERTY_Y = "y";	// double
 
 	protected Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
 	protected Property<Point2D> location = new Property<Point2D>(PROPERTY_LOCATION, new Point2D.Double(), Point2D.class);
@@ -21,7 +23,7 @@ public class Group extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 	}
 
 	public void addChild(MapElement e) {
@@ -39,9 +41,49 @@ public class Group extends MapElement {
 		return new Point2D.Double(loc.getX() + p.getX(), loc.getY() + p.getY());
 	}
 
+	double getX() {
+		return location.getValue().getX();
+	}
+
+	double getY() {
+		return location.getValue().getY();
+	}
+
+	void setX(double x) {
+		Point2D p = new Point2D.Double(x, getY());
+		location.setValue(p);
+	}
+
+	void setY(double y) {
+		Point2D p = new Point2D.Double(getX(), y);
+		location.setValue(p);
+	}
+
 	@Override
 	public String toString() {
 		if (label == null || label.getValue().length() == 0) return "Group (" + getID() + ")";
 		return "Group (" + label + ")";
+	}
+
+	@Override
+	public Object getProperty(String property) {
+		if (property.equals(PROPERTY_X)) {
+			return getX();
+		} else if (property.equals(PROPERTY_Y)) {
+			return getY();
+		} else {
+			return super.getProperty(property);
+		}
+	}
+
+	@Override
+	public void setProperty(String property, Object value) {
+		if (property.equals(PROPERTY_X)) {
+			setX((Double) value);
+		} else if (property.equals(PROPERTY_Y)) {
+			setY((Double) value);
+		} else {
+			super.setProperty(property, value);
+		}
 	}
 }

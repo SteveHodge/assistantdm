@@ -180,20 +180,18 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		g.clearRect(bounds.x, bounds.y, bounds.width, bounds.height);
 		for (int i = model.getSize() - 1; i >= 0; i--) {
 			MapElement r = (MapElement) model.getElementAt(i);
-			if (r != null) {
-				// get ancestor's relative position
-				Point2D offset = new Point2D.Double();
-				Group parent = r.getParent();
-				while (parent != null) {
-					offset = parent.translate(offset);
-					parent = parent.getParent();
-				}
-				// we need to adjust the offset because this element's paint will add the parent's position
-				// to it's own which will result in the offset being applied twice.
-				offset.setLocation(offset.getX() + xoffset, offset.getY() + yoffset);	// TODO this is hacky - elements should not sum pixel positions - they should sum grid position and then convert
-				r.paint(g, offset);
-			}
+			if (r != null) r.paint(g);
 		}
+	}
+
+	public Point2D getElementOrigin(MapElement el) {
+		Point2D offset = new Point2D.Double(-xoffset, -yoffset);
+		Group parent = el.getParent();
+		while (parent != null) {
+			offset = parent.translate(offset);
+			parent = parent.getParent();
+		}
+		return offset;
 	}
 
 	public void repaint() {
@@ -220,10 +218,12 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		repaint();
 	}
 
+	@Override
 	public int getXOffset() {
 		return xoffset;
 	}
 
+	@Override
 	public int getYOffset() {
 		return yoffset;
 	}
@@ -280,40 +280,14 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		return new Dimension(w, h);
 	}
 
-	// returns the precise size in grid units of the rectangle located at (0,0) with the specified width and height
-	// (which are in the coordinate system of the display). note that this may give imprecise results due to
-	// round in the coordinate conversions
+	// returns the grid coordinates corresponding to the display coordinates (x,y).
+	// note that this may give imprecise results due to rounding in the coordinate conversions
 	@Override
-	public Point2D getGridDimension(int width, int height) {
-		double col = (double) width * getResolutionDenominatorX() / getResolutionNumeratorX();
-		double row = (double) height * getResolutionDenominatorY() / getResolutionNumeratorY();
+	public Point2D convertDisplayCoordsToGrid(int x, int y) {
+		double col = (double) x * getResolutionDenominatorX() / getResolutionNumeratorX();
+		double row = (double) y * getResolutionDenominatorY() / getResolutionNumeratorY();
 		return new Point2D.Double(col, row);
 	}
-
-//	private static class Dimension2DDouble extends Dimension2D {
-//		private double width, height;
-//
-//		Dimension2DDouble(double w, double h) {
-//			setSize(w, h);
-//		}
-//
-//		@Override
-//		public double getHeight() {
-//			return height;
-//		}
-//
-//		@Override
-//		public double getWidth() {
-//			return width;
-//		}
-//
-//		@Override
-//		public void setSize(double w, double h) {
-//			width = w;
-//			height = h;
-//		}
-//
-//	}
 
 	/**
 	 * Get the precise (potentially fractional) grid coordinates of the pixel (x,y)
@@ -325,14 +299,14 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	 * @return a Point2D.Double containing the grid coordinates
 	 */
 	@Override
-	public Point2D getGridCoordinates(int x, int y) {
+	public Point2D convertDisplayCoordsToCanvas(int x, int y) {
 		double col = (double) x * getResolutionDenominatorX() / getResolutionNumeratorX();
 		double row = (double) y * getResolutionDenominatorY() / getResolutionNumeratorY();
 		return new Point2D.Double(col + xoffset, row + yoffset);
 	}
 
 	/**
-	 * Update the supplied Point with the pixel coordinates of the top left corner of the grid cell at (col,row)
+	 * Update the supplied Point with the pixel coordinates of the top left corner of the grid cell at (col,row), adjusted for the canvas origin
 	 * 
 	 * @param col
 	 *            the column number of the cell
@@ -342,7 +316,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	 *            the Point to store the coordinates in. If this is null then a new Point will be allocated and returned
 	 * @return a Point containing the coordinates. If p is not null then this will be p
 	 */
-	public Point getDisplayCoordinates(int col, int row, Point p) {
+	public Point convertCanvasCoordsToDisplay(int col, int row, Point p) {
 		if (p == null) p = new Point();
 		p.x = (col - xoffset) * getResolutionNumeratorX() / getResolutionDenominatorX();
 		p.y = (row - yoffset) * getResolutionNumeratorY() / getResolutionDenominatorY();
@@ -350,7 +324,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	}
 
 	/**
-	 * Get the pixel coordinates of the top left corner of the grid cell at (col,row)
+	 * Get the pixel coordinates of the top left corner of the grid cell at (col,row), adjusted for the canvas origin
 	 * 
 	 * @param col
 	 *            the column number of the cell
@@ -358,20 +332,64 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	 *            the row number of the cell
 	 * @return a Point containing the pixel coordinates of the top left corner of the specified cell
 	 */
-	public Point getDisplayCoordinates(int col, int row) {
-		return getDisplayCoordinates(col, row, null);
+	public Point convertCanvasCoordsToDisplay(int col, int row) {
+		return convertCanvasCoordsToDisplay(col, row, null);
 	}
 
 	/**
-	 * Gets the pixel coordinates of the grid point p
+	 * Gets the pixel coordinates of the grid point p, adjusted for the canvas origin
 	 * 
 	 * @param p
 	 *            the point
 	 * @return a new Point containing the pixel coordinates corresponding the grid point p
 	 */
-	public Point getDisplayCoordinates(Point2D p) {
+	public Point convertCanvasCoordsToDisplay(Point2D p) {
 		int x = (int) ((p.getX() - xoffset) * getResolutionNumeratorX() / getResolutionDenominatorX());
 		int y = (int) ((p.getY() - yoffset) * getResolutionNumeratorY() / getResolutionDenominatorY());
+		return new Point(x, y);
+	}
+
+	/**
+	 * Update the supplied Point with the pixel coordinates of the top left corner of the grid cell at (col,row). Does not apply the canvas origin
+	 * 
+	 * @param col
+	 *            the column number of the cell
+	 * @param row
+	 *            the row number of the cell
+	 * @param p
+	 *            the Point to store the coordinates in. If this is null then a new Point will be allocated and returned
+	 * @return a Point containing the coordinates. If p is not null then this will be p
+	 */
+	public Point convertGridCoordsToDisplay(int col, int row, Point p) {
+		if (p == null) p = new Point();
+		p.x = col * getResolutionNumeratorX() / getResolutionDenominatorX();
+		p.y = row * getResolutionNumeratorY() / getResolutionDenominatorY();
+		return p;
+	}
+
+	/**
+	 * Get the pixel coordinates of the top left corner of the grid cell at (col,row). Does not apply the canvas origin
+	 * 
+	 * @param col
+	 *            the column number of the cell
+	 * @param row
+	 *            the row number of the cell
+	 * @return a Point containing the pixel coordinates of the top left corner of the specified cell
+	 */
+	public Point convertGridCoordsToDisplay(int col, int row) {
+		return convertGridCoordsToDisplay(col, row, null);
+	}
+
+	/**
+	 * Gets the pixel coordinates of the grid point p. Does not apply the canvas origin
+	 * 
+	 * @param p
+	 *            the point
+	 * @return a new Point containing the pixel coordinates corresponding the grid point p
+	 */
+	public Point convertGridCoordsToDisplay(Point2D p) {
+		int x = (int) (p.getX() * getResolutionNumeratorX() / getResolutionDenominatorX());
+		int y = (int) (p.getY() * getResolutionNumeratorY() / getResolutionDenominatorY());
 		return new Point(x, y);
 	}
 

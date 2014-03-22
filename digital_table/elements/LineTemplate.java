@@ -57,9 +57,10 @@ public class LineTemplate extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
-		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+
+		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 		g.translate(o.getX(), o.getY());
 
 		Composite c = g.getComposite();
@@ -108,16 +109,16 @@ public class LineTemplate extends MapElement {
 				minY = maxY - 2;
 				maxY = t;
 			}
-			Point tl = canvas.getDisplayCoordinates(ox - 1, minY);
-			Point br = canvas.getDisplayCoordinates(ox + 1, maxY);
+			Point tl = canvas.convertGridCoordsToDisplay(ox - 1, minY);
+			Point br = canvas.convertGridCoordsToDisplay(ox + 1, maxY);
 			g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 		} else if (tx > ox) {
 			for (int x = 0; x <= endX - ox; x++) {
 				Point range = getVerticalRange(x, tx, endX, endY);
 				//System.out.println("x = "+x+", miny = "+range.x+", maxy = "+range.y+", endX = "+endX);
 				for (int y = range.x; y <= range.y; y++) {
-					Point tl = canvas.getDisplayCoordinates(x + ox, y);
-					Point br = canvas.getDisplayCoordinates(x + ox + 1, y + 1);
+					Point tl = canvas.convertGridCoordsToDisplay(x + ox, y);
+					Point br = canvas.convertGridCoordsToDisplay(x + ox + 1, y + 1);
 					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 				}
 			}
@@ -127,8 +128,8 @@ public class LineTemplate extends MapElement {
 				// we mirror the relevant x coordinates to calculate the range as if it were the other case
 				Point range = getVerticalRange(-x, ox * 2 - tx, ox * 2 - endX, endY);
 				for (int y = range.x; y <= range.y; y++) {
-					Point tl = canvas.getDisplayCoordinates(x + ox - 1, y);
-					Point br = canvas.getDisplayCoordinates(x + ox, y + 1);
+					Point tl = canvas.convertGridCoordsToDisplay(x + ox - 1, y);
+					Point br = canvas.convertGridCoordsToDisplay(x + ox, y + 1);
 					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 				}
 			}
@@ -136,10 +137,10 @@ public class LineTemplate extends MapElement {
 		g.setColor(darken(color.getValue()));
 		Stroke oldStroke = g.getStroke();
 		g.setStroke(getThickStroke());
-		Point s = canvas.getDisplayCoordinates(ox, oy);
-		Point e = canvas.getDisplayCoordinates(new Point2D.Double(endX, endY));
+		Point s = canvas.convertGridCoordsToDisplay(ox, oy);
+		Point e = canvas.convertGridCoordsToDisplay(new Point2D.Double(endX, endY));
 		g.drawLine(s.x, s.y, e.x, e.y);
-		Point t = canvas.getDisplayCoordinates(tx, ty);
+		Point t = canvas.convertGridCoordsToDisplay(tx, ty);
 		g.fillOval(t.x - 5, t.y - 5, 10, 10);
 		g.setStroke(oldStroke);
 		g.setComposite(c);

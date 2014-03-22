@@ -462,7 +462,7 @@ public class ControllerFrame extends JFrame {
 		public void mousePressed(MouseEvent e) {
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mousePressed(e, miniMapCanvas.getGridCoordinates(e.getX(), e.getY()));
+				l.mousePressed(e, miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY()));
 				return;
 			}
 		}
@@ -471,7 +471,7 @@ public class ControllerFrame extends JFrame {
 		public void mouseReleased(MouseEvent e) {
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseReleased(e, miniMapCanvas.getGridCoordinates(e.getX(), e.getY()));
+				l.mouseReleased(e, miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY()));
 				return;
 			}
 		}
@@ -480,7 +480,7 @@ public class ControllerFrame extends JFrame {
 		public void mouseDragged(MouseEvent e) {
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseDragged(e, miniMapCanvas.getGridCoordinates(e.getX(), e.getY()));
+				l.mouseDragged(e, miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY()));
 				return;
 			}
 		}
@@ -489,7 +489,7 @@ public class ControllerFrame extends JFrame {
 		public void mouseClicked(MouseEvent e) {
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseClicked(e, miniMapCanvas.getGridCoordinates(e.getX(), e.getY()));
+				l.mouseClicked(e, miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY()));
 				return;
 			}
 		}

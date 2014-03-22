@@ -51,10 +51,11 @@ public class Initiative extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (getVisibility() == Visibility.HIDDEN || canvas == null) return;
-		Point2D o = canvas.getDisplayCoordinates(offset);
-		g.translate(o.getX(), o.getY());
+
+//		Point2D o = canvas.getDisplayCoordinates(offset);
+//		g.translate(o.getX(), o.getY());
 
 		Font f = g.getFont();
 		float newSize = canvas.getDisplayDimension(0, fontSize).height;
@@ -74,7 +75,7 @@ public class Initiative extends MapElement {
 			Composite c = g.getComposite();
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
-			Point p = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue() + canvas.getRemote().getXOffset(), y.getValue() + canvas.getRemote().getYOffset()));
+			Point p = canvas.convertCanvasCoordsToDisplay(new Point2D.Double(x.getValue() + canvas.getRemote().getXOffset(), y.getValue() + canvas.getRemote().getYOffset()));
 			int x0 = p.x + 5;
 			int x1 = p.x + 5 + col1Width + 10;
 			int y = p.y + 5 + metrics.getAscent();
@@ -104,7 +105,7 @@ public class Initiative extends MapElement {
 			g.setComposite(c);
 			g.setFont(f);
 		}
-		g.translate(-o.getX(), -o.getY());
+//		g.translate(-o.getX(), -o.getY());
 	}
 
 	protected List<String[]> getTable() {

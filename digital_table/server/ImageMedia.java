@@ -110,16 +110,16 @@ public abstract class ImageMedia {
 		return bounds;
 	}
 
-	public static BufferedImage getTransformedImage(BufferedImage image, AffineTransform transform) {
-		AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
-		Rectangle2D bounds = getBounds(transform, image.getWidth(), image.getHeight());
-		BufferedImage out = new BufferedImage((int) Math.ceil(bounds.getWidth()), (int) Math.ceil(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);
-		//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
-		Graphics2D g = (Graphics2D) out.getGraphics();
-		g.drawImage(image, op, (int) -bounds.getX(), (int) -bounds.getY());
-		g.dispose();
-		return out;
-	}
+//	public static BufferedImage getTransformedImage(BufferedImage image, AffineTransform transform) {
+//		AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+//		Rectangle2D bounds = getBounds(transform, image.getWidth(), image.getHeight());
+//		BufferedImage out = new BufferedImage((int) Math.ceil(bounds.getWidth()), (int) Math.ceil(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);
+//		//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
+//		Graphics2D g = (Graphics2D) out.getGraphics();
+//		g.drawImage(image, op, (int) -bounds.getX(), (int) -bounds.getY());
+//		g.dispose();
+//		return out;
+//	}
 
 	public void setTransform(AffineTransform xform) {
 		if (transformed == null) readImages();		// ensures transformed is allocated
@@ -259,7 +259,7 @@ public abstract class ImageMedia {
 			if (image == null) return 0;
 			if (sourceGridSize == null) {
 				// sourceGridSize may have already been set as a consequence of getSourceImage()
-				sourceGridSize = canvas.getRemote().getGridDimension(image.getWidth(), image.getHeight());
+				sourceGridSize = canvas.getRemote().convertDisplayCoordsToGrid(image.getWidth(), image.getHeight());
 			}
 		}
 		return sourceGridSize.getX();
@@ -271,7 +271,7 @@ public abstract class ImageMedia {
 			if (image == null) return 0;
 			if (sourceGridSize == null) {
 				// sourceGridSize may have already been set as a consequence of getSourceImage()
-				sourceGridSize = canvas.getRemote().getGridDimension(image.getWidth(), image.getHeight());
+				sourceGridSize = canvas.getRemote().convertDisplayCoordsToGrid(image.getWidth(), image.getHeight());
 			}
 		}
 		return sourceGridSize.getY();
@@ -297,9 +297,9 @@ public abstract class ImageMedia {
 		int srcW = source.getWidth();
 		int srcH = source.getHeight();
 
-		Point2D gridSize = canvas.getRemote().getGridDimension(srcW, srcH);
+		Point2D gridSize = canvas.getRemote().convertDisplayCoordsToGrid(srcW, srcH);
 		if (sourceGridSize == null) sourceGridSize = gridSize;
-		Point size = canvas.getDisplayCoordinates(gridSize);
+		Point size = canvas.convertCanvasCoordsToDisplay(gridSize);
 		int destW = size.x;
 		int destH = size.y;
 

@@ -27,7 +27,7 @@ public class ScreenBounds extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		Composite c = g.getComposite();
@@ -36,10 +36,10 @@ public class ScreenBounds extends MapElement {
 		Area area = new Area(g.getClip());
 		for (DisplayConfig.Screen screen : DisplayConfig.screens) {
 			if (screen.open) {
-				Point2D topLeft = canvas.getRemote().getGridCoordinates(screen.location.x, screen.location.y);
-				Point2D bottomRight = canvas.getRemote().getGridCoordinates(screen.location.x + screen.size.width, screen.location.y + screen.size.height);
-				Point tl = canvas.getDisplayCoordinates(topLeft);
-				Point br = canvas.getDisplayCoordinates(bottomRight);
+				Point2D topLeft = canvas.getRemote().convertDisplayCoordsToCanvas(screen.location.x, screen.location.y);
+				Point2D bottomRight = canvas.getRemote().convertDisplayCoordsToCanvas(screen.location.x + screen.size.width, screen.location.y + screen.size.height);
+				Point tl = canvas.convertCanvasCoordsToDisplay(topLeft);
+				Point br = canvas.convertCanvasCoordsToDisplay(bottomRight);
 				Area a = new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y));
 				area.subtract(a);
 			}

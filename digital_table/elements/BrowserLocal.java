@@ -24,7 +24,7 @@ public class BrowserLocal extends Browser {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (getVisibility() == Visibility.HIDDEN || canvas == null) return;
 		// show bounds of the browser on the map based on the screen
 		Composite c = g.getComposite();
@@ -34,10 +34,10 @@ public class BrowserLocal extends Browser {
 		int browserSize = Math.min(s.size.width, s.size.height);
 		int x = s.location.x + (s.size.width - browserSize) / 2;
 		int y = s.location.y + (s.size.height - browserSize) / 2;
-		Point2D topLeft = canvas.getRemote().getGridCoordinates(x, y);
-		Point2D bottomRight = canvas.getRemote().getGridCoordinates(x + browserSize, y + browserSize);
-		Point tl = canvas.getDisplayCoordinates(topLeft);
-		Point br = canvas.getDisplayCoordinates(bottomRight);
+		Point2D topLeft = canvas.getRemote().convertDisplayCoordsToCanvas(x, y);
+		Point2D bottomRight = canvas.getRemote().convertDisplayCoordsToCanvas(x + browserSize, y + browserSize);
+		Point tl = canvas.convertCanvasCoordsToDisplay(topLeft);
+		Point br = canvas.convertCanvasCoordsToDisplay(bottomRight);
 		g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 		g.setComposite(c);
 		g.setColor(Color.BLACK);

@@ -33,8 +33,8 @@ import digital_table.server.MapCanvas.Order;
 public class Token extends Group {
 	private static final long serialVersionUID = 1L;
 
-	public final static String PROPERTY_X = "x";	// int
-	public final static String PROPERTY_Y = "y";	// int
+//	public final static String PROPERTY_X = "x";	// int
+//	public final static String PROPERTY_Y = "y";	// int
 	public final static String PROPERTY_COLOR = "color";	// Color
 	public final static String PROPERTY_ALPHA = "alpha";	// float
 	public final static String PROPERTY_LABEL = "label";	// String
@@ -145,28 +145,11 @@ public class Token extends Group {
 		return Order.ABOVEGRID;
 	}
 
-	private int getX() {
-		return (int) location.getValue().getX();
-	}
-
-	private int getY() {
-		return (int) location.getValue().getY();
-	}
-
-	private void setX(int x) {
-		Point p = new Point(x, getY());
-		location.setValue(p);
-	}
-
-	private void setY(int y) {
-		Point p = new Point(getX(), y);
-		location.setValue(p);
-	}
-
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
-		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+
+		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 		g.translate(o.getX(), o.getY());
 
 		int space = this.space.getValue();
@@ -177,8 +160,8 @@ public class Token extends Group {
 		float arcWidth = canvas.getColumnWidth() * space / 30;
 		float arcHeight = canvas.getRowHeight() * space / 30;
 		int cells = space / 10;
-		Point tl = canvas.getDisplayCoordinates(getX(), getY());
-		Point br = canvas.getDisplayCoordinates(getX() + cells, getY() + cells);
+		Point tl = canvas.convertGridCoordsToDisplay(location.getValue());
+		Point br = canvas.convertGridCoordsToDisplay((int) getX() + cells, (int) getY() + cells);
 		BasicStroke stroke = getThickStroke();
 		float inset = stroke.getLineWidth() / 2;
 
@@ -336,8 +319,8 @@ public class Token extends Group {
 	}
 
 	private Area getReach(int reach, int space) {
-		int x = getX();
-		int y = getY();
+		int x = (int) getX();
+		int y = (int) getY();
 		Area area = new Area();
 		area.add(getRectangularArea(x - reach, y, x + reach + space, y + space));
 		area.add(getRectangularArea(x, y - reach, x + space, y + space + reach));
@@ -377,8 +360,8 @@ public class Token extends Group {
 
 // if the rectangle has any negative dimensions it will be modified to make those dimensions positive
 	private Area getRectangularArea(int x1, int y1, int x2, int y2) {
-		Point p1 = canvas.getDisplayCoordinates(x1, y1, null);
-		Point p2 = canvas.getDisplayCoordinates(x2, y2, null);
+		Point p1 = canvas.convertGridCoordsToDisplay(x1, y1, null);
+		Point p2 = canvas.convertGridCoordsToDisplay(x2, y2, null);
 		Rectangle rect = new Rectangle(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 		if (rect.width < 0) {
 			rect.width = -rect.width;
@@ -491,9 +474,9 @@ public class Token extends Group {
 	@Override
 	public Object getProperty(String property) {
 		if (property.equals(PROPERTY_X)) {
-			return getX();
+			return (int) getX();
 		} else if (property.equals(PROPERTY_Y)) {
-			return getY();
+			return (int) getY();
 		} else {
 			return super.getProperty(property);
 		}

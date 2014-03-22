@@ -120,9 +120,10 @@ class TokenOverlay {
 		}
 
 		@Override
-		public void paint(Graphics2D g, Point2D offset) {
+		public void paint(Graphics2D g) {
 			if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
-			Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+
+			Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 			g.translate(o.getX(), o.getY());
 
 			int space = this.space.getValue();
@@ -131,8 +132,8 @@ class TokenOverlay {
 			float arcWidth = canvas.getColumnWidth() * space / 30;
 			float arcHeight = canvas.getRowHeight() * space / 30;
 			int cells = space / 10;
-			Point tl = canvas.getDisplayCoordinates(getX(), getY());
-			Point br = canvas.getDisplayCoordinates(getX() + cells, getY() + cells);
+			Point tl = canvas.convertGridCoordsToDisplay(getX(), getY());
+			Point br = canvas.convertGridCoordsToDisplay(getX() + cells, getY() + cells);
 			BasicStroke stroke = getThickStroke();
 			float inset = stroke.getLineWidth() / 2;
 

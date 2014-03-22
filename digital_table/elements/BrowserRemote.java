@@ -2,7 +2,6 @@ package digital_table.elements;
 
 import java.awt.BorderLayout;
 import java.awt.Graphics2D;
-import java.awt.geom.Point2D;
 
 import javax.swing.JPanel;
 
@@ -39,7 +38,7 @@ public class BrowserRemote extends Browser {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (getVisibility() != Visibility.HIDDEN && panel != null) {
 			panel.repaint();	// without this the underlying map will often get painted ontop of the panel. with this there can still be flickering
 		}

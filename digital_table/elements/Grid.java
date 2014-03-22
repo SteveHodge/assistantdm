@@ -43,7 +43,7 @@ public class Grid extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		g.setColor(color.getValue());
@@ -52,10 +52,10 @@ public class Grid extends MapElement {
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
 		Rectangle bounds = g.getClipBounds();
-		Point2D tl = canvas.getGridCoordinates(bounds.x, bounds.y);
+		Point2D tl = canvas.convertDisplayCoordsToCanvas(bounds.x, bounds.y);
 		Point tlCell = new Point();
 		tlCell.setLocation(tl.getX(), tl.getY());
-		Point2D br = canvas.getGridCoordinates(bounds.x + bounds.width, bounds.y + bounds.height);
+		Point2D br = canvas.convertDisplayCoordsToCanvas(bounds.x + bounds.width, bounds.y + bounds.height);
 		Point brCell = new Point();
 		brCell.setLocation(br.getX(), br.getY());
 
@@ -66,7 +66,7 @@ public class Grid extends MapElement {
 		if (showCoordinates) {
 			for (int row = tlCell.y; row <= brCell.y; row++) {
 				for (int col = tlCell.x; col <= brCell.x; col++) {
-					canvas.getDisplayCoordinates(col, row, p);
+					canvas.convertCanvasCoordsToDisplay(col, row, p);
 					String s = "" + (col - canvas.getXOffset()) + "," + (row - canvas.getYOffset());
 					Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 					g.drawString(s,
@@ -84,7 +84,7 @@ public class Grid extends MapElement {
 			g.setFont(f.deriveFont(newSize));
 			int row = rulerRow.getValue();
 			for (int col = tlCell.x; col <= brCell.x; col++) {
-				canvas.getDisplayCoordinates(col, row + canvas.getYOffset(), p);
+				canvas.convertCanvasCoordsToDisplay(col, row + canvas.getYOffset(), p);
 				String s = getLetterIndex(col - canvas.getRemote().getXOffset());
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 				g.setColor(backgroundColor.getValue());
@@ -107,7 +107,7 @@ public class Grid extends MapElement {
 			g.setFont(f.deriveFont(newSize).deriveFont(rot));
 			int col = rulerColumn.getValue();
 			for (int row = tlCell.y; row <= brCell.y; row++) {
-				canvas.getDisplayCoordinates(col + canvas.getXOffset(), row, p);
+				canvas.convertCanvasCoordsToDisplay(col + canvas.getXOffset(), row, p);
 				String s = "" + (row + 1 - canvas.getRemote().getYOffset());
 				Rectangle2D strBounds = g.getFontMetrics().getStringBounds(s,g);
 				g.setColor(backgroundColor.getValue());
@@ -123,11 +123,11 @@ public class Grid extends MapElement {
 		}
 
 		for (int col = tlCell.x; col <= brCell.x; col++) {
-			canvas.getDisplayCoordinates(col, 0, p);
+			canvas.convertCanvasCoordsToDisplay(col, 0, p);
 			g.drawLine(p.x, bounds.y, p.x, bounds.y + bounds.height);
 		}
 		for (int row = tlCell.y; row <= brCell.y; row++) {
-			canvas.getDisplayCoordinates(0, row, p);
+			canvas.convertCanvasCoordsToDisplay(0, row, p);
 			g.drawLine(bounds.x, p.y, bounds.x + bounds.width, p.y);
 		}
 

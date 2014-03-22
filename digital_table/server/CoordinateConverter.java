@@ -14,7 +14,7 @@ public interface CoordinateConverter {
 	// (which are in the coordinate system of the remote display). note that this may give imprecise results due to
 	// round in the coordinate conversions
 	// TODO should return a Dimension2D
-	public Point2D getGridDimension(int width, int height);
+	public Point2D convertDisplayCoordsToGrid(int width, int height);
 
 	/**
 	 * Get the precise (potentially fractional) grid coordinates of the pixel (x,y) where the pixel coordinates
@@ -26,7 +26,7 @@ public interface CoordinateConverter {
 	 *            the pixel's y coordinate
 	 * @return a Point2D.Double containing the grid coordinates
 	 */
-	public Point2D getGridCoordinates(int x, int y);
+	public Point2D convertDisplayCoordsToCanvas(int x, int y);
 
 	public int getXOffset();
 

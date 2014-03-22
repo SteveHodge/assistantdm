@@ -68,11 +68,16 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * ENH: add location fields to GroupOptionPanel
+ * DarknessMask should load/save cleared cells
+ * ENH: consider separate element for darkness cleared cell - should be parent-relative - or perhaps add to LightSource
  * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
- * Reordering the elements resets the group expanded/collapsed state
- * BUG: Line: setting image after rotation draws the un-transformed image
- * BUG: Mask: zooming the grid causes the mask to be drawn incorrectly
- * Mask: clear cells code
+ * ENH: Reordering the elements resets the group expanded/collapsed state
+ * BUG: LineTemplate: setting image after rotation draws the un-transformed image
+ * BUG: LineTemplate: dragging does not correctly pick the orgin/target if line is under group
+ * BUG: ShapableTemplate: click does not get correct location when under group
+ * BUG: MapImage: cleared cells are not relative to image
+ * REF: Factor clear cells code into support class
  * MaskOptionsPanel: delete mask, reorder masks
  * MaskOptionsPanel: optimise masks by removing surrounding transparent pixels?
  * Copy in encounters dialog should copy the current creature, not the base
@@ -419,11 +424,11 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 				if (!newParty.contains(c)) changes.add(c);
 			}
 			for (Character c : changes) party.remove(c);
-					changes = new HashSet<Character>();
-					for (Character c : newParty) {
-						if (!party.contains(c)) changes.add(c);
-					}
-					for (Character c : changes) party.add(c);
+			changes = new HashSet<Character>();
+			for (Character c : newParty) {
+				if (!party.contains(c)) changes.add(c);
+			}
+			for (Character c : changes) party.add(c);
 		}
 	}
 

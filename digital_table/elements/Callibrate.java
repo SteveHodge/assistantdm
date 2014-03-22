@@ -3,7 +3,6 @@ package digital_table.elements;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.geom.Point2D;
 
 import digital_table.server.MapCanvas.Order;
 
@@ -26,7 +25,7 @@ public class Callibrate extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		if (!showBackground.getValue()) {
@@ -34,8 +33,8 @@ public class Callibrate extends MapElement {
 			g.fill(g.getClip());
 		}
 
-		Point tl = canvas.getDisplayCoordinates(left + canvas.getRemote().getXOffset(), top + canvas.getRemote().getYOffset());
-		Point br = canvas.getDisplayCoordinates(right + canvas.getRemote().getXOffset(), bottom + canvas.getRemote().getYOffset());
+		Point tl = canvas.convertCanvasCoordsToDisplay(left + canvas.getRemote().getXOffset(), top + canvas.getRemote().getYOffset());
+		Point br = canvas.convertCanvasCoordsToDisplay(right + canvas.getRemote().getXOffset(), bottom + canvas.getRemote().getYOffset());
 		g.setColor(Color.RED);
 		g.fillOval(tl.x - size / 2, tl.y - size / 2, size, size);
 		g.fillOval(tl.x - size / 2, br.y - size / 2, size, size);

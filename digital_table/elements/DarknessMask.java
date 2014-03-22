@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +35,7 @@ public class DarknessMask extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		// build the shape
@@ -47,8 +46,8 @@ public class DarknessMask extends MapElement {
 		// using indexed loop instead of iterator to avoid concurrency issues
 		for (int i = 0; i < cleared.size(); i++) {
 			Point p = cleared.get(i);
-			Point tl = canvas.getDisplayCoordinates(p.x, p.y);
-			Point br = canvas.getDisplayCoordinates(p.x+1, p.y+1);
+			Point tl = canvas.convertCanvasCoordsToDisplay(p.x, p.y);
+			Point br = canvas.convertCanvasCoordsToDisplay(p.x+1, p.y+1);
 			dark.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
 		}
 

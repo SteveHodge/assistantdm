@@ -124,10 +124,12 @@ public class SpreadTemplate extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
-		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+
+		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 		g.translate(o.getX(), o.getY());
+
 
 		Stroke oldStroke = g.getStroke();
 		g.setColor(color.getValue());
@@ -155,7 +157,7 @@ public class SpreadTemplate extends MapElement {
 		g.setColor(darken(color.getValue()));
 		g.setStroke(getThickStroke());
 		g.draw(area);
-		Point t = canvas.getDisplayCoordinates(x.getValue(), y.getValue());
+		Point t = canvas.convertGridCoordsToDisplay(x.getValue(), y.getValue());
 		if (type.getValue() == Type.CIRCLE) {
 			g.fillOval(t.x - 5, t.y - 5, 10, 10);
 		}
@@ -201,8 +203,8 @@ public class SpreadTemplate extends MapElement {
 
 	// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
 	protected Rectangle getRectangle(int x1, int y1, int x2, int y2) {
-		Point p1 = canvas.getDisplayCoordinates(x1, y1, null);
-		Point p2 = canvas.getDisplayCoordinates(x2, y2, null);
+		Point p1 = canvas.convertGridCoordsToDisplay(x1, y1, null);
+		Point p2 = canvas.convertGridCoordsToDisplay(x2, y2, null);
 		Rectangle rect = new Rectangle(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 		if (rect.width < 0) {
 			rect.width = -rect.width;
@@ -265,201 +267,6 @@ public class SpreadTemplate extends MapElement {
 		if (canvas.getColumnWidth() < 40) return new BasicStroke(3);
 		return new BasicStroke(5);
 	}
-
-	/*	public void paint(Graphics2D g) {
-			if (canvas == null || !visible) return;
-
-			Stroke oldStroke = g.getStroke();
-			g.setColor(color);
-			Composite c = g.getComposite();
-			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-			if (type == Type.CIRCLE) {
-				paintQuadrant(g, 1, 1);
-				paintQuadrant(g, 1, -1);
-				paintQuadrant(g, -1, 1);
-				paintQuadrant(g, -1, -1);
-				g.setColor(darken(color));
-				Point t = canvas.getDisplayCoordinates(x, y);
-				g.fillOval(t.x-5, t.y-5, 10, 10);
-			} else if (type == Type.QUADRANT) {
-				if (direction.getXDirection() == 0) {
-					paintQuadrantVert(g, direction.getYDirection());
-				} else if (direction.getYDirection() == 0) {
-					paintQuadrantHoriz(g, direction.getXDirection());
-				} else {
-					// diagonal cones - just draw the quadrant
-					paintQuadrant(g, direction.getXDirection(), direction.getYDirection());
-					// draw the edges from the origin
-					g.setColor(darken(color));
-					g.setStroke(getThickStroke());
-					Point s = canvas.getDisplayCoordinates(x, y);
-					Point e = canvas.getDisplayCoordinates(x+direction.getXDirection()*radius, y);
-					g.drawLine(s.x, s.y, e.x, e.y);
-					canvas.getDisplayCoordinates(x, y+direction.getYDirection()*radius, e);
-					g.drawLine(s.x, s.y, e.x, e.y);
-				}
-			}
-			g.setStroke(oldStroke);
-			g.setComposite(c);
-		}
-
-		protected void paintQuadrantVert(Graphics2D g, int ydir) {
-			if (affected == null) calculateSpread();
-			Point p1 = new Point();
-			Point p2 = new Point();
-			Stroke oldStroke = g.getStroke();
-			Stroke edgeStroke = getThickStroke();
-			for (int i = 0; i < radius; i++) {
-				for (int j = 0; j < radius; j++) {
-					if (affected[i][j] &&  Math.abs(i) <= Math.abs(j)) {
-						int gridy = ydir*j+y;
-
-						g.setColor(color);
-						g.setStroke(oldStroke);
-						canvas.getDisplayCoordinates(x+i, gridy, p1);
-						canvas.getDisplayCoordinates(x+i+1, gridy+ydir, p2);
-						g.fillRect(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
-						canvas.getDisplayCoordinates(x-i-1, gridy, p1);
-						canvas.getDisplayCoordinates(x-i, gridy+ydir, p2);
-						g.fillRect(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
-
-						g.setColor(darken(color));
-						g.setStroke(edgeStroke);
-						if (j-ydir < 0 || j-ydir==radius || !affected[i][j-ydir] || Math.abs(i) > Math.abs(j-ydir)) {
-							int yadj = ydir < 0 ? ydir : 0;
-							canvas.getDisplayCoordinates(x-i-1, gridy+yadj, p1);
-							canvas.getDisplayCoordinates(x-i, gridy+yadj, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-							canvas.getDisplayCoordinates(x+i+1, gridy+yadj, p1);
-							canvas.getDisplayCoordinates(x+i, gridy+yadj, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-						}
-						if (j+ydir < 0 || j+ydir==radius || !affected[i][j+ydir] || Math.abs(i) > Math.abs(j+ydir)) {
-							int yadj = ydir > 0 ? ydir : 0;
-							canvas.getDisplayCoordinates(x-i-1, gridy+yadj, p1);
-							canvas.getDisplayCoordinates(x-i, gridy+yadj, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-							canvas.getDisplayCoordinates(x+i+1, gridy+yadj, p1);
-							canvas.getDisplayCoordinates(x+i, gridy+yadj, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-						}
-						if (i+1 < 0 || i+1==radius || !affected[i+1][j] || Math.abs(i+1) > Math.abs(j)) {
-							canvas.getDisplayCoordinates(x-i-1, gridy, p1);
-							canvas.getDisplayCoordinates(x-i-1, gridy+ydir, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-							canvas.getDisplayCoordinates(x+i+1, gridy, p1);
-							canvas.getDisplayCoordinates(x+i+1, gridy+ydir, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-						}
-					}
-				}
-			}
-		}
-
-		protected void paintQuadrantHoriz(Graphics2D g, int xdir) {
-			if (affected == null) calculateSpread();
-			Point p1 = new Point();
-			Point p2 = new Point();
-			Stroke oldStroke = g.getStroke();
-			Stroke edgeStroke = getThickStroke();
-			for (int i = 0; i < radius; i++) {
-				for (int j = 0; j < radius; j++) {
-					if (affected[i][j] && Math.abs(i) >= Math.abs(j)) {
-						g.setStroke(oldStroke);
-						g.setColor(color);
-						int gridx = xdir*i+x;
-						canvas.getDisplayCoordinates(gridx, y-j-1, p1);
-						canvas.getDisplayCoordinates(gridx+xdir, y-j, p2);
-						g.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-						canvas.getDisplayCoordinates(gridx, y+j, p1);
-						canvas.getDisplayCoordinates(gridx+xdir, y+j+1, p2);
-						g.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-
-						g.setColor(darken(color));
-						g.setStroke(edgeStroke);
-						// check the edge closest to x - if the cell on the other side (with x = i+xdir) is unaffected the draw the edge
-						// it's unaffected if it is not set in the array, if (i+xdir) is out of range for the array, or
-						// if it's on the wrong side of the diagonal i = j
-						if (i-xdir < 0 || i-xdir==radius || !affected[i-xdir][j] || Math.abs(i-xdir) < Math.abs(j)) {
-							int xadj = xdir < 0 ? xdir : 0;
-							canvas.getDisplayCoordinates(gridx+xadj, y-j-1, p1);
-							canvas.getDisplayCoordinates(gridx+xadj, y-j, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-							canvas.getDisplayCoordinates(gridx+xadj, y+j+1, p1);
-							canvas.getDisplayCoordinates(gridx+xadj, y+j, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-						}
-						// test the outer vertical edge. don't draw if the next cell in xdir is unaffected:
-						if (i+xdir < 0 || i+xdir==radius || !affected[i+xdir][j] || Math.abs(i+xdir) < Math.abs(j)) {
-							int xadj = xdir > 0 ? xdir : 0;
-							canvas.getDisplayCoordinates(gridx+xadj, y-j-1, p1);
-							canvas.getDisplayCoordinates(gridx+xadj, y-j, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-							canvas.getDisplayCoordinates(gridx+xadj, y+j+1, p1);
-							canvas.getDisplayCoordinates(gridx+xadj, y+j, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-						}
-						// test the outer horizontal edges. don't draw if the next cell in ydir is unaffected:
-						if (j+1 < 0 || j+1==radius || !affected[i][j+1] || Math.abs(i) < Math.abs(j+1)) {
-							canvas.getDisplayCoordinates(gridx, y-j-1, p1);
-							canvas.getDisplayCoordinates(gridx+xdir, y-j-1, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-							canvas.getDisplayCoordinates(gridx, y+j+1, p1);
-							canvas.getDisplayCoordinates(gridx+xdir, y+j+1, p2);
-							g.drawLine(p1.x, p1.y, p2.x, p2.y);
-						}
-					}
-				}
-			}
-		}
-
-		protected void paintQuadrant(Graphics2D g, int xdir, int ydir) {
-			if (affected == null) calculateSpread();
-			Point p1 = new Point();
-			Point p2 = new Point();
-
-			// paint the affected cells
-			g.setColor(color);
-			for (int i = 0; i < radius; i++) {
-				for (int j = 0; j < radius; j++) {
-					if (affected[i][j]) {
-						int gridx = xdir*i+x;
-						int gridy = ydir*j+y;
-						canvas.getDisplayCoordinates(gridx, gridy, p1);
-						canvas.getDisplayCoordinates(gridx+xdir, gridy+ydir, p2);
-						g.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-					}
-				}
-			}
-
-			// draw the edge
-			Stroke oldStroke = g.getStroke();
-			g.setColor(darken(color));
-			g.setStroke(getThickStroke());
-			for (int i = 0; i < radius; i++) {
-				for (int j = 0; j < radius; j++) {
-					if (affected[i][j]) {
-						int gridx = xdir*i+x;
-						int gridy = ydir*j+y;
-						canvas.getDisplayCoordinates(gridx+xdir, gridy+ydir, p2);
-						// test the two outer edges (the edges that join at p2)
-						// if the cells on the other side of those edges aren't affected then draw a border
-						if (i == radius-1 || !affected[i+1][j] || j == radius-1 || !affected[i][j+1]) {
-							if (i == radius-1 || !affected[i+1][j]) {
-								canvas.getDisplayCoordinates(gridx+xdir, gridy, p1);
-								g.drawLine(p1.x, p1.y, p2.x, p2.y);
-							}
-							if (j == radius-1 || !affected[i][j+1]) {
-								canvas.getDisplayCoordinates(gridx, gridy+ydir, p1);
-								g.drawLine(p1.x, p1.y, p2.x, p2.y);
-							}
-						}
-					}
-				}
-			}
-			g.setStroke(oldStroke);
-		}
-	 */
 
 	@Override
 	public String toString() {

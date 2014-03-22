@@ -5,15 +5,19 @@ import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Shape;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import digital_table.server.ImageMedia;
+import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
 
 // TODO we don't detect changes in the underlying image - need to fix the architecture
@@ -30,6 +34,8 @@ public class Mask extends MapElement {
 	public final static String PROPERTY_ADD_MASK = "add_mask";		// uri - write only
 	public static final String PROPERTY_SHOW_MASK = "show_mask";	// index of mask - write only
 	public static final String PROPERTY_HIDE_MASK = "hide_mask";	// index of mask - write only
+	public final static String PROPERTY_CLEARCELL = "clear";		// Point - when this property is set the specified cell will be cleared
+	public final static String PROPERTY_UNCLEARCELL = "unclear";	// Point - when this property is set the specified cell will be shown again
 
 	private List<MaskImage> masks = new ArrayList<MaskImage>();
 
@@ -39,12 +45,19 @@ public class Mask extends MapElement {
 		boolean visible = true;
 	}
 
-	private transient BufferedImage combinedMask = null;
+	private transient MapImage image;
+	private transient BufferedImage combinedMask;
+	private transient AffineTransform transform;
 
-	private transient MapImage image = null;
+	private List<Point> cleared = new ArrayList<Point>();
 
 	void setImageElement(MapImage mapImage) {
 		image = mapImage;
+	}
+
+	@Override
+	public Order getDefaultOrder() {
+		return Order.ABOVEGRID;
 	}
 
 	@Override
@@ -53,37 +66,20 @@ public class Mask extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D off) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		if (parent != image) return;
 		if (image.getVisibility() != Visibility.VISIBLE) return;
 
-		Point2D o = canvas.getDisplayCoordinates((int) off.getX(), (int) off.getY());
+		Point2D o = canvas.convertGridCoordsToDisplay(image.translate(canvas.getElementOrigin(image)));
 		g.translate(o.getX(), o.getY());
-
-		Shape oldClip = g.getClip();
 
 		Composite c = g.getComposite();
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, getVisibility() == Visibility.FADED ? 0.5f : 1f));
 
-//		System.out.println("Image position = " + o + ", size = " + displaySize);
-
-		// build the shape
-//		Area area = new Area(g.getClip());
-		// using indexed loop instead of iterator to avoid concurrency issues
-//		for (int i = 0; i < cleared.size(); i++) {
-//			Point p = cleared.get(i);
-//			Point tl = canvas.getDisplayCoordinates(p.x, p.y);
-//			Point br = canvas.getDisplayCoordinates(p.x + 1, p.y + 1);
-//			area.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
-//		}
-//		g.setClip(area);
-
-		Point offset = canvas.getDisplayCoordinates(image.location.getValue());
-		g.drawImage(getMaskImage(), offset.x, offset.y, null);
+		g.drawImage(getMaskImage(), 0, 0, null);
 
 		g.setComposite(c);
-		g.setClip(oldClip);
 		g.translate(-o.getX(), -o.getY());
 		//long micros = (System.nanoTime() - startTime) / 1000;
 		//logger.info("Painting complete for " + this + " in " + micros + "ms");
@@ -92,50 +88,56 @@ public class Mask extends MapElement {
 
 	// mask images are combined and then transformed
 	synchronized BufferedImage getMaskImage() {
-		if (combinedMask == null) {
-//		Runtime rt = Runtime.getRuntime();
-//		rt.gc();
-//		rt.gc();
-//		rt.gc();
-//		long used = rt.totalMemory() - rt.freeMemory();
-//		double usedMB = (double) used / (1024 * 1024);
-//		System.out.println(String.format("Building mask... used mem = %.3f MB ", usedMB));
-
-			BufferedImage temp = null;
-			Graphics2D tempG = null;
-			for (int i = 0; i < masks.size(); i++) {
-				MaskImage m = masks.get(i);
-				if (m.visible) {
-					if (temp == null) {
-						temp = new BufferedImage(m.image.getSourceWidth(), m.image.getSourceHeight(), BufferedImage.TYPE_INT_ARGB);
-						tempG = temp.createGraphics();
-					}
-					tempG.drawImage(m.image.getImage(), 0, 0, null);
+		AffineTransform trans = null;
+		BufferedImage temp = null;
+		Graphics2D tempG = null;
+		for (int i = 0; i < masks.size(); i++) {
+			MaskImage m = masks.get(i);
+			if (m.visible) {
+				if (temp == null) {
+					temp = new BufferedImage(m.image.getSourceWidth(), m.image.getSourceHeight(), BufferedImage.TYPE_INT_ARGB);
+					tempG = temp.createGraphics();
+					trans = image.getTransform(temp.getWidth(), temp.getHeight());
+					if (combinedMask != null && trans.equals(transform)) return combinedMask;	// transform is unchanged and we already have a mask
+					transform = trans;
 				}
+				tempG.drawImage(m.image.getImage(), 0, 0, null);
 			}
-			if (tempG != null) tempG.dispose();
+		}
+		if (tempG != null) tempG.dispose();
 
-			if (temp != null) {
-				// update the image transform. this needs to be done on every repaint as the grid size may have changed
-				AffineTransform transform = image.getTransform(temp.getWidth(), temp.getHeight());
-				combinedMask = ImageMedia.getTransformedImage(temp, transform);
-			} else {
-				Dimension d = canvas.getDisplayDimension(image.width.getValue(), image.height.getValue());
-				combinedMask = new BufferedImage(d.width, d.height, BufferedImage.TYPE_INT_ARGB);
+		if (temp != null) {
+			AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+			Rectangle2D bounds = ImageMedia.getBounds(transform, temp.getWidth(), temp.getHeight());
+			combinedMask = new BufferedImage((int) Math.ceil(bounds.getWidth()), (int) Math.ceil(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);
+			//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
+			Graphics2D g = (Graphics2D) combinedMask.getGraphics();
+
+			// clip any cleared cells
+			Area area = new Area(new Rectangle2D.Double(0, 0, bounds.getWidth(), bounds.getHeight()));
+			//using indexed loop instead of iterator to avoid concurrency issues
+			for (int i = 0; i < cleared.size(); i++) {
+				Point p = cleared.get(i);
+				Point tl = canvas.convertGridCoordsToDisplay(p.x, p.y);
+				Point br = canvas.convertGridCoordsToDisplay(p.x + 1, p.y + 1);
+				area.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
 			}
+			g.setClip(area);
 
-//		rt.gc();
-//		rt.gc();
-//		rt.gc();
-//		used = rt.totalMemory() - rt.freeMemory();
-//		usedMB = (double) used / (1024 * 1024);
-//		System.out.println(String.format("Built mask... used mem = %.3f MB ", usedMB));
+			g.drawImage(temp, op, (int) -bounds.getX(), (int) -bounds.getY());
+			g.dispose();
+		} else {
+			Dimension d = canvas.getDisplayDimension(image.width.getValue(), image.height.getValue());
+			combinedMask = new BufferedImage(d.width, d.height, BufferedImage.TYPE_INT_ARGB);
 		}
 		return combinedMask;
 	}
 
-	private synchronized void clearMask() {
-		combinedMask = null;
+	private void clearMask() {
+		synchronized (this) {
+			combinedMask = null;
+		}
+		canvas.repaint();
 	}
 
 	private void addMask(URI uri) {
@@ -146,6 +148,32 @@ public class Mask extends MapElement {
 		clearMask();
 	}
 
+	/**
+	 * 
+	 * @return array of the points defining the centres of the cubes
+	 */
+	public Point[] getCells() {
+		Point[] ps = new Point[cleared.size()];
+		for (int i = 0; i < ps.length; i++) {
+			ps[i] = new Point(cleared.get(i));
+		}
+		return ps;
+	}
+
+	public boolean isCleared(Point p) {
+		return cleared.contains(p);
+	}
+
+	public void setCleared(Point p, boolean clear) {
+		if (!clear) {
+			cleared.remove(p);
+			clearMask();
+		} else if (!cleared.contains(p)) {
+			cleared.add(p);
+			clearMask();
+		}
+	}
+
 	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_ADD_MASK)) {
@@ -153,11 +181,13 @@ public class Mask extends MapElement {
 		} else if (property.equals(PROPERTY_SHOW_MASK)) {
 			masks.get((Integer) value).visible = true;
 			clearMask();
-			canvas.repaint();
 		} else if (property.equals(PROPERTY_HIDE_MASK)) {
 			masks.get((Integer) value).visible = false;
 			clearMask();
-			canvas.repaint();
+		} else if (property.equals(PROPERTY_CLEARCELL)) {
+			setCleared((Point) value, true);
+		} else if (property.equals(PROPERTY_UNCLEARCELL)) {
+			setCleared((Point) value, false);
 		} else {
 			super.setProperty(property, value);
 		}

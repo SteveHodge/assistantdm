@@ -21,6 +21,7 @@ import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
 
 // TODO could have border color property
+// TODO dragging the image after clearing cells does not move the cleared cells which is weird
 
 public class MapImage extends Group {
 	private static final long serialVersionUID = 1L;
@@ -31,8 +32,6 @@ public class MapImage extends Group {
 	public final static String PROPERTY_ROTATIONS = "rotations";	// int - number of quadrants rotated clockwise
 	public final static String PROPERTY_WIDTH = "width";	// double
 	public final static String PROPERTY_HEIGHT = "height";	// double
-	public final static String PROPERTY_X = "x";	// double
-	public final static String PROPERTY_Y = "y";	// double
 	public final static String PROPERTY_CLEARCELL = "clear";	// Point - when this property is set the specified cell will be cleared
 	public final static String PROPERTY_UNCLEARCELL = "unclear";	// Point - when this property is set the specified cell will be shown again
 	public final static String PROPERTY_IMAGE = "image";	// URI currently write-only (but change to read-write)
@@ -112,24 +111,6 @@ public class MapImage extends Group {
 		super.removeChild(e);
 	}
 
-	private double getX() {
-		return location.getValue().getX();
-	}
-
-	private double getY() {
-		return location.getValue().getY();
-	}
-
-	private void setX(double x) {
-		Point2D p = new Point2D.Double(x, getY());
-		location.setValue(p);
-	}
-
-	private void setY(double y) {
-		Point2D p = new Point2D.Double(getX(), y);
-		location.setValue(p);
-	}
-
 	// returns the AffineTransform that would transform an image of the specified width and height to the
 	// dimensions of this element. the AffineTransform includes and rotations set on this element
 	AffineTransform getTransform(int srcWidth, int srcHeight) {
@@ -150,13 +131,13 @@ public class MapImage extends Group {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D off) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		if (image == null || image.getImage() == null) return;
 
 //		long startTime = System.nanoTime();
 
-		Point2D o = canvas.getDisplayCoordinates((int) off.getX(), (int) off.getY());
+		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 		g.translate(o.getX(), o.getY());
 
 		Shape oldClip = g.getClip();
@@ -165,8 +146,8 @@ public class MapImage extends Group {
 		// using indexed loop instead of iterator to avoid concurrency issues
 		for (int i = 0; i < cleared.size(); i++) {
 			Point p = cleared.get(i);
-			Point tl = canvas.getDisplayCoordinates(p.x, p.y);
-			Point br = canvas.getDisplayCoordinates(p.x+1, p.y+1);
+			Point tl = canvas.convertGridCoordsToDisplay(p.x, p.y);
+			Point br = canvas.convertGridCoordsToDisplay(p.x + 1, p.y + 1);
 			area.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
 		}
 		g.setClip(area);
@@ -174,7 +155,7 @@ public class MapImage extends Group {
 		Composite c = g.getComposite();
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
-		Point offset = canvas.getDisplayCoordinates(location.getValue());
+		Point offset = canvas.convertGridCoordsToDisplay(location.getValue());
 
 		// update the image transform. this needs to be done on every repaint as the grid size may have changed
 		AffineTransform transform = getTransform(image.getSourceWidth(), image.getSourceHeight());
@@ -233,17 +214,6 @@ public class MapImage extends Group {
 	}
 
 	@Override
-	public Object getProperty(String property) {
-		if (property.equals(PROPERTY_X)) {
-			return getX();
-		} else if (property.equals(PROPERTY_Y)) {
-			return getY();
-		} else {
-			return super.getProperty(property);
-		}
-	}
-
-	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_CLEARCELL)) {
 			setCleared((Point)value, true);
@@ -251,10 +221,6 @@ public class MapImage extends Group {
 			setCleared((Point)value, false);
 		} else if (property.equals(PROPERTY_IMAGE)) {
 			setURI((URI) value);
-		} else if (property.equals(PROPERTY_X)) {
-			setX((Double) value);
-		} else if (property.equals(PROPERTY_Y)) {
-			setY((Double) value);
 		} else if (property.equals(PROPERTY_IMAGE_PLAY)) {
 			if (image != null) image.playOrPause();
 		} else if (property.equals(PROPERTY_IMAGE_STOP)) {

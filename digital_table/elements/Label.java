@@ -49,9 +49,10 @@ public class Label extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (getVisibility() == Visibility.HIDDEN || canvas == null) return;
-		Point2D o = canvas.getDisplayCoordinates(offset);
+
+		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 		g.translate(o.getX(), o.getY());
 
 		Font f = g.getFont();
@@ -76,7 +77,7 @@ public class Label extends MapElement {
 			Composite c = g.getComposite();
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 
-			Point p = canvas.getDisplayCoordinates(new Point2D.Double(x.getValue(), y.getValue()));
+			Point p = canvas.convertGridCoordsToDisplay(new Point2D.Double(x.getValue(), y.getValue()));
 
 			int w = width + 10;
 			int h = metrics.getHeight() * text.length;

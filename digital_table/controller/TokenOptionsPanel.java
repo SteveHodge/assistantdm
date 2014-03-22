@@ -339,7 +339,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 				FileInputStream stream = new FileInputStream(imageFile);
 				stream.read(bytes);
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.err.println("Could not set image for token: " + e.getLocalizedMessage());
 			}
 		}
 		display.setProperty(element, Token.PROPERTY_IMAGE, bytes, Mode.REMOTE);

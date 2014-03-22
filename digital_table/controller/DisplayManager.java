@@ -193,14 +193,14 @@ class DisplayManager implements CoordinateConverter {
 	// the conversion is performed locally using cached information on the required coordinate systems
 
 	@Override
-	public Point2D getGridDimension(int width, int height) {
+	public Point2D convertDisplayCoordsToGrid(int width, int height) {
 		double col = (double) width * MapCanvas.RESOLUTION_DENOMINATOR / MapCanvas.RESOLUTION_NUMERATOR;
 		double row = (double) height * MapCanvas.RESOLUTION_DENOMINATOR / MapCanvas.RESOLUTION_NUMERATOR;
 		return new Point2D.Double(col, row);
 	}
 
 	@Override
-	public Point2D getGridCoordinates(int x, int y) {
+	public Point2D convertDisplayCoordsToCanvas(int x, int y) {
 		double col = (double) x * MapCanvas.RESOLUTION_DENOMINATOR / MapCanvas.RESOLUTION_NUMERATOR;
 		double row = (double) y * MapCanvas.RESOLUTION_DENOMINATOR / MapCanvas.RESOLUTION_NUMERATOR;
 		return new Point2D.Double(col + xoffset, row + yoffset);

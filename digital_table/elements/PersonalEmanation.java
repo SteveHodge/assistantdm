@@ -45,9 +45,10 @@ public class PersonalEmanation extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
-		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+
+		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 		g.translate(o.getX(), o.getY());
 
 		Stroke oldStroke = g.getStroke();
@@ -108,8 +109,8 @@ public class PersonalEmanation extends MapElement {
 
 	// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
 	private Area getRectangularArea(int x1, int y1, int x2, int y2) {
-		Point p1 = canvas.getDisplayCoordinates(x1, y1, null);
-		Point p2 = canvas.getDisplayCoordinates(x2, y2, null);
+		Point p1 = canvas.convertGridCoordsToDisplay(x1, y1, null);
+		Point p2 = canvas.convertGridCoordsToDisplay(x2, y2, null);
 		Rectangle rect = new Rectangle(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 		if (rect.width < 0) {
 			rect.width = -rect.width;

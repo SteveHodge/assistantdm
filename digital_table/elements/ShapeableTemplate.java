@@ -43,9 +43,10 @@ public class ShapeableTemplate extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
-		Point2D o = canvas.getDisplayCoordinates((int) offset.getX(), (int) offset.getY());
+
+		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 		g.translate(o.getX(), o.getY());
 
 		Stroke oldStroke = g.getStroke();
@@ -56,8 +57,8 @@ public class ShapeableTemplate extends MapElement {
 		// build the shape
 		Area area = new Area();
 		for (Point p : squares) {
-			Point tl = canvas.getDisplayCoordinates(p.x-1, p.y-1);
-			Point br = canvas.getDisplayCoordinates(p.x+1, p.y+1);
+			Point tl = canvas.convertGridCoordsToDisplay(p.x - 1, p.y - 1);
+			Point br = canvas.convertGridCoordsToDisplay(p.x + 1, p.y + 1);
 			area.add(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
 		}
 

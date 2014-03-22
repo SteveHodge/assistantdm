@@ -87,7 +87,7 @@ public class LightSource extends MapElement {
 	}
 
 	@Override
-	public void paint(Graphics2D g, Point2D offset) {
+	public void paint(Graphics2D g) {
 	}
 
 	protected Area getBrightArea() {
@@ -155,8 +155,8 @@ public class LightSource extends MapElement {
 
 	// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
 	private Rectangle getRectangle(int x1, int y1, int x2, int y2) {
-		Point p1 = canvas.getDisplayCoordinates(x1, y1, null);
-		Point p2 = canvas.getDisplayCoordinates(x2, y2, null);
+		Point p1 = canvas.convertCanvasCoordsToDisplay(x1, y1, null);
+		Point p2 = canvas.convertCanvasCoordsToDisplay(x2, y2, null);
 		Rectangle rect = new Rectangle(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 		if (rect.width < 0) {
 			rect.width = -rect.width;

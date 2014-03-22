@@ -55,7 +55,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int xoffset = Integer.parseInt(xOffsetField.getText());
-				int delta = display.getXOffset();
+				int delta = xoffset - display.getXOffset();
 				display.setRemoteOffset(xoffset, display.getYOffset());
 				canvas.setOffset(canvas.getXOffset() + delta, canvas.getYOffset());
 			}
@@ -66,7 +66,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int yoffset = Integer.parseInt(yOffsetField.getText());
-				int delta = display.getYOffset();
+				int delta = yoffset - display.getYOffset();
 				display.setRemoteOffset(display.getXOffset(), yoffset);
 				canvas.setOffset(canvas.getXOffset(), canvas.getYOffset() + delta);
 			}

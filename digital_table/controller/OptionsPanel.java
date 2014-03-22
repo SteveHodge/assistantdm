@@ -156,14 +156,13 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		return alphaSlider;
 	}
 
-	JComboBox createComboControl(final String property, Object[] values) {
-		final JComboBox typeCombo = new JComboBox(values);
+	<T> JComboBox<T> createComboControl(final String property, T[] values) {
+		final JComboBox<T> typeCombo = new JComboBox<>(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
 		typeCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox combo = (JComboBox) e.getSource();
-				Object selected = combo.getSelectedItem();
+				Object selected = typeCombo.getSelectedItem();
 				display.setProperty(element, property, selected, Mode.ALL);
 			}
 		});
@@ -215,14 +214,13 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 
 	final static String[] options = { "0", "90", "180", "270" };
 
-	JComboBox createRotationControl(final String property, final Mode mode) {
-		JComboBox rotationsCombo = new JComboBox(options);
+	JComboBox<String> createRotationControl(final String property, final Mode mode) {
+		final JComboBox<String> rotationsCombo = new JComboBox<>(options);
 		rotationsCombo.setSelectedIndex((Integer) element.getProperty(property));
 		rotationsCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox combo = (JComboBox) e.getSource();
-				int index = combo.getSelectedIndex();
+				int index = rotationsCombo.getSelectedIndex();
 				display.setProperty(element, property, index, mode);
 			}
 		});

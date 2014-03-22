@@ -8,6 +8,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -18,12 +19,15 @@ import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
+import digital_table.elements.MapImage;
 import digital_table.elements.Token;
 
 @SuppressWarnings("serial")
 class GroupOptionsPanel extends OptionsPanel<Group> {
 	private JTextField labelField;
 	private JCheckBox visibleCheck;
+	private JTextField xField;
+	private JTextField yField;
 
 	GroupOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -32,27 +36,31 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
+		xField = createDoubleControl(MapImage.PROPERTY_X);
+		yField = createDoubleControl(MapImage.PROPERTY_Y);
 		visibleCheck = createVisibilityControl();
 		labelField = createStringControl(Token.PROPERTY_LABEL);
 
-		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
+		c.gridy = GridBagConstraints.RELATIVE;
 		add(visibleCheck, c);
+		add(new JLabel("Left edge column:"), c);
+		add(new JLabel("Top edge Row:"), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 0; add(labelField, c);
+		add(labelField, c);
+		add(xField, c);
+		add(yField, c);
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
 		c.gridx = 0;
-		c.gridy++;
 		c.gridwidth = 2;
 		add(new JPanel(), c);
-		//@formatter:on
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -64,8 +72,16 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 			} else if (e.getPropertyName().equals(Group.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
 
-			} else if (e.getPropertyName().equals(Group.PROPERTY_LOCATION)) {
-				// nothing to update
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_X)) {
+				xField.setText(e.getNewValue().toString());
+
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_Y)) {
+				yField.setText(e.getNewValue().toString());
+
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_LOCATION)) {
+				Point2D loc = (Point2D) e.getNewValue();
+				xField.setText(Double.toString(loc.getX()));
+				yField.setText(Double.toString(loc.getY()));
 
 			} else {
 				System.out.println(toString() + ": Unknown property: " + e.getPropertyName());

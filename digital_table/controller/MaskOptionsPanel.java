@@ -3,8 +3,11 @@ package digital_table.controller;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -22,8 +25,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import digital_table.controller.DisplayManager.Mode;
+import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
+import digital_table.elements.MapImage;
 import digital_table.elements.Mask;
 import digital_table.server.MediaManager;
 
@@ -158,11 +164,47 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		}
 	};
 
+	@Override
+	MapElementMouseListener getMouseListener() {
+		return mouseListener;
+	}
+
+	private MapElementMouseListener mouseListener = new DefaultDragger() {
+		@Override
+		public void mouseClicked(MouseEvent e, Point2D gridloc) {
+			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getClickCount() != 1) return;
+
+			// get ancestor's relative position
+			Point2D offset = new Point2D.Double();
+			Group parent = element.getParent();
+			while (parent != null) {
+				offset = parent.translate(offset);
+				parent = parent.getParent();
+			}
+
+			Point p = new Point((int) (gridloc.getX() - offset.getX()), (int) (gridloc.getY() - offset.getY()));
+			boolean clear = !element.isCleared(p);
+			element.setCleared(p, clear);
+			if (clear) {
+				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
+			} else {
+				display.setProperty(element, MapImage.PROPERTY_UNCLEARCELL, p, Mode.REMOTE);
+			}
+		}
+
+		@Override
+		String getDragTarget(Point2D gridLocation) {
+			return null;
+		}
+	};
+
 	// ---- XML serialisation methods ----
 	final static String XML_TAG = "MaskSet";
 	final static String MASK_TAG = "Mask";
 	final static String MASK_NAME_ATTRIBUTE = "Name";
 	final static String FILE_ATTRIBUTE_NAME = "uri";
+	private final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
 
 //	private final static String FILE_ATTRIBUTE_NAME = "uri";
 
@@ -181,6 +223,19 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 			m.setAttribute(MapElement.PROPERTY_VISIBLE, visible ? Visibility.VISIBLE.toString() : Visibility.HIDDEN.toString());
 			m.setAttribute(MASK_NAME_ATTRIBUTE, name);
 			e.appendChild(m);
+		}
+
+		// output the current list of points in an attribute (might be better to have a more
+		// structured output but that will complicate general parsing of child elements).
+		// points are output as a list of coordinates, one point at a time, x then y coordinate.
+		Point[] points = element.getCells();
+		String attr = "";
+		for (int i = 0; i < points.length; i++) {
+			attr += points[i].x + "," + points[i].y + ",";
+		}
+		if (attr.length() > 0) {
+			attr = attr.substring(0, attr.length() - 1);
+			e.setAttribute(CLEARED_CELL_LIST_ATTRIBUTE, attr);
 		}
 
 		return e;
@@ -205,6 +260,15 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 				} catch (URISyntaxException ex) {
 					ex.printStackTrace();
 				}
+			}
+		}
+
+		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
+			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");
+			for (int i = 0; i < coords.length; i += 2) {
+				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
+				element.setCleared(p, true);
+				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
 			}
 		}
 	}
