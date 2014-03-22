@@ -144,8 +144,8 @@ public class Monster extends Creature {
 		// TODO size modifier to attack needs to be setup correctly
 //		int sizeMod = getSize().getSizeModifier();
 //		if (sizeMod != 0) attacks.addModifier(new ImmutableModifier(sizeMod, "Size"));
-		attackList = new ArrayList<MonsterAttackRoutine>();
-		fullAttackList = new ArrayList<MonsterAttackRoutine>();
+		attackList = new ArrayList<>();
+		fullAttackList = new ArrayList<>();
 		attacks.addPropertyChangeListener(statListener);
 	}
 
@@ -359,7 +359,7 @@ public class Monster extends Creature {
 //		}
 
 		for (int i = 0; i < buffs.getSize(); i++) {
-			Buff b = (Buff) buffs.get(i);
+			Buff b = buffs.get(i);
 			processor.processBuff(b);
 		}
 

@@ -89,7 +89,7 @@ public class XP {
 		public int level;	// level when meeting challenges
 		public int partyCount;	// number of party members meeting challenges
 		public int penalty;	// % penalty applied to xp
-		public List<Challenge> challenges = new ArrayList<Challenge>();
+		public List<Challenge> challenges = new ArrayList<>();
 
 		public XPChangeChallenges(String c, Date d) {
 			super(c,d);

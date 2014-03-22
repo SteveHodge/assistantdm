@@ -85,22 +85,22 @@ public class Character extends Creature {
 		private final String description;
 	}
 
-	public EnumMap<SavingThrow.Type, Modifier> saveMisc = new EnumMap<SavingThrow.Type, Modifier>(SavingThrow.Type.class);	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
+	public EnumMap<SavingThrow.Type, Modifier> saveMisc = new EnumMap<>(SavingThrow.Type.class);	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
 	public Skills skills;		// TODO shouldn't be public - change when XMLCreatureParser has character specific subclass
 
-	//	private Set<Feat> feats = new HashSet<Feat>();
+	//	private Set<Feat> feats = new HashSet<>();
 
 	public Level level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 	public int xp = 0;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
-	public EnumMap<ACComponentType, Modifier> acMods = new EnumMap<ACComponentType, Modifier>(ACComponentType.class); // TODO should move to AC panel
+	public EnumMap<ACComponentType, Modifier> acMods = new EnumMap<>(ACComponentType.class); // TODO should move to AC panel
 
-	public List<CharacterAttackForm> attackForms = new ArrayList<CharacterAttackForm>();
+	public List<CharacterAttackForm> attackForms = new ArrayList<>();
 
-	public BuffUI.BuffListModel feats = new BuffUI.BuffListModel();	// TODO reimplement for better encapsulation
+	public BuffUI.BuffListModel<Buff> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
 
-	public List<XPHistoryItem> xpChanges = new ArrayList<XPHistoryItem>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
+	public List<XPHistoryItem> xpChanges = new ArrayList<>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
 	public class XPHistoryItem {
 		public XPChange xpChange;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
@@ -148,7 +148,7 @@ public class Character extends Creature {
 			if (xpChange instanceof XP.XPChangeChallenges) {
 				return ((XPChangeChallenges)xpChange).challenges;
 			} else {
-				return new ArrayList<Challenge>();
+				return new ArrayList<>();
 			}
 		}
 
@@ -708,7 +708,7 @@ public class Character extends Creature {
 	@Override
 	public boolean hasFeat(String name) {
 		for (int i = 0; i < feats.size(); i++) {
-			Buff f = (Buff)feats.get(i);
+			Buff f = feats.get(i);
 			if (f.name.equals(name)) return true;
 		}
 		return false;
@@ -808,7 +808,7 @@ public class Character extends Creature {
 //		}
 //		b.append(i2).append("</SavingThrows>").append(nl);
 //		b.append(i2).append("<Skills>").append(nl);
-//		ArrayList<SkillType> set = new ArrayList<SkillType>(skills.skills.keySet());
+//		ArrayList<SkillType> set = new ArrayList<>(skills.skills.keySet());
 //		Collections.sort(set, new Comparator<SkillType>() {
 //			public int compare(SkillType o1, SkillType o2) {
 //				return o1.getName().compareTo(o2.getName());
@@ -889,7 +889,7 @@ public class Character extends Creature {
 // Returns a list of the properties that differ between this and inChar
 // The list is ordered by the type of property
 	public List<String> getDifferences(Character inChar) {
-		List<String> diffs = new ArrayList<String>();
+		List<String> diffs = new ArrayList<>();
 
 		if (!name.equals(inChar.name)) diffs.add(PROPERTY_NAME);
 		if (hps.getMaximumHitPoints() != inChar.hps.getMaximumHitPoints()) diffs.add(PROPERTY_MAXHPS);
@@ -923,7 +923,7 @@ public class Character extends Creature {
 		}
 		Set<SkillType> allSkills = skills.getTrainedSkills();
 		allSkills.addAll(inChar.skills.getTrainedSkills());
-		List<SkillType> skillList = new ArrayList<SkillType>(allSkills);
+		List<SkillType> skillList = new ArrayList<>(allSkills);
 		Collections.sort(skillList);
 		for (SkillType skill : skillList) {
 			if (getSkillRanks(skill) != inChar.getSkillRanks(skill)) {
@@ -1121,11 +1121,11 @@ public class Character extends Creature {
 		}
 
 		for (int i = 0; i < feats.getSize(); i++) {
-			processor.processFeat((Buff) feats.get(i));
+			processor.processFeat(feats.get(i));
 		}
 
 		for (int i = 0; i < buffs.getSize(); i++) {
-			Buff b = (Buff) buffs.get(i);
+			Buff b = buffs.get(i);
 			processor.processBuff(b);
 		}
 

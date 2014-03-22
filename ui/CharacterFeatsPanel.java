@@ -30,26 +30,29 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 
 		Feat[] availableFeats = Arrays.copyOf(Feat.FEATS, Feat.FEATS.length);
 		Arrays.sort(availableFeats, new Comparator<Feat>() {
+			@Override
 			public int compare(Feat a, Feat b) {
 				return a.name.compareTo(b.name);
 			}
 		});
 		FeatListModel bfModel = new FeatListModel(availableFeats);
-		final JListWithToolTips feats = new JListWithToolTips(bfModel);
+		final JListWithToolTips<Feat> feats = new JListWithToolTips<>(bfModel);
 		feats.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		feats.setVisibleRowCount(20);
 
-		final JListWithToolTips chosen = new JListWithToolTips(character.feats);
+		final JListWithToolTips<Buff> chosen = new JListWithToolTips<>(character.feats);
 		chosen.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		chosen.setVisibleRowCount(8);
 
 		JButton apply = new JButton("Take Feat");
 		apply.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// need to invoke this code later since it involves a modal dialog
 				SwingUtilities.invokeLater(new Runnable() {
+					@Override
 					public void run() {
-						Feat bf = (Feat)feats.getSelectedValue();
+						Feat bf = feats.getSelectedValue();
 						Buff buff = applyFeat(bf);
 						character.feats.addElement(buff);
 					}
@@ -59,10 +62,10 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 
 		JButton remove = new JButton("Untake Feat");
 		remove.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-				Object[] buffs = chosen.getSelectedValues();
-				for (Object b : buffs) {
-					((Buff)b).removeBuff(character);
+				for (Buff b : chosen.getSelectedValuesList()) {
+					b.removeBuff(character);
 					character.feats.removeElement(b);
 				}
 			}
@@ -92,7 +95,7 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		return buff;
 	}
 
-	public static class FeatListModel extends DefaultListModel implements ListModelWithToolTips {
+	public static class FeatListModel extends DefaultListModel<Feat> implements ListModelWithToolTips<Feat> {
 		public FeatListModel() {
 			super();
 		}
@@ -104,6 +107,7 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 			}
 		}
 
+		@Override
 		public String getToolTipAt(int index) {
 			if (index < 0) return null;
 			Object o = get(index);

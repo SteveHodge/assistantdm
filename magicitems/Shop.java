@@ -32,7 +32,7 @@ import org.w3c.dom.NodeList;
  * Therefore need to add on average 0.15 major, 0.7 medium, 2 minor per day
  */
 @SuppressWarnings("serial")
-public class Shop extends AbstractListModel implements ItemTarget {
+public class Shop extends AbstractListModel<Item> implements ItemTarget {
 	List<Item> inventory;
 
 	int day = 0;
@@ -65,7 +65,7 @@ public class Shop extends AbstractListModel implements ItemTarget {
 		number[Item.CLASS_MEDIUM] = mediumNumber;
 		number[Item.CLASS_MAJOR] = majorNumber;
 
-		inventory = new ArrayList<Item>();
+		inventory = new ArrayList<>();
 	}
 
 	public void createInitialInventory() {
@@ -83,7 +83,7 @@ public class Shop extends AbstractListModel implements ItemTarget {
 	}
 
 	public List<Item> nextDay() {
-		List<Item> changes = new ArrayList<Item>();
+		List<Item> changes = new ArrayList<>();
 		day++;
 
 		// check for sold items
@@ -128,7 +128,7 @@ public class Shop extends AbstractListModel implements ItemTarget {
 			System.out.println();
 		}
 	}
-	
+
 	static String getCategory(Item i) {
 		switch (i.getCategory()) {
 		case Item.CLASS_MINOR:
@@ -141,7 +141,8 @@ public class Shop extends AbstractListModel implements ItemTarget {
 		return "unknown";
 	}
 
-	public Object getElementAt(int index) {
+	@Override
+	public Item getElementAt(int index) {
 		return inventory.get(index);
 	}
 
@@ -162,11 +163,13 @@ public class Shop extends AbstractListModel implements ItemTarget {
 		addItem(generator.generate(power, procName));
 	}
 
+	@Override
 	public synchronized void addItem(Item i) {
 		inventory.add(i);
 		fireIntervalAdded(this, inventory.size(), inventory.size());
 	}
 
+	@Override
 	public int getSize() {
 		return inventory.size();
 	}

@@ -51,7 +51,7 @@ public class AC extends Statistic {
 	public Map<Modifier, Boolean> getModifiers() {
 		Map<Modifier, Boolean> mods = super.getModifiers();
 		if (naturalArmor.getValue() != 0) {
-			ArrayList<Modifier> toFix = new ArrayList<Modifier>();	// the mods we will change
+			ArrayList<Modifier> toFix = new ArrayList<>();	// the mods we will change
 			for (Modifier m : mods.keySet()) {
 				if (m.getType() != null && m.getType().equals("Natural Armor")) {
 					toFix.add(m);	// we modify all NA mods to add the enhancement value. if there is more than one active NA modifier then this will be incorrect but that should never happen
@@ -150,7 +150,7 @@ public class AC extends Statistic {
 
 		@Override
 		protected Set<Modifier> getModifierSet() {
-			Set<Modifier> mods = new HashSet<Modifier>(AC.this.modifiers);
+			Set<Modifier> mods = new HashSet<>(AC.this.modifiers);
 			for (Modifier m : AC.this.modifiers) {
 				if (m.getType() != null
 						&& (m.getType().equals(Modifier.StandardType.ARMOR.toString())
@@ -204,7 +204,7 @@ public class AC extends Statistic {
 
 		@Override
 		protected Set<Modifier> getModifierSet() {
-			Set<Modifier> mods = new HashSet<Modifier>(AC.this.modifiers);
+			Set<Modifier> mods = new HashSet<>(AC.this.modifiers);
 			for (Modifier m : AC.this.modifiers) {
 				if (m.getType() != null && (m.getType().equals(AbilityScore.Type.DEXTERITY.toString()) && m.getModifier() > 0 || m.getType().equals(Modifier.StandardType.DODGE.toString()))) {
 					mods.remove(m);

@@ -223,7 +223,7 @@ public class XMLOutputHelper {
 
 		Element e = doc.createElement("Skills");
 
-		ArrayList<SkillType> set = new ArrayList<SkillType>(skills.skills.keySet());
+		ArrayList<SkillType> set = new ArrayList<>(skills.skills.keySet());
 		Collections.sort(set, new Comparator<SkillType>() {
 			@Override
 			public int compare(SkillType o1, SkillType o2) {

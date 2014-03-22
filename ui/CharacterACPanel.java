@@ -72,6 +72,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 
 	PropertyChangeListener armorListener = new PropertyChangeListener() {
 		// NOTE: we call this to initially populate the fields with null evt
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (editing) return;
 			nameField.setText(armor.description);
@@ -93,6 +94,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 
 	PropertyChangeListener shieldListener = new PropertyChangeListener() {
 		// NOTE: we call this to initially populate the fields with null evt
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (editing) return;
 			shieldNameField.setText(shield.description);
@@ -121,6 +123,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		acTable.setDefaultEditor(Integer.class, new SpinnerCellEditor());
 		acTable.setDefaultRenderer(Integer.class, new DefaultTableCellRenderer() {
 			Color old = null;
+			@Override
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 				Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				if (column == 1 && !acModel.isCellEditable(row, column)) {
@@ -226,25 +229,28 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		c.gridy++;
 		c.gridy++; panel.add(shieldBonusField,c);
 		c.gridy++; panel.add(shieldEnhancementField,c);
-		c.gridy++; 
+		c.gridy++;
 		c.gridy++; panel.add(shieldCheckPenaltyField,c);
 		c.gridy++; panel.add(shieldSpellFailureField,c);
-		c.gridy++; 
+		c.gridy++;
 		c.gridy++; panel.add(shieldWeightField,c);
 		c.gridy++; panel.add(shieldPropertiesField,c);
 
 		return panel;
 	}
-	
+
 	DocumentListener docListener = new DocumentListener() {
+		@Override
 		public void changedUpdate(DocumentEvent e) {
 			updateField(e);
 		}
 
+		@Override
 		public void insertUpdate(DocumentEvent e) {
 			updateField(e);
 		}
 
+		@Override
 		public void removeUpdate(DocumentEvent e) {
 			updateField(e);
 		}
@@ -309,6 +315,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		}
 	};
 
+	@Override
 	public void propertyChange(PropertyChangeEvent arg0) {
 		if (arg0.getPropertyName().equals(Creature.PROPERTY_AC)) {
 			totalLabel.setText("Total AC: "+ac.getValue()+(ac.hasConditionalModifier()?"*":""));
@@ -371,7 +378,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 
 		protected void updateModifiers() {
 			Map<Modifier, Boolean> mods = ac.getModifiers();
-			ArrayList<Modifier> list = new ArrayList<Modifier>();
+			ArrayList<Modifier> list = new ArrayList<>();
 			for (Modifier m : mods.keySet()) {
 				if (m.getSource() == null || !m.getSource().equals("user set")) {
 					list.add(m);
@@ -379,6 +386,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 			}
 			modifiers = list.toArray(new Modifier[list.size()]);
 			Arrays.sort(modifiers, new Comparator<Modifier>() {
+				@Override
 				public int compare(Modifier a, Modifier b) {
 					// TODO should compare source and condition as well
 					String aStr = a.getType() == null ? "" : a.getType();
@@ -396,6 +404,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 			fireTableDataChanged();
 		}
 
+		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			if (columnIndex == 0) return false;
 			//if (rowIndex == Character.ACComponentType.DEX.ordinal()) return false;
@@ -403,11 +412,13 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 			return true;
 		}
 
+		@Override
 		public Class<?> getColumnClass(int columnIndex) {
 			if (columnIndex == 0) return String.class;
 			return Integer.class;
 		}
 
+		@Override
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (!isCellEditable(rowIndex, columnIndex)) return;
 			if (value == null) value = new Integer(0);
@@ -415,19 +426,23 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 			fireTableRowsUpdated(rowIndex, rowIndex);
 		}
 
+		@Override
 		public String getColumnName(int column) {
 			if (column == 0) return "Component";
 			return "Value";
 		}
 
+		@Override
 		public int getColumnCount() {
 			return 2;
 		}
 
+		@Override
 		public int getRowCount() {
 			return Character.ACComponentType.values().length + modifiers.length;
 		}
 
+		@Override
 		public Object getValueAt(int row, int column) {
 			if (row < Character.ACComponentType.values().length) {
 				if (column == 0) return Character.ACComponentType.values()[row].toString();
@@ -446,6 +461,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 			}
 		}
 
+		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			//if (evt.getPropertyName().equals(Character.PROPERTY_AC)) {	// assumed
 			updateModifiers();

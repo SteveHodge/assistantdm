@@ -42,7 +42,7 @@ import util.XMLUtils;
 public class ShoppingPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
 
-	List<Shop> shops = new ArrayList<Shop>();
+	List<Shop> shops = new ArrayList<>();
 	JLabel dayLabel;
 	int day = 0;
 	JTabbedPane tabbedPane;
@@ -138,20 +138,22 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 		add(header,BorderLayout.NORTH);
 
 		tabbedPane = new JTabbedPane();
-	
+
 		add(tabbedPane, BorderLayout.CENTER);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == nextDayButton) {
 			day++;
-			List<Item>changes = new ArrayList<Item>();
+			List<Item> changes = new ArrayList<>();
 			for (Shop s : shops) {
 				changes.addAll(s.nextDay());
 			}
 			dayLabel.setText(PtolusCalendar.getShortDescription(day));
 			log.println("---- "+PtolusCalendar.getShortDescription(day)+" ----");
 			String items = getItemListString(changes,new CostFirstItemFormatter() {
+				@Override
 				public String toString(Item i) {
 					if (i.getField("sold") != null) {
 						return "Sold: "+super.toString(i);
@@ -167,7 +169,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 			}
 
 		} else if (e.getSource() == listItemsButton) {
-			List<Item>items = new ArrayList<Item>();
+			List<Item> items = new ArrayList<>();
 			for (Shop s : shops) {
 				items.addAll(s.inventory);
 			}
@@ -188,6 +190,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 	protected String getItemListString(List<Item>items, ItemFormatter formatter) {
 		// sort the items
 		Collections.sort(items, new Comparator<Item>() {
+			@Override
 			public int compare(Item o1, Item o2) {
 				int c1 = o1.getCost();
 				int c2 = o2.getCost();
@@ -196,7 +199,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 				String i2 = o2.getValue("item").toString();
 				return i1.compareTo(i2);
 			}
-		}); 
+		});
 
 		// list the items
 		StringBuffer output = new StringBuffer();
@@ -212,7 +215,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 	protected void popupMessage(String message) {
 		JTextArea area = new JTextArea(message);
 		JScrollPane scroll = new JScrollPane(area);
-		
+
 		JFrame popup = new JFrame("All Items");
 		popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		popup.getContentPane().add(scroll);
@@ -225,10 +228,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 	}
 
 	public void writeShopsXML(String filename) {
-        FileWriter outputStream = null;
-
-		try {
-			outputStream = new FileWriter(filename);
+		try (FileWriter outputStream = new FileWriter(filename);) {
 			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			outputStream.write(System.getProperty("line.separator"));
 			outputStream.write(System.getProperty("line.separator"));
@@ -242,23 +242,15 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 			outputStream.write(System.getProperty("line.separator"));
 		} catch (IOException ex) {
 			ex.printStackTrace();
-		} finally {
-			if (outputStream != null) {
-				try {
-					outputStream.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
 		}
 	}
 
 	public static List<Shop> parseShopsXML(String filename) {
-		List<Shop> shops = new ArrayList<Shop>();
+		List<Shop> shops = new ArrayList<>();
 		File xmlFile = new File(filename);
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			InputStream is = Shop.class.getClassLoader().getResourceAsStream("shops.xsd"); 
+			InputStream is = Shop.class.getClassLoader().getResourceAsStream("shops.xsd");
 			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 

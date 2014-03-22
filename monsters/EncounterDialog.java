@@ -67,10 +67,10 @@ public class EncounterDialog extends JFrame {
 	private static final String BLANK_PANEL = "BLANK";
 
 	private static int ordinal = 1;
-	private static List<EncounterDialog> dialogs = new ArrayList<EncounterDialog>();
+	private static List<EncounterDialog> dialogs = new ArrayList<>();
 
 	private JSpinner countSpinner;
-	private JList monsterList;
+	private JList<Monster> monsterList;
 	private MonsterListModel monsterListModel;
 	private Monster selected;
 
@@ -82,10 +82,10 @@ public class EncounterDialog extends JFrame {
 
 	private CardLayout detailLayout;
 	private JPanel detailPanel;
-	private Map<Field, DetailPanel> detailPanels = new HashMap<Field, DetailPanel>();
+	private Map<Field, DetailPanel> detailPanels = new HashMap<>();
 
-	private Map<StatisticsBlock, List<URL>> imageURLs = new HashMap<StatisticsBlock, List<URL>>();	// null key is used for adhoc monsters with no attached stats block
-	private Map<Monster, Integer> imageIndexes = new HashMap<Monster, Integer>();
+	private Map<StatisticsBlock, List<URL>> imageURLs = new HashMap<>();	// null key is used for adhoc monsters with no attached stats block
+	private Map<Monster, Integer> imageIndexes = new HashMap<>();
 
 	static void createOrExtendEncounter(Window parentFrame, StatisticsBlock blk) {
 		if (EncounterDialog.dialogs.size() > 0) {
@@ -134,7 +134,7 @@ public class EncounterDialog extends JFrame {
 		});
 
 		monsterListModel = new MonsterListModel();
-		List<URL> urls = new ArrayList<URL>();
+		List<URL> urls = new ArrayList<>();
 		if (s != null) {
 			selected = StatsBlockCreatureView.createMonster(s);
 			monsterListModel.addMonster(selected);
@@ -162,7 +162,7 @@ public class EncounterDialog extends JFrame {
 		SpinnerModel model = new SpinnerNumberModel(1, 1, 100, 1);
 		countSpinner = new JSpinner(model);
 
-		monsterList = new JList(monsterListModel);
+		monsterList = new JList<>(monsterListModel);
 		monsterList.setPreferredSize(new Dimension(200, 100));
 		monsterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		monsterList.setSelectedIndex(0);
@@ -318,7 +318,7 @@ public class EncounterDialog extends JFrame {
 					ok = true;
 					ordinal++;
 					for (int j = 0; j < monsterListModel.getSize(); j++) {
-						Monster mons = (Monster) monsterListModel.getElementAt(j);
+						Monster mons = monsterListModel.getElementAt(j);
 						if (mons.getName().equals(name + " " + ordinal)) ok = false;
 					}
 				} while (!ok);
@@ -377,11 +377,7 @@ public class EncounterDialog extends JFrame {
 		//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 		try {
 			dom = factory.newDocumentBuilder().parse(file);
-		} catch (SAXException ex) {
-			ex.printStackTrace();
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		} catch (ParserConfigurationException ex) {
+		} catch (SAXException | IOException | ParserConfigurationException ex) {
 			ex.printStackTrace();
 		}
 
@@ -473,7 +469,7 @@ public class EncounterDialog extends JFrame {
 		Monster m = StatsBlockCreatureView.createMonster(s);
 		monsterListModel.addMonster(m);
 		if (!imageURLs.containsKey(s)) {
-			List<URL> urls = new ArrayList<URL>();
+			List<URL> urls = new ArrayList<>();
 			Collections.addAll(urls, s.getImageURLs());
 			imageURLs.put(s, urls);
 		}
@@ -485,7 +481,7 @@ public class EncounterDialog extends JFrame {
 		monsterListModel.addMonster(m);
 		StatisticsBlock s = (StatisticsBlock) m.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 		if (!imageURLs.containsKey(s)) {
-			List<URL> urls = new ArrayList<URL>();
+			List<URL> urls = new ArrayList<>();
 			if (s != null) Collections.addAll(urls, s.getImageURLs());
 			imageURLs.put(s, urls);
 		}
@@ -494,7 +490,7 @@ public class EncounterDialog extends JFrame {
 	}
 
 	private void updateFields() {
-		Monster m = (Monster) monsterList.getSelectedValue();
+		Monster m = monsterList.getSelectedValue();
 
 		if (m != selected) {
 			selected = m;
@@ -526,11 +522,11 @@ public class EncounterDialog extends JFrame {
 		}
 	}
 
-	private class MonsterListModel extends AbstractListModel {
-		private List<Monster> monsters = new ArrayList<Monster>();
+	private class MonsterListModel extends AbstractListModel<Monster> {
+		private List<Monster> monsters = new ArrayList<>();
 
 		@Override
-		public Creature getElementAt(int i) {
+		public Monster getElementAt(int i) {
 			return monsters.get(i);
 		}
 

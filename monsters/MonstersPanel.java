@@ -41,8 +41,8 @@ public class MonstersPanel extends JPanel implements MouseListener {
 	JTable table;
 	MonstersTableModel monsters;
 	TableRowSorter<MonstersTableModel> sorter;
-	Map<JComponent,RowFilter<MonstersTableModel,Integer>> filters = new HashMap<JComponent,RowFilter<MonstersTableModel,Integer>>();
-	Map<JComponent,Integer>filterCols = new HashMap<JComponent,Integer>();
+	Map<JComponent, RowFilter<MonstersTableModel, Integer>> filters = new HashMap<>();
+	Map<JComponent, Integer> filterCols = new HashMap<>();
 	URL baseURL;
 
 	public MonstersPanel() {
@@ -50,7 +50,6 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		try {
 			baseURL = f.toURI().toURL();
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		monsters = new MonstersTableModel();
@@ -59,11 +58,11 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		monsters.parseXML(new File("html/monsters/monster_manual_ii.xml"));
 		monsters.parseXML(new File("html/monsters/monster_manual_iii.xml"));
 		monsters.parseXML(new File("html/monsters/ptolus.xml"));
-		//filterModel = new FilterTableModel<MonsterEntry>(monsters);
+		//filterModel = new FilterTableModel<>(monsters);
 		table = new JTable(monsters);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.addMouseListener(this);
-		sorter = new TableRowSorter<MonstersTableModel>(monsters);
+		sorter = new TableRowSorter<>(monsters);
 		table.setRowSorter(sorter);
 
 		JScrollPane scrollpane = new JScrollPane(table);
@@ -82,13 +81,13 @@ public class MonstersPanel extends JPanel implements MouseListener {
 			// if the expression doesn't parse then we ignore it
 		}
 		filters.put(field, rf);
-		HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<RowFilter<MonstersTableModel, Integer>>(filters.values());
+		HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<>(filters.values());
 		if (set.contains(null)) set.remove(null);
 		sorter.setRowFilter(RowFilter.andFilter(set));
 	}
 
-	private void newFilter(JComboBox combo) {
-		if (combo.getSelectedItem().toString().equals("")) {
+	private void newFilter(JComboBox<String> combo) {
+		if (combo.getSelectedItem().equals("")) {
 			filters.remove(combo);
 		} else {
 			RowFilter<MonstersTableModel, Integer> rf = null;
@@ -100,7 +99,7 @@ public class MonstersPanel extends JPanel implements MouseListener {
 			}
 			filters.put(combo, rf);
 		}
-		HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<RowFilter<MonstersTableModel, Integer>>(filters.values());
+		HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<>(filters.values());
 		if (set.contains(null)) set.remove(null);
 		sorter.setRowFilter(RowFilter.andFilter(set));
 
@@ -122,7 +121,7 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		panel.add(nameField,c);
 
 //		JTextField sizeField = createFilterTextField(MonstersTableModel.COLUMN_SIZE);
-		JComboBox sizeField = createFilterCombo(MonstersTableModel.Column.SIZE.ordinal());
+		JComboBox<String> sizeField = createFilterCombo(MonstersTableModel.Column.SIZE.ordinal());
 		c.gridx = 2; c.fill = GridBagConstraints.NONE;
 		panel.add(new JLabel("Size:"),c);
 		c.gridx = 3; c.fill = GridBagConstraints.HORIZONTAL;
@@ -142,14 +141,14 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		panel.add(environmentField,c);
 
 //		JTextField crField = createFilterTextField(MonstersTableModel.COLUMN_CR);
-		JComboBox crField = createFilterCombo(MonstersTableModel.Column.CR.ordinal());
+		JComboBox<String> crField = createFilterCombo(MonstersTableModel.Column.CR.ordinal());
 		c.gridx = 0; c.gridy = 2; c.fill = GridBagConstraints.NONE;
 		panel.add(new JLabel("CR:"),c);
 		c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL;
 		panel.add(crField,c);
 
 //		JTextField sourceField = createFilterTextField(MonstersTableModel.COLUMN_SOURCE);
-		JComboBox sourceField = createFilterCombo(MonstersTableModel.Column.SOURCE.ordinal());
+		JComboBox<String> sourceField = createFilterCombo(MonstersTableModel.Column.SOURCE.ordinal());
 		c.gridx = 2; c.fill = GridBagConstraints.NONE;
 		panel.add(new JLabel("Source:"),c);
 		c.gridx = 3; c.fill = GridBagConstraints.HORIZONTAL;
@@ -158,15 +157,15 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		return panel;
 	}
 
-	private JComboBox createFilterCombo(int col) {
-		HashSet<String> optionSet = new HashSet<String>();
+	private JComboBox<String> createFilterCombo(int col) {
+		HashSet<String> optionSet = new HashSet<>();
 		for (int row = 0; row < monsters.getRowCount(); row++) {
 			optionSet.add(monsters.getValueAt(row, col).toString());
 		}
 		optionSet.add(new String());
-		Vector<String> options = new Vector<String>(optionSet);
+		Vector<String> options = new Vector<>(optionSet);
 		Collections.sort(options);
-		final JComboBox combo = new JComboBox(options);
+		final JComboBox<String> combo = new JComboBox<>(options);
 		filterCols.put(combo,col);
 		combo.addActionListener(new ActionListener() {
 			@Override

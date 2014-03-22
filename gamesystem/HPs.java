@@ -48,8 +48,8 @@ public class HPs extends Statistic {
 	HitDice hitdice;
 	int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
 	int hps, wounds, nonLethal;
-	List<TempHPs> tempHPs = new ArrayList<TempHPs>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
-	Map<Modifier, TempHPs> modMap = new HashMap<Modifier, TempHPs>();
+	List<TempHPs> tempHPs = new ArrayList<>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
+	Map<Modifier, TempHPs> modMap = new HashMap<>();
 
 	// interested parties can register listeners as with other Modifier subclasses. if damage reduces a hps to 0, the TempHPs will be removed from the HPs instance
 	class TempHPs extends AbstractModifier {
@@ -320,7 +320,7 @@ public class HPs extends Statistic {
 
 	@Override
 	public Map<Modifier, Boolean> getModifiers() {
-		HashMap<Modifier, Boolean> map = new HashMap<Modifier, Boolean>();
+		HashMap<Modifier, Boolean> map = new HashMap<>();
 		for (TempHPs t : tempHPs) {
 			map.put(t, t.active);
 		}

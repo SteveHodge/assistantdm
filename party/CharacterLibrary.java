@@ -24,7 +24,7 @@ import swing.TableModelWithToolTips;
 public class CharacterLibrary {
 	final static Format format = new SimpleDateFormat("yyyy-MM-dd");
 
-	public static Set<Character> characters = new HashSet<Character>();
+	public static Set<Character> characters = new HashSet<>();
 
 	public static void add(Character c) {
 		characters.add(c);
@@ -35,6 +35,7 @@ public class CharacterLibrary {
 	}
 
 	protected static Comparator<Character> charComparator = new Comparator<Character>() {
+		@Override
 		public int compare(Character c1, Character c2) {
 			// if both characters have no xp history then they are treated as equal
 			// if one character has no xp history then it is considered greater then the other
@@ -59,13 +60,13 @@ public class CharacterLibrary {
 	public static List<PartyXPItem> getXPHistory() {
 		// try to combine history from each character into a single narrative
 		List<PartyXPItem> items = null;
-		List<Character> chars = new ArrayList<Character>(characters);
+		List<Character> chars = new ArrayList<>(characters);
 		Collections.sort(chars, charComparator);
 		for (Character c : chars) {
 			System.out.println("Examining "+c);
 			if (items == null) {
 				// first character
-				items = new ArrayList<PartyXPItem>();
+				items = new ArrayList<>();
 				for (int i = 0; i < c.getXPHistoryCount(); i++) {
 					items.add(new PartyXPItem(c, c.getXPHistory(i)));
 				}
@@ -78,7 +79,7 @@ public class CharacterLibrary {
 					boolean found = false;
 					int datePos = lastMatch;
 					for (int j = lastMatch; j < items.size(); j++) {
-						PartyXPItem pi = items.get(j); 
+						PartyXPItem pi = items.get(j);
 						if (ci.equals(pi) && !pi.changes.containsKey(c)) {
 							lastMatch = j;
 							pi.changes.put(c, xpItem);
@@ -104,7 +105,7 @@ public class CharacterLibrary {
 		Date date;
 		int partyCount;
 		List<Challenge> challenges;
-		Map<Character,XPHistoryItem> changes = new HashMap<Character,XPHistoryItem>();
+		Map<Character, XPHistoryItem> changes = new HashMap<>();
 
 		PartyXPItem(Character c, XPHistoryItem ci) {
 			type = ci.xpChange.getClass();
@@ -122,6 +123,7 @@ public class CharacterLibrary {
 		}
 
 		// assumes challenges is never null
+		@Override
 		public boolean equals(Object obj) {
 			if (!(obj instanceof PartyXPItem)) return false;
 			PartyXPItem o = (PartyXPItem)obj;
@@ -144,6 +146,7 @@ public class CharacterLibrary {
 			return true;
 		}
 
+		@Override
 		public String toString() {
 			StringBuilder b = new StringBuilder();
 			b.append(type);
@@ -173,18 +176,21 @@ public class CharacterLibrary {
 
 		PartyXPTableModel() {
 			history =  getXPHistory();
-			chars = new ArrayList<Character>(characters);
+			chars = new ArrayList<>(characters);
 			Collections.sort(chars, charComparator);
 		}
 
+		@Override
 		public int getColumnCount() {
 			return chars.size()*2+2;
 		}
 
+		@Override
 		public int getRowCount() {
 			return history.size();
 		}
 
+		@Override
 		public Object getValueAt(int row, int col) {
 			PartyXPItem item = history.get(row);
 			if (col == 0) {
@@ -228,6 +234,7 @@ public class CharacterLibrary {
 			return null;
 		}
 
+		@Override
 		public String getToolTipAt(int row, int col) {
 			int index = col-2;
 			if (index >= chars.size()) index -= chars.size();
@@ -248,15 +255,18 @@ public class CharacterLibrary {
 			return null;
 		}
 
+		@Override
 		public Class<?> getColumnClass(int col) {
 			if (col < 2) return String.class;
 			return Integer.class;
 		}
 
+		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			return false;
 		}
 
+		@Override
 		public String getColumnName(int column) {
 			if (column == 0) return "Date";
 			if (column == 1) return "Comment";

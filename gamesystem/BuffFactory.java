@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class BuffFactory {
 	public String name;
-	Set<Effect> effects = new HashSet<Effect>();
+	Set<Effect> effects = new HashSet<>();
 
 	public Buff getBuff() {
 		Buff b = new Buff();

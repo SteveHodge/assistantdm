@@ -418,12 +418,12 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		partyDialog.setVisible(true);
 		if (!partyDialog.isCancelled()) {
 			List<Character> newParty = partyDialog.getSelectedCharacters();
-			Set<Character> changes = new HashSet<Character>();
+			Set<Character> changes = new HashSet<>();
 			for (Character c : party) {
 				if (!newParty.contains(c)) changes.add(c);
 			}
 			for (Character c : changes) party.remove(c);
-			changes = new HashSet<Character>();
+			changes = new HashSet<>();
 			for (Character c : newParty) {
 				if (!party.contains(c)) changes.add(c);
 			}
@@ -575,10 +575,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		} catch (FileNotFoundException e) {
 			System.out.println("No shops file found");
 			panel = null;
-		} catch(IOException ex) {
-			ex.printStackTrace();
-			panel = null;
-		} catch (ClassNotFoundException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 			panel = null;
 		}
@@ -597,13 +594,11 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 	public void saveShops() {
 		String filename = "shops.ser";
-		FileOutputStream fos = null;
-		ObjectOutputStream out = null;
-		try {
-			fos = new FileOutputStream(filename);
-			out = new ObjectOutputStream(fos);
-			shopPanel.saveShops(out);
-			out.close();
+
+		try (FileOutputStream fos = new FileOutputStream(filename);) {
+			try (ObjectOutputStream out = new ObjectOutputStream(fos);) {
+				shopPanel.saveShops(out);
+			}
 		} catch(IOException ex) {
 			ex.printStackTrace();
 		}

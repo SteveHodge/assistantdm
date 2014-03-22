@@ -1,6 +1,7 @@
 package ui;
 
 import gamesystem.Buff;
+import gamesystem.BuffFactory;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,11 +23,11 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
 		final BuffUI ui = new BuffUI();
-		JListWithToolTips buffs = ui.getBuffList();
+		JListWithToolTips<BuffFactory> buffs = ui.getBuffList();
 		buffs.setVisibleRowCount(20);
 		add(buffs);
 
-		final JListWithToolTips applied = new JListWithToolTips(character.getBuffListModel());
+		final JListWithToolTips<Buff> applied = new JListWithToolTips<>(character.getBuffListModel());
 		applied.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		applied.setVisibleRowCount(8);
 
@@ -42,9 +43,8 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		remove.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Object[] buffs = applied.getSelectedValues();
-				for (Object b : buffs) {
-					character.removeBuff((Buff) b);
+				for (Buff b : applied.getSelectedValuesList()) {
+					character.removeBuff(b);
 				}
 			}
 		});

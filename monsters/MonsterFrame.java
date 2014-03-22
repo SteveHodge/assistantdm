@@ -29,7 +29,6 @@ public class MonsterFrame extends JFrame {
 		try {
 			createFrame("", block.getURL());
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

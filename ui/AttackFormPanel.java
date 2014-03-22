@@ -1,6 +1,6 @@
 package ui;
 
-import gamesystem.Modifier;
+import gamesystem.Modifier.StandardType;
 import gamesystem.SizeCategory;
 import gamesystem.dice.CombinedDice;
 
@@ -48,11 +48,11 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	private JTextField rangeField = new JTextField(20);
 	private JTextField weightField = new JTextField(20);
 	private JTextField typeField = new JTextField(20);
-	private JComboBox sizeCombo = new JComboBox(SizeCategory.values());
+	private JComboBox<SizeCategory> sizeCombo = new JComboBox<>(SizeCategory.values());
 	private JTextField propertiesField = new JTextField(20);
 	private JTextField ammunitionField = new JTextField(20);
-	private JComboBox kindCombo;
-	private JComboBox usageCombo;
+	private JComboBox<CharacterAttackForm.Kind> kindCombo;
+	private JComboBox<CharacterAttackForm.Usage> usageCombo;
 
 	private JLabel totalAttackLabel = new JLabel();
 	private JLabel totalDamageLabel = new JLabel();
@@ -64,8 +64,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	private AttackFormPanel(CharacterAttackForm atk) {
 		super(new GridBagLayout());
 
-		kindCombo = new JComboBox(CharacterAttackForm.Kind.values());
-		usageCombo = new JComboBox(CharacterAttackForm.Usage.values());
+		kindCombo = new JComboBox<>(CharacterAttackForm.Kind.values());
+		usageCombo = new JComboBox<>(CharacterAttackForm.Usage.values());
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.insets = new Insets(1,2,1,2);
@@ -416,7 +416,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		}
 
 		JPanel getAdhocPanel() {
-			final JComboBox typeBox = new JComboBox(Modifier.StandardType.values());
+			final JComboBox<StandardType> typeBox = new JComboBox<>(StandardType.values());
 			typeBox.setSelectedItem("Enhancement");
 			typeBox.setEditable(true);
 

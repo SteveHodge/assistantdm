@@ -8,7 +8,6 @@ import java.io.Writer;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
@@ -25,29 +24,12 @@ final public class XMLUtils {
 	private XMLUtils() {};
 
 	public static void writeDOM(Document doc, File f) {
-		OutputStreamWriter writer = null;
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(f);
-			writer = new OutputStreamWriter(fos, "UTF-8");
-			writeDOM(doc, writer);
+		try (FileOutputStream fos = new FileOutputStream(f);) {
+			try (OutputStreamWriter writer = new OutputStreamWriter(fos, "UTF-8");) {
+				writeDOM(doc, writer);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			if (writer != null) {
-				try {
-					writer.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
-			if (fos != null) {
-				try {
-					fos.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
 		}
 	}
 
@@ -59,11 +41,7 @@ final public class XMLUtils {
 			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
 
-		} catch (TransformerConfigurationException e) {
-			e.printStackTrace();
-		} catch (TransformerFactoryConfigurationError e) {
-			e.printStackTrace();
-		} catch (TransformerException e) {
+		} catch (TransformerFactoryConfigurationError | TransformerException e) {
 			e.printStackTrace();
 		}
 	}

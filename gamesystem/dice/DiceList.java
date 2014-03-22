@@ -6,12 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DiceList implements Dice {
-	List<Dice> dice = new ArrayList<Dice>();
+	List<Dice> dice = new ArrayList<>();
 
 	public void add(Dice d) {
 		dice.add(d);
 	}
 
+	@Override
 	public int roll() {
 		int roll = 0;
 		for (Dice d : dice) {
@@ -20,6 +21,7 @@ public class DiceList implements Dice {
 		return roll;
 	}
 
+	@Override
 	public String toString() {
 		String s = "";
 		for (Dice d : dice) {
@@ -29,6 +31,7 @@ public class DiceList implements Dice {
 		return s;
 	}
 
+	@Override
 	public int getMinimum() {
 		int min = 0;
 		for (Dice d : dice) {
@@ -37,6 +40,7 @@ public class DiceList implements Dice {
 		return min;
 	}
 
+	@Override
 	public int getMaximum() {
 		int max = 0;
 		for (Dice d : dice) {

@@ -27,10 +27,10 @@ import javax.swing.event.ListDataListener;
 @SuppressWarnings("serial")
 class NewEffectPanel extends JPanel {
 	private JTextField effectField;
-	private JComboBox sourceField;
+	private JComboBox<Object> sourceField;
 	private JFormattedTextField initField;
 	private JFormattedTextField durationField;
-	private JComboBox unitsField;
+	private JComboBox<String> unitsField;
 	private JButton addButton;
 	private JButton buffButton;
 	private JButton deleteButton;
@@ -43,7 +43,7 @@ class NewEffectPanel extends JPanel {
 	private Buff buff = null;
 	private Set<Creature> targets;
 
-	private class SourceModel implements ComboBoxModel {
+	private class SourceModel implements ComboBoxModel<Object> {
 		private InitiativeListModel initiativeModel;
 		private String selected = "";
 		private EventListenerList listenerList = new EventListenerList();
@@ -137,7 +137,7 @@ class NewEffectPanel extends JPanel {
 		effectField = new JTextField();
 		//effectField.setColumns(100);
 
-		sourceField = new JComboBox(sourceModel);
+		sourceField = new JComboBox<>(sourceModel);
 		sourceField.setEditable(true);
 		sourceField.addActionListener(new ActionListener() {
 			@Override
@@ -158,7 +158,7 @@ class NewEffectPanel extends JPanel {
 		durationField.setColumns(3);
 
 		String [] units = {"Rounds","Minutes","Hours"};
-		unitsField = new JComboBox(units);
+		unitsField = new JComboBox<>(units);
 
 		buffButton = new JButton("Buff...");
 		buffButton.addActionListener(new ActionListener() {

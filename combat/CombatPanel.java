@@ -59,7 +59,7 @@ public class CombatPanel extends JPanel {
 	private EffectTableModel effectsTableModel;
 	private int round = 0;
 	private JLabel roundsLabel;
-	private List<InitiativeListener> listeners = new ArrayList<InitiativeListener>();
+	private List<InitiativeListener> listeners = new ArrayList<>();
 
 	// TODO need to remove this static instance
 	public static CombatPanel getCombatPanel() {
@@ -92,7 +92,7 @@ public class CombatPanel extends JPanel {
 			}
 
 		});
-		JLayeredPane initiativeList = new ReorderableList(initiativeListModel);
+		JLayeredPane initiativeList = new ReorderableList<CombatEntry>(initiativeListModel);
 		JScrollPane listScroller = new JScrollPane(initiativeList);
 
 		JPanel initiativePanel = new JPanel();
@@ -106,7 +106,7 @@ public class CombatPanel extends JPanel {
 		table.getColumnModel().getColumn(0).setPreferredWidth(200);
 		table.setDefaultEditor(Integer.class, new SpinnerCellEditor());
 		table.setAutoCreateRowSorter(true);
-		ArrayList<RowSorter.SortKey> list = new ArrayList<RowSorter.SortKey>();
+		ArrayList<RowSorter.SortKey> list = new ArrayList<>();
 		list.add(new RowSorter.SortKey(EffectTableModel.DURATION_COLUMN, SortOrder.ASCENDING));
 		table.getRowSorter().setSortKeys(list);
 		TableColumn durationCol = table.getColumnModel().getColumn(EffectTableModel.DURATION_COLUMN);
@@ -277,7 +277,7 @@ public class CombatPanel extends JPanel {
 	}
 
 	public Map<Integer, Creature> getCharacterIDMap() {
-		Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();
+		Map<Integer, Creature> idMap = new HashMap<>();
 		for (int i = 0; i < initiativeListModel.getSize(); i++) {
 			CombatEntry c = initiativeListModel.getElementAt(i);
 			if (c instanceof CharacterCombatEntry) {
@@ -289,7 +289,7 @@ public class CombatPanel extends JPanel {
 	}
 
 	public Map<Integer, Creature> getIDMap() {
-		Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();
+		Map<Integer, Creature> idMap = new HashMap<>();
 		for (int i = 0; i < initiativeListModel.getSize(); i++) {
 			CombatEntry c = initiativeListModel.getElementAt(i);
 			if (!c.blank) idMap.put(c.creature.getID(), c.creature);

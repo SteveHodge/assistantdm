@@ -7,7 +7,7 @@ import java.util.List;
 public class TableRow {
 	int number;
 	int chances[] = new int[3];
-	List<Instruction> instructions = new ArrayList<Instruction>();
+	List<Instruction> instructions = new ArrayList<>();
 
 	public int getChance(int cat) {
 		// TODO check argument
@@ -22,6 +22,7 @@ public class TableRow {
 		return s;
 	}
 
+	@Override
 	public String toString() {
 		String s = "  Row ("+number+") chances = ";
 		for (int i=0; i<3; i++) {

@@ -13,10 +13,10 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 @SuppressWarnings("serial")
-public class ReorderableList extends JLayeredPane {
+public class ReorderableList<T extends Component> extends JLayeredPane {
 	private static final double DRAG_START_DISTANCE = 3;
 
-	private ReorderableListModel model;
+	private ReorderableListModel<T> model;
 
 	private int maxWidth = 0;		// width of widest child
 
@@ -27,7 +27,7 @@ public class ReorderableList extends JLayeredPane {
 	private boolean dragging = false;
 	private int gapTop;		// position of the top of the gap in the list. the height of the gap will be dragEntrySize.height
 
-	public ReorderableList(ReorderableListModel model) {
+	public ReorderableList(ReorderableListModel<T> model) {
 		model.sort();
 		model.addListDataListener(listListener);
 		this.model = model;
@@ -42,7 +42,7 @@ public class ReorderableList extends JLayeredPane {
 
 	protected void addEntries(int first, int last) {
 		for (int i = first; i <= last; i++) {
-			Component entry = (Component) model.getElementAt(i);
+			Component entry = model.getElementAt(i);
 			entry.addMouseListener(mouseListener);
 			entry.addMouseMotionListener(mouseListener);
 			add(entry);
@@ -126,7 +126,7 @@ public class ReorderableList extends JLayeredPane {
 					// TODO scanning the entries like this is pretty inefficient - could track the indexes instead
 					Rectangle bounds = null;
 					for (int i = 0; i < model.getSize(); i++) {
-						Component ie = (Component) model.getElementAt(i);
+						Component ie = model.getElementAt(i);
 						if (ie == dragEntry) continue;
 						bounds = ie.getBounds(bounds);
 						if (bounds.contains(p)) {
@@ -201,7 +201,7 @@ public class ReorderableList extends JLayeredPane {
 
 			// first add all entries that are not added
 			for (int i = 0; i < model.getSize(); i++) {
-				Component entry = (Component) model.getElementAt(i);
+				Component entry = model.getElementAt(i);
 				if (!isAncestorOf(entry)) {
 					entry.addMouseListener(mouseListener);
 					entry.addMouseMotionListener(mouseListener);

@@ -1,4 +1,6 @@
 package combat;
+
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -24,9 +26,9 @@ import party.PartyListener;
 import swing.ReorderableListModel;
 
 
-public class InitiativeListModel implements ReorderableListModel, ActionListener, ChangeListener, PartyListener {
+public class InitiativeListModel implements ReorderableListModel<CombatEntry>, ActionListener, ChangeListener, PartyListener {
 	private Party party;
-	private List<CombatEntry> list = new ArrayList<CombatEntry>();
+	private List<CombatEntry> list = new ArrayList<>();
 
 	private EventListenerList listenerList = new EventListenerList();
 
@@ -66,16 +68,16 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 	}
 
 	@Override
-	public int indexOf(Object item) {
+	public int indexOf(Component item) {
 		return list.indexOf(item);
 	}
 
 	// XXX use of noSort flag to prevent sorts is a bit hackish, but probably the simpilest solution
 	@Override
-	public void moveTo(Object item, int index) {
+	public void moveTo(Component item, int index) {
 		if (!list.remove(item)) throw new NoSuchElementException();
 		noSort = true;	// disable sort while we reorganise (because adjustRoll() in moveEntries() will cause a sort otherwise
-		CombatEntry dragged = (CombatEntry)item;
+		CombatEntry dragged = (CombatEntry) item;
 		list.add(index,dragged);
 
 		// fix up roll so that it remains in this position
@@ -441,8 +443,8 @@ public class InitiativeListModel implements ReorderableListModel, ActionListener
 		// first check out all the entries and determine what to do with them
 		// we need to do it this way because both changing the rolls and removing entries
 		// will alter the list or list order
-		ArrayList<CombatEntry> toRemove = new ArrayList<CombatEntry>();
-		ArrayList<CombatEntry> toReset = new ArrayList<CombatEntry>();
+		ArrayList<CombatEntry> toRemove = new ArrayList<>();
+		ArrayList<CombatEntry> toReset = new ArrayList<>();
 
 		for (CombatEntry e : list) {
 			if (e.getSource() instanceof Character) {

@@ -69,13 +69,13 @@ public class CameraPanel extends JPanel implements ActionListener {
 	private ImagePanel imagePanel;
 	private JProgressBar progressBar;
 	private JButton capture, startStop;
-	private JComboBox imageFormatCombo;
+	private JComboBox<ImageFormatOption> imageFormatCombo;
 	private JSlider zoomSlider;
 	private JCheckBox focusLockCheck;
 	private JFormattedTextField frequencyField;
 	private JPanel controls;
 	private JButton connectButton;
-	private JComboBox whiteBalanceCombo;
+	private JComboBox<String> whiteBalanceCombo;
 	private JTextArea logArea;
 	private JCheckBox lensCorrection;
 	private JCheckBox applyRemap;
@@ -194,7 +194,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 		controls.add(zoomSlider);
 
 		controls.add(new JLabel("Size & Quality"));
-		imageFormatCombo  = new JComboBox();
+		imageFormatCombo = new JComboBox<>();
 		Dimension prefSize = imageFormatCombo.getPreferredSize();
 		prefSize.width = 300;
 		imageFormatCombo.setMaximumSize(prefSize);
@@ -214,7 +214,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 		controls.add(focusLockCheck);
 
 		controls.add(new JLabel("White Balance"));
-		whiteBalanceCombo = new JComboBox();
+		whiteBalanceCombo = new JComboBox<>();
 		prefSize = whiteBalanceCombo.getPreferredSize();
 		prefSize.width = 300;
 		whiteBalanceCombo.setMaximumSize(prefSize);
@@ -421,7 +421,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 
 		regPoints = new Point[4];
 
-		List<PointRemapper> corrections = new ArrayList<PointRemapper>();
+		List<PointRemapper> corrections = new ArrayList<>();
 		// TODO need to set these parameters based on the camera zoom
 		corrections.add(new LensCorrection(-0.007715, 0.026731, 0.000000, rawImage.getWidth(), rawImage.getHeight()));
 		final BufferedImage lensCorrected = PixelInterpolator.getImage(corrections, rawImage, rawImage.getWidth(), rawImage.getHeight());
@@ -500,7 +500,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 				applyRemap.setEnabled(true);
 				applyRemap.setSelected(true);
 
-				List<PointRemapper> corrections = new ArrayList<PointRemapper>();
+				List<PointRemapper> corrections = new ArrayList<>();
 				corrections.add(lensCorrect);
 				corrections.add(H);
 				imagePanel.setImage(PixelInterpolator.getImage(corrections, rawImage, remappedWidth, remappedHeight));
@@ -655,7 +655,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 				if (lensCorrection.isSelected() || applyRemap.isSelected()) {
 					int width = rawImage.getWidth();
 					int height = rawImage.getHeight();
-					List<PointRemapper> corrections = new ArrayList<PointRemapper>();
+					List<PointRemapper> corrections = new ArrayList<>();
 
 					if (lensCorrection.isSelected()) {
 						// TODO need to set these parameters based on the camera zoom

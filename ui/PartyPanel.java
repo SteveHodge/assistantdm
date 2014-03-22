@@ -42,7 +42,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 		this.party.addPartyListener(this);
 
 		tabbedPane = new JTabbedPane();
-		tabs = new HashMap<Character,JComponent>();
+		tabs = new HashMap<>();
 		for (Character c : party) {
 			characterAdded(c);
 		}

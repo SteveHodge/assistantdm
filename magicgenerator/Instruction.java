@@ -22,7 +22,7 @@ abstract class Instruction {
 	// it never returns null - if there are no instructions then an empty list will be returned
 	static public List<Instruction> parseInstructionLine(NameSpace ns, String str) {
 		// TODO this will fall over if separators are not used sensibly
-		ArrayList<Instruction> list = new ArrayList<Instruction>();
+		ArrayList<Instruction> list = new ArrayList<>();
 		boolean inString = false;	// true when we are scanning a string
 		int level = 0;	// >1 when we are inside a pair of parentheses
 		int start = -1;	// index of the last separator before the current instruction
@@ -55,12 +55,13 @@ abstract class Instruction {
 
 	static class Roll extends Instruction {
 		String tableName;
-		Set<Integer> ignore = new HashSet<Integer>();
+		Set<Integer> ignore = new HashSet<>();
 
 		protected Roll(NameSpace ns) {
 			super(ns);
 		}
 
+		@Override
 		public void execute(Item item, TableRowChooser tabChooser) {
 			Table t = namespace.getTable(tableName);
 			if (t == null) throw new IllegalArgumentException("Table "+tableName+" not found");
@@ -93,6 +94,7 @@ abstract class Instruction {
 			return r;
 		}
 
+		@Override
 		public String toString() {
 			if (ignore.size() == 0) {
 				return "Roll("+tableName+")";
@@ -146,6 +148,7 @@ abstract class Instruction {
 			super(ns);
 		}
 
+		@Override
 		public void execute(Item item, TableRowChooser tabChooser) {
 			Field f = item.getField(fieldName);
 			Object v = item.getValue(fieldName);
@@ -166,7 +169,7 @@ abstract class Instruction {
 						v = new Float(Float.parseFloat(v.toString()) + valFloat);
 					} else {
 						// OPERATION_SET
-						v = new Float(valFloat);					
+						v = new Float(valFloat);
 					}
 				} else {
 					int valInt = Integer.parseInt(value);
@@ -174,15 +177,15 @@ abstract class Instruction {
 						v = new Integer(((Integer)v).intValue() + valInt);
 					} else {
 						// OPERATION_SET
-						v = new Integer(valInt);					
+						v = new Integer(valInt);
 					}
 				}
-				item.setValue(f,v);					
+				item.setValue(f,v);
 			} else {
 				// TYPE_STRING
 				if (operation == OPERATION_ADD || operation == OPERATION_LIST || operation == OPERATION_PREPEND) {
 					if (((String)v).length() == 0) {
-						item.setValue(f,val);					
+						item.setValue(f,val);
 					} else {
 						if (operation == OPERATION_ADD) {
 							item.setValue(f,new String(v + val));
@@ -194,7 +197,7 @@ abstract class Instruction {
 					}
 				} else {
 					// OPERATION_SET
-					item.setValue(f,val);					
+					item.setValue(f,val);
 				}
 			}
 		}
@@ -224,6 +227,7 @@ abstract class Instruction {
 			return s;
 		}
 
+		@Override
 		public String toString() {
 			String op = " = ";
 			if (operation == OPERATION_ADD) op = " += ";
@@ -259,6 +263,7 @@ abstract class Instruction {
 			return i;
 		}
 
+		@Override
 		@SuppressWarnings("unchecked")
 		public void execute(Item item, TableRowChooser tabChooser) {
 			int mod = (Integer)item.getValue("modifier");
@@ -303,13 +308,14 @@ abstract class Instruction {
 	}
 
 	static class Repeat extends Instruction {
-		List<Instruction> instructions = new ArrayList<Instruction>();
+		List<Instruction> instructions = new ArrayList<>();
 		String timesString;
 
 		protected Repeat(NameSpace ns) {
 			super(ns);
 		}
 
+		@Override
 		public void execute(Item item, TableRowChooser tabChooser) {
 			int times = 0;
 			if (timesString.startsWith("@")) {
@@ -344,6 +350,7 @@ abstract class Instruction {
 			super(ns);
 		}
 
+		@Override
 		public void execute(Item item, TableRowChooser tabChooser) {
 			Procedure p = namespace.getProcedure(procedureName);
 			if (p == null) throw new IllegalArgumentException("Procedure '"+procedureName+"' not found");
@@ -358,6 +365,7 @@ abstract class Instruction {
 			return r;
 		}
 
+		@Override
 		public String toString() {
 			return "RunProcedure('"+procedureName+"')";
 		}
@@ -370,6 +378,7 @@ abstract class Instruction {
 			super(ns);
 		}
 
+		@Override
 		public void execute(Item item, TableRowChooser tabChooser) {
 			item.addField(field);
 		}
@@ -400,12 +409,13 @@ abstract class Instruction {
 		int level = 0;
 		String tableName;
 		String specialName;
-		List<Instruction> instructions = new ArrayList<Instruction>();
+		List<Instruction> instructions = new ArrayList<>();
 
 		protected AddSpecial(NameSpace ns) {
 			super(ns);
 		}
 
+		@Override
 		@SuppressWarnings("unchecked")
 		public void execute(Item item, TableRowChooser tabChooser) {
 //			System.out.println("AddSpecial("+specialName+")");
@@ -414,7 +424,7 @@ abstract class Instruction {
 			Field f = item.getField("specials_map");
 			if (f == null) {
 				f = new Field("specials_map",Field.TYPE_OBJECT);
-				map = new HashMap<Integer,Special>();
+				map = new HashMap<>();
 				item.setValue(f, map);
 			} else {
 				map = (Map<Integer,Special>)item.getValue(f);

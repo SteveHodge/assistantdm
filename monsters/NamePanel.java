@@ -82,9 +82,9 @@ class NamePanel extends DetailPanel {
 				if (monster == null) return;
 				if (augSummonCheck.isSelected()) {
 					// if the buff has already been applied then we should not apply it again
-					ListModel buffs = monster.getBuffListModel();
+					ListModel<Buff> buffs = monster.getBuffListModel();
 					for (int i = 0; i < buffs.getSize(); i++) {
-						Buff b = (Buff) buffs.getElementAt(i);
+						Buff b = buffs.getElementAt(i);
 						if (augmentedSummoning == b) return;
 					}
 					monster.addBuff(augmentedSummoning);
@@ -111,7 +111,7 @@ class NamePanel extends DetailPanel {
 						StatisticsBlock blk = (StatisticsBlock) monster.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 						List<URL> urls = imageURLs.get(blk);
 						if (urls == null) {
-							urls = new ArrayList<URL>();
+							urls = new ArrayList<>();
 							imageURLs.put(blk, urls);
 						}
 						urls.add(imageFile.toURI().toURL());
@@ -198,9 +198,9 @@ class NamePanel extends DetailPanel {
 			}
 
 			augSummonCheck.setSelected(false);
-			ListModel buffs = monster.getBuffListModel();
+			ListModel<Buff> buffs = monster.getBuffListModel();
 			for (int i = 0; i < buffs.getSize(); i++) {
-				Buff b = (Buff)buffs.getElementAt(i);
+				Buff b = buffs.getElementAt(i);
 				if (augmentedSummoning == b) augSummonCheck.setSelected(true);
 			}
 		}

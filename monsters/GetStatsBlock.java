@@ -31,7 +31,7 @@ public class GetStatsBlock {
 	static String baseName = "D:\\Programming\\Workspace\\AssistantDM\\html\\monsters\\";
 
 	public static void main(String[] args) {
-		List<StatisticsBlock> blocks = new ArrayList<StatisticsBlock>();
+		List<StatisticsBlock> blocks = new ArrayList<>();
 		Source[] sources = new Source[] {
 				new Source("Monster Manual", "monster_manual"),
 				new Source("Monster Manual II", "monster_manual_ii"),
@@ -69,7 +69,7 @@ public class GetStatsBlock {
 		System.out.println("Total: "+fileCount+" files, "+blockCount+" stats blocks");
 
 		// check for unique names:
-		HashSet<String> names = new HashSet<String>();
+		HashSet<String> names = new HashSet<>();
 		for (StatisticsBlock block : blocks) {
 			if (names.contains(block.getName())) {
 				System.out.println("Found duplicate name: " + block.getName() + " in " + block.get(StatisticsBlock.Field.URL));
@@ -80,7 +80,7 @@ public class GetStatsBlock {
 		}
 
 		// get unique values for specified property
-//		List<String> sorted = new ArrayList<String>(getUniqueValues(blocks, StatisticsBlock.Property.FULL_ATTACK));
+//		List<String> sorted = new ArrayList<>(getUniqueValues(blocks, StatisticsBlock.Property.FULL_ATTACK));
 //		Collections.sort(sorted);
 //		for (String value : sorted) {
 //			System.out.println("'" + value + "'");
@@ -93,9 +93,9 @@ public class GetStatsBlock {
 		//		}
 
 		// check size, space, reach combos
-//		Set<String> sizes = new HashSet<String>();
-//		Set<String> types = new HashSet<String>();
-//		Set<String> subtypes = new HashSet<String>();
+//		Set<String> sizes = new HashSet<>();
+//		Set<String> types = new HashSet<>();
+//		Set<String> subtypes = new HashSet<>();
 //		for (String value : getUniqueValues(blocks, StatisticsBlock.Property.SIZE_TYPE)) {
 //			String size = value.substring(0, value.indexOf(' '));
 //			String type = value.substring(value.indexOf(' ') + 1);
@@ -111,21 +111,21 @@ public class GetStatsBlock {
 //				subtypes.add(s.trim());
 //			}
 //		}
-//		List<String> sorted = new ArrayList<String>(sizes);
+//		List<String> sorted = new ArrayList<>(sizes);
 //		Collections.sort(sorted);
 //		System.out.println("Sizes:");
 //		for (String value : sorted) {
 //			System.out.println("'" + value + "'");
 //		}
 //
-//		sorted = new ArrayList<String>(types);
+//		sorted = new ArrayList<>(types);
 //		Collections.sort(sorted);
 //		System.out.println("Types:");
 //		for (String value : sorted) {
 //			System.out.println("'" + value + "'");
 //		}
 //
-//		sorted = new ArrayList<String>(subtypes);
+//		sorted = new ArrayList<>(subtypes);
 //		Collections.sort(sorted);
 //		System.out.println("Subtypes:");
 //		for (String value : sorted) {
@@ -133,9 +133,9 @@ public class GetStatsBlock {
 //		}
 
 		// list space/reach combinations for each size:
-//		Map<String, StatisticsBlock> unique = new HashMap<String, StatisticsBlock>();
-//		Map<String, Integer> count = new HashMap<String, Integer>();
-//		Map<String, StatisticsBlock> allReach = new HashMap<String, StatisticsBlock>();
+//		Map<String, StatisticsBlock> unique = new HashMap<>();
+//		Map<String, Integer> count = new HashMap<>();
+//		Map<String, StatisticsBlock> allReach = new HashMap<>();
 //		for (StatisticsBlock block : blocks) {
 //			String space = block.get(StatisticsBlock.Property.SPACE_REACH);
 //			if (space == null) {
@@ -159,7 +159,7 @@ public class GetStatsBlock {
 //		}
 //
 //		System.out.println();
-//		List<String> sorted = new ArrayList<String>(unique.keySet());
+//		List<String> sorted = new ArrayList<>(unique.keySet());
 //		Collections.sort(sorted);
 //		for (String s : sorted) {
 //			StatisticsBlock b = unique.get(s);
@@ -168,7 +168,7 @@ public class GetStatsBlock {
 //		}
 //
 //		System.out.println("\nAll Space/Reach variants:");
-//		sorted = new ArrayList<String>(allReach.keySet());
+//		sorted = new ArrayList<>(allReach.keySet());
 //		Collections.sort(sorted);
 //		for (String s : sorted) {
 //			System.out.println(s + ": " + allReach.get(s).getName() + " - " + allReach.get(s).getSource().getName());
@@ -198,7 +198,7 @@ public class GetStatsBlock {
 		// checkSaves(blocks);
 
 		// get unique hitdice:
-//		Map<String, StatisticsBlock> uniqueValues = new HashMap<String, StatisticsBlock>();
+//		Map<String, StatisticsBlock> uniqueValues = new HashMap<>();
 //		for (StatisticsBlock block : blocks) {
 //			try {
 //				if (block.get(StatisticsBlock.Property.HITDICE) != null) {
@@ -210,7 +210,7 @@ public class GetStatsBlock {
 //				e.printStackTrace();
 //			}
 //		}
-//		List<String> sorted = new ArrayList<String>(uniqueValues.keySet());
+//		List<String> sorted = new ArrayList<>(uniqueValues.keySet());
 //		Collections.sort(sorted);
 //		for (String s : sorted) {
 //			System.out.println(s + ": " + uniqueValues.get(s).getName());
@@ -252,8 +252,8 @@ public class GetStatsBlock {
 	}
 
 	static void getAllACComponents(List<StatisticsBlock> blocks) {
-		Map<String, StatisticsBlock> examples = new HashMap<String, StatisticsBlock>();
-		Set<String> types = new HashSet<String>();
+		Map<String, StatisticsBlock> examples = new HashMap<>();
+		Set<String> types = new HashSet<>();
 
 		for (StatisticsBlock block : blocks) {
 			Set<Modifier> comps = block.getACModifiers();
@@ -263,7 +263,7 @@ public class GetStatsBlock {
 			}
 		}
 
-		List<String> sorted = new ArrayList<String>(types);
+		List<String> sorted = new ArrayList<>(types);
 		Collections.sort(sorted);
 		System.out.println("--- AC Components ---");
 		for (String n : sorted) {
@@ -340,7 +340,7 @@ public class GetStatsBlock {
 
 	static void checkDamage(List<StatisticsBlock> blocks) {
 		final Pattern wsPattern = Pattern.compile("weapon specialization \\(([^\\)]+)\\)");
-		final Pattern strLimitPattern = Pattern.compile("\\(\\+(\\d+) Str bonus\\)");
+//		final Pattern strLimitPattern = Pattern.compile("\\(\\+(\\d+) Str bonus\\)");
 
 		for (StatisticsBlock block : blocks) {
 			int str = block.getAbilityScore(AbilityScore.Type.STRENGTH);
@@ -349,7 +349,7 @@ public class GetStatsBlock {
 			if (feats == null) feats = "";
 			feats = feats.toLowerCase();
 
-			Set<String> weaponSpecs = new HashSet<String>();
+			Set<String> weaponSpecs = new HashSet<>();
 			Matcher matcher = wsPattern.matcher(feats);
 			while (matcher.find()) {
 				weaponSpecs.add(matcher.group(1));
@@ -490,13 +490,13 @@ public class GetStatsBlock {
 			}
 		}
 
-//		List<String> sorted = new ArrayList<String>(naturalAttacks);
+//		List<String> sorted = new ArrayList<>(naturalAttacks);
 //		Collections.sort(sorted);
 //		System.out.println("--- Natural Attacks ---");
 //		for (String n : sorted) {
 //			System.out.println(n);
 //		}
-//		sorted = new ArrayList<String>(mfgAttacks);
+//		sorted = new ArrayList<>(mfgAttacks);
 //		Collections.sort(sorted);
 //		System.out.println("--- Manufactured Attacks ---");
 //		for (String n : sorted) {
@@ -507,7 +507,7 @@ public class GetStatsBlock {
 
 	static void printUniqueSubtypes(List<StatisticsBlock> blocks) {
 		// list distinct subtypes:
-		HashSet<String> subtypes = new HashSet<String>();
+		HashSet<String> subtypes = new HashSet<>();
 		for (StatisticsBlock block : blocks) {
 			Set<String> subs = block.getSubtypes();
 			//System.out.println(block.getName()+": "+block.get(Property.SIZE_TYPE));
@@ -522,7 +522,7 @@ public class GetStatsBlock {
 				}
 			}
 		}
-		List<String> sorted = new ArrayList<String>(subtypes);
+		List<String> sorted = new ArrayList<>(subtypes);
 		Collections.sort(sorted);
 		for (String value : sorted) {
 			System.out.println("'" + value + "'");
@@ -594,7 +594,7 @@ public class GetStatsBlock {
 
 // validate AC
 	public static void getACDetails(List<StatisticsBlock> blocks) {
-		Map<String, StatisticsBlock> uniqueComponents = new HashMap<String, StatisticsBlock>();
+		Map<String, StatisticsBlock> uniqueComponents = new HashMap<>();
 		for (StatisticsBlock block : blocks) {
 			String ac = block.get(Field.AC);
 			if (ac == null) {
@@ -622,10 +622,10 @@ public class GetStatsBlock {
 						fullAC = fullAC.substring(0, fullAC.indexOf(" ("));
 						String[] components = componentStr.split("\\s*,\\s*");
 						for (String component : components) {
-							String value = component.substring(0, component.indexOf(' '));
+//							String value = component.substring(0, component.indexOf(' '));
 							String type = component.substring(component.indexOf(' ') + 1);
 							if (type.indexOf(" (") >= 0) {
-								String desc = type.substring(type.indexOf(" (") + 2, type.lastIndexOf(')'));
+//								String desc = type.substring(type.indexOf(" (") + 2, type.lastIndexOf(')'));
 								type = type.substring(0, type.indexOf(" ("));
 							}
 							uniqueComponents.put(type, block);
@@ -638,10 +638,10 @@ public class GetStatsBlock {
 					System.out.println("WARN: " + getNameURL(block) + " couldn't components");
 				}
 			}
-			String touchAC = ac.substring(i + 8, j);
-			String ffAC = ac.substring(j + 14);
+//			String touchAC = ac.substring(i + 8, j);
+//			String ffAC = ac.substring(j + 14);
 		}
-		List<String> sorted = new ArrayList<String>(uniqueComponents.keySet());
+		List<String> sorted = new ArrayList<>(uniqueComponents.keySet());
 		Collections.sort(sorted);
 		for (String comp : sorted) {
 			System.out.println(comp + ": " + getNameURL(uniqueComponents.get(comp)));
@@ -660,11 +660,11 @@ public class GetStatsBlock {
 
 // validate saves and get unique values:
 	public static void checkSaves(List<StatisticsBlock> blocks) {
-		Map<SavingThrow.Type, Set<String>> saves = new HashMap<SavingThrow.Type, Set<String>>();
+		Map<SavingThrow.Type, Set<String>> saves = new HashMap<>();
 		for (SavingThrow.Type save : SavingThrow.Type.values()) {
 			saves.put(save, new HashSet<String>());
 		}
-		List<StatisticsBlock> exceptions = new ArrayList<StatisticsBlock>();
+		List<StatisticsBlock> exceptions = new ArrayList<>();
 
 		for (StatisticsBlock block : blocks) {
 			String value = block.get(StatisticsBlock.Field.SAVES);
@@ -691,7 +691,7 @@ public class GetStatsBlock {
 			}
 		}
 		for (SavingThrow.Type save : SavingThrow.Type.values()) {
-			List<String> values = new ArrayList<String>(saves.get(save));
+			List<String> values = new ArrayList<>(saves.get(save));
 			Collections.sort(values);
 			System.out.println("Values for " + save);
 			for (String value : values) {
@@ -866,7 +866,7 @@ public class GetStatsBlock {
 
 // get unique values for specified property
 	public static Set<String> getUniqueValues(List<StatisticsBlock> blocks, StatisticsBlock.Field property) {
-		HashSet<String> values = new HashSet<String>();
+		HashSet<String> values = new HashSet<>();
 		for (StatisticsBlock block : blocks) {
 			String value = block.get(property);
 			values.add(value);

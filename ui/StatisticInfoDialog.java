@@ -99,7 +99,7 @@ public class StatisticInfoDialog extends JDialog {
 	}
 
 	JPanel getAdhocPanel(final String statName) {
-		final JComboBox typeBox = new JComboBox(Modifier.StandardType.values());
+		final JComboBox<Modifier.StandardType> typeBox = new JComboBox<>(Modifier.StandardType.values());
 		typeBox.setSelectedItem("Enhancement");
 		typeBox.setEditable(true);
 

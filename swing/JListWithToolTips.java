@@ -7,30 +7,31 @@ import javax.swing.JList;
 import javax.swing.ListModel;
 
 @SuppressWarnings("serial")
-public class JListWithToolTips extends JList {
+public class JListWithToolTips<T> extends JList<T> {
 	public JListWithToolTips() {
 		super();
 	}
 
-	public JListWithToolTips(ListModel dataModel) {
+	public JListWithToolTips(ListModel<T> dataModel) {
 		super(dataModel);
 	}
 
-	public JListWithToolTips(Object[] listData) {
+	public JListWithToolTips(T[] listData) {
 		super(listData);
 	}
 
-	public JListWithToolTips(Vector<?> listData) {
+	public JListWithToolTips(Vector<T> listData) {
 		super(listData);
 	}
 
+	@Override
 	public String getToolTipText(MouseEvent e) {
 		String tip = null;
 		int index = locationToIndex(e.getPoint());
 
-		ListModel m = getModel();
+		ListModel<T> m = getModel();
 		if (m instanceof ListModelWithToolTips) {
-			tip = ((ListModelWithToolTips)m).getToolTipAt(index);
+			tip = ((ListModelWithToolTips<T>) m).getToolTipAt(index);
 		}
 
 		if (tip == null) {

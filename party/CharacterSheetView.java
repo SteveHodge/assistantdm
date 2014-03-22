@@ -198,7 +198,7 @@ public class CharacterSheetView {
 			if (creatureEl == null) return;
 
 			Element e = doc.createElement("Skills");
-			ArrayList<SkillType> set = new ArrayList<SkillType>(character.getSkills());
+			ArrayList<SkillType> set = new ArrayList<>(character.getSkills());
 			Collections.sort(set, new Comparator<SkillType>() {
 				@Override
 				public int compare(SkillType o1, SkillType o2) {

@@ -9,8 +9,9 @@ import java.util.List;
 public class Table {
 	public String name;
 	public String comment;
-	List<TableRow> rows = new ArrayList<TableRow>();
+	List<TableRow> rows = new ArrayList<>();
 
+	@Override
 	public String toString() {
 		String s = "Table "+name+" ("+comment+")";
 		for (TableRow r : rows) {

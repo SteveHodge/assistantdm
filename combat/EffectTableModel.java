@@ -64,7 +64,7 @@ public class EffectTableModel extends AbstractTableModel {
 		}
 	}
 
-	private List<Effect> list = new ArrayList<Effect>();
+	private List<Effect> list = new ArrayList<>();
 
 	@Override
 	public int getColumnCount() {
@@ -191,13 +191,13 @@ public class EffectTableModel extends AbstractTableModel {
 		int buffId = getBuffID(index);
 		if (buffId > 0) {
 			// there is a buff attached to the effect so confirm it should be removed
-			List<Creature> targets = new ArrayList<Creature>();
+			List<Creature> targets = new ArrayList<>();
 			Buff buff = null;
 			for (int i = 0; i < potentials.getSize(); i++) {
 				CombatEntry t = potentials.getElementAt(i);
-				ListModel list = t.creature.getBuffListModel();
+				ListModel<Buff> list = t.creature.getBuffListModel();
 				for (int j = 0; j < list.getSize(); j++) {
-					Buff b = (Buff) list.getElementAt(j);
+					Buff b = list.getElementAt(j);
 					if (b.id == buffId) {
 						buff = b;
 						targets.add(t.creature);

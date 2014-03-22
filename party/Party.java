@@ -25,10 +25,10 @@ import util.XMLUtils;
 
 public class Party implements Iterable<Character> {
 	protected List<Character> characters;
-	protected List<PartyListener> listeners = new ArrayList<PartyListener>();
+	protected List<PartyListener> listeners = new ArrayList<>();
 
 	public Party() {
-		characters = new ArrayList<Character>();
+		characters = new ArrayList<>();
 	}
 
 	public void addPartyListener(PartyListener l) {
@@ -48,7 +48,7 @@ public class Party implements Iterable<Character> {
 	public boolean remove(Character c) {
 		if (characters.remove(c)) {
 			for (PartyListener l : listeners) l.characterRemoved(c);
-					return true;
+			return true;
 		}
 		return false;
 	}
@@ -101,7 +101,7 @@ public class Party implements Iterable<Character> {
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 			//XMLUtils.printNode(dom, "");
 
-			Map<String,Character> charMap = new HashMap<String,Character>();
+			Map<String, Character> charMap = new HashMap<>();
 			Node node = XMLUtils.findNode(dom,"Characters");
 			if (node != null) {
 				NodeList children = node.getChildNodes();

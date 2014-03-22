@@ -16,7 +16,7 @@ public class LocalEntityResolver implements EntityResolver {
 //private static final Logger LOG = ESAPI.getLogger(LocalEntityResolver.class);
 	private static final Map<String, String> DTDS;
 	static {
-		DTDS = new HashMap<String, String>();
+		DTDS = new HashMap<>();
 		DTDS.put("-//W3C//DTD XHTML 1.0 Transitional//EN",
 				"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd");
 		DTDS.put("-//W3C//ENTITIES Latin 1 for XHTML//EN",

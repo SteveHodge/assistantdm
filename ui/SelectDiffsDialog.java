@@ -23,7 +23,7 @@ import party.Character;
 public class SelectDiffsDialog extends JDialog implements ActionListener {
 	List<String> diffs;
 	Character oldChar, newChar;
-	Map<String,Boolean> selected; 
+	Map<String,Boolean> selected;
 	boolean returnOk = false;
 
 	public SelectDiffsDialog(JFrame frame, Character oldChar, Character newChar) {
@@ -33,12 +33,12 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 
 		this.oldChar = oldChar;
 		this.newChar = newChar;
-		selected = new HashMap<String,Boolean>();
+		selected = new HashMap<>();
 		for (String diff : diffs) {
 			if (!diff.equals(Creature.PROPERTY_NAME)
-				&& !diff.equals(Creature.PROPERTY_WOUNDS)
-				&& !diff.equals(Creature.PROPERTY_NONLETHAL)
-				&& !diff.startsWith(Creature.PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
+					&& !diff.equals(Creature.PROPERTY_WOUNDS)
+					&& !diff.equals(Creature.PROPERTY_NONLETHAL)
+					&& !diff.startsWith(Creature.PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
 				selected.put(diff,true);
 			}
 		}
@@ -67,6 +67,7 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 		return !returnOk;
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals("Ok")) {
 			returnOk = true;
@@ -76,7 +77,7 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 	}
 
 	public List<String> getSelectedDiffs() {
-		ArrayList<String> select = new ArrayList<String>();
+		ArrayList<String> select = new ArrayList<>();
 		for (String prop : diffs) {
 			Boolean sel = selected.get(prop);
 			if (sel != null && sel) select.add(prop);
@@ -86,17 +87,20 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 
 	// TODO should listen to property change event on the two characters
 	public class DiffsTableModel extends AbstractTableModel {
+		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			if (columnIndex == 3) return true;
 			return false;
 		}
 
+		@Override
 		public Class<?> getColumnClass(int columnIndex) {
 			if (columnIndex == 0) return String.class;
 			if (columnIndex == 3) return Boolean.class;
 			return Object.class;
 		}
 
+		@Override
 		public String getColumnName(int column) {
 			if (column == 0) return "Attribute";
 			if (column == 1) return "Current";
@@ -105,14 +109,17 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 			return super.getColumnName(column);
 		}
 
+		@Override
 		public int getColumnCount() {
 			return 4;
 		}
 
+		@Override
 		public int getRowCount() {
 			return diffs.size();
 		}
 
+		@Override
 		public Object getValueAt(int row, int column) {
 			if (column == 0) return diffs.get(row);
 			if (column == 1) return oldChar.getProperty(diffs.get(row));
@@ -125,6 +132,7 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 			return null;
 		}
 
+		@Override
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (columnIndex == 3 && value instanceof Boolean) {
 				selected.put(diffs.get(rowIndex), (Boolean)value);

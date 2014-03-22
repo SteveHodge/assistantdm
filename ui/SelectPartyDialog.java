@@ -28,7 +28,7 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 	protected LibraryTableModel libraryModel;
 	protected Party party;
 
-	Map<Character,Boolean> selected; 
+	Map<Character,Boolean> selected;
 	boolean returnOk = false;
 
 	public SelectPartyDialog(JFrame frame, Party p) {
@@ -36,7 +36,7 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 
 		party = p;
 		libraryModel = new LibraryTableModel();
-		selected = new HashMap<Character,Boolean>();
+		selected = new HashMap<>();
 		for (Character c : libraryModel.list) {
 			if (party.contains(c)) {
 				selected.put(c,true);
@@ -66,6 +66,7 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 		return !returnOk;
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals("Ok")) {
 			returnOk = true;
@@ -75,7 +76,7 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 	}
 
 	public List<Character> getSelectedCharacters() {
-		ArrayList<Character> select = new ArrayList<Character>();
+		ArrayList<Character> select = new ArrayList<>();
 		for (Character c : libraryModel.list) {
 			Boolean sel = selected.get(c);
 			if (sel != null && sel) select.add(c);
@@ -87,8 +88,9 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 		List<Character> list;
 
 		public LibraryTableModel() {
-			list = new ArrayList<Character>(CharacterLibrary.characters);
+			list = new ArrayList<>(CharacterLibrary.characters);
 			Comparator<Character> sorter = new Comparator<Character>() {
+				@Override
 				public int compare(Character arg0,Character arg1) {
 					return arg0.getName().compareTo(arg1.getName());
 				}
@@ -96,10 +98,12 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 			Collections.sort(list,sorter );
 		}
 
+		@Override
 		public int getColumnCount() {
 			return 3;
 		}
 
+		@Override
 		public String getColumnName(int column) {
 			if (column == 0) return "Name";
 			if (column == 1) return "Level";
@@ -107,27 +111,32 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 			return super.getColumnName(column);
 		}
 
+		@Override
 		public int getRowCount() {
 			return list.size();
 		}
 
+		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			if (columnIndex == 2) return true;
 			return false;
 		}
 
+		@Override
 		public Class<?> getColumnClass(int columnIndex) {
 			if (columnIndex == 0) return String.class;
 			if (columnIndex == 2) return Boolean.class;
 			return Integer.class;
 		}
 
+		@Override
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (columnIndex != 2) return;
 			Character c = list.get(rowIndex);
 			selected.put(c, (Boolean)value);
 		}
 
+		@Override
 		public Object getValueAt(int row, int column) {
 			Character c = list.get(row);
 			if (column == 0) return c.getName();

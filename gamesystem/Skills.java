@@ -18,8 +18,8 @@ import java.util.Set;
  */
 // TODO reimplement misc as Modifier
 public class Skills extends Statistic {
-	final public Map<SkillType,Skill> skills = new HashMap<SkillType,Skill>();	// TODO public for Character.getXML. change when no longer required
-	final protected EnumMap<AbilityScore.Type,Modifier> abilityMods = new EnumMap<AbilityScore.Type,Modifier>(AbilityScore.Type.class);
+	final public Map<SkillType, Skill> skills = new HashMap<>();	// TODO public for Character.getXML. change when no longer required
+	final protected EnumMap<AbilityScore.Type, Modifier> abilityMods = new EnumMap<>(AbilityScore.Type.class);
 	final protected Modifier acp;
 
 	final protected PropertyChangeListener modifierListener = new PropertyChangeListener() {
@@ -89,7 +89,7 @@ public class Skills extends Statistic {
 
 	protected Set<Modifier> getModifiersSet(SkillType s) {
 		Skill skill = skills.get(s);
-		Set<Modifier> mods = new HashSet<Modifier>(modifiers);
+		Set<Modifier> mods = new HashSet<>(modifiers);
 		if (skill == null) {
 			mods.add(abilityMods.get(s.ability));
 			if (s.armorCheckPenaltyApplies) {
@@ -153,7 +153,7 @@ public class Skills extends Statistic {
 
 	// returns all skills with ranks > 0
 	public Set<SkillType> getTrainedSkills() {
-		Set<SkillType> trained = new HashSet<SkillType>();
+		Set<SkillType> trained = new HashSet<>();
 		for (SkillType type : skills.keySet()) {
 			Skill s = skills.get(type);
 			if (s.ranks > 0f) trained.add(type);

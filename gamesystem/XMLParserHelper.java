@@ -162,8 +162,8 @@ public class XMLParserHelper {
 		}
 
 		// clean up: check active flags are correctly set and remove any tempHPs set to 0
-		List<HPs.TempHPs> toDelete = new ArrayList<HPs.TempHPs>();
-		Map<String, HPs.TempHPs> best = new HashMap<String, HPs.TempHPs>();
+		List<HPs.TempHPs> toDelete = new ArrayList<>();
+		Map<String, HPs.TempHPs> best = new HashMap<>();
 		for (HPs.TempHPs temp : c.hps.tempHPs) {
 			if (temp.hps == 0) {
 				toDelete.add(temp);

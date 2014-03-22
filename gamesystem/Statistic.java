@@ -25,7 +25,7 @@ import java.util.Set;
 // total are reported we always report the old value as null. Probably best to change to a customer Event/Listener implementation
 public class Statistic {
 	protected String name;
-	protected Set<Modifier> modifiers = new HashSet<Modifier>();
+	protected Set<Modifier> modifiers = new HashSet<>();
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	protected final PropertyChangeListener listener = new PropertyChangeListener() {
@@ -150,7 +150,7 @@ public class Statistic {
 		// 1. there is a modifier with no condition or the same condition that is from the same source and is better
 		// 2. there is a modifier with no condition or the same condition of the same type that is better (and the type is not dodge, circumstance, or untyped)
 
-		HashMap<Modifier,Boolean> map = new HashMap<Modifier,Boolean>();
+		HashMap<Modifier, Boolean> map = new HashMap<>();
 		for (Modifier m : modifiers) {
 			boolean include = true;
 

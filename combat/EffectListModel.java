@@ -1,4 +1,5 @@
 package combat;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,8 +18,8 @@ import org.w3c.dom.NodeList;
 import swing.ReorderableListModel;
 
 // Class no longer used
-public class EffectListModel implements ReorderableListModel {
-	List<EffectEntry> list = new ArrayList<EffectEntry>();
+public class EffectListModel implements ReorderableListModel<EffectEntry> {
+	List<EffectEntry> list = new ArrayList<>();
 
 	EventListenerList listenerList = new EventListenerList();
 
@@ -28,14 +29,17 @@ public class EffectListModel implements ReorderableListModel {
 	int initiativeWidth = 0;
 	int durationWidth = 0;
 
-	public void moveTo(Object item, int newPos) {
+	@Override
+	public void moveTo(Component item, int newPos) {
 		if (!list.remove(item)) throw new NoSuchElementException();
-		list.add(newPos,(EffectEntry)item);
+		list.add(newPos, (EffectEntry) item);
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
+	@Override
 	public void sort() {
 		Collections.sort(list, new Comparator<EffectEntry>() {
+			@Override
 			public int compare(EffectEntry arg0, EffectEntry arg1) {
 				int diff = arg0.duration - arg1.duration;
 				if (diff == 0) return arg0.initiative - arg1.initiative;
@@ -45,15 +49,18 @@ public class EffectListModel implements ReorderableListModel {
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
+	@Override
 	public void sort(Comparator<Object> c) {
 		Collections.sort(list,c);
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 
-	public Object getElementAt(int index) {
+	@Override
+	public EffectEntry getElementAt(int index) {
 		return list.get(index);
 	}
 
+	@Override
 	public int getSize() {
 		return list.size();
 	}
@@ -139,10 +146,12 @@ public class EffectListModel implements ReorderableListModel {
 		fireListDataEvent(ListDataEvent.INTERVAL_REMOVED,pos,pos);
 	}
 
+	@Override
 	public void addListDataListener(ListDataListener l) {
 		listenerList.add(ListDataListener.class,l);
 	}
 
+	@Override
 	public void removeListDataListener(ListDataListener l) {
 		listenerList.remove(ListDataListener.class,l);
 	}
@@ -168,7 +177,8 @@ public class EffectListModel implements ReorderableListModel {
 		}
 	}
 
-	public int indexOf(Object item) {
+	@Override
+	public int indexOf(Component item) {
 		return list.indexOf(item);
 	}
 

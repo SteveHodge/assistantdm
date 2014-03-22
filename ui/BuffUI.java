@@ -33,14 +33,14 @@ import swing.ListModelWithToolTips;
 
 public class BuffUI {
 	@SuppressWarnings("serial")
-	public static class BuffListModel extends DefaultListModel implements ListModelWithToolTips {
+	public static class BuffListModel<T> extends DefaultListModel<T> implements ListModelWithToolTips<T> {
 		public BuffListModel() {
 			super();
 		}
 
-		public BuffListModel(BuffFactory[] buffs) {
+		public BuffListModel(T[] buffs) {
 			super();
-			for (BuffFactory bf : buffs) {
+			for (T bf : buffs) {
 				addElement(bf);
 			}
 		}
@@ -114,7 +114,7 @@ public class BuffUI {
 		clPanel.add(maxCheckBox);
 	}
 
-	public JListWithToolTips getBuffList() {
+	public JListWithToolTips<BuffFactory> getBuffList() {
 		BuffFactory[] availableBuffs = Arrays.copyOf(BuffFactory.buffs, BuffFactory.buffs.length);
 		Arrays.sort(availableBuffs, new Comparator<BuffFactory>() {
 			@Override
@@ -122,14 +122,14 @@ public class BuffUI {
 				return a.name.compareTo(b.name);
 			}
 		});
-		BuffUI.BuffListModel bfModel = new BuffUI.BuffListModel(availableBuffs);
-		final JListWithToolTips buffs = new JListWithToolTips(bfModel);
+		BuffUI.BuffListModel<BuffFactory> bfModel = new BuffUI.BuffListModel<>(availableBuffs);
+		final JListWithToolTips<BuffFactory> buffs = new JListWithToolTips<>(bfModel);
 		buffs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		buffs.setVisibleRowCount(20);
 		buffs.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent arg0) {
-				buff = ((BuffFactory) buffs.getSelectedValue()).getBuff();
+				buff = buffs.getSelectedValue().getBuff();
 				buff.setCasterLevel(clModel.getNumber().intValue());
 				buff.empowered = empCheckBox.isSelected();
 				buff.maximized = maxCheckBox.isSelected();

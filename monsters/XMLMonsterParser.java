@@ -151,8 +151,8 @@ public class XMLMonsterParser extends XMLParserHelper {
 		if (attacksElement != null) {
 			parseAttacks(attacksElement, m);
 
-			List<AttackRoutine> attacks = new ArrayList<AttackRoutine>();
-			List<AttackRoutine> fullAttacks = new ArrayList<AttackRoutine>();
+			List<AttackRoutine> attacks = new ArrayList<>();
+			List<AttackRoutine> fullAttacks = new ArrayList<>();
 
 			NodeList children = attacksElement.getChildNodes();
 			for (int j = 0; j < children.getLength(); j++) {

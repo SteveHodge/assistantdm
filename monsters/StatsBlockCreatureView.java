@@ -40,7 +40,7 @@ import monsters.StatisticsBlock.MonsterDetails;
 public class StatsBlockCreatureView {
 	public final static String PROPERTY_STATS_BLOCK = "statsblock";
 
-	private static Map<Monster, StatsBlockCreatureView> views = new HashMap<Monster, StatsBlockCreatureView>();
+	private static Map<Monster, StatsBlockCreatureView> views = new HashMap<>();
 
 	private Monster creature;
 
@@ -223,9 +223,9 @@ public class StatsBlockCreatureView {
 	}
 
 	private static List<MonsterAttackRoutine> getAttackList(Monster m, List<AttackRoutine> attacks) {
-		List<MonsterAttackRoutine> list = new ArrayList<MonsterAttackRoutine>();
+		List<MonsterAttackRoutine> list = new ArrayList<>();
 		for (AttackRoutine r : attacks) {
-			List<MonsterAttackForm> atks = new ArrayList<MonsterAttackForm>();
+			List<MonsterAttackForm> atks = new ArrayList<>();
 			for (AttackRoutine.Attack a : r.attacks) {
 				atks.add(getMonsterAttackForm(m, r, a));
 			}

@@ -177,22 +177,13 @@ public class Updater {
 	// TODO probably should propagate exceptions upwards
 	protected static String updateFile(String dest, byte[] buffer) {
 		String message = null;
-		FileOutputStream out = null;
-		try {
-			out = new FileOutputStream(dest);
+
+		try (FileOutputStream out = new FileOutputStream(dest);) {
 			out.write(buffer);
 		} catch (FileNotFoundException e) {
 			message = "Couldn't open "+dest+": "+e.getMessage();
 		} catch (IOException e) {
 			message = "Couldn't save to "+dest+": "+e.getMessage();
-		} finally {
-			if (out != null) {
-				try {
-					out.close();
-				} catch (IOException e) {
-					message = "Couldn't close "+dest+": "+e.getMessage();
-				}
-			}
 		}
 		return message;
 	}

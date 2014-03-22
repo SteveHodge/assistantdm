@@ -57,7 +57,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 	private JCheckBox totalDefense = new JCheckBox("Total Defense");
 	private Attacks attacks;
 	private AttackFormPanel attackPanel;
-	private JList weaponList;
+	private JList<CharacterAttackForm> weaponList;
 	private AttackFormListModel attackFormsModel = new AttackFormListModel();
 
 	CharacterAttacksPanel(Character chr) {
@@ -206,7 +206,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 		@Override
 		JPanel getAdhocPanel(final String statName) {
-			final JComboBox typeBox = new JComboBox(Modifier.StandardType.values());
+			final JComboBox<Modifier.StandardType> typeBox = new JComboBox<>(Modifier.StandardType.values());
 			typeBox.setSelectedItem("Enhancement");
 			typeBox.setEditable(true);
 
@@ -407,10 +407,10 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		deleteButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				CharacterAttackForm a = (CharacterAttackForm) weaponList.getSelectedValue();
+				CharacterAttackForm a = weaponList.getSelectedValue();
 				if (a != null) {
 					attacks.removeAttackForm(a.attack);
-					attackPanel.setAttackForm((CharacterAttackForm) weaponList.getSelectedValue());
+					attackPanel.setAttackForm(weaponList.getSelectedValue());
 				}
 			}
 		});
@@ -452,14 +452,14 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		c.anchor = GridBagConstraints.NORTH;
 		bottom.add(buttonPanel, c);
 
-		weaponList = new JList(attackFormsModel);
+		weaponList = new JList<>(attackFormsModel);
 		weaponList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		weaponList.setVisibleRowCount(6);
 		weaponList.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!e.getValueIsAdjusting()) {
-					attackPanel.setAttackForm((CharacterAttackForm) weaponList.getSelectedValue());
+					attackPanel.setAttackForm(weaponList.getSelectedValue());
 				}
 			}
 		});
@@ -533,13 +533,13 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 	}
 
 	// ------------ Attack forms / weapons list related ------------
-	protected class AttackFormListModel extends AbstractListModel {
+	protected class AttackFormListModel extends AbstractListModel<CharacterAttackForm> {
 		public CharacterAttackForm get(int i) {
 			return character.attackForms.get(i);
 		}
 
 		@Override
-		public Object getElementAt(int i) {
+		public CharacterAttackForm getElementAt(int i) {
 			return get(i);
 		}
 

@@ -6,12 +6,11 @@ import java.util.List;
 import javax.swing.JPanel;
 
 import party.Character;
-
 import ui.PartyPanel.SummaryDisplay;
 
 @SuppressWarnings("serial")
 public class CharacterSubPanel extends JPanel {
-	protected List<SummaryDisplay> summaries = new ArrayList<SummaryDisplay>();
+	protected List<SummaryDisplay> summaries = new ArrayList<>();
 	protected Character character;
 	protected String summary;
 

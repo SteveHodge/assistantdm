@@ -1,6 +1,7 @@
 package combat;
 
 import gamesystem.Buff;
+import gamesystem.BuffFactory;
 import gamesystem.Creature;
 
 import java.awt.BorderLayout;
@@ -34,7 +35,7 @@ class BuffDialog extends JDialog {
 	private BuffUI ui;
 
 	private boolean okSelected = false;
-	private Map<JCheckBox, Creature> targets = new HashMap<JCheckBox, Creature>();
+	private Map<JCheckBox, Creature> targets = new HashMap<>();
 
 	BuffDialog(JComponent own, InitiativeListModel ilm) {
 		super(SwingUtilities.windowForComponent(own), "Choose buff", Dialog.ModalityType.APPLICATION_MODAL);
@@ -42,7 +43,7 @@ class BuffDialog extends JDialog {
 
 		ui = new BuffUI();
 
-		JListWithToolTips buffs = ui.getBuffList();
+		JListWithToolTips<BuffFactory> buffs = ui.getBuffList();
 		buffs.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent arg0) {
@@ -105,7 +106,7 @@ class BuffDialog extends JDialog {
 	}
 
 	Set<Creature> getTargets() {
-		HashSet<Creature> targetted = new HashSet<Creature>();
+		HashSet<Creature> targetted = new HashSet<>();
 		if (okSelected) {
 			for (JCheckBox cb : targets.keySet()) {
 				if (cb.isSelected()) targetted.add(targets.get(cb));

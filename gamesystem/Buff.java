@@ -21,12 +21,12 @@ import org.w3c.dom.Element;
 
 public class Buff {
 	public String name;
-	public List<Effect> effects = new ArrayList<Effect>();
+	public List<Effect> effects = new ArrayList<>();
 	boolean realised = false;	// set to true once the effects have been fixed
-	Map<Modifier,String> modifiers = new HashMap<Modifier,String>();	// map of modifier to the target it will be applied to
-	Map<PropertyChange,String> propertyChanges = new HashMap<PropertyChange,String>();	// map of property changes to the target
+	Map<Modifier, String> modifiers = new HashMap<>();	// map of modifier to the target it will be applied to
+	Map<PropertyChange, String> propertyChanges = new HashMap<>();	// map of property changes to the target
 	int casterLevel = 0;
-	Map<Dice,Integer> rolls = new HashMap<Dice,Integer>();
+	Map<Dice, Integer> rolls = new HashMap<>();
 	public boolean maximized = false;
 	public boolean empowered = false;
 	public int id;
@@ -40,7 +40,7 @@ public class Buff {
 
 	final static Map<String,String> TARGET_DESC;
 	static {
-		HashMap<String,String> map = new HashMap<String,String>();
+		HashMap<String, String> map = new HashMap<>();
 		map.put(Creature.STATISTIC_STRENGTH, AbilityScore.Type.STRENGTH.toString());
 		map.put(Creature.STATISTIC_INTELLIGENCE, AbilityScore.Type.INTELLIGENCE.toString());
 		map.put(Creature.STATISTIC_WISDOM, AbilityScore.Type.WISDOM.toString());

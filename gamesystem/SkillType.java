@@ -26,6 +26,7 @@ public class SkillType implements Comparable<SkillType> {
 		this.doubleACP = doubleACP;
 	}
 
+	@Override
 	public String toString() {
 		return name;
 	}
@@ -76,18 +77,19 @@ public class SkillType implements Comparable<SkillType> {
 		return s;
 	}
 
+	@Override
 	public int compareTo(SkillType arg0) {
 		return name.compareToIgnoreCase(arg0.name);
 	}
 
 	public static Iterator<SkillType> iterator() {
-		List<SkillType> s = new ArrayList<SkillType>(skills.values());
+		List<SkillType> s = new ArrayList<>(skills.values());
 		Collections.sort(s);
 		return s.iterator();
 	}
 
 	public static Set<SkillType> getUntrainedSkills() {
-		Set<SkillType> u = new HashSet<SkillType>();
+		Set<SkillType> u = new HashSet<>();
 		for (SkillType s : skills.values()) {
 			if (!s.trainedOnly) u.add(s);
 		}
@@ -95,7 +97,7 @@ public class SkillType implements Comparable<SkillType> {
 	}
 
 	static {
-		skills = new HashMap<String,SkillType>();
+		skills = new HashMap<>();
 		addSkill("Appraise",AbilityScore.Type.INTELLIGENCE,false);
 		addSkill("Balance",AbilityScore.Type.DEXTERITY,false,true);
 		addSkill("Bluff",AbilityScore.Type.CHARISMA,false);

@@ -18,8 +18,8 @@ public class Item implements Serializable {
 	public final static int CLASS_MAJOR = 2;
 
 	int category = Item.CLASS_MINOR;
-	Map<String,Field> fields = new HashMap<String,Field>();
-	Map<Field,Object> values = new HashMap<Field,Object>();
+	Map<String, Field> fields = new HashMap<>();
+	Map<Field, Object> values = new HashMap<>();
 
 	// we set up several standard fields:
 	// item (text) - should be the final, complete description of the item
@@ -46,6 +46,7 @@ public class Item implements Serializable {
 		return cost;
 	}
 
+	@Override
 	public String toString() {
 		return getValue("item").toString();
 	}

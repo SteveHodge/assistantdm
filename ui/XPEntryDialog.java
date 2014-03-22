@@ -37,7 +37,7 @@ import party.Party;
 @SuppressWarnings("serial")
 public class XPEntryDialog extends JDialog implements ActionListener {
 	Party party;
-	List<Challenge> challenges = new ArrayList<Challenge>();
+	List<Challenge> challenges = new ArrayList<>();
 	int[] penalties;	// note this is in party order
 	boolean[] exclude;	// note this is in party order
 	XPPartyTableModel partyModel;
@@ -64,7 +64,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 
 		entryModel = new XPEntryTableModel();
 		entryModel.addTableModelListener(partyModel);
-		table = new JTable(entryModel); 
+		table = new JTable(entryModel);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JScrollPane entryScrollpane = new JScrollPane(table);
 
@@ -98,6 +98,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		commentsPanel.add(dateField);
 		partySizeModel = new SpinnerNumberModel(party.size(),party.size(),99,1);
 		partySizeModel.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				partyModel.fireTableDataChanged();
 			}
@@ -116,6 +117,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		return !returnOk;
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals("Ok")) {
 			returnOk = true;
@@ -152,14 +154,17 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 			entry.number = 1;
 		}
 
+		@Override
 		public int getColumnCount() {
 			return COLUMN_COUNT;
 		}
 
+		@Override
 		public int getRowCount() {
 			return challenges.size()+1;
 		}
 
+		@Override
 		public Object getValueAt(int row, int col) {
 			Challenge c = entry;
 			if (row < challenges.size()) {
@@ -177,12 +182,14 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 			}
 		}
 
+		@Override
 		public Class<?> getColumnClass(int col) {
 			if (col == COLUMN_COMMENT) return String.class;
 			if (col == COLUMN_CR) return CR.class;
 			return Integer.class;
 		}
 
+		@Override
 		public String getColumnName(int col) {
 			switch (col) {
 			case COLUMN_COMMENT:
@@ -196,10 +203,12 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 			}
 		}
 
+		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			return true;
 		}
 
+		@Override
 		public void setValueAt(Object value, int row, int col) {
 			Challenge c = entry;
 			if (row < challenges.size()) {
@@ -240,14 +249,17 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 
 		public static final int COLUMN_COUNT = 7;
 
+		@Override
 		public int getColumnCount() {
 			return COLUMN_COUNT;
 		}
 
+		@Override
 		public int getRowCount() {
 			return party.size();
 		}
 
+		@Override
 		public Object getValueAt(int row, int col) {
 			party.Character c = party.get(row);
 
@@ -276,6 +288,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 			}
 		}
 
+		@Override
 		public Class<?> getColumnClass(int col) {
 			if (col == COLUMN_NAME) return String.class;
 			if (col == COLUMN_TOGO) return Float.class;
@@ -283,6 +296,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 			return Integer.class;
 		}
 
+		@Override
 		public String getColumnName(int col) {
 			switch (col) {
 			case COLUMN_NAME:
@@ -304,15 +318,18 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 			}
 		}
 
+		@Override
 		public void tableChanged(TableModelEvent arg0) {
 			this.fireTableDataChanged();
 		}
 
+		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			if (columnIndex == COLUMN_PENALTY || columnIndex == COLUMN_EXCLUDE) return true;
 			return false;
 		}
 
+		@Override
 		public void setValueAt(Object value, int row, int col) {
 			if (col == COLUMN_PENALTY) {
 				if (value == null) penalties[row] = 0;

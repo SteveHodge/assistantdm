@@ -72,8 +72,8 @@ public abstract class Creature {
 	protected HPs hps;
 	protected Size size;
 	protected InitiativeModifier initiative;
-	protected EnumMap<SavingThrow.Type, SavingThrow> saves = new EnumMap<SavingThrow.Type, SavingThrow>(SavingThrow.Type.class);
-	protected EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<AbilityScore.Type, AbilityScore>(AbilityScore.Type.class);
+	protected EnumMap<SavingThrow.Type, SavingThrow> saves = new EnumMap<>(SavingThrow.Type.class);
+	protected EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<>(AbilityScore.Type.class);
 
 	protected AC ac;
 	protected int tempAC, tempTouch, tempFF;	// ac overrides
@@ -81,8 +81,8 @@ public abstract class Creature {
 
 	protected Attacks attacks;
 
-	public BuffUI.BuffListModel buffs = new BuffUI.BuffListModel();	// TODO should be protected
-	protected Map<String, Object> extraProperties = new HashMap<String, Object>();
+	public BuffUI.BuffListModel<Buff> buffs = new BuffUI.BuffListModel<>();	// TODO should be protected
+	protected Map<String, Object> extraProperties = new HashMap<>();
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -100,7 +100,7 @@ public abstract class Creature {
 
 	// TODO this id stuff might be better off in CombatPanel for now
 	private static int nextID = 1;
-	private static Map<Integer, Creature> idMap = new HashMap<Integer, Creature>();
+	private static Map<Integer, Creature> idMap = new HashMap<>();
 	int id = -1;
 
 	public int getID() {
@@ -211,7 +211,7 @@ public abstract class Creature {
 	}
 
 	// TODO refactor the BuffListModel class and this accessor
-	public ListModelWithToolTips getBuffListModel() {
+	public ListModelWithToolTips<Buff> getBuffListModel() {
 		return buffs;
 	}
 
@@ -228,7 +228,7 @@ public abstract class Creature {
 // remove a buff by id
 	public void removeBuff(int id) {
 		for (int i = 0; i < buffs.getSize(); i++) {
-			Buff b = (Buff) buffs.get(i);
+			Buff b = buffs.get(i);
 			if (b.id == id) {
 				b.removeBuff(this);
 				buffs.removeElement(b);
@@ -521,7 +521,7 @@ public abstract class Creature {
 		processor.processAttacks(attacks);
 
 		for (int i = 0; i < buffs.getSize(); i++) {
-			Buff b = (Buff) buffs.get(i);
+			Buff b = buffs.get(i);
 			processor.processBuff(b);
 		}
 

@@ -12,9 +12,9 @@ public class HitDice implements gamesystem.HitDice {
 	public static java.util.Random rand = new Random();
 
 	// the length of these lists are always identical
-	private List<Integer> number = new ArrayList<Integer>();		// num of 0 means 1/2, -1 means 1/4
-	private List<Integer> type = new ArrayList<Integer>();
-	private List<Integer> modifier = new ArrayList<Integer>();
+	private List<Integer> number = new ArrayList<>();		// num of 0 means 1/2, -1 means 1/4
+	private List<Integer> type = new ArrayList<>();
+	private List<Integer> modifier = new ArrayList<>();
 
 	private SoftReference<BigInteger[]> probabilities;
 
@@ -52,7 +52,7 @@ public class HitDice implements gamesystem.HitDice {
 //			time = System.nanoTime() - time;
 //			System.out.println("Calculated probabilities in " + time + "ns");
 
-			probabilities = new SoftReference<BigInteger[]>(probs);
+			probabilities = new SoftReference<>(probs);
 		}
 		return probabilities.get();
 	}
@@ -213,7 +213,7 @@ public class HitDice implements gamesystem.HitDice {
 // dice and modifier. All the returned HitDice are newly created even if this HitDice only has a single
 // component
 	Set<HitDice> getComponents() {
-		Set<HitDice> components = new HashSet<HitDice>();
+		Set<HitDice> components = new HashSet<>();
 		for (int i = 0; i < type.size(); i++) {
 			HitDice d = new HitDice(number.get(i), type.get(i), modifier.get(i));
 			components.add(d);

@@ -6,7 +6,7 @@ import java.util.Map;
 // CombinedDice is similar to DiceList except that it only accepts SimpleDice and it will combine dice of the same type
 // (e.g. 1d6 + 1d6 becomes 2d6). It also includes a constant modifier.
 public class CombinedDice implements Dice {
-	Map<Integer,SimpleDice> dice = new HashMap<Integer,SimpleDice>();
+	Map<Integer, SimpleDice> dice = new HashMap<>();
 	int constant = 0;
 
 	public void add(SimpleDice d) {

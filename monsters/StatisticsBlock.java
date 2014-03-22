@@ -128,7 +128,7 @@ public class StatisticsBlock {
 	static final String IMAGECLASS = "monsterImage";
 
 	private Source source;
-	private Map<Field, String> fields = new HashMap<Field, String>();
+	private Map<Field, String> fields = new HashMap<>();
 	private URL[] images = null;
 
 	public String get(Field key) {
@@ -168,7 +168,7 @@ public class StatisticsBlock {
 
 	// always returns a valid set (which may be empty)
 	Set<String> getSubtypes() {
-		Set<String> subtypes = new HashSet<String>();
+		Set<String> subtypes = new HashSet<>();
 
 		String sizeType = get(Field.SIZE_TYPE);
 		if (sizeType == null || sizeType.indexOf('(') < 0) return subtypes;
@@ -321,7 +321,7 @@ public class StatisticsBlock {
 	// parse class levels:
 	// pattern is "<name> <level>[, <name level]*"
 	Map<CharacterClass, Integer> parseClassLevels(String classLevelStr) {
-		Map<CharacterClass,Integer> classLevels = new HashMap<CharacterClass,Integer>();
+		Map<CharacterClass, Integer> classLevels = new HashMap<>();
 
 		if (classLevelStr != null && !classLevelStr.equals("—")) {
 			for (String classLevel : classLevelStr.split("\\s*,\\s+")) {
@@ -419,7 +419,7 @@ public class StatisticsBlock {
 		return acs;
 	}
 
-	private static final Map<String, String> acComponentTypes = new HashMap<String, String>();
+	private static final Map<String, String> acComponentTypes = new HashMap<>();
 	{
 		acComponentTypes.put("dex", AbilityScore.Type.DEXTERITY.name());
 		acComponentTypes.put("wis", AbilityScore.Type.WISDOM.name());
@@ -463,7 +463,7 @@ public class StatisticsBlock {
 		String[] acStrs = acProp.split("\\s+or\\s+");
 		if (acStrs[0].endsWith(",")) acStrs[0] = acStrs[0].substring(0, acStrs[0].length() - 1);	// strip any trailing ','
 
-		Set<Modifier> components = new HashSet<Modifier>();
+		Set<Modifier> components = new HashSet<>();
 
 		int i = acStrs[0].indexOf(", touch ");
 		if (i == -1) {
@@ -537,7 +537,7 @@ public class StatisticsBlock {
 	}
 
 	static List<AttackRoutine> parseAttacks(String prop, CreatureDetails creature) {
-		List<AttackRoutine> attackRoutines = new ArrayList<AttackRoutine>();
+		List<AttackRoutine> attackRoutines = new ArrayList<>();
 
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+or\\s+", "($1 _OR_ ");	// temporarily translate any " or " found inside parentheses (i.e. inside a damage section)
 		prop = prop.replaceAll("\\(([^\\)]*)\\s+and\\s+", "($1 _AND_ ");	// temporarily translate any " and " found inside parentheses (i.e. inside a damage section)
@@ -549,7 +549,7 @@ public class StatisticsBlock {
 			AttackRoutine attackRoutine = new AttackRoutine(creature);
 
 			Matcher m = routineSep.matcher(attackStr);
-			List<String> attackForms = new ArrayList<String>();
+			List<String> attackForms = new ArrayList<>();
 			int routineStart = 0;
 			String lastSep = "plus ";	// so first attack will be marked as primary
 			while (m.find()) {
@@ -628,7 +628,7 @@ public class StatisticsBlock {
 	static final Pattern byWeapPattern = Pattern.compile("by weapon( ([+-]\\d+))?");
 	static final Pattern wsPattern = Pattern.compile("weapon specialization \\(([^\\)]+)\\)");
 
-	static final Set<String> naturalWeapons = new HashSet<String>();
+	static final Set<String> naturalWeapons = new HashSet<>();
 	{
 		naturalWeapons.add("bite");
 		naturalWeapons.add("claw");
@@ -653,7 +653,7 @@ public class StatisticsBlock {
 		naturalWeapons.add("tendril");
 	}
 
-	static final Map<String, String> plurals = new HashMap<String, String>();
+	static final Map<String, String> plurals = new HashMap<>();
 	{
 		plurals.put("hoof", "hooves");
 	}
@@ -718,7 +718,7 @@ public class StatisticsBlock {
 			String description;
 			int number = 1;
 			int[] attackBonuses;
-			Map<String, Integer> modifiers = new HashMap<String, Integer>();	// attack modifiers
+			Map<String, Integer> modifiers = new HashMap<>();	// attack modifiers
 			boolean ranged;
 			boolean touch;
 			boolean automatic = false;
@@ -735,7 +735,7 @@ public class StatisticsBlock {
 			String damage;	// first part of the damage description - this is the "regular" damage part (the full specifier including bonus and critical)
 			String damageExtra = "";	// and extra damage (this part is unaffected by changes to the creature's stats)
 			boolean damageParsed = false;	// true if 'damage' string was successfully parsed
-			Map<String, Integer> damageModifiers = new HashMap<String, Integer>();	// damage modifiers
+			Map<String, Integer> damageModifiers = new HashMap<>();	// damage modifiers
 			int damageBonus = 0;
 			int strMultiplier;
 			String damageDice;	// string description of the regular damage dice (if any)
@@ -821,7 +821,7 @@ public class StatisticsBlock {
 					if (feats == null) feats = "";
 					feats = feats.toLowerCase();
 
-					Set<String> weaponSpecs = new HashSet<String>();
+					Set<String> weaponSpecs = new HashSet<>();
 					Matcher matcher = wsPattern.matcher(feats);
 					while (matcher.find()) {
 						weaponSpecs.add(matcher.group(1));
@@ -991,7 +991,7 @@ public class StatisticsBlock {
 				if (special_qualities == null) special_qualities = "";
 				special_qualities = special_qualities.toLowerCase();
 
-				Set<String> weaponFocuses = new HashSet<String>();
+				Set<String> weaponFocuses = new HashSet<>();
 				Matcher matcher = wfPattern.matcher(feats);
 				while (matcher.find()) {
 					weaponFocuses.add(matcher.group(1));
@@ -1118,7 +1118,7 @@ public class StatisticsBlock {
 					if (first && !primary) s.append(" (secondary)");
 
 					// modifiers that only apply to attack
-					Set<String> mods = new HashSet<String>(modifiers.keySet());
+					Set<String> mods = new HashSet<>(modifiers.keySet());
 					mods.removeAll(damageModifiers.keySet());
 					if (mods.size() > 0) {
 						s.append(" (");
@@ -1145,7 +1145,7 @@ public class StatisticsBlock {
 			}
 		}
 
-		List<Attack> attacks = new ArrayList<Attack>();
+		List<Attack> attacks = new ArrayList<>();
 		boolean has_mfg_primary = false;
 		boolean has_mfg_secondary = false;	// has at least one manufactured secondary attack
 		boolean has_non_light_secondary = false;	// has at least one non-light manufactured secondary attack
@@ -1214,9 +1214,7 @@ public class StatisticsBlock {
 			URL u = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getFile());
 			File f = new File(u.toURI());
 			return parseFile(null, f);
-		} catch (URISyntaxException ex) {
-			ex.printStackTrace();
-		} catch (MalformedURLException ex) {
+		} catch (URISyntaxException | MalformedURLException ex) {
 			ex.printStackTrace();
 		}
 		return null;
@@ -1230,8 +1228,8 @@ public class StatisticsBlock {
 	static List<StatisticsBlock> parseFile(Source source, File file) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		Document dom;
-		List<StatisticsBlock> blocks = new ArrayList<StatisticsBlock>();
-		List<URL> images = new ArrayList<URL>();
+		List<StatisticsBlock> blocks = new ArrayList<>();
+		List<URL> images = new ArrayList<>();
 		try {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			builder.setEntityResolver(new LocalEntityResolver());
@@ -1299,12 +1297,7 @@ public class StatisticsBlock {
 			}
 
 
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
+		} catch (SAXException | IOException | ParserConfigurationException e) {
 			e.printStackTrace();
 		}
 
@@ -1317,7 +1310,7 @@ public class StatisticsBlock {
 
 	private static List<StatisticsBlock> parseStatBlock(Element table, String defaultName, String url) {
 		//System.out.println("Found stat block");
-		List<StatisticsBlock> statsBlock = new ArrayList<StatisticsBlock>();
+		List<StatisticsBlock> statsBlock = new ArrayList<>();
 
 		// fetch the rows...
 		NodeList rows = table.getElementsByTagName("tr");

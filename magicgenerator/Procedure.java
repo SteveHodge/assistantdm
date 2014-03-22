@@ -8,8 +8,9 @@ import java.util.List;
 // encapsulates the Fields of an item and the instructions required to generate it
 class Procedure {
 	String name;
-	List<Instruction> instructions = new ArrayList<Instruction>();
+	List<Instruction> instructions = new ArrayList<>();
 
+	@Override
 	public String toString() {
 		String s = "Table "+name+"\n";
 		for (Instruction i : instructions) {

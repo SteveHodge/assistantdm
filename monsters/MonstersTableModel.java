@@ -44,7 +44,7 @@ public class MonstersTableModel extends DefaultTableModel {
 	}
 
 	MonstersTableModel() {
-		monsters = new ArrayList<MonsterEntry>();
+		monsters = new ArrayList<>();
 	}
 
 	MonsterEntry getMonsterEntry(int index) {
@@ -122,7 +122,7 @@ public class MonstersTableModel extends DefaultTableModel {
 				}
 			}
 
-			Collections.sort(monsters,new Comparator<MonsterEntry>() {
+			Collections.sort(monsters, new Comparator<MonsterEntry>() {
 				@Override
 				public int compare(MonsterEntry arg0, MonsterEntry arg1) {
 					return arg0.name.compareTo(arg1.name);

@@ -42,7 +42,7 @@ public class Attacks extends Statistic {
 	private Modifier dexMod;	// may be null (if the creature has no dex score)
 	private Creature creature;
 	private AC ac;
-	private Set<AttackForm> attackForms = new HashSet<AttackForm>();
+	private Set<AttackForm> attackForms = new HashSet<>();
 	Modifier powerAttack = null;
 	Modifier combatExpertise = null;
 	private Modifier combatExpertiseAC = null;	// assumed to be null/not-null in sync with combatExpertise
@@ -109,10 +109,10 @@ public class Attacks extends Statistic {
 		int attacks;
 	}
 
-	protected List<ExtraAttacks> extraAttacks = new ArrayList<ExtraAttacks>();
+	protected List<ExtraAttacks> extraAttacks = new ArrayList<>();
 
 	public int getExtraAttacks() {
-		HashMap<String,Integer> attacks = new HashMap<String,Integer>();
+		HashMap<String, Integer> attacks = new HashMap<>();
 		for (ExtraAttacks atk : extraAttacks) {
 			attacks.put(atk.source, atk.attacks);
 		}
@@ -169,7 +169,7 @@ public class Attacks extends Statistic {
 
 	@Override
 	protected Set<Modifier> getModifierSet() {
-		Set<Modifier> mods = new HashSet<Modifier>();
+		Set<Modifier> mods = new HashSet<>();
 		mods.addAll(modifiers);
 		if (strMod != null) {
 			mods.add(strMod);
@@ -181,14 +181,14 @@ public class Attacks extends Statistic {
 	}
 
 	public int getRangedValue() {
-		Set<Modifier> mods = new HashSet<Modifier>();
+		Set<Modifier> mods = new HashSet<>();
 		mods.addAll(modifiers);
 		if (dexMod != null) mods.add(dexMod);
 		return BAB + getModifiersTotal(mods,null);
 	}
 
 	public Map<Modifier,Boolean> getRangedModifiers() {
-		Set<Modifier> mods = new HashSet<Modifier>();
+		Set<Modifier> mods = new HashSet<>();
 		mods.addAll(modifiers);
 		if (dexMod != null) mods.add(dexMod);
 		return getModifiers(mods);
@@ -503,7 +503,7 @@ public class Attacks extends Statistic {
 		}
 
 		public void addDamageModifier(Modifier mod) {
-			if (damageMods == null) damageMods = new HashSet<Modifier>();
+			if (damageMods == null) damageMods = new HashSet<>();
 			damageMods.add(mod);
 			pcs.firePropertyChange("damage", null, damage.toString());
 		}
@@ -513,7 +513,7 @@ public class Attacks extends Statistic {
 		}
 
 		public Set<Modifier> getDamageModifiersSet() {
-			Set<Modifier> mods = new HashSet<Modifier>();
+			Set<Modifier> mods = new HashSet<>();
 			mods.addAll(damageStat.modifiers);
 
 			if (strMod != null) {
@@ -590,7 +590,7 @@ public class Attacks extends Statistic {
 
 		@Override
 		public Set<Modifier> getModifierSet() {
-			Set<Modifier> mods = new HashSet<Modifier>(modifiers);
+			Set<Modifier> mods = new HashSet<>(modifiers);
 			mods.addAll(Attacks.this.modifiers);
 			if (ranged) {
 				if (dexMod != null) mods.add(dexMod);
