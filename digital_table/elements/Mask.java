@@ -150,7 +150,7 @@ public class Mask extends MapElement {
 
 	/**
 	 * 
-	 * @return array of the points defining the centres of the cubes
+	 * @return array of the points defining the cells that have been removed from the mask
 	 */
 	public Point[] getCells() {
 		Point[] ps = new Point[cleared.size()];

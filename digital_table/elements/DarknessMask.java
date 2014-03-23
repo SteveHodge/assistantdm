@@ -105,6 +105,18 @@ public class DarknessMask extends MapElement {
 		return "Darkness ("+getID()+")";
 	}
 
+	/**
+	 * 
+	 * @return array of the points defining the cells that have been removed from the mask
+	 */
+	public Point[] getCells() {
+		Point[] ps = new Point[cleared.size()];
+		for (int i = 0; i < ps.length; i++) {
+			ps[i] = new Point(cleared.get(i));
+		}
+		return ps;
+	}
+
 	public boolean isMasked(Point p) {
 		if (cleared.contains(p)) return false;
 		return true;

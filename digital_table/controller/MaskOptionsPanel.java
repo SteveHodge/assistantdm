@@ -225,19 +225,7 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 			e.appendChild(m);
 		}
 
-		// output the current list of points in an attribute (might be better to have a more
-		// structured output but that will complicate general parsing of child elements).
-		// points are output as a list of coordinates, one point at a time, x then y coordinate.
-		Point[] points = element.getCells();
-		String attr = "";
-		for (int i = 0; i < points.length; i++) {
-			attr += points[i].x + "," + points[i].y + ",";
-		}
-		if (attr.length() > 0) {
-			attr = attr.substring(0, attr.length() - 1);
-			e.setAttribute(CLEARED_CELL_LIST_ATTRIBUTE, attr);
-		}
-
+		setCellListAttribute(e, CLEARED_CELL_LIST_ATTRIBUTE, element.getCells());
 		return e;
 	}
 
@@ -263,14 +251,7 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 			}
 		}
 
-		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
-			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");
-			for (int i = 0; i < coords.length; i += 2) {
-				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
-				element.setCleared(p, true);
-				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
-			}
-		}
+		parseCellList(MapImage.PROPERTY_CLEARCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);
 	}
 
 }

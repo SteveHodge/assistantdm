@@ -68,7 +68,6 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * DarknessMask should load/save cleared cells
  * ENH: consider separate element for darkness cleared cell - should be parent-relative - or perhaps add to LightSource
  * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
  * ENH: Reordering the elements resets the group expanded/collapsed state

@@ -249,19 +249,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		e.setAttribute(FILE_ATTRIBUTE_NAME, uri.toASCIIString());
-
-		// output the current list of points in an attribute (might be better to have a more
-		// structured output but that will complicate general parsing of child elements).
-		// points are output as a list of coordinates, one point at a time, x then y coordinate.
-		Point[] points = element.getCells();
-		String attr = "";
-		for (int i = 0; i < points.length; i++) {
-			attr += points[i].x + "," + points[i].y + ",";
-		}
-		if (attr.length() > 0) {
-			attr = attr.substring(0, attr.length() - 1);
-			e.setAttribute(CLEARED_CELL_LIST_ATTRIBUTE, attr);
-		}
+		setCellListAttribute(e, CLEARED_CELL_LIST_ATTRIBUTE, element.getCells());
 
 		Point2D location = (Point2D) element.getProperty(Group.PROPERTY_LOCATION);
 		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
@@ -281,6 +269,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
 		parseBooleanAttribute(MapImage.PROPERTY_SHOW_BORDER, e, Mode.LOCAL);
+		parseCellList(MapImage.PROPERTY_CLEARCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);
 
 		if (e.hasAttribute(Group.PROPERTY_LOCATION)) {
 //			try {
@@ -291,15 +280,6 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			display.setProperty(element, Group.PROPERTY_LOCATION, value);
 //			} catch (NumberFormatException e) {
 //			}
-		}
-
-		if (e.hasAttribute(CLEARED_CELL_LIST_ATTRIBUTE)) {
-			String[] coords = e.getAttribute(CLEARED_CELL_LIST_ATTRIBUTE).split("\\s*,\\s*");
-			for (int i = 0; i < coords.length; i += 2) {
-				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
-				element.setCleared(p, true);
-				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
-			}
 		}
 
 		parseVisibility(e, visibleCheck);

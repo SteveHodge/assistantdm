@@ -147,20 +147,7 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
-
-		// output the current list of points in an attribute (might be better to have a more
-		// structured output but that will complicate general parsing of child elements).
-		// points are output as a list of coordinates, one point at a time, x then y coordinate.
-		Point[] points = element.getCubes();
-		String attr = "";
-		for (int i = 0; i < points.length; i++) {
-			attr += points[i].x + "," + points[i].y + ",";
-		}
-		if (attr.length() > 0) {
-			attr = attr.substring(0, attr.length() - 1);
-			e.setAttribute(CUBE_LIST_ATTRIBUTE, attr);
-		}
-
+		setCellListAttribute(e, CUBE_LIST_ATTRIBUTE, element.getCubes());
 		return e;
 	}
 
@@ -172,15 +159,7 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 		parseColorAttribute(ShapeableTemplate.PROPERTY_COLOR, e, Mode.ALL);
 		parseFloatAttribute(ShapeableTemplate.PROPERTY_ALPHA, e, Mode.ALL);
 		parseIntegerAttribute(ShapeableTemplate.PROPERTY_MAXIMUM, e, Mode.ALL);
-
-		if (e.hasAttribute(CUBE_LIST_ATTRIBUTE)) {
-			String[] coords = e.getAttribute(CUBE_LIST_ATTRIBUTE).split("\\s*,\\s*");
-			for (int i = 0; i < coords.length; i += 2) {
-				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
-				display.setProperty(element, ShapeableTemplate.PROPERTY_ADDCUBE, p, Mode.REMOTE);
-				element.addCube(p);
-			}
-		}
+		parseCellList(ShapeableTemplate.PROPERTY_ADDCUBE, e, CUBE_LIST_ATTRIBUTE, Mode.ALL);
 
 		parseVisibility(e, visibleCheck);
 	}

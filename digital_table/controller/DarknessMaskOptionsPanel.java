@@ -142,12 +142,14 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 
 	// ---- XML serialisation methods ----
 	final static String XML_TAG = "DarknessMask";
+	private final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
 
 	@Override
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
+		setCellListAttribute(e, CLEARED_CELL_LIST_ATTRIBUTE, element.getCells());
 		return e;
 	}
 
@@ -158,6 +160,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		parseColorAttribute(DarknessMask.PROPERTY_COLOR, e, Mode.ALL);
 		parseFloatAttribute(DarknessMask.PROPERTY_ALPHA, e, Mode.LOCAL);
 		parseBooleanAttribute(DarknessMask.PROPERTY_LOW_LIGHT, e, Mode.ALL);
+		parseCellList(DarknessMask.PROPERTY_UNMASKCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 }

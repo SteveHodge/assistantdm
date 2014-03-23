@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -382,6 +383,20 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		e.setAttribute(name, value);
 	}
 
+	void setCellListAttribute(Element e, String name, Point[] points) {
+		// output the current list of points in an attribute (might be better to have a more
+		// structured output but that will complicate general parsing of child elements).
+		// points are output as a list of coordinates, one point at a time, x then y coordinate.
+		String attr = "";
+		for (int i = 0; i < points.length; i++) {
+			attr += points[i].x + "," + points[i].y + ",";
+		}
+		if (attr.length() > 0) {
+			attr = attr.substring(0, attr.length() - 1);
+			e.setAttribute(name, attr);
+		}
+	}
+
 	void parseBooleanAttribute(String property, Element domElement, JCheckBox check) {
 		String domProp = REMOTE_PREFIX + property;
 		String attr = domElement.getAttribute(domProp);
@@ -506,4 +521,15 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		}
 	}
 
+	void parseCellList(String property, Element domElement, String attribute, Mode mode) {
+		String attr = domElement.getAttribute(attribute);
+		if (attr.length() > 0) {
+			String[] coords = attr.split("\\s*,\\s*");
+			for (int i = 0; i < coords.length; i += 2) {
+				Point p = new Point(Integer.parseInt(coords[i]), Integer.parseInt(coords[i + 1]));
+				display.setProperty(element, property, p, mode);
+			}
+		}
+
+	}
 }
