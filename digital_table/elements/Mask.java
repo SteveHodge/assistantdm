@@ -21,6 +21,7 @@ import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
 
 // TODO we don't detect changes in the underlying image - need to fix the architecture
+// TODO should detect changes in image location - if the fractional part of the location changes then any cleared cells will be incorrectly aligned
 // TODO if we want to allow different sized masks we'll need some architecture changes...
 // could have multi-level cache of the mask:
 // each set of masks of a particular size are combined into a cached mask of the same size
@@ -48,6 +49,7 @@ public class Mask extends MapElement {
 	private transient MapImage image;
 	private transient BufferedImage combinedMask;
 	private transient AffineTransform transform;
+	private double xFraction, yFraction;	// fractional components of parent's location - used to detect when our cleared cells need redrawing due to parent movement
 
 	private List<Point> cleared = new ArrayList<>();
 
@@ -88,6 +90,17 @@ public class Mask extends MapElement {
 
 	// mask images are combined and then transformed
 	synchronized BufferedImage getMaskImage() {
+		// check if the parent image has moved relative to the grid
+		// (i.e. the fractional component of the location has changed)
+		// if so then we'll need to regenerate the mask if we have cleared cells
+		Point2D imgLoc = image.location.getValue();
+		if (imgLoc.getX() - (int) imgLoc.getX() != xFraction
+				|| imgLoc.getY() - (int) imgLoc.getY() != yFraction) {
+			xFraction = imgLoc.getX() - (int) imgLoc.getX();
+			yFraction = imgLoc.getY() - (int) imgLoc.getY();
+			if (cleared.size() > 0) combinedMask = null;
+		}
+
 		AffineTransform trans = null;
 		BufferedImage temp = null;
 		Graphics2D tempG = null;
@@ -115,11 +128,14 @@ public class Mask extends MapElement {
 
 			// clip any cleared cells
 			Area area = new Area(new Rectangle2D.Double(0, 0, bounds.getWidth(), bounds.getHeight()));
-			//using indexed loop instead of iterator to avoid concurrency issues
+			// cleared cell coordinates are relative to the parent image, get the offset
+			// using indexed loop instead of iterator to avoid concurrency issues
 			for (int i = 0; i < cleared.size(); i++) {
 				Point p = cleared.get(i);
-				Point tl = canvas.convertGridCoordsToDisplay(p.x, p.y);
-				Point br = canvas.convertGridCoordsToDisplay(p.x + 1, p.y + 1);
+				Point2D cellCoord = new Point2D.Double(p.x - image.getX(), p.y - image.getY());
+				Point tl = canvas.convertGridCoordsToDisplay(cellCoord);
+				cellCoord.setLocation(cellCoord.getX() + 1, cellCoord.getY() + 1);
+				Point br = canvas.convertGridCoordsToDisplay(cellCoord);
 				area.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
 			}
 			g.setClip(area);

@@ -313,6 +313,12 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 
 		abstract String getDragTarget(Point2D gridLocation);
 
+		// by default work in coordinates relative to this element
+		@Override
+		public MapElement getCoordElement() {
+			return element;
+		}
+
 		void setTargetLocation(Point2D p) {
 			if (target == null) return;
 			display.setProperty(element, target, p, Mode.ALL);

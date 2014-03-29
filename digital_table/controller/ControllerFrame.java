@@ -444,6 +444,11 @@ public class ControllerFrame extends JFrame {
 		@Override
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
 		}
+
+		@Override
+		public MapElement getCoordElement() {
+			return null;
+		}
 	};
 
 	private MouseInputListener miniMapMouseListener = new MouseInputListener() {
@@ -459,11 +464,27 @@ public class ControllerFrame extends JFrame {
 			return null;
 		}
 
+		// returns the grid location of the click. if the listener has a non-null
+		// getCoordElement() then the resulting grid coordinates are relative to the
+		// element returned by getCoordElement(). otherwise the returned grid coordinates
+		// are relative to the canvas (i.e. adjusted by the canvas offset)
+		protected Point2D getLocation(MouseEvent e, MapElementMouseListener listener) {
+			Point2D click;
+			if (listener != null && listener.getCoordElement() != null) {
+				click = miniMapCanvas.convertDisplayCoordsToGrid(e.getX(), e.getY());
+				Point2D origin = miniMapCanvas.getElementOrigin(listener.getCoordElement());
+				click.setLocation(click.getX() - origin.getX(), click.getY() - origin.getY());
+			} else {
+				click = miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY());
+			}
+			return click;
+		}
+
 		@Override
 		public void mousePressed(MouseEvent e) {
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mousePressed(e, miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY()));
+				l.mousePressed(e, getLocation(e, l));
 				return;
 			}
 		}
@@ -472,7 +493,7 @@ public class ControllerFrame extends JFrame {
 		public void mouseReleased(MouseEvent e) {
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseReleased(e, miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY()));
+				l.mouseReleased(e, getLocation(e, l));
 				return;
 			}
 		}
@@ -481,7 +502,7 @@ public class ControllerFrame extends JFrame {
 		public void mouseDragged(MouseEvent e) {
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseDragged(e, miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY()));
+				l.mouseDragged(e, getLocation(e, l));
 				return;
 			}
 		}
@@ -490,7 +511,7 @@ public class ControllerFrame extends JFrame {
 		public void mouseClicked(MouseEvent e) {
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
-				l.mouseClicked(e, miniMapCanvas.convertDisplayCoordsToCanvas(e.getX(), e.getY()));
+				l.mouseClicked(e, getLocation(e, l));
 				return;
 			}
 		}

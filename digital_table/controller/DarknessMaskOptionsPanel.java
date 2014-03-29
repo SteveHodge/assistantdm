@@ -138,6 +138,12 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 				dragging = true;
 			}
 		}
+
+		// by default work in coordinates relative to the canvas
+		@Override
+		public MapElement getCoordElement() {
+			return null;
+		}
 	};
 
 	// ---- XML serialisation methods ----

@@ -136,6 +136,11 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 		public void mouseReleased(MouseEvent e, Point2D gridloc) {}
 		@Override
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {}
+
+		@Override
+		public MapElement getCoordElement() {
+			return element;
+		}
 	};
 
 	// ---- XML serialisation methods ----

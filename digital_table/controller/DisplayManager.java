@@ -46,7 +46,7 @@ class DisplayManager implements CoordinateConverter {
 		try {
 			remote.requestExit();
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			System.err.println("remote.requestExit() failed: " + e);
 		}
 	}
 
@@ -83,7 +83,7 @@ class DisplayManager implements CoordinateConverter {
 			xoffset = offx;
 			yoffset = offy;
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			System.err.println(String.format("remote.setOffset(%d, %d) failed: ", offx, offy) + e);
 		}
 	}
 
@@ -99,7 +99,7 @@ class DisplayManager implements CoordinateConverter {
 				remote.addElement(element, parent.getID());
 			}
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			System.err.println(String.format("remote.addElement(%s%s) failed: ", element.toString(), (parent == null ? "" : ", " + parent.toString())) + e);
 		}
 		if (overlay != null) overlay.addElement(localEl, parent);
 		local.addElement(localEl, parent);	// local must be last to avoid issues with serialisation
@@ -111,7 +111,7 @@ class DisplayManager implements CoordinateConverter {
 		try {
 			remote.removeElement(element.getID());
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			System.err.println(String.format("remote.removeElement(%s) failed: ", element.toString()) + e);
 		}
 	}
 
@@ -121,7 +121,7 @@ class DisplayManager implements CoordinateConverter {
 		try {
 			remote.changeParent(element.getID(), parent == null ? -1 : parent.getID());
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			System.err.println(String.format("remote.changeParent(%s, %s) failed: ", element.toString(), (parent == null ? "<root>" : parent.toString())) + e);
 		}
 	}
 
@@ -131,7 +131,7 @@ class DisplayManager implements CoordinateConverter {
 		try {
 			remote.promoteElement(element.getID());
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			System.err.println(String.format("remote.promoteElement(%s) failed: ", element.toString()) + e);
 		}
 	}
 
@@ -141,7 +141,7 @@ class DisplayManager implements CoordinateConverter {
 		try {
 			remote.demoteElement(element.getID());
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			System.err.println(String.format("remote.demoteElement(%s) failed: ", element.toString()) + e);
 		}
 	}
 
@@ -155,7 +155,7 @@ class DisplayManager implements CoordinateConverter {
 				try {
 					remote.setElementProperty(element.getID(), property, value);
 				} catch (RemoteException e) {
-					e.printStackTrace();
+					System.err.println(String.format("remote.setElementProperty(%s, %s, %s) failed: ", element.toString(), property, (value == null ? "<null>" : value.toString())) + e);
 				}
 			}
 			if (overlay != null) overlay.setProperty(element.getID(), property, value);
@@ -168,7 +168,7 @@ class DisplayManager implements CoordinateConverter {
 			try {
 				remote.setElementProperty(element.getID(), property, null);
 			} catch (RemoteException e) {
-				e.printStackTrace();
+				System.err.println(String.format("setMedia(%s, %s, <null>) failed: ", element.toString(), property) + e);
 			}
 
 		} else {
@@ -181,7 +181,7 @@ class DisplayManager implements CoordinateConverter {
 				remote.setElementProperty(element.getID(), property, uri);
 
 			} catch (RemoteException e) {
-				e.printStackTrace();
+				System.err.println(String.format("setMedia(%s, %s, %s) failed: ", element.toString(), property, uri.toString()) + e);
 			}
 		}
 

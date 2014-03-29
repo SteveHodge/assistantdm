@@ -219,15 +219,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			if (e.getButton() != MouseEvent.BUTTON1) return;
 			if (e.getClickCount() != 1) return;
 
-			// get ancestor's relative position
-			Point2D offset = new Point2D.Double();
-			Group parent = element.getParent();
-			while (parent != null) {
-				offset = parent.translate(offset);
-				parent = parent.getParent();
-			}
-
-			Point p = new Point((int) (gridloc.getX() - offset.getX()), (int) (gridloc.getY() - offset.getY()));
+			Point p = new Point((int) (gridloc.getX()), (int) (gridloc.getY()));
 			boolean clear = !element.isCleared(p);
 			element.setCleared(p, clear);
 			if (clear) {

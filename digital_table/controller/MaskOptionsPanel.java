@@ -26,7 +26,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import digital_table.controller.DisplayManager.Mode;
-import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
@@ -55,9 +54,11 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		addButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				URI uri = MediaManager.INSTANCE.showFileChooser(MaskOptionsPanel.this);
-				if (uri != null) {
-					masksModel.add(uri);
+				URI[] uris = MediaManager.INSTANCE.showMultiFileChooser(MaskOptionsPanel.this);
+				if (uris != null) {
+					for (URI uri : uris) {
+						masksModel.add(uri);
+					}
 				}
 			}
 		});
@@ -169,24 +170,19 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		return mouseListener;
 	}
 
-	private MapElementMouseListener mouseListener = new DefaultDragger() {
+	private MapElementMouseListener mouseListener = new MapElementMouseListener() {
+		private boolean dragging = false;
+		private int button;
+		private boolean dragClear;	// when dragging if true then we clear cells, otherwise we reset cells
+
 		@Override
-		public void mouseClicked(MouseEvent e, Point2D gridloc) {
-			if (e.getButton() != MouseEvent.BUTTON1) return;
-			if (e.getClickCount() != 1) return;
+		public MapElement getCoordElement() {
+			return element.parent;
+		}
 
-			// get ancestor's relative position
-			Point2D offset = new Point2D.Double();
-			Group parent = element.getParent();
-			while (parent != null) {
-				offset = parent.translate(offset);
-				parent = parent.getParent();
-			}
-
-			Point p = new Point((int) (gridloc.getX() - offset.getX()), (int) (gridloc.getY() - offset.getY()));
-			boolean clear = !element.isCleared(p);
-			element.setCleared(p, clear);
-			if (clear) {
+		private void setCleared(Point p, boolean mask) {
+			element.setCleared(p, mask);
+			if (mask) {
 				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
 			} else {
 				display.setProperty(element, MapImage.PROPERTY_UNCLEARCELL, p, Mode.REMOTE);
@@ -194,8 +190,38 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		}
 
 		@Override
-		String getDragTarget(Point2D gridLocation) {
-			return null;
+		public void mousePressed(MouseEvent e, Point2D gridloc) {
+			button = e.getButton();
+			Point p = new Point((int) gridloc.getX(), (int) gridloc.getY());
+			dragClear = element.isCleared(p);
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e, Point2D gridloc) {
+			if (dragging) {
+				Point p = new Point((int) gridloc.getX(), (int) gridloc.getY());
+				setCleared(p, !dragClear);	// TODO might not be necessary - not sure if a mouseDragged event is generated or not for location of the release
+				dragging = false;
+			}
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e, Point2D gridloc) {
+			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getClickCount() != 1) return;
+
+			Point p = new Point((int) gridloc.getX(), (int) gridloc.getY());
+			setCleared(p, !element.isCleared(p));
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent e, Point2D gridloc) {
+			if (dragging) {
+				Point p = new Point((int) gridloc.getX(), (int) gridloc.getY());
+				setCleared(p, !dragClear);
+			} else if (button == MouseEvent.BUTTON1) {
+				dragging = true;
+			}
 		}
 	};
 

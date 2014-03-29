@@ -60,6 +60,7 @@ public enum MediaManager {
 	// of mediaPath or a absolute uri otherwise.
 	public URI showFileChooser(Component parent) {
 		if (lastDir != null) chooser.setCurrentDirectory(lastDir);
+		chooser.setMultiSelectionEnabled(false);
 		if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
 			File f = chooser.getSelectedFile();
 			if (f != null) {
@@ -67,6 +68,28 @@ public enum MediaManager {
 				URI uri = f.toURI();
 				uri = mediaURI.relativize(uri);
 				return uri;
+			}
+//		} else {
+//			System.out.println("Cancelled");
+		}
+		return null;
+	}
+
+	// presents a file chooser dialog using the supplied component as the parent component for the dialog.
+	// if a file is chosen then it is returned as a uri relative to mediaPath if the selected file is a descendant
+	// of mediaPath or a absolute uri otherwise.
+	public URI[] showMultiFileChooser(Component parent) {
+		if (lastDir != null) chooser.setCurrentDirectory(lastDir);
+		chooser.setMultiSelectionEnabled(true);
+		if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+			File[] fs = chooser.getSelectedFiles();
+			if (fs != null) {
+				URI[] uris = new URI[fs.length];
+				for (int i = 0; i < fs.length; i++) {
+					lastDir = fs[i];
+					uris[i] = mediaURI.relativize(fs[i].toURI());
+				}
+				return uris;
 			}
 //		} else {
 //			System.out.println("Cancelled");

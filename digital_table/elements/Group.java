@@ -7,7 +7,7 @@ public class Group extends MapElement {
 	private static final long serialVersionUID = 1L;
 
 	public final static String PROPERTY_LABEL = "label";	// String
-	public final static String PROPERTY_LOCATION = "location";
+	public final static String PROPERTY_LOCATION = "location";	// Point2D.Double
 	public final static String PROPERTY_X = "x";	// double
 	public final static String PROPERTY_Y = "y";	// double
 
@@ -41,11 +41,11 @@ public class Group extends MapElement {
 		return new Point2D.Double(loc.getX() + p.getX(), loc.getY() + p.getY());
 	}
 
-	protected double getX() {
+	public double getX() {
 		return location.getValue().getX();
 	}
 
-	protected double getY() {
+	public double getY() {
 		return location.getValue().getY();
 	}
 

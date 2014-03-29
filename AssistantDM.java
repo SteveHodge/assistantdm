@@ -68,16 +68,13 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * ENH: consider separate element for darkness cleared cell - should be parent-relative - or perhaps add to LightSource
+ * BUG: Check that masks not existing on the remote system are transferred correctly
+ * ENH: consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
  * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
  * ENH: Reordering the elements resets the group expanded/collapsed state
  * BUG: LineTemplate: setting image after rotation draws the un-transformed image
- * BUG: LineTemplate: dragging does not correctly pick the orgin/target if line is under group
- * BUG: ShapableTemplate: click does not get correct location when under group
- * BUG: MapImage: cleared cells are not relative to image
  * REF: Factor clear cells code into support class
  * MaskOptionsPanel: delete mask, reorder masks
- * MaskOptionsPanel: optimise masks by removing surrounding transparent pixels?
  * Copy in encounters dialog should copy the current creature, not the base
  * In encounters dialog, adding an image should select it for the current creature
  * Look at the map element order - should moving a tree move all children?
@@ -152,14 +149,13 @@ import digital_table.controller.DigitalTableController;
  * Consider expanding "selected" support. Would need hierarchy support as with visibility
  * Improve camera integration, fix ui for camera panel
  * Refactor common utility methods into MapElement (e.g. template creation)
- * Alternate button dragging (e.g. resize)
+ * Alternate button dragging (e.g. resize, non-snapped to grid)
  * Recalibrate - could be done using screen bounds element
  * Auto configure - set defaults according to OS screen layout
  * Make line and spread templates editable?
  * Swarm Token (editable token with replicated painting)
- * Convert MapElements to use location property instead of X and Y properties - will reduce dragging code in OptionsPanel subclasses
  * dice roller element?
- * thrown object scatter?
+ * thrown object scatter? compass rose?
  */
 
 //TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac

@@ -510,7 +510,9 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point((Integer) element.getProperty(Token.PROPERTY_X), (Integer) element.getProperty(Token.PROPERTY_Y));
+			int x = ((Double) element.getProperty(Token.PROPERTY_X)).intValue();
+			int y = ((Double) element.getProperty(Token.PROPERTY_Y)).intValue();
+			return new Point(x, y);
 		}
 	};
 
