@@ -14,22 +14,23 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
-import digital_table.elements.Callibrate;
+import digital_table.elements.Calibrate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
-class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
+class CalibrateOptionsPanel extends OptionsPanel<Calibrate> {
 	private JCheckBox visibleCheck;
 	private JCheckBox showBGCheck;
 
-	CallibrateOptionsPanel(MapElement parent, DisplayManager r) {
+	CalibrateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		element = new Callibrate();
+		element = new Calibrate();
 		display.addElement(element, parent);
 		element.addPropertyChangeListener(listener);
 
-		showBGCheck = createCheckBox(Callibrate.PROPERTY_SHOW_BACKGROUND, Mode.ALL, "show background?");
+		showBGCheck = createCheckBox(Calibrate.PROPERTY_SHOW_BACKGROUND, Mode.ALL, "show background?");
+
 		visibleCheck = new JCheckBox("visible?");
 		visibleCheck.setSelected(false);
 		visibleCheck.addItemListener(new ItemListener() {
@@ -40,21 +41,14 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 			}
 		});
 
-		// @formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 0; add(visibleCheck, c);
-		c.gridy++; add(showBGCheck, c);
-
-		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
-		c.gridx = 1;
-		c.gridy = 1;
+		add(visibleCheck, c);
+		add(showBGCheck, c);
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0; c.gridy++; c.gridwidth = 2;
 		add(new JPanel(), c);
-		// @formatter:on
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -63,7 +57,7 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
 
-			} else if (e.getPropertyName().equals(Callibrate.PROPERTY_SHOW_BACKGROUND)) {
+			} else if (e.getPropertyName().equals(Calibrate.PROPERTY_SHOW_BACKGROUND)) {
 				showBGCheck.setSelected((Boolean) e.getNewValue());
 
 			} else {
@@ -73,7 +67,7 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 	};
 
 	// ---- XML serialisation methods ----
-	final static String XML_TAG = "Callibrate";
+	final static String XML_TAG = "Calibrate";
 
 	@Override
 	Element getElement(Document doc) {
@@ -86,7 +80,7 @@ class CallibrateOptionsPanel extends OptionsPanel<Callibrate> {
 	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseBooleanAttribute(Callibrate.PROPERTY_SHOW_BACKGROUND, e, Mode.ALL);
+		parseBooleanAttribute(Calibrate.PROPERTY_SHOW_BACKGROUND, e, Mode.ALL);
 
 		if (e.hasAttribute(MapElement.PROPERTY_VISIBLE)) {
 			Visibility v = Visibility.valueOf(e.getAttribute(MapElement.PROPERTY_VISIBLE));

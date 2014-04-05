@@ -89,7 +89,7 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		private List<String> names = new ArrayList<>();
 
 		private void add(URI uri) {
-			display.setProperty(element, Mask.PROPERTY_ADD_MASK, uri);
+			display.setMedia(element, Mask.PROPERTY_ADD_MASK, uri);
 			masks.add(uri);
 			visible.add(true);
 			String path = uri.getPath();

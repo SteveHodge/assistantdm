@@ -228,7 +228,7 @@ public class ControllerFrame extends JFrame {
 					OptionsPanel<?> panel = panels.next();
 					if (panel != gridPanel
 							&& !(panel instanceof BoundsOptionsPanel)
-							&& !(panel instanceof CallibrateOptionsPanel)
+							&& !(panel instanceof CalibrateOptionsPanel)
 							&& !(panel instanceof InitiativeOptionsPanel)
 							&& !(panel instanceof CameraOptionsPanel)
 							&& !(panel instanceof GroupOptionsPanel)) {
@@ -1131,10 +1131,10 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
-	private AddElementAction<CallibrateOptionsPanel> callibrateAction = new AddElementAction<CallibrateOptionsPanel>("Callibrate") {
+	private AddElementAction<CalibrateOptionsPanel> callibrateAction = new AddElementAction<CalibrateOptionsPanel>("Callibrate") {
 		@Override
-		protected CallibrateOptionsPanel createOptionsPanel(MapElement parent) {
-			return new CallibrateOptionsPanel(parent, display);
+		protected CalibrateOptionsPanel createOptionsPanel(MapElement parent) {
+			return new CalibrateOptionsPanel(parent, display);
 		}
 	};
 
@@ -1190,7 +1190,7 @@ public class ControllerFrame extends JFrame {
 			p = groupAction.addElement(parent);
 		} else if (tag.equals(BoundsOptionsPanel.XML_TAG)) {
 			p = screensAction.addElement(parent);
-		} else if (tag.equals(CallibrateOptionsPanel.XML_TAG)) {
+		} else if (tag.equals(CalibrateOptionsPanel.XML_TAG)) {
 			p = callibrateAction.addElement(parent);
 		} else if (tag.equals(TokenOptionsPanel.XML_TAG)) {
 			p = tokenAction.addElement(parent);

@@ -7,10 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
@@ -57,7 +57,7 @@ import canon.cdsdk.Source;
 import canon.cdsdk.SourceInfo;
 import digital_table.controller.ControllerFrame;
 
-
+// TODO calibrate buttons should be disabled when the camera has not taken a shot
 // TODO may be fixed: controls stop responding if you hit stop during a transfer
 @SuppressWarnings("serial")
 public class CameraPanel extends JPanel implements ActionListener {
@@ -80,6 +80,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 	private JCheckBox lensCorrection;
 	private JCheckBox applyRemap;
 	private JButton calibrateButton;
+	private JButton manualButton;
 
 	private static final String[] WHITE_BALANCE_NAMES = { "Auto", "Daylight", "Cloudy", "Tungsten", "Fluorescent", "Flash" };
 
@@ -90,7 +91,6 @@ public class CameraPanel extends JPanel implements ActionListener {
 	private Source source;
 
 	private BufferedImage rawImage = null;
-	private Point[] regPoints = null;
 	private LensCorrection lensCorrect;
 	private Homography H = null;
 	private int remappedWidth;
@@ -128,19 +128,59 @@ public class CameraPanel extends JPanel implements ActionListener {
 
 		JPanel buttons = new JPanel();
 		connectButton = new JButton("Connect");
-		connectButton.addActionListener(this);
-		calibrateButton = new JButton("Calibrate");
-		calibrateButton.addActionListener(this);
+		connectButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				connect();
+			}
+		});
+		calibrateButton = new JButton("Autocalibrate");
+		calibrateButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				autoCalibrate();
+			}
+		});
+//		calibrateButton.setEnabled(false);
+		manualButton = new JButton("Manually Calibrate");
+		manualButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				manualCalibrate();
+			}
+		});
+//		manualButton.setEnabled(false);
 		buttons.setLayout(new BoxLayout(buttons, BoxLayout.LINE_AXIS));
 		buttons.add(connectButton);
 		buttons.add(Box.createRigidArea(new Dimension(5, 0)));
 		buttons.add(calibrateButton);
+		buttons.add(Box.createRigidArea(new Dimension(5, 0)));
+		buttons.add(manualButton);
 		controls.add(buttons);
 
 		capture = new JButton("Capture");
-		capture.addActionListener(this);
+		capture.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				capture();
+				if (timer.isRunning()) {
+					timer.reschedule();
+				}
+			}
+		});
 		startStop = new JButton("Start");
-		startStop.addActionListener(this);
+		startStop.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (timer.isRunning()) {
+					timer.stopCapture();
+					startStop.setText("Start");
+				} else {
+					timer.startCapture();
+					startStop.setText("Stop");
+				}
+			}
+		});
 		buttons = new JPanel();
 		buttons.setLayout(new BoxLayout(buttons, BoxLayout.LINE_AXIS));
 		buttons.add(startStop);
@@ -410,7 +450,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 		}
 	}
 
-	private void calibrate() {
+	private void autoCalibrate() {
 		if (rawImage == null) {
 			JOptionPane.showMessageDialog(this,
 					"Need to take a photo before calibration can occur",
@@ -419,7 +459,53 @@ public class CameraPanel extends JPanel implements ActionListener {
 			return;
 		}
 
-		regPoints = new Point[4];
+		List<PointRemapper> corrections = new ArrayList<>();
+		// TODO need to set these parameters based on the camera zoom
+		corrections.add(new LensCorrection(-0.007715, 0.026731, 0.000000, rawImage.getWidth(), rawImage.getHeight()));
+		final BufferedImage lensCorrected = PixelInterpolator.getImage(corrections, rawImage, rawImage.getWidth(), rawImage.getHeight());
+
+		setHomography(AutoCalibrate.calibrate(lensCorrected));
+	}
+
+	private void setHomography(Point[] regPoints) {
+		// calculate world-coordinates for the control points based on the distance from point 0 to point 1 (width)
+		// and from point 0 to point 3 (height):
+		double w = regPoints[0].distance(regPoints[1]);
+		double h = regPoints[0].distance(regPoints[3]);
+		double x = w * 2 / 36;
+		double y = h / 30;
+		final Point2D[] worldPoint = new Point2D.Double[4];
+		worldPoint[0] = new Point2D.Double(x, y);
+		worldPoint[1] = new Point2D.Double(x + w, y);
+		worldPoint[2] = new Point2D.Double(x + w, y + h);
+		worldPoint[3] = new Point2D.Double(x, y + h);
+//		for (int i = 0; i < 4; i++) {
+//			System.out.println("world point " + i + ": " + worldPoint[i]);
+//		}
+
+		H = Homography.createHomographySVD(regPoints, worldPoint);
+		remappedWidth = (int) (w * 39 / 36);
+		remappedHeight = (int) (h * 32 / 30);
+
+		applyRemap.setEnabled(true);
+		applyRemap.setSelected(true);
+
+		List<PointRemapper> corrections = new ArrayList<>();
+		corrections.add(lensCorrect);
+		corrections.add(H);
+		imagePanel.setImage(PixelInterpolator.getImage(corrections, rawImage, remappedWidth, remappedHeight));
+	}
+
+	private void manualCalibrate() {
+		if (rawImage == null) {
+			JOptionPane.showMessageDialog(this,
+					"Need to take a photo before calibration can occur",
+					"Calibration error",
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		final Point[] regPoints = new Point[4];
 
 		List<PointRemapper> corrections = new ArrayList<>();
 		// TODO need to set these parameters based on the camera zoom
@@ -440,29 +526,13 @@ public class CameraPanel extends JPanel implements ActionListener {
 
 		final JLabel countLabel = new JLabel("Chosen: 0");
 
-		image.addMouseListener(new MouseListener() {
+		image.addMouseListener(new MouseAdapter() {
 			int count = 0;
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				regPoints[count++] = e.getPoint();
 				countLabel.setText("Chosen: " + count);
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent arg0) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent arg0) {
-			}
-
-			@Override
-			public void mousePressed(MouseEvent arg0) {
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent arg0) {
 			}
 		});
 
@@ -471,59 +541,10 @@ public class CameraPanel extends JPanel implements ActionListener {
 		final JScrollPane scroller = new JScrollPane(image);
 		frame.add(scroller);
 
-		frame.addWindowListener(new WindowListener() {
-			@Override
-			public void windowActivated(WindowEvent arg0) {
-			}
-
+		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent arg0) {
-				// calculate world-coordinates for the control points based on the distance from point 0 to point 1 (width)
-				// and from point 0 to point 3 (height):
-				double w = regPoints[0].distance(regPoints[1]);
-				double h = regPoints[0].distance(regPoints[3]);
-				double x = w * 2 / 36;
-				double y = h / 30;
-				final Point2D[] worldPoint = new Point2D.Double[4];
-				worldPoint[0] = new Point2D.Double(x, y);
-				worldPoint[1] = new Point2D.Double(x + w, y);
-				worldPoint[2] = new Point2D.Double(x + w, y + h);
-				worldPoint[3] = new Point2D.Double(x, y + h);
-//				for (int i = 0; i < 4; i++) {
-//					System.out.println("world point " + i + ": " + worldPoint[i]);
-//				}
-
-				H = Homography.createHomographySVD(regPoints, worldPoint);
-				remappedWidth = (int) (w * 39 / 36);
-				remappedHeight = (int) (h * 32 / 30);
-
-				applyRemap.setEnabled(true);
-				applyRemap.setSelected(true);
-
-				List<PointRemapper> corrections = new ArrayList<>();
-				corrections.add(lensCorrect);
-				corrections.add(H);
-				imagePanel.setImage(PixelInterpolator.getImage(corrections, rawImage, remappedWidth, remappedHeight));
-			}
-
-			@Override
-			public void windowClosing(WindowEvent arg0) {
-			}
-
-			@Override
-			public void windowDeactivated(WindowEvent arg0) {
-			}
-
-			@Override
-			public void windowDeiconified(WindowEvent arg0) {
-			}
-
-			@Override
-			public void windowIconified(WindowEvent arg0) {
-			}
-
-			@Override
-			public void windowOpened(WindowEvent arg0) {
+				setHomography(regPoints);
 			}
 		});
 
@@ -598,33 +619,12 @@ public class CameraPanel extends JPanel implements ActionListener {
 // ActionListener methods
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == capture) {
-			capture();
-			if (timer.isRunning()) {
-				timer.reschedule();
-			}
-
-		} else if (e.getSource() == calibrateButton) {
-			calibrate();
-
-		} else if (e.getSource() == startStop) {
-			if (timer.isRunning()) {
-				timer.stopCapture();
-				startStop.setText("Start");
-			} else {
-				timer.startCapture();
-				startStop.setText("Stop");
-			}
-
-		} else if (e.getSource() == imageFormatCombo) {
+		if (e.getSource() == imageFormatCombo) {
 			ImageFormat f =(ImageFormat)imageFormatCombo.getSelectedItem();
 			source.setImageFormat(f.quality, f.size);
 
 		} else if (e.getSource() == whiteBalanceCombo) {
 			source.setWhiteBalance(whiteBalanceCombo.getSelectedIndex());
-
-		} else if (e.getSource() == connectButton) {
-			connect();
 		}
 	}
 

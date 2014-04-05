@@ -6,7 +6,7 @@ import java.awt.Point;
 
 import digital_table.server.MapCanvas.Order;
 
-public class Callibrate extends MapElement {
+public class Calibrate extends MapElement {
 	private static final long serialVersionUID = 1L;
 
 	public final static String PROPERTY_SHOW_BACKGROUND = "show_background";	// boolean
@@ -15,9 +15,9 @@ public class Callibrate extends MapElement {
 	private int top = 1;
 	private int bottom = 37;
 	private int right = 31;
-	private int size = 16;
+	private int size = 40;
 
-	private Property<Boolean> showBackground = new Property<Boolean>(PROPERTY_SHOW_BACKGROUND, false, Boolean.class);
+	private Property<Boolean> showBackground = new Property<>(PROPERTY_SHOW_BACKGROUND, false, Boolean.class);
 
 	@Override
 	public Order getDefaultOrder() {
@@ -45,6 +45,6 @@ public class Callibrate extends MapElement {
 
 	@Override
 	public String toString() {
-		return "Callibrate";
+		return "Calibrate";
 	}
 }

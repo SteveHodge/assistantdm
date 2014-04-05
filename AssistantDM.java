@@ -68,8 +68,14 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * BUG: Check that masks not existing on the remote system are transferred correctly
- * ENH: consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
+ *
+ * Better algorithm for finding regions - maybe loop along lines then recurse
+ * Modify Updater to temporarily write sequence of camera images to local disk
+ * Pre-guess the screen layout
+ * Fixup the autocalibrate code that orders the detected regions
+ * Global registry of services - combat, digital_table, camera. plus cleanup interactions
+ * 
+ * Allow setting of DarknessMask and Mask colours
  * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
  * ENH: Reordering the elements resets the group expanded/collapsed state
  * BUG: LineTemplate: setting image after rotation draws the un-transformed image
@@ -143,6 +149,7 @@ import digital_table.controller.DigitalTableController;
  * equipment, particularly magic item slots, armor, weapons
  */
 /* TODO digital tabletop (dtt) priorities:
+ * Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
  * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
  * Threaded remote communication
  * Add colour to the overlay tokens. either indicator of health or settable

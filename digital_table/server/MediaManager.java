@@ -36,7 +36,7 @@ public enum MediaManager {
 	private File lastDir = mediaPath;
 
 	public ImageMedia getImageMedia(MapCanvas canvas, URI uri) {
-		System.out.println("getImageMedia(" + uri + ")");
+//		System.out.println("getImageMedia(" + uri + ")");
 		File f = cached.get(uri);
 		byte[] bytes = null;
 		if (f != null) {
@@ -98,12 +98,12 @@ public enum MediaManager {
 	}
 
 	public boolean hasMedia(URI uri) {
-		boolean ret = hasMediaImpl(uri);
-		System.out.println("hasMedia(" + uri + ") = " + ret);
-		return ret;
-	}
-
-	private boolean hasMediaImpl(URI uri) {
+//		boolean ret = hasMediaImpl(uri);
+//		System.out.println("hasMedia(" + uri + ") = " + ret);
+//		return ret;
+//	}
+//
+//	private boolean hasMediaImpl(URI uri) {
 		if (uri.isAbsolute() && !uri.getScheme().equals("file")) return true;	// assume non-file URIs can be fetched
 
 		uri = uri.normalize();	// normalize the uri
@@ -120,7 +120,7 @@ public enum MediaManager {
 
 	// TODO cache the contents of the file
 	public byte[] getFile(URI uri) {
-		System.out.println("getFile(" + uri + ")");
+//		System.out.println("getFile(" + uri + ")");
 		uri = mediaURI.resolve(uri.normalize());
 		File f = new File(uri);
 		try (FileInputStream in = new FileInputStream(f);) {
@@ -142,7 +142,7 @@ public enum MediaManager {
 	// if the URI is relative then it's assumed to be relative to mediaPath and we'll create a persistent copy of the media
 	// if the URI is absolute then we create a temporary local copy under cachePath
 	public void addMedia(URI uri, byte[] bytes) {
-		System.out.print("addMedia(" + uri + ")");
+//		System.out.print("addMedia(" + uri + ")");
 		uri = uri.normalize();
 
 		File mediaFile = null;
@@ -165,7 +165,7 @@ public enum MediaManager {
 			mediaFile.getParentFile().mkdirs();
 		}
 
-		System.out.println(" - stored as " + mediaFile);
+//		System.out.println(" - stored as " + mediaFile);
 		FileOutputStream outStream;
 		try {
 			outStream = new FileOutputStream(mediaFile);
