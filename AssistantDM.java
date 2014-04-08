@@ -69,10 +69,8 @@ import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
  *
- * Better algorithm for finding regions - maybe loop along lines then recurse
  * Modify Updater to temporarily write sequence of camera images to local disk
  * Pre-guess the screen layout
- * Fixup the autocalibrate code that orders the detected regions
  * Global registry of services - combat, digital_table, camera. plus cleanup interactions
  * 
  * Allow setting of DarknessMask and Mask colours
