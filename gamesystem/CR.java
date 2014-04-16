@@ -22,11 +22,13 @@ public class CR {
 		throw new NumberFormatException();
 	}
 
+	@Override
 	public String toString() {
 		if (inverted) return "1/"+cr;
 		return ""+cr;
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof CR)) return false;
 		CR o = (CR)obj;

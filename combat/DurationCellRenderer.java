@@ -9,6 +9,7 @@ public class DurationCellRenderer extends DefaultTableCellRenderer {
 		setHorizontalAlignment(RIGHT);
 	}
 
+	@Override
 	public void setValue(Object value) {
 		if (value instanceof Integer) {
 			int duration = ((Integer)value).intValue();

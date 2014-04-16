@@ -11,30 +11,37 @@ import java.beans.PropertyChangeSupport;
 public abstract class AbstractModifier implements Modifier {
 	final protected PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
+	@Override
 	public String getType() {
 		return null;
 	}
 
+	@Override
 	public String getSource() {
 		return null;
 	}
 
+	@Override
 	public String getCondition() {
 		return null;
 	}
 
+	@Override
 	public int getID() {
 		return 0;
 	}
 
+	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
 	}
 
+	@Override
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		pcs.removePropertyChangeListener(listener);
 	}
 
+	@Override
 	public String toString() {
 		String s = "";
 		if (getType() != null) s += " "+getType();

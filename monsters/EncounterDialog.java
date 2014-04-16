@@ -38,8 +38,6 @@ import javax.swing.JSpinner;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -166,22 +164,12 @@ public class EncounterDialog extends JFrame {
 		monsterList.setPreferredSize(new Dimension(200, 100));
 		monsterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		monsterList.setSelectedIndex(0);
-		monsterList.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent arg0) {
-				updateFields();
-			}
-		});
+		monsterList.addListSelectionListener(e -> updateFields());
 
 		statsPanel = new StatsBlockPanel(selected);
 		statsPanel.setSelectionForeground(monsterList.getSelectionForeground());
 		statsPanel.setSelectionBackground(monsterList.getSelectionBackground());
-		statsPanel.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent arg0) {
-				updateFields();
-			}
-		});
+		statsPanel.addListSelectionListener(e -> updateFields());
 
 		detailLayout = new CardLayout();
 		detailPanel = new JPanel(detailLayout);
@@ -192,27 +180,21 @@ public class EncounterDialog extends JFrame {
 		detailLayout.show(detailPanel, BLANK_PANEL);
 
 		detailsButton = new JButton("Details");
-		detailsButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if (selected == null) return;
-				StatisticsBlock blk = (StatisticsBlock) selected.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
-				if (blk == null) return;
-				JFrame frame = new MonsterFrame(blk);
-				frame.setVisible(true);
-			}
+		detailsButton.addActionListener(e -> {
+			if (selected == null) return;
+			StatisticsBlock blk = (StatisticsBlock) selected.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+			if (blk == null) return;
+			JFrame frame = new MonsterFrame(blk);
+			frame.setVisible(true);
 		});
 
 		addButton = new JButton("Add: ");
 		addButton.addActionListener(addButtonListener);
 
 		deleteButton = new JButton("Delete");
-		deleteButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int sel = monsterList.getSelectedIndex();
-				monsterListModel.removeElementAt(sel);
-			}
+		deleteButton.addActionListener(e -> {
+			int sel = monsterList.getSelectedIndex();
+			monsterListModel.removeElementAt(sel);
 		});
 
 		//@formatter:off
@@ -252,12 +234,7 @@ public class EncounterDialog extends JFrame {
 		// @formatter:on
 
 		JButton loadButton = new JButton("Load");
-		loadButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				load(EncounterDialog.this);
-			}
-		});
+		loadButton.addActionListener(e -> load(EncounterDialog.this));
 
 		JButton saveButton = new JButton("Save");
 		saveButton.addActionListener(saveButtonListener);
@@ -292,7 +269,7 @@ public class EncounterDialog extends JFrame {
 
 	private final ActionListener addButtonListener = new ActionListener() {
 		@Override
-		public void actionPerformed(ActionEvent arg0) {
+		public void actionPerformed(ActionEvent e) {
 			// TODO this should duplicate the monster directly rather than using the stats block (which may not be present once adhoc monsters can be bought into this dialog)
 			StatisticsBlock blk = (StatisticsBlock) selected.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 			if (blk == null) return;

@@ -36,8 +36,8 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
-		xField = createDoubleControl(MapImage.PROPERTY_X);
-		yField = createDoubleControl(MapImage.PROPERTY_Y);
+		xField = createDoubleControl(Group.PROPERTY_X);
+		yField = createDoubleControl(Group.PROPERTY_Y);
 		visibleCheck = createVisibilityControl();
 		labelField = createStringControl(Token.PROPERTY_LABEL);
 
@@ -116,7 +116,7 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 		setAttribute(e, Group.PROPERTY_LABEL, element.getProperty(Group.PROPERTY_LABEL));
 		Point2D location = (Point2D) element.getProperty(Group.PROPERTY_LOCATION);
 		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
-		setAttribute(e, REMOTE_PREFIX + Group.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 

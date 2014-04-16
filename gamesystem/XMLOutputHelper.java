@@ -9,7 +9,6 @@ import gamesystem.XP.XPChangeLevel;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -224,12 +223,7 @@ public class XMLOutputHelper {
 		Element e = doc.createElement("Skills");
 
 		ArrayList<SkillType> set = new ArrayList<>(skills.skills.keySet());
-		Collections.sort(set, new Comparator<SkillType>() {
-			@Override
-			public int compare(SkillType o1, SkillType o2) {
-				return o1.getName().compareTo(o2.getName());
-			}
-		});
+		Collections.sort(set, (o1, o2) -> o1.getName().compareTo(o2.getName()));
 		for (SkillType s : set) {
 			Element se = doc.createElement("Skill");
 			se.setAttribute("type", s.name);

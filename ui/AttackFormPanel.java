@@ -8,8 +8,6 @@ import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -122,12 +120,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 		// the damage field uses an input verifier and applies changes on enter or losing focus
 		damageField.setInputVerifier(damageVerifier);
-		damageField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				damageVerifier.shouldYieldFocus(damageField);
-			}
-		});
+		damageField.addActionListener(e -> damageVerifier.shouldYieldFocus(damageField));
 
 		// the other field do dynamic updating
 		nameField.getDocument().addDocumentListener(docListener);
@@ -139,28 +132,19 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		propertiesField.getDocument().addDocumentListener(docListener);
 		ammunitionField.getDocument().addDocumentListener(docListener);
 
-		kindCombo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (attack != null) {
-					attack.setKind((CharacterAttackForm.Kind) kindCombo.getSelectedItem());
-				}
+		kindCombo.addActionListener(e -> {
+			if (attack != null) {
+				attack.setKind((CharacterAttackForm.Kind) kindCombo.getSelectedItem());
 			}
 		});
-		sizeCombo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (attack != null) {
-					attack.attack.size = (SizeCategory) sizeCombo.getSelectedItem();
-				}
+		sizeCombo.addActionListener(e -> {
+			if (attack != null) {
+				attack.attack.size = (SizeCategory) sizeCombo.getSelectedItem();
 			}
 		});
-		usageCombo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (attack != null) {
-					attack.setUsage((CharacterAttackForm.Usage) usageCombo.getSelectedItem());
-				}
+		usageCombo.addActionListener(e -> {
+			if (attack != null) {
+				attack.setUsage((CharacterAttackForm.Usage) usageCombo.getSelectedItem());
 			}
 		});
 	}
@@ -360,12 +344,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		AttackFormInfoDialog() {
 			super(SwingUtilities.getWindowAncestor(AttackFormPanel.this), attack.getName(), Dialog.ModalityType.APPLICATION_MODAL);
 
-			attack.addPropertyChangeListener(new PropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent arg0) {
-					updateSummary();
-				}
-			});
+			attack.addPropertyChangeListener(e -> updateSummary());
 
 			damageSummary = new JLabel();
 			damageSummary.setBorder(BorderFactory.createTitledBorder("Damage"));
@@ -377,12 +356,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			summary.setVerticalAlignment(SwingConstants.TOP);
 
 			okButton = new JButton("Ok");
-			okButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					setVisible(false);
-				}
-			});
+			okButton.addActionListener(e -> setVisible(false));
 
 			addPanel = getAdhocPanel();
 			addPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier"));
@@ -428,17 +402,14 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 			JButton addButton = new JButton("Add");
 			addButton.setEnabled(false);
-			addButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					// TODO implement - need to be able to get to the character (ultimately should appear in the list of the possessor, but remain linked to the item)
+			addButton.addActionListener(e -> {
+				// TODO implement - need to be able to get to the character (ultimately should appear in the list of the possessor, but remain linked to the item)
 //					BuffFactory bf = new BuffFactory(nameField.getText());
 //					int mod = (Integer) modField.getValue();
 //					bf.addEffect(statName, typeBox.getSelectedItem().toString(), mod);
 //					Buff buff = bf.getBuff();
 //					buff.applyBuff(character);
 //					character.buffs.addElement(buff);
-				}
 			});
 
 			JPanel addPanel = new JPanel();

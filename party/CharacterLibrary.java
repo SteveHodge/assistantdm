@@ -34,26 +34,23 @@ public class CharacterLibrary {
 		return new PartyXPTableModel();
 	}
 
-	protected static Comparator<Character> charComparator = new Comparator<Character>() {
-		@Override
-		public int compare(Character c1, Character c2) {
-			// if both characters have no xp history then they are treated as equal
-			// if one character has no xp history then it is considered greater then the other
-			if (c1.getXPHistoryCount() == 0) {
-				return c2.getXPHistoryCount() == 0 ? 0 : -1;
-			} else {
-				if (c2.getXPHistoryCount() == 0) return 1;
-			}
-			XPHistoryItem x1 = c1.getXPHistory(0);
-			XPHistoryItem x2 = c2.getXPHistory(0);
-			// null date is considered earlier than any date
-			if (x1.getDate() == null) {
-				return (x2.getDate() == null ? 0 : -1);
-			} else {
-				if (x2.getDate() == null) return 1;
-			}
-			return x1.getDate().compareTo(x2.getDate());
+	protected static Comparator<Character> charComparator = (c1, c2) -> {
+		// if both characters have no xp history then they are treated as equal
+		// if one character has no xp history then it is considered greater then the other
+		if (c1.getXPHistoryCount() == 0) {
+			return c2.getXPHistoryCount() == 0 ? 0 : -1;
+		} else {
+			if (c2.getXPHistoryCount() == 0) return 1;
 		}
+		XPHistoryItem x1 = c1.getXPHistory(0);
+		XPHistoryItem x2 = c2.getXPHistory(0);
+		// null date is considered earlier than any date
+		if (x1.getDate() == null) {
+			return (x2.getDate() == null ? 0 : -1);
+		} else {
+			if (x2.getDate() == null) return 1;
+		}
+		return x1.getDate().compareTo(x2.getDate());
 	};
 
 	// TODO still issues with order here

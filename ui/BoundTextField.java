@@ -2,9 +2,6 @@ package ui;
 
 import gamesystem.Creature;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -51,16 +48,13 @@ public class BoundTextField extends JTextField {
 
 		});
 
-		creature.addPropertyChangeListener(property, new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				//System.out.println("Notified "+BoundTextField.this.hashCode()+", setting value to "+creature.getProperty(property));
-				// we might get notified from the result of our own update (e.g. if there is another BoundTextField bound to the same property)
-				// if we try to set the text in this case it will cause an exception, so we set a flag
-				// TODO this is not threadsafe
-				if (!modifying) {
-					setText(creature.getProperty(property).toString());
-				}
+		creature.addPropertyChangeListener(property, evt -> {
+			//System.out.println("Notified "+BoundTextField.this.hashCode()+", setting value to "+creature.getProperty(property));
+			// we might get notified from the result of our own update (e.g. if there is another BoundTextField bound to the same property)
+			// if we try to set the text in this case it will cause an exception, so we set a flag
+			// TODO this is not threadsafe
+			if (!modifying) {
+				setText(creature.getProperty(property).toString());
 			}
 		});
 		setColumns(columns);

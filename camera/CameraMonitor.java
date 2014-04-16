@@ -3,7 +3,6 @@ package camera;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
@@ -118,15 +117,12 @@ public class CameraMonitor implements Runnable {
 	 * Renames or deletes all other matching files so they are prefixed with 'done'.
 	 */
 	private File scanDirectory() {
-		File[] files = source.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				String lowerName = name.toLowerCase();
-				if (!lowerName.startsWith(prefix)) return false;
-				if (!lowerName.endsWith(".jpg")) return false;
-				// TODO check for number between prefix and suffix
-				return true;
-			}
+		File[] files = source.listFiles((dir, name) -> {
+			String lowerName = name.toLowerCase();
+			if (!lowerName.startsWith(prefix)) return false;
+			if (!lowerName.endsWith(".jpg")) return false;
+			// TODO check for number between prefix and suffix
+			return true;
 		});
 
 		if (files == null || files.length == 0) return null;

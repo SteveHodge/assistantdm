@@ -61,6 +61,7 @@ public class SelectTimeDialog extends JDialog implements ActionListener {
 		return !returnOk;
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals("Ok")) {
 			returnOk = true;

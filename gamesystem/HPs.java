@@ -1,7 +1,5 @@
 package gamesystem;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -92,17 +90,14 @@ public class HPs extends Statistic {
 		if (con != null) {
 			conMod = con.getModifier();
 			oldMod = conMod.getModifier();
-			conMod.addPropertyChangeListener(new PropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent e) {
-					int oldhps = getMaximumHitPoints();
-					int newhps = oldhps + (hitdice.getHitDiceCount() * (conMod.getModifier() - oldMod));
-					System.out.println("hitdice = " + hitdice.getHitDiceCount() + " oldMod = " + oldMod + ", newMod = " + conMod.getModifier());
-					if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
-					System.out.println("changing max hps from " + oldhps + " to " + newhps);
-					setMaximumHitPoints(newhps);
-					oldMod = conMod.getModifier();
-				}
+			conMod.addPropertyChangeListener(e -> {
+				int oldhps = getMaximumHitPoints();
+				int newhps = oldhps + (hitdice.getHitDiceCount() * (conMod.getModifier() - oldMod));
+				System.out.println("hitdice = " + hitdice.getHitDiceCount() + " oldMod = " + oldMod + ", newMod = " + conMod.getModifier());
+				if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
+				System.out.println("changing max hps from " + oldhps + " to " + newhps);
+				setMaximumHitPoints(newhps);
+				oldMod = conMod.getModifier();
 			});
 		}
 	}

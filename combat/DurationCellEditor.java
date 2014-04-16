@@ -23,6 +23,7 @@ public class DurationCellEditor extends AbstractCellEditor implements TableCellE
         button.setBorderPainted(false);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals("edit")) {
 			dialog.setValue(value);
@@ -34,10 +35,12 @@ public class DurationCellEditor extends AbstractCellEditor implements TableCellE
 		}
 	}
 
+	@Override
 	public Object getCellEditorValue() {
 		return value;
 	}
 
+	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value,
 			boolean isSelected, int row, int column) {
 		this.value = ((Integer)value).intValue();

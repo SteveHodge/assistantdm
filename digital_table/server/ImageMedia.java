@@ -3,8 +3,6 @@ package digital_table.server;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -385,22 +383,19 @@ public abstract class ImageMedia {
 			index = 0;
 
 			if (frames.length > 1) {
-				timer = new Timer(getDelay(0), new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent arg0) {
-						index++;
-						canvas.repaint();
-						if (index >= frames.length) {
-							if (loopFrame == -1) {
-								index = 0;
-								timer.stop();
-								return;
-							}
-							index = loopFrame;
+				timer = new Timer(getDelay(0), e -> {
+					index++;
+					canvas.repaint();
+					if (index >= frames.length) {
+						if (loopFrame == -1) {
+							index = 0;
+							timer.stop();
+							return;
 						}
-						timer.setInitialDelay(getDelay(index));
-						timer.start();
+						index = loopFrame;
 					}
+					timer.setInitialDelay(getDelay(index));
+					timer.start();
 				});
 				timer.setRepeats(false);
 				timer.start();

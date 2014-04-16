@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -87,7 +86,7 @@ public class Party implements Iterable<Character> {
 	 * <code>update</code> is true. If the file has a &lt;Party&gt; block then the
 	 * new <code>Party</code> is set up to conatin just those characters, otherwise
 	 * it is set up with all the characters from the file.
-	 * 
+	 *
 	 * @param xmlFile  the File to parse
 	 * @param update   if true then the incomming characters are not added to the CharacterLibrary
 	 * @return         the new Party
@@ -157,12 +156,7 @@ public class Party implements Iterable<Character> {
 
 		Character[] allCharacters = new Character[CharacterLibrary.characters.size()];
 		allCharacters = CharacterLibrary.characters.toArray(allCharacters);
-		Arrays.sort(allCharacters, new Comparator<Character> () {
-			@Override
-			public int compare(Character arg0, Character arg1) {
-				return arg0.getName().compareTo(arg1.getName());
-			}
-		});
+		Arrays.sort(allCharacters, (a, bb) -> a.getName().compareTo(bb.getName()));
 //		for (Character c : allCharacters) {
 //			b.append(c.getXML(indent+nextIndent,nextIndent));
 //		}
@@ -179,12 +173,7 @@ public class Party implements Iterable<Character> {
 		Element e = doc.createElement("Characters");
 		Character[] allCharacters = new Character[CharacterLibrary.characters.size()];
 		allCharacters = CharacterLibrary.characters.toArray(allCharacters);
-		Arrays.sort(allCharacters, new Comparator<Character> () {
-			@Override
-			public int compare(Character arg0, Character arg1) {
-				return arg0.getName().compareTo(arg1.getName());
-			}
-		});
+		Arrays.sort(allCharacters, (a, b) -> a.getName().compareTo(b.getName()));
 		for (Character c : allCharacters) {
 			XMLOutputCharacterProcessor processor = new XMLOutputCharacterProcessor(doc);
 			c.executeProcess(processor);

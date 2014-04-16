@@ -13,6 +13,7 @@ public class ImageFormatOption extends ImageFormat implements Comparable<ImageFo
 		quality = f.quality;
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ImageFormat) {
 			ImageFormat b = (ImageFormat)obj;
@@ -21,10 +22,12 @@ public class ImageFormatOption extends ImageFormat implements Comparable<ImageFo
 		return super.equals(obj);
 	}
 
+	@Override
 	public int hashCode() {
 		return (quality << 16) ^ size;
 	}
 
+	@Override
 	public String toString() {
 		StringBuffer s = new StringBuffer(sizeNames[size]);
 		s.append(" / ");
@@ -45,6 +48,7 @@ public class ImageFormatOption extends ImageFormat implements Comparable<ImageFo
 //		return options;
 //	}
 
+	@Override
 	public int compareTo(ImageFormat o) {
 		if (sizeOrder[size] != sizeOrder[o.size]) return sizeOrder[size] - sizeOrder[o.size];
 		return qualityOrder[quality] - qualityOrder[o.quality];

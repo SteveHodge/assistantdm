@@ -5,8 +5,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -167,12 +165,7 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		Collections.sort(options);
 		final JComboBox<String> combo = new JComboBox<>(options);
 		filterCols.put(combo,col);
-		combo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				newFilter(combo);
-			}
-		});
+		combo.addActionListener(e -> newFilter(combo));
 		return combo;
 	}
 
@@ -180,12 +173,7 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		final JTextField field = new JTextField(30);
 		filterCols.put(field,col);
 		// add an ActionListener so we can filter when enter is pressed
-		field.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				newFilter(field);
-			}
-		});
+		field.addActionListener(e -> newFilter(field));
 		// add a DocumentListener so we can filter on every keypress
 		field.getDocument().addDocumentListener(new DocumentListener() {
 			@Override

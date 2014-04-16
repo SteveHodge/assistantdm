@@ -2,9 +2,6 @@ package ui;
 
 import gamesystem.Creature;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import javax.swing.JFormattedTextField;
 
 
@@ -18,24 +15,17 @@ public class BoundIntegerField extends JFormattedTextField {
 	public BoundIntegerField(Creature c, String prop, int columns) {
 		creature = c;
 		property = prop;
-		addPropertyChangeListener("value", new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals("value")) {
-					//TODO some type checking should be done
-					creature.setProperty(property, BoundIntegerField.this.getValue());
-				}
-			}
-		});
-		creature.addPropertyChangeListener(property, new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
+		addPropertyChangeListener("value", evt -> {
+			if (evt.getPropertyName().equals("value")) {
 				//TODO some type checking should be done
-				//it's ok to do this even if this change event is due to an update from this control
-				//because setValue will not fire a change event if the property isn't actually changing
-				setValue(creature.getProperty(property));
+				creature.setProperty(property, BoundIntegerField.this.getValue());
 			}
 		});
+		creature.addPropertyChangeListener(property,
+			//TODO some type checking should be done
+			//it's ok to do this even if this change event is due to an update from this control
+			//because setValue will not fire a change event if the property isn't actually changing
+		 	evt -> setValue(creature.getProperty(property)));
 		setColumns(columns);
 		//TODO some type checking should be done
 		setValue(creature.getProperty(property));

@@ -4,10 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
@@ -22,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import javax.swing.WindowConstants;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -67,12 +65,9 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 		}
 		screenCombo = new JComboBox<>(screens);
 		screenCombo.setSelectedIndex((Integer)element.getProperty(Browser.PROPERTY_SCREEN));
-		screenCombo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int index = screenCombo.getSelectedIndex();
-				display.setProperty(element, Browser.PROPERTY_SCREEN, index, Mode.ALL);
-			}
+		screenCombo.addActionListener(e -> {
+			int index = screenCombo.getSelectedIndex();
+			display.setProperty(element, Browser.PROPERTY_SCREEN, index, Mode.ALL);
 		});
 
 		// note that the remoteVisibleCheck sets the VISIBLE property on both local and remote elements. this allows
@@ -80,27 +75,21 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 		// browser window is visible or not
 		remoteVisibleCheck = new JCheckBox("remote visible?");
 		remoteVisibleCheck.setSelected(false);
-		remoteVisibleCheck.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				JCheckBox check = (JCheckBox) e.getSource();
-				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
-			}
+		remoteVisibleCheck.addItemListener(e -> {
+			JCheckBox check = (JCheckBox) e.getSource();
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
 		});
 
 		localVisibleCheck = new JCheckBox("local visible?");
 		localVisibleCheck.setSelected(false);
-		localVisibleCheck.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (localVisibleCheck.isSelected()) {
-					if (frame == null) {
-						frame = createFrame();
-					}
-					frame.setVisible(true);
-				} else if (frame != null) {
-					frame.setVisible(false);
+		localVisibleCheck.addItemListener(e -> {
+			if (localVisibleCheck.isSelected()) {
+				if (frame == null) {
+					frame = createFrame();
 				}
+				frame.setVisible(true);
+			} else if (frame != null) {
+				frame.setVisible(false);
 			}
 		});
 
@@ -142,19 +131,14 @@ class BrowserOptionsPanel extends OptionsPanel<Browser> {
 		JButton goButton = new JButton("Go");
 		frameURLField = new JTextField(element.getProperty(Browser.PROPERTY_URL).toString());
 
-		ActionListener listener = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				display.setProperty(element, Browser.PROPERTY_URL, frameURLField.getText(), Mode.ALL);
-			}
-		};
+		ActionListener listener = e -> display.setProperty(element, Browser.PROPERTY_URL, frameURLField.getText(), Mode.ALL);
 		goButton.addActionListener(listener);
 		frameURLField.addActionListener(listener);
 
 		progressBar = new JProgressBar();
 
 		frame.setPreferredSize(new Dimension(1024, 800));
-		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		frame.addWindowListener(new WindowListener() {
 			@Override
 			public void windowClosing(WindowEvent e) {

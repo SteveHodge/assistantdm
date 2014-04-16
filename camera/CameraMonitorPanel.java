@@ -78,12 +78,9 @@ public class CameraMonitorPanel extends JPanel implements ImageScanListener {
 
 			// CameraMonitor has it's own thread but we need to make these changes from the
 			// AWT event thread
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					area.append(logMsg);
-					imagePanel.setImage(image);
-				}
+			SwingUtilities.invokeLater(() -> {
+				area.append(logMsg);
+				imagePanel.setImage(image);
 			});
 		} catch (IOException ex) {
 			ex.printStackTrace();

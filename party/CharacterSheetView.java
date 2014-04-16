@@ -13,11 +13,8 @@ import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -36,13 +33,10 @@ public class CharacterSheetView {
 		character = c;
 		autosave = auto;
 
-		character.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
-			public void propertyChange(final PropertyChangeEvent e) {
-				if (autosave) {
-					System.out.println("Autosave trigger by change to " + e.getPropertyName());
-					saveCharacterSheet();
-				}
+		character.addPropertyChangeListener(e -> {
+			if (autosave) {
+				System.out.println("Autosave trigger by change to " + e.getPropertyName());
+				saveCharacterSheet();
 			}
 		});
 	}
@@ -199,12 +193,7 @@ public class CharacterSheetView {
 
 			Element e = doc.createElement("Skills");
 			ArrayList<SkillType> set = new ArrayList<>(character.getSkills());
-			Collections.sort(set, new Comparator<SkillType>() {
-				@Override
-				public int compare(SkillType o1, SkillType o2) {
-					return o1.getName().compareTo(o2.getName());
-				}
-			});
+			Collections.sort(set, (o1, o2) -> o1.getName().compareTo(o2.getName()));
 			for (SkillType s : set) {
 				Element se = doc.createElement("Skill");
 				se.setAttribute("type", s.getName());

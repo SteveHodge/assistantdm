@@ -21,6 +21,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import party.Character;
 
@@ -165,7 +166,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyChang
 
 			XPHistoryPanel panel = new XPHistoryPanel(character);
 			JFrame popup = new JFrame(character.getName()+" XP History");
-			popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			popup.getContentPane().add(panel);
 			// size the popup to be 80% of the parent window's bounds:
 			Rectangle bounds = SwingUtilities.windowForComponent(this).getBounds();

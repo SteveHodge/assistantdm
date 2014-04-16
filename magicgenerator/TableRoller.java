@@ -8,6 +8,7 @@ public class TableRoller implements TableRowChooser {
 		return rand.nextInt(100)+1;
 	}
 
+	@Override
 	public TableRow chooseRow(Item i, Table t) {
 		return t.getTableRow(i.category, roll());
 	}

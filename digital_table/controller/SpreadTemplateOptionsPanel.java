@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -56,12 +54,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		alphaSlider = createSliderControl(SpreadTemplate.PROPERTY_ALPHA);
 
 		typeCombo = createComboControl(SpreadTemplate.PROPERTY_TYPE, SpreadTemplate.Type.values());
-		typeCombo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				directionCombo.setEnabled(typeCombo.getSelectedItem() == SpreadTemplate.Type.QUADRANT);
-			}
-		});
+		typeCombo.addActionListener(e -> directionCombo.setEnabled(typeCombo.getSelectedItem() == SpreadTemplate.Type.QUADRANT));
 
 		directionCombo = createComboControl(SpreadTemplate.PROPERTY_DIRECTION, SpreadTemplate.Direction.values());
 		directionCombo.setEnabled(element.getProperty(SpreadTemplate.PROPERTY_TYPE) == SpreadTemplate.Type.QUADRANT);
@@ -175,7 +168,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + SpreadTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		if (imagePanel.uri != null) e.setAttribute(FILE_ATTRIBUTE_NAME, imagePanel.uri.toASCIIString());
 		return e;
 	}

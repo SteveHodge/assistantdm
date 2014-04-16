@@ -5,12 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
 import java.net.URI;
 
@@ -23,8 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.SwingConstants;
 import javax.swing.text.JTextComponent;
 
 import org.w3c.dom.Document;
@@ -62,12 +57,9 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	JTextField createIntegerControl(final String property) {
 		final JTextField field = new JTextField(8);
 		field.setText("" + element.getProperty(property));
-		field.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int newValue = Integer.parseInt(field.getText());
-				display.setProperty(element, property, newValue, Mode.ALL);
-			}
+		field.addActionListener(e -> {
+			int newValue = Integer.parseInt(field.getText());
+			display.setProperty(element, property, newValue, Mode.ALL);
 		});
 		return field;
 	}
@@ -75,12 +67,9 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	JTextField createDoubleControl(final String property) {
 		final JTextField field = new JTextField(8);
 		field.setText("" + element.getProperty(property));
-		field.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				double newRadius = Double.parseDouble(field.getText());
-				display.setProperty(element, property, newRadius, Mode.ALL);
-			}
+		field.addActionListener(e -> {
+			double newRadius = Double.parseDouble(field.getText());
+			display.setProperty(element, property, newRadius, Mode.ALL);
 		});
 		return field;
 	}
@@ -92,28 +81,12 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		colorPanel.setMinimumSize(new Dimension(50, 20));
 		colorPanel.setPreferredSize(new Dimension(50, 20));
 		colorPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		colorPanel.addMouseListener(new MouseListener() {
+		colorPanel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				Color newColor = JColorChooser.showDialog(OptionsPanel.this, "Choose colour", (Color) element.getProperty(property));
 				display.setProperty(element, property, newColor, Mode.ALL);
 				colorPanel.setBackground(newColor);
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent arg0) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent arg0) {
-			}
-
-			@Override
-			public void mousePressed(MouseEvent arg0) {
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent arg0) {
 			}
 		});
 		return colorPanel;
@@ -141,17 +114,14 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 //	}
 
 	JSlider createSliderControl(final String property, final Mode mode) {
-		JSlider alphaSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
+		JSlider alphaSlider = new JSlider(SwingConstants.HORIZONTAL, 0, 100, 100);
 		alphaSlider.setValue((int) (100 * (Float) element.getProperty(property)));
-		alphaSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				JSlider slider = (JSlider) e.getSource();
-				float alpha = slider.getValue() / 100f;
-				if (mode != Mode.REMOTE) element.setProperty(property, alpha);
-				if (!slider.getValueIsAdjusting() && mode != Mode.LOCAL) {
-					display.setProperty(element, property, alpha, Mode.REMOTE);	// send to remote because we've already done local
-				}
+		alphaSlider.addChangeListener(e -> {
+			JSlider slider = (JSlider) e.getSource();
+			float alpha = slider.getValue() / 100f;
+			if (mode != Mode.REMOTE) element.setProperty(property, alpha);
+			if (!slider.getValueIsAdjusting() && mode != Mode.LOCAL) {
+				display.setProperty(element, property, alpha, Mode.REMOTE);	// send to remote because we've already done local
 			}
 		});
 		return alphaSlider;
@@ -160,12 +130,9 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	<T> JComboBox<T> createComboControl(final String property, T[] values) {
 		final JComboBox<T> typeCombo = new JComboBox<>(values);
 		typeCombo.setSelectedItem(element.getProperty(property));
-		typeCombo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Object selected = typeCombo.getSelectedItem();
-				display.setProperty(element, property, selected, Mode.ALL);
-			}
+		typeCombo.addActionListener(e -> {
+			Object selected = typeCombo.getSelectedItem();
+			display.setProperty(element, property, selected, Mode.ALL);
 		});
 		return typeCombo;
 	}
@@ -177,11 +144,8 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	JTextField createStringControl(final String property, final Mode mode) {
 		final JTextField textField = new JTextField(30);
 		textField.setText("" + element.getProperty(property));
-		textField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				display.setProperty(element, property, textField.getText(), mode);
-			}
+		textField.addActionListener(e -> {
+			display.setProperty(element, property, textField.getText(), mode);
 		});
 		return textField;
 	}
@@ -189,12 +153,8 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	JCheckBox createCheckBox(final String property, final Mode mode, String label) {
 		JCheckBox check = new JCheckBox(label);
 		check.setSelected((Boolean) element.getProperty(property));
-		check.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				JCheckBox check = (JCheckBox) e.getSource();
-				display.setProperty(element, property, check.isSelected(), mode);
-			}
+		check.addItemListener(e -> {
+			display.setProperty(element, property, check.isSelected(), mode);
 		});
 		return check;
 	}
@@ -202,13 +162,9 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	JCheckBox createVisibilityControl() {
 		JCheckBox check = new JCheckBox("visible?");
 		check.setSelected(false);
-		check.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				JCheckBox check = (JCheckBox) e.getSource();
-				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.REMOTE);
-				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.FADED, Mode.LOCAL);
-			}
+		check.addItemListener(e -> {
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.REMOTE);
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.FADED, Mode.LOCAL);
 		});
 		return check;
 	}
@@ -218,12 +174,9 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	JComboBox<String> createRotationControl(final String property, final Mode mode) {
 		final JComboBox<String> rotationsCombo = new JComboBox<>(options);
 		rotationsCombo.setSelectedIndex((Integer) element.getProperty(property));
-		rotationsCombo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int index = rotationsCombo.getSelectedIndex();
-				display.setProperty(element, property, index, mode);
-			}
+		rotationsCombo.addActionListener(e -> {
+			int index = rotationsCombo.getSelectedIndex();
+			display.setProperty(element, property, index, mode);
 		});
 		return rotationsCombo;
 	};
@@ -238,37 +191,25 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 			imageLabel = new JLabel();
 
 			JButton imageButton = new JButton("Set Image");
-			imageButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					URI u = MediaManager.INSTANCE.showFileChooser(ImageMediaOptionsPanel.this);
-					if (u != null) setURI(u);
-				}
+			imageButton.addActionListener(e -> {
+				URI u = MediaManager.INSTANCE.showFileChooser(ImageMediaOptionsPanel.this);
+				if (u != null) setURI(u);
 			});
 
 			JButton clearButton = new JButton("Clear");
-			clearButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					setURI(null);
-					display.setProperty(element, LineTemplate.PROPERTY_IMAGE_VISIBLE, false);
-				}
+			clearButton.addActionListener(e -> {
+				setURI(null);
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_VISIBLE, false);
 			});
 
 			JButton playButton = new JButton("Play");
-			playButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
-				}
+			playButton.addActionListener(e -> {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
 			});
 
 			JButton stopButton = new JButton("Stop");
-			stopButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
-				}
+			stopButton.addActionListener(e -> {
+				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
 			});
 
 			setLayout(new GridBagLayout());

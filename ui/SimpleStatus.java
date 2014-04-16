@@ -14,6 +14,7 @@ public enum SimpleStatus implements CreatureStatus {
 		return description;
 	}
 
+	@Override
 	public Color getColor() {
 		return color;
 	}

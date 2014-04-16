@@ -3,8 +3,6 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -15,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -51,25 +50,19 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 
 		xOffsetField = new JTextField(8);
 		xOffsetField.setText("0");
-		xOffsetField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int xoffset = Integer.parseInt(xOffsetField.getText());
-				int delta = xoffset - display.getXOffset();
-				display.setRemoteOffset(xoffset, display.getYOffset());
-				canvas.setOffset(canvas.getXOffset() + delta, canvas.getYOffset());
-			}
+		xOffsetField.addActionListener(e -> {
+			int xoffset = Integer.parseInt(xOffsetField.getText());
+			int delta = xoffset - display.getXOffset();
+			display.setRemoteOffset(xoffset, display.getYOffset());
+			canvas.setOffset(canvas.getXOffset() + delta, canvas.getYOffset());
 		});
 		yOffsetField = new JTextField(8);
 		yOffsetField.setText("0");
-		yOffsetField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int yoffset = Integer.parseInt(yOffsetField.getText());
-				int delta = yoffset - display.getYOffset();
-				display.setRemoteOffset(display.getXOffset(), yoffset);
-				canvas.setOffset(canvas.getXOffset(), canvas.getYOffset() + delta);
-			}
+		yOffsetField.addActionListener(e -> {
+			int yoffset = Integer.parseInt(yOffsetField.getText());
+			int delta = yoffset - display.getYOffset();
+			display.setRemoteOffset(display.getXOffset(), yoffset);
+			canvas.setOffset(canvas.getXOffset(), canvas.getYOffset() + delta);
 		});
 
 		// set local options
@@ -84,24 +77,18 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		visibleCheck.setSelected(true);
 
 		JButton zoomInButton = new JButton("Zoom in");
-		zoomInButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int size = canvas.getCellSize();
-				size = size + 10;
-				canvas.setCellSize(size);
-			}
+		zoomInButton.addActionListener(e -> {
+			int size = canvas.getCellSize();
+			size = size + 10;
+			canvas.setCellSize(size);
 		});
 
 		JButton zoomOutButton = new JButton("Zoom out");
-		zoomOutButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int size = canvas.getCellSize();
-				size = size - 10;
-				if (size < 10) size = 10;
-				canvas.setCellSize(size);
-			}
+		zoomOutButton.addActionListener(e -> {
+			int size = canvas.getCellSize();
+			size = size - 10;
+			if (size < 10) size = 10;
+			canvas.setCellSize(size);
 		});
 
 		JPanel buttons = new JPanel();
@@ -140,7 +127,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		c.gridwidth = 2;
 		c.gridx = 0;
 		c.gridy = 6;
-		add(new JSeparator(JSeparator.HORIZONTAL), c);
+		add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
 		c.gridy = 10;
 		c.fill = GridBagConstraints.BOTH;
@@ -151,13 +138,10 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 	private JTextField createNullableIntegerControl(final String property, final Mode mode) {
 		final JTextField field = new JTextField(8);
 		if (element.getProperty(property) != null) field.setText("" + element.getProperty(property));
-		field.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				Integer newValue = null;
-				if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
-				display.setProperty(element, property, newValue, mode);
-			}
+		field.addActionListener(e -> {
+			Integer newValue = null;
+			if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
+			display.setProperty(element, property, newValue, mode);
 		});
 		return field;
 	}

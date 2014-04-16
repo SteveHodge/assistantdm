@@ -2,7 +2,6 @@ package gamesystem;
 
 import gamesystem.dice.CombinedDice;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,12 +51,7 @@ public class Attacks extends Statistic {
 	private Modifier fightingDefensively = new ImmutableModifier(-4, null, "Fighting defensively");
 	private Modifier fightingDefensivelyAC = new ImmutableModifier(2, "Dodge", "Fighting defensively");
 
-	final PropertyChangeListener listener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			firePropertyChange("value", null, getValue());
-		}
-	};
+	final PropertyChangeListener listener = evt -> firePropertyChange("value", null, getValue());
 
 	final ListDataListener featsListener = new ListDataListener() {
 		@Override

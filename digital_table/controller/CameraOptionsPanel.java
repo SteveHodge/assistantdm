@@ -2,10 +2,6 @@ package digital_table.controller;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -20,6 +16,7 @@ import org.w3c.dom.Element;
 
 import camera.CameraPanel;
 import digital_table.controller.DisplayManager.Mode;
+import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
@@ -38,7 +35,7 @@ class CameraOptionsPanel extends OptionsPanel<MapImage> {
 		element.setProperty(MapImage.PROPERTY_ROTATIONS, 1);
 		element.setProperty(MapImage.PROPERTY_WIDTH, 32.0d);
 		element.setProperty(MapImage.PROPERTY_HEIGHT, 39.0d);
-		element.setProperty(MapImage.PROPERTY_Y, -1.0d);
+		element.setProperty(Group.PROPERTY_Y, -1.0d);
 		display.addElement(element, parent);
 		element.addPropertyChangeListener(listener);
 		this.camera = cam;
@@ -46,23 +43,17 @@ class CameraOptionsPanel extends OptionsPanel<MapImage> {
 		alphaSlider = createSliderControl(MapImage.PROPERTY_ALPHA);
 		visibleCheck = new JCheckBox("visible?");
 		visibleCheck.setSelected(false);
-		visibleCheck.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				JCheckBox check = (JCheckBox) e.getSource();
-				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
-			}
+		visibleCheck.addItemListener(e -> {
+			JCheckBox check = (JCheckBox) e.getSource();
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
 		});
 
 		JButton updateButton = new JButton("Update");
-		updateButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				byte[] bytes = camera.getLatestCorrectedImage();
-				display.setProperty(element, MapImage.PROPERTY_IMAGE, bytes);
-				display.setProperty(element, MapImage.PROPERTY_WIDTH, 32.0d);
-				display.setProperty(element, MapImage.PROPERTY_HEIGHT, 39.0d);
-			}
+		updateButton.addActionListener(arg0 -> {
+			byte[] bytes = camera.getLatestCorrectedImage();
+			display.setProperty(element, MapImage.PROPERTY_IMAGE, bytes);
+			display.setProperty(element, MapImage.PROPERTY_WIDTH, 32.0d);
+			display.setProperty(element, MapImage.PROPERTY_HEIGHT, 39.0d);
 		});
 
 		//@formatter:off

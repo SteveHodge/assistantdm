@@ -243,13 +243,7 @@ public class Character extends Creature {
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
 			final AbilityScore s = new AbilityScore(t);
 			s.addPropertyChangeListener(statListener);
-			s.getModifier().addPropertyChangeListener(new PropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent e) {
-					//System.out.println(PROPERTY_ABILITY_PREFIX+s.getName()+": "+e.getOldValue()+" -> "+ e.getNewValue());
-					firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue());
-				}
-			});
+			s.getModifier().addPropertyChangeListener(e -> firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue()));
 			abilities.put(t, s);
 		}
 

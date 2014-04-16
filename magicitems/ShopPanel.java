@@ -16,7 +16,6 @@ import javax.swing.LayoutStyle;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import magicgenerator.Item;
 
@@ -58,12 +57,7 @@ public class ShopPanel extends JPanel {
 					itemJList = new JList<>();
 					jScrollPane1.setViewportView(itemJList);
 					itemJList.setModel(shop);
-					itemJList.addListSelectionListener(new ListSelectionListener() {
-						@Override
-						public void valueChanged(ListSelectionEvent evt) {
-							itemJListValueChanged(evt);
-						}
-					});
+					itemJList.addListSelectionListener(evt -> itemJListValueChanged(evt));
 				}
 			}
 			{

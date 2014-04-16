@@ -5,8 +5,8 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BoxLayout;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -16,6 +16,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -44,7 +45,7 @@ public class ItemBuilderWizard implements Runnable {
 		this.target = target;
 		this.procedure = proc;
 		frame = new JFrame("Build Item");
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		frame.setSize(600, 400);
 
 		itemArea = new JTextArea();
@@ -86,10 +87,12 @@ public class ItemBuilderWizard implements Runnable {
 			table = t;
 		}
 
+		@Override
 		public int getColumnCount() {
 			return 4;
 		}
 
+		@Override
 		public String getColumnName(int column) {
 			if (column == 0) return "% for Minor";
 			else if (column == 1) return "% for Medium";
@@ -98,10 +101,12 @@ public class ItemBuilderWizard implements Runnable {
 			return super.getColumnName(column);
 		}
 
+		@Override
 		public int getRowCount() {
 			return table.getRowCount();
 		}
 
+		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			TableRow row = table.getRow(rowIndex);
 			if (columnIndex >=0 && columnIndex < 3) return row.getChance(columnIndex);
@@ -116,6 +121,7 @@ public class ItemBuilderWizard implements Runnable {
 		Table table;
 		int selected = -1;
 
+		@Override
 		public TableRow chooseRow(Item i, Table t)  {
 			System.out.println("chooseRow "+t.name+" ("+t.comment+")");
 			item = i;
@@ -145,6 +151,7 @@ public class ItemBuilderWizard implements Runnable {
 			selected = i;
 		}
 
+		@Override
 		public void run() {
 			//final String text = "Choosing row for "+t.name+" ("+t.comment+")\n" + t;
 			String text = DefaultItemFormatter.getItemDescription(item);
@@ -161,6 +168,7 @@ public class ItemBuilderWizard implements Runnable {
 			jTable.getSelectionModel().addListSelectionListener(this);
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			setSelected(jTable.getSelectedRow());
 			synchronized(wizThread) {
@@ -170,28 +178,26 @@ public class ItemBuilderWizard implements Runnable {
 			nextButton.setEnabled(false);
 		}
 
+		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			nextButton.setEnabled(jTable.getSelectedRowCount() == 1);
 		}
 	}
 
+	@Override
 	public void run() {
 		final Item item = generator.generate(Item.CLASS_MINOR, procedure, new TableChooser());
 		final String text = DefaultItemFormatter.getItemDescription(item);
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				itemArea.setText(text);
-				jTable.setModel(new DefaultTableModel());
-				tableLabel.setText("");
-				nextButton.setText("Ok");
-				nextButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						frame.setVisible(false);
-						target.addItem(item);
-					}
-				});
-				nextButton.setEnabled(true);
-			}
+		SwingUtilities.invokeLater(() -> {
+			itemArea.setText(text);
+			jTable.setModel(new DefaultTableModel());
+			tableLabel.setText("");
+			nextButton.setText("Ok");
+			nextButton.addActionListener(e -> {
+				frame.setVisible(false);
+				target.addItem(item);
+			});
+			nextButton.setEnabled(true);
 		});
 	}
 }

@@ -22,10 +22,12 @@ public class SpinnerCellEditor extends AbstractCellEditor implements TableCellEd
 		spinner = new JSpinner(model);
 	}
 
+	@Override
 	public Object getCellEditorValue() {
 		return spinner.getValue();
 	}
 
+	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value,
 			boolean isSelected, int row, int column) {
 		if (value == null) {
@@ -35,6 +37,7 @@ public class SpinnerCellEditor extends AbstractCellEditor implements TableCellEd
 		return spinner;
 	}
 
+	@Override
 	public boolean stopCellEditing() {
 		try {
 			spinner.commitEdit();

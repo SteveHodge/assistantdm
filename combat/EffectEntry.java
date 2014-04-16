@@ -65,6 +65,7 @@ public class EffectEntry extends JPanel implements ActionListener {
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		model.removeEntry(this);
 	}

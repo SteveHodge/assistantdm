@@ -8,8 +8,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -52,14 +50,11 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 		currHP = new JFormattedTextField();
 		currHP.setValue(new Integer(character.getHPs()));
 		currHP.setColumns(3);
-		currHP.addPropertyChangeListener("value", new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals("value")) {
-					int total = (Integer)currHP.getValue();
-					if (total != character.getHPs()) {
-						character.setWounds(character.getMaximumHitPoints()-character.getNonLethal()-total);
-					}
+		currHP.addPropertyChangeListener("value", evt -> {
+			if (evt.getPropertyName().equals("value")) {
+				int total = (Integer)currHP.getValue();
+				if (total != character.getHPs()) {
+					character.setWounds(character.getMaximumHitPoints()-character.getNonLethal()-total);
 				}
 			}
 		});
@@ -68,21 +63,18 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 		JTable tempTable = new JTable(tempHPModel);
 
 		JButton apply = new JButton("Apply");
-		apply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int dmg = (Integer)dmgField.getValue();
-				if (nonLethal.isSelected()) {
-					hps.applyNonLethal(dmg);
-				} else {
-					hps.applyDamage(dmg);
-				}
-				dmgField.setValue(0);
-
-				int heal = (Integer)healField.getValue();
-				hps.applyHealing(heal);
-				healField.setValue(0);
+		apply.addActionListener(e -> {
+			int dmg = (Integer)dmgField.getValue();
+			if (nonLethal.isSelected()) {
+				hps.applyNonLethal(dmg);
+			} else {
+				hps.applyDamage(dmg);
 			}
+			dmgField.setValue(0);
+
+			int heal = (Integer)healField.getValue();
+			hps.applyHealing(heal);
+			healField.setValue(0);
 		});
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -158,12 +150,7 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 		List<Modifier> tempHPs;
 
 		private TempHPModel() {
-			hps.addPropertyChangeListener(new PropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent arg0) {
-					updateModel();
-				}
-			});
+			hps.addPropertyChangeListener(e -> updateModel());
 			updateModel();
 		}
 

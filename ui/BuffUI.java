@@ -10,10 +10,7 @@ import gamesystem.dice.Dice;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.Arrays;
-import java.util.Comparator;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -23,10 +20,6 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import swing.JListWithToolTips;
 import swing.ListModelWithToolTips;
@@ -76,35 +69,26 @@ public class BuffUI {
 		buffOptionsPanel.setLayout(new BoxLayout(buffOptionsPanel, BoxLayout.PAGE_AXIS));
 
 		clModel = new SpinnerNumberModel(1, 1, 20, 1);
-		clModel.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				buff.setCasterLevel(clModel.getNumber().intValue());
-				updateEffects(buff);
-			}
+		clModel.addChangeListener(e -> {
+			buff.setCasterLevel(clModel.getNumber().intValue());
+			updateEffects(buff);
 		});
 		clSpinner = new JSpinner(clModel);
 
 		empCheckBox = new JCheckBox("Empowered");
-		empCheckBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent arg0) {
-				buff.empowered = empCheckBox.isSelected();
-				if (buff.maximized) {
-					updateBuffOptions();	// need to update all options as dice spinners need to be re-enabled
-				} else {
-					updateEffects(buff);
-				}
+		empCheckBox.addItemListener(e -> {
+			buff.empowered = empCheckBox.isSelected();
+			if (buff.maximized) {
+				updateBuffOptions();	// need to update all options as dice spinners need to be re-enabled
+			} else {
+				updateEffects(buff);
 			}
 		});
 
 		maxCheckBox = new JCheckBox("Maximized");
-		maxCheckBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent arg0) {
-				buff.maximized = maxCheckBox.isSelected();
-				updateBuffOptions();
-			}
+		maxCheckBox.addItemListener(e -> {
+			buff.maximized = maxCheckBox.isSelected();
+			updateBuffOptions();
 		});
 
 		clPanel = new JPanel();
@@ -116,25 +100,17 @@ public class BuffUI {
 
 	public JListWithToolTips<BuffFactory> getBuffList() {
 		BuffFactory[] availableBuffs = Arrays.copyOf(BuffFactory.buffs, BuffFactory.buffs.length);
-		Arrays.sort(availableBuffs, new Comparator<BuffFactory>() {
-			@Override
-			public int compare(BuffFactory a, BuffFactory b) {
-				return a.name.compareTo(b.name);
-			}
-		});
+		Arrays.sort(availableBuffs, (a, b) -> a.name.compareTo(b.name));
 		BuffUI.BuffListModel<BuffFactory> bfModel = new BuffUI.BuffListModel<>(availableBuffs);
 		final JListWithToolTips<BuffFactory> buffs = new JListWithToolTips<>(bfModel);
 		buffs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		buffs.setVisibleRowCount(20);
-		buffs.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent arg0) {
-				buff = buffs.getSelectedValue().getBuff();
-				buff.setCasterLevel(clModel.getNumber().intValue());
-				buff.empowered = empCheckBox.isSelected();
-				buff.maximized = maxCheckBox.isSelected();
-				updateBuffOptions();
-			}
+		buffs.addListSelectionListener(e -> {
+			buff = buffs.getSelectedValue().getBuff();
+			buff.setCasterLevel(clModel.getNumber().intValue());
+			buff.empowered = empCheckBox.isSelected();
+			buff.maximized = maxCheckBox.isSelected();
+			updateBuffOptions();
 		});
 		return buffs;
 	}
@@ -180,12 +156,9 @@ public class BuffUI {
 					int roll = d.roll();
 					buff.setRoll(d, roll);
 					diceModels[i] = new SpinnerNumberModel(roll, d.getMinimum(), d.getMaximum(), 1);
-					diceModels[i].addChangeListener(new ChangeListener() {
-						@Override
-						public void stateChanged(ChangeEvent e) {
-							buff.setRoll(d, ((SpinnerNumberModel) e.getSource()).getNumber().intValue());
-							updateEffects(buff);
-						}
+					diceModels[i].addChangeListener(evt -> {
+						buff.setRoll(d, ((SpinnerNumberModel) evt.getSource()).getNumber().intValue());
+						updateEffects(buff);
 					});
 					JSpinner s = new JSpinner(diceModels[i]);
 					c.gridy++;

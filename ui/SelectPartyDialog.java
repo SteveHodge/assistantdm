@@ -89,12 +89,7 @@ public class SelectPartyDialog extends JDialog implements ActionListener {
 
 		public LibraryTableModel() {
 			list = new ArrayList<>(CharacterLibrary.characters);
-			Comparator<Character> sorter = new Comparator<Character>() {
-				@Override
-				public int compare(Character arg0,Character arg1) {
-					return arg0.getName().compareTo(arg1.getName());
-				}
-			};
+			Comparator<Character> sorter = (a, b) -> a.getName().compareTo(b.getName());
 			Collections.sort(list,sorter );
 		}
 

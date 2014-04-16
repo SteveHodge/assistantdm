@@ -5,8 +5,6 @@ import gamesystem.Creature;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Set;
 
 import javax.swing.ComboBoxModel;
@@ -139,13 +137,10 @@ class NewEffectPanel extends JPanel {
 
 		sourceField = new JComboBox<>(sourceModel);
 		sourceField.setEditable(true);
-		sourceField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int index = sourceField.getSelectedIndex();
-				if (index != -1) {
-					initField.setValue(new Integer(sourceModel.getInitiative(index)));
-				}
+		sourceField.addActionListener(e -> {
+			int index = sourceField.getSelectedIndex();
+			if (index != -1) {
+				initField.setValue(new Integer(sourceModel.getInitiative(index)));
 			}
 		});
 
@@ -161,53 +156,44 @@ class NewEffectPanel extends JPanel {
 		unitsField = new JComboBox<>(units);
 
 		buffButton = new JButton("Buff...");
-		buffButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				BuffDialog dialog = new BuffDialog(NewEffectPanel.this, im);
-				buff = dialog.getBuff();
-				if (buff != null) {
-					effectField.setText(buff.name);
-					targets = dialog.getTargets();
-				}
+		buffButton.addActionListener(e -> {
+			BuffDialog dialog = new BuffDialog(NewEffectPanel.this, im);
+			buff = dialog.getBuff();
+			if (buff != null) {
+				effectField.setText(buff.name);
+				targets = dialog.getTargets();
 			}
 		});
 
 		addButton = new JButton("Add");
-		addButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int d = (Integer) durationField.getValue();
-				if (unitsField.getSelectedItem().equals("Minutes")) d *= 10;
-				if (unitsField.getSelectedItem().equals("Hours")) d *= 600;
+		addButton.addActionListener(e -> {
+			int d = (Integer) durationField.getValue();
+			if (unitsField.getSelectedItem().equals("Minutes")) d *= 10;
+			if (unitsField.getSelectedItem().equals("Hours")) d *= 600;
 
-				if (buff != null) {
-					for (Creature c : targets) {
-						c.addBuff(buff);
-					}
+			if (buff != null) {
+				for (Creature c : targets) {
+					c.addBuff(buff);
 				}
-				model.addEntry(effectField.getText(), sourceField.getSelectedItem().toString(),
-						(Integer) initField.getValue(), d, buff);
-				//model.sort();
+			}
+			model.addEntry(effectField.getText(), sourceField.getSelectedItem().toString(),
+					(Integer) initField.getValue(), d, buff);
+			//model.sort();
 
-				if (buff != null) {
-					//reset the buff so we don't add it again next time
-					effectField.setText("");
-					buff = null;
-				}
+			if (buff != null) {
+				//reset the buff so we don't add it again next time
+				effectField.setText("");
+				buff = null;
 			}
 		});
 
 		deleteButton = new JButton("Delete");
-		deleteButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int selectedRows[] = table.getSelectedRows();
-				// XXX is selected[] always sorted?
-				for (int s = selectedRows.length - 1; s >= 0; s--) {
-					int index = table.convertRowIndexToModel(selectedRows[s]);
-					m.removeEffect(index, NewEffectPanel.this, im);
-				}
+		deleteButton.addActionListener(e -> {
+			int selectedRows[] = table.getSelectedRows();
+			// XXX is selected[] always sorted?
+			for (int s = selectedRows.length - 1; s >= 0; s--) {
+				int index = table.convertRowIndexToModel(selectedRows[s]);
+				m.removeEffect(index, NewEffectPanel.this, im);
 			}
 		});
 

@@ -9,10 +9,6 @@ import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -74,12 +70,7 @@ public class StatisticInfoDialog extends JDialog {
 		character = chr;
 		statistic = chr.getStatistic(statName);
 
-		statistic.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent arg0) {
-				updateSummary();
-			}
-		});
+		statistic.addPropertyChangeListener(e -> updateSummary());
 
 		summary = new JLabel();
 		updateSummary();
@@ -87,12 +78,7 @@ public class StatisticInfoDialog extends JDialog {
 		summary.setVerticalAlignment(SwingConstants.TOP);
 
 		okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				setVisible(false);
-			}
-		});
+		okButton.addActionListener(e -> setVisible(false));
 
 		addPanel = getAdhocPanel(statName);
 		addPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier"));
@@ -110,15 +96,12 @@ public class StatisticInfoDialog extends JDialog {
 		modField.setColumns(3);
 
 		JButton addButton = new JButton("Add");
-		addButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				BuffFactory bf = new BuffFactory(nameField.getText());
-				int mod = (Integer) modField.getValue();
-				bf.addEffect(statName, typeBox.getSelectedItem().toString(), mod);
-				Buff buff = bf.getBuff();
-				character.addBuff(buff);
-			}
+		addButton.addActionListener(e -> {
+			BuffFactory bf = new BuffFactory(nameField.getText());
+			int mod = (Integer) modField.getValue();
+			bf.addEffect(statName, typeBox.getSelectedItem().toString(), mod);
+			Buff buff = bf.getBuff();
+			character.addBuff(buff);
 		});
 
 		JPanel addPanel = new JPanel();

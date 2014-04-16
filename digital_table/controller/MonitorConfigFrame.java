@@ -1,8 +1,6 @@
 package digital_table.controller;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +9,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 import digital_table.server.TableDisplay;
 
@@ -27,43 +26,37 @@ class MonitorConfigFrame extends JFrame {
 
 	public MonitorConfigFrame(TableDisplay disp) {
 		super("Select screens");
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		display = disp;
 
 		JButton button = new JButton("Identify");
-		button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					// reset the combo boxes
-					DisplayConfig.getScreens(display);
-					for (int i = 0; i < screenCombos.size(); i++) {
-						JComboBox<String> combo = screenCombos.get(i);
-						combo.removeAllItems();
-						combo.addItem("unassigned");
-						for (int j = 0; j < DisplayConfig.screens.size(); j++) {
-							combo.addItem("" + (j + 1));
-						}
+		button.addActionListener(e -> {
+			try {
+				// reset the combo boxes
+				DisplayConfig.getScreens(display);
+				for (int i = 0; i < screenCombos.size(); i++) {
+					JComboBox<String> combo = screenCombos.get(i);
+					combo.removeAllItems();
+					combo.addItem("unassigned");
+					for (int j = 0; j < DisplayConfig.screens.size(); j++) {
+						combo.addItem("" + (j + 1));
 					}
-
-					display.setScreenIDsVisible(true);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
 				}
+
+				display.setScreenIDsVisible(true);
+			} catch (RemoteException ex) {
+				ex.printStackTrace();
 			}
 		});
 		JButton openButton = new JButton("Open screens");
-		openButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				screenNums = new int[screenCombos.size()];
-				for (int i = 0; i < screenCombos.size(); i++) {
-					screenNums[i] = screenCombos.get(i).getSelectedIndex() - 1;
-				}
-				openScreens = true;
-				dispose();
+		openButton.addActionListener(e -> {
+			screenNums = new int[screenCombos.size()];
+			for (int i = 0; i < screenCombos.size(); i++) {
+				screenNums[i] = screenCombos.get(i).getSelectedIndex() - 1;
 			}
+			openScreens = true;
+			dispose();
 		});
 
 		JPanel buttonPanel = new JPanel();

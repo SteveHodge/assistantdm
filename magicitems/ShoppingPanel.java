@@ -14,7 +14,6 @@ import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -25,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.WindowConstants;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamSource;
@@ -189,16 +189,13 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 	// sorts by cost
 	protected String getItemListString(List<Item>items, ItemFormatter formatter) {
 		// sort the items
-		Collections.sort(items, new Comparator<Item>() {
-			@Override
-			public int compare(Item o1, Item o2) {
-				int c1 = o1.getCost();
-				int c2 = o2.getCost();
-				if (c1 != c2) return c1 - c2;
-				String i1 = o1.getValue("item").toString();
-				String i2 = o2.getValue("item").toString();
-				return i1.compareTo(i2);
-			}
+		Collections.sort(items, (o1, o2) -> {
+			int c1 = o1.getCost();
+			int c2 = o2.getCost();
+			if (c1 != c2) return c1 - c2;
+			String i1 = o1.getValue("item").toString();
+			String i2 = o2.getValue("item").toString();
+			return i1.compareTo(i2);
 		});
 
 		// list the items
@@ -217,7 +214,7 @@ public class ShoppingPanel extends JPanel implements ActionListener {
 		JScrollPane scroll = new JScrollPane(area);
 
 		JFrame popup = new JFrame("All Items");
-		popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		popup.getContentPane().add(scroll);
 		popup.pack();
 		popup.setVisible(true);

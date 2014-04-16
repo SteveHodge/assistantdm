@@ -6,8 +6,6 @@ import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -139,58 +137,44 @@ public class CombatPanel extends JPanel {
 		roundsLabel = new JLabel("Round " + round);
 
 		JButton resetCombatButton = new JButton("Reset Combat");
-		resetCombatButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				initiativeListModel.reset();
-				round = 0;
-				roundsLabel.setText("Round "+round);
-				updateInitiative(round, initiativeListModel.getInitiativeText());
-			}
+		resetCombatButton.addActionListener(e -> {
+			initiativeListModel.reset();
+			round = 0;
+			roundsLabel.setText("Round "+round);
+			updateInitiative(round, initiativeListModel.getInitiativeText());
 		});
 
 		JButton nextRoundButton = new JButton("Next Round");
-		nextRoundButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				// work from last to first to avoid issues when we remove entries
-				for (int i=effectsTableModel.getRowCount()-1; i >= 0; i--) {
-					if (effectsTableModel.addDuration(i, -1) < 0)
-						effectsTableModel.expireEffect(i, CombatPanel.this, initiativeListModel);
-				}
-				round++;
-				roundsLabel.setText("Round "+round);
-				updateInitiative(round, initiativeListModel.getInitiativeText());
+		nextRoundButton.addActionListener(e -> {
+			// work from last to first to avoid issues when we remove entries
+			for (int i=effectsTableModel.getRowCount()-1; i >= 0; i--) {
+				if (effectsTableModel.addDuration(i, -1) < 0)
+					effectsTableModel.expireEffect(i, CombatPanel.this, initiativeListModel);
 			}
+			round++;
+			roundsLabel.setText("Round "+round);
+			updateInitiative(round, initiativeListModel.getInitiativeText());
 		});
 
 		JButton advanceTimeButton = new JButton("Advance Time");
-		advanceTimeButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SelectTimeDialog dialog = new SelectTimeDialog(SwingUtilities.getWindowAncestor((JButton)e.getSource()));
-				dialog.setVisible(true);
-				if (!dialog.isCancelled()) {
-					int value = dialog.getValue();
-					// work from last to first to avoid issues when we remove entries
-					for (int i=effectsTableModel.getRowCount()-1; i >= 0; i--) {
-						if (effectsTableModel.addDuration(i, -value) < 0)
-							effectsTableModel.expireEffect(i, CombatPanel.this, initiativeListModel);
-					}
-					round+= value;
-					roundsLabel.setText("Round "+round);
-					updateInitiative(round, initiativeListModel.getInitiativeText());
+		advanceTimeButton.addActionListener(e -> {
+			SelectTimeDialog dialog = new SelectTimeDialog(SwingUtilities.getWindowAncestor((JButton)e.getSource()));
+			dialog.setVisible(true);
+			if (!dialog.isCancelled()) {
+				int value = dialog.getValue();
+				// work from last to first to avoid issues when we remove entries
+				for (int i=effectsTableModel.getRowCount()-1; i >= 0; i--) {
+					if (effectsTableModel.addDuration(i, -value) < 0)
+						effectsTableModel.expireEffect(i, CombatPanel.this, initiativeListModel);
 				}
+				round+= value;
+				roundsLabel.setText("Round "+round);
+				updateInitiative(round, initiativeListModel.getInitiativeText());
 			}
 		});
 
 		JButton resetEffectsButton = new JButton("Reset Effects");
-		resetEffectsButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				effectsTableModel.clear();
-			}
-		});
+		resetEffectsButton.addActionListener(e -> effectsTableModel.clear());
 
 		JPanel topPanel = new JPanel();
 		topPanel.add(roundsLabel);

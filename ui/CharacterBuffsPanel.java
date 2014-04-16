@@ -3,9 +3,6 @@ package ui;
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -32,20 +29,12 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		applied.setVisibleRowCount(8);
 
 		JButton apply = new JButton("Apply");
-		apply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				character.addBuff(ui.getBuff());
-			}
-		});
+		apply.addActionListener(e -> character.addBuff(ui.getBuff()));
 
 		JButton remove = new JButton("Remove");
-		remove.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				for (Buff b : applied.getSelectedValuesList()) {
-					character.removeBuff(b);
-				}
+		remove.addActionListener(e -> {
+			for (Buff b : applied.getSelectedValuesList()) {
+				character.removeBuff(b);
 			}
 		});
 

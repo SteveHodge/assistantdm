@@ -4,10 +4,7 @@ import gamesystem.Buff;
 import gamesystem.Feat;
 
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Arrays;
-import java.util.Comparator;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -29,12 +26,7 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		setLayout(new GridLayout(0,2));
 
 		Feat[] availableFeats = Arrays.copyOf(Feat.FEATS, Feat.FEATS.length);
-		Arrays.sort(availableFeats, new Comparator<Feat>() {
-			@Override
-			public int compare(Feat a, Feat b) {
-				return a.name.compareTo(b.name);
-			}
-		});
+		Arrays.sort(availableFeats, (a, b) -> a.name.compareTo(b.name));
 		FeatListModel bfModel = new FeatListModel(availableFeats);
 		final JListWithToolTips<Feat> feats = new JListWithToolTips<>(bfModel);
 		feats.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -45,29 +37,18 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		chosen.setVisibleRowCount(8);
 
 		JButton apply = new JButton("Take Feat");
-		apply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// need to invoke this code later since it involves a modal dialog
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						Feat bf = feats.getSelectedValue();
-						Buff buff = applyFeat(bf);
-						character.feats.addElement(buff);
-					}
-				});
-			}
-		});
+		apply.addActionListener(e -> SwingUtilities.invokeLater(() -> {
+			// need to invoke this code later since it involves a modal dialog
+			Feat bf = feats.getSelectedValue();
+			Buff buff = applyFeat(bf);
+			character.feats.addElement(buff);
+		}));
 
 		JButton remove = new JButton("Untake Feat");
-		remove.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				for (Buff b : chosen.getSelectedValuesList()) {
-					b.removeBuff(character);
-					character.feats.removeElement(b);
-				}
+		remove.addActionListener(e -> {
+			for (Buff b : chosen.getSelectedValuesList()) {
+				b.removeBuff(character);
+				character.feats.removeElement(b);
 			}
 		});
 

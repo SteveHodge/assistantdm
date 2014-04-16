@@ -6,8 +6,6 @@ import gamesystem.Creature;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,8 +21,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import swing.JListWithToolTips;
 import ui.BuffUI;
@@ -44,12 +40,7 @@ class BuffDialog extends JDialog {
 		ui = new BuffUI();
 
 		JListWithToolTips<BuffFactory> buffs = ui.getBuffList();
-		buffs.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent arg0) {
-				pack();
-			}
-		});
+		buffs.addListSelectionListener(e -> pack());
 
 		JScrollPane scroller = new JScrollPane(buffs);
 		//scroller.setPreferredSize(preferredSize);
@@ -72,21 +63,13 @@ class BuffDialog extends JDialog {
 		}
 
 		JButton okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-				okSelected = true;
-			}
+		okButton.addActionListener(e -> {
+			dispose();
+			okSelected = true;
 		});
 
 		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-			}
-		});
+		cancelButton.addActionListener(e -> dispose());
 
 		JPanel buttons = new JPanel();
 		buttons.add(okButton);

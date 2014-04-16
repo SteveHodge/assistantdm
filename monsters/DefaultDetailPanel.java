@@ -3,8 +3,6 @@ package monsters;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -38,15 +36,12 @@ public class DefaultDetailPanel extends DetailPanel {
 		add(scrollPane, c);
 
 		JButton apply = new JButton("Apply");
-		apply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-					view.setField(field, textArea.getText());
-					textArea.setBackground(defaultBG);
-				} catch (Exception e) {
-					textArea.setBackground(Color.RED);
-				}
+		apply.addActionListener(evt -> {
+			try {
+				view.setField(field, textArea.getText());
+				textArea.setBackground(defaultBG);
+			} catch (Exception e) {
+				textArea.setBackground(Color.RED);
 			}
 		});
 		add(apply, c);

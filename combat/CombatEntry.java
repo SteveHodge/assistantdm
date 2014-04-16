@@ -174,12 +174,9 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		c.anchor = GridBagConstraints.LINE_END;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		apply = new JButton("Apply");
-		apply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int delta = ((Integer) dmgField.getValue());
-				applyDamage(delta, nonLethal.isSelected());
-			}
+		apply.addActionListener(e -> {
+			int delta = ((Integer) dmgField.getValue());
+			applyDamage(delta, nonLethal.isSelected());
 		});
 		add(apply, c);
 		c.fill = GridBagConstraints.NONE;
@@ -207,12 +204,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		c.anchor = GridBagConstraints.LINE_END;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		healAll = new JButton("Heal All");
-		healAll.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				healAll();
-			}
-		});
+		healAll.addActionListener(e -> healAll());
 		add(healAll, c);
 
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
@@ -220,12 +212,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 	JComponent createInitiativeSection() {
 		onlyDM = new JCheckBox();
-		onlyDM.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				fireChange();
-			}
-		});
+		onlyDM.addActionListener(e -> fireChange());
 
 		rollField = new JFormattedTextField();
 		rollField.setValue(new Integer(0));
@@ -235,12 +222,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		tiebreakField = new JFormattedTextField();
 		tiebreakField.setValue(new Integer(0));
 		tiebreakField.setColumns(3);
-		tiebreakField.addPropertyChangeListener("value", new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				fireChange();
-			}
-		});
+		tiebreakField.addPropertyChangeListener("value", evt -> fireChange());
 
 		total = new JLabel("= XXX");
 		Dimension size = total.getPreferredSize();

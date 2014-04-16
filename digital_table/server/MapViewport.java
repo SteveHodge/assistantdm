@@ -28,6 +28,7 @@ public class MapViewport extends JPanel implements RepaintListener {
 		view.addRepaintListener(this);
 	}
 
+	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		//Rectangle bounds = getBounds();

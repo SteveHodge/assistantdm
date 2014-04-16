@@ -3,8 +3,6 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -39,12 +37,9 @@ class BoundsOptionsPanel extends OptionsPanel<ScreenBounds> {
 
 		visibleCheck = new JCheckBox("local visible?");
 		visibleCheck.setSelected(true);
-		visibleCheck.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				JCheckBox check = (JCheckBox) e.getSource();
-				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.LOCAL);
-			}
+		visibleCheck.addItemListener(e -> {
+			JCheckBox check = (JCheckBox) e.getSource();
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.LOCAL);
 		});
 
 		setLayout(new GridBagLayout());

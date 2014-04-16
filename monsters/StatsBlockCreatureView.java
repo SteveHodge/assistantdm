@@ -10,7 +10,6 @@ import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
@@ -48,51 +47,43 @@ public class StatsBlockCreatureView {
 
 	private StatsBlockCreatureView(Monster c) {
 		creature = c;
-		creature.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
-			public void propertyChange(final PropertyChangeEvent e) {
-				// XXX seem to need to invokeLater() but I don't think it should be necessary
-				// TODO recheck without invokeLater - perhaps the issue was caused by multiple view instances
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						String prop = e.getPropertyName();
-						pcs.firePropertyChange(e.getPropertyName(), e.getOldValue(), e.getNewValue());
+		creature.addPropertyChangeListener(e -> SwingUtilities.invokeLater(() -> {
+			// XXX seem to need to invokeLater() but I don't think it should be necessary
+			// TODO recheck without invokeLater - perhaps the issue was caused by multiple view instances
+			String prop = e.getPropertyName();
+			pcs.firePropertyChange(e.getPropertyName(), e.getOldValue(), e.getNewValue());
 
-						// need to generate events for the fields that are built from statistics
-						// TODO need to handle attacks somehow
-						if (prop.equals(Creature.PROPERTY_INITIATIVE)) {
-							pcs.firePropertyChange(Field.INITIATIVE.name(), null, getField(Field.INITIATIVE));
-						} else if (prop.equals(Creature.PROPERTY_AC)
-								|| prop.equals(Monster.PROPERTY_AC_FLATFOOTED)
-								|| prop.equals(Monster.PROPERTY_AC_TOUCH)
-								|| prop.startsWith(Creature.PROPERTY_AC_COMPONENT_PREFIX)) {
-							pcs.firePropertyChange(Field.AC.name(), null, getField(Field.AC));
-						} else if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
-							pcs.firePropertyChange(Field.ABILITIES.name(), null, getField(Field.ABILITIES));
-						} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
-							pcs.firePropertyChange(Field.SAVES.name(), null, getField(Field.SAVES));
-						} else if (prop.equals(Creature.PROPERTY_SIZE)) {
-							pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
-						} else if (prop.equals(Creature.PROPERTY_REACH)
-								|| prop.equals(Creature.PROPERTY_SPACE)) {
-							pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
-						} else if (prop.equals(Creature.PROPERTY_HPS)
-								|| prop.equals(Creature.PROPERTY_MAXHPS)) {
-							pcs.firePropertyChange(Field.HITDICE.name(), null, getField(Field.HITDICE));
-						} else if (prop.equals(Creature.PROPERTY_BAB)) {
-							pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
-							pcs.firePropertyChange(Field.ATTACK.name(), null, getField(Field.ATTACK));
-							pcs.firePropertyChange(Field.FULL_ATTACK.name(), null, getField(Field.FULL_ATTACK));
-						} else if (prop.equals(Creature.PROPERTY_NAME)) {
-							pcs.firePropertyChange(Field.NAME.name(), null, getField(Field.NAME));
-						} else {
-							System.out.println("Unused update to " + prop);
-						}
-					}
-				});
+			// need to generate events for the fields that are built from statistics
+			// TODO need to handle attacks somehow
+			if (prop.equals(Creature.PROPERTY_INITIATIVE)) {
+				pcs.firePropertyChange(Field.INITIATIVE.name(), null, getField(Field.INITIATIVE));
+			} else if (prop.equals(Creature.PROPERTY_AC)
+					|| prop.equals(Monster.PROPERTY_AC_FLATFOOTED)
+					|| prop.equals(Monster.PROPERTY_AC_TOUCH)
+					|| prop.startsWith(Creature.PROPERTY_AC_COMPONENT_PREFIX)) {
+				pcs.firePropertyChange(Field.AC.name(), null, getField(Field.AC));
+			} else if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
+				pcs.firePropertyChange(Field.ABILITIES.name(), null, getField(Field.ABILITIES));
+			} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
+				pcs.firePropertyChange(Field.SAVES.name(), null, getField(Field.SAVES));
+			} else if (prop.equals(Creature.PROPERTY_SIZE)) {
+				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
+			} else if (prop.equals(Creature.PROPERTY_REACH)
+					|| prop.equals(Creature.PROPERTY_SPACE)) {
+				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
+			} else if (prop.equals(Creature.PROPERTY_HPS)
+					|| prop.equals(Creature.PROPERTY_MAXHPS)) {
+				pcs.firePropertyChange(Field.HITDICE.name(), null, getField(Field.HITDICE));
+			} else if (prop.equals(Creature.PROPERTY_BAB)) {
+				pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
+				pcs.firePropertyChange(Field.ATTACK.name(), null, getField(Field.ATTACK));
+				pcs.firePropertyChange(Field.FULL_ATTACK.name(), null, getField(Field.FULL_ATTACK));
+			} else if (prop.equals(Creature.PROPERTY_NAME)) {
+				pcs.firePropertyChange(Field.NAME.name(), null, getField(Field.NAME));
+			} else {
+				System.out.println("Unused update to " + prop);
 			}
-		});
+		}));
 	}
 
 	public static StatsBlockCreatureView getView(Monster c) {

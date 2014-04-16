@@ -82,12 +82,7 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 
 		// fix up roll so that it remains in this position
 		// first sort the list by y-position
-		Collections.sort(list,new Comparator<CombatEntry>() {
-			@Override
-			public int compare(CombatEntry o1, CombatEntry o2) {
-				return o1.getY() - o2.getY();
-			}
-		});
+		Collections.sort(list,(o1, o2) -> o1.getY() - o2.getY());
 
 		// Store the required order and details so we can check everything worked
 		String reqOrder = "", preDetails = "";
@@ -240,12 +235,7 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 	@Override
 	public void sort() {
 		if (noSort) return;
-		Collections.sort(list,new Comparator<CombatEntry>() {
-			@Override
-			public int compare(CombatEntry ie1, CombatEntry ie2) {
-				return CombatEntry.compareInitiatives(ie1,ie2);
-			}
-		});
+		Collections.sort(list,(ie1, ie2) -> CombatEntry.compareInitiatives(ie1,ie2));
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}
 

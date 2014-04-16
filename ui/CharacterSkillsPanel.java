@@ -74,12 +74,7 @@ class CharacterSkillsPanel extends JPanel {
 			skillsAdhocPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier for all skills"));
 
 			Statistic allSkills = chr.getStatistic(Creature.STATISTIC_SKILLS);
-			allSkills.addPropertyChangeListener(new PropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent arg0) {
-					updateSummary();
-				}
-			});
+			allSkills.addPropertyChangeListener(e -> updateSummary());
 
 			addPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier for " + title));
 

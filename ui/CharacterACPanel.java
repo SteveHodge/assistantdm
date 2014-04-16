@@ -15,7 +15,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -25,6 +24,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
@@ -211,7 +211,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 
 		c.gridx = 1; c.gridy = 0;
 		c.weightx = 1.0;
-		panel.add(new JLabel("Armor", JLabel.CENTER),c);
+		panel.add(new JLabel("Armor", SwingConstants.CENTER),c);
 		c.gridy++; panel.add(nameField,c);
 		c.gridy++; panel.add(typeField,c);
 		c.gridy++; panel.add(bonusField,c);
@@ -224,7 +224,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		c.gridy++; panel.add(propertiesField,c);
 
 		c.gridx = 2; c.gridy = 0;
-		panel.add(new JLabel("Shield", JLabel.CENTER),c);
+		panel.add(new JLabel("Shield", SwingConstants.CENTER),c);
 		c.gridy++; panel.add(shieldNameField,c);
 		c.gridy++;
 		c.gridy++; panel.add(shieldBonusField,c);
@@ -385,14 +385,11 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 				}
 			}
 			modifiers = list.toArray(new Modifier[list.size()]);
-			Arrays.sort(modifiers, new Comparator<Modifier>() {
-				@Override
-				public int compare(Modifier a, Modifier b) {
-					// TODO should compare source and condition as well
-					String aStr = a.getType() == null ? "" : a.getType();
-					String bStr = b.getType() == null ? "" : b.getType();
-					return aStr.compareTo(bStr);
-				}
+			Arrays.sort(modifiers, (a, b) -> {
+				// TODO should compare source and condition as well
+				String aStr = a.getType() == null ? "" : a.getType();
+				String bStr = b.getType() == null ? "" : b.getType();
+				return aStr.compareTo(bStr);
 			});
 			active = new boolean[modifiers.length];
 			for (int i=0; i<modifiers.length; i++) {

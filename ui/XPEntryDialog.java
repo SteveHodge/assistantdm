@@ -26,8 +26,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -97,12 +95,7 @@ public class XPEntryDialog extends JDialog implements ActionListener {
 		commentsPanel.add(new JLabel("Date: "));
 		commentsPanel.add(dateField);
 		partySizeModel = new SpinnerNumberModel(party.size(),party.size(),99,1);
-		partySizeModel.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				partyModel.fireTableDataChanged();
-			}
-		});
+		partySizeModel.addChangeListener(e -> partyModel.fireTableDataChanged());
 		commentsPanel.add(new JLabel("Party Size:"));
 		commentsPanel.add(new JSpinner(partySizeModel));
 

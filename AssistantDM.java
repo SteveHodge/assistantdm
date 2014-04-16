@@ -34,6 +34,7 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableModel;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -69,7 +70,6 @@ import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
  * DONE: Modify Updater to temporarily write sequence of camera images to local disk
- * IN PROGRESS: Convert to lambda expressions where possible
  *
  * In Autocalibrate replace source.getRGB() with direct access to the buffer. Should result in a significant speedup. Parallel scanning is probably not worthwhile.
  * Pre-guess the screen layout
@@ -241,13 +241,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			tableServer = args[0];
 		}
 
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				AssistantDM inst = new AssistantDM();
-				inst.setLocationRelativeTo(null);
-				inst.setVisible(true);
-			}
+		SwingUtilities.invokeLater(() -> {
+			AssistantDM inst = new AssistantDM();
+			inst.setLocationRelativeTo(null);
+			inst.setVisible(true);
 		});
 	}
 
@@ -648,7 +645,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			panel.setLayout(new BorderLayout());
 			panel.add(scrollpane);
 			JFrame popup = new JFrame("Party XP History");
-			popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			popup.getContentPane().add(panel);
 			// size the popup to be 80% of the parent window's bounds:
 			Rectangle bounds = this.getBounds();

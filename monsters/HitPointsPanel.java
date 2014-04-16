@@ -9,8 +9,6 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Polygon;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -49,37 +47,31 @@ class HitPointsPanel extends DetailPanel {
 
 		hitDiceField = new JTextField(20);
 		defaultBG = hitDiceField.getBackground();
-		hitDiceField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = hitDiceField.getText();
-				try {
-					HitDice test = HitDice.parse(s);
-					if (creature != null) {
-						hitdice = test;
-						creature.setHitDice(test);	// will fire property change that will trigger update
-					}
-					hitDiceField.setBackground(defaultBG);
-				} catch(Exception e) {
-					System.err.println(e);
-					hitDiceField.setBackground(Color.RED.brighter());
+		hitDiceField.addActionListener(evt -> {
+			String s = hitDiceField.getText();
+			try {
+				HitDice test = HitDice.parse(s);
+				if (creature != null) {
+					hitdice = test;
+					creature.setHitDice(test);	// will fire property change that will trigger update
 				}
+				hitDiceField.setBackground(defaultBG);
+			} catch(Exception e) {
+				System.err.println(e);
+				hitDiceField.setBackground(Color.RED.brighter());
 			}
 		});
 
 		hitPointsField = new JFormattedTextField();
 		hitPointsField.setColumns(5);
-		hitPointsField.addPropertyChangeListener("value", new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals("value")) {
-					//TODO some type checking should be done
-					if (creature != null) {
-						int value = (Integer) hitPointsField.getValue();
-						if (value < hitdice.getMinimumRoll()) value = hitdice.getMinimumRoll();
-						if (value > hitdice.getMaximumRoll()) value = hitdice.getMaximumRoll();
-						creature.setProperty(Creature.PROPERTY_MAXHPS, value);
-					}
+		hitPointsField.addPropertyChangeListener("value", evt -> {
+			if (evt.getPropertyName().equals("value")) {
+				//TODO some type checking should be done
+				if (creature != null) {
+					int value = (Integer) hitPointsField.getValue();
+					if (value < hitdice.getMinimumRoll()) value = hitdice.getMinimumRoll();
+					if (value > hitdice.getMaximumRoll()) value = hitdice.getMaximumRoll();
+					creature.setProperty(Creature.PROPERTY_MAXHPS, value);
 				}
 			}
 		});
@@ -97,12 +89,7 @@ class HitPointsPanel extends DetailPanel {
 		hpsGroup.add(minHalfHPsButton);
 
 		JButton applyButton = new JButton("Apply");
-		applyButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setHPs();
-			}
-		});
+		applyButton.addActionListener(e -> setHPs());
 		// TODO apply to all monsters button
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.add(applyButton);

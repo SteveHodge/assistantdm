@@ -34,13 +34,10 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		super(c);
 		summary = getSummary();
 
-		character.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				String abilityName = evt.getPropertyName();
-				if (abilityName.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
-					updateSummaries(getSummary());
-				}
+		character.addPropertyChangeListener(evt -> {
+			String abilityName = evt.getPropertyName();
+			if (abilityName.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
+				updateSummaries(getSummary());
 			}
 		});
 

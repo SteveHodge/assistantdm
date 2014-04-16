@@ -34,7 +34,6 @@ import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 import digital_table.server.MapCanvas;
 import digital_table.server.MapCanvas.Order;
-import digital_table.server.RepaintListener;
 
 /**
  * Generates overlay images to be layered on top of the calibrated camera image to highlight the tokens. Token elements
@@ -173,9 +172,9 @@ class TokenOverlay {
 
 		@Override
 		public void setProperty(String property, Object value) {
-			if (property.equals(Token.PROPERTY_X)) {
+			if (property.equals(Group.PROPERTY_X)) {
 				setX((Integer) value);
-			} else if (property.equals(Token.PROPERTY_Y)) {
+			} else if (property.equals(Group.PROPERTY_Y)) {
 				setY((Integer) value);
 			} else if (property.equals(PROPERTY_WEB_LABEL)) {
 				if (value != null && ((String) value).length() > 0) {
@@ -185,8 +184,8 @@ class TokenOverlay {
 					hasWebLabel = false;
 				}
 			} else if (property.equals(Token.PROPERTY_LABEL)
-					|| property.equals(Token.PROPERTY_VISIBLE)
-					|| property.equals(Token.PROPERTY_LOCATION)
+					|| property.equals(MapElement.PROPERTY_VISIBLE)
+					|| property.equals(Group.PROPERTY_LOCATION)
 					|| property.equals(Token.PROPERTY_SPACE)) {
 				super.setProperty(property, value);
 			}
@@ -207,12 +206,7 @@ class TokenOverlay {
 	JPanel getPanel() {
 		return new JPanel() {
 			{
-				canvas.addRepaintListener(new RepaintListener() {
-					@Override
-					public void repaint() {
-						repaintPanel();
-					}
-				});
+				canvas.addRepaintListener(() -> repaintPanel());
 			}
 
 			SortedMap<String, String> descriptions = new TreeMap<>();

@@ -3,7 +3,6 @@ package party;
 import gamesystem.Attacks.AttackForm;
 import gamesystem.Feat;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
@@ -68,12 +67,7 @@ public class CharacterAttackForm {
 
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-	private final PropertyChangeListener propertyListener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent e) {
-			pcs.firePropertyChange(e);
-		}
-	};
+	private final PropertyChangeListener propertyListener = e -> pcs.firePropertyChange(e);
 
 	public CharacterAttackForm(Character c, AttackForm a) {
 		character = c;

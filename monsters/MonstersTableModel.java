@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
@@ -122,12 +121,7 @@ public class MonstersTableModel extends DefaultTableModel {
 				}
 			}
 
-			Collections.sort(monsters, new Comparator<MonsterEntry>() {
-				@Override
-				public int compare(MonsterEntry arg0, MonsterEntry arg1) {
-					return arg0.name.compareTo(arg1.name);
-				}
-			});
+			Collections.sort(monsters, (a, b) -> a.name.compareTo(b.name));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

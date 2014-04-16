@@ -17,8 +17,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
-import party.Character.XPHistoryItem;
 import party.Character;
+import party.Character.XPHistoryItem;
 
 @SuppressWarnings("serial")
 public class XPHistoryPanel extends JPanel implements ListSelectionListener, ActionListener {
@@ -73,6 +73,7 @@ public class XPHistoryPanel extends JPanel implements ListSelectionListener, Act
 		add(buttons,BorderLayout.NORTH);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		int index = table.getSelectedRow();	// TODO should convert to model index space
 		if (e.getSource() == deleteButton) {
@@ -89,6 +90,7 @@ public class XPHistoryPanel extends JPanel implements ListSelectionListener, Act
 		}
 	}
 
+	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		ListSelectionModel lsm = (ListSelectionModel)e.getSource();
 		if (lsm.isSelectionEmpty()) {
@@ -106,14 +108,17 @@ public class XPHistoryPanel extends JPanel implements ListSelectionListener, Act
 	protected class XPHistoryTableModel extends AbstractTableModel {
 		Format format = new SimpleDateFormat("yyyy-MM-dd");
 
+		@Override
 		public int getColumnCount() {
 			return COLUMN_COUNT;
 		}
 
+		@Override
 		public int getRowCount() {
 			return character.getXPHistoryCount();
 		}
 
+		@Override
 		public Object getValueAt(int row, int col) {
 			XPHistoryItem xpItem = character.getXPHistory(row);
 			if (col == COLUMN_EARNED) {
@@ -151,16 +156,19 @@ public class XPHistoryPanel extends JPanel implements ListSelectionListener, Act
 			return null;
 		}
 
+		@Override
 		public Class<?> getColumnClass(int col) {
 			if (col == COLUMN_EARNED || col == COLUMN_TOTAL || col == COLUMN_LEVEL) return Integer.class;
 			if (col == COLUMN_LVL_OK || col == COLUMN_LVL_UP) return Boolean.class;
 			return String.class;
 		}
 
+		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			return false;
 		}
 
+		@Override
 		public String getColumnName(int column) {
 			if (column == COLUMN_EARNED) return "Earned";
 			if (column == COLUMN_TOTAL) return "Total";

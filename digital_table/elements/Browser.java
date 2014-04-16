@@ -6,13 +6,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.JFXPanel;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
 
 import javax.swing.JComponent;
@@ -112,67 +108,24 @@ public abstract class Browser extends MapElement {
 	}
 
 	private void createScene() {
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				view = new WebView();
-				view.rotateProperty().set(90.0d * rotations.getValue());
-				engine = view.getEngine();
+		Platform.runLater(() -> {
+			view = new WebView();
+			view.rotateProperty().set(90.0d * rotations.getValue());
+			engine = view.getEngine();
 
-				engine.titleProperty().addListener(new ChangeListener<String>() {
-					@Override
-					public void changed(ObservableValue<? extends String> observable, String oldValue, final String newValue) {
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								title.setValue(newValue);
-							}
-						});
-					}
-				});
+			engine.titleProperty().addListener((observable, oldValue, newValue) -> SwingUtilities.invokeLater(() -> title.setValue(newValue)));
 
-				engine.setOnStatusChanged(new EventHandler<WebEvent<String>>() {
-					@Override
-					public void handle(final WebEvent<String> event) {
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								rollover.setValue(event.getData());
-							}
-						});
-					}
-				});
+			engine.setOnStatusChanged(event -> SwingUtilities.invokeLater(() -> rollover.setValue(event.getData())));
 
-				engine.locationProperty().addListener(new ChangeListener<String>() {
-					@Override
-					public void changed(ObservableValue<? extends String> ov, String oldValue, final String newValue) {
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override public void run() {
-								setURL(newValue, false);
-							}
-						});
-					}
-				});
+			engine.locationProperty().addListener((ov, oldValue, newValue) -> SwingUtilities.invokeLater(() -> setURL(newValue, false)));
 
-				engine.getLoadWorker().workDoneProperty().addListener(new ChangeListener<Number>() {
-					@Override
-					public void changed(ObservableValue<? extends Number> observableValue, Number oldValue, final Number newValue) {
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								//progressBar.setValue(newValue.intValue());
-							}
-						});
-					}
-				});
+			engine.getLoadWorker().workDoneProperty().addListener((observableValue, oldValue, newValue) -> SwingUtilities.invokeLater(() -> {
+				//progressBar.setValue(newValue.intValue());
+			}));
 
-				engine.getLoadWorker().exceptionProperty().addListener(new ChangeListener<Throwable>() {
-					@Override
-					public void changed(ObservableValue<? extends Throwable> o, Throwable old, final Throwable value) {
-						if (engine.getLoadWorker().getState() == FAILED) {
-							SwingUtilities.invokeLater(new Runnable() {
-								@Override
-								public void run() {
+			engine.getLoadWorker().exceptionProperty().addListener((o, old, value) -> {
+				if (engine.getLoadWorker().getState() == FAILED) {
+					SwingUtilities.invokeLater(() -> {
 //                                    JOptionPane.showMessageDialog(
 //                                            panel,
 //                                            (value != null) ?
@@ -180,14 +133,11 @@ public abstract class Browser extends MapElement {
 //                                            engine.getLocation() + "\nUnexpected error.",
 //                                            "Loading error...",
 //                                            JOptionPane.ERROR_MESSAGE);
-								}
-							});
-						}
-					}
-				});
+					});
+				}
+			});
 
-				jfxPanel.setScene(new Scene(view));
-			}
+			jfxPanel.setScene(new Scene(view));
 		});
 	}
 
@@ -199,15 +149,12 @@ public abstract class Browser extends MapElement {
 
 	public void loadURL(final String url) {
 		if (jfxPanel == null) return;
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				String tmp = toURL(url);
-				if (tmp == null) {
-					tmp = toURL("http://" + url);
-				}
-				engine.load(tmp);
+		Platform.runLater(() -> {
+			String tmp = toURL(url);
+			if (tmp == null) {
+				tmp = toURL("http://" + url);
 			}
+			engine.load(tmp);
 		});
 	}
 

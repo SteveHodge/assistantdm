@@ -38,13 +38,10 @@ public class EffectListModel implements ReorderableListModel<EffectEntry> {
 
 	@Override
 	public void sort() {
-		Collections.sort(list, new Comparator<EffectEntry>() {
-			@Override
-			public int compare(EffectEntry arg0, EffectEntry arg1) {
-				int diff = arg0.duration - arg1.duration;
-				if (diff == 0) return arg0.initiative - arg1.initiative;
-				return diff;
-			}
+		Collections.sort(list, (a, b) -> {
+			int diff = a.duration - b.duration;
+			if (diff == 0) return a.initiative - b.initiative;
+			return diff;
 		});
 		fireListDataEvent(ListDataEvent.CONTENTS_CHANGED,0,list.size()-1);
 	}

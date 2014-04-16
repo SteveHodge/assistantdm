@@ -5,16 +5,12 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
@@ -38,10 +34,10 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.WindowConstants;
 
 import swing.ImagePanel;
 import util.Updater;
@@ -128,27 +124,12 @@ public class CameraPanel extends JPanel implements ActionListener {
 
 		JPanel buttons = new JPanel();
 		connectButton = new JButton("Connect");
-		connectButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				connect();
-			}
-		});
+		connectButton.addActionListener(e -> connect());
 		calibrateButton = new JButton("Autocalibrate");
-		calibrateButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				autoCalibrate();
-			}
-		});
+		calibrateButton.addActionListener(e -> autoCalibrate());
 //		calibrateButton.setEnabled(false);
 		manualButton = new JButton("Manually Calibrate");
-		manualButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				manualCalibrate();
-			}
-		});
+		manualButton.addActionListener(e -> manualCalibrate());
 //		manualButton.setEnabled(false);
 		buttons.setLayout(new BoxLayout(buttons, BoxLayout.LINE_AXIS));
 		buttons.add(connectButton);
@@ -159,26 +140,20 @@ public class CameraPanel extends JPanel implements ActionListener {
 		controls.add(buttons);
 
 		capture = new JButton("Capture");
-		capture.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				capture();
-				if (timer.isRunning()) {
-					timer.reschedule();
-				}
+		capture.addActionListener(e -> {
+			capture();
+			if (timer.isRunning()) {
+				timer.reschedule();
 			}
 		});
 		startStop = new JButton("Start");
-		startStop.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (timer.isRunning()) {
-					timer.stopCapture();
-					startStop.setText("Start");
-				} else {
-					timer.startCapture();
-					startStop.setText("Stop");
-				}
+		startStop.addActionListener(e -> {
+			if (timer.isRunning()) {
+				timer.stopCapture();
+				startStop.setText("Start");
+			} else {
+				timer.startCapture();
+				startStop.setText("Stop");
 			}
 		});
 		buttons = new JPanel();
@@ -191,16 +166,13 @@ public class CameraPanel extends JPanel implements ActionListener {
 		frequencyField = new JFormattedTextField();
 		frequencyField.setValue(new Integer((int) (defaultDelay/1000)));
 		frequencyField.setColumns(5);
-		frequencyField.addPropertyChangeListener("value", new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent e) {
-				Object source = e.getSource();
-				if (source == frequencyField) {
-					int freq = ((Number) frequencyField.getValue()).intValue();
-					freq *= 1000;
-					if (timer.getDelay() != freq) {
-						timer.setDelay(freq);
-					}
+		frequencyField.addPropertyChangeListener("value", e -> {
+			Object source = e.getSource();
+			if (source == frequencyField) {
+				int freq = ((Number) frequencyField.getValue()).intValue();
+				freq *= 1000;
+				if (timer.getDelay() != freq) {
+					timer.setDelay(freq);
 				}
 			}
 		});
@@ -217,18 +189,15 @@ public class CameraPanel extends JPanel implements ActionListener {
 		controls.add(freqPanel);
 
 		controls.add(new JLabel("Zoom"));
-		zoomSlider = new JSlider(JSlider.HORIZONTAL, 0, 0, 0);
+		zoomSlider = new JSlider(SwingConstants.HORIZONTAL, 0, 0, 0);
 		zoomSlider.setPaintTicks(true);
-		zoomSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				JSlider slider = (JSlider) e.getSource();
-				if (!slider.getValueIsAdjusting()) {
-					//System.out.println("Setting zoom to "+slider.getValue());
-					source.setZoomPosition(slider.getValue());
-					// set AF lock if it should be set (changing the zoom will unset it)
-					if (focusLockCheck.isSelected()) source.setAFLock(true);
-				}
+		zoomSlider.addChangeListener(e -> {
+			JSlider slider = (JSlider) e.getSource();
+			if (!slider.getValueIsAdjusting()) {
+				//System.out.println("Setting zoom to "+slider.getValue());
+				source.setZoomPosition(slider.getValue());
+				// set AF lock if it should be set (changing the zoom will unset it)
+				if (focusLockCheck.isSelected()) source.setAFLock(true);
 			}
 		});
 		controls.add(zoomSlider);
@@ -242,13 +211,10 @@ public class CameraPanel extends JPanel implements ActionListener {
 		controls.add(imageFormatCombo);
 
 		focusLockCheck = new JCheckBox("AF Lock");
-		focusLockCheck.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getSource() == focusLockCheck) {
-					//System.out.println("Autofocus locked? "+focusLockCheck.isSelected());
-					source.setAFLock(focusLockCheck.isSelected());
-				}
+		focusLockCheck.addItemListener(e -> {
+			if (e.getSource() == focusLockCheck) {
+				//System.out.println("Autofocus locked? "+focusLockCheck.isSelected());
+				source.setAFLock(focusLockCheck.isSelected());
 			}
 		});
 		controls.add(focusLockCheck);
@@ -287,12 +253,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 	}
 
 	private void logMessage(final String logMsg) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				logArea.append(logMsg+"\n");
-			}
-		});
+		SwingUtilities.invokeLater(() -> logArea.append(logMsg + "\n"));
 	}
 
 	private void setControls(boolean active) {
@@ -429,15 +390,11 @@ public class CameraPanel extends JPanel implements ActionListener {
 				if (relinfo.type == Constants.DATA_TYPE_PICTURE) {
 					relinfo = new ReleaseImageInfo();
 					ImageTransfer transfer = new ImageTransfer(relinfo, lastShot);
-					transfer.addPropertyChangeListener(
-							new PropertyChangeListener() {
-								@Override
-								public  void propertyChange(PropertyChangeEvent evt) {
-									if ("progress".equals(evt.getPropertyName())) {
-										progressBar.setValue((Integer)evt.getNewValue());
-									}
-								}
-							});
+					transfer.addPropertyChangeListener(evt -> {
+						if ("progress".equals(evt.getPropertyName())) {
+							progressBar.setValue((Integer)evt.getNewValue());
+						}
+					});
 					transfer.execute();
 				} else {
 					//System.out.println("Not picking up data of type "+relinfo.type);
@@ -464,7 +421,8 @@ public class CameraPanel extends JPanel implements ActionListener {
 		corrections.add(new LensCorrection(-0.007715, 0.026731, 0.000000, rawImage.getWidth(), rawImage.getHeight()));
 		final BufferedImage lensCorrected = PixelInterpolator.getImage(corrections, rawImage, rawImage.getWidth(), rawImage.getHeight());
 
-		setHomography(AutoCalibrate.calibrate(lensCorrected));
+		Point[] points = AutoCalibrate.calibrate(lensCorrected);
+		if (points != null) setHomography(points);
 	}
 
 	private void setHomography(Point[] regPoints) {
@@ -537,7 +495,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 		});
 
 		final JFrame frame = new JFrame("Select registration points in order");
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		final JScrollPane scroller = new JScrollPane(image);
 		frame.add(scroller);
 
@@ -549,13 +507,7 @@ public class CameraPanel extends JPanel implements ActionListener {
 		});
 
 		JButton nextButton = new JButton("Next");
-		nextButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-//				SwingUtilities.invokeLater(nextStep);
-				frame.dispose();
-			}
-		});
+		nextButton.addActionListener(e -> frame.dispose());
 
 		JPanel controls = new JPanel();
 		controls.add(countLabel);

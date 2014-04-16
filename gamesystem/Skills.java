@@ -1,6 +1,5 @@
 package gamesystem;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -22,13 +21,9 @@ public class Skills extends Statistic {
 	final protected EnumMap<AbilityScore.Type, Modifier> abilityMods = new EnumMap<>(AbilityScore.Type.class);
 	final protected Modifier acp;
 
-	final protected PropertyChangeListener modifierListener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			// for ability modifier changes. sends event to indicate all skills need updating
-			pcs.firePropertyChange("value", null, null);
-		}
-	};
+	final protected PropertyChangeListener modifierListener = evt -> 
+		// for ability modifier changes. sends event to indicate all skills need updating
+		pcs.firePropertyChange("value", null, null);
 
 	public Skills(Collection<AbilityScore> abilities, Modifier acp) {
 		super("Skills");

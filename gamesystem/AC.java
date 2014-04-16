@@ -1,6 +1,5 @@
 package gamesystem;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -34,12 +33,7 @@ public class AC extends Statistic {
 			addModifier(dexMod);
 		}
 
-		naturalArmor.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent e) {
-				firePropertyChange("value", null, getValue());
-			}
-		});
+		naturalArmor.addPropertyChangeListener(e -> firePropertyChange("value", null, getValue()));
 	}
 
 	@Override

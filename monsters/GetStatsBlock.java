@@ -8,7 +8,6 @@ import gamesystem.SavingThrow;
 import gamesystem.SizeCategory;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,14 +42,11 @@ public class GetStatsBlock {
 		int fileCount = 0;
 		for (Source source : sources) {
 			File dir = new File(baseName+source.getLocation());
-			File[] files = dir.listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					//if (name.equals("HalfGolem.htm")) return true;
+			File[] files = dir.listFiles((d, name) -> {
+				//if (name.equals("HalfGolem.htm")) return true;
 					if (name.toLowerCase().endsWith("html")) return true;
 					if (name.toLowerCase().endsWith("htm")) return true;
 					return false;
-				}
 			});
 
 			for (File file : files) {

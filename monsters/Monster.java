@@ -84,13 +84,7 @@ public class Monster extends Creature {
 				final AbilityScore s = new AbilityScore(t);
 				s.setBaseValue(scores[i]);
 				s.addPropertyChangeListener(statListener);
-				s.getModifier().addPropertyChangeListener(new PropertyChangeListener() {
-					@Override
-					public void propertyChange(PropertyChangeEvent e) {
-						//System.out.println(PROPERTY_ABILITY_PREFIX+s.getName()+": "+e.getOldValue()+" -> "+ e.getNewValue());
-						pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX + s.getName(), e.getOldValue(), e.getNewValue());
-					}
-				});
+				s.getModifier().addPropertyChangeListener(e -> pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX + s.getName(), e.getOldValue(), e.getNewValue()));
 				abilities.put(t, s);
 			}
 			i++;

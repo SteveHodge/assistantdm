@@ -12,7 +12,6 @@ import java.awt.Insets;
 import java.awt.Paint;
 import java.awt.RenderingHints;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -44,22 +43,20 @@ public class JSubSection extends JPanel {
 		toggle = new JCheckBox(UIManager.getIcon("Tree.expandedIcon"));
 		toggle.setSelectedIcon(UIManager.getIcon("Tree.collapsedIcon"));
 		toggle.setOpaque(true);
-		toggle.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getSource() != toggle) return;
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					if (infoText != null) infoLabel.setText(infoText);
-					leftPanel.setVisible(false);
-					contentPanel.setVisible(false);
-					firePropertyChange("collapsed",false,true);	// oldvalue assumes the state has really changed
-					revalidate();
-				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
-					infoLabel.setText("");
-					leftPanel.setVisible(true);
-					contentPanel.setVisible(true);
-					firePropertyChange("collapsed",true,false);	// oldvalue assumes the state has really changed
-					revalidate();
-				}
+		toggle.addItemListener(e -> {
+			if (e.getSource() != toggle) return;
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				if (infoText != null) infoLabel.setText(infoText);
+				leftPanel.setVisible(false);
+				contentPanel.setVisible(false);
+				firePropertyChange("collapsed",false,true);	// oldvalue assumes the state has really changed
+				revalidate();
+			} else if (e.getStateChange() == ItemEvent.DESELECTED) {
+				infoLabel.setText("");
+				leftPanel.setVisible(true);
+				contentPanel.setVisible(true);
+				firePropertyChange("collapsed",true,false);	// oldvalue assumes the state has really changed
+				revalidate();
 			}
 		});
 		toggle.setBackground(titleColor);
@@ -91,6 +88,7 @@ public class JSubSection extends JPanel {
 		add(infoLabel, c);
 		
 		leftPanel = new JPanel() {
+			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				Graphics2D g2 = (Graphics2D)g;
@@ -98,7 +96,7 @@ public class JSubSection extends JPanel {
 		        Dimension d = getSize();
 		        GradientPaint gradient = new GradientPaint(
 		          0f, 0f, titleColor,
-		          (float)d.width, (float)d.height, getBackground()
+		          d.width, d.height, getBackground()
 		        );
 		        
 		        g2.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,RenderingHints.VALUE_COLOR_RENDER_QUALITY);

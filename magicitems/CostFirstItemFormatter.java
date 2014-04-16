@@ -7,6 +7,7 @@ import magicgenerator.Item;
  */
 
 class CostFirstItemFormatter implements ItemFormatter {
+	@Override
 	public String toString(Item i) {
 		StringBuffer output = new StringBuffer();
 		output.append(i.getCost()).append(" - ").append(i.getValue("item"));

@@ -170,7 +170,7 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + Label.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		if (isFloating) setAttribute(e, FLOATING_ATTRIBUTE_NAME, isFloating);
 		return e;
 	}

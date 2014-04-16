@@ -3,8 +3,6 @@ package digital_table.controller;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
@@ -58,8 +56,8 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
-		xField = createDoubleControl(MapImage.PROPERTY_X);
-		yField = createDoubleControl(MapImage.PROPERTY_Y);
+		xField = createDoubleControl(Group.PROPERTY_X);
+		yField = createDoubleControl(Group.PROPERTY_Y);
 		widthField = createDoubleControl(MapImage.PROPERTY_WIDTH);
 		heightField = createDoubleControl(MapImage.PROPERTY_HEIGHT);
 		alphaSlider = createSliderControl(MapImage.PROPERTY_ALPHA);
@@ -73,32 +71,19 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		snapCheck.setSelected(true);
 
 		JButton playButton = new JButton("Play");
-		playButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null);
-			}
-		});
+		playButton.addActionListener(e -> display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null));
 
 		JButton stopButton = new JButton("Stop");
-		stopButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null);
-			}
-		});
+		stopButton.addActionListener(e -> display.setProperty(element, LineTemplate.PROPERTY_IMAGE_STOP, null));
 
 		JPanel imagePanel = new JPanel();
 		imagePanel.add(playButton);
 		imagePanel.add(stopButton);
 
 		final JButton addMaskButton = new JButton("Add Mask");
-		addMaskButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if (mask == null) {
-					mask = maskFactory.addElement(element);
-				}
+		addMaskButton.addActionListener(e -> {
+			if (mask == null) {
+				mask = maskFactory.addElement(element);
 			}
 		});
 
@@ -204,14 +189,14 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 				x = Math.floor(x);
 				y = Math.floor(y);
 			}
-			display.setProperty(element, MapImage.PROPERTY_X, x);
-			display.setProperty(element, MapImage.PROPERTY_Y, y);
+			display.setProperty(element, Group.PROPERTY_X, x);
+			display.setProperty(element, Group.PROPERTY_Y, y);
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			return new Point2D.Double((Double)element.getProperty(MapImage.PROPERTY_X),
-					(Double)element.getProperty(MapImage.PROPERTY_Y));
+			return new Point2D.Double((Double)element.getProperty(Group.PROPERTY_X),
+					(Double)element.getProperty(Group.PROPERTY_Y));
 		}
 
 		@Override
@@ -254,8 +239,8 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 		parseStringAttribute(MapImage.PROPERTY_LABEL, e, Mode.LOCAL);
 		parseFloatAttribute(MapImage.PROPERTY_ALPHA, e, Mode.ALL);
-		parseDoubleAttribute(MapImage.PROPERTY_X, e, Mode.ALL);
-		parseDoubleAttribute(MapImage.PROPERTY_Y, e, Mode.ALL);
+		parseDoubleAttribute(Group.PROPERTY_X, e, Mode.ALL);
+		parseDoubleAttribute(Group.PROPERTY_Y, e, Mode.ALL);
 		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.ALL);	// must be done before dimensions
 		parseBooleanAttribute(MapImage.PROPERTY_ASPECT_LOCKED, e, Mode.ALL);	// must be done before dimensions
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);

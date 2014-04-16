@@ -24,6 +24,7 @@ public class SimpleDice implements Dice {
 		type = s.type;
 	}
 
+	@Override
 	public int roll() {
 		int roll = 0;
 		for (int i = 0; i < number; i++) {
@@ -32,6 +33,7 @@ public class SimpleDice implements Dice {
 		return roll;
 	}
 
+	@Override
 	public String toString() {
 		String s = String.valueOf(number);
 		s += "d"+type;
@@ -54,10 +56,12 @@ public class SimpleDice implements Dice {
 		return new SimpleDice(n, t);
 	}
 
+	@Override
 	public int getMinimum() {
 		return 1;
 	}
 
+	@Override
 	public int getMaximum() {
 		return type;
 	}

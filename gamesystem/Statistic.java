@@ -1,7 +1,6 @@
 package gamesystem;
 
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
@@ -28,16 +27,12 @@ public class Statistic {
 	protected Set<Modifier> modifiers = new HashSet<>();
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-	protected final PropertyChangeListener listener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			//System.out.println("Modifier to "+name+" changed");
-			// problem here is that we know what the old value of the modifier is (from the event),
-			// but we can't easily use that old value to calculate the old total
-			// TODO could store old values locally
-			firePropertyChange("value", null, getValue());
-		}
-	};
+	protected final PropertyChangeListener listener = evt -> 
+		//System.out.println("Modifier to "+name+" changed");
+		// problem here is that we know what the old value of the modifier is (from the event),
+		// but we can't easily use that old value to calculate the old total
+		// TODO could store old values locally
+		firePropertyChange("value", null, getValue());
 
 	protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
 		pcs.firePropertyChange(prop, oldVal, newVal);

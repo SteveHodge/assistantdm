@@ -1,7 +1,5 @@
 package gamesystem;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 // XXX might have to manage ability scores together otherwise some of the other statistics that use ability
 // modifiers will need special case handling for non-abilities (e.g. should use dex modifier for all attack if
@@ -51,15 +49,11 @@ public class AbilityScore extends Statistic {
 
 	protected class AbilityModifier extends AbstractModifier {
 		public AbilityModifier(AbilityScore score) {
-			score.addPropertyChangeListener(new PropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent evt) {
-					//int oldValue = ((Integer)evt.getOldValue())/2-5;
-					//int newValue = ((Integer)evt.getNewValue())/2-5;
-					//modpcs.firePropertyChange("value", null, newValue);
-					pcs.firePropertyChange("value", null, getModifier());
-				}
-			});
+			score.addPropertyChangeListener(evt -> 
+				//int oldValue = ((Integer)evt.getOldValue())/2-5;
+				//int newValue = ((Integer)evt.getNewValue())/2-5;
+				//modpcs.firePropertyChange("value", null, newValue);
+				pcs.firePropertyChange("value", null, getModifier()));
 		}
 
 		@Override

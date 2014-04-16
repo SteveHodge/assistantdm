@@ -9,8 +9,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -76,21 +74,18 @@ class NamePanel extends DetailPanel {
 		});
 
 		augSummonCheck = new JCheckBox("Augmented Summoning");
-		augSummonCheck.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (monster == null) return;
-				if (augSummonCheck.isSelected()) {
-					// if the buff has already been applied then we should not apply it again
-					ListModel<Buff> buffs = monster.getBuffListModel();
-					for (int i = 0; i < buffs.getSize(); i++) {
-						Buff b = buffs.getElementAt(i);
-						if (augmentedSummoning == b) return;
-					}
-					monster.addBuff(augmentedSummoning);
-				} else {
-					monster.removeBuff(augmentedSummoning.id);
+		augSummonCheck.addItemListener(e -> {
+			if (monster == null) return;
+			if (augSummonCheck.isSelected()) {
+				// if the buff has already been applied then we should not apply it again
+				ListModel<Buff> buffs = monster.getBuffListModel();
+				for (int i = 0; i < buffs.getSize(); i++) {
+					Buff b = buffs.getElementAt(i);
+					if (augmentedSummoning == b) return;
 				}
+				monster.addBuff(augmentedSummoning);
+			} else {
+				monster.removeBuff(augmentedSummoning.id);
 			}
 		});
 
@@ -127,21 +122,11 @@ class NamePanel extends DetailPanel {
 		buttonPanel.add(imageButton);
 
 		prevImageButton = new JButton("<");
-		prevImageButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				setSelectedImage(getImageIndex() - 1);
-			}
-		});
+		prevImageButton.addActionListener(e -> setSelectedImage(getImageIndex() - 1));
 		buttonPanel.add(prevImageButton);
 
 		nextImageButton = new JButton(">");
-		nextImageButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				setSelectedImage(getImageIndex() + 1);
-			}
-		});
+		nextImageButton.addActionListener(e -> setSelectedImage(getImageIndex() + 1));
 		buttonPanel.add(nextImageButton);
 
 		setLayout(new GridBagLayout());

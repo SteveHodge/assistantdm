@@ -13,7 +13,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +40,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.WindowConstants;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.MouseInputListener;
 import javax.swing.event.TreeModelEvent;
@@ -103,7 +103,7 @@ public class ControllerFrame extends JFrame {
 		instance = this;
 
 		this.camera = camera;
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		addWindowListener(windowListener);
 
 		overlay = new TokenOverlay();
@@ -171,102 +171,79 @@ public class ControllerFrame extends JFrame {
 		});
 
 		JButton addButton = new JButton("Add");
-		addButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				AddElementAction<?> action = (AddElementAction<?>) availableCombo.getSelectedItem();
-				if (action != null) {
-					OptionsPanel<?> options = action.addElement(null);
-					elementTree.setSelectionPath(miniMapCanvas.getTreePath(options.getElement()));
-				}
+		addButton.addActionListener(e -> {
+			AddElementAction<?> action = (AddElementAction<?>) availableCombo.getSelectedItem();
+			if (action != null) {
+				OptionsPanel<?> options = action.addElement(null);
+				elementTree.setSelectionPath(miniMapCanvas.getTreePath(options.getElement()));
 			}
 		});
 
 		JButton addChildButton = new JButton("Add Child");
-		addChildButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				AddElementAction<?> action = (AddElementAction<?>) availableCombo.getSelectedItem();
-				MapElement parent = getSelectedElement();
-				if (action != null && parent != null && parent instanceof Group) {
-					OptionsPanel<?> options = action.addElement(parent);
-					elementTree.setSelectionPath(miniMapCanvas.getTreePath(options.getElement()));
-				}
+		addChildButton.addActionListener(e -> {
+			AddElementAction<?> action = (AddElementAction<?>) availableCombo.getSelectedItem();
+			MapElement parent = getSelectedElement();
+			if (action != null && parent != null && parent instanceof Group) {
+				OptionsPanel<?> options = action.addElement(parent);
+				elementTree.setSelectionPath(miniMapCanvas.getTreePath(options.getElement()));
 			}
 		});
 
 		JButton groupsButton = new JButton("Groups...");
-		groupsButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				new GroupsDialog();
-			}
-		});
+		groupsButton.addActionListener(e -> new GroupsDialog());
 
 		JButton removeButton = new JButton("Remove");
-		removeButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				MapElement element = getSelectedElement();
-				if (element != null && element != gridPanel.getElement()) {
-					elementPanel.removeAll();
-					elementPanel.revalidate();
-					elementPanel.repaint();
-					display.removeElement(element);
-					optionPanels.remove(element);
-				}
+		removeButton.addActionListener(e -> {
+			MapElement element = getSelectedElement();
+			if (element != null && element != gridPanel.getElement()) {
+				elementPanel.removeAll();
+				elementPanel.revalidate();
+				elementPanel.repaint();
+				display.removeElement(element);
+				optionPanels.remove(element);
 			}
 		});
 
 		JButton resetButton = new JButton("Reset");
-		resetButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				// TODO should traverse the element tree instead of scanning the optionpanels
-				Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
-				while (panels.hasNext()) {
-					OptionsPanel<?> panel = panels.next();
-					if (panel != gridPanel
-							&& !(panel instanceof BoundsOptionsPanel)
-							&& !(panel instanceof CalibrateOptionsPanel)
-							&& !(panel instanceof InitiativeOptionsPanel)
-							&& !(panel instanceof CameraOptionsPanel)
-							&& !(panel instanceof GroupOptionsPanel)) {
-						// will also want to skip tokens that are bound to characters and descendents of such tokens
-						display.removeElement(panel.getElement());
-						panels.remove();
-					}
+		resetButton.addActionListener(e -> {
+			// TODO should traverse the element tree instead of scanning the optionpanels
+			Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
+			while (panels.hasNext()) {
+				OptionsPanel<?> panel = panels.next();
+				if (panel != gridPanel
+						&& !(panel instanceof BoundsOptionsPanel)
+						&& !(panel instanceof CalibrateOptionsPanel)
+						&& !(panel instanceof InitiativeOptionsPanel)
+						&& !(panel instanceof CameraOptionsPanel)
+						&& !(panel instanceof GroupOptionsPanel)) {
+					// will also want to skip tokens that are bound to characters and descendents of such tokens
+					display.removeElement(panel.getElement());
+					panels.remove();
 				}
-				// TODO should remove any empty groups
-				elementPanel.removeAll();
-				elementPanel.add(gridPanel);
-				gridPanel.revalidate();
-				gridPanel.repaint();
-				elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
 			}
+			// TODO should remove any empty groups
+			elementPanel.removeAll();
+			elementPanel.add(gridPanel);
+			gridPanel.revalidate();
+			gridPanel.repaint();
+			elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
 		});
 
 		JButton upButton = new JButton("Up");
-		upButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				MapElement element = getSelectedElement();
-				if (element != null) {
-					display.promoteElement(element);
-					elementTree.setSelectionPath(miniMapCanvas.getTreePath(element));
-				}
+		upButton.addActionListener(e -> {
+			MapElement element = getSelectedElement();
+			if (element != null) {
+				display.promoteElement(element);
+				elementTree.setSelectionPath(miniMapCanvas.getTreePath(element));
 			}
 		});
 
 		JButton downButton = new JButton("Down");
-		downButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				MapElement element = getSelectedElement();
-				if (element != null) {
-					display.demoteElement(element);
-					elementTree.setSelectionPath(miniMapCanvas.getTreePath(element));
-				}
+		downButton.addActionListener(e -> {
+			MapElement element = getSelectedElement();
+			if (element != null) {
+				display.demoteElement(element);
+				elementTree.setSelectionPath(miniMapCanvas.getTreePath(element));
 			}
 		});
 
@@ -274,20 +251,10 @@ public class ControllerFrame extends JFrame {
 		loadButton.addActionListener(loadListener);
 
 		JButton saveButton = new JButton("Save...");
-		saveButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				new SaveDialog();
-			}
-		});
+		saveButton.addActionListener(e -> new SaveDialog());
 
 		JButton quitButton = new JButton("Quit");
-		quitButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				quit();
-			}
-		});
+		quitButton.addActionListener(e -> quit());
 
 		JPanel rightPanel = new JPanel();
 		rightPanel.setLayout(new GridBagLayout());
@@ -379,8 +346,8 @@ public class ControllerFrame extends JFrame {
 			// XXX maybe should have dedicated group for corpses
 			ImageOptionsPanel imagePanel = new ImageOptionsPanel(uri, options.element.parent, display, maskAction);
 			MapImage image = imagePanel.getElement();
-			display.setProperty(image, MapImage.PROPERTY_X, (double) x, Mode.ALL);
-			display.setProperty(image, MapImage.PROPERTY_Y, (double) y, Mode.ALL);
+			display.setProperty(image, Group.PROPERTY_X, (double) x, Mode.ALL);
+			display.setProperty(image, Group.PROPERTY_Y, (double) y, Mode.ALL);
 			display.setProperty(image, MapImage.PROPERTY_ASPECT_LOCKED, false, Mode.ALL);
 			display.setProperty(image, MapImage.PROPERTY_WIDTH, (double) width, Mode.ALL);
 			display.setProperty(image, MapImage.PROPERTY_HEIGHT, (double) height, Mode.ALL);
@@ -562,15 +529,12 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
-	private PropertyChangeListener labelListener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_LABEL)
-					|| (e.getSource() instanceof Label && e.getPropertyName().equals(Label.PROPERTY_TEXT))) {
-				MapElement element = (MapElement) e.getSource();
-				miniMapCanvas.updateTreeNode(element);
-				//elementTree.repaint();
-			}
+	private PropertyChangeListener labelListener = e -> {
+		if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_LABEL)
+				|| (e.getSource() instanceof Label && e.getPropertyName().equals(Label.PROPERTY_TEXT))) {
+			MapElement element = (MapElement) e.getSource();
+			miniMapCanvas.updateTreeNode(element);
+			//elementTree.repaint();
 		}
 	};
 
@@ -592,29 +556,16 @@ public class ControllerFrame extends JFrame {
 			groups.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
 			JButton okButton = new JButton("Ok");
-			okButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					apply();
-					dispose();
-				}
+			okButton.addActionListener(e -> {
+				apply();
+				dispose();
 			});
 
 			JButton cancelButton = new JButton("Cancel");
-			cancelButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					dispose();
-				}
-			});
+			cancelButton.addActionListener(e -> dispose());
 
 			JButton applyButton = new JButton("Apply");
-			applyButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					apply();
-				}
-			});
+			applyButton.addActionListener(e -> apply());
 
 			JPanel trees = new JPanel();
 			trees.setLayout(new GridBagLayout());
@@ -863,30 +814,22 @@ public class ControllerFrame extends JFrame {
 			removeAfter = new JCheckBox("Remove saved elements");
 
 			JButton okButton = new JButton("Ok");
-			okButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					dispose();
-					JFileChooser chooser = new JFileChooser();
-					chooser.setCurrentDirectory(new File("."));
-					chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
-					chooser.setSelectedFile(new File("Encounter.xml"));
-					if (chooser.showSaveDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
-						File f = chooser.getSelectedFile();
-						if (f != null) {
-							save(f);
-						}
+			okButton.addActionListener(arg0 -> {
+				dispose();
+				JFileChooser chooser = new JFileChooser();
+				chooser.setCurrentDirectory(new File("."));
+				chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
+				chooser.setSelectedFile(new File("Encounter.xml"));
+				if (chooser.showSaveDialog(ControllerFrame.this) == JFileChooser.APPROVE_OPTION) {
+					File f = chooser.getSelectedFile();
+					if (f != null) {
+						save(f);
 					}
 				}
 			});
 
 			JButton cancelButton = new JButton("Cancel");
-			cancelButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					dispose();
-				}
-			});
+			cancelButton.addActionListener(arg0 -> dispose());
 
 			JPanel content = new JPanel();
 			content.setLayout(new GridBagLayout());

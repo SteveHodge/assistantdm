@@ -2,8 +2,6 @@ package digital_table.controller;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -33,12 +31,9 @@ class CalibrateOptionsPanel extends OptionsPanel<Calibrate> {
 
 		visibleCheck = new JCheckBox("visible?");
 		visibleCheck.setSelected(false);
-		visibleCheck.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				JCheckBox check = (JCheckBox) e.getSource();
-				display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
-			}
+		visibleCheck.addItemListener(e -> {
+			JCheckBox check = (JCheckBox) e.getSource();
+			display.setProperty(element, MapElement.PROPERTY_VISIBLE, check.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN, Mode.ALL);
 		});
 
 		setLayout(new GridBagLayout());

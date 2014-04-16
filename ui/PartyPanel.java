@@ -4,8 +4,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,12 +71,9 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 		JXTaskPane actionsPane = new JXTaskPane("Actions");
 		JButton saveHTML = new JButton("Save HTML");
-		saveHTML.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				CharacterSheetView view = new CharacterSheetView(c, false);
-				view.saveCharacterSheet();
-			}
+		saveHTML.addActionListener(e -> {
+			CharacterSheetView view = new CharacterSheetView(c, false);
+			view.saveCharacterSheet();
 		});
 		actionsPane.add(saveHTML);
 		JButton debug = new JButton("Debug");
@@ -145,14 +140,11 @@ public class PartyPanel extends JPanel implements PartyListener {
 		final JScrollPane scroller = new JScrollPane(panel);
 		scroller.setPreferredSize(new Dimension(1000,600));
 
-		debug.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				System.out.println("Left PreferredSize = "+leftPanel.getPreferredSize());
-				System.out.println("Right PreferredSize = "+rightPanel.getPreferredSize());
-				System.out.println("PreferredSize = "+panel.getPreferredSize());
-				System.out.println("Size = "+panel.getSize());
-			}
+		debug.addActionListener(e -> {
+			System.out.println("Left PreferredSize = "+leftPanel.getPreferredSize());
+			System.out.println("Right PreferredSize = "+rightPanel.getPreferredSize());
+			System.out.println("PreferredSize = "+panel.getPreferredSize());
+			System.out.println("Size = "+panel.getSize());
 		});
 
 		return scroller;

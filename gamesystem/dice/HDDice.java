@@ -37,6 +37,7 @@ public class HDDice implements Dice {
 		return constant;
 	}
 
+	@Override
 	public int roll() {
 		int roll = 0;
 		if (number == 0) {
@@ -51,6 +52,7 @@ public class HDDice implements Dice {
 		return roll+constant;
 	}
 
+	@Override
 	public String toString() {
 		String s = "";
 		if (number > 0) s+= number;
@@ -94,10 +96,12 @@ public class HDDice implements Dice {
 		return new HDDice(n, t, m);
 	}
 
+	@Override
 	public int getMinimum() {
 		return 1;
 	}
 
+	@Override
 	public int getMaximum() {
 		return type;
 	}

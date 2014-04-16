@@ -4,6 +4,7 @@ import magicgenerator.Item;
 
 
 public class DefaultItemFormatter implements ItemFormatter {
+	@Override
 	public String toString(Item i) {
 		return getItemDescription(i);
 	}

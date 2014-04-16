@@ -18,12 +18,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import combat.CombatPanel;
-import combat.InitiativeListener;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Initiative;
 import digital_table.elements.Label;
-import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 
@@ -43,12 +41,7 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		if (CombatPanel.getCombatPanel() != null) {
-			CombatPanel.getCombatPanel().addInitiativeListener(new InitiativeListener() {
-				@Override
-				public void initiativeUpdated(String text) {
-					display.setProperty(element, Label.PROPERTY_TEXT, text);
-				}
-			});
+			CombatPanel.getCombatPanel().addInitiativeListener(text -> display.setProperty(element, Label.PROPERTY_TEXT, text));
 		}
 		element.addPropertyChangeListener(listener);
 
@@ -146,7 +139,7 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 	Element getElement(Document doc) {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
-		setAttribute(e, REMOTE_PREFIX + LineTemplate.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
+		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		return e;
 	}
 

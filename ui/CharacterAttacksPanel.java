@@ -10,8 +10,6 @@ import gamesystem.Modifier;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -35,8 +33,6 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import party.Character;
 import party.CharacterAttackForm;
@@ -111,29 +107,23 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 		});
 
-		fightingDefensively.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				attacks.setFightingDefensively(fightingDefensively.isSelected());
-				if (fightingDefensively.isSelected()) {
-					totalDefense.setSelected(false);
-					attacks.setTotalDefense(false);
-				}
+		fightingDefensively.addActionListener(e -> {
+			attacks.setFightingDefensively(fightingDefensively.isSelected());
+			if (fightingDefensively.isSelected()) {
+				totalDefense.setSelected(false);
+				attacks.setTotalDefense(false);
 			}
 		});
 
-		totalDefense.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				attacks.setTotalDefense(totalDefense.isSelected());
-				if (totalDefense.isSelected()) {
-					fightingDefensively.setSelected(false);
-					attacks.setFightingDefensively(false);
-					combatExpertise.setText("0");
-					attacks.setCombatExpertise(0);
-					powerAttack.setText("0");
-					attacks.setPowerAttack(0);
-				}
+		totalDefense.addActionListener(e -> {
+			attacks.setTotalDefense(totalDefense.isSelected());
+			if (totalDefense.isSelected()) {
+				fightingDefensively.setSelected(false);
+				attacks.setFightingDefensively(false);
+				combatExpertise.setText("0");
+				attacks.setCombatExpertise(0);
+				powerAttack.setText("0");
+				attacks.setPowerAttack(0);
 			}
 		});
 	}
@@ -222,15 +212,12 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 			damageMod.setSelected(true);
 
 			JButton addButton = new JButton("Add");
-			addButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					BuffFactory bf = new BuffFactory(nameField.getText());
-					int mod = (Integer) modField.getValue();
-					if (attackMod.isSelected()) bf.addEffect(Creature.STATISTIC_ATTACKS, typeBox.getSelectedItem().toString(), mod);
-					if (damageMod.isSelected()) bf.addEffect(Creature.STATISTIC_DAMAGE, typeBox.getSelectedItem().toString(), mod);
-					character.addBuff(bf.getBuff());
-				}
+			addButton.addActionListener(e -> {
+				BuffFactory bf = new BuffFactory(nameField.getText());
+				int mod = (Integer) modField.getValue();
+				if (attackMod.isSelected()) bf.addEffect(Creature.STATISTIC_ATTACKS, typeBox.getSelectedItem().toString(), mod);
+				if (damageMod.isSelected()) bf.addEffect(Creature.STATISTIC_DAMAGE, typeBox.getSelectedItem().toString(), mod);
+				character.addBuff(bf.getBuff());
 			});
 
 			JPanel addPanel = new JPanel();
@@ -394,48 +381,36 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		bottom.setBorder(BorderFactory.createTitledBorder("Weapons"));
 
 		JButton newButton = new JButton("New");
-		newButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				CharacterAttackForm a = new CharacterAttackForm(character, attacks.addAttackForm("new weapon"));
-				attackFormsModel.addElement(a);
-				weaponList.setSelectedValue(a, true);
-			}
+		newButton.addActionListener(e -> {
+			CharacterAttackForm a = new CharacterAttackForm(character, attacks.addAttackForm("new weapon"));
+			attackFormsModel.addElement(a);
+			weaponList.setSelectedValue(a, true);
 		});
 
 		JButton deleteButton = new JButton("Delete");
-		deleteButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				CharacterAttackForm a = weaponList.getSelectedValue();
-				if (a != null) {
-					attacks.removeAttackForm(a.attack);
-					attackPanel.setAttackForm(weaponList.getSelectedValue());
-				}
+		deleteButton.addActionListener(e -> {
+			CharacterAttackForm a = weaponList.getSelectedValue();
+			if (a != null) {
+				attacks.removeAttackForm(a.attack);
+				attackPanel.setAttackForm(weaponList.getSelectedValue());
 			}
 		});
 
 		JButton upButton = new JButton("/\\");
-		upButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int i = weaponList.getSelectedIndex();
-				if (i >= 1) {
-					attackFormsModel.move(i, i - 1);
-					weaponList.setSelectedIndex(i-1);
-				}
+		upButton.addActionListener(e -> {
+			int i = weaponList.getSelectedIndex();
+			if (i >= 1) {
+				attackFormsModel.move(i, i - 1);
+				weaponList.setSelectedIndex(i-1);
 			}
 		});
 
 		JButton downButton = new JButton("\\/");
-		downButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int i = weaponList.getSelectedIndex();
-				if (i != -1 && i < attackFormsModel.getSize() - 1) {
-					attackFormsModel.move(i, i + 1);
-					weaponList.setSelectedIndex(i+1);
-				}
+		downButton.addActionListener(e -> {
+			int i = weaponList.getSelectedIndex();
+			if (i != -1 && i < attackFormsModel.getSize() - 1) {
+				attackFormsModel.move(i, i + 1);
+				weaponList.setSelectedIndex(i+1);
 			}
 		});
 
@@ -455,12 +430,9 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		weaponList = new JList<>(attackFormsModel);
 		weaponList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		weaponList.setVisibleRowCount(6);
-		weaponList.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				if (!e.getValueIsAdjusting()) {
-					attackPanel.setAttackForm(weaponList.getSelectedValue());
-				}
+		weaponList.addListSelectionListener(e -> {
+			if (!e.getValueIsAdjusting()) {
+				attackPanel.setAttackForm(weaponList.getSelectedValue());
 			}
 		});
 		JScrollPane scroller = new JScrollPane(weaponList);

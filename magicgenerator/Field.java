@@ -29,6 +29,7 @@ public class Field implements Serializable {
 		if (t.equals("number")) type = TYPE_NUMBER;
 	}
 
+	@Override
 	public String toString() {
 		return "Field ("+name+") - " + (type == TYPE_TEXT ? "text" : "number");
 	}

@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -18,8 +16,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 
 @SuppressWarnings("serial")
 public class MonsterFrame extends JFrame {
@@ -61,39 +59,36 @@ public class MonsterFrame extends JFrame {
 		add(sp);
 		setSize(new Dimension(800, 600));
 		pack();
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 	}
 
 	private JEditorPane createWebPanel(URL url) {
 		JEditorPane p = new JEditorPane();
 		p.setEditable(false);
-		p.addHyperlinkListener(new HyperlinkListener() {
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent e) {
-				try {
-					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-						if (e.getURL() != null) {
-							JFrame frame = new JFrame(e.getURL().toString());
-							JScrollPane sp;
-							if (e.getURL().getFile().endsWith(".jpg")) {
-								JLabel pic = new JLabel(new ImageIcon(e.getURL()));
-								sp = new JScrollPane(pic);
-							} else {
-								JEditorPane p = createWebPanel(e.getURL());
-								sp = new JScrollPane(p);
-								sp.setPreferredSize(new Dimension(800, 600));
-							}
-							frame.add(sp);
-							frame.pack();
-							frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-							frame.setVisible(true);
+		p.addHyperlinkListener(e -> {
+			try {
+				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					if (e.getURL() != null) {
+						JFrame frame = new JFrame(e.getURL().toString());
+						JScrollPane sp;
+						if (e.getURL().getFile().endsWith(".jpg")) {
+							JLabel pic = new JLabel(new ImageIcon(e.getURL()));
+							sp = new JScrollPane(pic);
 						} else {
-							System.out.println("No URL, string was: " + e.getDescription());
+							JEditorPane pane = createWebPanel(e.getURL());
+							sp = new JScrollPane(pane);
+							sp.setPreferredSize(new Dimension(800, 600));
 						}
+						frame.add(sp);
+						frame.pack();
+						frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+						frame.setVisible(true);
+					} else {
+						System.out.println("No URL, string was: " + e.getDescription());
 					}
-				} catch (Exception ex) {
-					ex.printStackTrace();
 				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 		});
 		try {
@@ -110,12 +105,9 @@ public class MonsterFrame extends JFrame {
 		public AddMonsterButton(StatisticsBlock b) {
 			super("Add " + b.getName());
 			block = b;
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					Window parentFrame = SwingUtilities.windowForComponent(MonsterFrame.this);
-					EncounterDialog.createOrExtendEncounter(parentFrame, block);
-				}
+			addActionListener(e -> {
+				Window parentFrame = SwingUtilities.windowForComponent(MonsterFrame.this);
+				EncounterDialog.createOrExtendEncounter(parentFrame, block);
 			});
 		}
 	}
