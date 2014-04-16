@@ -68,11 +68,13 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * DONE: Modify Updater to temporarily write sequence of camera images to local disk
+ * IN PROGRESS: Convert to lambda expressions where possible
  *
- * Modify Updater to temporarily write sequence of camera images to local disk
+ * In Autocalibrate replace source.getRGB() with direct access to the buffer. Should result in a significant speedup. Parallel scanning is probably not worthwhile.
  * Pre-guess the screen layout
  * Global registry of services - combat, digital_table, camera. plus cleanup interactions
- * 
+ *
  * Allow setting of DarknessMask and Mask colours
  * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
  * ENH: Reordering the elements resets the group expanded/collapsed state
@@ -96,7 +98,7 @@ import digital_table.controller.DigitalTableController;
  * spell lists webpage
  * class levels
  * spell lists in AssistantDM
- * 
+ *
  * cleanup hitpoints/hitdice
  * implement remaining monster statistics
  * cleanup AttackForms in Attack, StatisticBlock and DetailedMonster
@@ -107,10 +109,10 @@ import digital_table.controller.DigitalTableController;
  * rework statistc notification system. a listener registered with the top of a tree (like Skills or Attacks)
  *    should get notification of all sub-statistics. consider whether statistics need to provide old and new values
  *    (this is desirable for mutable Modifiers at least)
- * 
+ *
  * consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
  *    level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
- * 
+ *
  * parsing display xml resets the node priorty - need to save the list model order
  * look at standardising attribute naming style in xml documents - currently have camel case for combat.xml, lower with underscores most other cases but a few cases of lower with dashes in party.xml
  *
@@ -127,7 +129,7 @@ import digital_table.controller.DigitalTableController;
  * rearrange images. also find animal names - stats blocks
  * alternate token image for dead creatures
  * website: simplify updating - updates can be missed at the moment
- * 
+ *
  * size (where is up to?)
  * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
  * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog

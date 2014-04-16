@@ -2,11 +2,11 @@ package camera;
 
 import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -54,17 +54,14 @@ public class AutoCalibrate {
 //				double theta = Math.atan2(r.getCenterY() - centreY, r.getCenterX() - centreX);
 //				System.out.println("angle = " + theta);
 //			}
-			Collections.sort(regions, new Comparator<Region>() {
-				@Override
-				public int compare(Region a, Region b) {
-					double thetaA = Math.atan2(a.getCenterY() - centreY, a.getCenterX() - centreX);
-					double thetaB = Math.atan2(b.getCenterY() - centreY, b.getCenterX() - centreX);
-					if (thetaA < thetaB)
-						return -1;
-					else if (thetaA > thetaB)
-						return 1;
-					return 0;
-				}
+			Collections.sort(regions, (a, b) -> {
+				double thetaA = Math.atan2(a.getCenterY() - centreY, a.getCenterX() - centreX);
+				double thetaB = Math.atan2(b.getCenterY() - centreY, b.getCenterX() - centreX);
+				if (thetaA < thetaB)
+					return -1;
+				else if (thetaA > thetaB)
+					return 1;
+				return 0;
 			});
 
 			points = new Point[4];
@@ -121,21 +118,26 @@ public class AutoCalibrate {
 			List<Segment> previous = new ArrayList<>();
 			List<Region> regions = new ArrayList<>();
 
+			PixelIterator pixelIter = PixelIterator.createPixelIterator(source);
+
 			int width = source.getWidth();
 			int height = source.getHeight();
-			int[] pixels = source.getRGB(0, 0, width, height, null, 0, width);
 
-			for (int i = 0, y = 0; y < height; y++) {
+			for (int y = 0; y < height; y++) {
 				List<Segment> segments = new ArrayList<>();
 
 				// scan each line of the source image, recording segments of interest
 				Segment segment = null;
 				for (int x = 0; x < width; x++) {
-					int pixel = pixels[i++];
-					int r = (pixel >> 16) & 0xff;
-					int g = (pixel >> 8) & 0xff;
-					int b = pixel & 0xff;
+					pixelIter.next();
+					int r = pixelIter.getRed();
+					int g = pixelIter.getGreen();
+					int b = pixelIter.getBlue();
 					int colour = getColour(r, g, b);
+//					if (x >= 1990 && x <= 2018 && y >= 1588 && y <= 1615) {
+//						System.out.printf("%03d,%03d,%03d   %d\n", r, g, b, colour);
+//						if (x == 2018) System.out.println();
+//					}
 
 					if (colour == 0) {
 						if (segment != null) {
@@ -216,13 +218,19 @@ public class AutoCalibrate {
 				previous = segments;
 			}
 
+			return regions;
+		}
+
+		public static void filterRegions(List<Region> regions) {
 			// strip out small regions and regions with low density
+			// TODO what we should do is rank the candidates and choose the best 2
 			Iterator<Region> iter = regions.iterator();
 			while (iter.hasNext()) {
 				Region r = iter.next();
-				if (r.pixels < 100)
+				if (r.pixels < 100) {
+//					System.out.println("Excluding for < 100 pixels: " + r);
 					iter.remove();
-				else {
+				} else {
 					double centreX = (double) r.totalX / r.pixels;
 					double centreY = (double) r.totalY / r.pixels;
 					double maxDist = 0;
@@ -230,13 +238,12 @@ public class AutoCalibrate {
 						double dist = p.distance(centreX, centreY);
 						if (dist > maxDist) maxDist = dist;
 					}
-					if (2 * r.pixels < (Math.PI * maxDist * maxDist)) {
+					if ((1 / 0.5) * r.pixels < (Math.PI * maxDist * maxDist)) {
+//						System.out.println("Excluding for low density: " + r);
 						iter.remove();
 					}
 				}
 			}
-
-			return regions;
 		}
 
 		private String toShortString() {
@@ -268,8 +275,11 @@ public class AutoCalibrate {
 		}
 
 		private static int getColour(int r, int g, int b) {
-			if (r > 100 && g < 30 && b < 30) return COLOUR_RED;
+			if (r > 90 && g < 20 && b < 20) return COLOUR_RED;
+			if (r > 100 && g < 50 && b < 50) return COLOUR_RED;
+			if (r > 120 && g < 70 && b < 70) return COLOUR_RED;
 			if (r < 50 && g < 50 && b > 75) return COLOUR_BLUE;
+			if (r < 30 && g < 40 && b > 50) return COLOUR_BLUE;
 			return 0;
 		}
 
@@ -341,6 +351,101 @@ public class AutoCalibrate {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	static abstract class PixelIterator {
+		abstract void next();
+
+		abstract int getRed();
+
+		abstract int getBlue();
+
+		abstract int getGreen();
+
+		static PixelIterator createPixelIterator(BufferedImage source) {
+			if (source.getType() == BufferedImage.TYPE_3BYTE_BGR
+					|| source.getType() == BufferedImage.TYPE_4BYTE_ABGR
+					|| source.getType() == BufferedImage.TYPE_4BYTE_ABGR_PRE) {
+				return new BytePixelIterator(source);
+			} else {
+				System.out.println("Defaulting to GeneralPixelIterator for source image type = " + source.getType());
+				return new GeneralPixelIterator(source);
+			}
+		}
+	}
+
+	static class GeneralPixelIterator extends PixelIterator {
+		int[] pixels;
+		int index = 0;
+		int pixel;
+
+		GeneralPixelIterator(BufferedImage source) {
+			int width = source.getWidth();
+			int height = source.getHeight();
+
+			long startMillis = System.currentTimeMillis();
+			pixels = source.getRGB(0, 0, width, height, null, 0, width);
+			long elapsed = System.currentTimeMillis() - startMillis;
+			System.out.println("GeneralPixelIterator source.getRGB() " + elapsed + "ms");
+		}
+
+		@Override
+		void next() {
+			pixel = pixels[index++];
+		}
+
+		@Override
+		int getRed() {
+			return (pixel >> 16) & 0xff;
+		}
+
+		@Override
+		int getBlue() {
+			return pixel & 0xff;
+		}
+
+		@Override
+		int getGreen() {
+			return (pixel >> 8) & 0xff;
+		}
+
+	}
+
+	static class BytePixelIterator extends PixelIterator {
+		byte[] pixels;
+		int type;
+		int index = 0;
+		int r, g, b;
+
+		BytePixelIterator(BufferedImage source) {
+			pixels = ((DataBufferByte) source.getRaster().getDataBuffer()).getData();
+			type = source.getType();
+		}
+
+		@Override
+		void next() {
+			if (type == BufferedImage.TYPE_4BYTE_ABGR || type == BufferedImage.TYPE_4BYTE_ABGR_PRE) {
+				index++;	// skip alpha
+			}
+			b = pixels[index++] & 0xff;
+			g = pixels[index++] & 0xff;
+			r = pixels[index++] & 0xff;
+		}
+
+		@Override
+		int getRed() {
+			return r;
+		}
+
+		@Override
+		int getBlue() {
+			return b;
+		}
+
+		@Override
+		int getGreen() {
+			return g;
 		}
 	}
 }

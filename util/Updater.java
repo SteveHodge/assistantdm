@@ -125,8 +125,19 @@ public class Updater {
 		}
 	}
 
+	private static int sequence = 1;
+
 	// TODO probably should propagate exceptions upwards, and consider wrapping responses in exceptions too
 	public static String updateURL(String dest, byte[] bytes) {
+		if (dest == MAP_IMAGE) {
+			try (FileOutputStream fos = new FileOutputStream(String.format("images\\image%03d.jpg", sequence++))) {
+				fos.write(bytes);
+				fos.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 		HttpURLConnection connection = null;
 		try {
 			// PUT it to the webserver
