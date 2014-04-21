@@ -1,8 +1,8 @@
 package digital_table.controller;
 
 
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -18,8 +18,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+import util.ModuleRegistry;
 import util.XMLUtils;
-import camera.CameraPanel;
 import digital_table.server.TableDisplay;
 
 /*
@@ -27,23 +27,19 @@ import digital_table.server.TableDisplay;
  * One inch grid should be 25.4/0.294 pixels (86.395)
  */
 
-public class DigitalTableController {
+public class DigitalTableController implements DigitalTableModule {
 	TableDisplay display;
-	CameraPanel camera;
 	ControllerFrame controller = null;
 
 	public DigitalTableController() {
 		openRemote("corto");
 		//		this("wintermute");
+		ModuleRegistry.register(DigitalTableModule.class, this);
 	}
 
 	public DigitalTableController(String server) {
 		openRemote(server);
-	}
-
-	public DigitalTableController(String server, CameraPanel camera) {
-		this.camera = camera;
-		openRemote(server);
+		ModuleRegistry.register(DigitalTableModule.class, this);
 	}
 
 	public boolean isOpen() {
@@ -63,23 +59,11 @@ public class DigitalTableController {
 		if (display != null) {
 			Platform.setImplicitExit(false);
 			final MonitorConfigFrame f = new MonitorConfigFrame(display);
-			f.addWindowListener(new WindowListener() {
+			f.addWindowListener(new WindowAdapter() {
 				@Override
-				public void windowClosed(WindowEvent arg0) {
+				public void windowClosed(WindowEvent e) {
 					if (f.openScreens) openScreens(f);
 				}
-				@Override
-				public void windowActivated(WindowEvent arg0) {}
-				@Override
-				public void windowClosing(WindowEvent arg0) {}
-				@Override
-				public void windowDeactivated(WindowEvent arg0) {}
-				@Override
-				public void windowDeiconified(WindowEvent arg0) {}
-				@Override
-				public void windowIconified(WindowEvent arg0) {}
-				@Override
-				public void windowOpened(WindowEvent arg0) {}
 			});
 		}
 	}
@@ -131,24 +115,12 @@ public class DigitalTableController {
 					e.printStackTrace();
 				}
 			}
-			controller = new ControllerFrame(display, camera);
-			controller.addWindowListener(new WindowListener() {
+			controller = new ControllerFrame(display);
+			controller.addWindowListener(new WindowAdapter() {
 				@Override
-				public void windowClosed(WindowEvent arg0) {
+				public void windowClosed(WindowEvent e) {
 					quit();
 				}
-				@Override
-				public void windowActivated(WindowEvent arg0) {}
-				@Override
-				public void windowClosing(WindowEvent arg0) {}
-				@Override
-				public void windowDeactivated(WindowEvent arg0) {}
-				@Override
-				public void windowDeiconified(WindowEvent arg0) {}
-				@Override
-				public void windowIconified(WindowEvent arg0) {}
-				@Override
-				public void windowOpened(WindowEvent arg0) {}
 			});
 			if (dom != null) controller.parseDOM(dom.getDocumentElement());
 		} catch (RemoteException e) {
@@ -167,5 +139,20 @@ public class DigitalTableController {
 		}
 
 		new DigitalTableController();
+	}
+
+	@Override
+	public void moduleExit() {
+		close();
+	}
+
+	@Override
+	public void setCalibrateDisplay(boolean show) {
+		if (controller != null) controller.setCalibrateDisplay(show);
+	}
+
+	@Override
+	public void updateOverlay(int width, int height) {
+		if (controller != null) controller.updateOverlay(width, height);
 	}
 }

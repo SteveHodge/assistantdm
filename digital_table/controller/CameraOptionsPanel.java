@@ -14,7 +14,7 @@ import javax.swing.JSlider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import camera.CameraPanel;
+import camera.CameraModule;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
@@ -26,10 +26,10 @@ import digital_table.elements.MapImage;
 @SuppressWarnings("serial")
 class CameraOptionsPanel extends OptionsPanel<MapImage> {
 	private JSlider alphaSlider;
-	private CameraPanel camera;
+	private CameraModule camera;
 	private JCheckBox visibleCheck;
 
-	CameraOptionsPanel(MapElement parent, DisplayManager r, CameraPanel cam) {
+	CameraOptionsPanel(MapElement parent, DisplayManager r, CameraModule cam) {
 		super(r);
 		element = new MapImage("Camera");
 		element.setProperty(MapImage.PROPERTY_ROTATIONS, 1);

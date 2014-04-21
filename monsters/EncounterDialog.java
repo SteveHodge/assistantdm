@@ -50,10 +50,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import util.ModuleRegistry;
 import util.XMLUtils;
-
-import combat.CombatPanel;
-
+import combat.EncounterModule;
+import combat.MonsterCombatEntry;
 import digital_table.controller.ControllerFrame;
 
 //TODO should keep a map of Field to DetailPanel so we can update them automatically and select the right one more easily
@@ -331,9 +331,11 @@ public class EncounterDialog extends JFrame {
 	private final ActionListener addToCombatButtonListener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
+			EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
+
 			for (int i = 0; i < monsterListModel.getSize(); i++) {
 				Creature m = monsterListModel.getElementAt(i);
-				CombatPanel.addMonster(m);
+				enc.getInitiativeListModel().addEntry(new MonsterCombatEntry(m));
 			}
 		}
 	};
@@ -361,11 +363,12 @@ public class EncounterDialog extends JFrame {
 		if (dom != null) {
 //				Element displayEl = null;
 			NodeList nodes = dom.getDocumentElement().getChildNodes();
+			EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
 			for (int i = 0; i < nodes.getLength(); i++) {
 				Node node = nodes.item(i);
 				if (node.getNodeName().equals("Elements")) {
 //						displayEl = (Element) node;
-				} else if (node.getNodeName().equals("Creatures") && CombatPanel.getCombatPanel() != null) {
+				} else if (node.getNodeName().equals("Creatures") && enc != null) {
 					NodeList children = node.getChildNodes();
 					for (int j = 0; j < children.getLength(); j++) {
 						if (children.item(j).getNodeName().equals("Monster")) {

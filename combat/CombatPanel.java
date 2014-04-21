@@ -42,6 +42,7 @@ import party.Character;
 import party.Party;
 import swing.ReorderableList;
 import swing.SpinnerCellEditor;
+import util.ModuleRegistry;
 import util.Updater;
 import util.XMLUtils;
 
@@ -49,9 +50,7 @@ import util.XMLUtils;
 // TODO provide events when the combat state changes (round or initiative list), then file updater can just register as listener
 
 @SuppressWarnings("serial")
-public class CombatPanel extends JPanel {
-	private static CombatPanel combatPanel;
-
+public class CombatPanel extends JPanel implements EncounterModule {
 	private Party party;
 	private InitiativeListModel initiativeListModel;
 	private EffectTableModel effectsTableModel;
@@ -59,17 +58,12 @@ public class CombatPanel extends JPanel {
 	private JLabel roundsLabel;
 	private List<InitiativeListener> listeners = new ArrayList<>();
 
-	// TODO need to remove this static instance
-	public static CombatPanel getCombatPanel() {
-		return combatPanel;
-	}
-
+	@Override
 	public InitiativeListModel getInitiativeListModel() {
 		return initiativeListModel;
 	}
 
 	public CombatPanel(Party p) {
-		combatPanel = this;
 		party = p;
 
 		initiativeListModel = new InitiativeListModel(party);
@@ -186,6 +180,8 @@ public class CombatPanel extends JPanel {
 		setLayout(new BorderLayout());
 		add(topPanel, BorderLayout.NORTH);
 		add(splitPane, BorderLayout.CENTER);
+
+		ModuleRegistry.register(EncounterModule.class, this);
 	}
 
 	private String lastInitiativeOutput = "";
@@ -202,6 +198,7 @@ public class CombatPanel extends JPanel {
 		}
 	}
 
+	@Override
 	public void addInitiativeListener(InitiativeListener l) {
 		listeners.add(l);
 		l.initiativeUpdated(lastInitiativeOutput);
@@ -214,10 +211,6 @@ public class CombatPanel extends JPanel {
 //	private String getCharacterName(int index) {
 //		return party.get(index).getName();
 //	}
-
-	public static void addMonster(Creature m) {
-		combatPanel.initiativeListModel.addEntry(new MonsterCombatEntry(m));
-	}
 
 	public void parseXML(File xmlFile) {
 		System.out.println("Parsing " + xmlFile);
@@ -260,6 +253,7 @@ public class CombatPanel extends JPanel {
 		return el;
 	}
 
+	@Override
 	public Map<Integer, Creature> getCharacterIDMap() {
 		Map<Integer, Creature> idMap = new HashMap<>();
 		for (int i = 0; i < initiativeListModel.getSize(); i++) {
@@ -272,6 +266,7 @@ public class CombatPanel extends JPanel {
 		return idMap;
 	}
 
+	@Override
 	public Map<Integer, Creature> getIDMap() {
 		Map<Integer, Creature> idMap = new HashMap<>();
 		for (int i = 0; i < initiativeListModel.getSize(); i++) {
@@ -279,5 +274,11 @@ public class CombatPanel extends JPanel {
 			if (!c.blank) idMap.put(c.creature.getID(), c.creature);
 		}
 		return idMap;
+	}
+
+	@Override
+	public void moduleExit() {
+		// TODO Auto-generated method stub
+
 	}
 }

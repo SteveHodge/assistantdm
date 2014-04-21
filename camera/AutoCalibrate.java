@@ -25,6 +25,7 @@ public class AutoCalibrate {
 
 		List<Region> regions = Region.findRegions(source);
 		Region.writeOutput(source, regions, regionsFilename);
+		Region.filterRegions(regions);
 		return getPoints(regions);
 	}
 

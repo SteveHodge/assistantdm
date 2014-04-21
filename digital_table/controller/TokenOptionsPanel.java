@@ -33,10 +33,10 @@ import javax.swing.event.ListDataListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import util.ModuleRegistry;
 import combat.CombatEntry;
-import combat.CombatPanel;
+import combat.EncounterModule;
 import combat.InitiativeListModel;
-
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
@@ -117,8 +117,9 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			display.setProperty(element, Token.PROPERTY_SPACE, newSpace);
 		});
 
-		if (CombatPanel.getCombatPanel() != null) {
-			ComboBoxModel<Creature> m = new CreatureListModel(CombatPanel.getCombatPanel().getInitiativeListModel());
+		EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
+		if (enc != null) {
+			ComboBoxModel<Creature> m = new CreatureListModel(enc.getInitiativeListModel());
 			creatureCombo = new JComboBox<>(m);
 		}
 
@@ -139,8 +140,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		deadButton = new JButton("Replace with corpse");
 		deadButton.addActionListener(e -> {
-			int x = (Integer) element.getProperty(Group.PROPERTY_X);
-			int y = (Integer) element.getProperty(Group.PROPERTY_Y);
+			int x = ((Double) element.getProperty(Group.PROPERTY_X)).intValue();
+			int y = ((Double) element.getProperty(Group.PROPERTY_Y)).intValue();
 			int cells = ((Integer) element.getProperty(Token.PROPERTY_SPACE)) / 10;
 			if (cells < 1) cells = 1;
 			frame.replaceToken(TokenOptionsPanel.this, x, y, cells, cells, visibleCheck.isSelected());
@@ -201,7 +202,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.gridy = GridBagConstraints.RELATIVE;
 		add(new JLabel("Remote Label:"), c);
 		add(new JLabel("Web Label:"), c);
-		if (CombatPanel.getCombatPanel() != null) {
+		if (enc != null) {
 			add(new JLabel("For:"), c);
 		}
 		add(new JLabel("Status Display:"), c);
@@ -229,7 +230,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.gridwidth = 1;
 		add(webLabelField, c);
 		c.gridwidth = 2;
-		if (CombatPanel.getCombatPanel() != null) {
+		if (enc != null) {
 			add(creatureCombo, c);
 		}
 		add(statusDisplayCombo, c);
@@ -639,7 +640,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		setAttribute(e, REMOTE_PREFIX + Token.PROPERTY_SHOWREACH, remoteReach.isSelected());
 		if (webLabelField.getText().length() > 0) setAttribute(e, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText());
 		if (imageFile != null) setAttribute(e, FILE_ATTRIBUTE_NAME, imageFile.getPath());
-		if (CombatPanel.getCombatPanel() != null) {
+		EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
+		if (enc != null) {
 			Creature c = (Creature) creatureCombo.getSelectedItem();
 			if (c != null) e.setAttribute(CREATURE_ID, Integer.toString(c.getID()));
 		}
@@ -660,7 +662,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		if (CombatPanel.getCombatPanel() != null) {
+		EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
+		if (enc != null) {
 			String idStr = e.getAttribute(CREATURE_ID);
 			if (idStr.length() > 0) {
 //				Creature c = Creature.getCreature(Integer.parseInt(idStr));

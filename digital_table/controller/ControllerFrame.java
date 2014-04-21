@@ -64,13 +64,15 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import util.ModuleRegistry;
 import util.XMLUtils;
-import camera.CameraPanel;
+import camera.CameraModule;
 
-import combat.CombatPanel;
+import combat.EncounterModule;
 import combat.MonsterCombatEntry;
 
 import digital_table.controller.DisplayManager.Mode;
+import digital_table.elements.Calibrate;
 import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
@@ -90,26 +92,24 @@ public class ControllerFrame extends JFrame {
 	private DisplayManager display;
 	private MiniMapCanvas miniMapCanvas = new MiniMapCanvas();
 	private TokenOverlay overlay = null;
-	private CameraPanel camera;
+	private CameraModule camera;
 	private JPanel elementPanel = new JPanel();
 	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<>();
 	private JComboBox<AddElementAction<?>> availableCombo;
 	private JTree elementTree;
 	private GridOptionsPanel gridPanel;
 
-	public ControllerFrame(TableDisplay remote, CameraPanel camera) {
+	public ControllerFrame(TableDisplay remote) {
 		super("DigitalTable Controller");
 
 		instance = this;
 
-		this.camera = camera;
+		this.camera = ModuleRegistry.getModule(CameraModule.class);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		addWindowListener(windowListener);
 
 		overlay = new TokenOverlay();
-		if (camera != null) {
-			camera.setOverlayGenerator(this);
-		} else {
+		if (camera == null) {
 			JFrame overlayFrame = new JFrame("Token Overlay");
 			JPanel overlayPanel = overlay.getPanel();
 			overlayPanel.setPreferredSize(new Dimension(20 * overlay.rows, 20 * overlay.columns));
@@ -760,8 +760,9 @@ public class ControllerFrame extends JFrame {
 
 			if (dom != null) {
 				Map<Integer, Creature> idMap = new HashMap<>();	// map of ids in this file plus characters we've already loaded
-				if (CombatPanel.getCombatPanel() != null) {
-					idMap = CombatPanel.getCombatPanel().getCharacterIDMap();
+				EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
+				if (enc != null) {
+					idMap = enc.getCharacterIDMap();
 				}
 
 				Element displayEl = null;
@@ -770,7 +771,7 @@ public class ControllerFrame extends JFrame {
 					Node node = nodes.item(i);
 					if (node.getNodeName().equals("Elements")) {
 						displayEl = (Element) node;
-					} else if (node.getNodeName().equals("Creatures") && CombatPanel.getCombatPanel() != null) {
+					} else if (node.getNodeName().equals("Creatures") && enc != null) {
 						NodeList children = node.getChildNodes();
 						for (int j = 0; j < children.getLength(); j++) {
 							if (children.item(j).getNodeName().equals("Monster")) {
@@ -779,7 +780,7 @@ public class ControllerFrame extends JFrame {
 								String idStr = ((Element) children.item(j)).getAttribute("id");
 								idMap.put(Integer.parseInt(idStr), m);
 								MonsterCombatEntry mce = new MonsterCombatEntry(m);
-								CombatPanel.getCombatPanel().getInitiativeListModel().addEntry(mce);
+								enc.getInitiativeListModel().addEntry(mce);
 							}
 						}
 					}
@@ -1174,8 +1175,9 @@ public class ControllerFrame extends JFrame {
 		if (!el.getTagName().equals("Elements")) return;
 
 		Map<Integer, Creature> idMap = new HashMap<>();
-		if (CombatPanel.getCombatPanel() != null) {
-			idMap = CombatPanel.getCombatPanel().getIDMap();
+		EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
+		if (enc != null) {
+			idMap = enc.getIDMap();
 		}
 		parseNode(el, null, idMap);
 		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
@@ -1190,5 +1192,18 @@ public class ControllerFrame extends JFrame {
 
 	public void updateOverlay(int width, int height) {
 		overlay.updateOverlay(width, height);
+	}
+
+	private static Calibrate calibrateElement;
+
+	public void setCalibrateDisplay(boolean show) {
+		if (show && calibrateElement == null) {
+			calibrateElement = new Calibrate();
+			calibrateElement.setProperty(Calibrate.PROPERTY_VISIBLE, MapElement.Visibility.VISIBLE);
+			display.addElement(calibrateElement, null);
+		} else if (!show) {
+			display.removeElement(calibrateElement);
+			calibrateElement = null;
+		}
 	}
 }

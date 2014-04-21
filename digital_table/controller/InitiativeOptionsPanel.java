@@ -17,8 +17,9 @@ import javax.swing.JTextField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import combat.CombatPanel;
+import combat.EncounterModule;
 
+import util.ModuleRegistry;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Initiative;
 import digital_table.elements.Label;
@@ -40,8 +41,9 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 		element = new Initiative();
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
-		if (CombatPanel.getCombatPanel() != null) {
-			CombatPanel.getCombatPanel().addInitiativeListener(text -> display.setProperty(element, Label.PROPERTY_TEXT, text));
+		EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
+		if (enc != null) {
+			enc.addInitiativeListener(text -> display.setProperty(element, Label.PROPERTY_TEXT, text));
 		}
 		element.addPropertyChangeListener(listener);
 

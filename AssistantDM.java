@@ -58,6 +58,7 @@ import ui.SelectDiffsDialog;
 import ui.SelectPartyDialog;
 import ui.UpdateCharacterDialog;
 import ui.XPEntryDialog;
+import util.ModuleRegistry;
 import util.Updater;
 import util.XMLUtils;
 import camera.CameraPanel;
@@ -69,11 +70,17 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ *
  * DONE: Modify Updater to temporarily write sequence of camera images to local disk
  *
- * In Autocalibrate replace source.getRGB() with direct access to the buffer. Should result in a significant speedup. Parallel scanning is probably not worthwhile.
+ * Continue to update for new module system (particularly digital table controller)
+ * Refactor digital table controller code: remote display connection -> display manager, screen setup to display config, ControllerFrame should probably be the module
  * Pre-guess the screen layout
- * Global registry of services - combat, digital_table, camera. plus cleanup interactions
+ * Allow the digital table controller to run without a remote
+ * Threaded remote display communication
+ * Improve camera integration, fix ui for camera panel
+ * Recalibrate display - could be done using screen bounds element
+ * Perhaps make Updater a module
  *
  * Allow setting of DarknessMask and Mask colours
  * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
@@ -93,7 +100,6 @@ import digital_table.controller.DigitalTableController;
  * EncounterDialog: calc encounter level, display CRs
  * Encounterdialog should load/save buffs and maybe DTT selected elements
  * EncounterDialog: allow editing of AC, feats, size, SQ, etc
- * Allow the digital table controller to run without a remote
  * clear all for images. also cleared squares should be translucent on local
  * spell lists webpage
  * class levels
@@ -151,13 +157,10 @@ import digital_table.controller.DigitalTableController;
 /* TODO digital tabletop (dtt) priorities:
  * Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
  * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
- * Threaded remote communication
  * Add colour to the overlay tokens. either indicator of health or settable
  * Consider expanding "selected" support. Would need hierarchy support as with visibility
- * Improve camera integration, fix ui for camera panel
  * Refactor common utility methods into MapElement (e.g. template creation)
  * Alternate button dragging (e.g. resize, non-snapped to grid)
- * Recalibrate - could be done using screen bounds element
  * Auto configure - set defaults according to OS screen layout
  * Make line and spread templates editable?
  * Swarm Token (editable token with replicated painting)
@@ -315,6 +318,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		JComponent panel;
 		combatPanel = new CombatPanel(party);
+
 		File f = new File("combat.xml");
 		if (f.exists()) combatPanel.parseXML(f);
 		tabbedPane.addTab("Combat", null, combatPanel, "Initiative and Combat");
@@ -349,7 +353,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			System.out.println("Caught error: "+e);
 		}
 
-		controller = new DigitalTableController(AssistantDM.tableServer, cameraPanel) {
+		controller = new DigitalTableController(AssistantDM.tableServer) {
 			@Override
 			protected void quit() {
 				close();
@@ -669,9 +673,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		saveParty(file);
 		shopPanel.writeShopsXML("shops.xml");
 		saveCombat();
-		if (cameraPanel != null) cameraPanel.disconnect();
 		Updater.updaterThread.quit();
-		controller.close();
+		ModuleRegistry.exit();
 		System.exit(0);
 	}
 }

@@ -219,6 +219,22 @@ public class SpreadTemplate extends MapElement {
 
 	protected Area getVerticalQuadrant(int ydir) {
 		Area area = new Area();
+
+		if (radius.getValue() < 4) {
+			//special case for small cardinal quadrants
+			for (int j = 0; j < radius.getValue(); j++) {
+				for (int i = 0; i < 3; i++) {
+					if (j > 0 || i == 1) {
+						int gridy = ydir * j + y.getValue();
+						int gridx = i + x.getValue() - 1;
+						if (ydir == 1) gridx--;
+						area.add(new Area(getRectangle(gridx, gridy, gridx + 1, gridy + ydir)));
+					}
+				}
+			}
+			return area;
+		}
+
 		if (affected == null) calculateSpread();
 		for (int i = 0; i < radius.getValue(); i++) {
 			for (int j = 0; j < radius.getValue(); j++) {
@@ -234,6 +250,22 @@ public class SpreadTemplate extends MapElement {
 
 	protected Area getHorizontalQuadrant(int xdir) {
 		Area area = new Area();
+
+		if (radius.getValue() < 4) {
+			//special case for small cardinal quadrants
+			for (int i = 0; i < radius.getValue(); i++) {
+				for (int j = 0; j < 3; j++) {
+					if (i > 0 || j == 1) {
+						int gridx = xdir * i + x.getValue();
+						int gridy = j + y.getValue() - 1;
+						if (xdir == -1) gridy--;
+						area.add(new Area(getRectangle(gridx, gridy, gridx + xdir, gridy + 1)));
+					}
+				}
+			}
+			return area;
+		}
+
 		if (affected == null) calculateSpread();
 		for (int i = 0; i < radius.getValue(); i++) {
 			for (int j = 0; j < radius.getValue(); j++) {
