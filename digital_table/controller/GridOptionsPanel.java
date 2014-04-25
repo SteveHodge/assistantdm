@@ -27,10 +27,7 @@ import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 class GridOptionsPanel extends OptionsPanel<Grid> {
-	private JTextField rulerRowField;
-	private JTextField rulerColumnField;
 	private JPanel colorPanel;
-	private JPanel bgColorPanel;
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
 
@@ -44,9 +41,6 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		element = new Grid();
 		display.addElement(element, null);
 		element.addPropertyChangeListener(listener);
-
-		rulerRowField = createNullableIntegerControl(Grid.PROPERTY_RULER_ROW, Mode.REMOTE);
-		rulerColumnField = createNullableIntegerControl(Grid.PROPERTY_RULER_COLUMN, Mode.REMOTE);
 
 		xOffsetField = new JTextField(8);
 		xOffsetField.setText("0");
@@ -65,12 +59,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 			canvas.setOffset(canvas.getXOffset(), canvas.getYOffset() + delta);
 		});
 
-		// set local options
-		element.setProperty(Grid.PROPERTY_RULER_COLUMN, 0);
-		element.setProperty(Grid.PROPERTY_RULER_ROW, 0);
-
 		colorPanel = createColorControl(Grid.PROPERTY_COLOR);
-		bgColorPanel = createColorControl(Grid.PROPERTY_BACKGROUND_COLOR);
 		alphaSlider = createSliderControl(Grid.PROPERTY_ALPHA);
 
 		visibleCheck = createVisibilityControl();
@@ -99,10 +88,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		add(visibleCheck, c);
-		add(new JLabel("Ruler Row:"), c);
-		add(new JLabel("Ruler Column:"), c);
 		add(new JLabel("Colour:"), c);
-		add(new JLabel("Background:"), c);
 		add(new JLabel("Transparency:"), c);
 		c.gridy = 7;	// leave a gap for the separator
 		add(new JLabel("X Offset:"), c);
@@ -112,11 +98,8 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 1;
-		add(rulerRowField, c);
-		c.gridy = GridBagConstraints.RELATIVE;
-		add(rulerColumnField, c);
 		add(colorPanel, c);
-		add(bgColorPanel, c);
+		c.gridy = GridBagConstraints.RELATIVE;
 		add(alphaSlider, c);
 		c.gridy = 7;
 		add(xOffsetField, c);
@@ -133,17 +116,6 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
 		add(new JPanel(), c);
-	}
-
-	private JTextField createNullableIntegerControl(final String property, final Mode mode) {
-		final JTextField field = new JTextField(8);
-		if (element.getProperty(property) != null) field.setText("" + element.getProperty(property));
-		field.addActionListener(e -> {
-			Integer newValue = null;
-			if (field.getText().length() > 0) newValue = Integer.parseInt(field.getText());
-			display.setProperty(element, property, newValue, mode);
-		});
-		return field;
 	}
 
 	void setRemoteOffset(int x, int y) {
@@ -164,17 +136,6 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 			} else if (e.getPropertyName().equals(Grid.PROPERTY_COLOR)) {
 				colorPanel.setBackground((Color)e.getNewValue());
 
-			} else if (e.getPropertyName().equals(Grid.PROPERTY_BACKGROUND_COLOR)) {
-				bgColorPanel.setBackground((Color)e.getNewValue());
-
-			} else if (e.getPropertyName().equals(Grid.PROPERTY_RULER_ROW)) {
-				// don't care about local changes:
-//				rulerRowField.setText(e.getNewValue().toString());
-
-			} else if (e.getPropertyName().equals(Grid.PROPERTY_RULER_COLUMN)) {
-				// don't care about local changes:
-//				rulerColumnField.setText(e.getNewValue().toString());
-
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}
@@ -191,8 +152,6 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		Element e = doc.createElement(XML_TAG);
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
-		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_ROW, rulerRowField.getText());
-		setAttribute(e, REMOTE_PREFIX + Grid.PROPERTY_RULER_COLUMN, rulerColumnField.getText());
 		setAttribute(e, X_OFFSET_ATTRIBUTE, Integer.toString(display.getXOffset()));
 		setAttribute(e, Y_OFFSET_ATTRIBUTE, Integer.toString(display.getYOffset()));
 		return e;
@@ -203,11 +162,8 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
 		parseColorAttribute(Grid.PROPERTY_COLOR, e, Mode.ALL);
-		parseColorAttribute(Grid.PROPERTY_BACKGROUND_COLOR, e, Mode.ALL);
 		parseFloatAttribute(Grid.PROPERTY_ALPHA, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
-		parseIntegerAttribute(Grid.PROPERTY_RULER_ROW, e, rulerRowField);
-		parseIntegerAttribute(Grid.PROPERTY_RULER_COLUMN, e, rulerColumnField);
 		String xoff = e.getAttribute(X_OFFSET_ATTRIBUTE);
 		String yoff = e.getAttribute(Y_OFFSET_ATTRIBUTE);
 		int xoffset = 0;

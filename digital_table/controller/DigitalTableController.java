@@ -150,9 +150,4 @@ public class DigitalTableController implements DigitalTableModule {
 	public void setCalibrateDisplay(boolean show) {
 		if (controller != null) controller.setCalibrateDisplay(show);
 	}
-
-	@Override
-	public void updateOverlay(int width, int height) {
-		if (controller != null) controller.updateOverlay(width, height);
-	}
 }

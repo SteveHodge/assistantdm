@@ -22,6 +22,7 @@ import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
 
 // TODO save latest image when saving?
+// TODO can implement autoupdate now
 
 @SuppressWarnings("serial")
 class CameraOptionsPanel extends OptionsPanel<MapImage> {
@@ -50,7 +51,7 @@ class CameraOptionsPanel extends OptionsPanel<MapImage> {
 
 		JButton updateButton = new JButton("Update");
 		updateButton.addActionListener(arg0 -> {
-			byte[] bytes = camera.getLatestCorrectedImage();
+			byte[] bytes = camera.getLatestCorrectedJPEG();
 			display.setProperty(element, MapImage.PROPERTY_IMAGE, bytes);
 			display.setProperty(element, MapImage.PROPERTY_WIDTH, 32.0d);
 			display.setProperty(element, MapImage.PROPERTY_HEIGHT, 39.0d);

@@ -61,6 +61,7 @@ import ui.XPEntryDialog;
 import util.ModuleRegistry;
 import util.Updater;
 import util.XMLUtils;
+import camera.Camera;
 import camera.CameraPanel;
 
 import combat.CombatPanel;
@@ -78,9 +79,9 @@ import digital_table.controller.DigitalTableController;
  * Pre-guess the screen layout
  * Allow the digital table controller to run without a remote
  * Threaded remote display communication
- * Improve camera integration, fix ui for camera panel
  * Recalibrate display - could be done using screen bounds element
  * Perhaps make Updater a module
+ * Clean up CameraPanel layout
  *
  * Allow setting of DarknessMask and Mask colours
  * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
@@ -347,7 +348,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		tabbedPane.addTab("Random Magic", null, panel, "Generate Random Magic Items");
 
 		try {
-			cameraPanel = new CameraPanel();
+			Camera camera = new Camera();
+			cameraPanel = new CameraPanel(camera);
 			tabbedPane.addTab("Camera", null, cameraPanel, "Camera Remote Image Capture");
 		} catch (UnsatisfiedLinkError e) {
 			System.out.println("Caught error: "+e);

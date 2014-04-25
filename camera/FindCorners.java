@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 import camera.AutoCalibrate.Region;
 
 public class FindCorners {
-	static String filename = "D:\\Work\\_assisstants\\calibrate\\20140411.png";
+	static String filename = "D:\\Work\\_assisstants\\calibrate\\20140417.png";
 	static String regionsname = "D:\\Work\\_assisstants\\calibrate\\regions.png";
 	static String outname = "D:\\Work\\_assisstants\\calibrate\\output.png";
 
@@ -40,7 +40,8 @@ public class FindCorners {
 			System.out.println(r);
 		}
 
-		Point[] points = AutoCalibrate.getPoints(regions);
+		Point[] points = AutoCalibrate.calibrate(source);
+//		Point[] points = AutoCalibrate.getPoints(regions);
 		if (points != null) {
 			for (Point p : points) {
 				System.out.println(p);

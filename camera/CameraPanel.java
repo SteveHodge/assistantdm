@@ -9,17 +9,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -36,30 +30,29 @@ import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 
 import swing.ImagePanel;
 import util.ModuleListener;
 import util.ModuleRegistry;
-import util.Updater;
-import canon.cdsdk.CDSDK;
 import canon.cdsdk.Constants;
 import canon.cdsdk.Enum;
 import canon.cdsdk.ImageFormat;
 import canon.cdsdk.MaximumZoom;
-import canon.cdsdk.ProgressMonitor;
-import canon.cdsdk.ReleaseEventHandler;
-import canon.cdsdk.ReleaseImageInfo;
-import canon.cdsdk.Source;
-import canon.cdsdk.SourceInfo;
 import digital_table.controller.DigitalTableModule;
 
 // TODO calibrate buttons should be disabled when the camera has not taken a shot
 // TODO may be fixed: controls stop responding if you hit stop during a transfer
 @SuppressWarnings("serial")
-public class CameraPanel extends JPanel implements ActionListener, CameraModule {
+public class CameraPanel extends JPanel implements ActionListener {
+	private Camera camera;
+
 	private long defaultDelay = 60000;
+	private CaptureThread timer;
+	private long lastShot = System.currentTimeMillis();
+	private boolean capturing;		// true while we're waiting for an image to be transferred
+	private boolean captureASAP;	// true if we want a capture to occur as soon as the current image has completed transferring
+
 	private int defaultImageSize = Constants.IMAGE_SIZE_LARGE;
 	private int defaultImageQuality = Constants.COMP_QUALITY_NORMAL;
 	private int defaultWhiteBalance = 0;
@@ -82,26 +75,22 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 
 	private static final String[] WHITE_BALANCE_NAMES = { "Auto", "Daylight", "Cloudy", "Tungsten", "Fluorescent", "Flash" };
 
-	private CaptureThread timer;
-	private long lastShot = System.currentTimeMillis();
+	public CameraPanel(Camera c) {
+		camera = c;
 
-	private CDSDK sdk;
-	private Source source;
-
-	private BufferedImage rawImage = null;
-	private LensCorrection lensCorrect;
-	private Homography H = null;
-	private int remappedWidth;
-	private int remappedHeight;
-	private byte[] lastCorrectedImage = null;
-
-	public CameraPanel() {
-		sdk = new CDSDK();
-		sdk.open();
 		timer = new CaptureThread(defaultDelay);
+
 		createAndShowGUI();
-		connect(true);
-		ModuleRegistry.register(CameraModule.class, this);
+		camera.addCameraModuleListener(cameraListener);
+		try {
+			// if the connect succeeds we'll be notified via the cameraListener
+			camera.connect();
+		} catch (CameraNotFoundException ex) {
+			logMessage("No camera was found");
+		} catch (Exception ex) {
+			logMessage("Exception connecting to camera: " + ex.getMessage());
+			//ex.printStackTrace();
+		}
 		ModuleRegistry.addModuleListener(DigitalTableModule.class, new ModuleListener<DigitalTableModule>() {
 			@Override
 			public void moduleRegistered(DigitalTableModule module) {
@@ -114,14 +103,66 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 				calibrateButton.setVisible(false);
 //				System.out.println("DigitalTable controller lost");
 			}
-
 		});
 	}
 
-	@Override
-	public byte[] getLatestCorrectedImage() {
-		return lastCorrectedImage;
-	}
+	private final CameraModuleListener cameraListener = new CameraModuleListener() {
+		@Override
+		public void imageCaptured(BufferedImage image, long size, Exception ex, String updateMsg) {
+			if (updateMsg != null) logMessage(updateMsg);
+
+			if (ex != null) {
+				logMessage("Exception transferring image: " + ex.getMessage());
+
+			} else {
+				imagePanel.setImage(image);
+				Date date = new Date(lastShot);
+				DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				final String logMsg = format.format(date) + ": " + size + " bytes (" + image.getWidth() + "x" + image.getHeight() + ")";
+				logMessage(logMsg);
+				manualButton.setEnabled(true);
+			}
+
+			capturing = false;
+			if (captureASAP) capture();
+		}
+
+		@Override
+		public void cameraDisconnected() {
+			timer.stopCapture();	// TODO if this does wait for capture to finish, should we?
+			setControls(false);
+			startStop.setText("Start");
+		}
+
+		@Override
+		public void cameraConnected(String name) {
+			logMessage("Found " + name);
+			getCameraOptions();
+			setControls(true);
+		}
+
+		@Override
+		public void cameraError(int error) {
+			logMessage("errorOccured(" + error + ")");
+		}
+
+		@Override
+		public void homographyChanged(Exception ex) {
+			if (ex != null) {
+				SwingUtilities.invokeLater(() -> {
+					JOptionPane.showMessageDialog(CameraPanel.this,
+							"Autocalibrate failed to find the calibration marks.\nPlease manually calibrate.",
+							"Autocalibrate Failed",
+							JOptionPane.ERROR_MESSAGE);
+				});
+			} else {
+				applyRemap.setEnabled(true);
+				applyRemap.setSelected(true);
+
+				imagePanel.setImage(camera.getLastImage(true, true));
+			}
+		}
+	};
 
 	private void createAndShowGUI() {
 		setLayout(new BorderLayout());
@@ -136,9 +177,26 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 
 		JPanel buttons = new JPanel();
 		connectButton = new JButton("Connect");
-		connectButton.addActionListener(e -> connect());
+		connectButton.addActionListener(e -> {
+			try {
+				// if the connect succeeds we'll be notified via the cameraListener
+				camera.connect();
+			} catch (CameraNotFoundException ex) {
+				logMessage("No camera was found");
+				JOptionPane.showOptionDialog(null, "No camera was found", "Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+			} catch (Exception ex) {
+				logMessage("Exception connecting to camera: " + ex.getMessage());
+				//ex.printStackTrace();
+			}
+		});
 		calibrateButton = new JButton("Autocalibrate");
-		calibrateButton.addActionListener(e -> autoCalibrate());
+		calibrateButton.addActionListener(e -> {
+			try {
+				camera.autoCalibrate();
+			} catch (Exception ex) {
+				logMessage("Exception taking calibration shot: " + ex.getMessage());
+			}
+		});
 		calibrateButton.setVisible(false);
 		calibrateButton.setEnabled(false);
 		manualButton = new JButton("Manually Calibrate");
@@ -155,6 +213,7 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		capture = new JButton("Capture");
 		capture.addActionListener(e -> {
 			capture();
+
 			if (timer.isRunning()) {
 				timer.reschedule();
 			}
@@ -177,7 +236,7 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		controls.add(buttons);
 
 		frequencyField = new JFormattedTextField();
-		frequencyField.setValue(new Integer((int) (defaultDelay/1000)));
+		frequencyField.setValue(new Integer((int) (defaultDelay / 1000)));
 		frequencyField.setColumns(5);
 		frequencyField.addPropertyChangeListener("value", e -> {
 			Object source = e.getSource();
@@ -208,9 +267,9 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 			JSlider slider = (JSlider) e.getSource();
 			if (!slider.getValueIsAdjusting()) {
 				//System.out.println("Setting zoom to "+slider.getValue());
-				source.setZoomPosition(slider.getValue());
+				camera.source.setZoomPosition(slider.getValue());
 				// set AF lock if it should be set (changing the zoom will unset it)
-				if (focusLockCheck.isSelected()) source.setAFLock(true);
+				if (focusLockCheck.isSelected()) camera.source.setAFLock(true);
 			}
 		});
 		controls.add(zoomSlider);
@@ -227,7 +286,7 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		focusLockCheck.addItemListener(e -> {
 			if (e.getSource() == focusLockCheck) {
 				//System.out.println("Autofocus locked? "+focusLockCheck.isSelected());
-				source.setAFLock(focusLockCheck.isSelected());
+				camera.source.setAFLock(focusLockCheck.isSelected());
 			}
 		});
 		controls.add(focusLockCheck);
@@ -240,14 +299,18 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		whiteBalanceCombo.addActionListener(this);
 		controls.add(whiteBalanceCombo);
 
-		// TODO toggling should immediately affect the image
 		lensCorrection = new JCheckBox("Apply Lens Correction");
 		lensCorrection.setSelected(true);
+		lensCorrection.addItemListener(e -> {
+			imagePanel.setImage(camera.getLastImage(lensCorrection.isSelected(), applyRemap.isSelected()));
+		});
 		controls.add(lensCorrection);
 
-		// TODO toggling should immediately affect the image
 		applyRemap = new JCheckBox("Remap Image");
 		applyRemap.setEnabled(false);
+		applyRemap.addItemListener(e -> {
+			imagePanel.setImage(camera.getLastImage(lensCorrection.isSelected(), applyRemap.isSelected()));
+		});
 		controls.add(applyRemap);
 
 		logArea = new JTextArea(20,40);
@@ -269,6 +332,31 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		SwingUtilities.invokeLater(() -> logArea.append(logMsg + "\n"));
 	}
 
+	private void capture() {
+		if (capturing) {
+			captureASAP = true;		// request capture as soon as this one is complete
+			return;
+		}
+		captureASAP = false;
+		capturing = true;
+		double secs = (System.currentTimeMillis() - lastShot) / 1000.0;
+		lastShot = System.currentTimeMillis();
+		logMessage("" + secs + "s since last shot");
+		progressBar.setMinimum(0);
+		progressBar.setMaximum(100);
+		progressBar.setValue(0);
+		try {
+			camera.capture(lensCorrection.isSelected(), applyRemap.isSelected(), evt -> {
+				if ("progress".equals(evt.getPropertyName())) {
+					progressBar.setValue((Integer) evt.getNewValue());
+				}
+			});
+		} catch (CameraNotConnectedException e) {
+			logMessage(e.getMessage());
+//			e.printStackTrace();
+		}
+	}
+
 	private void setControls(boolean active) {
 		capture.setEnabled(active);
 		startStop.setEnabled(active);
@@ -277,63 +365,27 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		focusLockCheck.setEnabled(active);
 		frequencyField.setEnabled(active);
 		whiteBalanceCombo.setEnabled(active);
-		manualButton.setEnabled(active && rawImage != null);
+		manualButton.setEnabled(active && camera.getLastImage(false, false) != null);
 		calibrateButton.setEnabled(active);
 
 		connectButton.setEnabled(!active);
 	}
 
-	private void connect() {
-		connect(false);
-	}
-
-	private void connect(boolean noWarning) {
-		try {
-			Enum<SourceInfo> handle = sdk.getDeviceEnum();
-			int count = handle.getCount();
-			//System.out.println("Device Count = "+count);
-
-			if (count > 0) {
-				SourceInfo info = handle.next();
-				logMessage("Found "+info.name);
-				//System.out.println("  Type = "+info.type+", Name = "+info.name+", OS Name = "+info.osName);
-
-				source = Source.open(info);
-				//System.out.println("Handle = "+source);
-
-				source.enterReleaseControl(releaseListener);
-				getCameraOptions();
-				setControls(true);
-
-				handle.release();
-
-			} else {
-				logMessage("No camera was found");
-				if (!noWarning){
-					JOptionPane.showOptionDialog(null, "No camera was found", "Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
-				}
-			}
-		} catch (Exception e) {
-			logMessage("Exception connecting to camera: "+e.getMessage());
-			//e.printStackTrace();
-			disconnect();
-		}
-	}
 
 	private void getCameraOptions() {
 		// Zooms
-		MaximumZoom max = source.getMaximumZoom();
+		MaximumZoom max = camera.source.getMaximumZoom();
 		zoomSlider.setMaximum(max.maximumZoom);
 		zoomSlider.setMinorTickSpacing(1);
 		zoomSlider.setMajorTickSpacing(max.maximumOpticalZoom);
-		zoomSlider.setValue(source.getZoomPosition());
+		zoomSlider.setValue(camera.source.getZoomPosition());
 
 		// Image formats
 		// removing all existing items will trigger an ActionEvent which would cause the camera option to be updated (to an invalid
 		// option) so we temporarily suspend ActionEvent processing while we rebuild the list
 		imageFormatCombo.removeActionListener(this);
 		imageFormatCombo.removeAllItems();
-		Enum<ImageFormat> formats = source.getImageFormatEnum();
+		Enum<ImageFormat> formats = camera.source.getImageFormatEnum();
 		boolean foundDefault = false;
 		for (int i=0; i<formats.getCount(); i++) {
 			ImageFormat f = formats.next();
@@ -343,15 +395,15 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		}
 		formats.release();
 		imageFormatCombo.addActionListener(this);
-		if (foundDefault) source.setImageFormat(defaultImageQuality, defaultImageSize);
-		imageFormatCombo.setSelectedItem(new ImageFormatOption(source.getImageFormat()));
+		if (foundDefault) camera.source.setImageFormat(defaultImageQuality, defaultImageSize);
+		imageFormatCombo.setSelectedItem(new ImageFormatOption(camera.source.getImageFormat()));
 
 		// White balance
 		// removing all existing items will trigger an ActionEvent which would cause the camera option to be updated (to an invalid
 		// option) so we temporarily suspend ActionEvent processing while we rebuild the list
 		whiteBalanceCombo.removeActionListener(this);
 		whiteBalanceCombo.removeAllItems();
-		Enum<Integer> modes = source.getWhiteBalanceEnum();
+		Enum<Integer> modes = camera.source.getWhiteBalanceEnum();
 		foundDefault = false;
 		for (int i=0; i<modes.getCount(); i++) {
 			int wb = modes.next();
@@ -362,125 +414,14 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		}
 		modes.release();
 		whiteBalanceCombo.addActionListener(this);
-		if (foundDefault) source.setWhiteBalance(defaultWhiteBalance);
-		whiteBalanceCombo.setSelectedIndex(source.getWhiteBalance());
-	}
-
-	public void disconnect() {
-		setControls(false);
-		timer.stopCapture();	// TODO if this does wait for capture to finish, should we?
-		startStop.setText("Start");
-		if (source != null) {
-			try {
-				source.exitReleaseControl();
-			} catch (Exception e) {
-				// don't really have anything to do
-			}
-			source.close();
-			source = null;
-		}
-	}
-
-	private void capture() {
-		if (source == null) {
-			logMessage("Camera not connected");
-			return;
-		}
-		double secs = (System.currentTimeMillis() - lastShot)/1000.0;
-		lastShot = System.currentTimeMillis();
-		logMessage("" + secs + "s since last shot");
-		try {
-			source.setReleaseDataKind(Constants.REL_KIND_PICT_TO_PC);
-			progressBar.setMinimum(0);
-			progressBar.setMaximum(100);
-			progressBar.setValue(0);
-			//Rational mag = source.getDigitalMagnification();
-			//System.out.println("Digital magnification = "+mag.numerator+"/"+mag.denominator);
-			int numData = source.releaseShutter(false, null, 0);
-			//System.out.println("Release resulted in "+numData+" lots of data to pickup");
-
-			for (int i=0; i<numData; i++) {
-				//System.out.println("Data #"+i);
-				ReleaseImageInfo relinfo = source.getReleasedDataInfo(null);
-				if (relinfo.type == Constants.DATA_TYPE_PICTURE) {
-					relinfo = new ReleaseImageInfo();
-					ImageTransfer transfer = new ImageTransfer(relinfo, lastShot);
-					transfer.addPropertyChangeListener(evt -> {
-						if ("progress".equals(evt.getPropertyName())) {
-							progressBar.setValue((Integer) evt.getNewValue());
-						}
-					});
-					transfer.execute();
-				} else {
-					//System.out.println("Not picking up data of type "+relinfo.type);
-				}
-			}
-		} catch(Exception e) {
-			logMessage("Exception taking shot: "+e.getMessage());
-			//e.printStackTrace();
-			disconnect();
-		}
-	}
-
-	private void autoCalibrate() {
-		DigitalTableModule dt = ModuleRegistry.getModule(DigitalTableModule.class);
-		if (dt == null) throw new IllegalStateException("Autocalibrate called with no digital table available");
-
-		dt.setCalibrateDisplay(true);
-
-		try {
-			source.setReleaseDataKind(Constants.REL_KIND_PICT_TO_PC);
-			int numData = source.releaseShutter(false, null, 0);
-
-			for (int i = 0; i < numData; i++) {
-				ReleaseImageInfo relinfo = source.getReleasedDataInfo(null);
-				if (relinfo.type == Constants.DATA_TYPE_PICTURE) {
-					relinfo = new ReleaseImageInfo();
-					CalibrateImageTransfer transfer = new CalibrateImageTransfer(relinfo);
-					transfer.execute();
-				}
-			}
-		} catch (Exception e) {
-			logMessage("Exception taking shot: " + e.getMessage());
-			disconnect();
-		}
-
-		dt.setCalibrateDisplay(false);
-	}
-
-	private void setHomography(Point[] regPoints) {
-		// calculate world-coordinates for the control points based on the distance from point 0 to point 1 (width)
-		// and from point 0 to point 3 (height):
-		double w = regPoints[0].distance(regPoints[1]);
-		double h = regPoints[0].distance(regPoints[3]);
-		double x = w * 2 / 36;
-		double y = h / 30;
-		final Point2D[] worldPoint = new Point2D.Double[4];
-		worldPoint[0] = new Point2D.Double(x, y);
-		worldPoint[1] = new Point2D.Double(x + w, y);
-		worldPoint[2] = new Point2D.Double(x + w, y + h);
-		worldPoint[3] = new Point2D.Double(x, y + h);
-//		for (int i = 0; i < 4; i++) {
-//			System.out.println("world point " + i + ": " + worldPoint[i]);
-//		}
-
-		H = Homography.createHomographySVD(regPoints, worldPoint);
-		remappedWidth = (int) (w * 39 / 36);
-		remappedHeight = (int) (h * 32 / 30);
-
-		applyRemap.setEnabled(true);
-		applyRemap.setSelected(true);
-
-		List<PointRemapper> corrections = new ArrayList<>();
-		corrections.add(lensCorrect);
-		corrections.add(H);
-		if (rawImage != null) {
-			imagePanel.setImage(PixelInterpolator.getImage(corrections, rawImage, remappedWidth, remappedHeight));
-		}
+		if (foundDefault) camera.source.setWhiteBalance(defaultWhiteBalance);
+		whiteBalanceCombo.setSelectedIndex(camera.source.getWhiteBalance());
 	}
 
 	private void manualCalibrate() {
-		if (rawImage == null) {
+		final BufferedImage lensCorrected = camera.getLastImage(true, false);
+
+		if (lensCorrected == null) {
 			JOptionPane.showMessageDialog(this,
 					"Need to take a photo before calibration can occur",
 					"Calibration error",
@@ -489,11 +430,6 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		}
 
 		final Point[] regPoints = new Point[4];
-
-		List<PointRemapper> corrections = new ArrayList<>();
-		// TODO need to set these parameters based on the camera zoom
-		corrections.add(new LensCorrection(-0.007715, 0.026731, 0.000000, rawImage.getWidth(), rawImage.getHeight()));
-		final BufferedImage lensCorrected = PixelInterpolator.getImage(corrections, rawImage, rawImage.getWidth(), rawImage.getHeight());
 
 		final JPanel image = new JPanel() {
 			@Override
@@ -527,7 +463,7 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent arg0) {
-				setHomography(regPoints);
+				camera.setHomography(regPoints);
 			}
 		});
 
@@ -544,204 +480,15 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		frame.setVisible(true);
 	}
 
-// ReleaseEventHandler methods
-	private final ReleaseEventHandler releaseListener = new ReleaseEventHandler() {
-		@Override
-		public void errorOccured(int error) {
-			logMessage("errorOccured(" + error + ")");
-			disconnect();
-		}
-
-		@Override
-		public void parametersChanged() {
-			//System.out.println("parametersChanged()");
-		}
-
-		@Override
-		public void releaseButtonPressed() {
-			//System.out.println("releaseButtonPressed()");
-		}
-
-		@Override
-		public void releaseComplete(int numData) {
-			//System.out.println("releaseComplete("+numData+")");
-		}
-
-		@Override
-		public void releaseStart() {
-			//System.out.println("releaseStart()");
-		}
-
-		@Override
-		public void unknownEvent(int eventID) {
-			//System.out.println("unknownEvent("+eventID+")");
-		}
-
-		@Override
-		public void viewFinderDisabled() {
-			//System.out.println("viewFinderDisabled()");
-		}
-
-		@Override
-		public void viewFinderEnabled() {
-			//System.out.println("viewFinderEnabled()");
-		}
-
-		@Override
-		public void rotationAngleChanged(int angle) {
-			//System.out.println("rotationAngleChanged("+angle+")");
-		}
-	};
-
 // ActionListener methods
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == imageFormatCombo) {
 			ImageFormat f =(ImageFormat)imageFormatCombo.getSelectedItem();
-			source.setImageFormat(f.quality, f.size);
+			camera.source.setImageFormat(f.quality, f.size);
 
 		} else if (e.getSource() == whiteBalanceCombo) {
-			source.setWhiteBalance(whiteBalanceCombo.getSelectedIndex());
-		}
-	}
-
-	private class CalibrateImageTransfer extends SwingWorker<BufferedImage, BufferedImage> implements ProgressMonitor {
-		ReleaseImageInfo relinfo;
-		BufferedImage rawImage;
-		BufferedImage image = null;
-
-		public CalibrateImageTransfer(ReleaseImageInfo ri) {
-			relinfo = ri;
-		}
-
-		@Override
-		protected BufferedImage doInBackground() {
-			try {
-				byte[] buffer = source.getReleasedDataToBuffer(relinfo, this, 3);
-				ByteArrayInputStream is = new ByteArrayInputStream(buffer);
-				rawImage = ImageIO.read(is);
-
-				int width = rawImage.getWidth();
-				int height = rawImage.getHeight();
-				List<PointRemapper> corrections = new ArrayList<>();
-
-				// TODO need to set these parameters based on the camera zoom
-				lensCorrect = new LensCorrection(-0.007715, 0.026731, 0.000000, rawImage.getWidth(), rawImage.getHeight());
-				corrections.add(lensCorrect);
-
-				image = PixelInterpolator.getImage(corrections, rawImage, width, height);
-
-				return image;
-			} catch (Exception e) {
-				logMessage("Exception transferring image: " + e.getMessage());
-				return null;
-			}
-		}
-
-		@Override
-		protected void done() {
-			Point[] points = AutoCalibrate.calibrate(image);
-			if (points != null) {
-				setHomography(points);
-			} else {
-				SwingUtilities.invokeLater(() -> {
-					JOptionPane.showMessageDialog(CameraPanel.this,
-							"Autocalibrate failed to find the calibration marks.\nPlease manually calibrate.",
-							"Autocalibrate Failed",
-							JOptionPane.ERROR_MESSAGE);
-				});
-			}
-		}
-
-//	 ProgressMonitor methods
-		@Override
-		public boolean setProgress(int progress, int status) {
-			return true;
-		}
-	}
-
-	private class ImageTransfer extends SwingWorker<BufferedImage, BufferedImage> implements ProgressMonitor {
-		ReleaseImageInfo relinfo;
-		BufferedImage rawImage;
-		BufferedImage image = null;
-		long shotTime;
-
-		public ImageTransfer(ReleaseImageInfo ri, long millis) {
-			relinfo = ri;
-			shotTime = millis;
-		}
-
-		@Override
-		protected BufferedImage doInBackground() {
-			try {
-				byte[] buffer = source.getReleasedDataToBuffer(relinfo, this, 3);
-				//System.out.println(" Sequence = "+relinfo.sequence);
-				//System.out.println(" Type = "+relinfo.type);
-				//System.out.println(" Format = "+relinfo.format);
-				//System.out.println(" Size = "+relinfo.size);
-				//		System.out.println("Buffer size = "+buffer.length);
-				ByteArrayInputStream is = new ByteArrayInputStream(buffer);
-				rawImage = ImageIO.read(is);
-				lensCorrect = new LensCorrection(-0.007715, 0.026731, 0.000000, rawImage.getWidth(), rawImage.getHeight());
-
-				if (lensCorrection.isSelected() || applyRemap.isSelected()) {
-					int width = rawImage.getWidth();
-					int height = rawImage.getHeight();
-					List<PointRemapper> corrections = new ArrayList<>();
-
-					if (lensCorrection.isSelected()) {
-						// TODO need to set these parameters based on the camera zoom
-						corrections.add(lensCorrect);
-					}
-					if (applyRemap.isSelected()) {
-						width = remappedWidth;
-						height = remappedHeight;
-						corrections.add(H);
-					}
-
-					image = PixelInterpolator.getImage(corrections, rawImage, width, height);
-
-					// rewrite to buffer
-					ByteArrayOutputStream os = new ByteArrayOutputStream();
-					ImageIO.write(image, "JPG", os);
-					buffer = os.toByteArray();
-					lastCorrectedImage = applyRemap.isSelected() ? buffer : null;
-
-					DigitalTableModule dt = ModuleRegistry.getModule(DigitalTableModule.class);
-					if (dt != null) dt.updateOverlay(width, height);
-				} else {
-					image = rawImage;
-				}
-
-				String msg = Updater.updateURL(Updater.MAP_IMAGE, buffer);
-				if (msg != null) logMessage(msg);
-				return image;
-			} catch (Exception e) {
-				logMessage("Exception transferring image: "+e.getMessage());
-				return null;
-			}
-		}
-
-		@Override
-		protected void done() {
-			if (image != null) {
-				//System.out.println("Got image size "+image.getWidth()+"x"+image.getHeight());
-				CameraPanel.this.rawImage = rawImage;
-				imagePanel.setImage(image);
-				Date date = new Date(shotTime);
-				DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				final String logMsg = format.format(date) + ": " +relinfo.size + " bytes (" + image.getWidth()+"x"+image.getHeight()+")";
-				logMessage(logMsg);
-				manualButton.setEnabled(true);
-			}
-		}
-
-//	 ProgressMonitor methods
-		@Override
-		public boolean setProgress(int progress, int status) {
-			//System.out.println("Progress = "+progress+", status = "+status);
-			setProgress(progress);
-			return true;
+			camera.source.setWhiteBalance(whiteBalanceCombo.getSelectedIndex());
 		}
 	}
 
@@ -805,7 +552,7 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 		public void run() {
 			while (alive) {
 				try {
-					synchronized(this) {
+					synchronized (this) {
 						while (!running && alive) {
 							//System.out.println("Not running - waiting until we are");
 							wait();
@@ -818,6 +565,7 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 							//System.out.println("Waiting until next capture is due");
 							wait(nextCaptureTime - currentTime);
 						} else {
+							// TODO might need to check that we are still connected
 							nextCaptureTime = currentTime + delay;
 							//System.out.println("Taking shot");
 							capture();
@@ -828,11 +576,4 @@ public class CameraPanel extends JPanel implements ActionListener, CameraModule 
 			}
 		}
 	}
-
-	@Override
-	public void moduleExit() {
-		disconnect();
-		sdk.close();
-	}
-
-} // class Capture
+}

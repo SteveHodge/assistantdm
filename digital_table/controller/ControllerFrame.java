@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -67,6 +68,7 @@ import org.xml.sax.SAXException;
 import util.ModuleRegistry;
 import util.XMLUtils;
 import camera.CameraModule;
+import camera.CameraModuleListener;
 
 import combat.EncounterModule;
 import combat.MonsterCombatEntry;
@@ -97,7 +99,9 @@ public class ControllerFrame extends JFrame {
 	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<>();
 	private JComboBox<AddElementAction<?>> availableCombo;
 	private JTree elementTree;
+
 	private GridOptionsPanel gridPanel;
+	private GridCoordinatesOptionsPanel gridCoordsPanel;
 
 	public ControllerFrame(TableDisplay remote) {
 		super("DigitalTable Controller");
@@ -109,7 +113,31 @@ public class ControllerFrame extends JFrame {
 		addWindowListener(windowListener);
 
 		overlay = new TokenOverlay();
-		if (camera == null) {
+		if (camera != null) {
+			camera.addCameraModuleListener(new CameraModuleListener() {
+				@Override
+				public void imageCaptured(BufferedImage image, long size, Exception ex, String updateMsg) {
+					overlay.updateOverlay(image.getWidth(), image.getHeight());
+				}
+
+				@Override
+				public void cameraConnected(String name) {
+				}
+
+				@Override
+				public void cameraDisconnected() {
+				}
+
+				@Override
+				public void cameraError(int error) {
+				}
+
+				@Override
+				public void homographyChanged(Exception ex) {
+				}
+
+			});
+		} else {
 			JFrame overlayFrame = new JFrame("Token Overlay");
 			JPanel overlayPanel = overlay.getPanel();
 			overlayPanel.setPreferredSize(new Dimension(20 * overlay.rows, 20 * overlay.columns));
@@ -195,7 +223,7 @@ public class ControllerFrame extends JFrame {
 		JButton removeButton = new JButton("Remove");
 		removeButton.addActionListener(e -> {
 			MapElement element = getSelectedElement();
-			if (element != null && element != gridPanel.getElement()) {
+			if (element != null && element != gridPanel.getElement() && element != gridCoordsPanel.getElement()) {
 				elementPanel.removeAll();
 				elementPanel.revalidate();
 				elementPanel.repaint();
@@ -210,7 +238,7 @@ public class ControllerFrame extends JFrame {
 			Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
 			while (panels.hasNext()) {
 				OptionsPanel<?> panel = panels.next();
-				if (panel != gridPanel
+				if (panel != gridPanel && panel != gridCoordsPanel
 						&& !(panel instanceof BoundsOptionsPanel)
 						&& !(panel instanceof CalibrateOptionsPanel)
 						&& !(panel instanceof InitiativeOptionsPanel)
@@ -224,8 +252,11 @@ public class ControllerFrame extends JFrame {
 			// TODO should remove any empty groups
 			elementPanel.removeAll();
 			elementPanel.add(gridPanel);
+			elementPanel.add(gridCoordsPanel);
 			gridPanel.revalidate();
+			gridCoordsPanel.revalidate();
 			gridPanel.repaint();
+			gridCoordsPanel.repaint();
 			elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
 		});
 
@@ -296,6 +327,8 @@ public class ControllerFrame extends JFrame {
 
 		gridPanel = new GridOptionsPanel(display, miniMapCanvas);
 		optionPanels.put(gridPanel.getElement(), gridPanel);
+		gridCoordsPanel = new GridCoordinatesOptionsPanel(display);
+		optionPanels.put(gridCoordsPanel.getElement(), gridCoordsPanel);
 
 		setVisible(true);
 	}
@@ -1116,6 +1149,8 @@ public class ControllerFrame extends JFrame {
 
 		if (tag.equals(GridOptionsPanel.XML_TAG)) {
 			p = gridPanel;
+		} else if (tag.equals(GridCoordinatesOptionsPanel.XML_TAG)) {
+			p = gridCoordsPanel;
 		} else if (tag.equals(SpreadTemplateOptionsPanel.XML_TAG)) {
 			p = templateAction.addElement(parent);
 		} else if (tag.equals(LineTemplateOptionsPanel.XML_TAG)) {
@@ -1188,10 +1223,6 @@ public class ControllerFrame extends JFrame {
 
 		parseNode(el, null, idMap);
 		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
-	}
-
-	public void updateOverlay(int width, int height) {
-		overlay.updateOverlay(width, height);
 	}
 
 	private static Calibrate calibrateElement;
