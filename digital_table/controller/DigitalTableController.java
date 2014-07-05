@@ -4,19 +4,12 @@ package digital_table.controller;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.IOException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-
-import javafx.application.Platform;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 import util.ModuleRegistry;
 import util.XMLUtils;
@@ -47,25 +40,15 @@ public class DigitalTableController implements DigitalTableModule {
 	}
 
 	public void openRemote(String server) {
-		try {
-			String name = "TableDisplay";
-			Registry registry = LocateRegistry.getRegistry(server);
-			display = (TableDisplay)registry.lookup(name);
-		} catch (Exception e) {
-			System.err.println("TableDisplay exception:" + e.getMessage());
-			//e.printStackTrace();
-		}
+		controller = new ControllerFrame();
+		controller.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent e) {
+				quit();
+			}
+		});
 
-		if (display != null) {
-			Platform.setImplicitExit(false);
-			final MonitorConfigFrame f = new MonitorConfigFrame(display);
-			f.addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosed(WindowEvent e) {
-					if (f.openScreens) openScreens(f);
-				}
-			});
-		}
+		RemoteConnection.attemptConnection(server, controller::setRemote);
 	}
 
 	public void close() {
@@ -91,41 +74,6 @@ public class DigitalTableController implements DigitalTableModule {
 	protected void quit() {
 		close();
 		System.exit(0);
-	}
-
-	private void openScreens(MonitorConfigFrame f) {
-		try {
-			for (int i = 0; i < f.screenNums.length; i++) {
-				if (f.screenNums[i] >= 0) {
-					DisplayConfig.Screen s = DisplayConfig.screens.get(f.screenNums[i]);
-					s.location = DisplayConfig.defaultLocations[i];
-					s.open = true;
-				}
-			}
-			display.showScreens(f.screenNums,DisplayConfig.defaultLocations);
-			File xmlFile = new File("display.xml");
-			Document dom = null;
-			if (xmlFile.exists()) {
-				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-				//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
-				//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
-				try {
-					dom = factory.newDocumentBuilder().parse(xmlFile);
-				} catch (SAXException | IOException | ParserConfigurationException e) {
-					e.printStackTrace();
-				}
-			}
-			controller = new ControllerFrame(display);
-			controller.addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosed(WindowEvent e) {
-					quit();
-				}
-			});
-			if (dom != null) controller.parseDOM(dom.getDocumentElement());
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
 	}
 
 	protected Node getElement(Document doc) {

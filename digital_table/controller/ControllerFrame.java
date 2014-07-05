@@ -83,7 +83,6 @@ import digital_table.elements.MapImage;
 import digital_table.elements.SpreadTemplate;
 import digital_table.elements.Token;
 import digital_table.server.MediaManager;
-import digital_table.server.TableDisplay;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
@@ -94,7 +93,7 @@ public class ControllerFrame extends JFrame {
 	private DisplayManager display;
 	private MiniMapCanvas miniMapCanvas = new MiniMapCanvas();
 	private TokenOverlay overlay = null;
-	private CameraModule camera;
+	private CameraModule camera;	// TODO remove
 	private JPanel elementPanel = new JPanel();
 	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<>();
 	private JComboBox<AddElementAction<?>> availableCombo;
@@ -103,7 +102,7 @@ public class ControllerFrame extends JFrame {
 	private GridOptionsPanel gridPanel;
 	private GridCoordinatesOptionsPanel gridCoordsPanel;
 
-	public ControllerFrame(TableDisplay remote) {
+	public ControllerFrame() {
 		super("DigitalTable Controller");
 
 		instance = this;
@@ -145,7 +144,9 @@ public class ControllerFrame extends JFrame {
 			overlayFrame.pack();
 			overlayFrame.setVisible(true);
 		}
-		display = new DisplayManager(remote, miniMapCanvas, overlay);
+		display = new DisplayManager();
+		display.setLocal(miniMapCanvas);
+		display.setOverlay(overlay);
 		miniMapCanvas.setRemote(display);
 
 		miniMapCanvas.getPanel().addMouseMotionListener(miniMapMouseListener);
@@ -233,32 +234,7 @@ public class ControllerFrame extends JFrame {
 		});
 
 		JButton resetButton = new JButton("Reset");
-		resetButton.addActionListener(e -> {
-			// TODO should traverse the element tree instead of scanning the optionpanels
-			Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
-			while (panels.hasNext()) {
-				OptionsPanel<?> panel = panels.next();
-				if (panel != gridPanel && panel != gridCoordsPanel
-						&& !(panel instanceof BoundsOptionsPanel)
-						&& !(panel instanceof CalibrateOptionsPanel)
-						&& !(panel instanceof InitiativeOptionsPanel)
-						&& !(panel instanceof CameraOptionsPanel)
-						&& !(panel instanceof GroupOptionsPanel)) {
-					// will also want to skip tokens that are bound to characters and descendents of such tokens
-					display.removeElement(panel.getElement());
-					panels.remove();
-				}
-			}
-			// TODO should remove any empty groups
-			elementPanel.removeAll();
-			elementPanel.add(gridPanel);
-			elementPanel.add(gridCoordsPanel);
-			gridPanel.revalidate();
-			gridCoordsPanel.revalidate();
-			gridPanel.repaint();
-			gridCoordsPanel.repaint();
-			elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
-		});
+		resetButton.addActionListener(e -> reset());
 
 		JButton upButton = new JButton("Up");
 		upButton.addActionListener(e -> {
@@ -330,7 +306,87 @@ public class ControllerFrame extends JFrame {
 		gridCoordsPanel = new GridCoordinatesOptionsPanel(display);
 		optionPanels.put(gridCoordsPanel.getElement(), gridCoordsPanel);
 
+		loadDisplayFile(new File("display.xml"));
 		setVisible(true);
+	}
+
+	private void resetAll() {
+		// TODO should traverse the element tree instead of scanning the optionpanels
+		Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
+		while (panels.hasNext()) {
+			OptionsPanel<?> panel = panels.next();
+			display.removeElement(panel.getElement());
+			panels.remove();
+		}
+
+		gridPanel = new GridOptionsPanel(display, miniMapCanvas);
+		optionPanels.put(gridPanel.getElement(), gridPanel);
+		gridCoordsPanel = new GridCoordinatesOptionsPanel(display);
+		optionPanels.put(gridCoordsPanel.getElement(), gridCoordsPanel);
+
+		elementPanel.removeAll();
+		elementPanel.add(gridPanel);
+		gridPanel.revalidate();
+		gridPanel.repaint();
+		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
+	}
+
+	private void reset() {
+		// TODO should traverse the element tree instead of scanning the optionpanels
+		Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
+		while (panels.hasNext()) {
+			OptionsPanel<?> panel = panels.next();
+			if (panel != gridPanel && panel != gridCoordsPanel
+					&& !(panel instanceof BoundsOptionsPanel)
+					&& !(panel instanceof CalibrateOptionsPanel)
+					&& !(panel instanceof InitiativeOptionsPanel)
+					&& !(panel instanceof CameraOptionsPanel)
+					&& !(panel instanceof GroupOptionsPanel)) {
+				// will also want to skip tokens that are bound to characters and descendents of such tokens
+				display.removeElement(panel.getElement());
+				panels.remove();
+			}
+		}
+		// TODO should remove any empty groups
+		elementPanel.removeAll();
+		elementPanel.add(gridPanel);
+		gridPanel.revalidate();
+		gridPanel.repaint();
+		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
+	}
+
+	void setRemote(RemoteConnection remote) {
+		display.setRemote(remote);
+
+		// we build the dom and then clear all elements and parse the dom
+		// TODO would be better if we could simply resend the existing elements
+		Document doc;
+		try {
+			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			doc.appendChild(getElement(doc));
+			resetAll();
+			parseDOM(doc.getDocumentElement());
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void loadDisplayFile(File xmlFile) {
+		Document dom = null;
+		if (xmlFile.exists()) {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
+			//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
+			try {
+				dom = factory.newDocumentBuilder().parse(xmlFile);
+			} catch (SAXException | IOException | ParserConfigurationException e) {
+				e.printStackTrace();
+			}
+		}
+		if (dom != null) {
+			resetAll();
+			parseDOM(dom.getDocumentElement());
+		}
 	}
 
 	private MapElement getSelectedElement() {

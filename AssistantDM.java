@@ -71,13 +71,8 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- *
- * DONE: Modify Updater to temporarily write sequence of camera images to local disk
- *
  * Continue to update for new module system (particularly digital table controller)
- * Refactor digital table controller code: remote display connection -> display manager, screen setup to display config, ControllerFrame should probably be the module
  * Pre-guess the screen layout
- * Allow the digital table controller to run without a remote
  * Threaded remote display communication
  * Recalibrate display - could be done using screen bounds element
  * Perhaps make Updater a module

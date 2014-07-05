@@ -2,23 +2,21 @@ package digital_table.controller;
 
 import java.awt.geom.Point2D;
 import java.net.URI;
-import java.rmi.RemoteException;
 
 import digital_table.elements.MapElement;
 import digital_table.server.CoordinateConverter;
 import digital_table.server.MapCanvas;
 import digital_table.server.MediaManager;
-import digital_table.server.TableDisplay;
 
 /**
  * DisplayManager provides the interface between elements and the various displays. It insulates the elements from
  * needing to know the number or details of the displays.
- * 
+ *
  * Currently supports 3 displays: the LOCAL display intended for the DM, the REMOTE display for the digital table,
  * and the OVERLAY display that shows tokens overlaid on the camera image on the website.
- * 
+ *
  * @author Steve
- * 
+ *
  */
 
 class DisplayManager implements CoordinateConverter {
@@ -29,62 +27,34 @@ class DisplayManager implements CoordinateConverter {
 		OVERLAY		// only the webpage camera image overlay
 	}
 
-	private TableDisplay remote;
+	private RemoteConnection remote;
 	private MiniMapCanvas local;
 	private TokenOverlay overlay;
 
 	private int xoffset = 0;	// cached values of any offsets applied to the remote display
 	private int yoffset = 0;
 
-	DisplayManager(TableDisplay remote, MiniMapCanvas local, TokenOverlay overlay) {
-		this.remote = remote;
+	void setLocal(MiniMapCanvas local) {
 		this.local = local;
+	}
+
+	void setRemote(RemoteConnection remote) {
+		this.remote = remote;
+	}
+
+	void setOverlay(TokenOverlay overlay) {
 		this.overlay = overlay;
 	}
 
 	void requestExit() {
-		try {
-			remote.requestExit();
-		} catch (RemoteException e) {
-			System.err.println("remote.requestExit() failed: " + e);
-		}
+		if (remote != null) remote.requestExit();
 	}
 
-// --- not currently used as we only proxy for the remote display after the screens have been configured
-//	Rectangle[] getScreenBounds() {
-//		try {
-//			return remote.getScreenBounds();
-//		} catch (RemoteException e) {
-//			e.printStackTrace();
-//		}
-//		return null;
-//	}
-//
-//	void setScreenIDsVisible(boolean visible) {
-//		try {
-//			remote.setScreenIDsVisible(visible);
-//		} catch (RemoteException e) {
-//			e.printStackTrace();
-//		}
-//	}
-//
-//	void showScreens(int[] screenNums, Point[] offsets) {
-//		try {
-//			remote.showScreens(screenNums, offsets);
-//		} catch (RemoteException e) {
-//			e.printStackTrace();
-//		}
-//	}
-
 	void setRemoteOffset(int offx, int offy) {
-		try {
-			remote.setOffset(offx, offy);
-			if (overlay != null) overlay.setOffset(offx, offy);
-			xoffset = offx;
-			yoffset = offy;
-		} catch (RemoteException e) {
-			System.err.println(String.format("remote.setOffset(%d, %d) failed: ", offx, offy) + e);
-		}
+		if (remote != null) remote.setOffset(offx, offy);
+		if (overlay != null) overlay.setOffset(offx, offy);
+		xoffset = offx;
+		yoffset = offy;
 	}
 
 	void addElement(MapElement element, MapElement parent) {
@@ -92,57 +62,39 @@ class DisplayManager implements CoordinateConverter {
 	}
 
 	void addElement(MapElement element, MapElement parent, MapElement localEl) {
-		try {
+		if (remote != null) {
 			if (parent == null) {
 				remote.addElement(element);
 			} else {
-				remote.addElement(element, parent.getID());
+				remote.addElement(element, parent);
 			}
-		} catch (RemoteException e) {
-			System.err.println(String.format("remote.addElement(%s%s) failed: ", element.toString(), (parent == null ? "" : ", " + parent.toString())) + e);
 		}
 		if (overlay != null) overlay.addElement(localEl, parent);
-		local.addElement(localEl, parent);	// local must be last to avoid issues with serialisation
+		if (local != null) local.addElement(localEl, parent);	// local must be last to avoid issues with serialisation
 	}
 
 	void removeElement(MapElement element) {
-		local.removeElement(element.getID());
+		if (local != null) local.removeElement(element.getID());
 		if (overlay != null) overlay.removeElement(element.getID());
-		try {
-			remote.removeElement(element.getID());
-		} catch (RemoteException e) {
-			System.err.println(String.format("remote.removeElement(%s) failed: ", element.toString()) + e);
-		}
+		if (remote != null) remote.removeElement(element.getID());
 	}
 
 	void changeParent(MapElement element, MapElement parent) {
-		local.changeParent(element, parent);
-		if (overlay != null) overlay.changeParent(element.getID(), parent == null ? -1 : parent.getID());
-		try {
-			remote.changeParent(element.getID(), parent == null ? -1 : parent.getID());
-		} catch (RemoteException e) {
-			System.err.println(String.format("remote.changeParent(%s, %s) failed: ", element.toString(), (parent == null ? "<root>" : parent.toString())) + e);
-		}
+		if (local != null) local.changeParent(element, parent);
+		if (overlay != null) overlay.changeParent(element, parent);
+		if (remote != null) remote.changeParent(element, parent);
 	}
 
 	void promoteElement(MapElement element) {
-		local.promoteElement(element);
+		if (local != null) local.promoteElement(element);
 		if (overlay != null) overlay.promoteElement(element);
-		try {
-			remote.promoteElement(element.getID());
-		} catch (RemoteException e) {
-			System.err.println(String.format("remote.promoteElement(%s) failed: ", element.toString()) + e);
-		}
+		if (remote != null) remote.promoteElement(element);
 	}
 
 	void demoteElement(MapElement element) {
-		local.demoteElement(element);
+		if (local != null) local.demoteElement(element);
 		if (overlay != null) overlay.demoteElement(element);
-		try {
-			remote.demoteElement(element.getID());
-		} catch (RemoteException e) {
-			System.err.println(String.format("remote.demoteElement(%s) failed: ", element.toString()) + e);
-		}
+		if (remote != null) remote.demoteElement(element);
 	}
 
 	void setProperty(MapElement element, String property, Object value) {
@@ -152,36 +104,24 @@ class DisplayManager implements CoordinateConverter {
 	void setProperty(MapElement element, String property, Object value, Mode mode) {
 		if (mode != Mode.LOCAL) {
 			if (mode != Mode.OVERLAY) {
-				try {
-					remote.setElementProperty(element.getID(), property, value);
-				} catch (RemoteException e) {
-					System.err.println(String.format("remote.setElementProperty(%s, %s, %s) failed: ", element.toString(), property, (value == null ? "<null>" : value.toString())) + e);
-				}
+				if (remote != null) remote.setElementProperty(element, property, value);
 			}
-			if (overlay != null) overlay.setProperty(element.getID(), property, value);
+			if (overlay != null) overlay.setProperty(element, property, value);
 		}
 		if (mode != Mode.REMOTE && mode != Mode.OVERLAY) element.setProperty(property, value);
 	}
 
 	void setMedia(MapElement element, String property, URI uri) {
-		if (uri == null) {
-			try {
-				remote.setElementProperty(element.getID(), property, null);
-			} catch (RemoteException e) {
-				System.err.println(String.format("setMedia(%s, %s, <null>) failed: ", element.toString(), property) + e);
-			}
+		if (remote != null) {
+			if (uri == null) {
+				remote.setElementProperty(element, property, null);
+			} else {
+				byte[] bytes = MediaManager.INSTANCE.getFile(uri);
 
-		} else {
-			byte[] bytes = MediaManager.INSTANCE.getFile(uri);
-
-			try {
 				if (!remote.hasMedia(uri)) {
 					remote.addMedia(uri, bytes);
 				}
-				remote.setElementProperty(element.getID(), property, uri);
-
-			} catch (RemoteException e) {
-				System.err.println(String.format("setMedia(%s, %s, %s) failed: ", element.toString(), property, uri.toString()) + e);
+				remote.setElementProperty(element, property, uri);
 			}
 		}
 

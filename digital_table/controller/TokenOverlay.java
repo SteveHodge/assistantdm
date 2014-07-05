@@ -38,9 +38,9 @@ import digital_table.server.MapCanvas.Order;
 /**
  * Generates overlay images to be layered on top of the calibrated camera image to highlight the tokens. Token elements
  * added to this display are replaced with a custom MapElement.
- * 
+ *
  * @author Steve
- * 
+ *
  */
 
 class TokenOverlay {
@@ -299,10 +299,10 @@ class TokenOverlay {
 		}
 	}
 
-	public void changeParent(int id, int parentid) {
-		MapElement element = elements.get(id);
-		MapElement parent = elements.get(parentid);
-		if (element != null) canvas.changeParent(element, parent);
+	public void changeParent(MapElement element, MapElement parent) {
+		MapElement e = elements.get(element.getID());
+		MapElement p = elements.get(parent.getID());
+		if (e != null) canvas.changeParent(e, p);
 	}
 
 	void removeElement(int id) {
@@ -320,8 +320,8 @@ class TokenOverlay {
 		canvas.demoteElement(e);
 	}
 
-	void setProperty(int id, String property, Object value) {
-		MapElement e = elements.get(id);
+	void setProperty(MapElement element, String property, Object value) {
+		MapElement e = elements.get(element.getID());
 		if (e != null && (e instanceof MaskToken || e instanceof Group)) {
 			e.setProperty(property, value);
 		}
