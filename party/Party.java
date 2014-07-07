@@ -123,6 +123,9 @@ public class Party implements Iterable<Character> {
 						Element m = (Element)children.item(i);
 						Character c = charMap.get(m.getAttribute("name"));
 						if (c != null) {
+							if ("true".equals(m.getAttribute("autosave")) || "1".equals(m.getAttribute("autosave"))) {
+								c.setAutoSave(true);
+							}
 							p.add(c);
 						}
 					}
@@ -162,7 +165,9 @@ public class Party implements Iterable<Character> {
 //		}
 		b.append(indent+nextIndent+"<Party>"+nl);
 		for (Character c : characters) {
-			b.append(indent+nextIndent+nextIndent+"<Member name=\""+c.getName()+"\"/>"+nl);
+			b.append(indent + nextIndent + nextIndent + "<Member name=\"" + c.getName() + "\"");
+			if (c.isAutoSaving()) b.append(" autosave=\"true\"");
+			b.append("/>" + nl);
 		}
 		b.append(indent+nextIndent+"</Party>"+nl);
 		b.append(indent).append("</Characters>").append(nl);
@@ -183,6 +188,7 @@ public class Party implements Iterable<Character> {
 		for (Character c : characters) {
 			Element m = doc.createElement("Member");
 			m.setAttribute("name", c.getName());
+			if (c.isAutoSaving()) m.setAttribute("autosave", "true");
 			p.appendChild(m);
 		}
 		e.appendChild(p);

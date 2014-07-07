@@ -70,17 +70,17 @@ public class CombatPanel extends JPanel implements EncounterModule {
 		initiativeListModel.addListDataListener(new ListDataListener() {
 			@Override
 			public void contentsChanged(ListDataEvent arg0) {
-				updateInitiative(round, initiativeListModel.getInitiativeText());
+				updateInitiative();
 			}
 
 			@Override
 			public void intervalAdded(ListDataEvent arg0) {
-				updateInitiative(round, initiativeListModel.getInitiativeText());
+				updateInitiative();
 			}
 
 			@Override
 			public void intervalRemoved(ListDataEvent arg0) {
-				updateInitiative(round, initiativeListModel.getInitiativeText());
+				updateInitiative();
 			}
 
 		});
@@ -135,7 +135,7 @@ public class CombatPanel extends JPanel implements EncounterModule {
 			initiativeListModel.reset();
 			round = 0;
 			roundsLabel.setText("Round "+round);
-			updateInitiative(round, initiativeListModel.getInitiativeText());
+			updateInitiative();
 		});
 
 		JButton nextRoundButton = new JButton("Next Round");
@@ -147,7 +147,7 @@ public class CombatPanel extends JPanel implements EncounterModule {
 			}
 			round++;
 			roundsLabel.setText("Round "+round);
-			updateInitiative(round, initiativeListModel.getInitiativeText());
+			updateInitiative();
 		});
 
 		JButton advanceTimeButton = new JButton("Advance Time");
@@ -163,7 +163,7 @@ public class CombatPanel extends JPanel implements EncounterModule {
 				}
 				round+= value;
 				roundsLabel.setText("Round "+round);
-				updateInitiative(round, initiativeListModel.getInitiativeText());
+				updateInitiative();
 			}
 		});
 
@@ -186,12 +186,14 @@ public class CombatPanel extends JPanel implements EncounterModule {
 
 	private String lastInitiativeOutput = "";
 
-	private void updateInitiative(int round, String text) {
-		String output = "round="+round+"\n"+text;
+	private void updateInitiative() {
+		String output = "{\n\t\"round\": " + round + ",\n\t\"order\":\n";
+		output += initiativeListModel.getJSON("\t\t");
+		output += "}\n";
 		if (!output.equals(lastInitiativeOutput)) {
 			//System.out.println(output);
 			lastInitiativeOutput = output;
-			Updater.update(Updater.INITIATIVE_FILE, output.getBytes());
+			Updater.update("http://armitage/assistantdm/test/initiative.json", output.getBytes());
 			for (InitiativeListener l : listeners) {
 				l.initiativeUpdated(output);
 			}

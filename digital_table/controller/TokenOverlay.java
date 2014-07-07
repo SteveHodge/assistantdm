@@ -239,13 +239,18 @@ class TokenOverlay {
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			ImageIO.write(getImage(width, height, descriptions), "png", stream);
-			StringBuilder output = new StringBuilder();
+			StringBuilder json = new StringBuilder();
 			for (String k : descriptions.keySet()) {
-				output.append(k).append("\n");
-				output.append(descriptions.get(k)).append("\n");
+				if (json.length() > 0) json.append(",\n");
+				json.append("\t{\"token\": \"").append(k).append("\", \"name\": \"");
+				json.append(descriptions.get(k)).append("\"}");
 			}
-			Updater.update("http://armitage/assistantdm/upload.php/tokens1.png", stream.toByteArray());
-			Updater.update("http://armitage/assistantdm/upload.php/tokens1.txt", output.toString().getBytes());
+			json.append("\n]\n");
+			// order of these is important because of the workaround in the webpage for mobile safari:
+			// if the order is reversed then when the image file is updated the website will close the
+			// server-sent event connection and the update to the legend will get missed
+			Updater.update("http://armitage/assistantdm/test/tokens1.json", ("[\n" + json.toString()).getBytes());
+			Updater.update("http://armitage/assistantdm/test/tokens1.png", stream.toByteArray());
 
 		} catch (IOException e) {
 			e.printStackTrace();

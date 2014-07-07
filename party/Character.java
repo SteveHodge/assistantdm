@@ -287,7 +287,7 @@ public class Character extends Creature {
 	 * Returns the current score of the specified ability. The current score
 	 * is the temporary score if one has been set by setTemporaryAbility,
 	 * otherwise it is base ability score
-	 * 
+	 *
 	 * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
 	 * @return      the current score of the specified ability
 	 */
@@ -297,7 +297,7 @@ public class Character extends Creature {
 
 	/**
 	 * Returns the base score of the specified ability.
-	 * 
+	 *
 	 * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
 	 * @return      the base score of the specified ability
 	 */
@@ -307,7 +307,7 @@ public class Character extends Creature {
 
 	/**
 	 * Returns the modifier calculated from the specified ability's current score.
-	 * 
+	 *
 	 * @param type  the ability score to get the modifier of: one of the ABILITY constants from {@link Creature}
 	 * @return      the modifier calculated from the current score of the specified ability
 	 */
@@ -317,7 +317,7 @@ public class Character extends Creature {
 
 	/**
 	 * Sets the base score of the specified ability
-	 * 
+	 *
 	 * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
 	 * @param value the value to set the score to
 	 */
@@ -333,7 +333,7 @@ public class Character extends Creature {
 	 * <p>
 	 * The temporary score can be removed by setting it to -1 or to the base score of
 	 * the specified ability.
-	 * 
+	 *
 	 * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
 	 * @param value the value to set as the temporary score
 	 */
@@ -364,7 +364,7 @@ public class Character extends Creature {
 	/**
 	 * Sets the specified skill to the specified total. Ranks in the skill are adjusted
 	 * to achieve this.
-	 * 
+	 *
 	 * @param skill  the skill to set
 	 * @param value  the total value to set the skill to
 	 */
@@ -440,7 +440,7 @@ public class Character extends Creature {
 
 	/**
 	 * Sets the saving throw total by modifying the base value.
-	 * 
+	 *
 	 * @param save   the saving throw to set
 	 * @param total  the total required
 	 */
@@ -750,17 +750,22 @@ public class Character extends Creature {
 	public static Character parseDOM(Element el) {
 		XMLCharacterParser parser = new XMLCharacterParser();
 		Character c = parser.parseDOM(el);
-
-		if (c != null && c.name.equals("Cain Warforger")) {
-			// TODO temp hack
-			System.out.println("Enabling autosave on " + c.name);
-			c.autosaver = new CharacterSheetView(c, true);
-		}
 		return c;
 	}
 
-	@SuppressWarnings("unused")
 	private CharacterSheetView autosaver;
+
+	public void setAutoSave(boolean auto) {
+		if (auto && autosaver == null) {
+			autosaver = new CharacterSheetView(this, true);
+		} else {
+			autosaver = null;
+		}
+	}
+
+	public boolean isAutoSaving() {
+		return autosaver != null;
+	}
 
 	//	public String getXML() {
 //		return getXML("","    ");

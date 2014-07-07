@@ -4,17 +4,19 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ItemEvent;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
-import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.VerticalLayout;
 
 import party.Character;
@@ -69,7 +71,14 @@ public class PartyPanel extends JPanel implements PartyListener {
 		leftPanel.setMinimumSize(new Dimension(450,300));
 		leftPanel.setLayout(new VerticalLayout(1));
 
-		JXTaskPane actionsPane = new JXTaskPane("Actions");
+		JPanel actionsPane = new JPanel();
+		actionsPane.add(new JLabel("Actions: "));
+		JCheckBox autoSaveCheck = new JCheckBox("Auto-update server");
+		autoSaveCheck.setSelected(c.isAutoSaving());	// TODO we don't monitor this value, just set it once. if there is another way to set it we'll need to monitor
+		autoSaveCheck.addItemListener(e -> {
+			c.setAutoSave(e.getStateChange() == ItemEvent.SELECTED);
+		});
+		actionsPane.add(autoSaveCheck);
 		JButton saveHTML = new JButton("Save HTML");
 		saveHTML.addActionListener(e -> {
 			CharacterSheetView view = new CharacterSheetView(c, false);

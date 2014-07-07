@@ -23,8 +23,8 @@ import org.w3c.dom.Document;
 
 
 public class Updater {
-	public static final String MAP_IMAGE = "http://armitage/assistantdm/upload.php/photo1.jpg";
-	public static final String INITIATIVE_FILE = "http://armitage/assistantdm/upload.php/initiative.txt";
+	public static final String MAP_IMAGE = "http://armitage/assistantdm/test/photo1.jpg";
+	//public static final String INITIATIVE_FILE = "http://armitage/assistantdm/upload.php/initiative.txt";
 	public static final String DOCUMENT_DIR = "http://armitage/assistantdm/upload.php/";
 	//URL url = new URL("http://max/webcam/ftp/HTML_CharacterSheet/upload.php/"+name.replace(" ", "%20")+".xml");
 
@@ -146,7 +146,8 @@ public class Updater {
 			URL url = new URL(dest);
 			connection = (HttpURLConnection)url.openConnection();
 			connection.setRequestMethod("PUT");
-			connection.setRequestProperty("Content-Type", "");
+			connection.setRequestProperty("Content-Type", "application/octet-stream");
+			//connection.setRequestProperty("Content-Disposition", "attachment;filename=initiative.json");
 			connection.setRequestProperty("Content-Length", ""+bytes.length);
 			connection.setRequestProperty("Content-Language", "en-US");
 			connection.setUseCaches(false);

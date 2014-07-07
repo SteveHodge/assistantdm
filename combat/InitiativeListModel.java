@@ -345,18 +345,21 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 		}
 	}
 
-	String getInitiativeText() {
-		String output = "";
-		int i = 0;
+	String getJSON(String indent) {
+		String output = indent + "[\n";
+		boolean first = true;
 		for (CombatEntry e : list) {
 			if (!e.isDMOnly()) {
-				i++;
-				//System.out.println(e.getName() + " - " +e.getTotal());
-				output += "fixedname"+i+"="+e.getCreatureName()+"\n";
-				output += "init"+i+"="+e.getTotal()+"\n";
+				if (first) {
+					first = false;
+				} else {
+					output += ",\n";
+				}
+				output += indent + "\t{\"name\": \"" + e.getCreatureName();
+				output += "\", \"initiative\": " + e.getTotal() + "}";
 			}
 		}
-		output = "lastindex="+i+"\n"+output;
+		output += indent + "]\n";
 		return output;
 	}
 

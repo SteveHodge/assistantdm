@@ -140,6 +140,11 @@ public class ControllerFrame extends JFrame {
 			JFrame overlayFrame = new JFrame("Token Overlay");
 			JPanel overlayPanel = overlay.getPanel();
 			overlayPanel.setPreferredSize(new Dimension(20 * overlay.rows, 20 * overlay.columns));
+			JPanel buttons = new JPanel();
+			JButton update = new JButton("Update server");
+			update.addActionListener((e) -> overlay.updateOverlay(20 * overlay.columns, 20 * overlay.rows));
+			buttons.add(update);
+			overlayFrame.add(buttons, BorderLayout.NORTH);
 			overlayFrame.add(overlayPanel);
 			overlayFrame.pack();
 			overlayFrame.setVisible(true);
