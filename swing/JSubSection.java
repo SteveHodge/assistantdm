@@ -20,11 +20,13 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 /*
- * JSubSection is a panel consisting of a coloured title bar and a collapsable detail section
- * The right-hand end of the title bar can be set to display test when the detail area is collapsed
+ * JSubSection is a panel consisting of a coloured title bar and a collapsable detail section.
+ * The right-hand end of the title bar can be set to display test when the detail area is collapsed.
+ * Maximum height is set to the preferred height of the content.
  */
 // TODO proper implementation of content pane (as with other containers)
 // TODO allow setting of title colour, font etc
+// TODO look into the maximum/preferred height code - might be better to use the content's maximum height. probably better to overload those methods
 
 @SuppressWarnings("serial")
 public class JSubSection extends JPanel {
@@ -39,7 +41,8 @@ public class JSubSection extends JPanel {
 	public JSubSection (String t, JPanel content) {
 		super(new GridBagLayout());
 		contentPanel = content;
-		
+		setMaximumSize(new Dimension(Integer.MAX_VALUE, contentPanel.getPreferredSize().height));
+
 		toggle = new JCheckBox(UIManager.getIcon("Tree.expandedIcon"));
 		toggle.setSelectedIcon(UIManager.getIcon("Tree.collapsedIcon"));
 		toggle.setOpaque(true);
@@ -50,12 +53,14 @@ public class JSubSection extends JPanel {
 				leftPanel.setVisible(false);
 				contentPanel.setVisible(false);
 				firePropertyChange("collapsed",false,true);	// oldvalue assumes the state has really changed
+				JSubSection.this.setMaximumSize(new Dimension(Integer.MAX_VALUE, titleLabel.getHeight()));
 				revalidate();
 			} else if (e.getStateChange() == ItemEvent.DESELECTED) {
 				infoLabel.setText("");
 				leftPanel.setVisible(true);
 				contentPanel.setVisible(true);
 				firePropertyChange("collapsed",true,false);	// oldvalue assumes the state has really changed
+				JSubSection.this.setMaximumSize(new Dimension(Integer.MAX_VALUE, contentPanel.getPreferredSize().height));
 				revalidate();
 			}
 		});
@@ -86,25 +91,25 @@ public class JSubSection extends JPanel {
 		c.weightx = 1.0;
 		c.anchor = GridBagConstraints.LINE_END;
 		add(infoLabel, c);
-		
+
 		leftPanel = new JPanel() {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				Graphics2D g2 = (Graphics2D)g;
-		        Paint oldPaint = g2.getPaint();
-		        Dimension d = getSize();
-		        GradientPaint gradient = new GradientPaint(
-		          0f, 0f, titleColor,
-		          d.width, d.height, getBackground()
-		        );
-		        
-		        g2.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-		        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		        g2.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY);
-		        g2.setPaint(gradient);
-		        g.fillRect(0, 0, d.width, d.height);
-		        g2.setPaint(oldPaint);
+				Paint oldPaint = g2.getPaint();
+				Dimension d = getSize();
+				GradientPaint gradient = new GradientPaint(
+						0f, 0f, titleColor,
+						d.width, d.height, getBackground()
+						);
+
+				g2.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+				g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+				g2.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY);
+				g2.setPaint(gradient);
+				g.fillRect(0, 0, d.width, d.height);
+				g2.setPaint(oldPaint);
 
 			}
 		};

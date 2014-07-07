@@ -8,6 +8,8 @@ import java.awt.event.ItemEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -16,8 +18,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-
-import org.jdesktop.swingx.VerticalLayout;
 
 import party.Character;
 import party.CharacterSheetView;
@@ -67,9 +67,11 @@ public class PartyPanel extends JPanel implements PartyListener {
 	}
 
 	public JComponent createCharacterPanel(final Character c) {
+		Dimension padding = new Dimension(0, 1);
+
 		final JPanel leftPanel = new JPanel();
 		leftPanel.setMinimumSize(new Dimension(450,300));
-		leftPanel.setLayout(new VerticalLayout(1));
+		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
 
 		JPanel actionsPane = new JPanel();
 		actionsPane.add(new JLabel("Actions: "));
@@ -87,6 +89,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 		actionsPane.add(saveHTML);
 		JButton debug = new JButton("Debug");
 		actionsPane.add(debug);
+		actionsPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, actionsPane.getMinimumSize().height));
 		leftPanel.add(actionsPane);
 
 		CharacterSubPanel p = new CharacterInfoPanel(c);
@@ -94,53 +97,75 @@ public class PartyPanel extends JPanel implements PartyListener {
 		sub.setCollapsed(true);
 		leftPanel.add(sub);
 
+		leftPanel.add(Box.createRigidArea(padding));
+
 		p = new CharacterXPPanel(c);
 		sub = new JSubSection("Levels and Experience", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
 		leftPanel.add(sub);
+
+		leftPanel.add(Box.createRigidArea(padding));
 
 		p = new CharacterHitPointPanel(c);
 		sub = new JSubSection("Hit Points", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
 		leftPanel.add(sub);
 
+		leftPanel.add(Box.createRigidArea(padding));
+
 		p = new CharacterAbilityPanel(c);
 		sub = new JSubSection("Ability Scores", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
 		leftPanel.add(sub);
+
+		leftPanel.add(Box.createRigidArea(padding));
 
 		p = new CharacterSavesPanel(c);
 		sub = new JSubSection("Saving Throws", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
 		leftPanel.add(sub);
 
+		leftPanel.add(Box.createRigidArea(padding));
+
 		sub = new JSubSection("Buffs / Penalties", new CharacterBuffsPanel(c));
 		leftPanel.add(sub);
+
+		leftPanel.add(Box.createRigidArea(padding));
 
 		sub = new JSubSection("Feats", new CharacterFeatsPanel(c));
 		leftPanel.add(sub);
 
+		leftPanel.add(Box.createVerticalGlue());
+
 		final JPanel rightPanel = new JPanel();
 		rightPanel.setMinimumSize(new Dimension(300,300));
-		rightPanel.setLayout(new VerticalLayout(1));
+		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
 
 		p = new CharacterInitiativePanel(c);
 		sub = new JSubSection("Initiative", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
 		rightPanel.add(sub);
 
+		rightPanel.add(Box.createRigidArea(padding));
+
 		p = new CharacterAttacksPanel(c);
 		sub = new JSubSection("Attacks", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
 		rightPanel.add(sub);
+
+		rightPanel.add(Box.createRigidArea(padding));
 
 		p = new CharacterACPanel(c);
 		sub = new JSubSection("Armor Class", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
 		rightPanel.add(sub);
 
+		rightPanel.add(Box.createRigidArea(padding));
+
 		sub = new JSubSection("Skills", new CharacterSkillsPanel(c));
 		rightPanel.add(sub);
+
+		rightPanel.add(Box.createVerticalGlue());
 
 		final JSplitPane panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
 		panel.setDividerLocation(500);
