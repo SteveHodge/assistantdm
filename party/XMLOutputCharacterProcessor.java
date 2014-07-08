@@ -56,10 +56,8 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 
 	@Override
 	public void processLevel(Level level) {
-		levelEl = doc.createElement("Level");
-		levelEl.setAttribute("level", "" + level.getLevel());
+		levelEl = getLevelElement(level);
 		levelEl.setAttribute("xp", "" + character.xp);
-		creatureEl.appendChild(levelEl);
 	}
 
 	protected Element getSavingThrowElement(SavingThrow s) {

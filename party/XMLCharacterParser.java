@@ -57,11 +57,12 @@ public class XMLCharacterParser extends XMLParserHelper {
 				NodeList awards = e.getChildNodes();
 				for (int j = 0; j < awards.getLength(); j++) {
 					XP.XPChange change = null;
-					if (awards.item(j).getNodeName().equals("XPAward")) {
+					String type = awards.item(j).getNodeName();
+					if (type.equals("XPAward")) {
 						change = parseXPChangeChallenges((Element) awards.item(j));
-					} else if (awards.item(j).getNodeName().equals("XPChange")) {
+					} else if (type.equals("XPChange")) {
 						change = parseXPChangeAdhoc((Element) awards.item(j));
-					} else if (awards.item(j).getNodeName().equals("XPLevelChange")) {
+					} else if (type.equals("XPLevelChange")) {
 						change = parseXPChangeLevel((Element) awards.item(j));
 					}
 					if (change != null) c.addXPChange(change);

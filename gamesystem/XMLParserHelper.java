@@ -31,6 +31,16 @@ public class XMLParserHelper {
 	protected void parseLevel(Element e, Level lvl) {
 		if (!e.getTagName().equals("Level")) return;
 		lvl.setLevel(Integer.parseInt(e.getAttribute("level")));
+
+		NodeList classes = e.getChildNodes();
+		int i = 1;
+		for (int j = 0; j < classes.getLength(); j++) {
+			if (classes.item(j).getNodeName().equals("Class")) {
+				CharacterClass cls = CharacterClass.getCharacterClass(((Element) classes.item(j)).getAttribute("class"));
+				lvl.setClass(i++, cls);
+			}
+		}
+
 	}
 
 	protected void parseAbilityScore(Element e, Creature c) {

@@ -39,6 +39,10 @@ public enum CharacterClass {
 	EXPERT("Expert", 6, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST),
 	WARRIOR("Warrior", 8, BABProgression.FAST, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW);
 
+	public static CharacterClass[] getCoreClasses() {
+		return new CharacterClass[] { BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WIZARD };
+	}
+
 	@Override
 	public String toString() {
 		return name;

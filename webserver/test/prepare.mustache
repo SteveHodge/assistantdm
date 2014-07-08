@@ -1,0 +1,48 @@
+		<section id="tab_{{id}}" class="tab prepare" name="{{tabname}}" prefix="{{idprefix}}" superfix="{{superfix}}" max_slot="{{maxslot}}">
+			Show level:
+			<select id="{{idprefix}}levelFilter" onchange="filterLists()">
+				<option value="-1">All</option>
+				{{#spelllevels}}
+				<option value="{{level}}">{{level}}</option>
+				{{/spelllevels}}
+			</select>
+			{{#hasshowall}}<input type="checkbox" name="showall" value="showall" id="{{idprefix}}showAll" onchange="filterLists()">Show All Spells</input>{{/hasshowall}}
+			{{#hasempower}}<input type="checkbox" name="metamagic" value="Empowered" level="2">Empower</input>{{/hasempower}}
+			{{#hasenlarge}}<input type="checkbox" name="metamagic" value="Enlarged" level="1">Enlarge</input>{{/hasenlarge}}
+			{{#hasextend}}<input type="checkbox" name="metamagic" value="Extended" level="1">Extend</input>{{/hasextend}}
+			{{#hasheighten}}<span>
+				<input type="checkbox" name="metamagic" value="Heightened" level="0" id="{{idprefix}}heightenCheck">Heighten</input>
+				by: 
+				<select id="{{idprefix}}heightenLevel" onchange="heightenChange()">
+					<option value="0">None</option>
+					{{#heightenoptions}}
+					<option value="{{levels}}">+{{levels}}</option>
+					{{/heightenoptions}}
+				</select>
+			</span>{{/hasheighten}}
+			{{#hasmaximize}}<input type="checkbox" name="metamagic" value="Maximized" level="3">Maximize</input>{{/hasmaximize}}
+			{{#hasquicken}}<input type="checkbox" name="metamagic" value="Quickened" level="4">Quicken</input>{{/hasquicken}}
+			{{#hassilent}}<input type="checkbox" name="metamagic" value="Silent" level="1">Silent</input>{{/hassilent}}
+			{{#hasstill}}<input type="checkbox" name="metamagic" value="Stilled" level="1">Still</input>{{/hasstill}}
+			{{#haswiden}}<input type="checkbox" name="metamagic" value="Widened" level="3">Widen</input>{{/haswiden}}
+			<br>
+			<div>
+				<h3>Available Spells</h3>
+				<div id="{{idprefix}}availableList" class="scrollable" button="{{idprefix}}btnMemorise">
+					{{#availablespells}}
+					<div class="selectable" level="{{level}}" spell="{{name}}"></div>
+					{{/availablespells}}
+				</div>
+				<br><input type="button" id="{{idprefix}}btnMemorise" value="Memorise" onclick="memorise()"/>
+			</div>
+			<div>
+				<h3>Slots</h3>
+				<div id="{{idprefix}}slotList" class="scrollable" button="{{idprefix}}btnClear" filter_allow_higher="true">
+					{{#slots}}
+					<div class="selectable" level="{{level}}" used="{{#used}}true{{/used}}{{^used}}false{{/used}}" locked="{{#locked}}true{{/locked}}{{^locked}}false{{/locked}}" >{{description}}</div>
+					{{/slots}}
+				</div>
+				<br><input type="button" id="{{idprefix}}btnClear" value="Clear" onclick="clearSlots()"/>
+				<input type="button" id="{{idprefix}}btnLock" value = "Lock it in" onclick="lockSlots(slotList);" disabled="true"/>
+			</div>
+		</section>

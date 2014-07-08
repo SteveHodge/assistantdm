@@ -187,6 +187,11 @@
 	<xs:complexType>
 		<xs:sequence>
 			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="Class">
+					<xs:complexType>
+						<xs:attribute name="class" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
 				<xs:element ref="XPAward"/>
 				<xs:element ref="XPChange"/>
 				<xs:element ref="XPLevelChange"/>

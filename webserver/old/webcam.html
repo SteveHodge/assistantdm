@@ -1,0 +1,148 @@
+<html>
+<head>
+	<title>WebCam Page</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<style>
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+table, th, td {
+	border: 1px solid black;
+}
+
+th {
+	background-color: #c0c0c0;
+}
+	</style>
+	<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script type="text/javascript">
+
+function updateInitiativeText(data) {
+	var html = '<table>\n<tr><th>Combat Round</th><th>\n';
+	html += (data.round == undefined ? 0 : data.round) + "</th><th>Initiative</th></tr>\n";
+	
+	$.each(data.order, function(i,entry) {
+		html += "<tr><td colspan=2>"+entry.name+"</td>";
+		html += "<td>"+entry.initiative+"</td></tr>\n";
+	});
+	html += "</table>\n";
+	$('#initiative').html(html);
+}
+
+function updateTokensText(data) {
+	var html = '<table>';
+	$.each(data, function(i, entry) {
+		html += '<tr><td>'+entry.token+'</td><td>'+entry.name+'</td></tr>';
+	});
+	$('#tokenlist').html(html+'</table>');
+}
+
+function logMessage(msg) {
+	$('#photo1msg').append('<br>'+(new Date()).toLocaleTimeString()+': '+msg);
+}
+
+function createEventSource() {
+	logMessage('Connecting to server');
+	
+	var source = new EventSource('test/updates/webcam');
+	logMessage('EventSource = '+source);
+	if (source) logMessage('readyState = '+source.readyState);
+	
+
+	source.addEventListener('open', function(e) {
+		logMessage('Connected to server');
+	}, false);
+
+	source.addEventListener('error', function(e) {
+		if (event.target.readyState === EventSource.CLOSED) {
+			source.close();
+			logMessage('Lost connection to server');
+//			alert("Lost the connection to the server.\nThe page will be reloaded.");
+//			window.location.reload(false);
+		} else if (event.target.readyState === EventSource.CONNECTING) {
+			logMessage('Lost connection to server, attempting reconnect');
+		} else {
+			logMessage('Lost connection to server, unknown error');
+//			alert("Lost the connection to the server.\nThe page will be reloaded.");
+//			window.location.reload(false);
+		}
+	}, false);
+
+	source.addEventListener('message', function(event) {
+		var lines = event.data.split("\n");
+		for (i = 0; i < lines.length; i++) {
+			if (lines[i] === "/initiative.json") {
+				logMessage('updated initiatives');
+				$.get('initiative.json?'+(new Date()).valueOf(), function(data) {
+					updateInitiativeText(data);
+				});
+			} else if (lines[i] === "/photo1.jpg") {
+				logMessage('updated image');
+				document.getElementById("photo1").src = "photo1.jpg?"+(new Date()).valueOf();
+			} else if (lines[i] === "/tokens1.png") {
+				logMessage('updated token overlay');
+				document.getElementById("tokens1").src = "tokens1.png?"+(new Date()).valueOf();
+			} else if (lines[i] === "/tokens1.json") {
+				logMessage('updated token legend');
+				$.get('tokens1.json?'+(new Date()).valueOf(), function(data) {
+					updateTokensText(data);
+				});
+			}
+		}
+	}, false);
+}
+
+
+$(document).ready(function () {
+	$.getJSON('initiative.json?'+(new Date()).valueOf(), function(data) {
+		updateInitiativeText(data);
+	});
+	
+	$.getJSON('tokens1.json?'+(new Date()).valueOf(), function(data) {
+		updateTokensText(data);
+	});
+	
+	if(typeof(EventSource)!=="undefined") {
+		createEventSource();
+	} else {
+		alert("Server-sent events not supported.\nGet a better browser - Firefox, Chrome, Safari, and Opera all support this, IE is shit");
+	} 
+});
+
+function toggleTokens() {
+	var checked = document.getElementById("tokens1check").checked;
+	document.getElementById("tokens1").style.display = checked?"inline":"none";
+	document.getElementById("tokenlist").style.display = checked?"inline":"none";
+}
+
+function openPhoto() {
+	var win=window.open("photo1.jpg", '_blank');
+	win.focus();
+}
+	</script>
+</head>
+
+		<!--<a href="photo1.jpg" target="_blank" style="position:absolute; z-index:-1;"><img width="75%" id="photo1" src="photo1.jpg"/></a>-->
+<body>
+	<div style="width: 75%; float: left;">
+		<img width="75%" id="photo1" src="photo1.jpg" style="position:absolute; z-index:1;"/>
+		<img width="75%" id="tokens1" src="tokens1.png" style="position:absolute; z-index:2;" onclick="openPhoto();"/>
+		&nbsp;
+	</div>
+	<div style="width: 23%; float: right;">
+		<div id="initiative">
+			<table>
+				<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
+			</table>
+		</div> 
+		<br/>
+		<input id="tokens1check" type="checkbox" checked="true" onclick="toggleTokens();">Show token overlay</input>
+		<div id="tokenlist">
+		</div>
+		<div id="photo1msg" style="margin-top: 20px;">
+		</div>
+	</div>
+</body>
+</html>

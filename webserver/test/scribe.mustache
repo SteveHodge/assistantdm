@@ -1,0 +1,28 @@
+		<section id="tab_{{id}}" class="tab scribe" name="{{tabname}}" prefix="{{idprefix}}" max_slot="{{maxslot}}" memorise_tab_prefix="{{memtabprefix}}">
+			Show level:
+			<select id="{{idprefix}}levelFilter" onchange="filterLists()">
+				<option value="-1">All</option>
+				{{#spelllevels}}
+				<option value="{{level}}">{{level}}</option>
+				{{/spelllevels}}
+			</select>
+			<br>
+			<div>
+				<h3>Available Spells</h3>
+				<div id="{{idprefix}}availableList" class="scrollable" button="{{idprefix}}btnScribe">
+					{{#availablespells}}
+					<div class="selectable" level="{{level}}" spell="{{name}}" {{#hidden}}always_hidden="true"{{/hidden}}></div>
+					{{/availablespells}}
+				</div>
+				<br><input type="button" id="{{idprefix}}btnScribe" value="Scribe" onclick="scribe()"/>
+			</div>
+			<div>
+				<h3>In Spellbook</h3>
+				<div id="{{idprefix}}slotList" class="scrollable" button="{{idprefix}}btnErase">
+					{{#slots}}
+					<div class="selectable" level="{{level}}">{{description}}</div>
+					{{/slots}}
+				</div>
+				<br><input type="button" id="{{idprefix}}btnErase" value="Erase" onclick="erase()"/>
+			</div>
+		</section>

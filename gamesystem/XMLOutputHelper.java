@@ -137,6 +137,24 @@ public class XMLOutputHelper {
 		return e;
 	}
 
+	protected Element getLevelElement(Level lvl) {
+		if (creatureEl == null) return null;
+
+		Element e = doc.createElement("Level");
+		e.setAttribute("level", "" + lvl.level);
+
+		for (CharacterClass c : lvl.classes) {
+			if (c != null) {
+				Element ce = doc.createElement("Class");
+				ce.setAttribute("class", c.toString());
+				e.appendChild(ce);
+			}
+		}
+
+		creatureEl.appendChild(e);
+		return e;
+	}
+
 	public void processBuff(Buff b) {
 		if (creatureEl == null) return;
 		if (buffEl == null) {

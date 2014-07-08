@@ -69,6 +69,9 @@ public class PartyPanel extends JPanel implements PartyListener {
 	public JComponent createCharacterPanel(final Character c) {
 		Dimension padding = new Dimension(0, 1);
 
+		final JSplitPane panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		final JScrollPane scroller = new JScrollPane(panel);
+
 		final JPanel leftPanel = new JPanel();
 		leftPanel.setMinimumSize(new Dimension(450,300));
 		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
@@ -106,6 +109,14 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 		leftPanel.add(Box.createRigidArea(padding));
 
+		p = new CharacterClassesPanel(c);
+		sub = new JSubSection("Classes", p);
+		p.addSummaryDisplay(new SummaryDisplay(sub));
+		sub.setCollapsed(true);
+		leftPanel.add(sub);
+
+		leftPanel.add(Box.createRigidArea(padding));
+
 		p = new CharacterHitPointPanel(c);
 		sub = new JSubSection("Hit Points", p);
 		p.addSummaryDisplay(new SummaryDisplay(sub));
@@ -138,6 +149,7 @@ public class PartyPanel extends JPanel implements PartyListener {
 		leftPanel.add(Box.createVerticalGlue());
 
 		final JPanel rightPanel = new JPanel();
+
 		rightPanel.setMinimumSize(new Dimension(300,300));
 		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
 
@@ -167,12 +179,15 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 		rightPanel.add(Box.createVerticalGlue());
 
-		final JSplitPane panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
+		panel.setLeftComponent(leftPanel);
+		panel.setRightComponent(rightPanel);
 		panel.setDividerLocation(500);
-		panel.setPreferredSize(new Dimension(1000,panel.getPreferredSize().height));
+		panel.setPreferredSize(new Dimension(1000, panel.getPreferredSize().height));
 
-		final JScrollPane scroller = new JScrollPane(panel);
-		scroller.setPreferredSize(new Dimension(1000,600));
+		scroller.setPreferredSize(new Dimension(1000, 600));
+
+		//leftPanel.setBorder(BorderFactory.createLineBorder(Color.RED));
+		//rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
 
 		debug.addActionListener(e -> {
 			System.out.println("Left PreferredSize = "+leftPanel.getPreferredSize());

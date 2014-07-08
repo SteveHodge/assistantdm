@@ -71,6 +71,8 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * Use class levels to calculate BAB and base saves
+ * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes
  * Continue to update for new module system (particularly digital table controller)
  * Pre-guess the screen layout
  * Threaded remote display communication
@@ -97,8 +99,6 @@ import digital_table.controller.DigitalTableController;
  * Encounterdialog should load/save buffs and maybe DTT selected elements
  * EncounterDialog: allow editing of AC, feats, size, SQ, etc
  * clear all for images. also cleared squares should be translucent on local
- * spell lists webpage
- * class levels
  * spell lists in AssistantDM
  *
  * cleanup hitpoints/hitdice
@@ -174,8 +174,8 @@ import digital_table.controller.DigitalTableController;
  *  (in progress) Feats
  *  (in progress) Grapple modifier
  *  Ability score checks
- *  Class levels
- *  Spell lists / spells per day
+ *  (in progress) Class levels
+ *  Spell lists / spells per day (web version done)
  *  Damage reduction
  *  Spell resistance
  *  Magic items slots

@@ -3,6 +3,7 @@ package party;
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
+import gamesystem.CharacterClass;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Level;
@@ -14,7 +15,10 @@ import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -81,9 +85,43 @@ public class CharacterSheetView {
 
 		@Override
 		public void processLevel(Level level) {
+			// process class levels
+			Map<String,Integer> classes = new HashMap<>();
+			int defined = 0;
+			for (int i = 1; i <= level.getLevel(); i++) {
+				CharacterClass cls = level.getClass(i);
+				if (cls != null) {
+					defined++;
+					if (classes.containsKey(cls.toString())) {
+						classes.put(cls.toString(), classes.get(cls.toString()) + 1);
+					} else {
+						classes.put(cls.toString(), 1);
+					}
+				}
+			}
+			String[] ordered = classes.keySet().toArray(new String[0]);
+			String classStr = "";
+			String lvlStr = "";
+			if (ordered.length > 0) {
+				Arrays.sort(ordered, (k1, k2) -> classes.get(k2) - classes.get(k1));
+				classStr = String.join("/", ordered);
+
+				for (String c : ordered) {
+					if (lvlStr.length() > 0) lvlStr += "/";
+					lvlStr += Integer.toString(classes.get(c));
+				}
+
+				if (defined < level.getLevel()) {
+					classStr += "/?";
+					lvlStr += "/" + (level.getLevel() - defined);
+				}
+			} else {
+				lvlStr = Integer.toString(level.getLevel());
+			}
+
 			Element levelEl = doc.createElement("Level");
-			levelEl.setAttribute("level", "" + level.getLevel());
-			levelEl.setAttribute("class", (String) character.getProperty(Character.PROPERTY_CLASS));
+			levelEl.setAttribute("level", "" + lvlStr);
+			levelEl.setAttribute("class", classStr);
 			creatureEl.appendChild(levelEl);
 		}
 

@@ -1,0 +1,28 @@
+		<section id="tab_{{id}}" class="tab learn" name="{{tabname}}" prefix="{{idprefix}}" superfix="{{superfix}}" per_day="{{perday}}" max_slot="{{maxslot}}">
+			Show level:
+			<select id="{{idprefix}}levelFilter" onchange="filterLists()">
+				<option value="-1">All</option>
+				{{#spelllevels}}
+				<option value="{{level}}">{{level}}</option>
+				{{/spelllevels}}
+			</select>
+			<br>
+			<div>
+				<h3>Available Spells</h3>
+				<div id="{{idprefix}}availableList" class="scrollable" button="{{idprefix}}btnLearn">
+					{{#availablespells}}
+					<div class="selectable" level="{{level}}" spell="{{name}}" {{#hidden}}always_hidden="true"{{/hidden}}></div>
+					{{/availablespells}}
+				</div>
+				<br><input type="button" id="{{idprefix}}btnLearn" value="Learn" onclick="learn()"/>
+			</div>
+			<div>
+				<h3>Known Spells</h3>
+				<div id="{{idprefix}}slotList" class="scrollable" button="{{idprefix}}btnUnlearn">
+					{{#slots}}
+					<div class="selectable" level="{{level}}" used="{{#used}}true{{/used}}{{^used}}false{{/used}}" locked="{{#used}}false{{/used}}{{^used}}true{{/used}}">{{description}}</div>
+					{{/slots}}
+				</div>
+				<br><input type="button" id="{{idprefix}}btnUnlearn" value="Unlearn" onclick="unlearn()"/>
+			</div>
+		</section>
