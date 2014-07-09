@@ -28,7 +28,7 @@ public class XMLParserHelper {
 		c.initiative.setBaseValue(Integer.parseInt(e.getAttribute("value")));
 	}
 
-	protected void parseLevel(Element e, Level lvl) {
+	protected void parseLevel(Element e, Levels lvl) {
 		if (!e.getTagName().equals("Level")) return;
 		lvl.setLevel(Integer.parseInt(e.getAttribute("level")));
 
@@ -57,7 +57,9 @@ public class XMLParserHelper {
 		SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(e.getAttribute("type"));
 		SavingThrow s = c.getSavingThrowStatistic(type);
 
-		s.setBaseValue(Integer.parseInt(e.getAttribute("base")));
+		if (e.hasAttribute("base")) {
+			s.setBaseOverride(Integer.parseInt(e.getAttribute("base")));
+		}
 	}
 
 	protected void parseSkills(Element e, Skills stat) {
@@ -199,8 +201,7 @@ public class XMLParserHelper {
 	protected void parseAttacks(Element e, Creature c) {
 		if (!e.getTagName().equals("Attacks")) return;
 
-		c.attacks.setBAB(Integer.parseInt(e.getAttribute("base")));
-
+		if (e.hasAttribute("base")) c.attacks.setBAB(Integer.parseInt(e.getAttribute("base")));
 		if (e.hasAttribute("power_attack")) c.attacks.setPowerAttack(Integer.parseInt(e.getAttribute("power_attack")));
 		if (e.hasAttribute("combat_expertise")) c.attacks.setCombatExpertise(Integer.parseInt(e.getAttribute("combat_expertise")));
 		if (e.getAttribute("total_defense").equals("true") || e.getAttribute("total_defense").equals("1")) c.attacks.setTotalDefense(true);

@@ -71,7 +71,6 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * Use class levels to calculate BAB and base saves
  * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes
  * Continue to update for new module system (particularly digital table controller)
  * Pre-guess the screen layout
@@ -100,6 +99,7 @@ import digital_table.controller.DigitalTableController;
  * EncounterDialog: allow editing of AC, feats, size, SQ, etc
  * clear all for images. also cleared squares should be translucent on local
  * spell lists in AssistantDM
+ * In party.xml consider changing "base" attribute on saves and attacks to "baseOverride" or "override"
  *
  * cleanup hitpoints/hitdice
  * implement remaining monster statistics
@@ -170,11 +170,11 @@ import digital_table.controller.DigitalTableController;
 //TODO need to review how properties work on Character and BoundIntegerField
 //TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
 
-/* Things to implement:
+/* Game system things to implement:
  *  (in progress) Feats
  *  (in progress) Grapple modifier
  *  Ability score checks
- *  (in progress) Class levels
+ *  (in progress) Class levels - negative levels
  *  Spell lists / spells per day (web version done)
  *  Damage reduction
  *  Spell resistance

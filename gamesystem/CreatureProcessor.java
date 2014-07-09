@@ -33,7 +33,7 @@ public interface CreatureProcessor {
 
 	public void processFeat(Buff buff);
 
-	public void processLevel(Level level);
+	public void processLevel(Levels level);
 
 	public void processXPChange(XPChangeAdhoc xp);
 

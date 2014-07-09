@@ -20,8 +20,8 @@ public class CharacterInfoPanel extends CharacterSubPanel {
 		add(new JLabel("Player: "));
 		add(new BoundTextField(character, Character.PROPERTY_PLAYER, 30));
 
-		add(new JLabel("Class: "));
-		add(new BoundTextField(character, Character.PROPERTY_CLASS, 30));
+//		add(new JLabel("Class: "));
+//		add(new BoundTextField(character, Character.PROPERTY_CLASS, 30));
 
 		add(new JLabel("Region: "));
 		add(new BoundTextField(character, Character.PROPERTY_REGION, 30));

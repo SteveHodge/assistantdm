@@ -3,7 +3,7 @@ package party;
 import gamesystem.AC;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
-import gamesystem.Level;
+import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
@@ -55,7 +55,7 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 	}
 
 	@Override
-	public void processLevel(Level level) {
+	public void processLevel(Levels level) {
 		levelEl = getLevelElement(level);
 		levelEl.setAttribute("xp", "" + character.xp);
 	}
@@ -70,7 +70,7 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 
 		Element saveEl = doc.createElement("Save");
 		saveEl.setAttribute("type", t.toString());
-		saveEl.setAttribute("base", "" + s.getBaseValue());
+		if (s.getBaseOverride() != -1) saveEl.setAttribute("base", "" + s.getBaseOverride());
 
 		if (character.saveMisc.containsKey(t)) {
 			saveEl.setAttribute("misc", "" + character.saveMisc.get(t).getModifier());

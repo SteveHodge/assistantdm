@@ -1,7 +1,7 @@
 package ui;
 
 import gamesystem.CharacterClass;
-import gamesystem.Level;
+import gamesystem.Levels;
 
 import java.awt.Dimension;
 import java.util.Arrays;
@@ -19,11 +19,11 @@ import party.Character;
 
 @SuppressWarnings("serial")
 public class CharacterClassesPanel extends CharacterSubPanel {
-	Level level;
+	Levels level;
 
 	public CharacterClassesPanel(Character c) {
 		super(c);
-		level = (Level) character.getStatistic(Character.STATISTIC_LEVEL);
+		level = (Levels) character.getStatistic(Character.STATISTIC_LEVEL);
 		summary = getSummary();
 
 		ClassListTableModel model = new ClassListTableModel();
@@ -124,7 +124,6 @@ public class CharacterClassesPanel extends CharacterSubPanel {
 		public void setValueAt(Object value, int row, int col) {
 			if (col != 1 || row < 0 || row > currentLevel - 1) return;	// TODO throw exception?
 			level.setClass(row + 1, (CharacterClass) value);
-			updateSummaries(getSummary());
 		}
 
 		@Override

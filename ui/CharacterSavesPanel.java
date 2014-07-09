@@ -16,20 +16,25 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import party.Character;
+import swing.NullableIntegerFieldFactory;
 
 //TODO update to use the saving throw's ability modifier rather than looking at the ability score's modifier directly
 //TODO change to listen to the SavingThrow itself instead of the character
 //TODO cleanup stuff surround change to enum for save types
-//TODO review for change to enum SavingThrow.Type
 @SuppressWarnings("serial")
 class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeListener {
+	private SavingThrow[] stats = new SavingThrow[3];
 	private JLabel[] modLabels = new JLabel[3];
 	private JLabel[] totalLabels = new JLabel[3];
-	private JFormattedTextField baseSaveFields[] = new JFormattedTextField[3];
+	private JLabel[] baseLabels = new JLabel[3];
+	private JFormattedTextField overrideFields[] = new JFormattedTextField[3];
 	private JFormattedTextField miscSaveFields[] = new JFormattedTextField[3];
 
 	CharacterSavesPanel(Character c) {
 		super(c);
+		for (int i = 0; i < 3; i++) {
+			stats[i] = (SavingThrow) character.getStatistic(Creature.STATISTIC_SAVING_THROW[i]);
+		}
 		summary = getSummary();
 
 		JPanel inner = new JPanel();
@@ -38,12 +43,13 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 
-		JLabel[] titleLabels = new JLabel[5];
+		JLabel[] titleLabels = new JLabel[6];
 		titleLabels[0] = new JLabel();
 		titleLabels[1] = new JLabel("Base");
-		titleLabels[2] = new JLabel("Misc");
-		titleLabels[3] = new JLabel("Mod");
-		titleLabels[4] = new JLabel("Total");
+		titleLabels[2] = new JLabel("<html><body>Base<br>Override</body></html>");
+		titleLabels[3] = new JLabel("Misc");
+		titleLabels[4] = new JLabel("Mod");
+		titleLabels[5] = new JLabel("Total");
 		JLabel[] saveLabels = new JLabel[3];
 
 		GroupLayout.SequentialGroup vGroup = layout.createSequentialGroup();
@@ -53,43 +59,50 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 				.addComponent(titleLabels[2])
 				.addComponent(titleLabels[3])
 				.addComponent(titleLabels[4])
+				.addComponent(titleLabels[5])
 				);
-		GroupLayout.ParallelGroup[] hGroups = new GroupLayout.ParallelGroup[5];
-		for (int i=0; i<5; i++) {
+		GroupLayout.ParallelGroup[] hGroups = new GroupLayout.ParallelGroup[6];
+		for (int i = 0; i < 6; i++) {
 			hGroups[i] = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
 			hGroups[i].addComponent(titleLabels[i]);
 		}
 		for (int type=0; type<3; type++) {
-			saveLabels[type] = new JLabel(SavingThrow.Type.values()[type].toString());
-			baseSaveFields[type] = new JFormattedTextField();
-			baseSaveFields[type].setValue(new Integer(character.getSavingThrowBase(SavingThrow.Type.values()[type])));
-			baseSaveFields[type].setColumns(3);
-			baseSaveFields[type].addPropertyChangeListener("value", new BaseFieldPropertyListener(type));
+			saveLabels[type] = new JLabel(stats[type].getName());
+			baseLabels[type] = new JLabel(Integer.toString(stats[type].getCalculatedBase()));
+			overrideFields[type] = NullableIntegerFieldFactory.createNullableIntegerField();
+			if (stats[type].getBaseOverride() != -1) {
+				overrideFields[type].setValue(stats[type].getBaseOverride());
+			} else {
+				overrideFields[type].setText("");
+			}
+			overrideFields[type].setColumns(3);
+			overrideFields[type].addPropertyChangeListener("value", new OverrideFieldPropertyListener(type));
 			miscSaveFields[type] = new JFormattedTextField();
-			miscSaveFields[type].setValue(new Integer(character.getSavingThrowMisc(SavingThrow.Type.values()[type])));
+			miscSaveFields[type].setValue(character.getSavingThrowMisc(SavingThrow.Type.values()[type]));
 			miscSaveFields[type].setColumns(3);
 			miscSaveFields[type].addPropertyChangeListener("value", new MiscFieldPropertyListener(type));
 			modLabels[type] = new JLabel(""+character.getAbilityModifierValue(SavingThrow.Type.values()[type].getAbilityType()));
-			SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[type]);
-			totalLabels[type] = new JLabel(""+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
+			totalLabels[type] = new JLabel(""+stats[type].getValue()+(stats[type].hasConditionalModifier()?"*":""));
 			vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 					.addComponent(saveLabels[type])
-					.addComponent(baseSaveFields[type])
+					.addComponent(baseLabels[type])
+					.addComponent(overrideFields[type])
 					.addComponent(miscSaveFields[type])
 					.addComponent(modLabels[type])
 					.addComponent(totalLabels[type])
 					);
 			hGroups[0].addComponent(saveLabels[type]);
-			hGroups[1].addComponent(baseSaveFields[type], GroupLayout.PREFERRED_SIZE,
-					GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-			hGroups[2].addComponent(miscSaveFields[type], GroupLayout.PREFERRED_SIZE,
-					GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-			hGroups[3].addComponent(modLabels[type]);
-			hGroups[4].addComponent(totalLabels[type]);
+			hGroups[1].addComponent(baseLabels[type]);
+			hGroups[2].addComponent(overrideFields[type], GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+			hGroups[3].addComponent(miscSaveFields[type], GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+			hGroups[4].addComponent(modLabels[type]);
+			hGroups[5].addComponent(totalLabels[type]);
 		}
 
 		GroupLayout.SequentialGroup hGroup = layout.createSequentialGroup();
-		for (int i=0; i<5; i++) hGroup.addGroup(hGroups[i]);
+		for (int i = 0; i < 6; i++) {
+			hGroup.addGroup(hGroups[i]);
+		}
 		layout.setHorizontalGroup(hGroup);
 		layout.setVerticalGroup(vGroup);
 
@@ -99,9 +112,9 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 				if (!SwingUtilities.isRightMouseButton(e)) return;
 				int y = e.getPoint().y;
 				for (int i = 0; i < 3; i++) {
-					Rectangle bounds = baseSaveFields[i].getBounds();
+					Rectangle bounds = overrideFields[i].getBounds();
 					if (y >= bounds.y && y <= bounds.y + bounds.height) {
-						String title = SavingThrow.Type.values()[i].toString();
+						String title = stats[i].getName();
 						String statName = Creature.STATISTIC_SAVING_THROW[i];
 						StatisticInfoDialog dialog = new StatisticInfoDialog(CharacterSavesPanel.this, title, character, statName);
 						dialog.setVisible(true);
@@ -153,10 +166,14 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 		} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
 			prop = prop.substring(Creature.PROPERTY_SAVE_PREFIX.length());
 			for (int i = 0; i < 3; i++) {
-				if (prop.equals(SavingThrow.Type.values()[i].toString())) {
-					baseSaveFields[i].setValue(new Integer(character.getSavingThrowBase(SavingThrow.Type.values()[i])));
-					SavingThrow stat = (SavingThrow)character.getStatistic(Creature.STATISTIC_SAVING_THROW[i]);
-					totalLabels[i].setText(""+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
+				if (prop.equals(stats[i].getName())) {
+					baseLabels[i].setText(Integer.toString(stats[i].getCalculatedBase()));
+					if (stats[i].getBaseOverride() == -1) {
+						overrideFields[i].setText("");
+					} else {
+						overrideFields[i].setValue(stats[i].getBaseOverride());
+					}
+					totalLabels[i].setText(""+stats[i].getValue()+(stats[i].hasConditionalModifier()?"*":""));
 				}
 			}
 			updateToolTips();
@@ -164,18 +181,27 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 		}
 	}
 
-	private class BaseFieldPropertyListener implements PropertyChangeListener {
+	private class OverrideFieldPropertyListener implements PropertyChangeListener {
 		int type;
 
-		public BaseFieldPropertyListener(int t) {
+		public OverrideFieldPropertyListener(int t) {
 			type = t;
 		}
 
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().equals("value")) {
-				int total = (Integer)baseSaveFields[type].getValue();
-				character.setSavingThrowBase(SavingThrow.Type.values()[type], total);
+				if (overrideFields[type].getValue() == null || "".equals(overrideFields[type].getText())) {
+					stats[type].clearBaseOverride();
+				} else {
+					int total = (Integer) overrideFields[type].getValue();
+					if (total == stats[type].getCalculatedBase()) {
+						stats[type].clearBaseOverride();
+						overrideFields[type].setText("");
+					} else {
+						stats[type].setBaseOverride(total);
+					}
+				}
 			}
 		}
 	}

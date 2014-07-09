@@ -36,7 +36,8 @@ import party.Character;
  */
 
 public class Attacks extends Statistic {
-	private int BAB = 0;
+	private int BAB = 0;		// if level is not null and this > -1 then this is the override value
+	private Levels level;		// if not null then used to calculate BAB
 	private Modifier strMod;	// may be null (if the creature has no strength score)
 	private Modifier dexMod;	// may be null (if the creature has no dex score)
 	private Creature creature;
@@ -77,7 +78,13 @@ public class Attacks extends Statistic {
 
 		creature = c;
 		if (creature instanceof Character) {
-			((Character) creature).feats.addListDataListener(featsListener);
+			Character chr = (Character) creature;
+			chr.feats.addListDataListener(featsListener);
+			level = chr.level;
+			level.addPropertyChangeListener((e) -> {
+				firePropertyChange("value", null, getValue());
+			});
+			BAB = -1;
 		}
 		ac = creature.getACStatistic();
 
@@ -147,18 +154,34 @@ public class Attacks extends Statistic {
 	}
 
 	public int getBAB() {
+		if (level != null && BAB == -1) return level.getBAB();
 		return BAB;
 	}
 
+	public int getBABOverride() {
+		return BAB;
+	}
+
+	public int getCalculatedBAB() {
+		if (level != null) return level.getBAB();
+		return 0;
+	}
+
+	public void clearBABOverride() {
+		setBAB(-1);
+	}
+
 	public void setBAB(int bab) {
-		BAB = bab;
-		firePropertyChange("value", null, getValue());
+		if (BAB != bab) {
+			BAB = bab;
+			firePropertyChange("value", null, getValue());
+		}
 	}
 
 	// returns the str-modified ("melee") statistic
 	@Override
 	public int getValue() {
-		return BAB + getModifiersTotal();
+		return getBAB() + getModifiersTotal();
 	}
 
 	@Override
@@ -394,12 +417,12 @@ public class Attacks extends Statistic {
 	 * Other considerations:
 	 * Double weapons/two-weapon fighting/two-handed use
 	 * proficiency, other feats
-	 * 
+	 *
 	 * Temporary factors:
 	 * Power attack
 	 * Combat expertise
 	 * Combat actions?
-	 * 
+	 *
 	 * This will need modifiers for both attack and damage
 	 */
 

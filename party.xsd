@@ -39,7 +39,7 @@
 <xs:element name="Save">
 	<xs:complexType>
 		<xs:attribute name="type" type="SaveType" use="required"/>
-		<xs:attribute name="base" type="xs:int" use="required"/>
+		<xs:attribute name="base" type="xs:int"/>
 		<xs:attribute name="misc" type="xs:int"/>
 	</xs:complexType>
 </xs:element>
@@ -284,7 +284,7 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
-		<xs:attribute name="base" type="xs:int" use="required"/>
+		<xs:attribute name="base" type="xs:int"/>
  		<xs:attribute name="combat_expertise" type="xs:int"/>
  		<xs:attribute name="fighting_defensively" type="xs:boolean"/>
  		<xs:attribute name="total_defense" type="xs:boolean"/>

@@ -96,8 +96,8 @@ public class Monster extends Creature {
 		initiative.addPropertyChangeListener(statListener);
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()));
-			s.setBaseValue(0);
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), null);
+			s.setBaseOverride(0);
 			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}

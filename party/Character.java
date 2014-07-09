@@ -8,7 +8,7 @@ import gamesystem.CreatureProcessor;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
-import gamesystem.Level;
+import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
@@ -48,7 +48,7 @@ public class Character extends Creature {
 
 	// informational string properties (these are simple values that can be set/retrieved)
 	public static final String PROPERTY_PLAYER = "Player";
-	public final static String PROPERTY_CLASS = "Class";
+	//public final static String PROPERTY_CLASS = "Class";
 	public final static String PROPERTY_REGION = "Region";
 	public final static String PROPERTY_RACE = "Race";
 	public final static String PROPERTY_GENDER = "Gender";
@@ -91,7 +91,7 @@ public class Character extends Creature {
 
 	//	private Set<Feat> feats = new HashSet<>();
 
-	public Level level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
+	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 	public int xp = 0;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
 	public EnumMap<ACComponentType, Modifier> acMods = new EnumMap<>(ACComponentType.class); // TODO should move to AC panel
@@ -250,8 +250,10 @@ public class Character extends Creature {
 		initiative = new InitiativeModifier(abilities.get(AbilityScore.Type.DEXTERITY));
 		initiative.addPropertyChangeListener(statListener);
 
+		level = new Levels();
+
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()));
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), level);
 			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
@@ -261,8 +263,6 @@ public class Character extends Creature {
 
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
 		skills.addPropertyChangeListener(statListener);
-
-		level = new Level();
 
 		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), level);
 		hps.addPropertyChangeListener(statListener);
@@ -422,7 +422,7 @@ public class Character extends Creature {
 
 	public void setSavingThrowBase(SavingThrow.Type save, int v) {
 		int old = saves.get(save).getValue();
-		saves.get(save).setBaseValue(v);
+		saves.get(save).setBaseOverride(v);
 		firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, saves.get(save).getValue());
 	}
 
@@ -447,7 +447,7 @@ public class Character extends Creature {
 // TODO this is used by RollsPanel. it should probably be removed
 	public void setSavingThrow(SavingThrow.Type save, int total) {
 		int old = getSavingThrow(save);
-		saves.get(save).setBaseValue(total-saves.get(save).getModifiersTotal());
+		saves.get(save).setBaseOverride(total-saves.get(save).getModifiersTotal());
 		int now = getSavingThrow(save);
 		firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
 	}

@@ -3,10 +3,11 @@ package party;
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
+import gamesystem.Attacks.AttackForm;
 import gamesystem.CharacterClass;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
-import gamesystem.Level;
+import gamesystem.Levels;
 import gamesystem.SavingThrow;
 import gamesystem.SkillType;
 import gamesystem.Skills;
@@ -84,7 +85,7 @@ public class CharacterSheetView {
 		}
 
 		@Override
-		public void processLevel(Level level) {
+		public void processLevel(Levels level) {
 			// process class levels
 			Map<String,Integer> classes = new HashMap<>();
 			int defined = 0;
@@ -202,6 +203,15 @@ public class CharacterSheetView {
 			e1.setAttribute("info", attacks.getRangedSummary());
 			e.appendChild(e1);
 			creatureEl.appendChild(e);
+		}
+
+		@Override
+		protected Element getAttackFormElement(AttackForm a) {
+			Element e = super.getAttackFormElement(a);
+			e.setAttribute("attacks", a.getAttacksDescription());
+			e.setAttribute("info", a.getSummary());
+			e.setAttribute("damage_info", a.getDamageSummary());
+			return e;
 		}
 
 		@Override

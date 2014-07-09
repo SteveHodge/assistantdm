@@ -3,7 +3,7 @@ package monsters;
 import gamesystem.AC;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
-import gamesystem.Level;
+import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
@@ -91,7 +91,7 @@ public class XMLOutputMonsterProcessor extends XMLOutputHelper implements Creatu
 	}
 
 	@Override
-	public void processLevel(Level level) {
+	public void processLevel(Levels level) {
 	}
 
 	@Override

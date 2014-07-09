@@ -36,11 +36,13 @@ import javax.swing.event.DocumentListener;
 
 import party.Character;
 import party.CharacterAttackForm;
+import swing.NullableIntegerFieldFactory;
 
 // TODO make power attack and combat expertise filtered/numeric fields or combos or cycles
 @SuppressWarnings("serial")
 class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeListener {
-	private BoundIntegerField BAB;
+	private JFormattedTextField BAB;
+	private JLabel babLabel = new JLabel();
 	private JLabel strLabel = new JLabel();
 	private JLabel dexLabel = new JLabel();
 	private JLabel meleeLabel = new JLabel();
@@ -297,40 +299,49 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		JPanel top = new JPanel();
 		top.setLayout(new GridBagLayout());
 
-		BAB = new BoundIntegerField(character, Creature.PROPERTY_BAB, 3);
+		BAB = NullableIntegerFieldFactory.createNullableIntegerField();
+		BAB.setColumns(3);
+		BAB.addPropertyChangeListener((e) -> {
+			if (BAB.getValue() == null || "".equals(BAB.getText())) {
+				attacks.clearBABOverride();
+			} else {
+				int total = (Integer) BAB.getValue();
+				if (total == attacks.getCalculatedBAB()) {
+					attacks.clearBABOverride();
+					BAB.setText("");
+				} else {
+					attacks.setBAB(total);
+				}
+			}
+		});
+
 		updateLabels();
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.insets = new Insets(2,2,2,2);
-		c.gridx = 0; c.gridy = 0;
+		c.gridy = 0;
 		c.gridheight = 2;
 		top.add(new JLabel("BAB:"),c);
 
-		c.gridx = 1;
+		top.add(babLabel, c);
+		top.add(new JLabel("override:"), c);
 		top.add(BAB,c);
 
-		c.gridx = 2; c.gridheight = 1; c.anchor = GridBagConstraints.LINE_END;
+		c.gridheight = 1;
+		c.anchor = GridBagConstraints.LINE_END;
 		top.add(new JLabel("Str Mod: "),c);
 
-		c.gridx = 3;
 		top.add(strLabel,c);
-
-		c.gridx = 4;
 		top.add(new JLabel("Melee Attack: "),c);
-
-		c.gridx = 5;
 		top.add(meleeLabel,c);
 
-		c.gridx = 2; c.gridy = 1;
+		c.gridx = 4;
+		c.gridy = 1;
 		top.add(new JLabel("Dex Mod: "),c);
 
-		c.gridx = 3;
+		c.gridx = GridBagConstraints.RELATIVE;
 		top.add(dexLabel,c);
-
-		c.gridx = 4;
 		top.add(new JLabel("Ranged Attack: "),c);
-
-		c.gridx = 5;
 		top.add(rangedLabel,c);
 
 		return top;
@@ -457,6 +468,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 	}
 
 	private void updateLabels() {
+		babLabel.setText(Integer.toString(attacks.getCalculatedBAB()));
 		strLabel.setText(""+character.getAbilityModifierValue(AbilityScore.Type.STRENGTH));
 		String melee = attacks.getAttacksDescription(attacks.getValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {

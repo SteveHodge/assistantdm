@@ -67,7 +67,7 @@ public class XMLOutputHelper {
 		if (creatureEl == null) return null;
 
 		attacksEl = doc.createElement("Attacks");
-		attacksEl.setAttribute("base", "" + attacks.getBAB());
+		attacksEl.setAttribute("base", "" + attacks.getBABOverride());
 		if (attacks.powerAttack != null) attacksEl.setAttribute("power_attack", "" + attacks.getPowerAttack());
 		if (attacks.combatExpertise != null) attacksEl.setAttribute("combat_expertise", "" + attacks.getCombatExpertise());
 		if (attacks.isTotalDefense) attacksEl.setAttribute("total_defense", "true");
@@ -77,7 +77,7 @@ public class XMLOutputHelper {
 		return attacksEl;
 	}
 
-	private Element getAttackFormElement(AttackForm a) {
+	protected Element getAttackFormElement(AttackForm a) {
 		Element e = doc.createElement("AttackForm");
 		e.setAttribute("name", a.name);
 		if (a.enhancement != null) {
@@ -91,11 +91,6 @@ public class XMLOutputHelper {
 
 		// informational attributes:
 		e.setAttribute("total", "" + a.getValue());
-//			if (include_info) {
-//				e.setAttribute("attacks", a.getAttacksDescription());
-//				e.setAttribute("info", a.getSummary());
-//				e.setAttribute("damage_info", a.getDamageSummary());
-//			}
 		return e;
 	}
 
@@ -137,7 +132,7 @@ public class XMLOutputHelper {
 		return e;
 	}
 
-	protected Element getLevelElement(Level lvl) {
+	protected Element getLevelElement(Levels lvl) {
 		if (creatureEl == null) return null;
 
 		Element e = doc.createElement("Level");
