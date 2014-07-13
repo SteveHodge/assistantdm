@@ -38,6 +38,8 @@ public class MapImage extends Group {
 	public final static String PROPERTY_IMAGE_PLAY = "play";	// write only no value
 	public final static String PROPERTY_IMAGE_STOP = "stop";	// write only no value
 	public final static String PROPERTY_SHOW_BORDER = "show_border";	// boolean
+	public final static String PROPERTY_SHOW_BACKGROUND = "show_background";	// boolean
+	public final static String PROPERTY_BACKGROUND_COLOR = "background";	// Color
 	public final static String PROPERTY_ASPECT_LOCKED = "aspect_locked";	// boolean
 
 	transient ImageMedia image = null;
@@ -70,6 +72,9 @@ public class MapImage extends Group {
 	private Property<String> label;
 	private Property<Boolean> border = new Property<Boolean>(PROPERTY_SHOW_BORDER, false, Boolean.class);
 	private Property<Boolean> aspectLocked = new Property<Boolean>(PROPERTY_ASPECT_LOCKED, true, Boolean.class);
+
+	private Property<Boolean> background = new Property<Boolean>(PROPERTY_SHOW_BACKGROUND, false, Boolean.class);
+	private Property<Color> color = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE, Color.class);
 
 	private List<Point> cleared = new ArrayList<>();
 
@@ -162,6 +167,12 @@ public class MapImage extends Group {
 		image.setTransform(transform);
 		BufferedImage img = image.getImage();
 
+		// background
+		if (background.getValue()) {
+			g.setColor(color.getValue());
+			g.fillRect(offset.x, offset.y, image.getImage().getWidth(), image.getImage().getHeight());
+		}
+
 		// if we have a visible mask then we combine it with our image before painting to guarantee that an unmasked image is never shown
 		if (mask != null && mask.getVisibility() == Visibility.VISIBLE) {
 			BufferedImage maskImg = mask.getMaskImage();
@@ -190,7 +201,7 @@ public class MapImage extends Group {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return array of the points defining the centres of the cubes
 	 */
 	public Point[] getCells() {

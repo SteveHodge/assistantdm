@@ -24,7 +24,7 @@ import org.w3c.dom.Document;
 
 public class Updater {
 	// TODO these standard locations should be moved to global settings class
-	public static final String MAP_IMAGE = "http://armitage/assistantdm/static/webcam.jpg";
+	public static final String MAP_IMAGE = "http://armitage/assistantdm/static/camera.jpg";
 	public static final String INITIATIVE_FILE = "http://armitage/assistantdm/static/initiative.json";
 	public static final String DOCUMENT_DIR = "http://armitage/assistantdm/";
 	public static final String TOKEN_BASE_URL = "http://armitage/assistantdm/static/tokens";

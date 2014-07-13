@@ -207,9 +207,10 @@ public class Token extends Group {
 		//			g.fill(s);
 
 		Shape oldClip = g.getClip();
-		Shape clip = new RoundRectangle2D.Float(tl.x + stroke.getLineWidth(), tl.y + stroke.getLineWidth(), br.x - tl.x - stroke.getLineWidth() * 2, br.y - tl.y - stroke.getLineWidth() * 2, arcWidth,
+		RoundRectangle2D clip = new RoundRectangle2D.Float(tl.x + stroke.getLineWidth(), tl.y + stroke.getLineWidth(), br.x - tl.x - stroke.getLineWidth() * 2,
+				br.y - tl.y - stroke.getLineWidth() * 2, arcWidth,
 				arcHeight);
-		g.setClip(clip);
+		g.clip(clip);
 
 		int labelHeight = 0;
 		if (getLabel().length() > 0) {

@@ -1,5 +1,6 @@
 package digital_table.controller;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
@@ -39,10 +40,13 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JSlider alphaSlider;
 	private JTextField labelField;
 	private JComboBox<String> rotationsCombo;
+	private JComboBox<String> dmVisCombo;
 	private JCheckBox snapCheck;
 	JCheckBox visibleCheck;		// accessed by ControllerFrame
 	private JCheckBox borderCheck;
 	private JCheckBox aspectCheck;
+	private JCheckBox backgroundCheck;
+	private JPanel colorPanel;
 
 	private MaskOptionsPanel mask = null;
 
@@ -63,12 +67,37 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		alphaSlider = createSliderControl(MapImage.PROPERTY_ALPHA);
 		rotationsCombo = createRotationControl(MapImage.PROPERTY_ROTATIONS, Mode.ALL);
 		labelField = createStringControl(MapImage.PROPERTY_LABEL, Mode.LOCAL);
-		visibleCheck = createVisibilityControl();
 		borderCheck = createCheckBox(MapImage.PROPERTY_SHOW_BORDER, Mode.LOCAL, "show border?");
 		aspectCheck = createCheckBox(MapImage.PROPERTY_ASPECT_LOCKED, Mode.ALL, "aspect locked?");
 		aspectCheck.setSelected(true);
+		backgroundCheck = createCheckBox(MapImage.PROPERTY_SHOW_BACKGROUND, Mode.ALL, "show background?");
+		colorPanel = createColorControl(MapImage.PROPERTY_BACKGROUND_COLOR);
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
+
+		visibleCheck = new JCheckBox("visible?");
+		visibleCheck.setSelected(false);
+		visibleCheck.addItemListener(e -> {
+			if (visibleCheck.isSelected()) {
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE, Mode.REMOTE);
+				if (dmVisCombo.getSelectedItem().equals("Hidden")) {
+					display.setProperty(element, MapElement.PROPERTY_VISIBLE, Visibility.FADED, Mode.LOCAL);
+				}
+			} else {
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN, Mode.REMOTE);
+				if (dmVisCombo.getSelectedItem().equals("Visible")) {
+					display.setProperty(element, MapElement.PROPERTY_VISIBLE, Visibility.FADED, Mode.LOCAL);
+				}
+			}
+		});
+
+		dmVisCombo = new JComboBox<>(new String[] { "Visible", "Faded", "Hidden" });
+		dmVisCombo.setSelectedItem("Visible");
+		dmVisCombo.addActionListener(e -> {
+			Object selected = dmVisCombo.getSelectedItem();
+			Visibility v = Visibility.valueOf(selected.toString().toUpperCase());
+			if (v != null) display.setProperty(element, MapElement.PROPERTY_VISIBLE, v, Mode.LOCAL);
+		});
 
 		JButton playButton = new JButton("Play");
 		playButton.addActionListener(e -> display.setProperty(element, LineTemplate.PROPERTY_IMAGE_PLAY, null));
@@ -92,6 +121,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.gridx = 0;
 		c.gridy = 0; add(visibleCheck, c);
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("DM visibility: "), c);
 		add(new JLabel("Local label:"), c);
 		add(new JLabel("Left edge column:"), c);
 		add(new JLabel("Top edge Row:"), c);
@@ -99,10 +129,12 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		add(new JLabel("Height:"), c);
 		add(new JLabel("Rotation:"), c);
 		add(new JLabel("Transparency:"), c);
+		add(backgroundCheck, c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
 		add(borderCheck, c);
+		add(dmVisCombo, c);
 		add(labelField, c);
 		add(xField, c);
 		add(yField, c);
@@ -110,6 +142,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		add(heightField, c);
 		add(rotationsCombo, c);
 		add(alphaSlider, c);
+		add(colorPanel, c);
 		JPanel checks = new JPanel();
 		checks.add(snapCheck);
 		checks.add(aspectCheck);
@@ -130,8 +163,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
-				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
-
+				String s = e.getNewValue().toString();
+				s = s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+				dmVisCombo.setSelectedItem(s);
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
 
@@ -160,6 +194,12 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_SHOW_BORDER)) {
 				borderCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_SHOW_BACKGROUND)) {
+				backgroundCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_BACKGROUND_COLOR)) {
+				colorPanel.setBackground((Color) e.getNewValue());
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_ASPECT_LOCKED)) {
 				aspectCheck.setSelected((Boolean) e.getNewValue());
@@ -246,6 +286,8 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
 		parseBooleanAttribute(MapImage.PROPERTY_SHOW_BORDER, e, Mode.LOCAL);
+		parseBooleanAttribute(MapImage.PROPERTY_SHOW_BACKGROUND, e, Mode.ALL);
+		parseColorAttribute(MapImage.PROPERTY_BACKGROUND_COLOR, e, Mode.ALL);
 		parseCellList(MapImage.PROPERTY_CLEARCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);
 
 		if (e.hasAttribute(Group.PROPERTY_LOCATION)) {
@@ -260,5 +302,16 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		}
 
 		parseVisibility(e, visibleCheck);
+
+		String attr = e.getAttribute(MapElement.PROPERTY_VISIBLE);
+		if (attr.length() > 0) {
+			try {
+				Visibility v = Visibility.valueOf(attr);
+				display.setProperty(element, MapElement.PROPERTY_VISIBLE, v, Mode.LOCAL);
+			} catch (IllegalArgumentException ex) {
+				ex.printStackTrace();
+			}
+		}
+
 	}
 }

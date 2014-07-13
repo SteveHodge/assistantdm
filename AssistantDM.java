@@ -71,6 +71,15 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
+ * Image mask needs to also support images drawn on the image (e.g. secrets)
+ * MaskOptionsPanel: delete mask, reorder masks
+ * Sort out magic shops: make them fully configurable in XML
+ * Fix up camera disconnect/reconnect (currently need to restart the app)
+ * Class abilities
+ * Track per-day abilities/item uses
+ * Online character sheet page 2
+ * Upload character sheet should update caster config
+ *
  * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes
  * Continue to update for new module system (particularly digital table controller)
  * Pre-guess the screen layout
@@ -84,13 +93,11 @@ import digital_table.controller.DigitalTableController;
  * ENH: Reordering the elements resets the group expanded/collapsed state
  * BUG: LineTemplate: setting image after rotation draws the un-transformed image
  * REF: Factor clear cells code into support class
- * MaskOptionsPanel: delete mask, reorder masks
  * Copy in encounters dialog should copy the current creature, not the base
  * In encounters dialog, adding an image should select it for the current creature
  * Look at the map element order - should moving a tree move all children?
  * Hidden elements in table display should clear ImageMedia transforms
  * ImageMedia could use a soft/weak/strong reference for transformed images
- * MapImage: option to show solid background (at least use the regular background color. allow select colour?)
  *
  * Combat panel should save full monsters, not just combat entries
  * AC Size modifiers should be correctly linked to size stat
