@@ -23,14 +23,11 @@ import org.w3c.dom.Document;
 
 
 public class Updater {
-	public static final String MAP_IMAGE = "http://armitage/assistantdm/test/photo1.jpg";
-	//public static final String INITIATIVE_FILE = "http://armitage/assistantdm/upload.php/initiative.txt";
-	public static final String DOCUMENT_DIR = "http://armitage/assistantdm/upload.php/";
-	//URL url = new URL("http://max/webcam/ftp/HTML_CharacterSheet/upload.php/"+name.replace(" ", "%20")+".xml");
-
-	//public static final String MAP_IMAGE = "m:\\webcam\\ftp\\images\\capture2.jpg";
-	//public static final String INITIATIVE_FILE = "m:\\webcam\\ftp\\images\\initiative.txt";
-	//public static final String DOCUMENT_DIR = "";
+	// TODO these standard locations should be moved to global settings class
+	public static final String MAP_IMAGE = "http://armitage/assistantdm/static/webcam.jpg";
+	public static final String INITIATIVE_FILE = "http://armitage/assistantdm/static/initiative.json";
+	public static final String DOCUMENT_DIR = "http://armitage/assistantdm/";
+	public static final String TOKEN_BASE_URL = "http://armitage/assistantdm/static/tokens";
 
 	protected static class Update {
 		String url;
@@ -118,7 +115,7 @@ public class Updater {
 			trans.transform(new DOMSource(doc), new StreamResult(writer));
 			byte[] bytes = writer.toString().getBytes();
 
-			update(DOCUMENT_DIR+name.replace(" ", "%20")+".xml", bytes);
+			update(DOCUMENT_DIR + name.replace(" ", "%20"), bytes);
 
 		} catch (Exception e) {
 			e.printStackTrace();

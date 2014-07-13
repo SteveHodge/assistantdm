@@ -249,8 +249,8 @@ class TokenOverlay {
 			// order of these is important because of the workaround in the webpage for mobile safari:
 			// if the order is reversed then when the image file is updated the website will close the
 			// server-sent event connection and the update to the legend will get missed
-			Updater.update("http://armitage/assistantdm/test/tokens1.json", ("[\n" + json.toString()).getBytes());
-			Updater.update("http://armitage/assistantdm/test/tokens1.png", stream.toByteArray());
+			Updater.update(Updater.TOKEN_BASE_URL + ".json", ("[\n" + json.toString()).getBytes());
+			Updater.update(Updater.TOKEN_BASE_URL + ".png", stream.toByteArray());
 
 		} catch (IOException e) {
 			e.printStackTrace();

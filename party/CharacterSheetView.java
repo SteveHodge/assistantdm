@@ -50,7 +50,7 @@ public class CharacterSheetView {
 		Document doc;
 		try {
 			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-			ProcessingInstruction pi = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"CharacterSheetTemplate.xsl\"");
+			ProcessingInstruction pi = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/assistantdm/static/CharacterSheetTemplate.xsl\"");
 			doc.appendChild(pi);
 			CharacterSheetProcessor processor = new CharacterSheetProcessor(doc);
 			character.executeProcess(processor);

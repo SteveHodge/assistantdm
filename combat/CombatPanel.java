@@ -193,7 +193,7 @@ public class CombatPanel extends JPanel implements EncounterModule {
 		if (!output.equals(lastInitiativeOutput)) {
 			//System.out.println(output);
 			lastInitiativeOutput = output;
-			Updater.update("http://armitage/assistantdm/test/initiative.json", output.getBytes());
+			Updater.update(Updater.INITIATIVE_FILE, output.getBytes());
 			for (InitiativeListener l : listeners) {
 				l.initiativeUpdated(output);
 			}

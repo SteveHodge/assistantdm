@@ -67,7 +67,7 @@ public class XMLOutputHelper {
 		if (creatureEl == null) return null;
 
 		attacksEl = doc.createElement("Attacks");
-		attacksEl.setAttribute("base", "" + attacks.getBABOverride());
+		attacksEl.setAttribute("base", "" + attacks.getBAB());
 		if (attacks.powerAttack != null) attacksEl.setAttribute("power_attack", "" + attacks.getPowerAttack());
 		if (attacks.combatExpertise != null) attacksEl.setAttribute("combat_expertise", "" + attacks.getCombatExpertise());
 		if (attacks.isTotalDefense) attacksEl.setAttribute("total_defense", "true");
