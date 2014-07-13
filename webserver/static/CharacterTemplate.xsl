@@ -13,7 +13,7 @@
 	<td colspan="17" rowspan="3" class="weapon-name-class">
 		<xsl:value-of select="$weapon/@name"/>
 	</td>
-	<td colspan="15" rowspan="3" class="bab-class" onclick="showDialog('{$weapon/@name}','{$weapon/@info}','info');">
+	<td colspan="15" rowspan="3" class="bab-class" title="{$weapon/@name}" info="{$weapon/@info}" onclick="showInfo(this);">
 		<xsl:choose>
 			<xsl:when test="Attacks/@total_defense = 'true'">
 				<s><xsl:value-of select="$weapon/@attacks"/></s>
@@ -23,7 +23,7 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</td>
-	<td colspan="13" rowspan="3" class="data-value-class" onclick="showDialog('{$weapon/@name}','{$weapon/@damage_info}','info');">
+	<td colspan="13" rowspan="3" class="data-value-class" title="{$weapon/@name}" info="{$weapon/@damage_info}" onclick="showInfo(this);">
 			<xsl:value-of select="$weapon/@damage"/>
 	</td>
 	<td colspan="9" rowspan="3" class="data-value-class">
@@ -58,7 +58,7 @@
 <xsl:template name="ability">
 	<xsl:param name="ability"/>
 	<td/>
-	<td colspan="4" rowspan="3" class="data-value-important-class" onclick="showDialog('{$ability/@type}','{$ability/@info}','info');">
+	<td colspan="4" rowspan="3" class="data-value-important-class" title="{$ability/@type}" info="{$ability/@info}" onclick="showInfo(this);">
 		<xsl:value-of select="$ability/@total"/>
 	</td>
 	<td/>
@@ -92,7 +92,7 @@
 	<xsl:param name="save"/>
 	<xsl:param name="ability"/>
 					<td/>
-					<td colspan="4" rowspan="3" class="data-value-important-class" onclick="showDialog('{$save/@type}','{$save/@info}','info');">
+					<td colspan="4" rowspan="3" class="data-value-important-class" title="{$save/@type}" info="{$save/@info}" onclick="showInfo(this);">
 						<xsl:value-of select="$save/@total"/>
 					</td>
 					<td rowspan="3" class="equation-class">=</td>
@@ -125,7 +125,7 @@
 								&#x2612;
 							</xsl:when>
 							<xsl:when test="$skill/@type">
-		            &#x2b1c;
+								&#x2610;
 							</xsl:when>
 							<xsl:otherwise>
 							</xsl:otherwise>
@@ -141,7 +141,7 @@
 						<xsl:value-of select="$skill/@ability"/>
 					</td>
 					<td rowspan="2"/>
-					<td colspan="4" rowspan="2" class="skills-total-class B" onclick="showDialog('{$skill/@type}','{$skill/@info}','info');">
+					<td colspan="4" rowspan="2" class="skills-total-class B" title="{$skill/@type}" info="{$skill/@info}" onclick="showInfo(this);">
 						<xsl:value-of select="$skill/@total"/>
 					</td>
 					<td rowspan="2" class="equation-class">=</td>
@@ -197,7 +197,7 @@
 					<td/>
 					<td colspan="27" rowspan="8" style="vertical-align:top;">&nbsp;
 						<span style="position:absolute;z-index:1;width:37.8em; height:10.65em">
-							<img width="504" height="142" style="width:37.8em; height:10.65em" src="logo2.png" alt="DandDLogo" />
+							<img style="width:37.8em; height:10.65em" src="/assistantdm/static/dndlogo.png" alt="DandDLogo" />
 						</span>
 					</td>
 					<td class="R">&nbsp;</td>
@@ -381,10 +381,11 @@
 					<td/>
 					<td colspan="4" rowspan="2" class="data-box-desc-total-class" style="vertical-align:middle;">TOTAL</td>
 					<td/>
-					<td colspan="15" rowspan="2" class="data-box-desc-class">WOUNDS</td>
+					<td colspan="10" rowspan="2" class="data-box-desc-class">CURRENT</td>
 					<td/>
-					<td colspan="15" rowspan="2" class="data-box-desc-class">NONLETHAL DAMAGE</td>
+					<td colspan="10" rowspan="2" class="data-box-desc-class">WOUNDS</td>
 					<td/>
+					<td colspan="10" rowspan="2" class="data-box-desc-class">NONLETHAL DAMAGE</td>
 					<td/>
 					<td/>
 					<td/>
@@ -428,18 +429,21 @@
 					</xsl:call-template>
 					<td colspan="6" rowspan="2" class="title-class">HP</td>
 					<td/>
-					<td colspan="4" rowspan="3" class="data-value-important-class" onclick="showDialog('Hitpoints','{HitPoints/@info}','info');">
+					<td colspan="4" rowspan="3" class="data-value-important-class" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
 						<xsl:value-of select="HitPoints/@maximum"/>
 					</td>
 					<td/>
-					<td colspan="15" rowspan="3" class="data-value-class" style="text-align:left;" onclick="showDialog('Hitpoints','{HitPoints/@info}','info');">
+					<td colspan="10" rowspan="3" class="data-value-class" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
+						<xsl:value-of select="HitPoints/@current"/>
+					</td>
+					<td/>
+					<td colspan="10" rowspan="3" class="data-value-class" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
 						<xsl:value-of select="HitPoints/@wounds"/>
 					</td>
 					<td/>
-					<td colspan="15" rowspan="3" class="data-value-class" style="text-align:left;" onclick="showDialog('Hitpoints','{HitPoints/@info}','info');">
+					<td colspan="10" rowspan="3" class="data-value-class" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
 						<xsl:value-of select="HitPoints/@non-lethal"/>
 					</td>
-					<td/>
 					<td/>
 					<td/>
 					<td/>
@@ -1096,7 +1100,7 @@
 					<td/>
 					<td colspan="11" rowspan="2" class="title-class">INITIATIVE</td>
 					<td/>
-					<td colspan="4" rowspan="3" class="data-value-important-class" onclick="showDialog('Initiative','{Initiative/@info}','info');">
+					<td colspan="4" rowspan="3" class="data-value-important-class" title="Initiative" info="{Initiative/@info}" onclick="showInfo(this);">
 						<xsl:value-of select="Initiative/@total"/>
 					</td>
 					<td rowspan="3" class="equation-class">=</td>
@@ -1877,7 +1881,7 @@
 					<td class="L">&nbsp;</td>
 					<td colspan="11" rowspan="2" class="title-class">MELEE</td>
 					<td/>
-					<td colspan="12" rowspan="3" class="total-attack-bonus-class" onclick="showDialog('Melee Attack','{Attacks/Attack[@type='Melee']/@info}','info');">
+					<td colspan="12" rowspan="3" class="total-attack-bonus-class" title="Melee Attack" info="{Attacks/Attack[@type='Melee']/@info}" onclick="showInfo(this);">
 						<xsl:choose>
 							<xsl:when test="Attacks/@total_defense = 'true'">
 								<s><xsl:value-of select="Attacks/Attack[@type='Melee']/@attacks"/></s>
@@ -1946,7 +1950,7 @@
 					<td class="L">&nbsp;</td>
 					<td colspan="11" rowspan="2" class="title-class">RANGED</td>
 					<td/>
-					<td colspan="12" rowspan="3" class="total-attack-bonus-class" onclick="showDialog('Ranged Attack','{Attacks/Attack[@type='Ranged']/@info}','info');">
+					<td colspan="12" rowspan="3" class="total-attack-bonus-class" title="Ranged Attack" info="{Attacks/Attack[@type='Ranged']/@info}" onclick="showInfo(this);">
 						<xsl:choose>
 							<xsl:when test="Attacks/@total_defense = 'true'">
 								<s><xsl:value-of select="Attacks/Attack[@type='Ranged']/@attacks"/></s>
@@ -2167,29 +2171,29 @@
 						<xsl:value-of select="Attacks/AttackForm[1]/@ammunition"/>
 					</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
 					<td/>
 					<td class="R">&nbsp;</td>
@@ -2303,29 +2307,29 @@
 						<xsl:value-of select="Attacks/AttackForm[2]/@ammunition"/>
 					</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
 					<td/>
 					<td class="R">&nbsp;</td>
@@ -2439,29 +2443,29 @@
 						<xsl:value-of select="Attacks/AttackForm[3]/@ammunition"/>
 					</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
 					<td/>
 					<td class="R">&nbsp;</td>
@@ -2575,29 +2579,29 @@
 						<xsl:value-of select="Attacks/AttackForm[4]/@ammunition"/>
 					</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
 					<td/>
 					<td class="R">&nbsp;</td>
@@ -2711,29 +2715,29 @@
 						<xsl:value-of select="Attacks/AttackForm[5]/@ammunition"/>
 					</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
 					<td/>
 					<td class="R">&nbsp;</td>
@@ -2860,29 +2864,29 @@
 						<xsl:value-of select="Attacks/AttackForm[6]/@ammunition"/>
 					</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
-					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2b1c;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
+					<td rowspan="2" class="checkbox-class" style="border-top:none">&#x2610;</td>
 					<td/>
 					<td/>
 					<td/>

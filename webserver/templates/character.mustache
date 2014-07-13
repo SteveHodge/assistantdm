@@ -1,0 +1,99 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!--<meta name="viewport" content="width=480">-->
+	<link rel="stylesheet" type="text/css" href="/assistantdm/static/spelllist.css">
+	<link rel="stylesheet" type="text/css" href="/assistantdm/static/character.css"/>
+	<title>{{name}}</title>
+	<script src="//code.jquery.com/jquery-2.1.1.min.js" defer></script>
+	<script type="text/javascript" src="/assistantdm/static/dialog_box.js" async></script>
+	<script type="text/javascript" src="/assistantdm/static/spelllist.js" defer></script>
+	<script type="text/javascript">
+var xsl;
+
+function displayXML(xml) {
+	var div = document.getElementById("tab_sheet");
+	// code for IE
+	if (window.ActiveXObject) {
+		div.innerHTML=xml.transformNode(xsl);
+	}
+	// code for Mozilla, Firefox, Opera, etc.
+	else if (document.implementation && document.implementation.createDocument) {
+		xsltProcessor=new XSLTProcessor();
+		xsltProcessor.importStylesheet(xsl);
+		resultDocument = xsltProcessor.transformToFragment(xml,document);
+		while (div.hasChildNodes()) div.removeChild(div.firstChild);
+		div.appendChild(resultDocument);
+	}
+}
+
+function createEventSource() {
+	var source = new EventSource('/assistantdm/updates/{{name}}');
+
+	source.addEventListener('error', function(e) {
+		if (event.target.readyState === EventSource.CLOSED) {
+			source.close();
+			alert('Lost connection to the server\nNo more updates will occur');
+//			window.location.reload(false);
+		} else if (event.target.readyState === EventSource.CONNECTING) {
+			logMessage('Lost connection to server, attempting reconnect');
+		} else {
+			alert('Lost connection to server, unknown error\nNo more updates will occur');
+//			window.location.reload(false);
+		}
+	}, false);
+
+	source.addEventListener('message', function(event) {
+		var lines = event.data.split("\n");
+		for (i = 0; i < lines.length; i++) {
+			if (lines[i] === '{{name}}.xml') {
+				$.get('/assistantdm/{{name}}/xml?unique='+(new Date()).valueOf(), displayXML);
+//			} else {
+//				alert('unknown update: '+lines[i]);
+			}
+		}
+	}, false);
+}
+
+var content;
+
+window.addEventListener('load', function () {
+	WRAPPER = 'tab_sheet';	// set element id for the dialog box to use
+	
+	$.get('/assistantdm/static/CharacterTemplate.xsl', function(data) {
+		xsl = data;
+		$.get('/assistantdm/{{name}}/xml?unique='+(new Date()).valueOf(), displayXML);
+	});
+
+	if(typeof(EventSource)!=="undefined") {
+		createEventSource();
+	} else {
+		alert("Server-sent events not supported.\nGet a better browser - Firefox, Chrome, Safari, and Opera all support this, IE is shit");
+	} 
+});
+	</script>
+</head>
+<body>
+	<div id="tabs"></div>
+
+	<div id="tab_content">
+		<section id="tab_sheet" style="font-size:62.5%;" class="tab" name="Sheet 1"></section>
+		{{#content}}
+		<section id="tab_cast" style="display:none;" class="tab" name="Cast" saveurl="/spells">
+			<div>
+				<h3>Memorised</h3>
+				<div id="spellList" class="scrollable" button="btnSpells" style="width:300px">
+					{{#spells}}
+					<div class="selectable">{{{html}}}</div>
+					{{/spells}}
+				</div>
+				<br><input type="button" id="btnSpells" value="Cast" onclick="castSpell()"/>
+				<input type="button" value="Rest" onclick="rest()"/>
+			</div>
+		</section>
+		{{/content}}
+		{{{content}}}
+	</div>
+</body>
+</body>
+</html>

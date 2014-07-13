@@ -124,3 +124,7 @@ function fadeDialog(flag) {
     clearInterval(dialog.timer);
   }
 }
+
+function showInfo(element) {
+	showDialog(element.getAttribute('title'), element.getAttribute('info'), 'info');
+}

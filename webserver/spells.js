@@ -1550,7 +1550,7 @@ function buildConfig(character, spells) {
 function getCharacter(name, callback) {
 	'use strict';
 
-	fs.readFile(name+'.character', function(err, data) {
+	fs.readFile(__dirname+'/characters/'+name+'.character', function(err, data) {
 		var config;
 
 		if (!err) {
@@ -1568,7 +1568,7 @@ function getCharacter(name, callback) {
 function getSpells(name, callback) {
 	'use strict';
 
-	fs.readFile(name+'.spells', function(err, data) {
+	fs.readFile(__dirname+'/characters/'+name+'.spells', function(err, data) {
 		var spells;
 
 		if (!err) {
@@ -1610,7 +1610,7 @@ function getConfig(name, callback) {
 function setSpells(name, data, callback) {
 	'use strict';
 	
-	fs.writeFile(name+'.spells', JSON.stringify(data), function(err) {
+	fs.writeFile(__dirname+'/characters/'+name+'.spells', JSON.stringify(data), function(err) {
 		callback(err);
 	});
 }
