@@ -21,7 +21,7 @@ import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
 
 // TODO we don't detect changes in the underlying image - need to fix the architecture
-// TODO should detect changes in image location - if the fractional part of the location changes then any cleared cells will be incorrectly aligned
+// TODO (check this, looks like it might be done) should detect changes in image location - if the fractional part of the location changes then any cleared cells will be incorrectly aligned
 // TODO if we want to allow different sized masks we'll need some architecture changes...
 // could have multi-level cache of the mask:
 // each set of masks of a particular size are combined into a cached mask of the same size
@@ -33,10 +33,15 @@ public class Mask extends MapElement {
 	private static final long serialVersionUID = 1L;
 
 	public final static String PROPERTY_ADD_MASK = "add_mask";		// uri - write only
-	public static final String PROPERTY_SHOW_MASK = "show_mask";	// index of mask - write only
-	public static final String PROPERTY_HIDE_MASK = "hide_mask";	// index of mask - write only
+	public static final String PROPERTY_SHOW_MASK = "show_mask";	// set specified mask/image to visible. index of mask - write only
+	public static final String PROPERTY_HIDE_MASK = "hide_mask";	// set specified mask/image to hidden. index of mask - write only
 	public final static String PROPERTY_CLEARCELL = "clear";		// Point - when this property is set the specified cell will be cleared
 	public final static String PROPERTY_UNCLEARCELL = "unclear";	// Point - when this property is set the specified cell will be shown again
+	public final static String PROPERTY_SET_TYPE_MASK = "mask_type";	// set specified mask/image to be a mask. index of mask - write only
+	public final static String PROPERTY_SET_TYPE_IMAGE = "image_type";	// set specified mask/image to be an image. index of mask - write only
+	public final static String PROPERTY_PROMOTE_MASK = "promote_mask";		// move specified mask/image up one in the list. index of mask - write only
+	public final static String PROPERTY_DEMOTE_MASK = "demote_mask";		// move specified mask/image down one in the list. index of mask - write only
+	public final static String PROPERTY_REMOVE_MASK = "remove_mask";	// remove the specified mask/image. index of mask - write only
 
 	private List<MaskImage> masks = new ArrayList<>();
 
@@ -44,10 +49,12 @@ public class Mask extends MapElement {
 //		URI uri;
 		transient ImageMedia image;
 		boolean visible = true;
+		boolean isImage = false;	// false = mask, true = image
 	}
 
 	private transient MapImage image;
 	private transient BufferedImage combinedMask;
+	private transient BufferedImage combinedImage;
 	private transient AffineTransform transform;
 	private double xFraction, yFraction;	// fractional components of parent's location - used to detect when our cleared cells need redrawing due to parent movement
 
@@ -88,8 +95,20 @@ public class Mask extends MapElement {
 		//System.out.println("Image painting took "+micros+"ms");
 	}
 
-	// mask images are combined and then transformed
 	synchronized BufferedImage getMaskImage() {
+		combinedMask = getMaskImage(false, combinedMask);
+		return combinedMask;
+	}
+
+	synchronized BufferedImage getCombinedImage() {
+		combinedImage = getMaskImage(true, combinedImage);
+		return combinedImage;
+	}
+
+	// mask images are combined and then transformed
+	// if images == false then gets the combined mask
+	// if images == true then gets the combined images
+	private synchronized BufferedImage getMaskImage(boolean images, BufferedImage combinedMask) {
 		// check if the parent image has moved relative to the grid
 		// (i.e. the fractional component of the location has changed)
 		// if so then we'll need to regenerate the mask if we have cleared cells
@@ -106,7 +125,7 @@ public class Mask extends MapElement {
 		Graphics2D tempG = null;
 		for (int i = 0; i < masks.size(); i++) {
 			MaskImage m = masks.get(i);
-			if (m.visible) {
+			if (m.visible && m.isImage == images) {
 				if (temp == null) {
 					temp = new BufferedImage(m.image.getSourceWidth(), m.image.getSourceHeight(), BufferedImage.TYPE_INT_ARGB);
 					tempG = temp.createGraphics();
@@ -152,6 +171,7 @@ public class Mask extends MapElement {
 	private void clearMask() {
 		synchronized (this) {
 			combinedMask = null;
+			combinedImage = null;
 		}
 		canvas.repaint();
 	}
@@ -165,7 +185,7 @@ public class Mask extends MapElement {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return array of the points defining the cells that have been removed from the mask
 	 */
 	public Point[] getCells() {
@@ -190,6 +210,7 @@ public class Mask extends MapElement {
 		}
 	}
 
+	// TODO index checking
 	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_ADD_MASK)) {
@@ -204,6 +225,30 @@ public class Mask extends MapElement {
 			setCleared((Point) value, true);
 		} else if (property.equals(PROPERTY_UNCLEARCELL)) {
 			setCleared((Point) value, false);
+		} else if (property.equals(PROPERTY_SET_TYPE_IMAGE)) {
+			masks.get((Integer) value).isImage = true;
+			clearMask();
+		} else if (property.equals(PROPERTY_SET_TYPE_MASK)) {
+			masks.get((Integer) value).isImage = false;
+			clearMask();
+		} else if (property.equals(PROPERTY_REMOVE_MASK)) {
+			int i = (Integer) value;
+			masks.remove(i);
+			clearMask();
+		} else if (property.equals(PROPERTY_PROMOTE_MASK)) {
+			int i = (Integer) value;
+			if (i > 0) {
+				MaskImage m = masks.remove(i);
+				masks.add(i - 1, m);
+				clearMask();
+			}
+		} else if (property.equals(PROPERTY_DEMOTE_MASK)) {
+			int i = (Integer) value;
+			if (i < masks.size() - 1) {
+				MaskImage m = masks.remove(i);
+				masks.add(i + 1, m);
+				clearMask();
+			}
 		} else {
 			super.setProperty(property, value);
 		}

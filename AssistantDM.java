@@ -71,8 +71,7 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
- * Image mask needs to also support images drawn on the image (e.g. secrets)
- * MaskOptionsPanel: delete mask, reorder masks
+ *
  * Sort out magic shops: make them fully configurable in XML
  * Fix up camera disconnect/reconnect (currently need to restart the app)
  * Class abilities

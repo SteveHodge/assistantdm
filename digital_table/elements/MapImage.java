@@ -174,13 +174,17 @@ public class MapImage extends Group {
 		}
 
 		// if we have a visible mask then we combine it with our image before painting to guarantee that an unmasked image is never shown
-		if (mask != null && mask.getVisibility() == Visibility.VISIBLE) {
+		if (mask != null) {
 			BufferedImage maskImg = mask.getMaskImage();
+			BufferedImage overImg = mask.getCombinedImage();
 			BufferedImage bgImg = img;
 			img = new BufferedImage(bgImg.getWidth(), bgImg.getHeight(), bgImg.getType());
 			Graphics2D imgG = img.createGraphics();
 			imgG.drawImage(bgImg, 0, 0, null);
-			imgG.drawImage(maskImg, 0, 0, null);
+			imgG.drawImage(overImg, 0, 0, null);
+			if (mask.getVisibility() == Visibility.VISIBLE) {
+				imgG.drawImage(maskImg, 0, 0, null);
+			}
 		}
 
 		g.drawImage(img, offset.x, offset.y, null);
