@@ -20,8 +20,6 @@ th {
 	<script type="text/javascript">
 // version: 20140707
 
-var isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod touch);.*AppleWebKit/) !== null;
-
 function updateInitiativeText(data) {
 	var html = '<table>\n<tr><th>Combat Round</th><th>\n';
 	html += (data.round == undefined ? 0 : data.round) + "</th><th>Initiative</th></tr>\n";
@@ -50,8 +48,8 @@ function logMessage(msg, debug) {
 	}
 }
 
-function createEventSource(nologconnect) {
-	if (!nologconnect) logMessage('Connecting to server');
+function createEventSource() {
+	logMessage('Connecting to server');
 	
 	var source = new EventSource('updates/all');
 
@@ -83,24 +81,10 @@ function createEventSource(nologconnect) {
 					updateInitiativeText(data);
 				});
 			} else if (lines[i] === "camera.jpg") {
-				if (isMobile) {
-					// workaround for mobile safari - sometimes can't update the images while the EventSource is alive
-					source.close();
-					document.getElementById("photo1").src = "static/camera.jpg?"+(new Date()).valueOf();
-					createEventSource(true);
-				} else {
-					document.getElementById("photo1").src = "static/camera.jpg?"+(new Date()).valueOf();
-				}
+				document.getElementById("photo1").src = "http://static.stevehodge.net/camera.jpg?"+(new Date()).valueOf();
 				logMessage('updated image');
 			} else if (lines[i] === "tokens.png") {
-				if (isMobile) {
-					// workaround for mobile safari - sometimes can't update the images while the EventSource is alive
-					source.close();
-					document.getElementById("tokens1").src = "static/tokens.png?"+(new Date()).valueOf();
-					createEventSource(true);	// workaround for mobile safari - sometimes can't update the images while the EventSource is alive
-				} else {
-					document.getElementById("tokens1").src = "static/tokens.png?"+(new Date()).valueOf();
-				}
+				document.getElementById("tokens1").src = "http://static.stevehodge.net/tokens.png?"+(new Date()).valueOf();
 				logMessage('updated token overlay', true);
 			} else if (lines[i] === "tokens.json") {
 				logMessage('updated token legend', true);
@@ -146,8 +130,8 @@ function openPhoto() {
 
 <body>
 	<div style="width: 75%; float: left;">
-		<img width="75%" id="photo1" src="static/camera.jpg" style="position:absolute; z-index:1;"/>
-		<img width="75%" id="tokens1" src="static/tokens.png" style="position:absolute; z-index:2;" onclick="openPhoto();"/>
+		<img width="75%" id="photo1" src="http://static.stevehodge.net/camera.jpg" style="position:absolute; z-index:1;"/>
+		<img width="75%" id="tokens1" src="http://static.stevehodge.net/tokens.png" style="position:absolute; z-index:2;" onclick="openPhoto();"/>
 		&nbsp;
 	</div>
 	<div style="width: 23%; height: 100%; float: right; height: 100%; overflow-y: auto;">

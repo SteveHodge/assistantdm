@@ -1,6 +1,7 @@
 /*
 enhancements:
 player urls (e.g. 'assistantdm/Blair') that have the webpage + links to character or the webpage as a tab
+factor out updating code for webcam, characters, consider all in one page with webcam, character, spells tabs
 /debug/<character> - combined debug page with all config + subscribers to the character
 track other uses: per-day abilities, item charges, etc
 /dm - dm log that tracks updates to characters spells (particularly casting) and/or feed back to AssistantDM
@@ -66,7 +67,7 @@ app.use('/static', express.static(__dirname+'/static'));
 app.use(express.json());
 
 app.get('/', function(req, res, next) {
-	res.sendfile('static/main.html');
+	res.sendfile('static/webcam.html');
 });
 
 // updates
