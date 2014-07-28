@@ -73,7 +73,6 @@ import digital_table.controller.DigitalTableController;
 /* TODO current priorities:
  *
  * Sort out magic shops: make them fully configurable in XML
- * Fix up camera disconnect/reconnect (currently need to restart the app)
  * Class abilities
  * Track per-day abilities/item uses
  * Online character sheet page 2

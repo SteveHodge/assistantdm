@@ -12,6 +12,9 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import digital_table.server.MapCanvas.Order;
 
 // TODO this is very similar to Label. consider combining
@@ -109,31 +112,17 @@ public class Initiative extends MapElement {
 	}
 
 	protected List<String[]> getTable() {
-		String[] lines = text.getValue().split("\\r?\\n|\\r");
+		JSONObject init = new JSONObject(text.getValue());
+
 		List<String[]> output = new ArrayList<>();
+		output.add(new String[] { "Round", init.get("round").toString() });
 
-		String[] outLine = new String[2];
-		for (String line : lines) {
-			String[] parts = line.split("=");
-			if (parts.length < 2) continue;
-
-			if (parts[0].equals("round")) {
-				outLine[0] = "Round";
-				outLine[1] = parts[1];
-				output.add(outLine);
-				outLine = new String[2];
-
-			} else if (parts[0].equals("lastindex")) {
-
-			} else if (parts[0].startsWith("fixedname")) {
-				outLine[0] = parts[1];
-
-			} else if (parts[0].startsWith("init")) {
-				outLine[1] = parts[1];
-				output.add(outLine);
-				outLine = new String[2];
-			}
+		JSONArray entries = init.getJSONArray("order");
+		for (int i = 0; i < entries.length(); i++) {
+			JSONObject entry = entries.getJSONObject(i);
+			output.add(new String[] { entry.get("name").toString(), entry.get("initiative").toString() });
 		}
+
 		return output;
 	}
 

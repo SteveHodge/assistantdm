@@ -282,7 +282,10 @@ function save() {
 	}
 
 	var req = new XMLHttpRequest();
-	req.open('PUT', window.location+document.getElementById('tab_cast').getAttribute('saveurl'), true);
+	var url = new String(window.location);
+	url = url.replace(/\/+$/, '');	// remove any trailing slashes
+	url += document.getElementById('tab_cast').getAttribute('saveurl');
+	req.open('PUT', url, true);
 	req.setRequestHeader('Content-Type', 'application/json');
 	req.onreadystatechange = function() {
 		if (req.readyState === 4) {

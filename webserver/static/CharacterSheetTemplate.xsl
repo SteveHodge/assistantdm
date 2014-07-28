@@ -14,8 +14,8 @@
 			<link href="http://static.stevehodge.net/character.css" rel="stylesheet" title="new" type="text/css" />
 			<script type="text/javascript" src="http://static.stevehodge.net/dialog_box.js"></script>
 		</head>
-		<body style="font-size:62.5%;">
-			<div id="content">
+		<body>
+			<div id="content" style="font-size:50%;">
 				<xsl:apply-templates/>
 			</div>
 		</body>

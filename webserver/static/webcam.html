@@ -17,8 +17,10 @@ th {
 }
 	</style>
 	<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
-	<script type="text/javascript">
+	<script src="/assistantdm/static/updater.js"></script>
+	<script>
 // version: 20140707
+// TODO inline script means we can't defer jquery
 
 function updateInitiativeText(data) {
 	var html = '<table>\n<tr><th>Combat Round</th><th>\n';
@@ -48,56 +50,29 @@ function logMessage(msg, debug) {
 	}
 }
 
-function createEventSource() {
-	logMessage('Connecting to server');
-	
-	var source = new EventSource('updates/all');
+updater.addListener('initiative.json', function() {
+	logMessage('updated initiatives');
+	$.get('static/initiative.json?'+(new Date()).valueOf(), function(data) {
+		updateInitiativeText(data);
+	});
+});
 
-	source.addEventListener('open', function(e) {
-		if (!nologconnect) logMessage('Connection to server open');
-	}, false);
+updater.addListener('camera.jpg', function() {
+	document.getElementById("photo1").src = "http://static.stevehodge.net/camera.jpg?"+(new Date()).valueOf();
+	logMessage('updated image');
+});
 
-	source.addEventListener('error', function(e) {
-		if (event.target.readyState === EventSource.CLOSED) {
-			source.close();
-			logMessage('Lost connection to server');
-//			alert("Lost the connection to the server.\nThe page will be reloaded.");
-//			window.location.reload(false);
-		} else if (event.target.readyState === EventSource.CONNECTING) {
-			logMessage('Lost connection to server, attempting reconnect');
-		} else {
-			logMessage('Lost connection to server, unknown error');
-//			alert("Lost the connection to the server.\nThe page will be reloaded.");
-//			window.location.reload(false);
-		}
-	}, false);
+updater.addListener('tokens.png', function() {
+	document.getElementById("tokens1").src = "http://static.stevehodge.net/tokens.png?"+(new Date()).valueOf();
+	logMessage('updated token overlay', true);
+});
 
-	source.addEventListener('message', function(event) {
-		var lines = event.data.split("\n");
-		for (i = 0; i < lines.length; i++) {
-			if (lines[i] === "initiative.json") {
-				logMessage('updated initiatives');
-				$.get('static/initiative.json?'+(new Date()).valueOf(), function(data) {
-					updateInitiativeText(data);
-				});
-			} else if (lines[i] === "camera.jpg") {
-				document.getElementById("photo1").src = "http://static.stevehodge.net/camera.jpg?"+(new Date()).valueOf();
-				logMessage('updated image');
-			} else if (lines[i] === "tokens.png") {
-				document.getElementById("tokens1").src = "http://static.stevehodge.net/tokens.png?"+(new Date()).valueOf();
-				logMessage('updated token overlay', true);
-			} else if (lines[i] === "tokens.json") {
-				logMessage('updated token legend', true);
-				$.get('static/tokens.json?'+(new Date()).valueOf(), function(data) {
-					updateTokensText(data);
-				});
-//			} else {
-//				logMessage('unknown update: '+lines[i], true);
-			}
-		}
-	}, false);
-}
-
+updater.addListener('tokens.json', function() {
+	logMessage('updated token legend', true);
+	$.get('static/tokens.json?'+(new Date()).valueOf(), function(data) {
+		updateTokensText(data);
+	});
+});
 
 $(document).ready(function () {
 	$.getJSON('static/initiative.json?'+(new Date()).valueOf(), function(data) {
@@ -107,12 +82,24 @@ $(document).ready(function () {
 	$.getJSON('static/tokens.json?'+(new Date()).valueOf(), function(data) {
 		updateTokensText(data);
 	});
+
+	updater.onError = function(state) {
+		if (state === EventSource.CLOSED) {
+			logMessage('Lost connection to server');
+		} else if (state === EventSource.CONNECTING) {
+			logMessage('Lost connection to server, attempting reconnect');
+		} else {
+			logMessage('Lost connection to server, unknown error');
+		}
+	};
+
+	updater.onOpen = function() {
+		logMessage('Connection to server open');
+	}
 	
-	if(typeof(EventSource)!=="undefined") {
-		createEventSource();
-	} else {
-		alert("Server-sent events not supported.\nGet a better browser - Firefox, Chrome, Safari, and Opera all support this, IE is shit");
-	} 
+	logMessage('Connecting to server');
+
+	updater.openConnection();
 });
 
 function toggleTokens() {
@@ -122,7 +109,7 @@ function toggleTokens() {
 }
 
 function openPhoto() {
-	var win=window.open("photo1.jpg", '_blank');
+	var win=window.open("http://static.stevehodge.net/camera.jpg", '_blank');
 	win.focus();
 }
 	</script>

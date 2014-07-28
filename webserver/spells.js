@@ -10,6 +10,13 @@ specialist loses two schools (one for diviner) (can't lose divination)
 */
 
 var fs = require('fs');
+var mustache = require('mustache');
+
+var tab_templates = {
+	prepare: fs.readFileSync(__dirname+'/templates/prepare.mustache', 'binary'),
+	learn: fs.readFileSync(__dirname+'/templates/learn.mustache', 'binary'),
+	scribe: fs.readFileSync(__dirname+'/templates/scribe.mustache', 'binary')
+};
 
 var clericSlots = [
 	[3,1],
@@ -1615,6 +1622,30 @@ function setSpells(name, data, callback) {
 	});
 }
 
+// callback(err, data)
+// data = {name: <name>, content: ..., spells: ...}
+function getContent(name, callback) {
+	getConfig(name, function(err, config) {
+		var i, data = {};
+
+		if (err) {
+			return callback(err, null);
+		}
+
+		data.name = name;
+		data.content = '';
+		for (i = 0; i < config.length; i++) {
+			if (config[i].type !== 'cast') {
+				data.content += mustache.to_html(tab_templates[config[i].type], config[i]);
+			} else {
+				data.spells = config[i].spells;
+			}
+		}
+		
+		return callback(null, data);
+	});
+}
+
 
 // check domain spells
 var domain;
@@ -1628,3 +1659,4 @@ exports.getConfig = getConfig;
 exports.getCharacter = getCharacter;
 exports.setSpells = setSpells;
 exports.getSpells = getSpells;
+exports.getContent = getContent;

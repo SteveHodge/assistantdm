@@ -1,3 +1,132 @@
+#cs1_basic_info {
+	position:absolute;
+	left:0em;
+	top:0em;
+	width:100.8em;
+	height:12.8em;
+}
+
+#cs1_logo {
+	position:absolute;
+	left:103.68em;
+	top:0em;
+	width:38.88em;
+	height:10.24em;
+}
+
+#cs1_abilities {
+	position:absolute;
+	left:0em;
+	top:14.08em;
+	width:37.44em;
+	height:33.28em;
+}
+
+#cs1_hp_and_ac {
+	position:absolute;
+	left:41.76em;
+	top:14.08em;
+	width:100.8em;
+	height:15.36em;
+}
+
+#cs1_ac_initiative {
+	position:absolute;
+	left:41.76em;
+	top:30.72em;
+	width:38.88em;
+	height:15.36em;
+}
+
+#cs1_saving_throws {
+	position:absolute;
+	left:0em;
+	top:48.64em;
+	width:51.84em;
+	height:16.64em;
+}
+
+#cs1_special_info {
+	position:absolute;
+	left:54.72em;
+	top:48.64em;
+	width:24.48em;
+	height:32em;
+}
+
+#cs1_bab_grapple {
+	position:absolute;
+	left:0em;
+	top:66.56em;
+	width:51.84em;
+	height:12.80em;
+}
+
+#cs1_basic_attacks {
+	position:absolute;
+	left:0em;
+	top:82.08em;
+	width:77.76em;
+	height:14.08em;
+}
+
+#cs1_weapon1 {
+	position:absolute;
+	left:0em;
+	top:98.72em;
+	width:77.76em;
+	height:14.08em;
+}
+
+#cs1_weapon2 {
+	position:absolute;
+	left:0em;
+	top:114.08em;
+	width:77.76em;
+	height:14.08em;
+}
+
+#cs1_weapon3 {
+	position:absolute;
+	left:0em;
+	top:129.44em;
+	width:77.76em;
+	height:14.08em;
+}
+
+#cs1_weapon4 {
+	position:absolute;
+	left:0em;
+	top:144.80em;
+	width:77.76em;
+	height:14.08em;
+}
+
+#cs1_weapon5 {
+	position:absolute;
+	left:0em;
+	top:160.16em;
+	width:77.76em;
+	height:14.08em;
+}
+
+#cs1_weapon6 {
+	position:absolute;
+	left:0em;
+	top:175.52em;
+	width:77.76em;
+	height:14.08em;
+}
+
+#cs1_skills {
+	position:absolute;
+	left:82.08em;
+	top:30.72em;
+	width:60.48em;
+	height:158.72em;
+}
+
+
 td {
 	vertical-align:bottom;
 	white-space:nowrap;
@@ -5,72 +134,70 @@ td {
 	text-decoration:none;
 	font-family:Arial, sans-serif;
 	font-weight:normal;
-	font-size:0.8333em;
+	font-size:1em;
 	font-style:normal;
 	color:black;
 	padding:0;
 }
 
 tr {
-	height:1.0625em;
+	height:1.28em;
 }
 
 table {
 	border-collapse:collapse;
 	table-layout:fixed;
-	width:114.75em;
-	font-size:100%;
+	width:141.12em;
+	font-size:1em;
 }
 
-.character-table {
-	text-align:center;
+/*
+* {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+*/
+
+#content {
 	margin:1em;
 	padding:1.5em;
 	border:2px solid black;
 	display:inline-block;
 }
 
+.character-table {
+	position:relative;
+	left:0em;
+	top:0em;
+	width:142.56em;
+	height:189.44em;
+	text-align:center;
+	white-space:nowrap;
+	text-decoration:none;
+	font-family:Arial, sans-serif;
+	font-style:normal;
+	color:black;
+}
+
 .sheet-title {
 	vertical-align:middle;
 	text-align:center;
 	font-weight:bold;
-	font-size:1.6667em;
+	font-size:2em;
 }
 
-.speed-heading {
+.symbol {
 	vertical-align:middle;
 	text-align:center;
-}
-
-.equation {
-	vertical-align:middle;
-	text-align:center;
-	font-size:1.333em;
-}
-
-.checkbox {
-	vertical-align:middle;
-	text-align:center;
-	font-size:1.333em;
+	font-size:1.6em;
 }
 
 .ac-base-value {
 	vertical-align:middle;
 	text-align:right;
 	font-weight:bold;
-	font-size:2.1667em;
-}
-
-.weapon-ammo-label {
-	text-align:center;
-	font-weight:bold;
-	font-size:1em;
-}
-
-.weapon-ammo-desc {
-	vertical-align:bottom;
-	font-size:1.2em;
-	border-bottom:1px solid black;
+	font-size:2.6em;
 }
 
 /* headings */
@@ -85,49 +212,44 @@ table {
 
 .title {
 	font-weight:bold;
-	font-size:1.5em;
+	font-size:1.8em;
 }
 
 .weapon-subtitle {
 	font-weight:bold;
-	font-size:0.8333em;
+	font-size:1em;
 }
 
 .title-smaller {
 	white-space:normal;
 	font-weight:bold;
-	font-size:1.333em;
+	font-size:1.6em;
 }
 
 /* data */
 
-.data-value, .data-value-important, .total-attack-bonus, .bab, .weapon-name {
+.data-value, .data-value-important, .bab, .weapon-name {
 	vertical-align:middle;
 	text-align:center;
 	border:2px solid black;
 }
 
 .data-value {
-	font-size:1.8333em;
+	font-size:2.2em;
 }
 
 .data-value-important {
 	font-weight:bold;
-	font-size:1.8333em;
-}
-
-.total-attack-bonus {
-	font-weight:bold;
-	font-size:1.333em;
+	font-size:2.2em;
 }
 
 .bab {
-	font-size:1.333em;
+	font-size:1.6em;
 }
 
 .weapon-name {
 	white-space:normal;
-	font-size:1.5em;
+	font-size:2.2em;
 }
 
 .temp-value {
@@ -135,7 +257,7 @@ table {
 	vertical-align:middle;
 	text-align:center;
 	font-weight:bold;
-	font-size:1.8333em;
+	font-size:2.2em;
 }
 
 .info-value, .info-value-important, .info-value-small {
@@ -144,16 +266,16 @@ table {
 }
 
 .info-value {
-	font-size:1.8333em;
+	font-size:2.2em;
 }
 
 .info-value-important {
 	font-weight:bold;
-	font-size:1.8333em;
+	font-size:2.2em;
 }
 
 .info-value-small {
-	font-size:1.6667em;
+	font-size:2em;
 }
 
 /* skills headings */
@@ -166,28 +288,28 @@ table {
 }
 
 .skills-title {
-	font-size:1.5em;
+	font-size:1.8em;
 	font-weight:bold;
 }
 
 .skills-cross-class-heading {
 	vertical-align:bottom;
-	font-size:0.5em;
+	font-size:0.6em;
 	border-left:1px solid black;
 }
 
 .skills-max-ranks-heading {
 	text-align:right;
-	font-size:1em;
+	font-size:1.2em;
 }
 
 .skills-max-ranks-value {
-	font-size:1em;
+	font-size:1.2em;
 }
 
 .skills-subhead, .skills-subhead-main {
 	padding:1px;
-	font-size:0.8333em;
+	font-size:1em;
 	vertical-align:middle;
 	text-align:center;
 	white-space:normal;
@@ -201,7 +323,7 @@ table {
 /* skills data */
 .skills-name, .skills-data, .skills-ability {
 	vertical-align:middle;
-	font-size:1.333em;
+	font-size:1.6em;
 }
 
 .skills-data, .skills-total {
@@ -216,45 +338,49 @@ table {
 .skills-total {
 	vertical-align:middle;
 	font-weight:bold;
-	font-size:1.6667em;
+	font-size:2em;
 }
 
 .skills-notes {
 	vertical-align:top;
 	white-space:normal;
-	font-size:1.1667em;
+	font-size:1.18em;
 }
 
 /* data box descriptions */
-.data-box-desc-under, .data-box-desc, .data-box-desc-total-over, .data-box-desc-total {
+.label-under, .label, .label-total-under, .label-total, .weapon-ammo-label, .conditional-heading {
 	white-space:normal;
 	text-align:center;
 }
 
-.data-box-desc-under {
+.label-under {
 	vertical-align:top;
 }
 
-.data-box-desc {
-	vertical-align:middle;
+.label {
+	vertical-align:bottom;
 }
 
-.data-box-desc-total-over {
+.label-total-under {
 	vertical-align:top;
 	font-weight:bold;
-	font-size:0.9167em;
+	font-size:1.2em;
 }
 
-.data-box-desc-total {
+.label-total, .weapon-ammo-label {
 	vertical-align:bottom;
 	font-weight:bold;
-	font-size:0.9167em;
+	font-size:1.2em;
+}
+
+.weapon-ammo-desc {
+	vertical-align:bottom;
+	font-size:1.44em;
+	border-bottom:1px solid black;
 }
 
 .conditional-heading {
-	white-space:normal;
-	text-align:center;
-	vertical-align:middle;
+	vertical-align:top;
 	border-left:2px solid black;
 	border-right:2px solid black;
 	border-top:2px solid black;
@@ -262,7 +388,7 @@ table {
 .conditional-modifiers {
 	vertical-align:top;
 	white-space:normal;
-	font-size:1.1667em;
+	font-size:1.4em;
 	border-left:2px solid black;
 	border-right:2px solid black;
 	border-bottom:2px solid black;

@@ -35,6 +35,7 @@ import javax.swing.WindowConstants;
 import swing.ImagePanel;
 import util.ModuleListener;
 import util.ModuleRegistry;
+import canon.cdsdk.CDSDKException;
 import canon.cdsdk.Constants;
 import canon.cdsdk.Enum;
 import canon.cdsdk.ImageFormat;
@@ -130,6 +131,8 @@ public class CameraPanel extends JPanel implements ActionListener {
 		@Override
 		public void cameraDisconnected() {
 			timer.stopCapture();	// TODO if this does wait for capture to finish, should we?
+			capturing = false;
+			captureASAP = false;
 			setControls(false);
 			startStop.setText("Start");
 		}
@@ -354,6 +357,8 @@ public class CameraPanel extends JPanel implements ActionListener {
 		} catch (CameraNotConnectedException e) {
 			logMessage(e.getMessage());
 //			e.printStackTrace();
+		} catch (CDSDKException e) {
+			logMessage(e.getMessage());
 		}
 	}
 
