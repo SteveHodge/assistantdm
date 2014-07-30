@@ -1,3 +1,7 @@
+#webcam {
+	width: 100%;
+}
+
 #webcam table {
 	width: 100%;
 	border-collapse: collapse;
@@ -14,4 +18,32 @@
 
 #webcam th {
 	background-color: #c0c0c0;
+}
+
+#photo1 {
+	position:absolute;
+	z-index:1;
+	width:75%;
+}
+
+#tokens1 {
+	position:absolute;
+	z-index:2;
+	width:75%;
+}
+
+#images {
+	width:75%;
+	float:left;
+}
+
+#info {
+	width: 23%;
+	float: right;
+	height: 100%;
+	overflow-y: auto;
+}
+
+#messageDiv {
+	margin-top: 20px;
 }

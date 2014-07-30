@@ -1,13 +1,19 @@
 /*
 enhancements:
 track other uses: per-day abilities, item charges, etc
-player configuration tab
 /debug/<character> - combined debug page with all config + subscribers to the character
 /dm - dm log that tracks updates to characters spells (particularly casting) and/or feed back to AssistantDM
 
+note on updates: mobile safari seems to have problems with the open SSE connection - it won't download
+images (and some other types of static content) from the same domain. to avoid the issue updates are
+requested from a different sub-domain (updates.stevehodge.net) which is not authenticated. CORS is used
+to enable this. the alternate of having static content on a separate domain would mean that all static
+content was publically accessible and we'd still need CORS for XSLT stylesheets (if CORS is even possible
+there)
+
 web structure:
 / - webcam (GET)
-/<player> - complete page with character + webcam (GET)
+/<player> - configurable page with character, spells, and/or webcam (GET+POST config)
 /<character> - full character page (character sheet + spells) (GET+PUT character sheet updates)
 /<character>/xml - static character sheet (GET)
 /<character>/spells - spell tracking page (GET+PUT spell updates)
@@ -58,6 +64,7 @@ app.use(express.logger('dev'));
 app.use('/static', express.static(__dirname+'/static'));
 
 app.use(express.json());
+app.use(express.urlencoded());
 
 app.get('/', function(req, res, next) {
 	res.sendfile('static/webcam.html');
@@ -137,6 +144,27 @@ app.get('/:name/xml', function(req, res, next) {
 });
 
 // player page
+// config saving:
+app.post('/:name', function(req, res, next) {
+	'use strict';
+
+	var config = {
+		webcam: req.body.webcam === 'on',
+		sheet1: req.body.sheet1 === 'on',
+		spells: req.body.spells === 'on',
+		character: req.body.character,
+		fontsize: req.body.fontsize
+	};
+	if (!config.character) config.sheet1 = false;
+	if (!config.fontsize) config.fontsize = 8;
+	console.log(util.inspect(config));
+
+	fs.writeFile(__dirname+'/players/'+req.params.name+'.player', JSON.stringify(config), function(err) {
+		if (err) return next('Failed to save configuration');
+		res.redirect('/assistantdm/'+req.params.name);
+	});
+});
+
 // this has same route as character below. if a player config file doesn't exist then it's assumed to be a character
 app.get('/:name', function(req, res, next) {
 	'use strict';
@@ -175,17 +203,17 @@ app.get('/:name', function(req, res, next) {
 				if (pageData === null) return;
 				
 				pageData.title = 'Assistant DM';
+				pageData.fontsize = config.fontsize;
+				pageData['fontsize'+config.fontsize] = true;
+				pageData.saveurl = '/spells';
+				pageData.name = config.character;
+				pageData.webcam = config.webcam;
+				pageData.config = true;
 
 				if (config.character && config.sheet1) {
 					if (fs.existsSync(__dirname+'/characters/'+config.character+'.xml')) {
 						pageData.sheet1 = true;
-						pageData.saveurl = '/spells';
-						pageData.name = config.character;
 					}
-				}
-
-				if (config.webcam) {
-					pageData.webcam = true;
 				}
 
 				res.send(mustache.to_html(main_template, pageData));
@@ -205,7 +233,8 @@ app.get('/:name', function(req, res, next) {
 				// no config and no xml file = no character
 				return next();
 			}
-			
+
+			data = {};			
 			data.name = req.params.name;
 			data.content = '';
 			data.spells = '';
@@ -213,10 +242,28 @@ app.get('/:name', function(req, res, next) {
 
 		data.title = data.name;
 		data.sheet1 = true;
+		data.fontsize = 8;
 		data.saveurl = '/spells';
 		res.send(mustache.to_html(main_template, data));
 	});
 });
+
+// couldn't find player or character so assume a new player
+app.get('/:name', function(req, res, next) {
+	'use strict';
+
+	var data = {
+		title: 'Assistant DM',
+		webcam: true,
+		sheet1: false,
+		spells: false,
+		fontsize: 8,
+		name: ''
+	};
+
+	res.send(mustache.to_html(main_template, data));
+});
+
 
 // webcam media
 app.put('/static/initiative.json', function(req, res, next) { saveFile(req.path, req, res, next); });

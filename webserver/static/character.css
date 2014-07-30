@@ -127,7 +127,7 @@
 }
 
 
-td {
+div.character-table td {
 	vertical-align:bottom;
 	white-space:nowrap;
 	text-align:left;
@@ -140,11 +140,11 @@ td {
 	padding:0;
 }
 
-tr {
+div.character-table tr {
 	height:1.28em;
 }
 
-table {
+div.character-table table {
 	border-collapse:collapse;
 	table-layout:fixed;
 	width:141.12em;
@@ -180,20 +180,20 @@ table {
 	color:black;
 }
 
-.sheet-title {
+div.character-table .sheet-title {
 	vertical-align:middle;
 	text-align:center;
 	font-weight:bold;
 	font-size:2em;
 }
 
-.symbol {
+div.character-table .symbol {
 	vertical-align:middle;
 	text-align:center;
 	font-size:1.6em;
 }
 
-.ac-base-value {
+div.character-table .ac-base-value {
 	vertical-align:middle;
 	text-align:right;
 	font-weight:bold;
@@ -202,7 +202,10 @@ table {
 
 /* headings */
 
-.title, .subtitle, .weapon-subtitle, .title-smaller {
+div.character-table .title,
+div.character-table .subtitle,
+div.character-table .weapon-subtitle,
+div.character-table .title-smaller {
 	border:2px solid black;
 	vertical-align:middle;
 	text-align:center;
@@ -210,17 +213,17 @@ table {
 	background:black;
 }
 
-.title {
+div.character-table .title {
 	font-weight:bold;
 	font-size:1.8em;
 }
 
-.weapon-subtitle {
+div.character-table .weapon-subtitle {
 	font-weight:bold;
 	font-size:1em;
 }
 
-.title-smaller {
+div.character-table .title-smaller {
 	white-space:normal;
 	font-weight:bold;
 	font-size:1.6em;
@@ -228,31 +231,31 @@ table {
 
 /* data */
 
-.data-value, .data-value-important, .bab, .weapon-name {
+div.character-table .data-value, div.character-table .data-value-important, div.character-table .bab, div.character-table .weapon-name {
 	vertical-align:middle;
 	text-align:center;
 	border:2px solid black;
 }
 
-.data-value {
+div.character-table .data-value {
 	font-size:2.2em;
 }
 
-.data-value-important {
+div.character-table .data-value-important {
 	font-weight:bold;
 	font-size:2.2em;
 }
 
-.bab {
+div.character-table .bab {
 	font-size:1.6em;
 }
 
-.weapon-name {
+div.character-table .weapon-name {
 	white-space:normal;
 	font-size:2.2em;
 }
 
-.temp-value {
+div.character-table .temp-value {
 	border:1.0px dashed black;
 	vertical-align:middle;
 	text-align:center;
@@ -260,26 +263,31 @@ table {
 	font-size:2.2em;
 }
 
-.info-value, .info-value-important, .info-value-small {
+div.character-table .info-value, 
+div.character-table .info-value-important, 
+div.character-table .info-value-small {
 	vertical-align:middle;
 	border-bottom:2px solid black;
 }
 
-.info-value {
+div.character-table .info-value {
 	font-size:2.2em;
 }
 
-.info-value-important {
+div.character-table .info-value-important {
 	font-weight:bold;
 	font-size:2.2em;
 }
 
-.info-value-small {
+div.character-table .info-value-small {
 	font-size:2em;
 }
 
 /* skills headings */
-.skills-title, .skills-cross-class-heading, .skills-max-ranks-heading, .skills-max-ranks-value {
+div.character-table .skills-title, 
+div.character-table .skills-cross-class-heading, 
+div.character-table .skills-max-ranks-heading, 
+div.character-table .skills-max-ranks-value {
 	color:white;
 	background:black;
 	border:1px solid black;
@@ -287,27 +295,28 @@ table {
 	text-align:center;
 }
 
-.skills-title {
+div.character-table .skills-title {
 	font-size:1.8em;
 	font-weight:bold;
 }
 
-.skills-cross-class-heading {
+div.character-table .skills-cross-class-heading {
 	vertical-align:bottom;
 	font-size:0.6em;
 	border-left:1px solid black;
 }
 
-.skills-max-ranks-heading {
+div.character-table .skills-max-ranks-heading {
 	text-align:right;
 	font-size:1.2em;
 }
 
-.skills-max-ranks-value {
+div.character-table .skills-max-ranks-value {
 	font-size:1.2em;
 }
 
-.skills-subhead, .skills-subhead-main {
+div.character-table .skills-subhead, 
+div.character-table .skills-subhead-main {
 	padding:1px;
 	font-size:1em;
 	vertical-align:middle;
@@ -316,76 +325,86 @@ table {
 	border:1px solid black;
 }
 
-.skills-subhead-main {
+div.character-table .skills-subhead-main {
 	font-weight:bold;
 }
 
 /* skills data */
-.skills-name, .skills-data, .skills-ability {
+div.character-table .skills-name, 
+div.character-table .skills-data, 
+div.character-table .skills-ability {
 	vertical-align:middle;
 	font-size:1.6em;
 }
 
-.skills-data, .skills-total {
+div.character-table .skills-data, 
+div.character-table .skills-total {
 	text-align:center;
 	border-bottom:1px solid black;
 }
 
-.skills-ability {
+div.character-table .skills-ability {
 	text-align:center;
 }
 
-.skills-total {
+div.character-table .skills-total {
 	vertical-align:middle;
 	font-weight:bold;
 	font-size:2em;
 }
 
-.skills-notes {
+div.character-table .skills-notes {
 	vertical-align:top;
 	white-space:normal;
 	font-size:1.18em;
 }
 
 /* data box descriptions */
-.label-under, .label, .label-total-under, .label-total, .weapon-ammo-label, .conditional-heading {
+div.character-table .label-under, 
+div.character-table .label, 
+div.character-table .label-total-under, 
+div.character-table .label-total, 
+div.character-table .weapon-ammo-label, 
+div.character-table .conditional-heading {
 	white-space:normal;
 	text-align:center;
 }
 
-.label-under {
+div.character-table .label-under {
 	vertical-align:top;
 }
 
-.label {
+div.character-table .label {
 	vertical-align:bottom;
 }
 
-.label-total-under {
+div.character-table .label-total-under {
 	vertical-align:top;
 	font-weight:bold;
 	font-size:1.2em;
 }
 
-.label-total, .weapon-ammo-label {
+div.character-table .label-total, 
+div.character-table .weapon-ammo-label {
 	vertical-align:bottom;
 	font-weight:bold;
 	font-size:1.2em;
 }
 
-.weapon-ammo-desc {
+div.character-table .weapon-ammo-desc {
 	vertical-align:bottom;
 	font-size:1.44em;
 	border-bottom:1px solid black;
 }
 
-.conditional-heading {
+div.character-table .conditional-heading {
 	vertical-align:top;
 	border-left:2px solid black;
 	border-right:2px solid black;
 	border-top:2px solid black;
 }
-.conditional-modifiers {
+
+div.character-table .conditional-modifiers {
 	vertical-align:top;
 	white-space:normal;
 	font-size:1.4em;

@@ -12,6 +12,11 @@
 	function setupWebcam() {
 		$('#tokens1').click(openPhoto);
 		$('#tokens1check').click(toggleTokens);
+
+		// TODO fix this hack. perhaps periodically re-check the height
+		$('#photo1').on("load", function(e) {
+			$('#webcam').css('min-height', $('#photo1').height()+'px');
+		});
 	
 		$.getJSON('static/initiative.json?'+(new Date()).valueOf(), function(data) {
 			updateInitiativeText(data);
@@ -29,7 +34,7 @@
 		});
 		
 		addListener('camera.jpg', function() {
-			document.getElementById("photo1").src = "/assistantdm/static/camera.jpg?"+(new Date()).valueOf();
+			$('#photo1').attr('src') = "/assistantdm/static/camera.jpg?"+(new Date()).valueOf();
 			logMessage('updated image');
 		});
 		

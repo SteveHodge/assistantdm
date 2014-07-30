@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+<!DOCTYPE html>
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -19,12 +19,12 @@
 		{{#webcam}}
 		<section id="tab_webcam" class="tab" name="Webcam">
 			<div id="webcam">
-				<div style="width: 75%; float: left;">
-					<img width="75%" id="photo1" src="/assistantdm/static/camera.jpg" style="position:absolute; z-index:1;"/>
-					<img width="75%" id="tokens1" src="/assistantdm/static/tokens.png" style="position:absolute; z-index:2;"/>
+				<div id="images">
+					<img id="photo1" src="/assistantdm/static/camera.jpg"/>
+					<img id="tokens1" src="/assistantdm/static/tokens.png"/>
 					&nbsp;
 				</div>
-				<div style="width: 23%; height: 100%; float: right; height: 100%; overflow-y: auto;">
+				<div id="info">
 					<div id="initiative">
 						<table>
 							<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
@@ -34,21 +34,23 @@
 					<input id="tokens1check" type="checkbox" checked>Show token overlay</input>
 					<div id="tokenlist">
 					</div>
-					<div id="messageDiv" style="margin-top: 20px;">
+					<div id="messageDiv">
 					</div>
 					<input id="debugcheck" type="checkbox">Keep message history</input>
 				</div>
 			</div>
 		</section>
 		{{/webcam}}
+
 		{{#sheet1}}
-		<section id="tab_sheet" style="display:none; font-size:50%;" class="tab" name="Sheet 1" character="{{name}}"></section>
+		<section id="tab_sheet" style="display:none; font-size:{{fontsize}}px;" class="tab" name="Sheet 1" character="{{name}}"></section>
 		{{/sheet1}}
+
 		{{#content}}
 		<section id="tab_cast" style="display:none;" class="tab" name="Cast" saveurl="{{saveurl}}">
 			<div>
 				<h3>Memorised</h3>
-				<div id="spellList" class="scrollable" button="btnSpells" style="width:300px">
+				<div id="spellList" class="scrollable" button="btnSpells">
 					{{#spells}}
 					<div class="selectable">{{{html}}}</div>
 					{{/spells}}
@@ -58,7 +60,32 @@
 			</div>
 		</section>
 		{{/content}}
+
 		{{{content}}}
+
+		{{#config}}
+		<section id="tab_config" style="display:none;" class="tab" name="Config">
+			<form action="" method="post">
+				Webcam: <input type="checkbox" name="webcam" {{#webcam}}checked{{/webcam}}><br>
+				Sheet 1: <input type="checkbox" name="sheet1" {{#sheet1}}checked{{/sheet1}}><br>
+				<div style="margin-left:2em;">
+					Character: <input type="text" name="character" value="{{name}}"><br>
+					Font size: <select name="fontsize">
+						<option value="16" {{#fontsize16}}selected{{/fontsize16}}>16</option>
+						<option value="12" {{#fontsize12}}selected{{/fontsize12}}>12</option>
+						<option value="10" {{#fontsize10}}selected{{/fontsize10}}>10</option>
+						<option value="8" {{#fontsize8}}selected{{/fontsize8}}>8</option>
+						<option value="7" {{#fontsize7}}selected{{/fontsize7}}>7</option>
+						<option value="6" {{#fontsize6}}selected{{/fontsize6}}>6</option>
+						<option value="5" {{#fontsize5}}selected{{/fontsize5}}>5</option>
+					</select><br>
+				</div>
+				Spells/uses: <input type="checkbox" name="spells" {{#content}}checked{{/content}}><br>
+				<input type="submit" value="Submit">
+			</form>
+		</section>
+		{{/config}}
+
 	</div>
 </body>
 </body>

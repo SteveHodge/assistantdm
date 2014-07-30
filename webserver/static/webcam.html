@@ -10,22 +10,22 @@
 
 <body>
 	<div id="webcam">
-		<div style="width: 75%; float: left;">
-			<img width="75%" id="photo1" src="/assistantdm/static/camera.jpg" style="position:absolute; z-index:1;"/>
-			<img width="75%" id="tokens1" src="/assistantdm/static/tokens.png" style="position:absolute; z-index:2;"/>
+		<div id="images">
+			<img id="photo1" src="/assistantdm/static/camera.jpg"/>
+			<img id="tokens1" src="/assistantdm/static/tokens.png"/>
 			&nbsp;
 		</div>
-		<div style="width: 23%; height: 100%; float: right; height: 100%; overflow-y: auto;">
+		<div id="info">
 			<div id="initiative">
 				<table>
-					<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
+					<tr><th>Round</th><th>0</th><th>Initiative</th></tr>
 				</table>
 			</div> 
 			<br/>
 			<input id="tokens1check" type="checkbox" checked>Show token overlay</input>
 			<div id="tokenlist">
 			</div>
-			<div id="messageDiv" style="margin-top: 20px;">
+			<div id="messageDiv">
 			</div>
 			<input id="debugcheck" type="checkbox">Keep message history</input>
 		</div>
