@@ -1021,7 +1021,7 @@
 	</div>
 
 	<div id="cs1_logo">
-		<img style="width:100%; height:100%" src="http://static.stevehodge.net/dndlogo.png" alt="DandDLogo" />
+		<img style="width:100%; height:100%" src="/assistantdm/static/dndlogo.png" alt="DandDLogo" />
 		<div class="sheet-title">CHARACTER RECORD SHEET</div>
 	</div>
 </div>

@@ -1,0 +1,17 @@
+#webcam table {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid black;
+}
+
+#webcam th {
+	border: 1px solid black;
+}
+
+#webcam td {
+	border: 1px solid black;
+}
+
+#webcam th {
+	background-color: #c0c0c0;
+}

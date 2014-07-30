@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!--<meta name="viewport" content="width=480">-->
+	<link rel="stylesheet" type="text/css" href="/assistantdm/static/spelllist.css">
+	<link rel="stylesheet" type="text/css" href="/assistantdm/static/character.css"/>
+	<link rel="stylesheet" type="text/css" href="/assistantdm/static/webcam.css"/>
+	<title>{{title}}</title>
+	<script defer src="/assistantdm/static/dialog_box.js"></script>
+	<script defer src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script defer src="/assistantdm/static/updater.js"></script>
+	<script defer src="/assistantdm/static/spelllist.js"></script>
+</head>
+<body>
+	<div id="tabs"></div>
+
+	<div id="tab_content">
+		{{#webcam}}
+		<section id="tab_webcam" class="tab" name="Webcam">
+			<div id="webcam">
+				<div style="width: 75%; float: left;">
+					<img width="75%" id="photo1" src="/assistantdm/static/camera.jpg" style="position:absolute; z-index:1;"/>
+					<img width="75%" id="tokens1" src="/assistantdm/static/tokens.png" style="position:absolute; z-index:2;"/>
+					&nbsp;
+				</div>
+				<div style="width: 23%; height: 100%; float: right; height: 100%; overflow-y: auto;">
+					<div id="initiative">
+						<table>
+							<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
+						</table>
+					</div> 
+					<br/>
+					<input id="tokens1check" type="checkbox" checked>Show token overlay</input>
+					<div id="tokenlist">
+					</div>
+					<div id="messageDiv" style="margin-top: 20px;">
+					</div>
+					<input id="debugcheck" type="checkbox">Keep message history</input>
+				</div>
+			</div>
+		</section>
+		{{/webcam}}
+		{{#sheet1}}
+		<section id="tab_sheet" style="display:none; font-size:50%;" class="tab" name="Sheet 1" character="{{name}}"></section>
+		{{/sheet1}}
+		{{#content}}
+		<section id="tab_cast" style="display:none;" class="tab" name="Cast" saveurl="{{saveurl}}">
+			<div>
+				<h3>Memorised</h3>
+				<div id="spellList" class="scrollable" button="btnSpells" style="width:300px">
+					{{#spells}}
+					<div class="selectable">{{{html}}}</div>
+					{{/spells}}
+				</div>
+				<br><input type="button" id="btnSpells" value="Cast" onclick="castSpell()"/>
+				<input type="button" value="Rest" onclick="rest()"/>
+			</div>
+		</section>
+		{{/content}}
+		{{{content}}}
+	</div>
+</body>
+</body>
+</html>

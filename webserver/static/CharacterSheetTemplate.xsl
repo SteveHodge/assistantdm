@@ -11,8 +11,8 @@
 			<title>
 				<xsl:value-of select="/Character[1]/@name"/>
 			</title>
-			<link href="http://static.stevehodge.net/character.css" rel="stylesheet" title="new" type="text/css" />
-			<script type="text/javascript" src="http://static.stevehodge.net/dialog_box.js"></script>
+			<link href="/assistantdm/static/character.css" rel="stylesheet" title="new" type="text/css" />
+			<script src="/assistantdm/static/dialog_box.js"></script>
 		</head>
 		<body>
 			<div id="content" style="font-size:50%;">

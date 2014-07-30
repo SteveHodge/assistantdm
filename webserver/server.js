@@ -1,10 +1,7 @@
 /*
 enhancements:
 track other uses: per-day abilities, item charges, etc
-player page better error reporting
-clean up updater.js code. probably best of have a comprehensive version that figures out what needs updating dynamically
 player configuration tab
-reimplement character page using same code as player page
 /debug/<character> - combined debug page with all config + subscribers to the character
 /dm - dm log that tracks updates to characters spells (particularly casting) and/or feed back to AssistantDM
 
@@ -47,10 +44,8 @@ var path = require('path');
 
 var subscribers = new Array();
 
-var spells_template = fs.readFileSync(__dirname+'/templates/spells.mustache', 'binary');
 var sheet_template = fs.readFileSync(__dirname+'/templates/charactersheet.mustache', 'binary');
-var char_template = fs.readFileSync(__dirname+'/templates/character.mustache', 'binary');
-var player_template = fs.readFileSync(__dirname+'/templates/player.mustache', 'binary');
+var main_template = fs.readFileSync(__dirname+'/templates/main.mustache', 'binary');
 
 var app = express();
 app.enable('trust proxy');
@@ -112,7 +107,9 @@ app.get('/:name/spells', function(req, res, next) {
 	spells.getContent(req.params.name, function(err, content) {
 		if (err) { return next('Character "'+req.params.name+'" cannot be loaded:\n'+err); }
 
-		res.send(mustache.to_html(spells_template, content));
+		content.title = content.name;
+		content.saveurl = '';
+		res.send(mustache.to_html(main_template, content));
 	});
 });
 
@@ -176,10 +173,13 @@ app.get('/:name', function(req, res, next) {
 
 			function send() {
 				if (pageData === null) return;
+				
+				pageData.title = 'Assistant DM';
 
 				if (config.character && config.sheet1) {
 					if (fs.existsSync(__dirname+'/characters/'+config.character+'.xml')) {
 						pageData.sheet1 = true;
+						pageData.saveurl = '/spells';
 						pageData.name = config.character;
 					}
 				}
@@ -188,7 +188,7 @@ app.get('/:name', function(req, res, next) {
 					pageData.webcam = true;
 				}
 
-				res.send(mustache.to_html(player_template, pageData));
+				res.send(mustache.to_html(main_template, pageData));
 			}
 
 		});
@@ -211,7 +211,10 @@ app.get('/:name', function(req, res, next) {
 			data.spells = '';
 		}
 
-		res.send(mustache.to_html(char_template, data));
+		data.title = data.name;
+		data.sheet1 = true;
+		data.saveurl = '/spells';
+		res.send(mustache.to_html(main_template, data));
 	});
 });
 

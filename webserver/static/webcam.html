@@ -1,139 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
 <html>
 <head>
 	<title>WebCam Page</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-	<style>
-table {
-	width: 100%;
-	border-collapse: collapse;
-}
-
-table, th, td {
-	border: 1px solid black;
-}
-
-th {
-	background-color: #c0c0c0;
-}
-	</style>
-	<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
-	<script src="/assistantdm/static/updater.js"></script>
-	<script>
-// version: 20140707
-// TODO inline script means we can't defer jquery
-
-function updateInitiativeText(data) {
-	var html = '<table>\n<tr><th>Combat Round</th><th>\n';
-	html += (data.round == undefined ? 0 : data.round) + "</th><th>Initiative</th></tr>\n";
-	
-	$.each(data.order, function(i,entry) {
-		html += "<tr><td colspan=2>"+entry.name+"</td>";
-		html += "<td>"+entry.initiative+"</td></tr>\n";
-	});
-	html += "</table>\n";
-	$('#initiative').html(html);
-}
-
-function updateTokensText(data) {
-	var html = '<table>';
-	$.each(data, function(i, entry) {
-		html += '<tr><td>'+entry.token+'</td><td>'+entry.name+'</td></tr>';
-	});
-	$('#tokenlist').html(html+'</table>');
-}
-
-function logMessage(msg, debug) {
-	if (document.getElementById("debugcheck").checked) {
-		$('#messageDiv').append((new Date()).toLocaleTimeString()+': '+msg+'<br>');
-	} else if (!debug) {
-		$('#messageDiv').html((new Date()).toLocaleTimeString()+': '+msg+'<br>');
-	}
-}
-
-updater.addListener('initiative.json', function() {
-	logMessage('updated initiatives');
-	$.get('static/initiative.json?'+(new Date()).valueOf(), function(data) {
-		updateInitiativeText(data);
-	});
-});
-
-updater.addListener('camera.jpg', function() {
-	document.getElementById("photo1").src = "http://static.stevehodge.net/camera.jpg?"+(new Date()).valueOf();
-	logMessage('updated image');
-});
-
-updater.addListener('tokens.png', function() {
-	document.getElementById("tokens1").src = "http://static.stevehodge.net/tokens.png?"+(new Date()).valueOf();
-	logMessage('updated token overlay', true);
-});
-
-updater.addListener('tokens.json', function() {
-	logMessage('updated token legend', true);
-	$.get('static/tokens.json?'+(new Date()).valueOf(), function(data) {
-		updateTokensText(data);
-	});
-});
-
-$(document).ready(function () {
-	$.getJSON('static/initiative.json?'+(new Date()).valueOf(), function(data) {
-		updateInitiativeText(data);
-	});
-	
-	$.getJSON('static/tokens.json?'+(new Date()).valueOf(), function(data) {
-		updateTokensText(data);
-	});
-
-	updater.onError = function(state) {
-		if (state === EventSource.CLOSED) {
-			logMessage('Lost connection to server');
-		} else if (state === EventSource.CONNECTING) {
-			logMessage('Lost connection to server, attempting reconnect');
-		} else {
-			logMessage('Lost connection to server, unknown error');
-		}
-	};
-
-	updater.onOpen = function() {
-		logMessage('Connection to server open');
-	}
-	
-	logMessage('Connecting to server');
-
-	updater.openConnection();
-});
-
-function toggleTokens() {
-	var checked = document.getElementById("tokens1check").checked;
-	document.getElementById("tokens1").style.display = checked?"inline":"none";
-	document.getElementById("tokenlist").style.display = checked?"inline":"none";
-}
-
-function openPhoto() {
-	var win=window.open("http://static.stevehodge.net/camera.jpg", '_blank');
-	win.focus();
-}
-	</script>
+	<link rel="stylesheet" type="text/css" href="/assistantdm/static/webcam.css"/>
+	<script defer src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script defer src="/assistantdm/static/updater.js"></script>
 </head>
 
 <body>
-	<div style="width: 75%; float: left;">
-		<img width="75%" id="photo1" src="http://static.stevehodge.net/camera.jpg" style="position:absolute; z-index:1;"/>
-		<img width="75%" id="tokens1" src="http://static.stevehodge.net/tokens.png" style="position:absolute; z-index:2;" onclick="openPhoto();"/>
-		&nbsp;
-	</div>
-	<div style="width: 23%; height: 100%; float: right; height: 100%; overflow-y: auto;">
-		<div id="initiative">
-			<table>
-				<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
-			</table>
-		</div> 
-		<br/>
-		<input id="tokens1check" type="checkbox" checked onclick="toggleTokens();">Show token overlay</input>
-		<div id="tokenlist">
+	<div id="webcam">
+		<div style="width: 75%; float: left;">
+			<img width="75%" id="photo1" src="/assistantdm/static/camera.jpg" style="position:absolute; z-index:1;"/>
+			<img width="75%" id="tokens1" src="/assistantdm/static/tokens.png" style="position:absolute; z-index:2;"/>
+			&nbsp;
 		</div>
-		<div id="messageDiv" style="margin-top: 20px;">
+		<div style="width: 23%; height: 100%; float: right; height: 100%; overflow-y: auto;">
+			<div id="initiative">
+				<table>
+					<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
+				</table>
+			</div> 
+			<br/>
+			<input id="tokens1check" type="checkbox" checked>Show token overlay</input>
+			<div id="tokenlist">
+			</div>
+			<div id="messageDiv" style="margin-top: 20px;">
+			</div>
+			<input id="debugcheck" type="checkbox">Keep message history</input>
 		</div>
-		<input id="debugcheck" type="checkbox">Keep message history</input>
 	</div>
 </body>
 </html>

@@ -402,4 +402,4 @@ table {
 #dialog-mask {position:absolute; top:0; left:0; min-height:100%; width:100%; background:#FFF; opacity:.75; filter:alpha(opacity=75); z-index:100}
 .info, .infoheader {margin:0; font-family:Verdana, Arial, Helvetica; font-size:14px}
 .info {background:#fff; border:1px solid #4f6d81; border-top:none}
-.infoheader {background:url(http://static.stevehodge.net/images/prompt_header.gif) repeat-x; color:#355468; border:1px solid #4f6d81; border-bottom:none}
+.infoheader {background:url(/assistantdm/static/images/prompt_header.gif) repeat-x; color:#355468; border:1px solid #4f6d81; border-bottom:none}
