@@ -118,3 +118,23 @@ section.tab > div {
 h3 {
 	margin: 4px 4px;
 }
+
+table.abilities {
+	border-collapse: collapse;
+}
+
+table.abilities h3 {
+	text-align: left;
+}
+
+table.abilities td:first-child {
+	padding-left: 8px;	
+}
+
+table.abilities td:last-child {
+	text-align: right;
+}
+
+table.abilities th:last-child {
+	text-align: right;
+}

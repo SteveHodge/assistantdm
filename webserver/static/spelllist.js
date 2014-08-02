@@ -5,43 +5,8 @@
 * wizard spells that are not in the spell book should be cleared from their slots when resting
 */
 
-/**
-* ScrollFix v0.1
-* http://www.joelambert.co.uk
-*
-* Copyright 2011, Joe Lambert.
-* Free to use under the MIT license.
-* http://www.opensource.org/licenses/mit-license.php
-*/
-
-var ScrollFix = function (elem) {
-	'use strict';
-
-	// Variables to track inputs
-	//var startY;
-	var startTopScroll;
-
-	elem = elem || document.querySelector(elem);
-
-	// If there is no element, then do nothing
-	if(!elem) {
-		return;
-	}
-
-	// Handle the start of interactions
-	elem.addEventListener('touchstart', function() {
-		//startY = event.touches[0].pageY;
-		startTopScroll = elem.scrollTop;
-
-		if(startTopScroll <= 0) {
-			elem.scrollTop = 1;
-		}
-
-		if(startTopScroll + elem.offsetHeight >= elem.scrollHeight) {
-			elem.scrollTop = elem.scrollHeight - elem.offsetHeight - 1;
-		}
-	});
-};
+(function($) {
+var ordinals = ['th','st','nd','rd'];
 
 // frequently accessed elements (these are set on load and shouldn't ever change)
 var spellList;
@@ -73,32 +38,26 @@ function isSelected(element) {
 // the attached button (if any), otherwise disable it.
 function updateButton(list) {
 	'use strict';
-	var disable = true;
-	var node, button;
+	var button;
 
 	if (list.hasAttribute('button')) {
-		for (node = list.firstElementChild; node !== null; node = node.nextElementSibling) {
-			if (isSelected(node)) {
-				disable = false;
-			}
-		}
 		button = document.getElementById(list.getAttribute('button'));
-		button.disabled = disable;
+		button.disabled = $(list).has('.selectable.selected').length == 0;
 	}
 }
 
 function deselect(element) {
 	'use strict';
 
-	element.className = element.className.replace( /(?:^|\s)selected(?!\S)/g , '' );
-	updateButton(element.parentElement);
+	$(element).removeClass('selected');
+	updateButton($('[button]').has(element)[0]);	// argument is the first ancestor with a button attribute
 }
 
 function select(element) {
 	'use strict';
 
-	element.className += ' selected';
-	updateButton(element.parentElement);
+	$(element).addClass('selected');
+	updateButton($('[button]').has(element)[0]);	// argument is the first ancestor with a button attribute
 }
 
 function updateSpell(elem) {
@@ -231,61 +190,52 @@ function heightenChange() {
 function save() {
 	'use strict';
 	var output = {};
-	var elems, i, slots, s;
-	var tabOutput;
-	var tabclass;
+	var i, slots, s;
 
-	elems = document.getElementsByClassName('tab');
-	for (i = 0; i < elems.length; i++) {
-		tabOutput = null;
+	output['tab_cast'] = $('#spellList div').map(function() {
+		return { html: this.innerHTML };
+	}).get();
 
-		tabclass = elems[i].className.match(/(?:^|\s)(scribe|prepare|learn)(?!\S)/);
-		if (!tabclass) {
-			if (elems[i].id === 'tab_cast') {
-				tabOutput = [];
-				slots = document.getElementById('spellList');
-				for (s = slots.firstElementChild; s !== null; s = s.nextElementSibling) {
-					tabOutput.push({
-						html: s.innerHTML
-					});
-				}
-			}
-		} else if (tabclass[1] === 'prepare' || tabclass[1] === 'learn') {
-			tabOutput = [];
-			slots = document.getElementById(elems[i].getAttribute('prefix')+'slotList');
-			for (s = slots.firstElementChild; s !== null; s = s.nextElementSibling) {
-				// currently saving used slots for learn tabs and locked slots for prepare tabs
-				// probably need to save used slots for prepare tabs
-				if (s.getAttribute('used') === 'true') {
-					tabOutput.push({
-						level: s.getAttribute('level'),
-						locked: s.getAttribute('locked'),
-						description: s.textContent
-					});
-				}
-			}
+	output['dailies'] = $('#tab_cast tr[max]').map(function(i,e) {
+		return {
+			name: $(e).children('td').first().text(),
+			max: $(e).children('td').last().children('input[type="checkbox"]').length,
+			used: $(e).children('td').last().children('input[type="checkbox"]:checked').length
+		};
+	}).get();
 
-		} else if (tabclass[1] === 'scribe') {
-			tabOutput = [];
-			slots = document.getElementById(elems[i].getAttribute('prefix')+'slotList');
-			for (s = slots.firstElementChild; s !== null; s = s.nextElementSibling) {
-				tabOutput.push({
-					level: s.getAttribute('level'),
-					description: s.textContent
-				});
-			}			
-		}
+	output['charges'] = 	$('#tab_cast td input[value="\u25b2"]').siblings('input[type="text"]').map(function(i,e) {
+		return {
+			name: $(e).parent().siblings().text(),
+			remain: $(e).val()
+		};
+	}).get();
 
-		if (tabOutput !== null) {
-			output[elems[i].id] = tabOutput;
-		}
-	}
+	$('.tab.prepare,.tab.learn').each(function(i,e) {
+		output[e.id] = $('#'+e.getAttribute('prefix')+'slotList div[used="true"]').map(function() {
+			return {
+				level: this.getAttribute('level'),
+				locked: this.getAttribute('locked'),
+				description: this.textContent
+			};
+		}).get();
+	});
+
+	$('.tab.scribe').each(function(i,e) {
+		output[e.id] = $('#'+e.getAttribute('prefix')+'slotList div').map(function() {
+			return {
+				level: this.getAttribute('level'),
+				description: this.textContent
+			};
+		}).get();
+	});
+
+	var a = document.createElement('a');
+	a.href = new String(window.location);
+	a.pathname = document.getElementById('tab_cast').getAttribute('saveurl');
 
 	var req = new XMLHttpRequest();
-	var url = new String(window.location);
-	url = url.replace(/\/+$/, '');	// remove any trailing slashes
-	url += document.getElementById('tab_cast').getAttribute('saveurl');
-	req.open('PUT', url, true);
+	req.open('PUT', a.href, true);
 	req.setRequestHeader('Content-Type', 'application/json');
 	req.onreadystatechange = function() {
 		if (req.readyState === 4) {
@@ -734,67 +684,137 @@ function castSpell() {
 	save();
 }
 
-// implemeted as closure so ordinals doesn't need to be global
-var rest = (function () {
+function rest() {
 	'use strict';
 
-	var ordinals = ['th','st','nd','rd'];
-
-	return function() {
-		var elems, i, list, j, k, node, perDay, ordinal;
+	$(spellList).empty();		// remove all nodes from the memorised list
 	
-		// remove all nodes from the memorised list
-		while (spellList.firstElementChild) {
-			spellList.removeChild(spellList.firstElementChild);
-		}
-		
-		// unlock all slots and rebuild the memorised list
-		elems = document.getElementsByClassName('prepare');
-		for (i = 0; i < elems.length; i++) {
-			list = document.getElementById(elems[i].getAttribute('prefix')+'slotList');
-			for (node = list.firstElementChild; node !== null; node = node.nextElementSibling) {
-				if (node.getAttribute('used') === 'true') {
-					node.setAttribute('locked',false);
-					node.style.fontStyle='';
-					addSpellFromSlot(node);
-				}
+	// unlock all slots and rebuild the memorised list
+	$('.tab.prepare .slotlist div[used="true"]')
+		.attr('locked','false')
+		.css('font-style','')
+		.each(function(i,e) {
+			addSpellFromSlot(e);
+		});
+
+	// reset spontaneous caster's spells per day
+	$('.tab.learn[per_day]').each(function(i,e) {
+		var j, k, ordinal, perday;
+		perDay = e.getAttribute('per_day').split(',');
+		for (j = 0; j < perDay.length; j++) {
+			ordinal = ordinals[0];
+			if (j < 3) {
+				ordinal = ordinals[j];
+			}
+			for (k = 0; k < perDay[j]; k++) {
+				addSpell(j+ordinal+' level '+e.getAttribute('superfix')+' spell', null, true);
 			}
 		}
-	
-		// reset spontaneous caster's spells per day
-		elems = document.getElementsByClassName('learn');
-		for (i = 0; i < elems.length; i++) {
-			if (elems[i].hasAttribute('per_day')) {
-				perDay = elems[i].getAttribute('per_day').split(',');
-				for (j = 0; j < perDay.length; j++) {
-					ordinal = 'th';
-					if (j < 3) {
-						ordinal = ordinals[j];
-					}
-					for (k = 0; k < perDay[j]; k++) {
-						addSpell(j+ordinal+' level '+elems[i].getAttribute('superfix')+' spell', null, true);
-					}
-				}
-			}
-		}
+	});
 
+	// reset daily abilities
+	$('#tab_cast tr[max] input[type="checkbox"]').each(function(i,e) {
+		$(e).prop('checked', false);
+	});
+
+	save();
+	
+	// return to first prepare tab
+	$('.tab.prepare').each(function(i,e) {
+		switchToTab(document.getElementById('li_'+e.id));
+		return false;
+	});
+}
+
+function deleteAbility() {
+	if( confirm('Are you sure you want to delete the selected abilities/items?')) {
+		$('table.abilities tr.selected').remove();
 		save();
+	}
+}
+
+function newItem() {
+	var name = prompt('Enter name of new item', '');
+	if (name) {
+		var num = parseInt(prompt('Enter number of uses', '0'));
+		if (isNaN(num)) num = 0;
 		
-		// return to first prepare tab
-		elems = document.getElementsByClassName('tab');
-		for (i = 0; i < elems.length; i++) {
-			if (elems[i].className.match(/(?:^|\s)prepare(?!\S)/)) {
-				switchToTab(document.getElementById('li_'+elems[i].id));
-				break;
-			}
+		var tr = $('<tr/>').addClass('selectable').on('click', listItemClickHandler);
+		$('<td/>').text(name).appendTo(tr);
+		var td = $('<td/>');
+		$('<input/>', {type: 'text', value: num})
+			.prop('size', '4')
+			.on('click', usesChanged)
+			.on('click', function(e) {e.stopPropagation();})
+			.appendTo(td);
+		$('<input/>', {type: 'button', value: '\u25b2'}).on('click', increaseUses).appendTo(td);
+		$('<input/>', {type: 'button', value: '\u25bc'}).on('click', decreaseUses).appendTo(td);
+		td.appendTo(tr);
+		var last = $('tr').has('#btnItem').nextAll('tr').last();
+		if (last.length === 0) last = $('tr').has('#btnItem');
+		last.after(tr);
+		save();
+	}
+}
+
+function newAbility() {
+	var name = prompt('Enter name of new daily ability', '');
+	if (name) {
+		var num = parseInt(prompt('Enter number of uses per day', '1'));
+		if (isNaN(num)) num = 1;
+
+		var tr = $('<tr/>', {used: 0, max: num})
+			.addClass('selectable')
+				.on('change',save)
+				.on('click', function(e) {e.stopPropagation();});
+		$('<td/>').text(name).appendTo(tr);
+		var td = $('<td/>');
+		for (var i = 0; i < num; i++) {
+			$('<input/>', {type: 'checkbox'})
+				.on('change',save)
+				.on('click', function(e) {e.stopPropagation();})	// prevents parent row from selecting/deselecting
+				.appendTo(td);
 		}
-	};
-}());
+		td.appendTo(tr);
+		$('tr').has('#btnItem').before(tr);
+		save();
+	}
+}
 
-window.addEventListener('load', function() {
+// item usage event handlers:
+
+function increaseUses(e) {
+	e.stopPropagation();
+	var control = $(e.target).siblings('input[type="text"]');
+	control.val(parseInt(control.val())+1);
+	save();
+}
+
+function decreaseUses(e) {
+	e.stopPropagation();
+	var control = $(e.target).siblings('input[type="text"]');
+	var val = parseInt(control.val());
+	if (val > 0) {
+		val--;
+		control.val(val);
+		save();
+	}
+}
+
+function usesChanged(e) {
+	var val = parseInt($(e.target).val(), 10);
+	if (isNaN(val)) val = 0;
+	if ($(e.target).val() !== val.toString()) {
+		$(e.target).val(val);
+		save();
+	}
+}
+
+$(document).ready(function() {
 	'use strict';
-	var elems, i, knownList, spell, slotList;
+	var i, knownList, spell, slotList;
 
+	// TODO probably better to do this by detecting lack of "ontouchstart"
 	// load extra stylesheet for non-ios browsers:
 	if(!navigator.userAgent.match(/iPhone/i) && !navigator.userAgent.match(/iPad/i)) {
  		var fileref=document.createElement('link');
@@ -803,36 +823,47 @@ window.addEventListener('load', function() {
 		fileref.setAttribute('href', '/assistantdm/static/spelllist_nonios.css');
 		document.getElementsByTagName('head')[0].appendChild(fileref);
 	}
-	// above can be replaced in php:
-	//if(strstr($_SERVER['HTTP_USER_AGENT'],'iPhone') || strstr($_SERVER['HTTP_USER_AGENT'],'iPod'))
 
-	// prevent rubber-banding but preventing scrolling on iOS
-//	document.ontouchmove = function(event) {
-//		event.preventDefault();
-//	}
+	$('#btnSpells').on('click', castSpell);
+	$('#btnRest').on('click', rest);
+	$('#btnAbility').on('click', newAbility);
+	$('#btnItem').on('click', newItem);
+	$('#btnDeleteAbility').on('click', deleteAbility);
 
-	// for elements that should be scrollable prevent event propogation and apply the ScrollFix hack
-//	var elems = document.getElementsByClassName('scrollable');
-//	for (i = 0; i < elems.length; i++) {
-//		elems[i].addEventListener('touchmove', function(event) {
-//			// we should stop progagation only if this container is currently scrollable (not if it's not overflowing)
-//			if (event.currentTarget.scrollHeight >= event.currentTarget.offsetHeight)
-//				event.stopPropagation();
-//		});
-//		new ScrollFix(elems[i]);
-//	}
+	// event handlers for prepare tabs
+	$('.tab.prepare').each(function(i,e) {
+		var prefix = '#'+e.getAttribute('prefix');
+		$(prefix+'levelFilter').on('change', filterLists);
+		$(prefix+'showAll').on('change', filterLists);
+		$(prefix+'heightenLevel').on('change', heightenChange);
+		$(prefix+'btnMemorise').on('click', memorise);
+		$(prefix+'btnClear').on('click', clearSlots);
+		$(prefix+'btnLock').on('click', function(ev){
+			lockSlots(document.getElementById(e.getAttribute('prefix')+'slotList'));
+		});
+	});
+	
+	// event handlers for scribe tabs
+	$('.tab.scribe').each(function(i,e) {
+		var prefix = '#'+e.getAttribute('prefix');
+		$(prefix+'levelFilter').on('change', filterLists);
+		$(prefix+'btnScribe').on('click', scribe);
+		$(prefix+'btnErase').on('click', erase);
+	});
+
+	// event handlers for learn tabs
+	$('.tab.learn').each(function(i,e) {
+		var prefix = '#'+e.getAttribute('prefix');
+		$(prefix+'levelFilter').on('change', filterLists);
+		$(prefix+'btnLearn').on('click', learn);
+		$(prefix+'btnUnlearn').on('click', unlearn);
+	});
 
 	// add the click handler for selectable list items
-	elems = document.getElementsByClassName('selectable');
-	for (i = 0; i < elems.length; i++) {
-		elems[i].addEventListener('click', listItemClickHandler);
-	}
+	$('.selectable').on('click', listItemClickHandler);
 
 	// add the event handler needed for metamagic changes
-	elems = document.getElementsByName('metamagic');
-	for (i = 0; i < elems.length; i++) {
-		elems[i].addEventListener('change', metamagicChange);
-	}
+	$("input[name='metamagic']").on('change', metamagicChange);
 
 	// setup global element pointers
 	spellList = document.getElementById('spellList');
@@ -843,44 +874,64 @@ window.addEventListener('load', function() {
 	setupSpellLists(document.getElementsByClassName('scribe'));
 
 	// setup known spells for wizards
-	elems = document.getElementsByClassName('scribe');
-	for (i = 0; i < elems.length; i++) {
-		if (elems[i].hasAttribute('memorise_tab_prefix')) {
-			// first reset all spells to not known
-			knownList = document.getElementById(elems[i].getAttribute('memorise_tab_prefix')+'availableList');
-			for (spell = knownList.firstElementChild; spell !== null; spell = spell.nextElementSibling) {
-				spell.setAttribute('always_hidden', true);
-			}
-
-			// set known spells to learnt
-			slotList = document.getElementById(elems[i].getAttribute('prefix')+'slotList');
-			for (spell = slotList.firstElementChild; spell !== null; spell = spell.nextElementSibling) {
-				setLearnt(knownList, spell, true);
-			}
+	$('.tab.scribe[memorise_tab_prefix]').each(function(i,e) {
+		// first reset all spells to not known
+		knownList = document.getElementById(e.getAttribute('memorise_tab_prefix')+'availableList');
+		for (spell = knownList.firstElementChild; spell !== null; spell = spell.nextElementSibling) {
+			spell.setAttribute('always_hidden', true);
 		}
-	}
+
+		// set known spells to learnt
+		slotList = document.getElementById(e.getAttribute('prefix')+'slotList');
+		for (spell = slotList.firstElementChild; spell !== null; spell = spell.nextElementSibling) {
+			setLearnt(knownList, spell, true);
+		}
+	});
+
+	// setup check boxes for dailies
+	$('#tab_cast tr[max]').each(function(i,e) {
+		var j;
+		var td = $(e).children('td').last();
+		var max = parseInt($(e).attr('max'));
+		var used = parseInt($(e).attr('used'));
+		for (j = 0; j < max; j++) {
+			$('<input/>', {type: 'checkbox', checked: (j < used)})
+				.on('change',save)
+				.on('click', function(e) {e.stopPropagation();})	// prevents parent row from selecting/deselecting
+				.appendTo(td);
+		}
+	});
+
+	// setup events for other usage tracking controls - arrow buttons and input validation
+	// force the button to enabled as we sometimes see them disabled by default (maybe firefox plugin causing this?)
+	$('#tab_cast td input[value="\u25b2"]').on('click', increaseUses).prop('disabled',false);
+	$('#tab_cast td input[value="\u25bc"]').on('click', decreaseUses).prop('disabled',false);
+	$('#tab_cast td input[value="\u25b2"]').siblings('input[type="text"]')
+		.on('change', usesChanged)
+		.on('click', function(e) {e.stopPropagation();});
 
 	// build the tabs
 	var tabsList = document.createElement('ul');
 	var first = null;
 	var tab, link;
 	var onclick = function() {switchToTab(this);};
-	elems = document.getElementsByClassName('tab');
-	for (i = 0; i < elems.length; i++) {
+	$('.tab').each(function(i,e) {
 		tab = document.createElement('li');
-		tab.setAttribute('for',elems[i].id);
-		tab.id = 'li_'+elems[i].id;
+		tab.setAttribute('for',e.id);
+		tab.id = 'li_'+e.id;
 		tab.onclick = onclick;
 		link = document.createElement('a');
-		link.textContent = elems[i].getAttribute('name');
+		link.textContent = e.getAttribute('name');
 		tab.appendChild(link);
 		tabsList.appendChild(tab);
 		if (first === null) {
 			first = tab;
 		}
-	}
+	});
 	document.getElementById('tabs').appendChild(tabsList);
 	if (first !== null) {
 		switchToTab(first);
 	}
 });
+
+}(jQuery));

@@ -17,7 +17,7 @@
 
 	<div id="tab_content">
 		{{#webcam}}
-		<section id="tab_webcam" class="tab" name="Webcam">
+		<section id="tab_webcam" style="display:none;" class="tab" name="Webcam">
 			<div id="webcam">
 				<div id="images">
 					<img id="photo1" src="/assistantdm/static/camera.jpg"/>
@@ -47,7 +47,8 @@
 		{{/sheet1}}
 
 		{{#content}}
-		<section id="tab_cast" style="display:none;" class="tab" name="Cast" saveurl="{{saveurl}}">
+		<section id="tab_cast" style="display:none;" class="tab" name="{{#hasspells}}Cast / {{/hasspells}}Use" saveurl="{{saveurl}}">
+			{{#hasspells}}
 			<div>
 				<h3>Memorised</h3>
 				<div id="spellList" class="scrollable" button="btnSpells">
@@ -55,8 +56,22 @@
 					<div class="selectable">{{{html}}}</div>
 					{{/spells}}
 				</div>
-				<br><input type="button" id="btnSpells" value="Cast" onclick="castSpell()"/>
-				<input type="button" value="Rest" onclick="rest()"/>
+				<br><input type="button" id="btnSpells" value="Cast" />
+				<input type="button" id="btnRest" value="Rest" />
+			</div>
+			{{/hasspells}}
+			<div>
+				<table class="abilities" button="btnDeleteAbility">
+					<tr><th><h3>Daily Abilities</h3></th><th><input type="button" value="&#x271a" id="btnAbility"/></th></tr>
+					{{#dailies}}
+					<tr class="selectable" max="{{max}}" used="{{used}}"><td>{{name}}</td><td></td></tr>
+					{{/dailies}}
+					<tr><th><h3>Items</h3></th><th><input type="button" value="&#x271a" id="btnItem"/></th></tr>
+					{{#charges}}
+					<tr class="selectable"><td>{{name}}</td><td><input type="text" size="4" value="{{remain}}"/><input type="button" value="&#x25b2" /><input type="button" value="&#x25bc"/></td></tr>
+					{{/charges}}
+				</table>
+				<br><input type="button" id="btnDeleteAbility" value="Delete" />
 			</div>
 		</section>
 		{{/content}}
@@ -81,7 +96,7 @@
 					</select><br>
 				</div>
 				Spells/uses: <input type="checkbox" name="spells" {{#content}}checked{{/content}}><br>
-				<input type="submit" value="Submit">
+				<input type="submit" value="Save">
 			</form>
 		</section>
 		{{/config}}

@@ -1,19 +1,19 @@
-		<section id="tab_{{id}}" class="tab prepare" name="{{tabname}}" prefix="{{idprefix}}" superfix="{{superfix}}" max_slot="{{maxslot}}">
+		<section id="tab_{{id}}" style="display:none;" class="tab prepare" name="{{tabname}}" prefix="{{idprefix}}" superfix="{{superfix}}" max_slot="{{maxslot}}">
 			Show level:
-			<select id="{{idprefix}}levelFilter" onchange="filterLists()">
+			<select id="{{idprefix}}levelFilter">
 				<option value="-1">All</option>
 				{{#spelllevels}}
 				<option value="{{level}}">{{level}}</option>
 				{{/spelllevels}}
 			</select>
-			{{#hasshowall}}<input type="checkbox" name="showall" value="showall" id="{{idprefix}}showAll" onchange="filterLists()">Show All Spells</input>{{/hasshowall}}
+			{{#hasshowall}}<input type="checkbox" name="showall" value="showall" id="{{idprefix}}showAll">Show All Spells</input>{{/hasshowall}}
 			{{#hasempower}}<input type="checkbox" name="metamagic" value="Empowered" level="2">Empower</input>{{/hasempower}}
 			{{#hasenlarge}}<input type="checkbox" name="metamagic" value="Enlarged" level="1">Enlarge</input>{{/hasenlarge}}
 			{{#hasextend}}<input type="checkbox" name="metamagic" value="Extended" level="1">Extend</input>{{/hasextend}}
 			{{#hasheighten}}<span>
 				<input type="checkbox" name="metamagic" value="Heightened" level="0" id="{{idprefix}}heightenCheck">Heighten</input>
 				by: 
-				<select id="{{idprefix}}heightenLevel" onchange="heightenChange()">
+				<select id="{{idprefix}}heightenLevel">
 					<option value="0">None</option>
 					{{#heightenoptions}}
 					<option value="{{levels}}">+{{levels}}</option>
@@ -33,16 +33,16 @@
 					<div class="selectable" level="{{level}}" spell="{{name}}"></div>
 					{{/availablespells}}
 				</div>
-				<br><input type="button" id="{{idprefix}}btnMemorise" value="Memorise" onclick="memorise()"/>
+				<br><input type="button" id="{{idprefix}}btnMemorise" value="Memorise"/>
 			</div>
 			<div>
 				<h3>Slots</h3>
-				<div id="{{idprefix}}slotList" class="scrollable" button="{{idprefix}}btnClear" filter_allow_higher="true">
+				<div id="{{idprefix}}slotList" class="scrollable slotlist" button="{{idprefix}}btnClear" filter_allow_higher="true">
 					{{#slots}}
 					<div class="selectable" level="{{level}}" used="{{#used}}true{{/used}}{{^used}}false{{/used}}" locked="{{#locked}}true{{/locked}}{{^locked}}false{{/locked}}" >{{description}}</div>
 					{{/slots}}
 				</div>
-				<br><input type="button" id="{{idprefix}}btnClear" value="Clear" onclick="clearSlots()"/>
-				<input type="button" id="{{idprefix}}btnLock" value = "Lock it in" onclick="lockSlots(slotList);" disabled="true"/>
+				<br><input type="button" id="{{idprefix}}btnClear" value="Clear"/>
+				<input type="button" id="{{idprefix}}btnLock" value = "Lock it in" disabled="true"/>
 			</div>
 		</section>

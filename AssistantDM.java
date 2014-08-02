@@ -74,7 +74,6 @@ import digital_table.controller.DigitalTableController;
  *
  * Sort out magic shops: make them fully configurable in XML
  * Class abilities
- * Track per-day abilities/item uses
  * Online character sheet page 2
  * Upload character sheet should update caster config
  *

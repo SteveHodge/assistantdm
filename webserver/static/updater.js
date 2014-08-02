@@ -3,6 +3,10 @@
 	var source = null;
 	var xsl = null;
 
+	$(window).on('load', function(e) {
+		$('#webcam').css('min-height', $('#photo1').height()+'px');
+	});
+
 	$(document).ready(function () {
 		if (document.getElementById('webcam')) setupWebcam();
 		if (document.getElementById('tab_sheet')) setupCharacterSheet();
@@ -14,7 +18,7 @@
 		$('#tokens1check').click(toggleTokens);
 
 		// TODO fix this hack. perhaps periodically re-check the height
-		$('#photo1').on("load", function(e) {
+		$('#photo1').on('load', function(e) {
 			$('#webcam').css('min-height', $('#photo1').height()+'px');
 		});
 	

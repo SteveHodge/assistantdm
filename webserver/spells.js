@@ -1549,6 +1549,8 @@ function buildConfig(character, spells) {
 			tab.spells.push({ html: spells.tab_cast[i].html });
 		}
 	}
+	tab.dailies = spells.dailies;
+	tab.charges = spells.charges;
 	output.push(tab);
 
 	return output;
@@ -1595,6 +1597,7 @@ function getConfig(name, callback) {
 
 	getSpells(name, function(err, spells) {
 		if (err) {
+			console.log(name+': '+err);
 			spells = {};
 		}
 
@@ -1635,10 +1638,15 @@ function getContent(name, callback) {
 		data.name = name;
 		data.content = '';
 		for (i = 0; i < config.length; i++) {
-			if (config[i].type !== 'cast') {
-				data.content += mustache.to_html(tab_templates[config[i].type], config[i]);
-			} else {
+			if (config[i].type === 'cast') {
 				data.spells = config[i].spells;
+				if (data.spells && data.spells.length > 0) {
+					data.hasspells = true;
+				}
+				data.dailies = config[i].dailies;
+				data.charges = config[i].charges;
+			} else {
+				data.content += mustache.to_html(tab_templates[config[i].type], config[i]);
 			}
 		}
 		

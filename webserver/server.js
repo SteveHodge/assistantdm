@@ -9,7 +9,8 @@ images (and some other types of static content) from the same domain. to avoid t
 requested from a different sub-domain (updates.stevehodge.net) which is not authenticated. CORS is used
 to enable this. the alternate of having static content on a separate domain would mean that all static
 content was publically accessible and we'd still need CORS for XSLT stylesheets (if CORS is even possible
-there)
+there). this mobile safari limit will still cause problems if multiple tabs are opened - i believe only
+one will successfully update (the player page feature should reduce the need to have multiple tabs open)
 
 web structure:
 / - webcam (GET)
@@ -75,7 +76,7 @@ app.get('/', function(req, res, next) {
 app.get('/updates/*', function(req, res, next) {
 	var oneof  = false;
 	if(req.headers.origin) {
-		//console.log('CORS request from: '+req.headers.origin);
+		console.log('CORS request from: '+req.headers.origin);
 		res.header('Access-Control-Allow-Origin', req.headers.origin);
 		oneof = true;
 	}
@@ -115,7 +116,7 @@ app.get('/:name/spells', function(req, res, next) {
 		if (err) { return next('Character "'+req.params.name+'" cannot be loaded:\n'+err); }
 
 		content.title = content.name;
-		content.saveurl = '';
+		content.saveurl = '/assistantdm/'+req.params.name+'/spells';
 		res.send(mustache.to_html(main_template, content));
 	});
 });
@@ -205,7 +206,7 @@ app.get('/:name', function(req, res, next) {
 				pageData.title = 'Assistant DM';
 				pageData.fontsize = config.fontsize;
 				pageData['fontsize'+config.fontsize] = true;
-				pageData.saveurl = '/spells';
+				pageData.saveurl = '/assistantdm/'+config.character+'/spells';
 				pageData.name = config.character;
 				pageData.webcam = config.webcam;
 				pageData.config = true;
@@ -243,7 +244,7 @@ app.get('/:name', function(req, res, next) {
 		data.title = data.name;
 		data.sheet1 = true;
 		data.fontsize = 8;
-		data.saveurl = '/spells';
+		data.saveurl = '/assistantdm/'+req.params.name+'/spells';
 		res.send(mustache.to_html(main_template, data));
 	});
 });
@@ -258,7 +259,8 @@ app.get('/:name', function(req, res, next) {
 		sheet1: false,
 		spells: false,
 		fontsize: 8,
-		name: ''
+		name: '',
+		config: true
 	};
 
 	res.send(mustache.to_html(main_template, data));
