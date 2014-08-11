@@ -284,7 +284,7 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
-		<xs:attribute name="base" type="xs:int"/>
+		<xs:attribute name="temp" type="xs:int"/>
  		<xs:attribute name="combat_expertise" type="xs:int"/>
  		<xs:attribute name="fighting_defensively" type="xs:boolean"/>
  		<xs:attribute name="total_defense" type="xs:boolean"/>

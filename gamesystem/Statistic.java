@@ -12,9 +12,9 @@ import java.util.Set;
  * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
  * In many cases there is a base value that the modifiers are applied to. But the base value may not be editable so it's implementation
  * is left to the subclasses.
- * 
+ *
  * Reports a single property "value" which is the total of the base value and the applicable modifiers.
- * 
+ *
  * Subclasses may implement additional properties, e.g. Attacks implements an extra_attacks property. Generally properties
  * are values that are changeable but are not subject to typed modifiers.
  */
@@ -27,12 +27,12 @@ public class Statistic {
 	protected Set<Modifier> modifiers = new HashSet<>();
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-	protected final PropertyChangeListener listener = evt -> 
-		//System.out.println("Modifier to "+name+" changed");
-		// problem here is that we know what the old value of the modifier is (from the event),
-		// but we can't easily use that old value to calculate the old total
-		// TODO could store old values locally
-		firePropertyChange("value", null, getValue());
+	protected final PropertyChangeListener listener = evt ->
+	//System.out.println("Modifier to "+name+" changed");
+	// problem here is that we know what the old value of the modifier is (from the event),
+	// but we can't easily use that old value to calculate the old total
+	// TODO could store old values locally
+	firePropertyChange("value", null, getValue());
 
 	protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
 		pcs.firePropertyChange(prop, oldVal, newVal);
@@ -114,6 +114,12 @@ public class Statistic {
 		return getModifiersTotal(getModifierSet(), null);
 	}
 
+	// returns the total of all active modifiers excluding types in the specified set
+	// conditional modifiers are not included
+	public int getModifiersTotal(Set<String> excluding) {
+		return getModifiersTotalExcluding(getModifierSet(), excluding);
+	}
+
 	// returns the total active modifiers of the type specified. if type is null then the total of all modifiers is returned
 	// conditional modifiers are not included
 	public int getModifiersTotal(String type) {
@@ -126,6 +132,18 @@ public class Statistic {
 		Map<Modifier,Boolean> map = getModifiers(mods);
 		for (Modifier m : map.keySet()) {
 			if (map.get(m) && (type == null || type.equals(m.getType())) && m.getCondition() == null) {
+				total += m.getModifier();
+			}
+		}
+		return total;
+	}
+
+	// conditional modifiers are not included
+	protected static int getModifiersTotalExcluding(Set<Modifier> mods, Set<String> excluding) {
+		int total = 0;
+		Map<Modifier, Boolean> map = getModifiers(mods);
+		for (Modifier m : map.keySet()) {
+			if (map.get(m) && !excluding.contains(m.getType()) && m.getCondition() == null) {
 				total += m.getModifier();
 			}
 		}

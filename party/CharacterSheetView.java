@@ -19,7 +19,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -174,12 +176,21 @@ public class CharacterSheetView {
 			creatureEl.appendChild(e);
 		}
 
+		private Set<String> meleeExcl = new HashSet<>(Arrays.asList(new String[] { AbilityScore.Type.STRENGTH.toString(), "Size" }));
+		private Set<String> rangedExcl = new HashSet<>(Arrays.asList(new String[] { AbilityScore.Type.DEXTERITY.toString(), "Size" }));
+
 		@Override
 		public void processAttacks(Attacks attacks) {
 			Element e = getAttacksElement(attacks);
-			e.setAttribute("temp", "");					// TODO implement
+			if (attacks.getBABOverride() == -1) {
+				e.setAttribute("temp", "");
+			} else {
+				e.setAttribute("temp", getModifierString(attacks.getBABOverride()));
+			}
+			e.setAttribute("base", getModifierString(attacks.getBAB()));
 			e.setAttribute("size-modifier", "+0");			// TODO implement
-			e.setAttribute("attacks", attacks.getAttacksDescription(attacks.getBAB()));
+			e.setAttribute("normal-attacks", attacks.getAttacksDescription(attacks.getCalculatedBAB(), attacks.getCalculatedBAB()));		// attack description for non-overridden BAB
+			e.setAttribute("attacks", attacks.getAttacksDescription(attacks.getBAB()));		// attack description based on current BAB
 
 			Element e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Grapple");
@@ -189,7 +200,7 @@ public class CharacterSheetView {
 			e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Melee");
 			e1.setAttribute("total", getModifierString(attacks.getValue()));
-			e1.setAttribute("misc", "+0");				// TODO implement
+			e1.setAttribute("misc", getModifierString(attacks.getModifiersTotal(meleeExcl)));
 			e1.setAttribute("temp-modifier", "");				// TODO implement
 			e1.setAttribute("attacks", attacks.getAttacksDescription(attacks.getValue()));
 			e1.setAttribute("info", attacks.getSummary());
@@ -197,7 +208,7 @@ public class CharacterSheetView {
 			e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Ranged");
 			e1.setAttribute("total", getModifierString(attacks.getRangedValue()));
-			e1.setAttribute("misc", "+0");					// TODO implement
+			e1.setAttribute("misc", getModifierString(attacks.getRangedModifiersTotal(rangedExcl)));
 			e1.setAttribute("temp-modifier", "");				// TODO implement
 			e1.setAttribute("attacks", attacks.getAttacksDescription(attacks.getRangedValue()));
 			e1.setAttribute("info", attacks.getRangedSummary());
@@ -256,7 +267,14 @@ public class CharacterSheetView {
 				se.setAttribute("ability-modifier", "" + character.getAbilityStatistic(s.getAbility()).getModifierValue());
 				se.setAttribute("total", getModifierString(character.skills.getValue(s)));
 				se.setAttribute("info", character.skills.getSummary(s));
-				if (character.skills.getMisc(s) != 0) se.setAttribute("misc", "" + character.skills.getMisc(s));
+
+				int miscMod = character.skills.getMisc(s);
+				Set<String> excl = new HashSet<>();
+				excl.add(s.getAbility().toString());
+				miscMod += character.skills.getModifiersTotal(s, excl);
+
+				if (miscMod != 0) se.setAttribute("misc", Integer.toString(miscMod));
+
 				e.appendChild(se);
 			}
 			creatureEl.appendChild(e);

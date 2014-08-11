@@ -72,9 +72,9 @@ import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
  *
+ * Online character sheet page 2 data
  * Sort out magic shops: make them fully configurable in XML
  * Class abilities
- * Online character sheet page 2
  * Upload character sheet should update caster config
  *
  * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes

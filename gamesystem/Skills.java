@@ -11,7 +11,7 @@ import java.util.Set;
 /*
  * Skills is a compound Statistic - it represents all possible skills for a creature. Modifiers can be added to this class,
  * they will apply to all skills.
- * 
+ *
  * Unlike other modifiers, this class fires property change events for each skill name (not just "value").
  * "value" property changes denote changes to global skills modifiers (or ability modifiers). All skills should be considered updated
  */
@@ -21,9 +21,9 @@ public class Skills extends Statistic {
 	final protected EnumMap<AbilityScore.Type, Modifier> abilityMods = new EnumMap<>(AbilityScore.Type.class);
 	final protected Modifier acp;
 
-	final protected PropertyChangeListener modifierListener = evt -> 
-		// for ability modifier changes. sends event to indicate all skills need updating
-		pcs.firePropertyChange("value", null, null);
+	final protected PropertyChangeListener modifierListener = evt ->
+	// for ability modifier changes. sends event to indicate all skills need updating
+	pcs.firePropertyChange("value", null, null);
 
 	public Skills(Collection<AbilityScore> abilities, Modifier acp) {
 		super("Skills");
@@ -109,6 +109,10 @@ public class Skills extends Statistic {
 		} else {
 			return (int)skill.ranks + getModifiersTotal(mods, null) + skill.misc;
 		}
+	}
+
+	public int getModifiersTotal(SkillType s, Set<String> excl) {
+		return super.getModifiersTotalExcluding(getModifiersSet(s), excl);
 	}
 
 	// returns true if this has an active conditional modifier

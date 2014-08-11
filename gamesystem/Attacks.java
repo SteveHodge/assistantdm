@@ -172,6 +172,7 @@ public class Attacks extends Statistic {
 	}
 
 	public void setBAB(int bab) {
+		if (level != null && level.getBAB() == bab) bab = -1;
 		if (BAB != bab) {
 			BAB = bab;
 			firePropertyChange("value", null, getValue());
@@ -197,22 +198,27 @@ public class Attacks extends Statistic {
 		return mods;
 	}
 
-	public int getRangedValue() {
+	private Set<Modifier> getRangedMods() {
 		Set<Modifier> mods = new HashSet<>();
 		mods.addAll(modifiers);
 		if (dexMod != null) mods.add(dexMod);
-		return BAB + getModifiersTotal(mods,null);
+		return mods;
+	}
+
+	public int getRangedValue() {
+		return getBAB() + getModifiersTotal(getRangedMods(), null);
 	}
 
 	public Map<Modifier,Boolean> getRangedModifiers() {
-		Set<Modifier> mods = new HashSet<>();
-		mods.addAll(modifiers);
-		if (dexMod != null) mods.add(dexMod);
-		return getModifiers(mods);
+		return getModifiers(getRangedMods());
+	}
+
+	public int getRangedModifiersTotal(Set<String> excluding) {
+		return getModifiersTotalExcluding(getRangedMods(), excluding);
 	}
 
 	public int getGrappleValue() {
-		int grapple = BAB + creature.getSize().getGrappleModifier();
+		int grapple = getBAB() + creature.getSize().getGrappleModifier();
 		if (strMod != null) grapple += strMod.getModifier();
 		if (creature.hasFeat(Feat.FEAT_IMPROVED_GRAPPLE)) grapple += 4;
 		return grapple;
@@ -376,6 +382,11 @@ public class Attacks extends Statistic {
 	}
 
 	public String getAttacksDescription(int total) {
+		return getAttacksDescription(total, getBAB());
+	}
+
+	// get attacks string (e.g. +12/+7/+2) for specified total and bab
+	public String getAttacksDescription(int total, int bab) {
 		StringBuilder s = new StringBuilder();
 		if (total >= 0) s.append("+");
 		s.append(total);
@@ -386,7 +397,7 @@ public class Attacks extends Statistic {
 			s.append(total);
 		}
 
-		int bab = getBAB() - 5;
+		bab -= 5;
 		while (bab >= 1) {
 			s.append("/");
 			total -= 5;

@@ -301,6 +301,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 		BAB = NullableIntegerFieldFactory.createNullableIntegerField();
 		BAB.setColumns(3);
+		if (attacks.getBABOverride() != -1) BAB.setValue(attacks.getBABOverride());
 		BAB.addPropertyChangeListener((e) -> {
 			if (BAB.getValue() == null || "".equals(BAB.getText())) {
 				attacks.clearBABOverride();

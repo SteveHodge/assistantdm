@@ -201,7 +201,7 @@ public class XMLParserHelper {
 	protected void parseAttacks(Element e, Creature c) {
 		if (!e.getTagName().equals("Attacks")) return;
 
-		if (e.hasAttribute("base")) c.attacks.setBAB(Integer.parseInt(e.getAttribute("base")));
+		if (e.hasAttribute("temp")) c.attacks.setBAB(Integer.parseInt(e.getAttribute("temp")));
 		if (e.hasAttribute("power_attack")) c.attacks.setPowerAttack(Integer.parseInt(e.getAttribute("power_attack")));
 		if (e.hasAttribute("combat_expertise")) c.attacks.setCombatExpertise(Integer.parseInt(e.getAttribute("combat_expertise")));
 		if (e.getAttribute("total_defense").equals("true") || e.getAttribute("total_defense").equals("1")) c.attacks.setTotalDefense(true);
