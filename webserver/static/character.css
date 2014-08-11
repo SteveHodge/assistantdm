@@ -147,17 +147,12 @@ div.character-table tr {
 div.character-table table {
 	border-collapse:collapse;
 	table-layout:fixed;
-	width:141.12em;
 	font-size:1em;
 }
 
-/*
-* {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
+div.sheet1 table {
+	width:141.12em;
 }
-*/
 
 #content {
 	margin:1em;
@@ -166,18 +161,21 @@ div.character-table table {
 	display:inline-block;
 }
 
-.character-table {
-	position:relative;
-	left:0em;
-	top:0em;
-	width:142.56em;
-	height:189.44em;
+div.character-table {
 	text-align:center;
 	white-space:nowrap;
 	text-decoration:none;
 	font-family:Arial, sans-serif;
 	font-style:normal;
 	color:black;
+}
+
+div.sheet1 {
+	position:relative;
+	left:0em;
+	top:0em;
+	width:142.56em;
+	height:189.44em;
 }
 
 div.character-table .sheet-title {
@@ -205,7 +203,9 @@ div.character-table .ac-base-value {
 div.character-table .title,
 div.character-table .subtitle,
 div.character-table .weapon-subtitle,
-div.character-table .title-smaller {
+div.character-table .title-smaller,
+div.character-table .armor-subhead,
+div.character-table .left-title {
 	border:2px solid black;
 	vertical-align:middle;
 	text-align:center;
@@ -213,7 +213,8 @@ div.character-table .title-smaller {
 	background:black;
 }
 
-div.character-table .title {
+div.character-table .title,
+div.character-table .left-title {
 	font-weight:bold;
 	font-size:1.8em;
 }
@@ -231,7 +232,11 @@ div.character-table .title-smaller {
 
 /* data */
 
-div.character-table .data-value, div.character-table .data-value-important, div.character-table .bab, div.character-table .weapon-name {
+div.character-table .data-value,
+div.character-table .data-value-important,
+div.character-table .bab,
+div.character-table .weapon-name,
+div.character-table .campaign-name {
 	vertical-align:middle;
 	text-align:center;
 	border:2px solid black;
@@ -241,7 +246,8 @@ div.character-table .data-value {
 	font-size:2.2em;
 }
 
-div.character-table .data-value-important {
+div.character-table .data-value-important,
+div.character-table .campaign-name {
 	font-weight:bold;
 	font-size:2.2em;
 }
@@ -378,7 +384,8 @@ div.character-table .label {
 	vertical-align:bottom;
 }
 
-div.character-table .label-total-under {
+div.character-table .label-total-under,
+div.character-table .campaign-subhead {
 	vertical-align:top;
 	font-weight:bold;
 	font-size:1.2em;
@@ -413,6 +420,199 @@ div.character-table .conditional-modifiers {
 	border-bottom:2px solid black;
 }
 
+/*******************************************************************/
+/* styles specific to sheet 2 */
+/*******************************************************************/
+
+div.sheet2 table {
+	width:143.8em;
+}
+
+div.character-table .armor-subhead {
+	font-size:1.2em;
+	font-weight:bold;
+}
+
+div.character-table .left-title {
+	padding-left:0.5em;
+	text-align:left;
+}
+
+div.character-table .single-row {
+	height:1.35em;
+}
+
+div.character-table .double-row {
+	height:2.7em;
+}
+
+div.character-table .col-size {
+	width:1.1667em;
+}
+
+div.character-table .turn-table-cell,
+div.character-table .turn-table-colhead,
+div.character-table .money-table-cell,
+div.character-table .possessions-colhead,
+div.character-table .possessions-item,
+div.character-table .possessions-weight,
+div.character-table .slot-subhead,
+div.character-table .slot-item,
+div.character-table .slot-weight,
+div.character-table .campaign-name
+{
+	border:1px solid black;
+}
+
+/* turn specific */
+div.character-table .turn-subhead,
+div.character-table .turn-hd-subhead {
+	vertical-align:middle;
+	white-space:normal;
+	padding-right:0.5em;
+}
+
+div.character-table .turn-subhead {
+	font-size:1.6em;
+	text-align:right;
+}
+
+div.character-table .turn-hd-subhead,
+div.character-table .turn-note,
+div.character-table .turn-table-cell {
+	font-size:1.4em;
+	text-align:center;
+}
+
+div.character-table .turn-note {
+	vertical-align:top;
+	white-space:normal;
+}
+
+div.character-table .turn-table-cell {
+	vertical-align:middle;
+}
+
+div.character-table .turn-total-hd {
+	font-size:2em;
+	text-align:center;
+	vertical-align:middle;
+}
+
+div.character-table .turn-table-colhead {
+	font-size:1em;
+	text-align:center;
+	white-space:normal;
+}
+
+/* carry specific */
+div.character-table .carry-subhead	{
+	font-size:1em;
+	font-weight:bold;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+}
+
+/* slot specific */
+div.character-table .slot-subhead {
+	font-size:1.6em;
+	font-weight:bold;
+	text-align:left;
+	background:silver;
+	padding-left:0.5em;
+}
+div.character-table .slot-item {
+	font-size:1.6em;
+	text-align:left;
+	padding-left:0.5em;
+}
+div.character-table .slot-weight {
+	font-size:1.6em;
+	text-align:right;
+	padding-right:0.5em;
+}
+div.character-table .slot-heading {
+	font-size:1.8em;
+	font-weight:bold;
+	text-align:left;
+	padding-left:0.5em;
+}
+
+/* possessions specific */
+div.character-table .possessions-colhead {
+	font-size:1.2em;
+	text-align:center;
+}
+div.character-table .possessions-item {
+	font-size:1.6em;
+	text-align:left;
+	padding-left:0.5em;
+}
+div.character-table .possessions-weight {
+	font-size:1.6em;
+	text-align:right;
+	padding-right:0.5em;
+}
+div.character-table .total-weight {
+	font-size:1.8em;
+	text-align:right;
+	padding-right:0.5em;
+}
+
+div.character-table .money-table-cell {
+	font-size:1.4em;
+	text-align:left;
+	vertical-align:middle;
+	padding-left:0.5em;
+}
+div.character-table .underlined-text {	/* notes data, languages list data */
+	font-size:1.6em;
+	text-align:left;
+	border-bottom:thin solid black;
+}
+
+div.character-table .special-abilities {
+	font-size:1.6em;
+	text-align:left;
+	vertical-align:top;
+	white-space:normal;
+	border:2px solid black;
+	padding:0.5em;
+}
+
+div.character-table .special-abilities ul {
+	margin:0;
+	padding:0 0 0 2em;
+}
+
+div.character-table .B {
+	border-bottom:2px solid black;
+}
+
+div.character-table .L {
+	border-left:2px solid black;
+}
+
+div.character-table .T {
+	border-top:2px solid black;
+}
+
+div.character-table .R {
+	border-right:2px solid black;
+}
+
+/*******************************************************************/
+/* classes for diff functionality */
+/*******************************************************************/
+.changed {
+	background: gold;
+}
+
+/*******************************************************************/
+/* dialog box styles */
+/*******************************************************************/
+
 #dialog {position:absolute; width:425px; padding:10px; z-index:200; background:#fff}
 #dialog-header {display:block; position:relative; width:411px; padding:3px 6px 7px; height:14px; font-size:14px; font-weight:bold}
 #dialog-title {float:left}
@@ -422,3 +622,4 @@ div.character-table .conditional-modifiers {
 .info, .infoheader {margin:0; font-family:Verdana, Arial, Helvetica; font-size:14px}
 .info {background:#fff; border:1px solid #4f6d81; border-top:none}
 .infoheader {background:url(/assistantdm/static/images/prompt_header.gif) repeat-x; color:#355468; border:1px solid #4f6d81; border-bottom:none}
+

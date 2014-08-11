@@ -730,6 +730,7 @@ function deleteAbility() {
 	if( confirm('Are you sure you want to delete the selected abilities/items?')) {
 		$('table.abilities tr.selected').remove();
 		save();
+		updateButton($('table.abilities')[0]);
 	}
 }
 
@@ -750,9 +751,7 @@ function newItem() {
 		$('<input/>', {type: 'button', value: '\u25b2'}).on('click', increaseUses).appendTo(td);
 		$('<input/>', {type: 'button', value: '\u25bc'}).on('click', decreaseUses).appendTo(td);
 		td.appendTo(tr);
-		var last = $('tr').has('#btnItem').nextAll('tr').last();
-		if (last.length === 0) last = $('tr').has('#btnItem');
-		last.after(tr);
+		var last = $('table').has('#btnItem').append(tr);
 		save();
 	}
 }

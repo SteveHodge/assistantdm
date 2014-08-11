@@ -788,10 +788,12 @@
 			<td colspan="16" class="title">BASE ATTACK BONUS</td>
 			<td/>
 			<td colspan="9" class="bab">
-				<xsl:value-of select="Attacks/@attacks"/>
+				<xsl:value-of select="Attacks/@normal-attacks"/>
 			</td>
 			<td/>
-			<td colspan="4" class="temp-value">&nbsp;</td>
+			<td colspan="4" class="temp-value">
+				<xsl:value-of select="Attacks/@temp"/>
+			</td>
 			<td/>
 			<td/>
 			<td/>
@@ -973,7 +975,7 @@
 </xsl:template>
 
 <xsl:template match="Character">
-<div class="character-table">
+<div class="character-table sheet1">
 	<div id="cs1_basic_info"><xsl:call-template name="basic-info"/></div>
 	<div id="cs1_abilities"><xsl:call-template name="abilities"/></div>
 	<div id="cs1_hp_and_ac"><xsl:call-template name="hp-and-ac"/></div>

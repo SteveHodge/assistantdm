@@ -43,8 +43,12 @@
 		{{/webcam}}
 
 		{{#sheet1}}
-		<section id="tab_sheet" style="display:none; font-size:{{fontsize}}px;" class="tab" name="Sheet 1" character="{{name}}"></section>
+		<section id="tab_sheet1" style="display:none; font-size:{{fontsize}}px;" class="tab" name="Sheet 1" character="{{name}}"></section>
 		{{/sheet1}}
+
+		{{#sheet2}}
+		<section id="tab_sheet2" style="display:none; font-size:{{fontsize}}px;" class="tab" name="Sheet 2" character="{{name}}"></section>
+		{{/sheet2}}
 
 		{{#content}}
 		<section id="tab_cast" style="display:none;" class="tab" name="{{#hasspells}}Cast / {{/hasspells}}Use" saveurl="{{saveurl}}">
@@ -83,6 +87,7 @@
 			<form action="" method="post">
 				Webcam: <input type="checkbox" name="webcam" {{#webcam}}checked{{/webcam}}><br>
 				Sheet 1: <input type="checkbox" name="sheet1" {{#sheet1}}checked{{/sheet1}}><br>
+				Sheet 2: <input type="checkbox" name="sheet2" {{#sheet2}}checked{{/sheet2}}><br>
 				<div style="margin-left:2em;">
 					Character: <input type="text" name="character" value="{{name}}"><br>
 					Font size: <select name="fontsize">

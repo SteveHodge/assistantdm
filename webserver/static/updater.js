@@ -1,15 +1,22 @@
 (function($) {
-	var listeners = [];
+	var token = null;		// semi-unique token passed with each connection and download so the server can track our activity
+	var listeners = [];	// list of files we are interested in (actually list of objects with type and listener properties)
 	var source = null;
-	var xsl = null;
+	var sheet1 = null;	// cached element for character sheet 1
+	var sheet2 = null;	// cached element for character sheet 1
+	var xsl1 = null;	// xslt transform for character sheet 1
+	var xsl2 = null;	// xslt transform for character sheet 1
 
 	$(window).on('load', function(e) {
 		$('#webcam').css('min-height', $('#photo1').height()+'px');
 	});
 
 	$(document).ready(function () {
+		if (token == null) token = (new Date()).valueOf();
 		if (document.getElementById('webcam')) setupWebcam();
-		if (document.getElementById('tab_sheet')) setupCharacterSheet();
+		sheet1 = document.getElementById('tab_sheet1');
+		sheet2 = document.getElementById('tab_sheet2');
+		if (sheet1 || sheet2) setupCharacterSheet();
 		openConnection();
 	});
 
@@ -22,51 +29,69 @@
 			$('#webcam').css('min-height', $('#photo1').height()+'px');
 		});
 	
-		$.getJSON('static/initiative.json?'+(new Date()).valueOf(), function(data) {
+		$.getJSON('static/initiative.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 			updateInitiativeText(data);
 		});
 		
-		$.getJSON('static/tokens.json?'+(new Date()).valueOf(), function(data) {
+		$.getJSON('static/tokens.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 			updateTokensText(data);
 		});
 	
 		addListener('initiative.json', function() {
 			logMessage('updated initiatives');
-			$.get('static/initiative.json?'+(new Date()).valueOf(), function(data) {
+			$.get('static/initiative.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 				updateInitiativeText(data);
 			});
 		});
 		
 		addListener('camera.jpg', function() {
-			$('#photo1').attr('src') = "/assistantdm/static/camera.jpg?"+(new Date()).valueOf();
+			$('#photo1').attr('src', "/assistantdm/static/camera.jpg?token="+token+"&r="+(new Date()).valueOf());
 			logMessage('updated image');
 		});
 		
 		addListener('tokens.png', function() {
-			document.getElementById("tokens1").src = "/assistantdm/static/tokens.png?"+(new Date()).valueOf();
+			document.getElementById("tokens1").src = "/assistantdm/static/tokens.png?token="+token+"&r="+(new Date()).valueOf();
 			logMessage('updated token overlay', true);
 		});
 		
 		addListener('tokens.json', function() {
 			logMessage('updated token legend', true);
-			$.get('static/tokens.json?'+(new Date()).valueOf(), function(data) {
+			$.get('static/tokens.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 				updateTokensText(data);
 			});
 		});
 	}
 		
 	function setupCharacterSheet() {
-		var name = $('#tab_sheet').attr('character');
+		var name;
+		if (sheet1) {
+			name = $(sheet1).attr('character');
+			WRAPPER = 'tab_sheet1';	// set element id for the dialog box to use
+		} else {
+			name = $(sheet2).attr('character');
+			WRAPPER = 'tab_sheet2';	// set element id for the dialog box to use
+		}
 		if (name) {
-			WRAPPER = 'tab_sheet';	// set element id for the dialog box to use
-
-			$.get('/assistantdm/static/CharacterTemplate.xsl', function(data) {
-				xsl = data;
-				$.get('/assistantdm/'+name+'/xml?unique='+(new Date()).valueOf(), displayXML);
+			$.get('/assistantdm/'+name+'/xml?token='+token, function(xml) {
+				if (sheet1) {
+					$.get('/assistantdm/static/CharacterTemplate.xsl', function(data) {
+						xsl1 = data;
+						displayCharacterXML(sheet1,xml, xsl1);
+					});
+				}
+				if (sheet2) {
+					$.get('/assistantdm/static/CharacterTemplate2.xsl', function(data) {
+						xsl2 = data;
+						displayCharacterXML(sheet2,xml, xsl2);
+					});
+				}
 			});
 
 			addListener(name+'.xml', function() {
-				$.get('/assistantdm/'+name+'/xml?unique='+(new Date()).valueOf(), displayXML);
+				$.get('/assistantdm/'+name+'/xml?token='+token+'&r='+(new Date()).valueOf(), function(xml) {
+					if (sheet1) displayCharacterXML(sheet1, xml, xsl1);
+					if (sheet2) displayCharacterXML(sheet2, xml, xsl2);
+				});
 			});
 		}
 	}
@@ -91,7 +116,7 @@
 			}
 		}
 
-		source = new EventSource('http://updates.stevehodge.net/assistantdm/updates/'+type, { withCredentials: true });
+		source = new EventSource('http://updates.stevehodge.net/assistantdm/updates/'+type+'?token='+token, { withCredentials: true });
 
 		logMessage('Connecting to server');
 
@@ -144,19 +169,39 @@
 		$('#tokenlist').html(html+'</table>');
 	}
 	
-	function displayXML(xml) {
-		var div = document.getElementById("tab_sheet");
+	function displayCharacterXML(div,xml,xsl) {
 		// code for IE
-		if (window.ActiveXObject) {
-			div.innerHTML=xml.transformNode(xsl);
-		}
+//		if (window.ActiveXObject) {
+//			div.innerHTML=xml.transformNode(xsl);
+//		}
 		// code for Mozilla, Firefox, Opera, etc.
-		else if (document.implementation && document.implementation.createDocument) {
+//		else if (document.implementation && document.implementation.createDocument) {
 			xsltProcessor=new XSLTProcessor();
 			xsltProcessor.importStylesheet(xsl);
 			resultDocument = xsltProcessor.transformToFragment(xml,document);
-			while (div.hasChildNodes()) div.removeChild(div.firstChild);
-			div.appendChild(resultDocument);
+			
+			// compare current values to new values and mark differences
+			if (div.hasChildNodes()) compareDOM(div.firstChild, resultDocument.firstChild, $(div).css('display') === 'none');
+			
+			$(div).empty().append(resultDocument.firstChild);
+//		}
+	}
+
+	function compareDOM(before, after, copy) {
+		if (before.tagName !== after.tagName) return;	// hierarchy is different
+		if (before.children.length === 0 && after.children.length === 0) {
+			if (before.textContent !== after.textContent) {
+				// difference found
+				$(after).addClass('changed');
+			} else if (copy && $(before).hasClass('changed')) {
+				$(after).addClass('changed');
+			}
+		} else if (before.children.length === after.children.length) {
+			for (var i = 0; i < before.children.length; i++) {
+				compareDOM(before.children[i], after.children[i], copy);
+			}
+		} else {
+			// hierarchy is different
 		}
 	}
 

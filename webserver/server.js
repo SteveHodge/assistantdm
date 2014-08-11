@@ -1,6 +1,8 @@
 /*
 enhancements:
-track other uses: per-day abilities, item charges, etc
+reorder items/abilities
+debug page with more detail on subscribers
+/<character>/sheet2 - second page of character sheet
 /debug/<character> - combined debug page with all config + subscribers to the character
 /dm - dm log that tracks updates to characters spells (particularly casting) and/or feed back to AssistantDM
 
@@ -9,8 +11,10 @@ images (and some other types of static content) from the same domain. to avoid t
 requested from a different sub-domain (updates.stevehodge.net) which is not authenticated. CORS is used
 to enable this. the alternate of having static content on a separate domain would mean that all static
 content was publically accessible and we'd still need CORS for XSLT stylesheets (if CORS is even possible
-there). this mobile safari limit will still cause problems if multiple tabs are opened - i believe only
-one will successfully update (the player page feature should reduce the need to have multiple tabs open)
+there). this mobile safari limit may still cause problems if multiple tabs are opened - possibly only
+one will successfully update (the player page feature should reduce the need to have multiple tabs open).
+possibly mobile safari is waiting for the SSE request to complete so it can use the same keep-alive
+connection to download images. perhaps cancelling keep-alive would fix this issue.
 
 web structure:
 / - webcam (GET)
@@ -49,7 +53,8 @@ var spells = require('./spells');
 var util = require('util');
 var path = require('path');
 
-var subscribers = new Array();
+var subscribers = [];
+var sub_tracking = {};
 
 var sheet_template = fs.readFileSync(__dirname+'/templates/charactersheet.mustache', 'binary');
 var main_template = fs.readFileSync(__dirname+'/templates/main.mustache', 'binary');
@@ -60,12 +65,22 @@ app.enable('trust proxy');
 //app.use(express.compress());
 
 app.use(express.favicon());
-app.use(express.logger('dev'));
-
-app.use('/static', express.static(__dirname+'/static'));
+app.use(express.logger(':remote-addr [:date] :method ":url" :status'));
 
 app.use(express.json());
 app.use(express.urlencoded());
+
+app.get('/static/:name', function(req, res, next) {
+	if (req.query.token) {
+		if (!sub_tracking[req.query.token]) sub_tracking[req.query.token] = {};
+		if (!sub_tracking[req.query.token][req.params.name]) sub_tracking[req.query.token][req.params.name] = {};
+		sub_tracking[req.query.token][req.params.name].last_fetched = new Date();
+		sub_tracking[req.query.token][req.params.name].latest = true;
+	}
+	next();
+});
+
+app.use('/static', express.static(__dirname+'/static'));
 
 app.get('/', function(req, res, next) {
 	res.sendfile('static/webcam.html');
@@ -152,11 +167,15 @@ app.post('/:name', function(req, res, next) {
 	var config = {
 		webcam: req.body.webcam === 'on',
 		sheet1: req.body.sheet1 === 'on',
+		sheet2: req.body.sheet2 === 'on',
 		spells: req.body.spells === 'on',
 		character: req.body.character,
 		fontsize: req.body.fontsize
 	};
-	if (!config.character) config.sheet1 = false;
+	if (!config.character) {
+		config.sheet1 = false;
+		config.sheet2 = false;
+	}
 	if (!config.fontsize) config.fontsize = 8;
 	console.log(util.inspect(config));
 
@@ -166,7 +185,8 @@ app.post('/:name', function(req, res, next) {
 	});
 });
 
-// this has same route as character below. if a player config file doesn't exist then it's assumed to be a character
+// this has same route as character below. if a player config file doesn't exist then it's assumed to be a character and this
+// handler will drop through to the next
 app.get('/:name', function(req, res, next) {
 	'use strict';
 	
@@ -211,9 +231,10 @@ app.get('/:name', function(req, res, next) {
 				pageData.webcam = config.webcam;
 				pageData.config = true;
 
-				if (config.character && config.sheet1) {
+				if (config.character && (config.sheet1 || config.sheet2)) {
 					if (fs.existsSync(__dirname+'/characters/'+config.character+'.xml')) {
-						pageData.sheet1 = true;
+						if (config.sheet1) pageData.sheet1 = true;
+						if (config.sheet2) pageData.sheet2 = true;
 					}
 				}
 
@@ -243,6 +264,7 @@ app.get('/:name', function(req, res, next) {
 
 		data.title = data.name;
 		data.sheet1 = true;
+		data.sheet2 = true;
 		data.fontsize = 8;
 		data.saveurl = '/assistantdm/'+req.params.name+'/spells';
 		res.send(mustache.to_html(main_template, data));
@@ -257,6 +279,7 @@ app.get('/:name', function(req, res, next) {
 		title: 'Assistant DM',
 		webcam: true,
 		sheet1: false,
+		sheet2: false,
 		spells: false,
 		fontsize: 8,
 		name: '',
@@ -275,13 +298,32 @@ app.put('/static/tokens.png', function(req, res, next) { saveFile(req.path, req,
 
 // ------------------- debug routes -------------------
 app.get('/debug/subscribers', function(req, res) {
-	var html = '<html><body><ul>';
+	var html = '<html><head><style>';
+	html += 'table {border-collapse: collapse;} table, th, td {border: 1px solid black;}';
+	html += '</style></head><body><ul>';
 	for (var i = 0; i < subscribers.length; i++) {
 		if (subscribers[i]) {
-			html += '<li>' + subscribers[i].file + ': '+subscribers[i].req.ip+'<br>';
-			html += subscribers[i].req.headers['user-agent'] + '<br>';
+			html += '<li>';
+			if (subscribers[i].closed) html += '<b>Closed </b>';
+			html += subscribers[i].req.ip + ', File: '+subscribers[i].file;
+			html += ', Token: '+subscribers[i].token+', Since: '+subscribers[i].first_connect;
+			html += ', Reconnects: '+subscribers[i].reconnects+'<br>';
+			html += 'User agent: '+subscribers[i].req.headers['user-agent'] + '<br>';
 			if (subscribers[i].req.headers.authorization) {
-				html += subscribers[i].req.headers.authorization + '<br>';
+				html += 'Authorization: '+subscribers[i].req.headers.authorization + '<br>';
+			}
+			if(subscribers[i].token) {
+				html += '<table style="border:thin solid black;"><tr><th>File</th><th>Last Downloaded</th><th>Last Updated</th><th>Got Latest</th></tr>';
+				var tracking = sub_tracking[subscribers[i].token];
+				for (var file in tracking) {
+					if (tracking.hasOwnProperty(file)) {
+						html += '<tr><td>'+file+'</td><td>'+tracking[file].last_fetched+'</td>';
+						html += '<td>'+tracking[file].updated+'</td>';
+						html += '<td>'+tracking[file].latest+'</td>';
+						html += '</tr>';
+					}
+				}
+				html += '</table>';
 			}
 		}
 	}
@@ -357,9 +399,15 @@ function saveFile(file, req, res, next) {
 			res.send(200);
 			
 			for (var i = 0; i < subscribers.length; i++) {
-				//console.log('data: '+path.basename(file));
-				if (subscribers[i] && (subscribers[i].file === '*' || subscribers[i].file === path.basename(file))) {
-					subscribers[i].res.write('data: '+path.basename(file)+'\n\n');
+				var f = path.basename(file);
+				//console.log('data: '+f);
+				if (subscribers[i] && (subscribers[i].file === '*' || subscribers[i].file === f)) {
+					subscribers[i].res.write('data: '+f+'\n\n');
+					var token = subscribers[i].token;
+					if (token && sub_tracking[token] && sub_tracking[token][f]) {
+						sub_tracking[token][f].updated = new Date();
+						sub_tracking[token][f].latest = false;
+					}
 				}
 			}
 		});
@@ -372,6 +420,7 @@ function subscribe(file, req, res, next) {
 	req.socket.setTimeout(Infinity);
 
 	console.log('subscribed '+req.ip+' ('+file+')'); //+':' +util.inspect(req.headers));
+	//console.log('token = '+req.query.token);
 
 	res.writeHead(200, {
 		'Content-Type': 'text/event-stream',
@@ -381,17 +430,37 @@ function subscribe(file, req, res, next) {
 	res.write('\n');
 
 	//track subscriber
-	subscribers.push({
-		'req': req,
-		'res': res,
-		'file': file
-	});
+	// if there is an existing closed connection with the same ip address and token we'll replace that, otherwise we'll add a new one
+	var found = false;
+	for (var i = 0; i < subscribers.length; i++) {
+		if (subscribers[i] && subscribers[i].token === req.query.token && subscribers[i].closed && subscribers[i].req.ip === req.ip) {
+			found = true;
+			subscribers[i].req = req;
+			subscribers[i].res = res;
+			subscribers[i].file = file;
+			subscribers[i].closed = false;
+			subscribers[i].reconnects++;
+			break;
+		}
+	}	
+	
+	if (!found) {
+		subscribers.push({
+			'req': req,
+			'res': res,
+			'file': file,
+			'token': req.query.token,
+			'reconnects': 0,
+			'first_connect': new Date
+		});
+	}
 
 	req.on('close', function() {
 		for (var i = 0; i < subscribers.length; i++) {
 			if (subscribers[i] && subscribers[i].req === req) {
-				//console.log('subscriber closed');
-				subscribers[i] = undefined;
+				//console.log('subscriber closed: '+req.ip);
+				//subscribers[i] = undefined;
+				subscribers[i].closed = true;
 				break;
 			}
 		}
