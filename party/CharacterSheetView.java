@@ -11,6 +11,7 @@ import gamesystem.Levels;
 import gamesystem.SavingThrow;
 import gamesystem.SkillType;
 import gamesystem.Skills;
+import gamesystem.XP;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
@@ -27,6 +28,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
 import party.Character.ACComponentType;
@@ -125,6 +127,8 @@ public class CharacterSheetView {
 			Element levelEl = doc.createElement("Level");
 			levelEl.setAttribute("level", "" + lvlStr);
 			levelEl.setAttribute("class", classStr);
+			levelEl.setAttribute("xp", Integer.toString(XP.getXPRequired(level.getLevel())) + "+");
+			levelEl.setAttribute("xp-req", Integer.toString(XP.getXPRequired(level.getLevel() + 1)));
 			creatureEl.appendChild(levelEl);
 		}
 
@@ -159,7 +163,42 @@ public class CharacterSheetView {
 		public void processAC(AC ac) {
 			if (creatureEl == null) return;
 
-			Element e = doc.createElement("AC");
+			Element e = getACElement(ac);
+
+			// apply formatting to existing values
+			NodeList children = e.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++) {
+				if (children.item(i) instanceof Element) {
+					Element child = (Element) children.item(i);
+					int total_bonus = 0;
+					String info = "";
+					if (child.hasAttribute("bonus")) {
+						total_bonus += Integer.parseInt(child.getAttribute("bonus"));
+						info += child.getAttribute("bonus") + " armor bonus<br>";
+					} else {
+						info += "0 armor bonus<br>";
+					}
+					if (child.hasAttribute("enhancement")) {
+						int b = Integer.parseInt(child.getAttribute("enhancement"));
+						total_bonus += b;
+						info += getModifierString(b) + " Enhancement bonus<br>";
+					}
+					child.setAttribute("total_bonus", getModifierString(total_bonus));
+					info += total_bonus + " Total " + child.getTagName() + " bonus";
+					child.setAttribute("info", info);
+
+					if (child.hasAttribute("max_dex")) {
+						child.setAttribute("max_dex", getModifierString(Integer.parseInt(child.getAttribute("max_dex"))));
+					}
+					if (child.hasAttribute("acp")) {
+						child.setAttribute("acp", getModifierString(Integer.parseInt(child.getAttribute("acp"))));
+					}
+					if (child.hasAttribute("spell_failure")) {
+						child.setAttribute("spell_failure", child.getAttribute("spell_failure") + "%");
+					}
+				}
+			}
+
 			e.setAttribute("total", "" + ac.getValue());
 			e.setAttribute("flat-footed", "" + ac.getFlatFootedAC().getValue());
 			e.setAttribute("touch", "" + ac.getTouchAC().getValue());

@@ -34,6 +34,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 		c.setProperty(Character.PROPERTY_SPELL_RESISTANCE, el.getAttribute("spell-resistance"));
 		c.setProperty(Character.PROPERTY_ARCANE_SPELL_FAILURE, el.getAttribute("arcane-spell-failure"));
 		c.setProperty(Character.PROPERTY_ACTION_POINTS, el.getAttribute("action-points"));
+		c.setProperty(Character.PROPERTY_CAMPAIGN, el.getAttribute("campaign"));
 
 		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con
 		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise

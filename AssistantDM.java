@@ -72,7 +72,6 @@ import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
  *
- * Online character sheet page 2 data
  * Sort out magic shops: make them fully configurable in XML
  * Class abilities
  * Upload character sheet should update caster config

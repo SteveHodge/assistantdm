@@ -47,6 +47,7 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 		setAttributeFromProperty(c, creatureEl, "spell-resistance", Character.PROPERTY_SPELL_RESISTANCE);
 		setAttributeFromProperty(c, creatureEl, "arcane-spell-failure", Character.PROPERTY_ARCANE_SPELL_FAILURE);
 		setAttributeFromProperty(c, creatureEl, "action-points", Character.PROPERTY_ACTION_POINTS);
+		setAttributeFromProperty(c, creatureEl, "campaign", Character.PROPERTY_CAMPAIGN);
 	}
 
 	@Override

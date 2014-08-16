@@ -343,7 +343,7 @@ public class AC extends Statistic {
 			return "Armor Check Penalty";
 		}
 
-		public void update() {
+		private void update() {
 			pcs.firePropertyChange("value", null, armor.acp + shield.acp);
 		}
 	}

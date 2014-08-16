@@ -309,13 +309,11 @@ public class XMLOutputHelper {
 		Element armor = doc.createElement(ac.armor.name);
 		armor.setAttribute("description", ac.armor.description);
 		armor.setAttribute("bonus", "" + ac.armor.bonus);
-		if (ac.armor.enhancement != null) {
-			armor.setAttribute("enhancement", "" + ac.armor.enhancement.getModifier());
-		}
+		if (ac.armor.enhancement != null) armor.setAttribute("enhancement", "" + ac.armor.enhancement.getModifier());
 		armor.setAttribute("weight", "" + ac.armor.weight);
 		armor.setAttribute("acp", "" + ac.armor.acp);
 		armor.setAttribute("spell_failure", "" + ac.armor.spellFailure);
-		armor.setAttribute("properties", "" + ac.armor.properties);
+		if (ac.armor.properties != null) armor.setAttribute("properties", ac.armor.properties);
 		armor.setAttribute("type", ac.armor.type);
 		armor.setAttribute("speed", "" + ac.armor.speed);
 		if (ac.dexMod != null) armor.setAttribute("max_dex", "" + ac.dexMod.getLimit());
@@ -324,13 +322,11 @@ public class XMLOutputHelper {
 		Element shield = doc.createElement(ac.shield.name);
 		shield.setAttribute("description", ac.shield.description);
 		shield.setAttribute("bonus", "" + ac.shield.bonus);
-		if (ac.shield.enhancement != null) {
-			shield.setAttribute("enhancement", "" + ac.shield.enhancement.getModifier());
-		}
+		if (ac.shield.enhancement != null) shield.setAttribute("enhancement", "" + ac.shield.enhancement.getModifier());
 		shield.setAttribute("weight", "" + ac.shield.weight);
 		shield.setAttribute("acp", "" + ac.shield.acp);
 		shield.setAttribute("spell_failure", "" + ac.shield.spellFailure);
-		shield.setAttribute("properties", "" + ac.shield.properties);
+		if (ac.shield.properties != null) shield.setAttribute("properties", ac.shield.properties);
 		e.appendChild(shield);
 
 		return e;

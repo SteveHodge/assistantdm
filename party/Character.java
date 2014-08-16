@@ -49,6 +49,7 @@ public class Character extends Creature {
 	// informational string properties (these are simple values that can be set/retrieved)
 	public static final String PROPERTY_PLAYER = "Player";
 	//public final static String PROPERTY_CLASS = "Class";
+	public final static String PROPERTY_CAMPAIGN = "Campaign";
 	public final static String PROPERTY_REGION = "Region";
 	public final static String PROPERTY_RACE = "Race";
 	public final static String PROPERTY_GENDER = "Gender";
