@@ -268,6 +268,8 @@ public class Character extends Creature {
 		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), level);
 		hps.addPropertyChangeListener(statListener);
 
+		bab = level.new BAB();
+
 		attacks = new Attacks(this);
 		attacks.addPropertyChangeListener(statListener);
 

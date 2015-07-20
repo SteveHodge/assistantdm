@@ -1,5 +1,7 @@
 package gamesystem;
 
+import gamesystem.core.Property;
+import gamesystem.core.Property.PropertyEvent;
 import gamesystem.dice.CombinedDice;
 
 import java.beans.PropertyChangeListener;
@@ -36,8 +38,7 @@ import party.Character;
  */
 
 public class Attacks extends Statistic {
-	private int BAB = 0;		// if level is not null and this > -1 then this is the override value
-	private Levels level;		// if not null then used to calculate BAB
+	private Property<Integer> bab;
 	private Modifier strMod;	// may be null (if the creature has no strength score)
 	private Modifier dexMod;	// may be null (if the creature has no dex score)
 	private Creature creature;
@@ -72,7 +73,7 @@ public class Attacks extends Statistic {
 		}
 	};
 
-	// TODO would prefer not to require a Character. however we do need abilityscores, feats, and AC for some combat options
+	// TODO would prefer not to require a Character. however we do need BAB, abilityscores, feats, and AC for some combat options
 	public Attacks(Creature c) {
 		super("Attacks");
 
@@ -80,13 +81,20 @@ public class Attacks extends Statistic {
 		if (creature instanceof Character) {
 			Character chr = (Character) creature;
 			chr.feats.addListDataListener(featsListener);
-			level = chr.level;
-			level.addPropertyChangeListener((e) -> {
-				firePropertyChange("value", null, getValue());
-			});
-			BAB = -1;
 		}
 		ac = creature.getACStatistic();
+		bab = creature.getBAB();
+		bab.addPropertyListener(new Property.PropertyListener<Integer>() {
+			@Override
+			public void valueChanged(PropertyEvent<Integer> event) {
+				firePropertyChange("value", null, getValue());	// may have been fired by the power attack or combate expertise, but maybe not
+			}
+
+			@Override
+			public void compositionChanged(PropertyEvent<Integer> event) {
+				firePropertyChange("value", null, getValue());	// may have been fired by the power attack or combate expertise, but maybe not
+			}
+		});
 
 		strMod = creature.getAbilityModifier(AbilityScore.Type.STRENGTH);
 		if (strMod != null) strMod.addPropertyChangeListener(listener);
@@ -153,36 +161,15 @@ public class Attacks extends Statistic {
 		firePropertyChange(property, old, getExtraAttacks());
 	}
 
-	public int getBAB() {
-		if (level != null && BAB == -1) return level.getBAB();
-		return BAB;
-	}
-
-	public int getBABOverride() {
-		return BAB;
-	}
-
-	public int getCalculatedBAB() {
-		if (level != null) return level.getBAB();
-		return 0;
-	}
-
-	public void clearBABOverride() {
-		setBAB(-1);
-	}
-
-	public void setBAB(int bab) {
-		if (level != null && level.getBAB() == bab) bab = -1;
-		if (BAB != bab) {
-			BAB = bab;
-			firePropertyChange("value", null, getValue());
-		}
+	// TODO remove acccess to BAB via attack - used only by CharacterSheetView
+	public Property<Integer> getBAB() {
+		return bab;
 	}
 
 	// returns the str-modified ("melee") statistic
 	@Override
 	public int getValue() {
-		return getBAB() + getModifiersTotal();
+		return bab.getValue() + getModifiersTotal();
 	}
 
 	@Override
@@ -206,7 +193,7 @@ public class Attacks extends Statistic {
 	}
 
 	public int getRangedValue() {
-		return getBAB() + getModifiersTotal(getRangedMods(), null);
+		return bab.getValue() + getModifiersTotal(getRangedMods(), null);
 	}
 
 	public Map<Modifier,Boolean> getRangedModifiers() {
@@ -218,7 +205,7 @@ public class Attacks extends Statistic {
 	}
 
 	public int getGrappleValue() {
-		int grapple = getBAB() + creature.getSize().getGrappleModifier();
+		int grapple = bab.getValue() + creature.getSize().getGrappleModifier();
 		if (strMod != null) grapple += strMod.getModifier();
 		if (creature.hasFeat(Feat.FEAT_IMPROVED_GRAPPLE)) grapple += 4;
 		return grapple;
@@ -324,7 +311,7 @@ public class Attacks extends Statistic {
 	@Override
 	public String getSummary() {
 		StringBuilder text = new StringBuilder();
-		text.append(getBAB()).append(" base attack bonus<br/>");
+		text.append(bab.getValue()).append(" base attack bonus<br/>");
 		Map<Modifier, Boolean> mods = getModifiers();
 		text.append(Statistic.getModifiersHTML(mods));
 		text.append(getValue()).append(" total melee attack");
@@ -335,7 +322,7 @@ public class Attacks extends Statistic {
 
 	public String getRangedSummary() {
 		StringBuilder text = new StringBuilder();
-		text.append(getBAB()).append(" base attack bonus<br/>");
+		text.append(bab.getValue()).append(" base attack bonus<br/>");
 		Map<Modifier, Boolean> mods = getRangedModifiers();
 		text.append(Statistic.getModifiersHTML(mods));
 		text.append(getRangedValue()).append(" total ranged attack");
@@ -382,7 +369,7 @@ public class Attacks extends Statistic {
 	}
 
 	public String getAttacksDescription(int total) {
-		return getAttacksDescription(total, getBAB());
+		return getAttacksDescription(total, bab.getValue());
 	}
 
 	// get attacks string (e.g. +12/+7/+2) for specified total and bab
@@ -475,7 +462,7 @@ public class Attacks extends Statistic {
 
 		// convenient passthrough of Attacks method:
 		public int getBAB() {
-			return Attacks.this.getBAB();
+			return Attacks.this.bab.getValue();
 		}
 
 		// convenient passthrough of Attacks method:

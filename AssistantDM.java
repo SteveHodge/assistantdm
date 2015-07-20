@@ -70,11 +70,62 @@ import combat.MonsterCombatEntry;
 
 import digital_table.controller.DigitalTableController;
 
+/* Proposed architecture:
+ * A Statistic is a value that can be modified by bonuses and penalties and can also be overridden. Statistics can have
+ * sub-Statistics which include all the parent's modifiers but can also be targeted separately. E.g. there will be a
+ * hierarchy of Attacks -> Melee Attack -> specific melee attack form.
+ * A Property is a value that can be overridden but is not a valid target for bonuses and penalties.
+ * Both Statistic and Property provide change notification.
+ * Creature is a collection of Statistics and Properties and acts as the root of the hierarchy. Creature also maintains
+ * other data such as feats, special abilities/qualities, xp (Characters subclass).
+ *
+ * There is a distinction between selected core feats, selected class bonus feats, and automatic class bonus feats - each
+ * will need to be tracked. In addition there are cases where creatures are treated as having a feat in some circumstances
+ * (e.g. ranger combat styles). Perhaps it would be best to have a list of "features" that can be tested for. Features
+ * would include some feats, racial abilities, class abilities, etc. The "Two-Weapon Fighting" feature could be provided
+ * by the "Two-Weapon Fighting" feat but it could also alternately be provided by a ranger's Combat Style class feature or
+ * even perhaps as a racial feature.
+ */
+
 /* TODO current priorities:
  *
+ * BUG: Fractional weights for weapons
+ * BUG: Fractional ranks for skill in table
+ * BUG: Interface to add skills
+ * BUG: Perform skills need subtype
+ *
+ * Special abilities: class and race
+ * Turn/Rebuke
+ * size (where is up to?)
+ * AC Size modifiers should be correctly linked to size stat. Size should also modify carrying capacity
+ * Remove misc modifiers from skills and saves - adhoc buffs replace these (should be read only fields in ui)
+ * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
+ * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
  * Sort out magic shops: make them fully configurable in XML
- * Class abilities
  * Upload character sheet should update caster config
+ * "Repace token with image" function needs to preserve same position in the display priority list
+ * Online character sheet: conditional modifiers, updatable posessions, slots, notes, money
+ *
+ * live character sheet: fix up incomplete fading of character sheet when dialog appears
+ * ui: add info dialog for remaining statistics (ac, weapons, armor, level, size)
+ * live character sheet: add calculations for remaining statistics (attacks, ac, weapon damage, armor, level, size)
+ * live character sheet: consider adding list of buffs/effects
+ *
+ * properties for statistics: bab, convert temp hps
+ * consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
+ *    level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
+ * review Statistics vs creature Properties
+ * ... need to review how properties work on Character and BoundIntegerField
+ *
+ * rework attacks - they need an interface to filter properties like type etc. then filters can be used to build
+ *    target lists (e.g  "type=bludgeoning and subclass=one handed melee")
+ *
+ * character is not registered as a listener on the attack forms so it doesn't get notified of changes. probably should revisit the whole property/statistic notification system
+ * rework statistc notification system. a listener registered with the top of a tree (like Skills or Attacks)
+ *    should get notification of all sub-statistics. consider whether statistics need to provide old and new values
+ *    (this is desirable for mutable Modifiers at least)
+ * ... convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
+ *    that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
  *
  * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes
  * Continue to update for new module system (particularly digital table controller)
@@ -87,6 +138,7 @@ import digital_table.controller.DigitalTableController;
  * Allow setting of DarknessMask and Mask colours
  * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
  * ENH: Reordering the elements resets the group expanded/collapsed state
+ * parsing display xml resets the node priorty - need to save the list model order
  * BUG: LineTemplate: setting image after rotation draws the un-transformed image
  * REF: Factor clear cells code into support class
  * Copy in encounters dialog should copy the current creature, not the base
@@ -96,7 +148,6 @@ import digital_table.controller.DigitalTableController;
  * ImageMedia could use a soft/weak/strong reference for transformed images
  *
  * Combat panel should save full monsters, not just combat entries
- * AC Size modifiers should be correctly linked to size stat
  * EncounterDialog: calc encounter level, display CRs
  * Encounterdialog should load/save buffs and maybe DTT selected elements
  * EncounterDialog: allow editing of AC, feats, size, SQ, etc
@@ -108,46 +159,25 @@ import digital_table.controller.DigitalTableController;
  * implement remaining monster statistics
  * cleanup AttackForms in Attack, StatisticBlock and DetailedMonster
  *
- * rework attacks - they need an interface to filter properties like type etc. then filters can be used to build
- *    target lists (e.g  "type=bludgeoning and subclass=one handed melee")
- *
- * rework statistc notification system. a listener registered with the top of a tree (like Skills or Attacks)
- *    should get notification of all sub-statistics. consider whether statistics need to provide old and new values
- *    (this is desirable for mutable Modifiers at least)
- *
- * consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
- *    level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
- *
- * parsing display xml resets the node priorty - need to save the list model order
- * look at standardising attribute naming style in xml documents - currently have camel case for combat.xml, lower with underscores most other cases but a few cases of lower with dashes in party.xml
+ * look at standardising attribute naming style in xml documents: should be lower case with dashes - currently have camel case for combat.xml, lower with underscores most other cases but a few cases of lower with dashes in party.xml
+ * ... change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac
  *
  * BUG handle io exceptions while reading display.xml
  * BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
  * asynchronous loading of images
  * soft references for ImageMedia - at least for transformed images
- * character is not registered as a listener on the attack forms so it doesn't get notified of changes. probably should revisit the whole property/statistic notification system
  * when temporary hitpoints from a buff are gone the buff should be removed if it has no other effect
- * should be able to temporarily disable armor/shield
+ * should be able to temporarily disable armor/shield (once inventory is tracked should have way of selecting items in inventory)
  * add caching of loaded files in MediaManager
  * performance improvements in animation code - bounding boxes for elements
  * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
  * rearrange images. also find animal names - stats blocks
- * alternate token image for dead creatures
  * website: simplify updating - updates can be missed at the moment
  *
- * size (where is up to?)
- * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
- * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
  * add combat panel section for pending xp/defeated monsters
- * live character sheet: fix up incomplete fading of character sheet when dialog appears
- * ui: add info dialog for remaining statistics (ac, weapons, armor, level, size)
- * live character sheet: add calculations for remaining statistics (attacks, ac, weapon damage, armor, level, size)
- * live character sheet: consider adding list of buffs/effects
  * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
  * camera: EOS camera support + refactoring of camera library
  * camera/dtt: Detect token movement
- * properties for statistics: bab, convert temp hps
- * review Statistics vs creature Properties
  * ability checks
  * enum conversions - property and statistics types
  * feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
@@ -167,13 +197,11 @@ import digital_table.controller.DigitalTableController;
  * thrown object scatter? compass rose?
  */
 
-//TODO change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac
-//TODO convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
-//that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
-//TODO need to review how properties work on Character and BoundIntegerField
 //TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
 
 /* Game system things to implement:
+ *  (in progress) Size
+ *  Race
  *  (in progress) Feats
  *  (in progress) Grapple modifier
  *  Ability score checks
@@ -182,10 +210,9 @@ import digital_table.controller.DigitalTableController;
  *  Damage reduction
  *  Spell resistance
  *  Magic items slots
- *  Weight/encumberance
+ *  Weight/encumberance/ACP
  *  Skill synergies
  *  Skill named versions (Crafting, Profession etc)
- *  Size
  *  Speed
  */
 
@@ -351,6 +378,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			tabbedPane.addTab("Camera", null, cameraPanel, "Camera Remote Image Capture");
 		} catch (UnsatisfiedLinkError e) {
 			System.out.println("Caught error: "+e);
+		} catch (NoClassDefFoundError e) {
+			System.out.println("Caught error: " + e);
 		}
 
 		controller = new DigitalTableController(AssistantDM.tableServer) {

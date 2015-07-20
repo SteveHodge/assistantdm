@@ -6,6 +6,7 @@ import gamesystem.BuffFactory;
 import gamesystem.Creature;
 import gamesystem.Feat;
 import gamesystem.Modifier;
+import gamesystem.core.Property;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -271,7 +272,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 			// TODO pop up message?
 		}
 		if (value < 0) value = 0;
-		if (value > attacks.getBAB()) value = attacks.getBAB();
+		if (value > character.getBAB().getValue()) value = character.getBAB().getValue();
 		if (value > 0) {
 			totalDefense.setSelected(false);
 			attacks.setTotalDefense(false);
@@ -301,17 +302,18 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 		BAB = NullableIntegerFieldFactory.createNullableIntegerField();
 		BAB.setColumns(3);
-		if (attacks.getBABOverride() != -1) BAB.setValue(attacks.getBABOverride());
+		Property<Integer> babProp = character.getBAB();
+		if (babProp.hasOverride()) BAB.setValue(babProp.getValue());
 		BAB.addPropertyChangeListener((e) -> {
 			if (BAB.getValue() == null || "".equals(BAB.getText())) {
-				attacks.clearBABOverride();
+				character.clearBABOverride();
 			} else {
 				int total = (Integer) BAB.getValue();
-				if (total == attacks.getCalculatedBAB()) {
-					attacks.clearBABOverride();
+				if (total == babProp.getBaseValue()) {
+					character.clearBABOverride();
 					BAB.setText("");
 				} else {
-					attacks.setBAB(total);
+					character.setBABOverride(total);
 				}
 			}
 		});
@@ -469,7 +471,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 	}
 
 	private void updateLabels() {
-		babLabel.setText(Integer.toString(attacks.getCalculatedBAB()));
+		babLabel.setText(Integer.toString(character.getBAB().getBaseValue()));
 		strLabel.setText(""+character.getAbilityModifierValue(AbilityScore.Type.STRENGTH));
 		String melee = attacks.getAttacksDescription(attacks.getValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {

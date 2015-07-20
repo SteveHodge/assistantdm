@@ -348,6 +348,7 @@
 		<xs:attribute name="spell-resistance" type="xs:string"/>
 		<xs:attribute name="type" type="xs:string"/>
 		<xs:attribute name="weight" type="xs:string"/>
+		<xs:attribute name="campaign" type="xs:string"/>
 	</xs:complexType>
 </xs:element>
 

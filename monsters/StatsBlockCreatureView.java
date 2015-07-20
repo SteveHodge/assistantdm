@@ -177,7 +177,7 @@ public class StatsBlockCreatureView {
 		}
 
 		Attacks attacks = m.getAttacksStatistic();
-		attacks.setBAB(blk.getBAB());
+		m.getBAB().setBaseValue(blk.getBAB());
 		int sizeMod = m.getSize().getSizeModifier();
 		if (sizeMod != 0) attacks.addModifier(new ImmutableModifier(sizeMod, "Size"));
 
@@ -324,8 +324,7 @@ public class StatsBlockCreatureView {
 
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
 			int bab = StatisticsBlock.parseBAB(value);
-			Attacks attacks = creature.getAttacksStatistic();
-			attacks.setBAB(bab);
+			creature.getBAB().setBaseValue(bab);
 
 		} else if (field == Field.INITIATIVE) {
 			int init = StatisticsBlock.parseInitiativeModifier(value);
@@ -421,8 +420,8 @@ public class StatsBlockCreatureView {
 			s.append(getAttackHTML(creature.fullAttackList));
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
 			Attacks a = creature.getAttacksStatistic();
-			if (a.getBAB() >= 0) s.append("+");
-			s.append(a.getBAB()).append("/");
+			if (creature.getBAB().getValue() >= 0) s.append("+");
+			s.append(creature.getBAB().getValue()).append("/");
 
 			if (getStatsBlock() != null) {
 				Set<String> subtypes = getStatsBlock().getSubtypes();

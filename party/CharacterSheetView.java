@@ -15,6 +15,7 @@ import gamesystem.XP;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
+import gamesystem.core.Property;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -157,6 +158,32 @@ public class CharacterSheetView {
 			if (s.getOverride() != -1) {
 				e1.setAttribute("temp-modifier", getModifierString(AbilityScore.getModifier(s.getOverride())));
 			}
+
+			if (s.getType() == AbilityScore.Type.STRENGTH) {
+				Element e = doc.createElement("Encumberance");
+				int hvy = getMaxLoad(s.getValue());
+				e.setAttribute("light", Integer.toString(hvy / 3));
+				e.setAttribute("medium", Integer.toString(hvy * 2 / 3));
+				e.setAttribute("heavy", Integer.toString(hvy));
+				e.setAttribute("over-head", Integer.toString(hvy));
+				e.setAttribute("off-ground", Integer.toString(hvy * 2));
+				e.setAttribute("drag", Integer.toString(hvy * 5));
+				creatureEl.appendChild(e);
+			}
+		}
+
+		// max load also depends on size and number of legs:
+		// bipeds: fine: x1/8, diminutive: x1/4, tiny: x1/2, small: x3/4, medium: x1, large: x2, huge: x4, gargantuan: x8, colossal: x16
+		// quadrupeds: fine: x1/4, diminutive: x1/2, tiny: x3/4, small: x1, medium: x3/2, large: x3, huge: x6, gargantuan: x12, colossal: x24
+		// quadrupeds smaller than medium use next size up, quadrupeds larger than medium use 1.5 muliplier
+		private int getMaxLoad(int str) {
+			if (str <= 10) return str * 10;
+			int mult = 1;
+			while (str > 19) {
+				str -= 10;
+				mult *= 4;
+			}
+			return mult * (new int[] { 100, 115, 130, 150, 175, 200, 230, 260, 300, 350 })[str - 10];
 		}
 
 		@Override
@@ -221,15 +248,16 @@ public class CharacterSheetView {
 		@Override
 		public void processAttacks(Attacks attacks) {
 			Element e = getAttacksElement(attacks);
-			if (attacks.getBABOverride() == -1) {
-				e.setAttribute("temp", "");
+			Property<Integer> bab = attacks.getBAB();
+			if (bab.hasOverride()) {
+				e.setAttribute("temp", getModifierString(bab.getValue()));
 			} else {
-				e.setAttribute("temp", getModifierString(attacks.getBABOverride()));
+				e.setAttribute("temp", "");
 			}
-			e.setAttribute("base", getModifierString(attacks.getBAB()));
+			e.setAttribute("base", getModifierString(bab.getValue()));
 			e.setAttribute("size-modifier", "+0");			// TODO implement
-			e.setAttribute("normal-attacks", attacks.getAttacksDescription(attacks.getCalculatedBAB(), attacks.getCalculatedBAB()));		// attack description for non-overridden BAB
-			e.setAttribute("attacks", attacks.getAttacksDescription(attacks.getBAB()));		// attack description based on current BAB
+			e.setAttribute("normal-attacks", attacks.getAttacksDescription(bab.getBaseValue(), bab.getBaseValue()));		// attack description for non-overridden BAB
+			e.setAttribute("attacks", attacks.getAttacksDescription(bab.getValue()));		// attack description based on current BAB
 
 			Element e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Grapple");

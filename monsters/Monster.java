@@ -12,6 +12,7 @@ import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
+import gamesystem.core.ValueProperty;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -133,8 +134,9 @@ public class Monster extends Creature {
 		}
 		ac.addPropertyChangeListener(statListener);
 
+		bab = new ValueProperty<Integer>(0);
+
 		attacks = new Attacks(this);
-		attacks.setBAB(0);
 		// TODO size modifier to attack needs to be setup correctly
 //		int sizeMod = getSize().getSizeModifier();
 //		if (sizeMod != 0) attacks.addModifier(new ImmutableModifier(sizeMod, "Size"));
@@ -145,6 +147,11 @@ public class Monster extends Creature {
 
 	public HitDice getHitDice() {
 		return hitDice;
+	}
+
+	@Override
+	public ValueProperty<Integer> getBAB() {
+		return (ValueProperty<Integer>) bab;
 	}
 
 	public class MonsterAttackRoutine {

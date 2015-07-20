@@ -42,11 +42,11 @@ import util.LocalEntityResolver;
  * Represents a parsed statistics block from a source (usual an HTML table). The values stored in the
  * StatisticsBlock are accessed via keys (Field values). The raw values are strings which may contain
  * any text. Specific getX() methods attempt to further parse concrete values from these strings.
- * 
+ *
  * This is an immutable type.
- * 
+ *
  * @author Steve
- * 
+ *
  */
 
 public class StatisticsBlock {
@@ -186,7 +186,7 @@ public class StatisticsBlock {
 	/**
 	 * Parses the SIZE_TYPE field value and returns the size category (which is the first word of the field).
 	 * If SIZE_TYPE can't be parsed then null is returned
-	 * 
+	 *
 	 * @return the SizeCategory of the creature or null
 	 */
 	public SizeCategory getSize() {
@@ -199,7 +199,7 @@ public class StatisticsBlock {
 	 * Parses the SPACE_REACH field value and returns the space taken by the creature in 6" units.
 	 * The SPACE_REACH value should be of the form "X ft./...". X should be an integer or either "2 1/2" or "2½".
 	 * If SPACE_REACH has no value or it can't be parsed to extract the space value then -1 is returned
-	 * 
+	 *
 	 * @return the space taken by the creature in 6" units or -1 if the SPACE_REACH field can't be parsed
 	 */
 	public int getSpace() {
@@ -221,7 +221,7 @@ public class StatisticsBlock {
 	 * The SPACE_REACH value should be of the form ".../X ft....". X should be an integer.
 	 * Any additional information (e.g. "20 ft. with tentacles") is ignored.
 	 * If SPACE_REACH has no value or it can't be parsed to extract the reach value then -1 is returned
-	 * 
+	 *
 	 * @return the reach of the creature in feet or -1 if the SPACE_REACH field can't be parsed
 	 */
 	public int getReach() {
@@ -702,7 +702,7 @@ public class StatisticsBlock {
 
 		@Override
 		public int getBAB() {
-			return creature.getAttacksStatistic().getBAB();
+			return creature.getBAB().getValue();
 		}
 
 		@Override

@@ -11,11 +11,13 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.server"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;ui{Status.java"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;ui{SimpleStatus.java"/>
-        <file path="/AssistantDM/animation.xsd"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;org.json"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;ui{Status.java"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.server"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;org.json.zip"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;ui{CreatureStatus.java"/>
+        <file path="/AssistantDM/animation.xsd"/>
     </selectedElements>
 </jardesc>

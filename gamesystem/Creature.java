@@ -1,6 +1,9 @@
 package gamesystem;
 
 
+import gamesystem.core.Property;
+import gamesystem.core.ValueProperty;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.EnumMap;
@@ -80,6 +83,7 @@ public abstract class Creature {
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 
 	protected Attacks attacks;
+	protected Property<Integer> bab;
 
 	public BuffUI.BuffListModel<Buff> buffs = new BuffUI.BuffListModel<>();	// TODO should be protected
 	protected Map<String, Object> extraProperties = new HashMap<>();
@@ -154,6 +158,22 @@ public abstract class Creature {
 
 	public Attacks getAttacksStatistic() {
 		return attacks;
+	}
+
+	public Property<Integer> getBAB() {
+		return bab;
+	}
+
+	//------------------- BAB -------------------
+	private Property.PropertyValue<Integer> babOverride;
+
+	public void setBABOverride(int val) {
+		clearBABOverride();
+		bab.addOverride(val);
+	}
+
+	public void clearBABOverride() {
+		if (babOverride != null) bab.removeOverride(babOverride);
 	}
 
 	// buff related methods
@@ -254,7 +274,7 @@ public abstract class Creature {
 		else if (prop.equals(PROPERTY_REACH))
 			return getReach();
 		else if (prop.equals(PROPERTY_BAB))
-			return attacks.getBAB();
+			return bab.getValue();
 		else if (extraProperties.containsKey(prop)) {
 //			System.out.println("extra property '"+prop+"': "+extraProperties.get(prop));
 			return extraProperties.get(prop);
@@ -283,9 +303,11 @@ public abstract class Creature {
 			setSpace((Integer) value);
 		else if (prop.equals(PROPERTY_REACH))
 			setReach((Integer) value);
-		else if (prop.equals(PROPERTY_BAB))
-			attacks.setBAB((Integer) value);
-		else {
+		else if (prop.equals(PROPERTY_BAB)) {
+			if (bab instanceof ValueProperty) {
+				((ValueProperty<Integer>) bab).setBaseValue((Integer) value);
+			}
+		} else {
 			//System.out.println("Attempt to set unknown property: " + prop + " to " + value);
 			Object old = extraProperties.get(prop);
 			extraProperties.put(prop, value);
@@ -383,7 +405,7 @@ public abstract class Creature {
 	/**
 	 * Returns the temporary ac if there is one, otherwise calculates the total ac
 	 * from the ac components
-	 * 
+	 *
 	 * @return current total ac
 	 */
 	public int getAC() {
@@ -399,7 +421,7 @@ public abstract class Creature {
 	 * Returns the temporary flat-footed ac if there is one, otherwise calculates the
 	 * flat-footed ac from the ac components with any positive dexterity modifier
 	 * ignored.
-	 * 
+	 *
 	 * @return current flat-footed ac
 	 */
 	public int getFlatFootedAC() {
@@ -415,7 +437,7 @@ public abstract class Creature {
 	 * Returns the temporary touch ac if there is one, otherwise calculates the touch
 	 * ac from the ac components with all armor, shield and natural armor bonuses
 	 * ignored.
-	 * 
+	 *
 	 * @return current touch ac
 	 */
 	public int getTouchAC() {
@@ -430,7 +452,7 @@ public abstract class Creature {
 	/**
 	 * Sets a temporary full ac score. Setting this to the normal value will remove
 	 * the temporary score (as will <code>clearTemporaryAC()</code>)
-	 * 
+	 *
 	 * @param ac
 	 *            the score to set the full ac to
 	 */
@@ -452,7 +474,7 @@ public abstract class Creature {
 	/**
 	 * Sets a temporary touch ac score. Setting this to the normal value will remove
 	 * the temporary score (as will <code>clearTemporaryTouchAC()</code>
-	 * 
+	 *
 	 * @param ac
 	 *            the score to set the touch ac to
 	 */
@@ -474,7 +496,7 @@ public abstract class Creature {
 	/**
 	 * Sets a temporary flat-footed ac score. Setting this to the normal value will
 	 * remove the temporary score (as will <code>clearTemporaryFlatFootedAC()</code>
-	 * 
+	 *
 	 * @param ac
 	 *            the score to set the flat-footed ac to
 	 */
