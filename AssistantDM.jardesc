@@ -25,6 +25,7 @@
         <file path="/CanonCDSDK/CDPTPCLT.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.controller"/>
         <javaElement handleIdentifier="=CanonCDSDK/&lt;canon.cdsdk"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem.core"/>
         <file path="/CanonCDSDK/cdDvlp.dll"/>
         <file path="/CanonCDSDK/CDPTPCLS.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;swing"/>

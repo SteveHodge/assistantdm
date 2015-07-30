@@ -49,10 +49,10 @@ class TokenOverlay {
 	final int rows = 39;
 	final int columns = 32;
 
-	private CameraOverlayCanvas canvas;
-	private Map<Integer, MapElement> elements = new HashMap<>();
+	protected CameraOverlayCanvas canvas;
+	protected Map<Integer, MapElement> elements = new HashMap<>();
 
-	private class CameraOverlayCanvas extends MapCanvas {
+	protected class CameraOverlayCanvas extends MapCanvas {
 		int width, height;
 
 		@Override
@@ -79,13 +79,6 @@ class TokenOverlay {
 	private class MaskToken extends Group {
 		private static final long serialVersionUID = 1L;
 
-//		public final static String PROPERTY_X = "x";	// int
-//		public final static String PROPERTY_Y = "y";	// int
-//		public final static String PROPERTY_COLOR = "color";	// Color - currently unimplemented
-//		public final static String PROPERTY_LABEL = "label";	// String
-//		public final static String PROPERTY_SPACE = "space";	// int - in 1/2 foot units
-
-//		private Property<Color> color = new Property<>(Token.PROPERTY_COLOR, Color.WHITE, Color.class);
 		private Property<Integer> space = new Property<>(Token.PROPERTY_SPACE, 10, Integer.class);
 
 		private String webLabel = null;
@@ -180,6 +173,7 @@ class TokenOverlay {
 				if (value != null && ((String) value).length() > 0) {
 					hasWebLabel = true;
 					webLabel = (String) value;
+					canvas.repaint();
 				} else {
 					hasWebLabel = false;
 				}
@@ -195,6 +189,13 @@ class TokenOverlay {
 
 	TokenOverlay() {
 		canvas = new CameraOverlayCanvas();
+	}
+
+	// TODO ugly interface, fix it
+	void enableAutoRepaints() {
+		canvas.addRepaintListener(() -> {
+			updateOverlay(20 * rows, 20 * columns);
+		});
 	}
 
 	void setOffset(int offx, int offy) {
@@ -226,9 +227,9 @@ class TokenOverlay {
 				}
 //				System.out.println("Tokens:\n" + output);
 				((Graphics2D) g).rotate(Math.toRadians(-90), getWidth() / 2, getHeight() / 2);
-				g.translate((getWidth() - getHeight()) / 2, canvas.getRowHeight() + (getHeight() - getWidth()) / 2);
 				canvas.width = getWidth();
 				canvas.height = getHeight();
+				g.translate((getWidth() - getHeight()) / 2, canvas.getRowHeight() + (getHeight() - getWidth()) / 2);
 				canvas.paint((Graphics2D) g);
 			}
 		};
@@ -259,14 +260,18 @@ class TokenOverlay {
 
 	BufferedImage getImage(int width, int height, SortedMap<String, String> descriptions) {
 		assignLabels(descriptions);
-		BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		return getImage(width, height, BufferedImage.TYPE_INT_ARGB);
+	}
+
+	protected BufferedImage getImage(int width, int height, int type) {
+		canvas.width = width;
+		canvas.height = height;
+		BufferedImage output = new BufferedImage(width, height, type);
 		Graphics2D imgG = output.createGraphics();
 		imgG.setBackground(new Color(255, 255, 255, 0));
 		imgG.setClip(0, 0, output.getWidth(), output.getHeight());
 		imgG.rotate(Math.toRadians(-90), output.getWidth() / 2, output.getHeight() / 2);
 		imgG.translate((output.getWidth() - height) / 2, canvas.getRowHeight() + (output.getHeight() - width) / 2);
-		canvas.width = width;
-		canvas.height = height;
 		canvas.paint(imgG);
 		return output;
 	}

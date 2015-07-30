@@ -93,6 +93,7 @@ public class ControllerFrame extends JFrame {
 	private DisplayManager display;
 	private MiniMapCanvas miniMapCanvas = new MiniMapCanvas();
 	private TokenOverlay overlay = null;
+	private RemoteImageDisplay remoteImg = null;
 	private CameraModule camera;	// TODO remove
 	private JPanel elementPanel = new JPanel();
 	private Map<MapElement, OptionsPanel<?>> optionPanels = new HashMap<>();
@@ -134,15 +135,21 @@ public class ControllerFrame extends JFrame {
 				@Override
 				public void homographyChanged(Exception ex) {
 				}
-
 			});
+
+			// setup remote image generation since camera doesn't work
+			// TODO should have a option for this
+			remoteImg = new RemoteImageDisplay();
+
 		} else {
+			remoteImg = new RemoteImageDisplay();
 			JFrame overlayFrame = new JFrame("Token Overlay");
-			JPanel overlayPanel = overlay.getPanel();
-			overlayPanel.setPreferredSize(new Dimension(20 * overlay.rows, 20 * overlay.columns));
+			JPanel overlayPanel = remoteImg.getPanel();
+			overlayPanel.setPreferredSize(new Dimension(20 * remoteImg.rows, 20 * remoteImg.columns));
 			JPanel buttons = new JPanel();
 			JButton update = new JButton("Update server");
-			update.addActionListener((e) -> overlay.updateOverlay(20 * overlay.columns, 20 * overlay.rows));
+			update.addActionListener((e) -> overlay.updateOverlay(20 * overlay.rows, 20 * overlay.columns));
+			update.addActionListener((e) -> remoteImg.updateOverlay(20 * remoteImg.rows, 20 * remoteImg.columns));
 			buttons.add(update);
 			overlayFrame.add(buttons, BorderLayout.NORTH);
 			overlayFrame.add(overlayPanel);
@@ -152,6 +159,10 @@ public class ControllerFrame extends JFrame {
 		display = new DisplayManager();
 		display.setLocal(miniMapCanvas);
 		display.setOverlay(overlay);
+		if (remoteImg != null) {
+			overlay.enableAutoRepaints();
+			display.setRemoteImageDisplay(remoteImg);
+		}
 		miniMapCanvas.setRemote(display);
 
 		miniMapCanvas.getPanel().addMouseMotionListener(miniMapMouseListener);

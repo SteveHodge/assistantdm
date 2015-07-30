@@ -30,6 +30,7 @@ class DisplayManager implements CoordinateConverter {
 	private RemoteConnection remote;
 	private MiniMapCanvas local;
 	private TokenOverlay overlay;
+	private RemoteImageDisplay image;
 
 	private int xoffset = 0;	// cached values of any offsets applied to the remote display
 	private int yoffset = 0;
@@ -46,6 +47,10 @@ class DisplayManager implements CoordinateConverter {
 		this.overlay = overlay;
 	}
 
+	void setRemoteImageDisplay(RemoteImageDisplay imgDisp) {
+		image = imgDisp;
+	}
+
 	void requestExit() {
 		if (remote != null) remote.requestExit();
 	}
@@ -53,6 +58,7 @@ class DisplayManager implements CoordinateConverter {
 	void setRemoteOffset(int offx, int offy) {
 		if (remote != null) remote.setOffset(offx, offy);
 		if (overlay != null) overlay.setOffset(offx, offy);
+		if (image != null) image.setOffset(offx, offy);
 		xoffset = offx;
 		yoffset = offy;
 	}
@@ -70,29 +76,34 @@ class DisplayManager implements CoordinateConverter {
 			}
 		}
 		if (overlay != null) overlay.addElement(localEl, parent);
+		if (image != null) image.addElement(localEl, parent);
 		if (local != null) local.addElement(localEl, parent);	// local must be last to avoid issues with serialisation
 	}
 
 	void removeElement(MapElement element) {
 		if (local != null) local.removeElement(element.getID());
+		if (image != null) image.removeElement(element.getID());
 		if (overlay != null) overlay.removeElement(element.getID());
 		if (remote != null) remote.removeElement(element.getID());
 	}
 
 	void changeParent(MapElement element, MapElement parent) {
 		if (local != null) local.changeParent(element, parent);
+		if (image != null) image.changeParent(element, parent);
 		if (overlay != null) overlay.changeParent(element, parent);
 		if (remote != null) remote.changeParent(element, parent);
 	}
 
 	void promoteElement(MapElement element) {
 		if (local != null) local.promoteElement(element);
+		if (image != null) image.promoteElement(element);
 		if (overlay != null) overlay.promoteElement(element);
 		if (remote != null) remote.promoteElement(element);
 	}
 
 	void demoteElement(MapElement element) {
 		if (local != null) local.demoteElement(element);
+		if (image != null) image.demoteElement(element);
 		if (overlay != null) overlay.demoteElement(element);
 		if (remote != null) remote.demoteElement(element);
 	}
@@ -105,12 +116,14 @@ class DisplayManager implements CoordinateConverter {
 		if (mode != Mode.LOCAL) {
 			if (mode != Mode.OVERLAY) {
 				if (remote != null) remote.setElementProperty(element, property, value);
+				if (image != null) image.setProperty(element, property, value);
 			}
 			if (overlay != null) overlay.setProperty(element, property, value);
 		}
 		if (mode != Mode.REMOTE && mode != Mode.OVERLAY) element.setProperty(property, value);
 	}
 
+	// this doesn't bother setting the property on the overlay element
 	void setMedia(MapElement element, String property, URI uri) {
 		if (remote != null) {
 			if (uri == null) {
@@ -125,6 +138,7 @@ class DisplayManager implements CoordinateConverter {
 			}
 		}
 
+		if (image != null) image.setProperty(element, property, uri);
 		element.setProperty(property, uri);
 	}
 
