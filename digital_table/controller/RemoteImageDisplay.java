@@ -10,8 +10,10 @@ import java.io.ObjectOutputStream;
 import javax.imageio.ImageIO;
 
 import util.Updater;
+import digital_table.elements.GridCoordinates;
 import digital_table.elements.Initiative;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Visibility;
 
 /**
  * Generates a image of the display intended to replace the the camera image.
@@ -35,7 +37,7 @@ class RemoteImageDisplay extends TokenOverlay {
 	void updateOverlay(int width, int height) {
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			ImageIO.write(getImage(width, height), "jpg", stream);
+			ImageIO.write(getImage(width, height), "png", stream);
 			Updater.update(Updater.MAP_IMAGE, stream.toByteArray());
 
 		} catch (IOException e) {
@@ -52,37 +54,44 @@ class RemoteImageDisplay extends TokenOverlay {
 	void addElement(MapElement e, MapElement parent) {
 		if (parent != null) parent = elements.get(parent.getID());
 
-		if (!(e instanceof Initiative)) {
+		// XXX would clone() work?
+		// we serialize the element to a byte array and then deserialize it to a new MapElement
+		// this produces a private copy of the element in it's current state
+		try {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			ObjectOutputStream os = new ObjectOutputStream(bos);
+			os.writeObject(e);
+			os.close();
+			ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+			ObjectInputStream is = new ObjectInputStream(bis);
+			MapElement copy = (MapElement) is.readObject();
+			is.close();
 
-			// XXX would clone() work?
-			// we serialize the element to a byte array and then deserialize it to a new MapElement
-			// this produces a private copy of the element in it's current state
-			try {
-				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				ObjectOutputStream os = new ObjectOutputStream(bos);
-				os.writeObject(e);
-				os.close();
-				ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-				ObjectInputStream is = new ObjectInputStream(bis);
-				MapElement copy = (MapElement) is.readObject();
-				is.close();
-
-				//if (!(copy instanceof Grid))
-				//copy.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
-
-				canvas.addElement(copy, parent);
-				elements.put(copy.getID(), copy);
-			} catch (IOException | ClassNotFoundException e1) {
-				e1.printStackTrace();
+			if ((copy instanceof Initiative)) {
+				copy.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
 			}
+
+			if (e instanceof GridCoordinates) {
+				copy.setProperty(GridCoordinates.PROPERTY_RULER_ROW, 37);
+				copy.setProperty(GridCoordinates.PROPERTY_INVERT_ROW, true);
+				copy.setProperty(GridCoordinates.PROPERTY_RULER_COLUMN, 0);
+				copy.setProperty(GridCoordinates.PROPERTY_INVERT_COLUMN, true);
+			}
+
+			canvas.addElement(copy, parent);
+			elements.put(copy.getID(), copy);
+
+		} catch (IOException | ClassNotFoundException e1) {
+			e1.printStackTrace();
 		}
 	}
 
 	@Override
 	void setProperty(MapElement element, String property, Object value) {
 		MapElement e = elements.get(element.getID());
-		if (e != null && !(e instanceof Initiative)) {
-			e.setProperty(property, value);
-		}
+		if (e == null) return;
+		if (e instanceof Initiative) return;
+		if (e instanceof GridCoordinates && (property == GridCoordinates.PROPERTY_RULER_ROW || property == GridCoordinates.PROPERTY_RULER_COLUMN)) return;
+		e.setProperty(property, value);
 	}
 }

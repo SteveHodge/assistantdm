@@ -49,6 +49,8 @@ class TokenOverlay {
 	final int rows = 39;
 	final int columns = 32;
 
+	protected int rotateAngle = 90;	// angle in degrees to rotate the image. currently better be 90 or -90.
+
 	protected CameraOverlayCanvas canvas;
 	protected Map<Integer, MapElement> elements = new HashMap<>();
 
@@ -142,7 +144,7 @@ class TokenOverlay {
 				double yPos = clipBounds.getMaxY() - metrics.getDescent() / 2;
 
 				AffineTransform t = g.getTransform();
-				g.rotate(Math.toRadians(90), clipBounds.getCenterX(), clipBounds.getCenterY());
+				g.rotate(Math.toRadians(-rotateAngle), clipBounds.getCenterX(), clipBounds.getCenterY());
 				g.drawString(webLabel, (float) xPos, (float) yPos);
 				g.setTransform(t);
 			}
@@ -226,7 +228,7 @@ class TokenOverlay {
 					output.append(descriptions.get(k)).append("\n");
 				}
 //				System.out.println("Tokens:\n" + output);
-				((Graphics2D) g).rotate(Math.toRadians(-90), getWidth() / 2, getHeight() / 2);
+				((Graphics2D) g).rotate(Math.toRadians(rotateAngle), getWidth() / 2, getHeight() / 2);
 				canvas.width = getWidth();
 				canvas.height = getHeight();
 				g.translate((getWidth() - getHeight()) / 2, canvas.getRowHeight() + (getHeight() - getWidth()) / 2);
@@ -270,7 +272,7 @@ class TokenOverlay {
 		Graphics2D imgG = output.createGraphics();
 		imgG.setBackground(new Color(255, 255, 255, 0));
 		imgG.setClip(0, 0, output.getWidth(), output.getHeight());
-		imgG.rotate(Math.toRadians(-90), output.getWidth() / 2, output.getHeight() / 2);
+		imgG.rotate(Math.toRadians(rotateAngle), output.getWidth() / 2, output.getHeight() / 2);
 		imgG.translate((output.getWidth() - height) / 2, canvas.getRowHeight() + (output.getHeight() - width) / 2);
 		canvas.paint(imgG);
 		return output;
