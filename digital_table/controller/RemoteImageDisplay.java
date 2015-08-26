@@ -29,7 +29,7 @@ class RemoteImageDisplay extends TokenOverlay {
 	RemoteImageDisplay() {
 		super();
 		canvas.addRepaintListener(() -> {
-			updateOverlay(20 * rows, 20 * columns);
+			if (outputEnabled) updateOverlay(20 * rows, 20 * columns);
 		});
 	}
 
@@ -45,9 +45,12 @@ class RemoteImageDisplay extends TokenOverlay {
 		}
 	}
 
-	// TODO the same as the superclass except for the BufferedImage type - merge
 	BufferedImage getImage(int width, int height) {
-		return getImage(width, height, BufferedImage.TYPE_INT_RGB);
+		long time = System.currentTimeMillis();
+		BufferedImage img = getImage(width, height, BufferedImage.TYPE_INT_RGB);
+		time = System.currentTimeMillis() - time;
+		//System.out.printf("getImage took %d ms\n", time);
+		return img;
 	}
 
 	@Override

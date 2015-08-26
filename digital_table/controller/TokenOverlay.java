@@ -76,6 +76,15 @@ class TokenOverlay {
 		protected int getResolutionDenominatorY() {
 			return rows;
 		}
+
+//		@Override
+//		public void paint(Graphics2D g) {
+//			if (TokenOverlay.this instanceof RemoteImageDisplay) {
+//				System.err.println("Remote Image Paint");
+//				Thread.dumpStack();
+//			}
+//			super.paint(g);
+//		}
 	};
 
 	private class MaskToken extends Group {
@@ -188,15 +197,26 @@ class TokenOverlay {
 		}
 	}
 
+	boolean outputEnabled = false;
 
 	TokenOverlay() {
 		canvas = new CameraOverlayCanvas();
 	}
 
+	public void setOutputEnabled(boolean out) {
+		outputEnabled = out;
+		if (outputEnabled) updateOverlay(20 * rows, 20 * columns);
+	}
+
+	public boolean isOutputEnabled() {
+		return outputEnabled;
+	}
+
 	// TODO ugly interface, fix it
 	void enableAutoRepaints() {
+		setOutputEnabled(true);
 		canvas.addRepaintListener(() -> {
-			updateOverlay(20 * rows, 20 * columns);
+			if (outputEnabled) updateOverlay(20 * rows, 20 * columns);
 		});
 	}
 
@@ -221,6 +241,7 @@ class TokenOverlay {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
+				if (!outputEnabled) return;
 				assignLabels(descriptions);
 				StringBuilder output = new StringBuilder();
 				for (String k : descriptions.keySet()) {

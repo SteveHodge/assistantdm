@@ -106,7 +106,7 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	}
 
 	/*
-	 * x, y define the position of the top left of the screen in the virtual space
+	 * viewOffset defines the position of the top left of the screen in the virtual space
 	 */
 	private JFrame makeFrame(GraphicsConfiguration config, Point viewOffset) {
 		JFrame frame = new JFrame(config);

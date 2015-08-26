@@ -24,7 +24,7 @@ import digital_table.elements.MapElement;
 
 /*
  * Represents the whole map area - an infinite plane which can contain elements arranged in layers
- * 
+ *
  * note: this class implements coordinate conversion appropriate for 0.294 dot pitch monitors. subclass with
  * different scaling need to override getColumnWidth(), getColumnHeight(), and all get..Coordinate() methods
  */
@@ -94,10 +94,10 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		case BOTTOM:
 			pos = model.getSize();
 		}
-		model.add(pos, element);
 		if (parent != null && parent instanceof Group) {
 			((Group) parent).addChild(element);
 		}
+		model.add(pos, element);
 		treeModel.fireTreeNodeInserted(element);
 	}
 
@@ -291,7 +291,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	/**
 	 * Get the precise (potentially fractional) grid coordinates of the pixel (x,y)
-	 * 
+	 *
 	 * @param x
 	 *            the pixel's x coordinate
 	 * @param y
@@ -307,7 +307,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	/**
 	 * Update the supplied Point with the pixel coordinates of the top left corner of the grid cell at (col,row), adjusted for the canvas origin
-	 * 
+	 *
 	 * @param col
 	 *            the column number of the cell
 	 * @param row
@@ -325,7 +325,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	/**
 	 * Get the pixel coordinates of the top left corner of the grid cell at (col,row), adjusted for the canvas origin
-	 * 
+	 *
 	 * @param col
 	 *            the column number of the cell
 	 * @param row
@@ -338,7 +338,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	/**
 	 * Gets the pixel coordinates of the grid point p, adjusted for the canvas origin
-	 * 
+	 *
 	 * @param p
 	 *            the point
 	 * @return a new Point containing the pixel coordinates corresponding the grid point p
@@ -351,7 +351,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	/**
 	 * Update the supplied Point with the pixel coordinates of the top left corner of the grid cell at (col,row). Does not apply the canvas origin
-	 * 
+	 *
 	 * @param col
 	 *            the column number of the cell
 	 * @param row
@@ -369,7 +369,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	/**
 	 * Get the pixel coordinates of the top left corner of the grid cell at (col,row). Does not apply the canvas origin
-	 * 
+	 *
 	 * @param col
 	 *            the column number of the cell
 	 * @param row
@@ -382,7 +382,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	/**
 	 * Gets the pixel coordinates of the grid point p. Does not apply the canvas origin
-	 * 
+	 *
 	 * @param p
 	 *            the point
 	 * @return a new Point containing the pixel coordinates corresponding the grid point p

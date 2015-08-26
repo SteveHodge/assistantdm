@@ -3,7 +3,6 @@ package digital_table.controller;
 import gamesystem.Creature;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
@@ -143,24 +142,23 @@ public class ControllerFrame extends JFrame {
 
 		} else {
 			remoteImg = new RemoteImageDisplay();
-			JFrame overlayFrame = new JFrame("Token Overlay");
-			JPanel overlayPanel = remoteImg.getPanel();
-			overlayPanel.setPreferredSize(new Dimension(20 * remoteImg.rows, 20 * remoteImg.columns));
-			JPanel buttons = new JPanel();
-			JButton update = new JButton("Update server");
-			update.addActionListener((e) -> overlay.updateOverlay(20 * overlay.rows, 20 * overlay.columns));
-			update.addActionListener((e) -> remoteImg.updateOverlay(20 * remoteImg.rows, 20 * remoteImg.columns));
-			buttons.add(update);
-			overlayFrame.add(buttons, BorderLayout.NORTH);
-			overlayFrame.add(overlayPanel);
-			overlayFrame.pack();
-			overlayFrame.setVisible(true);
+//			JFrame overlayFrame = new JFrame("Token Overlay");
+//			JPanel overlayPanel = remoteImg.getPanel();
+//			overlayPanel.setPreferredSize(new Dimension(20 * remoteImg.rows, 20 * remoteImg.columns));
+//			JPanel buttons = new JPanel();
+//			JButton update = new JButton("Update server");
+//			update.addActionListener((e) -> overlay.updateOverlay(20 * overlay.rows, 20 * overlay.columns));
+//			update.addActionListener((e) -> remoteImg.updateOverlay(20 * remoteImg.rows, 20 * remoteImg.columns));
+//			buttons.add(update);
+//			overlayFrame.add(buttons, BorderLayout.NORTH);
+//			overlayFrame.add(overlayPanel);
+//			overlayFrame.pack();
+//			overlayFrame.setVisible(true);
 		}
 		display = new DisplayManager();
 		display.setLocal(miniMapCanvas);
 		display.setOverlay(overlay);
 		if (remoteImg != null) {
-			overlay.enableAutoRepaints();
 			display.setRemoteImageDisplay(remoteImg);
 		}
 		miniMapCanvas.setRemote(display);
@@ -324,6 +322,10 @@ public class ControllerFrame extends JFrame {
 
 		loadDisplayFile(new File("display.xml"));
 		setVisible(true);
+		if (remoteImg != null) {
+			overlay.enableAutoRepaints();
+			remoteImg.setOutputEnabled(true);
+		}
 	}
 
 	private void resetAll() {
@@ -371,6 +373,22 @@ public class ControllerFrame extends JFrame {
 		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
 	}
 
+	// reset and rebuilds the elements from the supplied XML document
+	void reload(Element doc) {
+		boolean remoteEnabled = false;
+		if (remoteImg != null) {
+			remoteEnabled = remoteImg.isOutputEnabled();
+			// disable remote image output to avoid unnecessary repaints
+			remoteImg.setOutputEnabled(false);
+		}
+		resetAll();
+		parseDOM(doc);
+		if (remoteEnabled) {
+			remoteImg.setOutputEnabled(true);
+		}
+
+	}
+
 	void setRemote(RemoteConnection remote) {
 		display.setRemote(remote);
 
@@ -380,14 +398,14 @@ public class ControllerFrame extends JFrame {
 		try {
 			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			doc.appendChild(getElement(doc));
-			resetAll();
-			parseDOM(doc.getDocumentElement());
+			reload(doc.getDocumentElement());
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void loadDisplayFile(File xmlFile) {
+		System.out.println("Loading " + xmlFile.getName());
 		Document dom = null;
 		if (xmlFile.exists()) {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -400,8 +418,8 @@ public class ControllerFrame extends JFrame {
 			}
 		}
 		if (dom != null) {
-			resetAll();
-			parseDOM(dom.getDocumentElement());
+			reload(dom.getDocumentElement());
+			System.out.println("Loaded " + xmlFile.getName());
 		}
 	}
 
@@ -1281,6 +1299,13 @@ public class ControllerFrame extends JFrame {
 	public void parseDOM(Element el) {
 		if (!el.getTagName().equals("Elements")) return;
 
+		boolean remoteEnabled = false;
+		if (remoteImg != null) {
+			remoteEnabled = remoteImg.isOutputEnabled();
+			// disable remote image output to avoid unnecessary repaints
+			remoteImg.setOutputEnabled(false);
+		}
+
 		Map<Integer, Creature> idMap = new HashMap<>();
 		EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
 		if (enc != null) {
@@ -1288,13 +1313,28 @@ public class ControllerFrame extends JFrame {
 		}
 		parseNode(el, null, idMap);
 		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
+
+		if (remoteEnabled) {
+			remoteImg.setOutputEnabled(true);
+		}
 	}
 
 	public void parseDOM(Element el, Map<Integer, Creature> idMap) {
 		if (!el.getTagName().equals("Elements")) return;
 
+		boolean remoteEnabled = false;
+		if (remoteImg != null) {
+			remoteEnabled = remoteImg.isOutputEnabled();
+			// disable remote image output to avoid unnecessary repaints
+			remoteImg.setOutputEnabled(false);
+		}
+
 		parseNode(el, null, idMap);
 		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
+
+		if (remoteEnabled) {
+			remoteImg.setOutputEnabled(true);
+		}
 	}
 
 	private static Calibrate calibrateElement;

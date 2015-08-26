@@ -40,7 +40,7 @@ public class MapImage extends Group {
 	public final static String PROPERTY_SHOW_BORDER = "show_border";	// boolean
 	public final static String PROPERTY_SHOW_BACKGROUND = "show_background";	// boolean
 	public final static String PROPERTY_BACKGROUND_COLOR = "background";	// Color
-	public final static String PROPERTY_ASPECT_LOCKED = "aspect_locked";	// boolean
+	public final static String PROPERTY_ASPECT_LOCKED = "aspect_locked";	// boolean	// TODO shouldn't this be handled in ui instead of here?
 
 	transient ImageMedia image = null;
 	transient Mask mask = null;
@@ -243,11 +243,15 @@ public class MapImage extends Group {
 		} else if (property.equals(PROPERTY_WIDTH) && aspectLocked.value) {
 			double aspect = width.value / height.value;
 			super.setProperty(property, value);
-			super.setProperty(PROPERTY_HEIGHT, width.value / aspect);
+			if (Double.isFinite(aspect) && aspect != 0) {
+				super.setProperty(PROPERTY_HEIGHT, width.value / aspect);
+			}
 		} else if (property.equals(PROPERTY_HEIGHT) && aspectLocked.value) {
 			double aspect = width.value / height.value;
 			super.setProperty(property, value);
-			super.setProperty(PROPERTY_WIDTH, height.value * aspect);
+			if (Double.isFinite(aspect) && aspect != 0) {
+				super.setProperty(PROPERTY_WIDTH, height.value * aspect);
+			}
 		} else {
 			super.setProperty(property, value);
 		}

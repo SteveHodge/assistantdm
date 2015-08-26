@@ -193,6 +193,7 @@ public abstract class ImageMedia {
 		if (transform == null) return getSourceImage();
 		if (Math.ceil(tWidth) == 0.0 || Math.ceil(tHeight) == 0.0) {
 			System.err.println("Image has invalid width (" + tWidth + ") or height (" + tHeight + ")");
+			Thread.dumpStack();
 			return getSourceImage();
 		}
 
