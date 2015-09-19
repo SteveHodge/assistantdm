@@ -169,11 +169,14 @@ public abstract class Creature {
 
 	public void setBABOverride(int val) {
 		clearBABOverride();
-		bab.addOverride(val);
+		babOverride = bab.addOverride(val);
 	}
 
 	public void clearBABOverride() {
-		if (babOverride != null) bab.removeOverride(babOverride);
+		if (babOverride != null) {
+			bab.removeOverride(babOverride);
+			babOverride = null;
+		}
 	}
 
 	// buff related methods
