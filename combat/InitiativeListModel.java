@@ -28,7 +28,13 @@ import swing.ReorderableListModel;
 
 public class InitiativeListModel implements ReorderableListModel<CombatEntry>, ActionListener, ChangeListener, PartyListener {
 	private Party party;
-	private List<CombatEntry> list = new ArrayList<>();
+	private List<CombatEntry> list = new ArrayList<CombatEntry>() {
+		@Override
+		public void sort(Comparator<? super CombatEntry> arg0) {
+			//Thread.dumpStack();
+			super.sort(arg0);
+		}
+	};
 
 	private EventListenerList listenerList = new EventListenerList();
 
@@ -469,14 +475,19 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 			String tag = e.getTagName();
 			if (tag.equals("CharacterEntry")) {
 				String name = e.getAttribute("name");
+				CombatEntry entry = null;
 				for (CombatEntry ce : list) {
 					if (ce instanceof CharacterCombatEntry && name.equals(ce.getCreatureName())) {
-						ce.setRoll(Integer.parseInt(e.getAttribute("roll")));
-						ce.setTieBreak(Integer.parseInt(e.getAttribute("tieBreak")));
-						String idStr = e.getAttribute("creatureID");
-						if (idStr.length() > 0) {
-							ce.creature.setID(Integer.parseInt(idStr));
-						}
+						entry = ce;
+						break;
+					}
+				}
+				if (entry != null) {
+					entry.setRoll(Integer.parseInt(e.getAttribute("roll")));
+					entry.setTieBreak(Integer.parseInt(e.getAttribute("tieBreak")));
+					String idStr = e.getAttribute("creatureID");
+					if (idStr.length() > 0) {
+						entry.creature.setID(Integer.parseInt(idStr));
 					}
 				}
 			} else if (tag.equals("MonsterEntry")) {
