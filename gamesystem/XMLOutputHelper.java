@@ -106,8 +106,8 @@ public class XMLOutputHelper {
 			e.setAttribute("properties", a.properties);
 		}
 		e.setAttribute("ammunition", a.ammunition);
-		e.setAttribute("kind", a.getKind().toString());
-		e.setAttribute("usage", "" + a.getUsage().ordinal());
+		if (a.getKind() != null) e.setAttribute("kind", a.getKind().toString());
+		if (a.getUsage() != null) e.setAttribute("usage", "" + a.getUsage().ordinal());
 
 		attacksEl.appendChild(e);
 	}
