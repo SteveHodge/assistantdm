@@ -405,7 +405,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		deleteButton.addActionListener(e -> {
 			CharacterAttackForm a = weaponList.getSelectedValue();
 			if (a != null) {
-				attacks.removeAttackForm(a.attack);
+				attackFormsModel.removeElement(a);
 				attackPanel.setAttackForm(weaponList.getSelectedValue());
 			}
 		});
