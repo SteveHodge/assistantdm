@@ -151,9 +151,8 @@ public class XMLCharacterParser extends XMLParserHelper {
 			for (int j = 0; j < children.getLength(); j++) {
 				if (children.item(j).getNodeName().equals("AttackForm")) {
 					Element attackEl = (Element) children.item(j);
-					CharacterAttackForm atk = new CharacterAttackForm(c, addAttackForm(c, attackEl.getAttribute("name")));
+					CharacterAttackForm atk = c.addAttackForm(addAttackForm(c, attackEl.getAttribute("name")));
 					parseCharacterAttackForm(attackEl, atk);
-					c.attackForms.add(atk);
 				}
 			}
 		}

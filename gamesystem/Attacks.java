@@ -476,13 +476,19 @@ public class Attacks extends Statistic {
 		}
 
 		public void setAttackEnhancement(int val) {
+			if (enhancement == null && val == 0) return;
+			if (enhancement != null && enhancement.getModifier() == val && enhancement.getSource().equals("Weapon Enhancement")) return;
+			setAttackEnhancement(val, "Weapon enhancement");
+		}
+
+		void setAttackEnhancement(int val, String source) {
 			if (enhancement != null) {
-				if (enhancement.getModifier() == val) return;
-				removeModifier(enhancement);
+				Modifier m = enhancement;
 				enhancement = null;
+				removeModifier(m);
 			}
 			if (val == 0) return;
-			enhancement = new ImmutableModifier(val,null,"Weapon enhancement");
+			enhancement = new ImmutableModifier(val, null, source);
 			addModifier(enhancement);
 		}
 
@@ -492,11 +498,9 @@ public class Attacks extends Statistic {
 		}
 
 		public void setMasterwork(boolean val) {
+			if (masterwork == val) return;
 			masterwork = val;
-			if (enhancement != null) removeModifier(enhancement);
-			if (!masterwork) return;
-			enhancement = new ImmutableModifier(1, null, "Masterwork weapon");
-			addModifier(enhancement);
+			setAttackEnhancement(masterwork ? 1 : 0, "Masterwork weapon");
 		}
 
 		// returns the String version of the base damage

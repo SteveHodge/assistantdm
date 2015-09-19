@@ -396,7 +396,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 		JButton newButton = new JButton("New");
 		newButton.addActionListener(e -> {
-			CharacterAttackForm a = new CharacterAttackForm(character, attacks.addAttackForm("new weapon"));
+			CharacterAttackForm a = character.addAttackForm(attacks.addAttackForm("new weapon"));
 			attackFormsModel.addElement(a);
 			weaponList.setSelectedValue(a, true);
 		});
@@ -406,6 +406,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 			CharacterAttackForm a = weaponList.getSelectedValue();
 			if (a != null) {
 				attackFormsModel.removeElement(a);
+				character.removeAttackForm(a);
 				attackPanel.setAttackForm(weaponList.getSelectedValue());
 			}
 		});
@@ -536,7 +537,6 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 		}
 
 		public void addElement(final CharacterAttackForm a) {
-			character.attackForms.add(a);
 			a.addPropertyChangeListener(new PropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent evt) {
@@ -549,10 +549,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 		public void removeElement(CharacterAttackForm a) {
 			int i = character.attackForms.indexOf(a);
-			if (i > -1) {
-				character.attackForms.remove(a);
-				fireIntervalRemoved(this, i, i);
-			}
+			if (i > -1) fireIntervalRemoved(this, i, i);
 		}
 
 		public void move(int fromIndex, int toIndex) {

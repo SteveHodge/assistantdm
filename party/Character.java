@@ -2,6 +2,7 @@ package party;
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
+import gamesystem.Attacks.AttackForm;
 import gamesystem.Buff;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
@@ -44,7 +45,8 @@ import ui.BuffUI;
 public class Character extends Creature {
 	public final static String PROPERTY_LEVEL = "Level";
 
-	public final static String PROPERTY_BUFFS = "Buffs";	// this is sent to listeners, it's not gettable or settable
+	public final static String PROPERTY_BUFFS = "Buffs";		// this is sent to listeners, it's not gettable or settable
+	public final static String PROPERTY_ATTACKS = "Attacks";	// this is sent to listeners, it's not gettable or settable
 
 	// informational string properties (these are simple values that can be set/retrieved)
 	public static final String PROPERTY_PLAYER = "Player";
@@ -188,6 +190,10 @@ public class Character extends Creature {
 					firePropertyChange(PROPERTY_REACH, evt.getOldValue(), evt.getNewValue());
 				}
 				return;
+
+			} else if (evt.getSource() instanceof CharacterAttackForm) {
+				firePropertyChange(PROPERTY_ATTACKS, null, 1);
+				return;
 			}
 
 			//System.out.println("Change to " + evt.getSource() + ", property = " + evt.getPropertyName());
@@ -234,7 +240,7 @@ public class Character extends Creature {
 				firePropertyChange(PROPERTY_BAB, evt.getOldValue(), evt.getNewValue());
 
 			} else {
-				System.out.println("Unknown property change event: "+evt);
+				System.out.println("Unknown property change event: " + evt + " on source type " + evt.getSource().getClass().toString());
 			}
 		}
 	};
@@ -730,6 +736,24 @@ public class Character extends Creature {
 	public void removeBuff(int id) {
 		super.removeBuff(id);
 		firePropertyChange(PROPERTY_BUFFS, null, 1);
+	}
+
+//------------ Attacks -------------
+	public CharacterAttackForm addAttackForm(AttackForm attack) {
+		CharacterAttackForm a = new CharacterAttackForm(this, attack);
+		a.addPropertyChangeListener(statListener);
+		attackForms.add(a);
+		firePropertyChange(PROPERTY_ATTACKS, null, 1);
+		return a;
+	}
+
+	public void removeAttackForm(CharacterAttackForm a) {
+		int i = attackForms.indexOf(a);
+		if (i > -1) {
+			a.removePropertyChangeListener(statListener);
+			attackForms.remove(a);
+			firePropertyChange(PROPERTY_ATTACKS, null, 1);
+		}
 	}
 
 //------------------- Import/Export and other methods -------------------

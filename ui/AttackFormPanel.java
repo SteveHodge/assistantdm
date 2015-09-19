@@ -55,6 +55,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	private JLabel totalAttackLabel = new JLabel();
 	private JLabel totalDamageLabel = new JLabel();
 
+	private boolean updateAttack = true;	// set to false when we don't want changes to the text fields to be applied to the attack (such as when changing the attack)
+
 	AttackFormPanel() {
 		this(null);
 	}
@@ -205,6 +207,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 		protected void updateField(DocumentEvent e) {
 			if (attack == null) return;	// shouldn't happen
+			if (!updateAttack) return;	// updates disabled
 
 			// TODO ugly. find a better way
 			if (e.getDocument() == nameField.getDocument()) {
@@ -283,39 +286,42 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	void setAttackForm(CharacterAttackForm attack) {
 		if (attack == null) {
 			clearAttackForm();
-
-		} else {
-			if (this.attack == attack) return;	// we do this test rather than at the start because this method is used for initialization with attack = null
-			this.attack = attack;
-			attack.addPropertyChangeListener(this);
-
-			nameField.setEditable(true);
-			attackBonusField.setEditable(true);
-			damageField.setEditable(true);
-			criticalField.setEditable(true);
-			rangeField.setEditable(true);
-			weightField.setEditable(true);
-			typeField.setEditable(true);
-			propertiesField.setEditable(true);
-			ammunitionField.setEditable(true);
-			sizeCombo.setEnabled(true);
-			kindCombo.setEnabled(true);
-			usageCombo.setEnabled(true);
-
-			nameField.setText(attack.getName());
-			attackBonusField.setText(""+attack.getAttackEnhancement());
-			damageField.setText(attack.getBaseDamage());
-			criticalField.setText(attack.critical);
-			rangeField.setText("" + attack.range);
-			weightField.setText("" + attack.weight);
-			typeField.setText(attack.damage_type);
-			propertiesField.setText(attack.properties);
-			ammunitionField.setText(attack.ammunition);
-			sizeCombo.setSelectedItem(attack.attack.size);
-			kindCombo.setSelectedItem(attack.getKind());
-			usageCombo.setSelectedItem(attack.getUsage());
-			update();
+			return;
 		}
+
+		if (this.attack == attack) return;	// we do this test rather than at the start because this method is used for initialization with attack = null
+
+		this.attack = attack;
+		attack.addPropertyChangeListener(this);
+
+		nameField.setEditable(true);
+		attackBonusField.setEditable(true);
+		damageField.setEditable(true);
+		criticalField.setEditable(true);
+		rangeField.setEditable(true);
+		weightField.setEditable(true);
+		typeField.setEditable(true);
+		propertiesField.setEditable(true);
+		ammunitionField.setEditable(true);
+		sizeCombo.setEnabled(true);
+		kindCombo.setEnabled(true);
+		usageCombo.setEnabled(true);
+
+		updateAttack = false;	// don't apply these changes to the attack (since they come from the attack)
+		nameField.setText(attack.getName());
+		attackBonusField.setText("" + attack.getAttackEnhancement());
+		damageField.setText(attack.getBaseDamage());
+		criticalField.setText(attack.critical);
+		rangeField.setText("" + attack.range);
+		weightField.setText("" + attack.weight);
+		typeField.setText(attack.damage_type);
+		propertiesField.setText(attack.properties);
+		ammunitionField.setText(attack.ammunition);
+		sizeCombo.setSelectedItem(attack.attack.size);
+		kindCombo.setSelectedItem(attack.getKind());
+		usageCombo.setSelectedItem(attack.getUsage());
+		updateAttack = true;
+		update();
 	}
 
 	private void update() {

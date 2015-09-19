@@ -67,7 +67,7 @@ public class CharacterAttackForm {
 
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-	private final PropertyChangeListener propertyListener = e -> pcs.firePropertyChange(e);
+	private final PropertyChangeListener propertyListener = e -> pcs.firePropertyChange(e.getPropertyName(), e.getOldValue(), e.getNewValue());
 
 	public CharacterAttackForm(Character c, AttackForm a) {
 		character = c;
@@ -158,7 +158,7 @@ public class CharacterAttackForm {
 	}
 
 	public void setKind(Kind k) {
-		// TODO check argument for validity? (kind will go away at some point so is there any point?)
+		if (kind == k) return;
 		kind = k;
 		updateAttack();
 		pcs.firePropertyChange("damage", null, getDamage());
@@ -169,7 +169,7 @@ public class CharacterAttackForm {
 	}
 
 	public void setUsage(Usage u) {
-		// TODO validate argument
+		if (usage == u) return;
 		usage = u;
 		updateAttack();
 		pcs.firePropertyChange("damage", null, getDamage());
@@ -184,6 +184,7 @@ public class CharacterAttackForm {
 	}
 
 	public void setBaseDamage(String text) {
+		if (text != null && text.equals(attack.getBaseDamage())) return;
 		attack.setBaseDamage(text);
 	}
 
@@ -193,6 +194,8 @@ public class CharacterAttackForm {
 
 	public void setName(String text) {
 		String old = attack.getName();
+		if (text == null && old == null || text != null && text.equals(old)) return;
+		System.out.println("Resetting name from " + old + " to " + text);
 		attack.setName(text);
 		pcs.firePropertyChange("name", old, text);
 	}
@@ -202,6 +205,7 @@ public class CharacterAttackForm {
 	}
 
 	public void setAttackEnhancement(int val) {
+		if (attack.getAttackEnhancement() == val) return;
 		attack.setAttackEnhancement(val);
 	}
 
