@@ -197,27 +197,8 @@ class TokenOverlay {
 		}
 	}
 
-	boolean outputEnabled = false;
-
 	TokenOverlay() {
 		canvas = new CameraOverlayCanvas();
-	}
-
-	public void setOutputEnabled(boolean out) {
-		outputEnabled = out;
-		if (outputEnabled) updateOverlay(20 * rows, 20 * columns);
-	}
-
-	public boolean isOutputEnabled() {
-		return outputEnabled;
-	}
-
-	// TODO ugly interface, fix it
-	void enableAutoRepaints() {
-		setOutputEnabled(true);
-		canvas.addRepaintListener(() -> {
-			if (outputEnabled) updateOverlay(20 * rows, 20 * columns);
-		});
 	}
 
 	void setOffset(int offx, int offy) {
@@ -241,7 +222,6 @@ class TokenOverlay {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				if (!outputEnabled) return;
 				assignLabels(descriptions);
 				StringBuilder output = new StringBuilder();
 				for (String k : descriptions.keySet()) {
@@ -275,6 +255,29 @@ class TokenOverlay {
 			// server-sent event connection and the update to the legend will get missed
 			Updater.update(Updater.TOKEN_BASE_URL + ".json", ("[\n" + json.toString()).getBytes());
 			Updater.update(Updater.TOKEN_BASE_URL + ".png", stream.toByteArray());
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// this version used by the RemoteImageDisplay repaint thread
+	void updateOverlay(BufferedImage img, SortedMap<String, String> descriptions) {
+		try {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			ImageIO.write(img, "png", stream);
+			StringBuilder json = new StringBuilder();
+			for (String k : descriptions.keySet()) {
+				if (json.length() > 0) json.append(",\n");
+				json.append("\t{\"token\": \"").append(k).append("\", \"name\": \"");
+				json.append(descriptions.get(k)).append("\"}");
+			}
+			json.append("\n]\n");
+			// order of these is important because of the workaround in the webpage for mobile safari:
+			// if the order is reversed then when the image file is updated the website will close the
+			// server-sent event connection and the update to the legend will get missed
+			Updater.updateURL(Updater.TOKEN_BASE_URL + ".json", ("[\n" + json.toString()).getBytes());
+			Updater.updateURL(Updater.TOKEN_BASE_URL + ".png", stream.toByteArray());
 
 		} catch (IOException e) {
 			e.printStackTrace();

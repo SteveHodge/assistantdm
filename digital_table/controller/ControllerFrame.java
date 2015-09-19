@@ -138,10 +138,10 @@ public class ControllerFrame extends JFrame {
 
 			// setup remote image generation since camera doesn't work
 			// TODO should have a option for this
-			remoteImg = new RemoteImageDisplay();
+			remoteImg = new RemoteImageDisplay(overlay);
 
 		} else {
-			remoteImg = new RemoteImageDisplay();
+			remoteImg = new RemoteImageDisplay(overlay);
 //			JFrame overlayFrame = new JFrame("Token Overlay");
 //			JPanel overlayPanel = remoteImg.getPanel();
 //			overlayPanel.setPreferredSize(new Dimension(20 * remoteImg.rows, 20 * remoteImg.columns));
@@ -323,7 +323,6 @@ public class ControllerFrame extends JFrame {
 		loadDisplayFile(new File("display.xml"));
 		setVisible(true);
 		if (remoteImg != null) {
-			overlay.enableAutoRepaints();
 			remoteImg.setOutputEnabled(true);
 		}
 	}

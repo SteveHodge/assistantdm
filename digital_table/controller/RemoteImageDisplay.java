@@ -6,6 +6,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 
@@ -22,15 +24,108 @@ import digital_table.elements.MapElement.Visibility;
  *
  */
 
+// Note repaints also repaint the supplied TokenOverlay. Therefore changes should be applied to the TokenOverlay first
+// TODO probably better to create our own token overlay and forward changes to it.
+
 class RemoteImageDisplay extends TokenOverlay {
 	final int rows = 39;
 	final int columns = 32;
+	public RepaintThread repaintThread = new RepaintThread();
+	private static Object monitor = new Object();
+	final TokenOverlay tokens;
+	boolean outputEnabled = false;
 
-	RemoteImageDisplay() {
+	public class RepaintThread extends Thread {
+		protected volatile boolean quit = false;
+		protected volatile boolean repaint = false;
+		protected long lastUpdate = 0;
+
+		@Override
+		public void run() {
+			while (!quit) {
+				// wait until repaint is required (or we need to quit)
+				//System.out.println("Repaint thread: waiting for repaint");
+				while (!repaint && !quit) {
+					// wait until repaint is required
+					synchronized (monitor) {
+						try {
+							monitor.wait();
+						} catch (InterruptedException e) {
+						}
+					}
+				}
+				if (quit) return;
+
+				// if it's been < 15 seconds since last file update then wait until 15s is up
+				long toWait = lastUpdate + 15000 - System.currentTimeMillis();
+				if (toWait > 0) {
+					//System.out.println("Repaint thread: waiting for " + toWait + "ms");
+					try {
+						Thread.sleep(toWait);
+					} catch (InterruptedException e) {
+					}
+				}
+				if (quit) return;
+
+				// set repaint to false and start painting
+				BufferedImage image;
+				BufferedImage tokenImg;
+				SortedMap<String, String> descriptions = new TreeMap<>();
+				do {
+					repaint = false;
+					image = getImage(20 * rows, 20 * columns, BufferedImage.TYPE_INT_RGB);
+					tokenImg = tokens.getImage(20 * rows, 20 * columns, descriptions);
+
+				} while (repaint && !quit);			// if repaint is required then repeat
+				if (quit) return;
+
+				// update the files
+				try {
+					ByteArrayOutputStream stream = new ByteArrayOutputStream();
+					ImageIO.write(image, "png", stream);
+					//System.out.println("Repaint thread: sending image");
+					Updater.updateURL(Updater.MAP_IMAGE, stream.toByteArray());
+					lastUpdate = System.currentTimeMillis();
+					tokens.updateOverlay(tokenImg, descriptions);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			} // 6. go to 1
+		}
+
+		public void quit() {
+			quit = true;
+			interrupt();
+		}
+
+		public void repaint() {
+			if (!outputEnabled) return;
+			repaint = true;
+			synchronized (monitor) {
+				monitor.notifyAll();
+			}
+		}
+	}
+
+	RemoteImageDisplay(TokenOverlay t) {
 		super();
+		tokens = t;
+
+		repaintThread.start();
+
 		canvas.addRepaintListener(() -> {
-			if (outputEnabled) updateOverlay(20 * rows, 20 * columns);
+			if (outputEnabled) repaintThread.repaint();
 		});
+	}
+
+	public void setOutputEnabled(boolean out) {
+		outputEnabled = out;
+		if (outputEnabled) repaintThread.repaint();
+	}
+
+	public boolean isOutputEnabled() {
+		return outputEnabled;
 	}
 
 	@Override

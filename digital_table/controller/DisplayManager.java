@@ -19,6 +19,9 @@ import digital_table.server.MediaManager;
  *
  */
 
+// XXX currently RemoteImageDisplay will force TokenOverlay repaints during it's own repaint. Therefore all changes
+// to the RemoteImageDisplay need to be done after changes to the TokenOverlay
+
 class DisplayManager implements CoordinateConverter {
 	enum Mode {
 		ALL,		// all displays
@@ -82,29 +85,29 @@ class DisplayManager implements CoordinateConverter {
 
 	void removeElement(MapElement element) {
 		if (local != null) local.removeElement(element.getID());
-		if (image != null) image.removeElement(element.getID());
 		if (overlay != null) overlay.removeElement(element.getID());
+		if (image != null) image.removeElement(element.getID());
 		if (remote != null) remote.removeElement(element.getID());
 	}
 
 	void changeParent(MapElement element, MapElement parent) {
 		if (local != null) local.changeParent(element, parent);
-		if (image != null) image.changeParent(element, parent);
 		if (overlay != null) overlay.changeParent(element, parent);
+		if (image != null) image.changeParent(element, parent);
 		if (remote != null) remote.changeParent(element, parent);
 	}
 
 	void promoteElement(MapElement element) {
 		if (local != null) local.promoteElement(element);
-		if (image != null) image.promoteElement(element);
 		if (overlay != null) overlay.promoteElement(element);
+		if (image != null) image.promoteElement(element);
 		if (remote != null) remote.promoteElement(element);
 	}
 
 	void demoteElement(MapElement element) {
 		if (local != null) local.demoteElement(element);
-		if (image != null) image.demoteElement(element);
 		if (overlay != null) overlay.demoteElement(element);
+		if (image != null) image.demoteElement(element);
 		if (remote != null) remote.demoteElement(element);
 	}
 
@@ -114,11 +117,11 @@ class DisplayManager implements CoordinateConverter {
 
 	void setProperty(MapElement element, String property, Object value, Mode mode) {
 		if (mode != Mode.LOCAL) {
+			if (overlay != null) overlay.setProperty(element, property, value);
 			if (mode != Mode.OVERLAY) {
 				if (remote != null) remote.setElementProperty(element, property, value);
 				if (image != null) image.setProperty(element, property, value);
 			}
-			if (overlay != null) overlay.setProperty(element, property, value);
 		}
 		if (mode != Mode.REMOTE && mode != Mode.OVERLAY) element.setProperty(property, value);
 	}
