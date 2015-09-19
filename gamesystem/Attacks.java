@@ -479,6 +479,7 @@ public class Attacks extends Statistic {
 			if (enhancement != null) {
 				if (enhancement.getModifier() == val) return;
 				removeModifier(enhancement);
+				enhancement = null;
 			}
 			if (val == 0) return;
 			enhancement = new ImmutableModifier(val,null,"Weapon enhancement");
