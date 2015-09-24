@@ -115,7 +115,6 @@ public class Feat extends BuffFactory {
 		new Feat("Spring Attack"),
 		new Feat("Deflect Arrows"),
 		new Feat("Snatch Arrows"),
-		new Feat("Improved Unarmed Strike"),
 		new Feat("Stunning Fist"),
 		new Feat("Mounted Combat"),
 		new Feat("Mounted Archery"),
