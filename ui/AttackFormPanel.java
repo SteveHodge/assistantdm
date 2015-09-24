@@ -325,6 +325,10 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	}
 
 	private void update() {
+		if (attack == null) {
+			System.err.println("Error: Update for an AttackFormPanel that has no CharacterAttackForm");
+			return;
+		}
 		// set attacks:
 		String s = attack.getAttacksDescription();
 		if (attack.isTotalDefense()) s = "<html><body><s>"+s+"</s></body></html>";
