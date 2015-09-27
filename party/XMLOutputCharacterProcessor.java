@@ -3,6 +3,7 @@ package party;
 import gamesystem.AC;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
+import gamesystem.Feat;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
@@ -53,6 +54,11 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 	@Override
 	public void processSavingThrow(SavingThrow s) {
 		getSavingThrowElement(s);
+	}
+
+	@Override
+	public void processFeat(Feat feat) {
+		if (!feat.bonus) super.processFeat(feat);
 	}
 
 	@Override

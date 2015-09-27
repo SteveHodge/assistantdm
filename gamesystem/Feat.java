@@ -9,6 +9,7 @@ import java.util.Set;
 public class Feat {
 	public FeatDefinition definition;
 	Map<Modifier, String> modifiers = new HashMap<>();	// map of modifier to the target it will be applied to
+	public boolean bonus = false;	// true if this feat was added due to a class feature. eventually will want to expand to list of sources
 
 	Feat(FeatDefinition def) {
 		definition = def;

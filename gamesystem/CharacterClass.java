@@ -152,7 +152,9 @@ public enum CharacterClass {
 					}
 				}
 				if (feat != null) {
-					c.feats.addElement(feat.getFeat());
+					Feat f = feat.getFeat();
+					f.bonus = true;
+					c.feats.addElement(f);
 				} else {
 					System.err.println("Could not find feat " + options[0]);
 				}

@@ -121,17 +121,19 @@ public class CharacterSheetView {
 			}
 			Element el = doc.createElement("Ability");
 			el.setAttribute("type", "feat");
-			StringBuilder b = new StringBuilder(feat.getName());
-			FeatDefinition f = feat.definition;
-			if (f != null) {
-				if (f.ref != null) {
-					b.append(" (").append(f.ref).append(")");
-				}
-				if (f.summary != null) {
-					b.append(": ").append(f.summary);
-				}
+			el.appendChild(doc.createTextNode(feat.getName()));
+			if (feat.bonus) {
+				Element sup = doc.createElement("sup");
+				sup.setTextContent("B");
+				el.appendChild(sup);
 			}
-			el.setTextContent(b.toString());
+			FeatDefinition f = feat.definition;
+			if (f.ref != null) {
+				el.appendChild(doc.createTextNode(" (" + f.ref + ")"));
+			}
+			if (f.summary != null) {
+				el.appendChild(doc.createTextNode(": " + f.summary));
+			}
 			specials.appendChild(el);
 		}
 
