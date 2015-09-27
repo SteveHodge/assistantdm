@@ -53,7 +53,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 				parseInitiativeModifier(e, c);
 
 			} else if (tag.equals("Level")) {
-				parseLevel(e, c.level);
+				parseLevel(e, c.level, c);
 				c.xp = Integer.parseInt(e.getAttribute("xp"));
 				NodeList awards = e.getChildNodes();
 				for (int j = 0; j < awards.getLength(); j++) {

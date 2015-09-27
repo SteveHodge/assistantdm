@@ -48,10 +48,28 @@ public class Levels extends Statistic implements HitDice {
 			for (int i = classes.size(); i < lvl; i++) {
 				classes.add(null);
 			}
+//		} else {
+//			CharacterClass old = classes.get(lvl - 1);
+//			if (old == cls) return;	// no change, don't need to do anything further
+//			if (old != null) {
+//				// old class features will need to rebuilt as the number of levels of that class has dropped
+//				// TODO implement
+//			}
 		}
 		classes.set(lvl - 1, cls);
+		// get the levelup actions for the class in question
+//		Set<?> actions = cls.getActions(lvl);
 
 		pcs.firePropertyChange("value", null, level);	// TODO fire more appropriate event
+	}
+
+	public int getClassLevel(CharacterClass cls) {
+		int lvl = 0;
+		for (int i = 0; i < level && i < classes.size(); i++) {
+			CharacterClass c = classes.get(i);
+			if (c == cls) lvl++;
+		}
+		return lvl;
 	}
 
 	// TODO use streams API if possible

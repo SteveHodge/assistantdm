@@ -28,7 +28,8 @@ public class XMLParserHelper {
 		c.initiative.setBaseValue(Integer.parseInt(e.getAttribute("value")));
 	}
 
-	protected void parseLevel(Element e, Levels lvl) {
+	// TODO Character param here is bad. currently need it to do levelups.
+	protected void parseLevel(Element e, Levels lvl, party.Character c) {
 		if (!e.getTagName().equals("Level")) return;
 		lvl.setLevel(Integer.parseInt(e.getAttribute("level")));
 
@@ -37,7 +38,11 @@ public class XMLParserHelper {
 		for (int j = 0; j < classes.getLength(); j++) {
 			if (classes.item(j).getNodeName().equals("Class")) {
 				CharacterClass cls = CharacterClass.getCharacterClass(((Element) classes.item(j)).getAttribute("class"));
-				lvl.setClass(i++, cls);
+				if (c != null) {
+					c.setClass(i++, cls);
+				} else {
+					lvl.setClass(i++, cls);
+				}
 			}
 		}
 

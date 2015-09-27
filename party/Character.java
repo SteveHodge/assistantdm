@@ -4,6 +4,9 @@ import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
 import gamesystem.Buff;
+import gamesystem.CharacterClass;
+import gamesystem.CharacterClass.LevelUpAction;
+import gamesystem.ClassFeature;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.HPs;
@@ -102,6 +105,8 @@ public class Character extends Creature {
 	public List<CharacterAttackForm> attackForms = new ArrayList<>();
 
 	public BuffUI.BuffListModel<Buff> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
+
+	List<ClassFeature> features = new ArrayList<>();
 
 	public List<XPHistoryItem> xpChanges = new ArrayList<>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
@@ -656,6 +661,36 @@ public class Character extends Creature {
 		firePropertyChange(PROPERTY_LEVEL, old, level.getLevel());
 	}
 
+	// TODO this functionality should more to the Levels object
+	public void setClass(int lvl, CharacterClass cls) {
+		CharacterClass old = level.getClass(lvl);
+		if (old == cls) return;	// no change, do nothing
+
+		level.setClass(lvl, cls);
+
+		if (old != null) {
+			// old class features will need to rebuilt as the number of levels of that class has dropped
+			// TODO probably going to have to rebuild all classes because class features can interact (e.g. uncanny dodge)
+			System.out.println("Reapplying actions for " + old + " (now level " + level.getClassLevel(old) + ")");
+			// TODO remove all existing features from class old
+			for (int i = 0; i < level.getClassLevel(old); i++) {
+				Set<LevelUpAction> actions = old.getActions(i);
+				for (LevelUpAction action : actions) {
+					System.out.println(action);
+					// TODO disabled to avoid duplicates
+					//action.apply(this);
+				}
+			}
+		}
+
+		// get the levelup actions for the class in question. only need the action for the latest class level
+		Set<LevelUpAction> actions = cls.getActions(level.getClassLevel(cls));
+		System.out.println("Applying actions for " + cls + " level " + level.getClassLevel(cls));
+		for (LevelUpAction action : actions) {
+			action.apply(this);
+		}
+	}
+
 //------------------- XP History ------------------
 	public void addXPChange(XP.XPChange change) {	// TODO should not be public
 		XPHistoryItem item = new XPHistoryItem();
@@ -715,6 +750,33 @@ public class Character extends Creature {
 			if (f.name.equals(name)) return true;
 		}
 		return false;
+	}
+
+//------------ Features -------------
+	public void addClassFeature(ClassFeature f) {
+		features.add(f);
+		//System.out.println("Added " + f);
+	}
+
+	public void removeClassFeature(String id) {
+		ClassFeature feature = getClassFeature(id);
+		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
+		//System.out.println("Removed " + feature);
+		features.remove(feature);
+	}
+
+	public ClassFeature getClassFeature(String id) {
+		for (ClassFeature f : features) {
+			if (f.factory.id.equals(id)) return f;
+		}
+		return null;
+	}
+
+	public void setClassFeatureParameter(String id, String parameter, Object value) {
+		ClassFeature feature = getClassFeature(id);
+		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
+		feature.setParameter(parameter, value);
+		//System.out.println("Updated " + feature);
 	}
 
 //------------ Buffs -------------

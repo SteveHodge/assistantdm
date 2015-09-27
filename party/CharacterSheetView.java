@@ -5,6 +5,8 @@ import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
 import gamesystem.CharacterClass;
+import gamesystem.ClassFeature;
+import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
@@ -85,8 +87,28 @@ public class CharacterSheetView {
 
 	// TODO this should probably include all the same data as the regular save as well as additional stuff
 	class CharacterSheetProcessor extends XMLOutputCharacterProcessor {
+		Element specials;
+
 		public CharacterSheetProcessor(Document doc) {
 			super(doc);
+		}
+
+		@Override
+		public void processCreature(Creature c) {
+			super.processCreature(c);
+
+			// class features
+			if (specials == null) {
+				specials = doc.createElement("SpecialAbilities");
+				creatureEl.appendChild(specials);
+			}
+
+			for (ClassFeature f : character.features) {
+				Element el = doc.createElement("Ability");
+				el.setAttribute("type", "class");
+				el.setTextContent(f.getNameAndType() + ": " + f.getSummary());
+				specials.appendChild(el);
+			}
 		}
 
 		@Override
@@ -215,7 +237,12 @@ public class CharacterSheetView {
 					child.setAttribute("info", info);
 
 					if (child.hasAttribute("max_dex")) {
-						child.setAttribute("max_dex", getModifierString(Integer.parseInt(child.getAttribute("max_dex"))));
+						int val = Integer.parseInt(child.getAttribute("max_dex"));
+						if (val == Integer.MAX_VALUE) {
+							child.removeAttribute("max_dex");	// no limit, just remove the attribute
+						} else {
+							child.setAttribute("max_dex", getModifierString(val));
+						}
 					}
 					if (child.hasAttribute("acp")) {
 						child.setAttribute("acp", getModifierString(Integer.parseInt(child.getAttribute("acp"))));
