@@ -17,11 +17,10 @@ import java.util.Map;
  *   SetParameterAction - change a parameter on an existing class feature
  *
  * ToDo:
- * Feats need source tracking so they can be removed if a class level is removed, and so they can be skipped for export
- * Parameterized output
- * Get autosave working? Might not be necessary as the change to the level's class will trigger and update
+ * Calculated parameters in output
+ * Implement features that apply Modifiers
  * Calculation system for determining variable bonuses, DCs, etc
- * Implement features that apply Buffs
+ * Get autosave working? Might not be necessary as the change to the level's class will trigger and update
  * Mechanism for recording selected options, including XML load/save
  * UI for selecting options
  * ClassFeatures might need to track what classes they came from. this might be important for things that stack across classes
@@ -52,7 +51,13 @@ public class ClassFeature {
 	}
 
 	public String getSummary() {
-		return factory.summaries.get(template);
+		String out = new String(factory.summaries.get(template));
+		if (parameters != null) {
+			for (String param : parameters.keySet()) {
+				out = out.replace("&(" + param + ")", parameters.get(param).toString());
+			}
+		}
+		return out;
 	}
 
 	@Override
@@ -142,17 +147,17 @@ public class ClassFeature {
 	static ClassFeatureDefinition[] featureDefinitions = {
 		// TODO need to add wisdom bonus as well
 		new ClassFeatureDefinition("ac_bonus", "AC Bonus", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("Add <X> AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")
+		.addSummary("Add Wis bonus + &(bonus) AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")
 		.addParameter("bonus", 0),
 
 		new ClassFeatureDefinition("flurry_of_blows", "Flurry of Blows", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("Take <X> extra attacks when taking a full attack action. All attacks in the round suffer a <Y> penalty.")
-		.addSummary("Take <X> extra attacks when taking a full attack action.")
+		.addSummary("Take &(attacks) extra attacks when taking a full attack action. All attacks in the round suffer a &(penalty) penalty.")
+		.addSummary("Take &(attacks) extra attacks when taking a full attack action.")
 		.addParameter("penalty", -2)
 		.addParameter("attacks", 1),
 
 		new ClassFeatureDefinition("unarmed_strike", "Unarmed Strike")
-		.addSummary("Your unarmed attacks deal lethal damage and apply full strength bonus.")
+		.addSummary("Your unarmed attacks deal &(damage) lethal damage and apply full strength bonus.")
 		.addParameter("damage", "1d6"),
 
 		new ClassFeatureDefinition("evasion", "Evasion", SpecialAbilityType.EXTRAORDINARY)
@@ -162,11 +167,11 @@ public class ClassFeature {
 		.addSummary("You take half damage from attacks that allow a Reflex save. Take no damage on a successful save."),
 
 		new ClassFeatureDefinition("monk_fast_movement", "Fast Movement", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("Your speed increases (limited by armor and encumbrance).")
+		.addSummary("Your speed increases by &(bonus) (limited by armor and encumbrance).")
 		.addParameter("bonus", 10),
 
 		new ClassFeatureDefinition("still_mind", "Still Mind", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("+2 to save against enchantment spells and effects."),
+		.addSummary("+2 to saves vs enchantment spells and effects."),
 
 		new ClassFeatureDefinition("ki_strike", "Ki Strike", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("Your unarmed attacks are treated as <X> weapons."),
