@@ -1,6 +1,7 @@
 package gamesystem;
 
 import gamesystem.ClassFeature.ClassFeatureDefinition;
+import gamesystem.Feat.FeatDefinition;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -143,15 +144,15 @@ public enum CharacterClass {
 			// TODO should remove any feats the character already has first
 			if (options.length == 1) {
 				// find the Feat
-				Feat feat = null;
-				for (Feat f : Feat.FEATS) {
+				FeatDefinition feat = null;
+				for (FeatDefinition f : Feat.FEATS) {
 					if (f.name.equals(options[0])) {
 						feat = f;
 						break;
 					}
 				}
 				if (feat != null) {
-					c.feats.addElement(feat.getBuff());
+					c.feats.addElement(feat.getFeat());
 				} else {
 					System.err.println("Could not find feat " + options[0]);
 				}

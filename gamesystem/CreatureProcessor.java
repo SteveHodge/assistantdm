@@ -31,7 +31,7 @@ public interface CreatureProcessor {
 
 	public void processSize(Size size);
 
-	public void processFeat(Buff buff);
+	public void processFeat(Feat feat);
 
 	public void processLevel(Levels level);
 

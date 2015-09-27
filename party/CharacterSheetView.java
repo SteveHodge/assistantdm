@@ -4,11 +4,11 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
-import gamesystem.Buff;
 import gamesystem.CharacterClass;
 import gamesystem.ClassFeature;
 import gamesystem.Creature;
 import gamesystem.Feat;
+import gamesystem.Feat.FeatDefinition;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
@@ -114,15 +114,15 @@ public class CharacterSheetView {
 		}
 
 		@Override
-		public void processFeat(Buff feat) {
+		public void processFeat(Feat feat) {
 			if (specials == null) {
 				specials = doc.createElement("SpecialAbilities");
 				creatureEl.appendChild(specials);
 			}
 			Element el = doc.createElement("Ability");
 			el.setAttribute("type", "feat");
-			StringBuilder b = new StringBuilder(feat.toString());
-			Feat f = Feat.getFeat(feat.name);
+			StringBuilder b = new StringBuilder(feat.getName());
+			FeatDefinition f = feat.definition;
 			if (f != null) {
 				if (f.ref != null) {
 					b.append(" (").append(f.ref).append(")");

@@ -9,6 +9,7 @@ import gamesystem.CharacterClass.LevelUpAction;
 import gamesystem.ClassFeature;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
+import gamesystem.Feat;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
@@ -104,7 +105,7 @@ public class Character extends Creature {
 
 	public List<CharacterAttackForm> attackForms = new ArrayList<>();
 
-	public BuffUI.BuffListModel<Buff> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
+	public BuffUI.BuffListModel<Feat> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
 
 	List<ClassFeature> features = new ArrayList<>();
 
@@ -746,8 +747,8 @@ public class Character extends Creature {
 	@Override
 	public boolean hasFeat(String name) {
 		for (int i = 0; i < feats.size(); i++) {
-			Buff f = feats.get(i);
-			if (f.name.equals(name)) return true;
+			Feat f = feats.get(i);
+			if (f.getName().equals(name)) return true;
 		}
 		return false;
 	}
