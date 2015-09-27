@@ -756,6 +756,7 @@ public class Character extends Creature {
 //------------ Features -------------
 	public void addClassFeature(ClassFeature f) {
 		features.add(f);
+		f.apply(this);
 		//System.out.println("Added " + f);
 	}
 
@@ -763,12 +764,13 @@ public class Character extends Creature {
 		ClassFeature feature = getClassFeature(id);
 		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
 		//System.out.println("Removed " + feature);
+		feature.remove(this);
 		features.remove(feature);
 	}
 
 	public ClassFeature getClassFeature(String id) {
 		for (ClassFeature f : features) {
-			if (f.factory.id.equals(id)) return f;
+			if (f.definition.id.equals(id)) return f;
 		}
 		return null;
 	}

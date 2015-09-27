@@ -1,5 +1,7 @@
 package gamesystem;
 
+import gamesystem.ClassFeature.ClassFeatureDefinition;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,19 +20,22 @@ import java.util.Map;
  *
  * ToDo:
  * Calculated parameters in output
- * Implement features that apply Modifiers
  * Calculation system for determining variable bonuses, DCs, etc
  * Get autosave working? Might not be necessary as the change to the level's class will trigger and update
  * Mechanism for recording selected options, including XML load/save
  * UI for selecting options
  * ClassFeatures might need to track what classes they came from. this might be important for things that stack across classes
+ * Extend calculated parameters to FeatDefinition
  */
 
-// a class feature as instansiated for a particular character. tracks the values of parameters
-public class ClassFeature {
+// a class feature as instantiated for a particular character. tracks the values of parameters
+public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> {
 	Map<String, Object> parameters;	// maps parameter name to value
 	int template = 0;	// index of current template
-	public ClassFeatureDefinition factory;
+
+	ClassFeature(ClassFeatureDefinition def) {
+		super(def);
+	}
 
 	public void setParameter(String param, Object val) {
 		if ("template".equals(param)) {
@@ -41,17 +46,13 @@ public class ClassFeature {
 		}
 	}
 
-	public String getName() {
-		return factory.name;
-	}
-
 	public String getNameAndType() {
-		if (factory.type == SpecialAbilityType.NATURAL) return factory.name;
-		return String.format("%s (%s)", factory.name, factory.type.getAbbreviation());
+		if (definition.type == SpecialAbilityType.NATURAL) return definition.name;
+		return String.format("%s (%s)", definition.name, definition.type.getAbbreviation());
 	}
 
 	public String getSummary() {
-		String out = new String(factory.summaries.get(template));
+		String out = new String(definition.summaries.get(template));
 		if (parameters != null) {
 			for (String param : parameters.keySet()) {
 				out = out.replace("&(" + param + ")", parameters.get(param).toString());
@@ -63,7 +64,7 @@ public class ClassFeature {
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append(factory);
+		b.append(definition);
 		if (template != 0 || parameters != null && parameters.size() > 0) {
 			String[] pieces = new String[parameters.size() + (template == 0 ? 0 : 1)];
 			int i = 0;
@@ -93,16 +94,15 @@ public class ClassFeature {
 	}
 
 	// represents the definition of a class feature. generates instances of ClassFeature as required
-	public static class ClassFeatureDefinition {
+	public static class ClassFeatureDefinition extends FeatureDefinition<ClassFeatureDefinition> {
 		public String id;
-		String name;
 		SpecialAbilityType type;
 		List<String> summaries = new ArrayList<>();
 		Map<String, Object> parameters = new HashMap<>();	// maps parameter name to default value
 
 		ClassFeatureDefinition(String id, String name, SpecialAbilityType type) {
+			super(name);
 			this.id = id;
-			this.name = name;
 			this.type = type;
 		}
 
@@ -121,12 +121,19 @@ public class ClassFeature {
 		}
 
 		ClassFeature getFeature() {
-			ClassFeature f = new ClassFeature();
-			f.factory = this;
+			ClassFeature f = new ClassFeature(this);
+
+			// setup any parameters
 			for (String param : parameters.keySet()) {
 				if (f.parameters == null) f.parameters = new HashMap<>();
 				f.parameters.put(param, parameters.get(param));
 			}
+
+			// add any effects:
+			for (Effect e : effects) {
+				f.modifiers.put(e.getModifier(name), e.target);
+			}
+
 			return f;
 		}
 
@@ -145,9 +152,8 @@ public class ClassFeature {
 	}
 
 	static ClassFeatureDefinition[] featureDefinitions = {
-		// TODO need to add wisdom bonus as well
 		new ClassFeatureDefinition("ac_bonus", "AC Bonus", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("Add Wis bonus + &(bonus) AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")
+		.addSummary("Add Wis bonus + &(bonus) AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")		// TODO calculate value
 		.addParameter("bonus", 0),
 
 		new ClassFeatureDefinition("flurry_of_blows", "Flurry of Blows", SpecialAbilityType.EXTRAORDINARY)
@@ -157,7 +163,7 @@ public class ClassFeature {
 		.addParameter("attacks", 1),
 
 		new ClassFeatureDefinition("unarmed_strike", "Unarmed Strike")
-		.addSummary("Your unarmed attacks deal &(damage) lethal damage and apply full strength bonus.")
+		.addSummary("Your unarmed attacks deal &(damage) lethal damage and apply full strength bonus.")		// TODO calculate value
 		.addParameter("damage", "1d6"),
 
 		new ClassFeatureDefinition("evasion", "Evasion", SpecialAbilityType.EXTRAORDINARY)
@@ -171,32 +177,35 @@ public class ClassFeature {
 		.addParameter("bonus", 10),
 
 		new ClassFeatureDefinition("still_mind", "Still Mind", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("+2 to saves vs enchantment spells and effects."),
+		.addSummary("+2 to saves vs enchantment spells and effects.")
+		.addBonus(Creature.STATISTIC_SAVING_THROWS, 2, "vs enchantments"),
 
 		new ClassFeatureDefinition("ki_strike", "Ki Strike", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("Your unarmed attacks are treated as <X> weapons."),
+		.addSummary("Your unarmed attacks are treated as &(type) weapons.")
+		.addParameter("type", "magic"),
 
 		new ClassFeatureDefinition("slow_fall", "Slow Fall", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("As long as a wall is within arm's reach, take damage from a fall as if it were <X> feet shorter.")
-		.addSummary("As long as a wall is within arm's reach, take no damage from a fall."),
+		.addSummary("As long as a wall is within arm's reach, take damage from a fall as if it were &(height) feet shorter.")
+		.addSummary("As long as a wall is within arm's reach, take no damage from a fall.")
+		.addParameter("height", 20),
 
 		new ClassFeatureDefinition("purity_of_body", "Purity of Body", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Immune to all diseases except supernatural and magical diseases."),
 
 		new ClassFeatureDefinition("wholeness_of_body", "Wholeness of Body", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can heal your own wounds, up to <monk_level factor=2/> points per day."),
+		.addSummary("You can heal your own wounds, up to double your monk level points per day."),	// TODO calculated value
 
 		new ClassFeatureDefinition("diamond_body", "Diamond Body", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("You are immune to all poisons."),
 
 		new ClassFeatureDefinition("abundant_step", "Abundant Step", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can slip between spaces as if using the spell dimension door once per day, CL <monk_level div=2/>."),
+		.addSummary("You can slip between spaces as if using the spell dimension door once per day, cast at half your monk level."),		// TODO calculate value
 
 		new ClassFeatureDefinition("diamond_soul", "Diamond Soul", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("You have spell resistance of <monk_level add=10/>."),
+		.addSummary("You have spell resistance of 10 + your monk level."),		// TODO calculate value
 
 		new ClassFeatureDefinition("quivering_palm", "Quivering Palm", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("(1/week) If you damage the victim with an unarmed attack, you can slay them with an act of will any time within <monk_level/> days."),
+		.addSummary("(1/week) If you damage the victim with an unarmed attack, you can slay them with an act of will any time within monk level days."),		// TODO calculate value
 
 		new ClassFeatureDefinition("timeless_body", "Timeless Body", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You no longer suffer additional penalties for aging, and cannot be magically aged. Your lifespan is not increased."),
@@ -205,7 +214,7 @@ public class ClassFeature {
 		.addSummary("You can speak with any living creature."),
 
 		new ClassFeatureDefinition("empty_body", "Empty Body", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can become ethereal for <monk_level/> rounds per day, as the spell etherealness."),
+		.addSummary("You can become ethereal for monk level rounds per day, as the spell etherealness."),		// TODO calculate value
 
 		new ClassFeatureDefinition("perfect_self", "Perfect Self")
 		.addSummary("You are now considered an outsider. In addition, you gain damage resistance 10/magic.")

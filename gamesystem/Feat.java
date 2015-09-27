@@ -1,85 +1,29 @@
 package gamesystem;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import gamesystem.Feat.FeatDefinition;
+
+
 
 // Feat is an instance of a FeatDefinition that can be applied to a Creature
-public class Feat {
-	public FeatDefinition definition;
-	Map<Modifier, String> modifiers = new HashMap<>();	// map of modifier to the target it will be applied to
+public class Feat extends Feature<Feat, FeatDefinition> {
 	public boolean bonus = false;	// true if this feat was added due to a class feature. eventually will want to expand to list of sources
 
 	Feat(FeatDefinition def) {
-		definition = def;
+		super(def);
 	}
 
-	@Override
-	public String toString() {
-		return definition.name;
-	}
-
-	public String getName() {
-		return definition.name;
-	}
-
-	public static String getTargetDescription(String target) {
-		String d = Buff.TARGET_DESC.get(target);
-		if (target.startsWith(Creature.STATISTIC_SKILLS + ".")) {
-			return target.substring(Creature.STATISTIC_SKILLS.length() + 1);
-		}
-		if (d != null) return d;
-		return target;
-	}
-
-	public void apply(Creature c) {
-		for (Modifier m : modifiers.keySet()) {
-			// add modifier to target stat
-			for (Statistic s : Buff.getTargetStats(c, modifiers.get(m))) {
-				s.addModifier(m);
-			}
-		}
-	}
-
-	public void remove(Creature c) {
-		for (Modifier m : modifiers.keySet()) {
-			// remove modifier from target stat
-			for (Statistic s : Buff.getTargetStats(c, modifiers.get(m))) {
-				s.removeModifier(m);
-			}
-		}
-	}
-
-	public static class FeatDefinition {
-		public String name;
-		Set<Effect> effects = new HashSet<>();
+	public static class FeatDefinition extends FeatureDefinition<FeatDefinition> {
 		public boolean repeatable = false;
 		public String summary;
 		public String ref;
 
 		protected FeatDefinition(String name) {
-			this.name = name;
+			super(name);
 		}
 
 		protected FeatDefinition(String name, boolean repeat) {
-			this.name = name;
+			super(name);
 			repeatable = repeat;
-		}
-
-		@Override
-		public String toString() {
-			return name;
-		}
-
-		public String getDescription() {
-			StringBuilder s = new StringBuilder();
-			s.append("<html><body>");
-			for (Effect e : effects) {
-				s.append(e).append("<br/>");
-			}
-			s.append("</html></body>");
-			return s.toString();
 		}
 
 		public Feat getFeat() {
@@ -97,25 +41,6 @@ public class Feat {
 			return this;
 		}
 
-		protected FeatDefinition addBonus(String target, int modifier, String condition) {
-			addFixedEffect(target, null, modifier, condition);
-			return this;
-		}
-
-		protected FeatDefinition addBonus(String target, int modifier) {
-			addFixedEffect(target, null, modifier, null);
-			return this;
-		}
-
-		protected void addFixedEffect(String target, String type, int modifier, String condition) {
-			Effect e = new Effect();
-			e.target = target;
-			e.type = type;
-			e.modifier = modifier;
-			e.condition = condition;
-			effects.add(e);
-		}
-
 		FeatDefinition summary(String summary) {
 			this.summary = summary;
 			return this;
@@ -125,43 +50,13 @@ public class Feat {
 			this.ref = ref;
 			return this;
 		}
+	}
 
-		public static FeatDefinition getFeat(String name) {
-			for (FeatDefinition f : Feat.FEATS) {
-				if (f.name.equals(name)) return f;
-			}
-			return null;
+	public static FeatDefinition getFeatDefinition(String name) {
+		for (FeatDefinition f : Feat.FEATS) {
+			if (f.name.equals(name)) return f;
 		}
-
-		static class Effect {
-			String target;
-			String type;
-			String condition;
-			int modifier;
-
-			Modifier getModifier(String name) {
-				ImmutableModifier m = new ImmutableModifier(modifier, type, name, condition);
-				return m;
-			}
-
-			@Override
-			public String toString() {
-				StringBuilder s = new StringBuilder();
-
-				if (modifier >= 0) s.append("+");
-				s.append(modifier);
-				if (type != null) s.append(" ").append(type);
-				if (modifier >= 0) {
-					s.append(" bonus");
-				} else {
-					s.append(" penalty");
-				}
-
-				s.append(" to ").append(getTargetDescription(target));
-				if (condition != null) s.append(" ").append(condition);
-				return s.toString();
-			}
-		}
+		return null;
 	}
 
 	public static final String FEAT_IMPROVED_GRAPPLE = "Improved Grapple";

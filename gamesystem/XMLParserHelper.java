@@ -216,7 +216,7 @@ public class XMLParserHelper {
 
 	protected Feat parseFeat(Element b) {
 		if (!b.getTagName().equals("Feat")) return null;
-		FeatDefinition featDef = FeatDefinition.getFeat(b.getAttribute("name"));
+		FeatDefinition featDef = Feat.getFeatDefinition(b.getAttribute("name"));
 		Feat feat = featDef.getFeat();
 		return feat;
 	}
