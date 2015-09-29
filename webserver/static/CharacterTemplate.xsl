@@ -292,7 +292,7 @@
 <xsl:template name="skill">
 	<xsl:param name="skill"/>
 
-	<tr style="height:2.56em;">
+	<tr style="height:2.56em;" title="{$skill/@type}" info="{$skill/@info}" onclick="showInfo(this);">
 		<td colspan="2" class="symbol">
 			<xsl:choose>
 				<xsl:when test="$skill/@cross">&#x2612;</xsl:when>
@@ -306,7 +306,7 @@
 		</td>
 		<td colspan="4" class="skills-ability"><xsl:value-of select="$skill/@ability"/></td>
 		<td />
-		<td colspan="4" class="skills-total B" title="{$skill/@type}" info="{$skill/@info}" onclick="showInfo(this);"><xsl:value-of select="$skill/@total"/></td>
+		<td colspan="4" class="skills-total B"><xsl:value-of select="$skill/@total"/></td>
 		<td class="symbol">=</td>
 		<td colspan="4" class="skills-data"><xsl:value-of select="$skill/@ability-modifier"/></td>
 		<td class="symbol">+</td>

@@ -699,7 +699,7 @@ function rest() {
 
 	// reset spontaneous caster's spells per day
 	$('.tab.learn[per_day]').each(function(i,e) {
-		var j, k, ordinal, perday;
+		var j, k, ordinal, perDay;
 		perDay = e.getAttribute('per_day').split(',');
 		for (j = 0; j < perDay.length; j++) {
 			ordinal = ordinals[0];

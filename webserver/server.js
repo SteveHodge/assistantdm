@@ -1,8 +1,10 @@
 /*
 enhancements:
 reorder items/abilities
+enhanced diffing on character sheet update (different colours for increase/decreases, if value changes then changes back while sheet is hidden then don't colour it)
 debug page with more detail on subscribers
-/<character>/sheet2 - second page of character sheet
+keep-alive message for updates + polling fallback. perhaps switch to a framework
+DONE /<character>/sheet2 - second page of character sheet
 /debug/<character> - combined debug page with all config + subscribers to the character
 /dm - dm log that tracks updates to characters spells (particularly casting) and/or feed back to AssistantDM
 
@@ -22,7 +24,7 @@ web structure:
 /<character> - full character page (character sheet + spells) (GET+PUT character sheet updates)
 /<character>/xml - static character sheet (GET)
 /<character>/spells - spell tracking page (GET+PUT spell updates)
-/<character>/sheet - character sheet (GET)
+/<character>/sheet<num> - character sheet <num>, num must be 1 or 2 or ommitted (defaults to 1) (GET)
 /updates/all - SSE stream for all file updates (GET)
 /updates/<character> - SSE stream for character updates (GET)
 /debug/subscribers - SSE subscriptions (GET)
@@ -148,10 +150,11 @@ app.put('/:name/spells', function(req, res, next) {
 // character sheet
 app.put('/:name', function(req, res, next) { saveFile('/characters/'+req.params.name+'.xml', req, res, next); });
 
-app.get('/:name/sheet', function(req, res, next) {
+app.get('/:name/sheet(:num?)', function(req, res, next) {
 	'use strict';
-	
-	var data = {name: req.params.name};
+
+	if (req.params.num != 1 && req.params.num != 2 && req.params.num != '') return next();
+	var data = {name: req.params.name, num: req.params.num == 2 ? 2 : 1};
 	res.send(mustache.to_html(sheet_template, data));
 });
 

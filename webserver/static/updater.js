@@ -18,6 +18,7 @@
 		sheet2 = document.getElementById('tab_sheet2');
 		if (sheet1 || sheet2) setupCharacterSheet();
 		openConnection();
+		toggleTokens();
 	});
 
 	function setupWebcam() {
@@ -187,26 +188,42 @@
 //		}
 	}
 
+	// set the 'changed' class on the after element if the after's textContent is different to before's or if copy is true and before has the 'changed' class
+	// so set copy=true if the user is likely to have missed an update (e.g. if an element is hidden)
 	function compareDOM(before, after, copy) {
 		if (before.tagName !== after.tagName) return;	// hierarchy is different
-		if (before.children.length === 0 && after.children.length === 0) {
-			if (before.textContent !== after.textContent) {
-				// difference found
-				$(after).addClass('changed');
-			} else if (copy && $(before).hasClass('changed')) {
-				$(after).addClass('changed');
-			}
-		} else if (before.children.length === after.children.length) {
+		if (before.tagName === 'UL') {
+			var map = {};	// map of textcontent to element for the old list
 			for (var i = 0; i < before.children.length; i++) {
-				compareDOM(before.children[i], after.children[i], copy);
+				map[before.children[i].textContent] = before.children[i];
 			}
+			// if a child of the new list is missing in the old list then it counts as changed
+			for (var i = 0; i < after.children.length; i++) {
+				if (!map[after.children[i].textContent] || copy && $(map[after.children[i].textContent]).hasClass('changed')) {
+					$(after.children[i]).addClass('changed');
+				}
+			}			
 		} else {
-			// hierarchy is different
+			if (before.children.length === 0 && after.children.length === 0) {
+				if (before.textContent !== after.textContent || copy && $(before).hasClass('changed')) {
+					$(after).addClass('changed');
+				}
+			} else if (before.children.length === after.children.length) {
+				for (var i = 0; i < before.children.length; i++) {
+					compareDOM(before.children[i], after.children[i], copy);
+				}
+			} else {
+				// hierarchy is different
+				$(after).addClass('changed');
+				console.log('hierarchy different for '+before.tagName);
+			}
 		}
 	}
 
 	function toggleTokens() {
-		var checked = document.getElementById("tokens1check").checked;
+		var cbox = document.getElementById("tokens1check");
+		if (!cbox) return;
+		var checked = cbox.checked;
 		document.getElementById("tokens1").style.display = checked?"inline":"none";
 		document.getElementById("tokenlist").style.display = checked?"inline":"none";
 	}
