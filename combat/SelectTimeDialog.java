@@ -42,7 +42,7 @@ public class SelectTimeDialog extends JDialog implements ActionListener {
 		panel.add(new JLabel("Days:"));
 		panel.add(days);
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		
+
 		JPanel buttons = new JPanel();
 		JButton okButton = new JButton("Ok");
 		okButton.addActionListener(this);
@@ -54,7 +54,7 @@ public class SelectTimeDialog extends JDialog implements ActionListener {
 		add(panel);
 		add(buttons,"South");
 		pack();
-		setLocationRelativeTo(owner);	// FIXME this works on laptop but not on desktop (due to multiple screens?)
+		setLocationRelativeTo(owner);
 	}
 
 	public boolean isCancelled() {

@@ -706,6 +706,7 @@ public class Character extends Creature {
 		Map<CharacterClass, Integer> classes = new HashMap<>();
 		for (int i = 1; i <= level.getLevel(); i++) {
 			CharacterClass c = level.getClass(i);
+			if (c == null) continue;
 			int l = 1;
 			if (classes.containsKey(c)) {
 				l = classes.get(c) + 1;
