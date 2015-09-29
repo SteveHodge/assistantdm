@@ -36,12 +36,13 @@ public class Levels extends Statistic implements HitDice {
 	}
 
 	public CharacterClass getClass(int level) {
-		if (level < 1 || level > classes.size()) return null;
+		if (level < 1 || level > this.level) throw new IllegalArgumentException("Level " + level + " does not exist [1.." + this.level + "] is valid");
+		if (level > classes.size()) return null;
 		return classes.get(level - 1);
 	}
 
 	public void setClass(int lvl, CharacterClass cls) {
-		if (lvl < 1 || lvl > level) throw new IllegalArgumentException();	// TODO better exception
+		if (lvl < 1 || lvl > level) throw new IllegalArgumentException("Level " + level + " does not exist [1.." + this.level + "] is valid");	// TODO better exception
 
 		// add extra levels to class list
 		if (lvl > classes.size()) {

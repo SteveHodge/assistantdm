@@ -5,6 +5,7 @@ import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
 import gamesystem.Buff;
 import gamesystem.CharacterClass;
+import gamesystem.CharacterClass.ClassOption;
 import gamesystem.CharacterClass.LevelUpAction;
 import gamesystem.ClassFeature;
 import gamesystem.Creature;
@@ -34,7 +35,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.w3c.dom.Document;
@@ -108,6 +111,8 @@ public class Character extends Creature {
 	public BuffUI.BuffListModel<Feat> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
 
 	List<ClassFeature> features = new ArrayList<>();
+
+	public Map<String, ClassOption> classOptions = new HashMap<>();
 
 	public List<XPHistoryItem> xpChanges = new ArrayList<>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
@@ -662,7 +667,7 @@ public class Character extends Creature {
 		firePropertyChange(PROPERTY_LEVEL, old, level.getLevel());
 	}
 
-	// TODO this functionality should more to the Levels object
+	// TODO this functionality should move to the Levels object
 	public void setClass(int lvl, CharacterClass cls) {
 		CharacterClass old = level.getClass(lvl);
 		if (old == cls) return;	// no change, do nothing
@@ -670,26 +675,61 @@ public class Character extends Creature {
 		level.setClass(lvl, cls);
 
 		if (old != null) {
-			// old class features will need to rebuilt as the number of levels of that class has dropped
-			// TODO probably going to have to rebuild all classes because class features can interact (e.g. uncanny dodge)
-			System.out.println("Reapplying actions for " + old + " (now level " + level.getClassLevel(old) + ")");
-			// TODO remove all existing features from class old
-			for (int i = 0; i < level.getClassLevel(old); i++) {
-				Set<LevelUpAction> actions = old.getActions(i);
-				for (LevelUpAction action : actions) {
-					System.out.println(action);
-					// TODO disabled to avoid duplicates
-					//action.apply(this);
-				}
+			// class features will need to rebuilt as a class level has been removed
+			rebuildClassFeatures();
+		} else {
+			// get the levelup actions for the class in question. only need the actions for the latest class level
+			Set<LevelUpAction> actions = cls.getActions(level.getClassLevel(cls));
+			//System.out.println("Applying actions for " + cls + " level " + level.getClassLevel(cls));
+			for (LevelUpAction action : actions) {
+				action.apply(this);
 			}
 		}
 
-		// get the levelup actions for the class in question. only need the action for the latest class level
-		Set<LevelUpAction> actions = cls.getActions(level.getClassLevel(cls));
-		System.out.println("Applying actions for " + cls + " level " + level.getClassLevel(cls));
-		for (LevelUpAction action : actions) {
-			action.apply(this);
+		firePropertyChange(PROPERTY_LEVEL, null, level.getLevel());
+	}
+
+	private void rebuildClassFeatures() {
+		// remove any bonus feats
+
+		for (int i = feats.getSize() - 1; i >= 0; i--) {
+			Feat f = feats.get(i);
+			if (f.bonus) feats.remove(i);
 		}
+
+		// remove all class features
+		for (ClassFeature f : features) {
+			f.remove(this);
+		}
+		features.clear();
+
+		Map<CharacterClass, Integer> classes = new HashMap<>();
+		for (int i = 1; i <= level.getLevel(); i++) {
+			CharacterClass c = level.getClass(i);
+			int l = 1;
+			if (classes.containsKey(c)) {
+				l = classes.get(c) + 1;
+			}
+			classes.put(c, l);
+			//System.out.println("Reapplying " + c + " level " + l);
+			Set<LevelUpAction> actions = c.getActions(l);
+			for (LevelUpAction action : actions) {
+				//System.out.println(action);
+				action.apply(this);
+			}
+		}
+	}
+
+	public void setClassOption(String id, String selection) {
+		ClassOption opt = classOptions.get(id);
+		if (opt != null && (opt.selection == null && selection == null || opt.selection != null && !opt.selection.equals(selection))) return;	// no change
+		if (opt == null) {
+			opt = new ClassOption(id);
+			classOptions.put(id, opt);
+		}
+		opt.selection = selection;
+		rebuildClassFeatures();
+		firePropertyChange(PROPERTY_LEVEL, null, level.getLevel());
 	}
 
 //------------------- XP History ------------------

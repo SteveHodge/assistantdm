@@ -44,6 +44,12 @@ public class XMLParserHelper {
 				} else {
 					lvl.setClass(i++, cls);
 				}
+
+			} else if (classes.item(j).getNodeName().equals("ClassOption")) {
+				Element el = (Element) classes.item(j);
+				if (c != null) {
+					c.setClassOption(el.getAttribute("id"), el.getAttribute("selection"));
+				}
 			}
 		}
 

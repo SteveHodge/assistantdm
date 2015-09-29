@@ -4,6 +4,7 @@ import gamesystem.ClassFeature.ClassFeatureDefinition;
 import gamesystem.Feat.FeatDefinition;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -125,11 +126,27 @@ public enum CharacterClass {
 		public abstract void apply(party.Character c);
 	}
 
+	public static class ClassOption {
+		public String id;
+		String[] options;
+		public String selection;
+
+		public ClassOption(String id) {
+			this.id = id;
+		}
+	}
+
 	static class AddBonusFeatAction extends LevelUpAction {
+		String id;
 		boolean requirePrereqs = true;
 		String[] options;
 
 		AddBonusFeatAction(boolean preqs, String[] options) {
+			this(null, preqs, options);
+		}
+
+		AddBonusFeatAction(String id, boolean preqs, String[] options) {
+			this.id = id;
 			requirePrereqs = preqs;
 			this.options = options;
 		}
@@ -141,12 +158,35 @@ public enum CharacterClass {
 
 		@Override
 		public void apply(Character c) {
-			// TODO should remove any feats the character already has first
+			String selection = null;
+			ClassOption opt = c.classOptions.get(id);
+
 			if (options.length == 1) {
+				selection = options[0];
+			} else {
+				if (opt != null) {
+					if (Arrays.asList(options).contains(opt.selection)) {
+						selection = opt.selection;
+						System.out.println("Found selection for " + opt.id + " = " + selection);
+					} else {
+						// opt.selection is invalid, reset it. note selection should still be null
+						opt.selection = null;
+					}
+				} else {
+					opt = new ClassOption(id);
+					opt.options = options;	// TODO perhaps should filter options are aren't selectable (e.g. preqs are required and no fullfilled), but then we'll need to reset this each time
+					c.classOptions.put(id, opt);
+				}
+				// TODO if there is only one reasonable option (because other feats are taken) and we don't already have a selection then automatically select it
+				// TODO think I'll need to reset options each time (as they may be missing on load)?
+			}
+
+			if (selection != null) {
+				System.out.println("Selected feat = " + selection);
 				// find the Feat
 				FeatDefinition feat = null;
 				for (FeatDefinition f : Feat.FEATS) {
-					if (f.name.equals(options[0])) {
+					if (f.name.equals(selection)) {
 						feat = f;
 						break;
 					}
@@ -158,8 +198,6 @@ public enum CharacterClass {
 				} else {
 					System.err.println("Could not find feat " + options[0]);
 				}
-			} else {
-				// TODO handle case of multiple options
 			}
 		}
 	}
@@ -228,13 +266,13 @@ public enum CharacterClass {
 	//Armor Restriction: If wearing ANY armor or carrying a shield, you lose your Wisdom bonus to AC, fast movement and flurry of blows abilities.
 	static {
 		try {
-			MONK.addAction(1, new AddBonusFeatAction(false, new String[] { "Improved Grapple", "Stunning Fist" }));
+			MONK.addAction(1, new AddBonusFeatAction("monk_bonus_1", false, new String[] { "Improved Grapple", "Stunning Fist" }));
 			MONK.addAction(1, new AddBonusFeatAction(false, new String[] { "Improved Unarmed Strike" }));
-			MONK.addAction(2, new AddBonusFeatAction(false, new String[] { "Combat Reflexes", "Deflect Arrows" }));
+			MONK.addAction(2, new AddBonusFeatAction("monk_bonus_2", false, new String[] { "Combat Reflexes", "Deflect Arrows" }));
 			MONK.addAction(2, new AddFeatureAction("evasion"));
 			MONK.addAction(3, new AddFeatureAction("still_mind"));
 			MONK.addAction(5, new AddFeatureAction("purity_of_body"));
-			MONK.addAction(6, new AddBonusFeatAction(false, new String[] { "Improved Disarm", "Improved Trip" }));
+			MONK.addAction(6, new AddBonusFeatAction("monk_bonus_3", false, new String[] { "Improved Disarm", "Improved Trip" }));
 			MONK.addAction(7, new AddFeatureAction("wholeness_of_body"));
 			MONK.addAction(9, new RemoveFeatureAction("evasion"));
 			MONK.addAction(9, new AddFeatureAction("improved_evasion"));

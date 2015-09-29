@@ -1,6 +1,7 @@
 package party;
 
 import gamesystem.AC;
+import gamesystem.CharacterClass.ClassOption;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
@@ -13,6 +14,7 @@ import monsters.Monster.MonsterAttackRoutine;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 
 public class XMLOutputCharacterProcessor extends XMLOutputHelper implements CreatureProcessor {
@@ -65,6 +67,16 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 	public void processLevel(Levels level) {
 		levelEl = getLevelElement(level);
 		levelEl.setAttribute("xp", "" + character.xp);
+
+		Node first = levelEl.getFirstChild();
+		for (ClassOption opt : character.classOptions.values()) {
+			if (opt.selection != null && opt.selection != "") {
+				Element e = doc.createElement("ClassOption");
+				e.setAttribute("id", opt.id);
+				e.setAttribute("selection", opt.selection);
+				levelEl.insertBefore(e, first);
+			}
+		}
 	}
 
 	protected Element getSavingThrowElement(SavingThrow s) {

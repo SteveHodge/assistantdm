@@ -21,8 +21,6 @@ import java.util.Map;
  * ToDo:
  * Calculated parameters in output
  * Calculation system for determining variable bonuses, DCs, etc
- * Get autosave working? Might not be necessary as the change to the level's class will trigger and update
- * Mechanism for recording selected options, including XML load/save
  * UI for selecting options
  * ClassFeatures might need to track what classes they came from. this might be important for things that stack across classes
  * Extend calculated parameters to FeatDefinition
