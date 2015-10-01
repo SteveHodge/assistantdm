@@ -21,6 +21,8 @@ import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import gamesystem.core.Property;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,11 +32,14 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import party.Character.ACComponentType;
 import util.Updater;
@@ -106,9 +111,19 @@ public class CharacterSheetView {
 			}
 
 			for (ClassFeature f : character.features) {
-				Element el = doc.createElement("Ability");
+				Element el;
+				try {
+					String html = "<Ability>" + f.getNameAndType() + ": " + f.getSummary() + "</Ability>";
+
+					DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+					Document d = factory.newDocumentBuilder().parse(new InputSource(new StringReader(html)));
+					el = (Element) doc.importNode(d.getDocumentElement(), true);
+				} catch (SAXException | IOException | ParserConfigurationException e) {
+					e.printStackTrace();
+					el = doc.createElement("Ability");
+					el.setTextContent(f.getNameAndType() + ": " + f.getSummary());
+				}
 				el.setAttribute("type", "class");
-				el.setTextContent(f.getNameAndType() + ": " + f.getSummary());
 				specials.appendChild(el);
 			}
 		}

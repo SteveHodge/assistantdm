@@ -263,9 +263,92 @@ public enum CharacterClass {
 		}
 	}
 
-	//Armor Restriction: If wearing ANY armor or carrying a shield, you lose your Wisdom bonus to AC, fast movement and flurry of blows abilities.
+	//TODO monk Armor Restriction: If wearing ANY armor or carrying a shield, you lose your Wisdom bonus to AC, fast movement and flurry of blows abilities.
+	// TODO ChooseFeatureAction
 	static {
 		try {
+			//BARBARIAN
+
+			BARD.addAction(1, new AddFeatureAction("bardic_knowledge"));
+			BARD.addAction(1, new AddFeatureAction("bardic_music"));
+			BARD.addAction(1, new AddFeatureAction("countersong"));
+			BARD.addAction(1, new AddFeatureAction("fascinate"));
+			BARD.addAction(3, new AddFeatureAction("inspire_competence"));
+			BARD.addAction(6, new AddFeatureAction("suggestion"));
+			BARD.addAction(9, new AddFeatureAction("inspire_greatness"));
+			BARD.addAction(12, new AddFeatureAction("song_of_freedom"));
+			BARD.addAction(15, new AddFeatureAction("inspire_heroics"));
+			BARD.addAction(18, new AddFeatureAction("mass_suggestion"));
+
+			BARD.addAction(1, new AddFeatureAction("inspire_courage"));
+			BARD.addAction(8, new SetParameterAction("inspire_courage", "bonus", 2));
+			BARD.addAction(14, new SetParameterAction("inspire_courage", "bonus", 3));
+			BARD.addAction(20, new SetParameterAction("inspire_courage", "bonus", 4));
+
+			CLERIC.addAction(1, new AddFeatureAction("aura"));
+			CLERIC.addAction(2, new SetParameterAction("aura", "strength", "a moderate"));
+			CLERIC.addAction(5, new SetParameterAction("aura", "strength", "a strong"));
+			CLERIC.addAction(11, new SetParameterAction("aura", "strength", "an overwhelming"));
+
+			CLERIC.addAction(1, new AddFeatureAction("cleric_spells"));
+			CLERIC.addAction(1, new AddFeatureAction("cleric_spontaneous"));
+			CLERIC.addAction(1, new AddFeatureAction("turning"));
+
+			DRUID.addAction(1, new AddFeatureAction("druid_spells"));
+			DRUID.addAction(1, new AddFeatureAction("druid_spontaneous"));
+			DRUID.addAction(1, new AddFeatureAction("animal_companion"));
+			DRUID.addAction(1, new AddFeatureAction("nature_sense"));
+			DRUID.addAction(1, new AddFeatureAction("wild_empathy"));
+			DRUID.addAction(2, new AddFeatureAction("woodland_stride"));
+			DRUID.addAction(3, new AddFeatureAction("trackless_step"));
+			DRUID.addAction(4, new AddFeatureAction("resist_natures_lure"));
+			DRUID.addAction(9, new AddFeatureAction("venom_immunity"));
+			DRUID.addAction(13, new AddFeatureAction("thousand_faces"));
+			DRUID.addAction(15, new AddFeatureAction("timeless_body"));
+
+			DRUID.addAction(5, new AddFeatureAction("wild_shape"));
+			DRUID.addAction(8, new SetParameterAction("wild_shape", "size", "small, medium, or large"));
+			DRUID.addAction(11, new SetParameterAction("wild_shape", "size", "tiny, small, medium, or large"));
+			DRUID.addAction(15, new SetParameterAction("wild_shape", "size", "tiny, small, medium, large, or huge"));
+			DRUID.addAction(12, new SetParameterAction("wild_shape", "type", "animal or plant"));
+			DRUID.addAction(6, new SetParameterAction("wild_shape", "frequency", "2 times"));
+			DRUID.addAction(7, new SetParameterAction("wild_shape", "frequency", "3 times"));
+			DRUID.addAction(10, new SetParameterAction("wild_shape", "frequency", "4 times"));
+			DRUID.addAction(14, new SetParameterAction("wild_shape", "frequency", "5 times"));
+			DRUID.addAction(18, new SetParameterAction("wild_shape", "frequency", "6 times"));
+
+			DRUID.addAction(16, new AddFeatureAction("elemental_shape"));
+			DRUID.addAction(18, new SetParameterAction("elemental_shape", "size", "small, medium, large, or huge"));
+			DRUID.addAction(18, new SetParameterAction("elemental_shape", "frequency", "2 times"));
+			DRUID.addAction(20, new SetParameterAction("elemental_shape", "frequency", "3 times"));
+
+			final String[] fighterBonusFeats = {
+					"Improved Initiative", "Exotic Weapon Proficiency", Feat.FEAT_COMBAT_EXPERTISE, "Rapid Shot",
+					"Manyshot", Feat.FEAT_POWER_ATTACK, Feat.FEAT_TWO_WEAPON_FIGHTING,
+					Feat.FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Feat.FEAT_GREATER_TWO_WEAPON_FIGHTING,
+					Feat.FEAT_WEAPON_FINESSE, "Weapon Focus", "Greater Weapon Focus", "Dodge",
+					"Improved Shield Bash", "Two-Weapon Defense", "Improved Critical", "Weapon Specialization",
+					"Greater Weapon Specialization", "Improved Unarmed Strike", "Improved Grapple", "Blind-Fight",
+					"Improved Disarm", "Improved Feint", "Improved Trip", "Whirlwind Attack", "Combat Reflexes",
+					"Mobility", "Spring Attack", "Deflect Arrows", "Snatch Arrows", "Stunning Fist",
+					"Mounted Combat", "Mounted Archery", "Ride-By Attack", "Trample", "Spirited Charge",
+					"Point Blank Shot", "Far Shot", "Precise Shot", "Improved Precise Shot", "Shot on the Run",
+					"Cleave", "Great Cleave", "Improved Bull Rush", "Improved Overrun", "Improved Sunder",
+					"Rapid Reload", "Quick Draw"
+			};
+
+			FIGHTER.addAction(1, new AddBonusFeatAction("fighter_bonus_1", true, fighterBonusFeats));
+			FIGHTER.addAction(2, new AddBonusFeatAction("fighter_bonus_2", true, fighterBonusFeats));
+			FIGHTER.addAction(4, new AddBonusFeatAction("fighter_bonus_4", true, fighterBonusFeats));
+			FIGHTER.addAction(6, new AddBonusFeatAction("fighter_bonus_6", true, fighterBonusFeats));
+			FIGHTER.addAction(8, new AddBonusFeatAction("fighter_bonus_8", true, fighterBonusFeats));
+			FIGHTER.addAction(10, new AddBonusFeatAction("fighter_bonus_10", true, fighterBonusFeats));
+			FIGHTER.addAction(12, new AddBonusFeatAction("fighter_bonus_12", true, fighterBonusFeats));
+			FIGHTER.addAction(14, new AddBonusFeatAction("fighter_bonus_14", true, fighterBonusFeats));
+			FIGHTER.addAction(16, new AddBonusFeatAction("fighter_bonus_16", true, fighterBonusFeats));
+			FIGHTER.addAction(18, new AddBonusFeatAction("fighter_bonus_18", true, fighterBonusFeats));
+			FIGHTER.addAction(20, new AddBonusFeatAction("fighter_bonus_20", true, fighterBonusFeats));
+
 			MONK.addAction(1, new AddBonusFeatAction("monk_bonus_1", false, new String[] { "Improved Grapple", "Stunning Fist" }));
 			MONK.addAction(1, new AddBonusFeatAction(false, new String[] { "Improved Unarmed Strike" }));
 			MONK.addAction(2, new AddBonusFeatAction("monk_bonus_2", false, new String[] { "Combat Reflexes", "Deflect Arrows" }));
@@ -324,6 +407,43 @@ public enum CharacterClass {
 			MONK.addAction(16, new SetParameterAction("slow_fall", "height", 80));
 			MONK.addAction(18, new SetParameterAction("slow_fall", "height", 90));
 			MONK.addAction(18, new SetParameterAction("slow_fall", "template", 1));
+
+			//PALADIN
+			//RANGER
+			//ROGUE
+
+			SORCERER.addAction(1, new AddFeatureAction("sorcerer_spells"));
+			SORCERER.addAction(1, new AddFeatureAction("familiar"));
+
+			WIZARD.addAction(1, new AddFeatureAction("wizard_spells"));
+			WIZARD.addAction(1, new AddFeatureAction("familiar"));
+			WIZARD.addAction(1, new AddBonusFeatAction(false, new String[] { "Scribe Scroll" }));
+
+			final String[] wizardBonusFeats = {
+					"Spell Mastery",
+					"Empower Spell",
+					"Enlarge Spell",
+					"Extend Spell",
+					"Heighten Spell",
+					"Maximize Spell",
+					"Quicken Spell",
+					"Silent Spell",
+					"Still Spell",
+					"Widen Spell",
+					"Brew Potion",
+					"Craft Magic Arms and Armor",
+					"Craft Rod",
+					"Craft Staff",
+					"Craft Wand",
+					"Craft Wondrous Item",
+					"Forge Ring"
+			};
+
+			WIZARD.addAction(5, new AddBonusFeatAction("wizard_bonus_5", true, wizardBonusFeats));
+			WIZARD.addAction(10, new AddBonusFeatAction("wizard_bonus_10", true, wizardBonusFeats));
+			WIZARD.addAction(15, new AddBonusFeatAction("wizard_bonus_15", true, wizardBonusFeats));
+			WIZARD.addAction(20, new AddBonusFeatAction("wizard_bonus_20", true, wizardBonusFeats));
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

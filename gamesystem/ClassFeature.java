@@ -19,6 +19,7 @@ import java.util.Map;
  *   SetParameterAction - change a parameter on an existing class feature
  *
  * ToDo:
+ * Other core classes
  * Calculated parameters in output
  * Calculation system for determining variable bonuses, DCs, etc
  * UI for selecting options
@@ -150,8 +151,106 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 	}
 
 	static ClassFeatureDefinition[] featureDefinitions = {
+		// TODO should Bardic Knowledge be treated as a skill?
+		new ClassFeatureDefinition("bardic_knowledge", "Bardic Knowledge", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You can make a special knowledge check for stray bits of trivia. This check is 1d20 + bard level + Int mod."),
+
+		// TODO maybe have some way of making bardic music the parent of the sub-powers
+		new ClassFeatureDefinition("bardic_music", "Bardic Music")
+		.addSummary("Performances can create varied magical effects once per day per bard level."),	// TODO calculated value
+
+		new ClassFeatureDefinition("countersong", "Countersong", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("You can counter any sonic or language-dependent magical effect. Anyone within 30 feet can use your Perform check in place of their saving throw. You can maintain a countersong for 10 rounds."),
+
+		new ClassFeatureDefinition("fascinate", "Fascinate", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("You can fascinate 0 creature(s) within 90 feet. If you beat their Will save with a Perform check, they will listen quietly for up to 0 round(s)."),	// calculated values
+
+		new ClassFeatureDefinition("inspire_courage", "Inspire Courage", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("While singing, all allies who can hear you gain a +1 morale bonus to saving throws against charm and fear effects, and a +@(bonus) morale bonus to attack and weapon damage rolls. The effect lasts as long as you sing plus 5 rounds.")
+		.addParameter("bonus", 1),
+
+		new ClassFeatureDefinition("inspire_competence", "Inspire Competence", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("You can help an ally succeed at a task. They get a +2 competence bonus to skill checks as long as they are able to see and hear you and are within 30 feet. This can be maintained for 2 minutes."),
+
+		new ClassFeatureDefinition("suggestion", "Suggestion", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("You can make a suggestion (as the spell) to a creature you have already fascinated. Will save (DC 9 negates)."),	// calculated
+
+		new ClassFeatureDefinition("inspire_greatness", "Inspire Greatness", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("You can inspire up to -2 creature(s). This gives them +2 bonus Hit Dice (d10s), +2 competence bonus on attacks, and +1 competence bonus on Fortitude saves. This lasts as long as you play, and for 5 rounds after you stop."),	// calculated
+
+		new ClassFeatureDefinition("song_of_freedom", "Song of Freedom", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("With one minute of uninterrupted music and concentration you can affect a single target within 30 feet as though with a break enchantment spell."),
+
+		new ClassFeatureDefinition("inspire_heroics", "Inspire Heroics", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("You can inspire tremendous heroism in -4 willing ally(including yourself) within 30 feet. A creature so inspired gains a +4 morale bonus on saving throws and a +4 dodge bonus to AC."),
+
+		new ClassFeatureDefinition("mass_suggestion", "Mass Suggestion", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("You can make a suggestion (as the spell) to any creatures you have already fascinated. Will save (DC 9 negates)."),
+
+		// TODO aura needs to be split into four version predicated on deity's alignment
+		new ClassFeatureDefinition("aura", "Aura", SpecialAbilityType.EXTRAORDINARY)
+		.addParameter("strength", "a faint")
+		.addSummary("You have &(strength) aura corresponding to the alignment of your deity."),
+
+		// TODO restricted spells
+		new ClassFeatureDefinition("cleric_spells", "Spells")
+		.addSummary("You can cast divine spells from the cleric spell list and the relevant domain spell lists."),
+
+		// TODO split into cure and inflict versions. implement using choice of features
+		new ClassFeatureDefinition("cleric_spontaneous", "Spontaneous Casting")
+		.addSummary("Can spontaneously cast <i>cure</i> or <i>inflict</i> spells, by sacrificing a pre-prepared spell of equal or higher level."),
+
+		// TODO split into turn and rebuke versions. implement using choice of features
+		new ClassFeatureDefinition("turning", "Turn/Rebuke Undead", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("Can turn or rebuke undead (3 + Chr mod) times per day. A turning check is made on (1d20 + Chr mod); turning damage is equal to (2d6 + cleric level + Chr bonus) on a successful check."),	// TODO calculated values. turning check should be a statistic
+
+		// TODO restricted spells
+		new ClassFeatureDefinition("druid_spells", "Spells")
+		.addSummary("You can cast divine spells from the druid spell list."),
+
+		new ClassFeatureDefinition("druid_spontaneous", "Spontaneous Casting")
+		.addSummary("Can spontaneously cast <i>summon nature's ally</i> spells, by sacrificing a pre-prepared spell of equal or higher level."),
+
+		new ClassFeatureDefinition("animal_companion", "Animal Companion", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You may have an animal companion."),
+
+		new ClassFeatureDefinition("nature_sense", "Nature Sense", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You gain a +2 bonus on Knowledge (Nature) and Survival checks.")
+		.addBonus(Creature.STATISTIC_SKILLS + ".Knowledge (Nature)", 2)
+		.addBonus(Creature.STATISTIC_SKILLS + ".Survival", 2),
+
+		new ClassFeatureDefinition("wild_empathy", "Wild Empathy", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You can make a check (1d20 + druid level + Chr mod) to improve the attitude of an animal. You must be within 30 feet of it, and it generally takes one minute to perform the action."),	// TODO calculated value
+
+		new ClassFeatureDefinition("woodland_stride", "Woodland Stride", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You can move through natural thorns, briars, etc. at full speed and without suffering damage or impairment. Magically altered areas still hamper you."),
+
+		new ClassFeatureDefinition("trackless_step", "Trackless Step", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You leave no trail in natural surroundings, and cannot be tracked unless you choose to be."),
+
+		new ClassFeatureDefinition("resist_natures_lure", "Resist Nature's Lure", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("+4 to saving throws against the spell-like abilities of fey creatures.")
+		.addBonus(Creature.STATISTIC_SAVING_THROWS, 4, "vs spell-like abilities of fey"),
+
+		new ClassFeatureDefinition("wild_shape", "Wild Shape", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("You can turn yourself into a &(size) &(type) (and back) &(frequency) per day for 1 hour per druid level. The new form's Hit Dice cannot exceed your druid level.")
+		.addParameter("size", "small or medium")
+		.addParameter("type", "animal")
+		.addParameter("frequency", "once"),
+
+		new ClassFeatureDefinition("elemental_shape", "Elemental Shape", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("You can polymorph into a &(size) elemental &(frequency) per day; this functions identically to the Wild Shape ability, but is counted separately.")
+		.addParameter("size", "small, medium, or large")
+		.addParameter("frequency", "once"),
+
+		new ClassFeatureDefinition("venom_immunity", "Venom Immunity", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You are immune to all poisons."),
+
+		new ClassFeatureDefinition("thousand_faces", "A Thousand Faces", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("You can change your appearance at will, as if using the spell alter self."),
+
 		new ClassFeatureDefinition("ac_bonus", "AC Bonus", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("Add Wis bonus + &(bonus) AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")		// TODO calculate value
+		.addSummary("Add (Wis bonus + &(bonus)) AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")		// TODO calculate value
 		.addParameter("bonus", 0),
 
 		new ClassFeatureDefinition("flurry_of_blows", "Flurry of Blows", SpecialAbilityType.EXTRAORDINARY)
@@ -215,6 +314,15 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("You can become ethereal for monk level rounds per day, as the spell etherealness."),		// TODO calculate value
 
 		new ClassFeatureDefinition("perfect_self", "Perfect Self")
-		.addSummary("You are now considered an outsider. In addition, you gain damage resistance 10/magic.")
+		.addSummary("You are now considered an outsider. In addition, you gain damage resistance 10/magic."),
+
+		new ClassFeatureDefinition("sorcerer_spells", "Spells")
+		.addSummary("You can cast arcane spells drawn from the sorcerer/wizard spell list."),
+
+		new ClassFeatureDefinition("familiar", "Familiar")
+		.addSummary("You may call a familiar as a magical companion."),
+
+		new ClassFeatureDefinition("wizard_spells", "Spells")
+		.addSummary("You can cast arcane spells drawn from the sorcerer/wizard spell list.")
 	};
 }
