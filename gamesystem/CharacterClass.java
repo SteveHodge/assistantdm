@@ -267,7 +267,36 @@ public enum CharacterClass {
 	// TODO ChooseFeatureAction
 	static {
 		try {
-			//BARBARIAN
+			BARBARIAN.addAction(1, new AddFeatureAction("barbarian_fast_movement"));
+			BARBARIAN.addAction(1, new AddFeatureAction("illiteracy"));
+			BARBARIAN.addAction(2, new AddFeatureAction("uncanny_dodge"));	// TODO if already have uncanny_dodge then change this to improved_uncanny_dodge
+			BARBARIAN.addAction(5, new AddFeatureAction("improved_uncanny_dodge"));
+			BARBARIAN.addAction(14, new AddFeatureAction("indomitable_will"));
+			BARBARIAN.addAction(17, new AddFeatureAction("tireless_rage"));
+
+			BARBARIAN.addAction(1, new AddFeatureAction("rage"));
+			BARBARIAN.addAction(4, new SetParameterAction("rage", "times", "2 times"));
+			BARBARIAN.addAction(8, new SetParameterAction("rage", "times", "3 times"));
+			BARBARIAN.addAction(12, new SetParameterAction("rage", "times", "4 times"));
+			BARBARIAN.addAction(16, new SetParameterAction("rage", "times", "5 times"));
+			BARBARIAN.addAction(20, new SetParameterAction("rage", "times", "6 times"));
+			BARBARIAN.addAction(11, new SetParameterAction("rage", "ability_bonus", 6));
+			BARBARIAN.addAction(11, new SetParameterAction("rage", "save_bonus", 3));
+			BARBARIAN.addAction(20, new SetParameterAction("rage", "ability_bonus", 8));
+			BARBARIAN.addAction(20, new SetParameterAction("rage", "save_bonus", 4));
+
+			BARBARIAN.addAction(3, new AddFeatureAction("trap_sense"));
+			BARBARIAN.addAction(6, new SetParameterAction("trap_sense", "bonus", 2));
+			BARBARIAN.addAction(9, new SetParameterAction("trap_sense", "bonus", 3));
+			BARBARIAN.addAction(12, new SetParameterAction("trap_sense", "bonus", 4));
+			BARBARIAN.addAction(15, new SetParameterAction("trap_sense", "bonus", 5));
+			BARBARIAN.addAction(18, new SetParameterAction("trap_sense", "bonus", 6));
+
+			BARBARIAN.addAction(7, new AddFeatureAction("damage_reduction"));
+			BARBARIAN.addAction(10, new SetParameterAction("damage_reduction", "dr", 2));
+			BARBARIAN.addAction(13, new SetParameterAction("damage_reduction", "dr", 3));
+			BARBARIAN.addAction(16, new SetParameterAction("damage_reduction", "dr", 4));
+			BARBARIAN.addAction(19, new SetParameterAction("damage_reduction", "dr", 5));
 
 			BARD.addAction(1, new AddFeatureAction("bardic_knowledge"));
 			BARD.addAction(1, new AddFeatureAction("bardic_music"));
@@ -408,7 +437,35 @@ public enum CharacterClass {
 			MONK.addAction(18, new SetParameterAction("slow_fall", "height", 90));
 			MONK.addAction(18, new SetParameterAction("slow_fall", "template", 1));
 
-			//PALADIN
+			PALADIN.addAction(1, new AddFeatureAction("code_of_conduct"));
+
+			PALADIN.addAction(1, new AddFeatureAction("aura"));
+			PALADIN.addAction(2, new SetParameterAction("aura", "strength", "a moderate"));
+			PALADIN.addAction(5, new SetParameterAction("aura", "strength", "a strong"));
+			PALADIN.addAction(11, new SetParameterAction("aura", "strength", "an overwhelming"));
+
+			PALADIN.addAction(1, new AddFeatureAction("detect_evil"));
+
+			PALADIN.addAction(1, new AddFeatureAction("smite_evil"));
+			PALADIN.addAction(5, new SetParameterAction("smite_evil", "times", "2 times"));
+			PALADIN.addAction(10, new SetParameterAction("smite_evil", "times", "3 times"));
+			PALADIN.addAction(15, new SetParameterAction("smite_evil", "times", "4 times"));
+			PALADIN.addAction(20, new SetParameterAction("smite_evil", "times", "5 times"));
+
+			PALADIN.addAction(2, new AddFeatureAction("divine_grace"));
+			PALADIN.addAction(2, new AddFeatureAction("lay_on_hands"));
+			PALADIN.addAction(3, new AddFeatureAction("aura_of_courage"));
+			PALADIN.addAction(3, new AddFeatureAction("divine_health"));
+			PALADIN.addAction(4, new AddFeatureAction("turning"));
+			PALADIN.addAction(4, new AddFeatureAction("paladin_spells"));
+			PALADIN.addAction(5, new AddFeatureAction("special_mount"));
+
+			PALADIN.addAction(6, new AddFeatureAction("remove_disease"));
+			PALADIN.addAction(9, new SetParameterAction("remove_disease", "times", "2 times"));
+			PALADIN.addAction(12, new SetParameterAction("remove_disease", "times", "3 times"));
+			PALADIN.addAction(15, new SetParameterAction("remove_disease", "times", "4 times"));
+			PALADIN.addAction(18, new SetParameterAction("remove_disease", "times", "5 times"));
+
 			//RANGER
 			//ROGUE
 

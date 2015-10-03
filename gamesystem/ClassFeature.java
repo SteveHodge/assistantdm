@@ -151,6 +151,39 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 	}
 
 	static ClassFeatureDefinition[] featureDefinitions = {
+		new ClassFeatureDefinition("barbarian_fast_movement", "Fast Movement", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("+10 to land speed when in medium armor or lighter and not carrying a heavy load."),
+
+		new ClassFeatureDefinition("illiteracy", "Illiteracy")
+		.addSummary("Cannot read or write. Must spend 2 skill points to gain literacy or gain levels in another class."),
+
+		new ClassFeatureDefinition("rage", "Rage", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary(
+				"You can fly into a screaming frenzy once per encounter, up to @(times) per day. This gives +@(ability_bonus) to Strength and Constitution, and a +@(save_bonus) morale bonus to Will saves, but gives a -2 penalty to AC. Cannot use any skills that require patience or concentration while enraged. Your rage lasts up to 3 + Con mod rounds.")	// calculated
+				.addParameter("times", "once")
+				.addParameter("ability_bonus", 4)
+				.addParameter("save_bonus", 2),
+
+				new ClassFeatureDefinition("uncanny_dodge", "Uncanny Dodge", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You retain your Dexterity bonus to AC even if flatfooted or struck by an invisible attacker."),
+
+		new ClassFeatureDefinition("improved_uncanny_dodge", "Improved Uncanny Dodge", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("Can no longer be flanked."),
+
+		new ClassFeatureDefinition("trap_sense", "Trap Sense", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("+@(bonus) to Reflex saves and AC against traps.")
+		.addParameter("bonus", 1),
+
+		new ClassFeatureDefinition("damage_reduction", "Damage Reduction", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("@(dr)/–")
+		.addParameter("dr", 1),
+
+		new ClassFeatureDefinition("indomitable_will", "Indomitable Will", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("While in a rage you gain a +4 bonus on Will saves to resist Enchantment spells."),
+
+		new ClassFeatureDefinition("tireless_rage", "Tireless Rage", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You no longer become fatigued at the end of your rage"),
+
 		// TODO should Bardic Knowledge be treated as a skill?
 		new ClassFeatureDefinition("bardic_knowledge", "Bardic Knowledge", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You can make a special knowledge check for stray bits of trivia. This check is 1d20 + bard level + Int mod."),
@@ -315,6 +348,38 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 
 		new ClassFeatureDefinition("perfect_self", "Perfect Self")
 		.addSummary("You are now considered an outsider. In addition, you gain damage resistance 10/magic."),
+
+		new ClassFeatureDefinition("code_of_conduct", "Code of Conduct")
+		.addSummary("You must remain Good. You must respect legitimate authority, act with honor, help those in need, and punish those that harm or threaten innocents. You must never knowingly associate with evil characters, or those that consistently offend your moral code."),
+
+		new ClassFeatureDefinition("detect_evil", "Detect Evil", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("At will, as the spell."),
+
+		new ClassFeatureDefinition("smite_evil", "Smite Evil", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("@(times) per day, you can add your Chr bonus to your attack roll; if the creature you strike is evil, you inflict an extra damage equal to your paladin level.")	// calculated
+		.addParameter("times", "Once"),
+
+		new ClassFeatureDefinition("divine_grace", "Divine Grace", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("Add a bonus equal to your Chr bonus to all saves."),	// calculated
+
+		new ClassFeatureDefinition("lay_on_hands", "Lay on Hands", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("As a standard action, you can heal yourself or someone else. You can cure a total points of damage equal to your paladin level x your Chr bonus per day. These points can also be used to harm undead."),	// calculated
+
+		new ClassFeatureDefinition("aura_of_courage", "Aura of Courage", SpecialAbilityType.SUPERNATURAL)
+		.addSummary("You are immune to fear. All allies within 10 feet of you gain a +4 morale bonus to save against fear effects."),
+
+		new ClassFeatureDefinition("divine_health", "Divine Health", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You are immune to all diseases, including magical diseases such as mummy rot and lycanthropy."),
+
+		new ClassFeatureDefinition("paladin_spells", "Spells")
+		.addSummary("You cast divine spells drawn from the paladin spell list. Your caster level is 0."),	// calculated
+
+		new ClassFeatureDefinition("special_mount", "Special Mount", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("Once per day you can call your special steed to serve you for up to two hours per paladin level."),	// calculated
+
+		new ClassFeatureDefinition("remove_disease", "Remove Disease", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("You can cast remove disease @(times) per week, as the spell.")
+		.addParameter("times", "once"),
 
 		new ClassFeatureDefinition("sorcerer_spells", "Spells")
 		.addSummary("You can cast arcane spells drawn from the sorcerer/wizard spell list."),
