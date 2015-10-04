@@ -265,6 +265,7 @@ public enum CharacterClass {
 
 	//TODO monk Armor Restriction: If wearing ANY armor or carrying a shield, you lose your Wisdom bonus to AC, fast movement and flurry of blows abilities.
 	// TODO ChooseFeatureAction
+	// TODO IfFeatureExistsAction - if-then-else
 	static {
 		try {
 			BARBARIAN.addAction(1, new AddFeatureAction("barbarian_fast_movement"));
@@ -301,12 +302,27 @@ public enum CharacterClass {
 			BARD.addAction(1, new AddFeatureAction("bardic_knowledge"));
 			BARD.addAction(1, new AddFeatureAction("bardic_music"));
 			BARD.addAction(1, new AddFeatureAction("countersong"));
+
 			BARD.addAction(1, new AddFeatureAction("fascinate"));
+			BARD.addAction(4, new SetParameterAction("fascinate", "targets", 2));
+			BARD.addAction(7, new SetParameterAction("fascinate", "targets", 3));
+			BARD.addAction(10, new SetParameterAction("fascinate", "targets", 4));
+			BARD.addAction(13, new SetParameterAction("fascinate", "targets", 5));
+			BARD.addAction(16, new SetParameterAction("fascinate", "targets", 6));
+			BARD.addAction(19, new SetParameterAction("fascinate", "targets", 7));
+
 			BARD.addAction(3, new AddFeatureAction("inspire_competence"));
 			BARD.addAction(6, new AddFeatureAction("suggestion"));
+
 			BARD.addAction(9, new AddFeatureAction("inspire_greatness"));
+			BARD.addAction(12, new SetParameterAction("inspire_greatness", "targets", 2));
+			BARD.addAction(15, new SetParameterAction("inspire_greatness", "targets", 3));
+			BARD.addAction(18, new SetParameterAction("inspire_greatness", "targets", 4));
+
 			BARD.addAction(12, new AddFeatureAction("song_of_freedom"));
 			BARD.addAction(15, new AddFeatureAction("inspire_heroics"));
+			BARD.addAction(18, new SetParameterAction("inspire_heroics", "targets", 2));
+
 			BARD.addAction(18, new AddFeatureAction("mass_suggestion"));
 
 			BARD.addAction(1, new AddFeatureAction("inspire_courage"));

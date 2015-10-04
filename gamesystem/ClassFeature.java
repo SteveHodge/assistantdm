@@ -1,5 +1,11 @@
 package gamesystem;
 
+import gamesystem.CalculatedValue.AbilityMod;
+import gamesystem.CalculatedValue.Calculation;
+import gamesystem.CalculatedValue.ClassLevel;
+import gamesystem.CalculatedValue.Constant;
+import gamesystem.CalculatedValue.Product;
+import gamesystem.CalculatedValue.Sum;
 import gamesystem.ClassFeature.ClassFeatureDefinition;
 
 import java.util.ArrayList;
@@ -19,8 +25,6 @@ import java.util.Map;
  *   SetParameterAction - change a parameter on an existing class feature
  *
  * ToDo:
- * Other core classes
- * Calculated parameters in output
  * Calculation system for determining variable bonuses, DCs, etc
  * UI for selecting options
  * ClassFeatures might need to track what classes they came from. this might be important for things that stack across classes
@@ -50,6 +54,11 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		return String.format("%s (%s)", definition.name, definition.type.getAbbreviation());
 	}
 
+	public String getNameAndTypeHTML() {
+		if (definition.type == SpecialAbilityType.SPELL_LIKE) return String.format("<i>%s</i> (%s)", definition.name, definition.type.getAbbreviation());
+		return getNameAndType();
+	}
+
 	public String getSummary() {
 		String out = new String(definition.summaries.get(template));
 		if (parameters != null) {
@@ -58,6 +67,22 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			}
 		}
 		return out;
+	}
+
+	@Override
+	public void apply(Creature c) {
+		super.apply(c);
+
+		// bind any calculated values in the parameters
+		if (parameters != null) {
+			for (String p : parameters.keySet()) {
+				Object v = parameters.get(p);
+				if (v instanceof Calculation) {
+					CalculatedValue val = new CalculatedValue((Calculation) v, c);
+					parameters.put(p, val);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -159,10 +184,11 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 
 		new ClassFeatureDefinition("rage", "Rage", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary(
-				"You can fly into a screaming frenzy once per encounter, up to @(times) per day. This gives +@(ability_bonus) to Strength and Constitution, and a +@(save_bonus) morale bonus to Will saves, but gives a -2 penalty to AC. Cannot use any skills that require patience or concentration while enraged. Your rage lasts up to 3 + Con mod rounds.")	// calculated
+				"You can fly into a screaming frenzy once per encounter, up to &(times) per day. This gives +&(ability_bonus) to Strength and Constitution, and a +&(save_bonus) morale bonus to Will saves, but gives a -2 penalty to AC. Cannot use any skills that require patience or concentration while enraged. Your rage lasts up to &(duration) rounds.")
 				.addParameter("times", "once")
 				.addParameter("ability_bonus", 4)
-				.addParameter("save_bonus", 2),
+				.addParameter("save_bonus", 2)
+				.addParameter("duration", new Sum(new Constant(3), new AbilityMod(AbilityScore.Type.CONSTITUTION))),	// TODO should include the ability bonus/2 (as it's con mod after the bonus)
 
 				new ClassFeatureDefinition("uncanny_dodge", "Uncanny Dodge", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You retain your Dexterity bonus to AC even if flatfooted or struck by an invisible attacker."),
@@ -170,12 +196,12 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		new ClassFeatureDefinition("improved_uncanny_dodge", "Improved Uncanny Dodge", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Can no longer be flanked."),
 
-		new ClassFeatureDefinition("trap_sense", "Trap Sense", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("+@(bonus) to Reflex saves and AC against traps.")
+		new ClassFeatureDefinition("trap_sense", "Trap Sense", SpecialAbilityType.EXTRAORDINARY)	// TODO bonuses
+		.addSummary("+&(bonus) to Reflex saves and AC against traps.")
 		.addParameter("bonus", 1),
 
 		new ClassFeatureDefinition("damage_reduction", "Damage Reduction", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("@(dr)/–")
+		.addSummary("&(dr)/-")
 		.addParameter("dr", 1),
 
 		new ClassFeatureDefinition("indomitable_will", "Indomitable Will", SpecialAbilityType.EXTRAORDINARY)
@@ -186,39 +212,51 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 
 		// TODO should Bardic Knowledge be treated as a skill?
 		new ClassFeatureDefinition("bardic_knowledge", "Bardic Knowledge", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("You can make a special knowledge check for stray bits of trivia. This check is 1d20 + bard level + Int mod."),
+		.addSummary("You can make a special knowledge check for stray bits of trivia. This check is 1d20 + &(bonus).")	// TODO formatting for negative bonuses
+		.addParameter("bonus", new Sum(new ClassLevel(CharacterClass.BARD), new AbilityMod(AbilityScore.Type.INTELLIGENCE))),
 
 		// TODO maybe have some way of making bardic music the parent of the sub-powers
 		new ClassFeatureDefinition("bardic_music", "Bardic Music")
-		.addSummary("Performances can create varied magical effects once per day per bard level."),	// TODO calculated value
+		.addSummary("Performances can create varied magical effects &(level) times per day.")
+		.addParameter("level", new ClassLevel(CharacterClass.BARD)),
 
 		new ClassFeatureDefinition("countersong", "Countersong", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("You can counter any sonic or language-dependent magical effect. Anyone within 30 feet can use your Perform check in place of their saving throw. You can maintain a countersong for 10 rounds."),
 
 		new ClassFeatureDefinition("fascinate", "Fascinate", SpecialAbilityType.SPELL_LIKE)
-		.addSummary("You can fascinate 0 creature(s) within 90 feet. If you beat their Will save with a Perform check, they will listen quietly for up to 0 round(s)."),	// calculated values
+		.addSummary("You can fascinate &(targets) creature(s) within 90 feet. If you beat their Will save with a Perform check, they will listen quietly for up to &(level) round(s).")
+		.addParameter("targets", 1)
+		.addParameter("level", new ClassLevel(CharacterClass.BARD)),
 
 		new ClassFeatureDefinition("inspire_courage", "Inspire Courage", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("While singing, all allies who can hear you gain a +1 morale bonus to saving throws against charm and fear effects, and a +@(bonus) morale bonus to attack and weapon damage rolls. The effect lasts as long as you sing plus 5 rounds.")
-		.addParameter("bonus", 1),
+		.addSummary(
+				"While singing, all allies who can hear you gain a +&(bonus) morale bonus to saving throws against charm and fear effects, and a +&(bonus) morale bonus to attack and weapon damage rolls. The effect lasts as long as you sing plus 5 rounds.")
+				.addParameter("bonus", 1),
 
-		new ClassFeatureDefinition("inspire_competence", "Inspire Competence", SpecialAbilityType.SUPERNATURAL)
+				new ClassFeatureDefinition("inspire_competence", "Inspire Competence", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("You can help an ally succeed at a task. They get a +2 competence bonus to skill checks as long as they are able to see and hear you and are within 30 feet. This can be maintained for 2 minutes."),
 
 		new ClassFeatureDefinition("suggestion", "Suggestion", SpecialAbilityType.SPELL_LIKE)
-		.addSummary("You can make a suggestion (as the spell) to a creature you have already fascinated. Will save (DC 9 negates)."),	// calculated
+		.addSummary("You can make a <i>suggestion</i> (as the spell) to a creature you have already fascinated. Will save DC &(dc) negates.")
+		.addParameter("dc", new Sum(new Constant(10), new ClassLevel(CharacterClass.BARD, 0.5f), new AbilityMod(AbilityScore.Type.CHARISMA))),
 
 		new ClassFeatureDefinition("inspire_greatness", "Inspire Greatness", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can inspire up to -2 creature(s). This gives them +2 bonus Hit Dice (d10s), +2 competence bonus on attacks, and +1 competence bonus on Fortitude saves. This lasts as long as you play, and for 5 rounds after you stop."),	// calculated
+		.addSummary(
+				"You can inspire up to &(targets) creature(s). This gives them +2 bonus Hit Dice (d10s), +2 competence bonus on attacks, and +1 competence bonus on Fortitude saves. This lasts as long as you play, and for 5 rounds after you stop.")
+				.addParameter("targets", 1),
 
-		new ClassFeatureDefinition("song_of_freedom", "Song of Freedom", SpecialAbilityType.SPELL_LIKE)
-		.addSummary("With one minute of uninterrupted music and concentration you can affect a single target within 30 feet as though with a break enchantment spell."),
+				new ClassFeatureDefinition("song_of_freedom", "Song of Freedom", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("With one minute of uninterrupted music and concentration you can affect a single target within 30 feet as though with a break enchantment spell (CL &(level)).")
+		.addParameter("level", new ClassLevel(CharacterClass.BARD)),
 
 		new ClassFeatureDefinition("inspire_heroics", "Inspire Heroics", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can inspire tremendous heroism in -4 willing ally(including yourself) within 30 feet. A creature so inspired gains a +4 morale bonus on saving throws and a +4 dodge bonus to AC."),
+		.addSummary(
+				"You can inspire tremendous heroism in &(targets) willing allies (including yourself) within 30 feet. A creature so inspired gains a +4 morale bonus on saving throws and a +4 dodge bonus to AC.")
+				.addParameter("targets", 1),
 
-		new ClassFeatureDefinition("mass_suggestion", "Mass Suggestion", SpecialAbilityType.SPELL_LIKE)
-		.addSummary("You can make a suggestion (as the spell) to any creatures you have already fascinated. Will save (DC 9 negates)."),
+				new ClassFeatureDefinition("mass_suggestion", "Mass Suggestion", SpecialAbilityType.SPELL_LIKE)
+		.addSummary("You can make a <i>suggestion</i> to any creatures you have already fascinated. Will save DC &(dc) negates).")
+		.addParameter("dc", new Sum(new Constant(10), new ClassLevel(CharacterClass.BARD, 0.5f), new AbilityMod(AbilityScore.Type.CHARISMA))),
 
 		// TODO aura needs to be split into four version predicated on deity's alignment
 		new ClassFeatureDefinition("aura", "Aura", SpecialAbilityType.EXTRAORDINARY)
@@ -234,11 +272,16 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("Can spontaneously cast <i>cure</i> or <i>inflict</i> spells, by sacrificing a pre-prepared spell of equal or higher level."),
 
 		// TODO split into turn and rebuke versions. implement using choice of features
+		// TODO handle paladin case. Paladin should just set the dmgmod parameter correctly, but we'll need to rebind
 		new ClassFeatureDefinition("turning", "Turn/Rebuke Undead", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("Can turn or rebuke undead (3 + Chr mod) times per day. A turning check is made on (1d20 + Chr mod); turning damage is equal to (2d6 + cleric level + Chr bonus) on a successful check."),	// TODO calculated values. turning check should be a statistic
+		.addSummary(
+				"Can turn or rebuke undead &(times) times per day. A turning check is made on (1d20 + &(chrmod)); turning damage is equal to (2d6 + &(dmgmod)) on a successful check.")
+				.addParameter("times", new Sum(new Constant(3), new AbilityMod(AbilityScore.Type.CHARISMA)))
+				.addParameter("chrmod", new AbilityMod(AbilityScore.Type.CHARISMA))
+				.addParameter("dmgmod", new Sum(new ClassLevel(CharacterClass.CLERIC), new AbilityMod(AbilityScore.Type.CHARISMA))),
 
-		// TODO restricted spells
-		new ClassFeatureDefinition("druid_spells", "Spells")
+				// TODO restricted spells
+				new ClassFeatureDefinition("druid_spells", "Spells")
 		.addSummary("You can cast divine spells from the druid spell list."),
 
 		new ClassFeatureDefinition("druid_spontaneous", "Spontaneous Casting")
@@ -252,10 +295,13 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addBonus(Creature.STATISTIC_SKILLS + ".Knowledge (Nature)", 2)
 		.addBonus(Creature.STATISTIC_SKILLS + ".Survival", 2),
 
+		// TODO for ranger, need to reset the param correctly, but we'll need to rebind.
 		new ClassFeatureDefinition("wild_empathy", "Wild Empathy", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("You can make a check (1d20 + druid level + Chr mod) to improve the attitude of an animal. You must be within 30 feet of it, and it generally takes one minute to perform the action."),	// TODO calculated value
+		.addSummary(
+				"You can make a check (1d20 + &(bonus)) to improve the attitude of an animal. You must be within 30 feet of it, and it generally takes one minute to perform the action.")
+				.addParameter("bonus", new Sum(new ClassLevel(CharacterClass.DRUID), new AbilityMod(AbilityScore.Type.CHARISMA))),
 
-		new ClassFeatureDefinition("woodland_stride", "Woodland Stride", SpecialAbilityType.EXTRAORDINARY)
+				new ClassFeatureDefinition("woodland_stride", "Woodland Stride", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You can move through natural thorns, briars, etc. at full speed and without suffering damage or impairment. Magically altered areas still hamper you."),
 
 		new ClassFeatureDefinition("trackless_step", "Trackless Step", SpecialAbilityType.EXTRAORDINARY)
@@ -266,10 +312,11 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addBonus(Creature.STATISTIC_SAVING_THROWS, 4, "vs spell-like abilities of fey"),
 
 		new ClassFeatureDefinition("wild_shape", "Wild Shape", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can turn yourself into a &(size) &(type) (and back) &(frequency) per day for 1 hour per druid level. The new form's Hit Dice cannot exceed your druid level.")
+		.addSummary("You can turn yourself into a &(size) &(type) &(frequency) per day for up to &(level) hours. The new form's Hit Dice cannot exceed &(level).")
 		.addParameter("size", "small or medium")
 		.addParameter("type", "animal")
-		.addParameter("frequency", "once"),
+		.addParameter("frequency", "once")
+		.addParameter("level", new ClassLevel(CharacterClass.DRUID)),
 
 		new ClassFeatureDefinition("elemental_shape", "Elemental Shape", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("You can polymorph into a &(size) elemental &(frequency) per day; this functions identically to the Wild Shape ability, but is counted separately.")
@@ -280,7 +327,7 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("You are immune to all poisons."),
 
 		new ClassFeatureDefinition("thousand_faces", "A Thousand Faces", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can change your appearance at will, as if using the spell alter self."),
+		.addSummary("You can change your appearance at will, as if using the spell <i>alter self</i>."),
 
 		new ClassFeatureDefinition("ac_bonus", "AC Bonus", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Add (Wis bonus + &(bonus)) AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")		// TODO calculate value
@@ -323,19 +370,23 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("Immune to all diseases except supernatural and magical diseases."),
 
 		new ClassFeatureDefinition("wholeness_of_body", "Wholeness of Body", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can heal your own wounds, up to double your monk level points per day."),	// TODO calculated value
+		.addSummary("You can heal your own wounds, up to &(healing) points per day.")
+		.addParameter("healing", new Product(new Constant(2), new ClassLevel(CharacterClass.MONK))),
 
 		new ClassFeatureDefinition("diamond_body", "Diamond Body", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("You are immune to all poisons."),
 
 		new ClassFeatureDefinition("abundant_step", "Abundant Step", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can slip between spaces as if using the spell dimension door once per day, cast at half your monk level."),		// TODO calculate value
+		.addSummary("You can slip between spaces as if using the spell <i>dimension door</i> once per day, CL &(level).")
+		.addParameter("level", new ClassLevel(CharacterClass.MONK, 0.5f)),
 
 		new ClassFeatureDefinition("diamond_soul", "Diamond Soul", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("You have spell resistance of 10 + your monk level."),		// TODO calculate value
+		.addSummary("You have spell resistance of &(SR).")
+		.addParameter("SR", new Sum(new Constant(10), new ClassLevel(CharacterClass.MONK))),
 
 		new ClassFeatureDefinition("quivering_palm", "Quivering Palm", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("(1/week) If you damage the victim with an unarmed attack, you can slay them with an act of will any time within monk level days."),		// TODO calculate value
+		.addSummary("(1/week) If you damage the victim with an unarmed attack, you can slay them with an act of will any time within &(level) days.")
+		.addParameter("level", new ClassLevel(CharacterClass.MONK)),
 
 		new ClassFeatureDefinition("timeless_body", "Timeless Body", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You no longer suffer additional penalties for aging, and cannot be magically aged. Your lifespan is not increased."),
@@ -344,10 +395,11 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("You can speak with any living creature."),
 
 		new ClassFeatureDefinition("empty_body", "Empty Body", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("You can become ethereal for monk level rounds per day, as the spell etherealness."),		// TODO calculate value
+		.addSummary("You can become ethereal for &(level) rounds per day, as the <i>spell etherealness</i>.")
+		.addParameter("level", new ClassLevel(CharacterClass.MONK)),
 
 		new ClassFeatureDefinition("perfect_self", "Perfect Self")
-		.addSummary("You are now considered an outsider. In addition, you gain damage resistance 10/magic."),
+		.addSummary("You are now considered an outsider. In addition, you gain damage reduction 10/magic."),
 
 		new ClassFeatureDefinition("code_of_conduct", "Code of Conduct")
 		.addSummary("You must remain Good. You must respect legitimate authority, act with honor, help those in need, and punish those that harm or threaten innocents. You must never knowingly associate with evil characters, or those that consistently offend your moral code."),
@@ -356,14 +408,18 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("At will, as the spell."),
 
 		new ClassFeatureDefinition("smite_evil", "Smite Evil", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("@(times) per day, you can add your Chr bonus to your attack roll; if the creature you strike is evil, you inflict an extra damage equal to your paladin level.")	// calculated
-		.addParameter("times", "Once"),
+		.addSummary("&(times) per day, add &(chrbonus) to your attack roll; if the creature you strike is evil, you inflict +&(level) extra damage.")
+		.addParameter("times", "Once")
+		.addParameter("chrbonus", new AbilityMod(AbilityScore.Type.CHARISMA, true))
+		.addParameter("level", new ClassLevel(CharacterClass.PALADIN)),
 
 		new ClassFeatureDefinition("divine_grace", "Divine Grace", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("Add a bonus equal to your Chr bonus to all saves."),	// calculated
+		.addSummary("Add a +&(chrbonus) bonus to all saves.")
+		.addParameter("chrbonus", new AbilityMod(AbilityScore.Type.CHARISMA, true)),		// TODO apply bonus
 
 		new ClassFeatureDefinition("lay_on_hands", "Lay on Hands", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("As a standard action, you can heal yourself or someone else. You can cure a total points of damage equal to your paladin level x your Chr bonus per day. These points can also be used to harm undead."),	// calculated
+		.addSummary("As a standard action, you can heal yourself or someone else. You can cure &(total) points of damage per day. These points can also be used to harm undead.")
+		.addParameter("total", new Product(new ClassLevel(CharacterClass.PALADIN), new AbilityMod(AbilityScore.Type.CHARISMA, true))),
 
 		new ClassFeatureDefinition("aura_of_courage", "Aura of Courage", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("You are immune to fear. All allies within 10 feet of you gain a +4 morale bonus to save against fear effects."),
@@ -372,13 +428,15 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("You are immune to all diseases, including magical diseases such as mummy rot and lycanthropy."),
 
 		new ClassFeatureDefinition("paladin_spells", "Spells")
-		.addSummary("You cast divine spells drawn from the paladin spell list. Your caster level is 0."),	// calculated
+		.addSummary("You cast divine spells drawn from the paladin spell list. Your caster level is &(cl).")
+		.addParameter("cl", new ClassLevel(CharacterClass.PALADIN, 0.5f)),
 
 		new ClassFeatureDefinition("special_mount", "Special Mount", SpecialAbilityType.SPELL_LIKE)
-		.addSummary("Once per day you can call your special steed to serve you for up to two hours per paladin level."),	// calculated
+		.addSummary("Once per day you can call your special steed to serve you for up to &(duration) hours.")
+		.addParameter("duration", new ClassLevel(CharacterClass.PALADIN, 2)),
 
 		new ClassFeatureDefinition("remove_disease", "Remove Disease", SpecialAbilityType.SPELL_LIKE)
-		.addSummary("You can cast remove disease @(times) per week, as the spell.")
+		.addSummary("You can cast remove disease &(times) per week, as the spell.")
 		.addParameter("times", "once"),
 
 		// TODO choose enemy, calculate bonuses
@@ -386,7 +444,8 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("You have certain types of enemies that you have extensive knowledge about. Against these creatures, you gain the listed bonus to Bluff, Listen, Sense Motive, Spot, and Survival checks, as well as weapon damage rolls."),
 
 		new ClassFeatureDefinition("ranger_spells", "Spells")
-		.addSummary("You can cast divine spells drawn from the ranger spell list"),
+		.addSummary("You can cast divine spells drawn from the ranger spell list. Your caster level is &(cl).")
+		.addParameter("cl", new ClassLevel(CharacterClass.RANGER, 0.5f)),
 
 		new ClassFeatureDefinition("swift_tracker", "Swift Tracker", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You can move your normal speed while following tracks without taking the normal -5 penalty. You take only a -10 penalty when moving at up to twice normal speed."),
@@ -398,21 +457,23 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("While in any sort of natural terrain, you can use the Hide skill, even while being observed."),
 
 		new ClassFeatureDefinition("sneak_attack", "Sneak Attack", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("Any time someone you attack is denied their Dexterity bonus to AC, or you are flanking them, you inflict an extra @(dice) damage. Ranged attacks must be within 30 feet to gain this, and this extra damage is not increased on a critical hit. Creatures that are immune to critical hits ignore this damage, as do creatures with concealment.")
-		.addParameter("dice", "1d6"),
+		.addSummary(
+				"Any time someone you attack is denied their Dexterity bonus to AC, or you are flanking them, you inflict an extra &(dice) damage. Ranged attacks must be within 30 feet to gain this, and this extra damage is not increased on a critical hit. Creatures that are immune to critical hits ignore this damage, as do creatures with concealment.")
+				.addParameter("dice", "1d6"),
 
-		new ClassFeatureDefinition("trapfinding", "Trapfinding", SpecialAbilityType.EXTRAORDINARY)
+				new ClassFeatureDefinition("trapfinding", "Trapfinding", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You can use the Search skill to locate traps when the task has a DC higher than 20. You can use the Disable Device skill to disarm magic traps."),
 
 		new ClassFeatureDefinition("crippling_strike", "Crippling Strike", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Sneak attacks addtionally deal 2 points of Strength damage."),
 
 		new ClassFeatureDefinition("defensive_roll", "Defensive Roll", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("Once per day, when you would bew reduced to 0 or fewer hps by damage in combat, and provided you are denied your Dex bonus to AC, you may make a Reflex save (DC = damage dealt) to take half damage."),
+		.addSummary("Once per day, when you would bew reduced to 0 or fewer hps by damage in combat, and provided you are not denied your Dex bonus to AC, you may make a Reflex save (DC = damage dealt) to take half damage."),
 
 		new ClassFeatureDefinition("opportunist", "Opportunist", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Once per round you may take an attack of opportunity against an opponent who has just been struck for melee damage."),
 
+		// TODO select skills
 		new ClassFeatureDefinition("skill_mastery", "Skill Mastery")
 		.addSummary("You may always take a 10 when using selected skills."),
 

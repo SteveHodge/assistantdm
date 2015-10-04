@@ -113,7 +113,8 @@ public class CharacterSheetView {
 			for (ClassFeature f : character.features) {
 				Element el;
 				try {
-					String html = "<Ability>" + f.getNameAndType() + ": " + f.getSummary() + "</Ability>";
+					// building an html string and then parsing it lets us handle html in the content correctly (it gets escaped when using setTextContent)
+					String html = "<Ability>" + f.getNameAndTypeHTML() + ": " + f.getSummary() + "</Ability>";
 
 					DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 					Document d = factory.newDocumentBuilder().parse(new InputSource(new StringReader(html)));
