@@ -381,6 +381,44 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		.addSummary("You can cast remove disease @(times) per week, as the spell.")
 		.addParameter("times", "once"),
 
+		// TODO choose enemy, calculate bonuses
+		new ClassFeatureDefinition("favored_enemy", "Favored Enemy", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You have certain types of enemies that you have extensive knowledge about. Against these creatures, you gain the listed bonus to Bluff, Listen, Sense Motive, Spot, and Survival checks, as well as weapon damage rolls."),
+
+		new ClassFeatureDefinition("ranger_spells", "Spells")
+		.addSummary("You can cast divine spells drawn from the ranger spell list"),
+
+		new ClassFeatureDefinition("swift_tracker", "Swift Tracker", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You can move your normal speed while following tracks without taking the normal -5 penalty. You take only a -10 penalty when moving at up to twice normal speed."),
+
+		new ClassFeatureDefinition("camouflage", "Camouflage", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You can use the Hide skill in any sort of natural terrain, even if the terrain doesn't grant cover or concealment."),
+
+		new ClassFeatureDefinition("hide_in_plain_sight", "Hide in Plain Sight", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("While in any sort of natural terrain, you can use the Hide skill, even while being observed."),
+
+		new ClassFeatureDefinition("sneak_attack", "Sneak Attack", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("Any time someone you attack is denied their Dexterity bonus to AC, or you are flanking them, you inflict an extra @(dice) damage. Ranged attacks must be within 30 feet to gain this, and this extra damage is not increased on a critical hit. Creatures that are immune to critical hits ignore this damage, as do creatures with concealment.")
+		.addParameter("dice", "1d6"),
+
+		new ClassFeatureDefinition("trapfinding", "Trapfinding", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You can use the Search skill to locate traps when the task has a DC higher than 20. You can use the Disable Device skill to disarm magic traps."),
+
+		new ClassFeatureDefinition("crippling_strike", "Crippling Strike", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("Sneak attacks addtionally deal 2 points of Strength damage."),
+
+		new ClassFeatureDefinition("defensive_roll", "Defensive Roll", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("Once per day, when you would bew reduced to 0 or fewer hps by damage in combat, and provided you are denied your Dex bonus to AC, you may make a Reflex save (DC = damage dealt) to take half damage."),
+
+		new ClassFeatureDefinition("opportunist", "Opportunist", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("Once per round you may take an attack of opportunity against an opponent who has just been struck for melee damage."),
+
+		new ClassFeatureDefinition("skill_mastery", "Skill Mastery")
+		.addSummary("You may always take a 10 when using selected skills."),
+
+		new ClassFeatureDefinition("slippery_mind", "Slippery Mind", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("If you are effected by an enchantment spell or effect, you may retake your saving throw 1 round later at the same DC."),
+
 		new ClassFeatureDefinition("sorcerer_spells", "Spells")
 		.addSummary("You can cast arcane spells drawn from the sorcerer/wizard spell list."),
 

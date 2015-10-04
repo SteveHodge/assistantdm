@@ -466,8 +466,52 @@ public enum CharacterClass {
 			PALADIN.addAction(15, new SetParameterAction("remove_disease", "times", "4 times"));
 			PALADIN.addAction(18, new SetParameterAction("remove_disease", "times", "5 times"));
 
-			//RANGER
-			//ROGUE
+			RANGER.addAction(1, new AddFeatureAction("favored_enemy"));
+			RANGER.addAction(1, new AddBonusFeatAction(false, new String[] { "Track" }));
+			RANGER.addAction(1, new AddFeatureAction("wild_empathy"));
+			// TODO 2 combat style
+			RANGER.addAction(3, new AddBonusFeatAction(false, new String[] { "Endurance" }));
+			RANGER.addAction(4, new AddFeatureAction("animal_companion"));
+			RANGER.addAction(4, new AddFeatureAction("ranger_spells"));
+			// TODO 5 second favoured enemy
+			// TODO 6 improved combat style
+			RANGER.addAction(7, new AddFeatureAction("woodland_stride"));
+			RANGER.addAction(8, new AddFeatureAction("swift_tracker"));
+			RANGER.addAction(9, new AddFeatureAction("evasion"));
+			// TODO 10 third favoured enemy
+			// TODO 11 combat style mastery
+			RANGER.addAction(13, new AddFeatureAction("camouflage"));
+			// TODO 15 fourth favoured enemy
+			RANGER.addAction(17, new AddFeatureAction("hide_in_plain_sight"));
+			// TODO 20 fifth favoured enemy
+
+			ROGUE.addAction(1, new AddFeatureAction("sneak_attack"));
+			ROGUE.addAction(3, new SetParameterAction("sneak_attack", "dice", "2d6"));
+			ROGUE.addAction(5, new SetParameterAction("sneak_attack", "dice", "3d6"));
+			ROGUE.addAction(7, new SetParameterAction("sneak_attack", "dice", "4d6"));
+			ROGUE.addAction(9, new SetParameterAction("sneak_attack", "dice", "5d6"));
+			ROGUE.addAction(11, new SetParameterAction("sneak_attack", "dice", "6d6"));
+			ROGUE.addAction(13, new SetParameterAction("sneak_attack", "dice", "7d6"));
+			ROGUE.addAction(15, new SetParameterAction("sneak_attack", "dice", "8d6"));
+			ROGUE.addAction(17, new SetParameterAction("sneak_attack", "dice", "9d6"));
+			ROGUE.addAction(19, new SetParameterAction("sneak_attack", "dice", "10d6"));
+
+			ROGUE.addAction(1, new AddFeatureAction("trapfinding"));
+			ROGUE.addAction(2, new AddFeatureAction("evasion"));
+
+			ROGUE.addAction(3, new AddFeatureAction("trap_sense"));
+			ROGUE.addAction(6, new SetParameterAction("trap_sense", "bonus", 2));
+			ROGUE.addAction(9, new SetParameterAction("trap_sense", "bonus", 3));
+			ROGUE.addAction(12, new SetParameterAction("trap_sense", "bonus", 4));
+			ROGUE.addAction(15, new SetParameterAction("trap_sense", "bonus", 5));
+			ROGUE.addAction(18, new SetParameterAction("trap_sense", "bonus", 6));
+
+			ROGUE.addAction(4, new AddFeatureAction("uncanny_dodge"));	// TODO replace with improved_uncanny_dodge if already has uncanny_dodge
+			ROGUE.addAction(8, new AddFeatureAction("improved_uncanny_dodge"));	// TODO replace with improved_uncanny_dodge if already has uncanny_dodge
+			// TODO 10 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
+			// TODO 13 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
+			// TODO 16 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
+			// TODO 19 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
 
 			SORCERER.addAction(1, new AddFeatureAction("sorcerer_spells"));
 			SORCERER.addAction(1, new AddFeatureAction("familiar"));
