@@ -146,11 +146,16 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			return this;
 		}
 
-		// TODO handle conditions
-		ClassFeatureDefinition addAbilityModifier(String target, AbilityScore.Type type) {
-			AbilityModEffect e = new AbilityModEffect();
+		ClassFeatureDefinition addAbilityBonus(String target, AbilityScore.Type ability, boolean untyped) {
+			return addAbilityBonus(target, ability, untyped, null);
+		}
+
+		ClassFeatureDefinition addAbilityBonus(String target, AbilityScore.Type ability, boolean untyped, String condition) {
+			AbilityBonusEffect e = new AbilityBonusEffect();
+			if (!untyped) e.type = ability.toString();
 			e.target = target;
-			e.ability = type;
+			e.ability = ability;
+			e.condition = condition;
 			effects.add(e);
 			return this;
 		}
@@ -167,8 +172,8 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			// add any effects:
 			for (Effect e : effects) {
 				Modifier m;
-				if (e instanceof AbilityModEffect) {
-					m = ((AbilityModEffect) e).getModifier(c);
+				if (e instanceof AbilityBonusEffect) {
+					m = ((AbilityBonusEffect) e).getModifier(c, name);
 				} else {
 					m = e.getModifier(name);
 				}
@@ -191,13 +196,37 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			return null;
 		}
 
-		// TODO handle conditions - will need to proxy the standard ability modifier
-		// TODO flag for bonus only
-		static class AbilityModEffect extends Effect {
-			public Type ability;
+		static class AbilityBonusEffect extends Effect {
+			Type ability;
 
-			Modifier getModifier(Creature c) {
-				return c.getAbilityModifier(ability);
+			Modifier getModifier(Creature c, String feature) {
+				Modifier abilityMod = c.getAbilityModifier(ability);
+				return new AbstractModifier() {
+					{
+						abilityMod.addPropertyChangeListener(evt -> pcs.firePropertyChange(evt.getPropertyName(), null, getModifier()));
+					}
+
+					@Override
+					public String getSource() {
+						return feature;
+					}
+
+					@Override
+					public String getCondition() {
+						return condition;
+					}
+
+					@Override
+					public String getType() {
+						return type;
+					}
+
+					@Override
+					public int getModifier() {
+						int mod = abilityMod.getModifier();
+						return mod < 0 ? 0 : mod;
+					}
+				};
 			}
 		}
 	}
@@ -363,8 +392,8 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 				.addSummary(
 						"Add your Wisdom bonus (&(wisbonus)) and a +&(bonus) bonus to your AC; these bonuses are only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")
 						.addParameter("bonus", 0)
-					.addParameter("wisbonus", new Format(new AbilityMod(AbilityScore.Type.WISDOM, true)))
-					.addAbilityModifier(Creature.STATISTIC_AC, AbilityScore.Type.WISDOM),
+						.addParameter("wisbonus", new Format(new AbilityMod(AbilityScore.Type.WISDOM, true)))
+						.addAbilityBonus(Creature.STATISTIC_AC, AbilityScore.Type.WISDOM, false),
 
 						new ClassFeatureDefinition("flurry_of_blows", "Flurry of Blows", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Take &(attacks) extra attacks when taking a full attack action. All attacks in the round suffer a &(penalty) penalty.")
@@ -450,7 +479,7 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		new ClassFeatureDefinition("divine_grace", "Divine Grace", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("Add a &(chrbonus) bonus to all saves.")
 		.addParameter("chrbonus", new Format(new AbilityMod(AbilityScore.Type.CHARISMA, true)))
-		.addAbilityModifier(Creature.STATISTIC_SAVING_THROWS, AbilityScore.Type.CHARISMA),		// TODO should only be bonus, not mod
+		.addAbilityBonus(Creature.STATISTIC_SAVING_THROWS, AbilityScore.Type.CHARISMA, true),
 
 		new ClassFeatureDefinition("lay_on_hands", "Lay on Hands", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("As a standard action, you can heal yourself or someone else. You can cure &(total) points of damage per day. These points can also be used to harm undead.")
