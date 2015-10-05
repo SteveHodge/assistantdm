@@ -18,7 +18,7 @@ public class CalculatedValue {
 		root = calc.bind(this, c);
 	}
 
-	protected void firePropertyChange(String prop, float newVal) {
+	protected void firePropertyChange(String prop, int newVal) {
 		pcs.firePropertyChange(prop, null, newVal);
 	}
 
@@ -33,7 +33,7 @@ public class CalculatedValue {
 	@Override
 	public
 	String toString() {
-		return Integer.toString(value());
+		return root.toString();
 	}
 
 	void addPropertyChangeListener(PropertyChangeListener l) {
@@ -46,6 +46,11 @@ public class CalculatedValue {
 
 	static abstract class Term {
 		abstract int value();
+
+		@Override
+		public String toString() {
+			return Integer.toString(value());
+		}
 	}
 
 	static abstract class Calculation {
@@ -189,6 +194,42 @@ public class CalculatedValue {
 					int val = mod.getModifier();
 					if (bonus && val < 0) val = 0;
 					return val;
+				}
+			};
+		}
+	}
+
+	// intended for use as the root Calcualtion in the expression. produces a term that produces formatted string output.
+	// currently formats the output as modifier value (positive values have '+' prepended). if supressZero is true then
+	// toString() returns an empty string if the current value is 0.
+	static class Format extends Calculation {
+		boolean supressZero = false;
+		Calculation calculation;
+
+		Format(Calculation c) {
+			calculation = c;
+		}
+
+		Format(boolean noZero, Calculation c) {
+			calculation = c;
+			supressZero = noZero;
+		}
+
+		@Override
+		Term bind(CalculatedValue calc, Creature c) {
+			Term arg = calculation.bind(calc, c);
+			return new Term() {
+				@Override
+				int value() {
+					return arg.value();
+				}
+
+				@Override
+				public String toString() {
+					int val = value();
+					if (val == 0 && supressZero) return "";
+					if (val >= 0) return "+" + val;
+					return Integer.toString(val);
 				}
 			};
 		}

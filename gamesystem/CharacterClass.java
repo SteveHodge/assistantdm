@@ -217,7 +217,7 @@ public enum CharacterClass {
 
 		@Override
 		public void apply(Character c) {
-			c.addClassFeature(factory.getFeature());
+			c.addClassFeature(factory.getFeature(c));
 		}
 	}
 
@@ -414,6 +414,7 @@ public enum CharacterClass {
 			MONK.addAction(20, new AddFeatureAction("perfect_self"));
 
 			MONK.addAction(1, new AddFeatureAction("ac_bonus"));
+			MONK.addAction(5, new SetParameterAction("ac_bonus", "template", 1));
 			MONK.addAction(5, new SetParameterAction("ac_bonus", "bonus", 1));
 			MONK.addAction(10, new SetParameterAction("ac_bonus", "bonus", 2));
 			MONK.addAction(15, new SetParameterAction("ac_bonus", "bonus", 3));

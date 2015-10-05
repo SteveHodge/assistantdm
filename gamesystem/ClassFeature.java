@@ -1,9 +1,11 @@
 package gamesystem;
 
+import gamesystem.AbilityScore.Type;
 import gamesystem.CalculatedValue.AbilityMod;
 import gamesystem.CalculatedValue.Calculation;
 import gamesystem.CalculatedValue.ClassLevel;
 import gamesystem.CalculatedValue.Constant;
+import gamesystem.CalculatedValue.Format;
 import gamesystem.CalculatedValue.Product;
 import gamesystem.CalculatedValue.Sum;
 import gamesystem.ClassFeature.ClassFeatureDefinition;
@@ -144,7 +146,16 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			return this;
 		}
 
-		ClassFeature getFeature() {
+		// TODO handle conditions
+		ClassFeatureDefinition addAbilityModifier(String target, AbilityScore.Type type) {
+			AbilityModEffect e = new AbilityModEffect();
+			e.target = target;
+			e.ability = type;
+			effects.add(e);
+			return this;
+		}
+
+		ClassFeature getFeature(Creature c) {
 			ClassFeature f = new ClassFeature(this);
 
 			// setup any parameters
@@ -155,7 +166,13 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 
 			// add any effects:
 			for (Effect e : effects) {
-				f.modifiers.put(e.getModifier(name), e.target);
+				Modifier m;
+				if (e instanceof AbilityModEffect) {
+					m = ((AbilityModEffect) e).getModifier(c);
+				} else {
+					m = e.getModifier(name);
+				}
+				f.modifiers.put(m, e.target);
 			}
 
 			return f;
@@ -172,6 +189,16 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 				if (f.id.equals(feature)) return f;
 			}
 			return null;
+		}
+
+		// TODO handle conditions - will need to proxy the standard ability modifier
+		// TODO flag for bonus only
+		static class AbilityModEffect extends Effect {
+			public Type ability;
+
+			Modifier getModifier(Creature c) {
+				return c.getAbilityModifier(ability);
+			}
 		}
 	}
 
@@ -212,8 +239,8 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 
 		// TODO should Bardic Knowledge be treated as a skill?
 		new ClassFeatureDefinition("bardic_knowledge", "Bardic Knowledge", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("You can make a special knowledge check for stray bits of trivia. This check is 1d20 + &(bonus).")	// TODO formatting for negative bonuses
-		.addParameter("bonus", new Sum(new ClassLevel(CharacterClass.BARD), new AbilityMod(AbilityScore.Type.INTELLIGENCE))),
+		.addSummary("You can make a special knowledge check for stray bits of trivia. This check is 1d20&(bonus).")
+		.addParameter("bonus", new Format(true, new Sum(new ClassLevel(CharacterClass.BARD), new AbilityMod(AbilityScore.Type.INTELLIGENCE)))),
 
 		// TODO maybe have some way of making bardic music the parent of the sub-powers
 		new ClassFeatureDefinition("bardic_music", "Bardic Music")
@@ -275,10 +302,10 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		// TODO handle paladin case. Paladin should just set the dmgmod parameter correctly, but we'll need to rebind
 		new ClassFeatureDefinition("turning", "Turn/Rebuke Undead", SpecialAbilityType.SUPERNATURAL)
 		.addSummary(
-				"Can turn or rebuke undead &(times) times per day. A turning check is made on (1d20 + &(chrmod)); turning damage is equal to (2d6 + &(dmgmod)) on a successful check.")
+				"Can turn or rebuke undead &(times) times per day. A turning check is made on (1d20&(chrmod)); turning damage is equal to (2d6&(dmgmod)) on a successful check.")
 				.addParameter("times", new Sum(new Constant(3), new AbilityMod(AbilityScore.Type.CHARISMA)))
-				.addParameter("chrmod", new AbilityMod(AbilityScore.Type.CHARISMA))
-				.addParameter("dmgmod", new Sum(new ClassLevel(CharacterClass.CLERIC), new AbilityMod(AbilityScore.Type.CHARISMA))),
+				.addParameter("chrmod", new Format(true, new AbilityMod(AbilityScore.Type.CHARISMA)))
+				.addParameter("dmgmod", new Format(true, new Sum(new ClassLevel(CharacterClass.CLERIC), new AbilityMod(AbilityScore.Type.CHARISMA)))),
 
 				// TODO restricted spells
 				new ClassFeatureDefinition("druid_spells", "Spells")
@@ -298,8 +325,8 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		// TODO for ranger, need to reset the param correctly, but we'll need to rebind.
 		new ClassFeatureDefinition("wild_empathy", "Wild Empathy", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary(
-				"You can make a check (1d20 + &(bonus)) to improve the attitude of an animal. You must be within 30 feet of it, and it generally takes one minute to perform the action.")
-				.addParameter("bonus", new Sum(new ClassLevel(CharacterClass.DRUID), new AbilityMod(AbilityScore.Type.CHARISMA))),
+				"You can make a check (1d20&(bonus)) to improve the attitude of an animal. You must be within 30 feet of it, and it generally takes one minute to perform the action.")
+				.addParameter("bonus", new Format(true, new Sum(new ClassLevel(CharacterClass.DRUID), new AbilityMod(AbilityScore.Type.CHARISMA)))),
 
 				new ClassFeatureDefinition("woodland_stride", "Woodland Stride", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You can move through natural thorns, briars, etc. at full speed and without suffering damage or impairment. Magically altered areas still hamper you."),
@@ -329,19 +356,26 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		new ClassFeatureDefinition("thousand_faces", "A Thousand Faces", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("You can change your appearance at will, as if using the spell <i>alter self</i>."),
 
+		// TODO apply bonuses
 		new ClassFeatureDefinition("ac_bonus", "AC Bonus", SpecialAbilityType.EXTRAORDINARY)
-		.addSummary("Add (Wis bonus + &(bonus)) AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")		// TODO calculate value
-		.addParameter("bonus", 0),
+		.addSummary(
+				"Add your Wisdom bonus (&(wisbonus)) to your AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")
+				.addSummary(
+						"Add your Wisdom bonus (&(wisbonus)) and a +&(bonus) bonus to your AC; these bonuses are only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")
+						.addParameter("bonus", 0)
+					.addParameter("wisbonus", new Format(new AbilityMod(AbilityScore.Type.WISDOM, true)))
+					.addAbilityModifier(Creature.STATISTIC_AC, AbilityScore.Type.WISDOM),
 
-		new ClassFeatureDefinition("flurry_of_blows", "Flurry of Blows", SpecialAbilityType.EXTRAORDINARY)
+						new ClassFeatureDefinition("flurry_of_blows", "Flurry of Blows", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Take &(attacks) extra attacks when taking a full attack action. All attacks in the round suffer a &(penalty) penalty.")
 		.addSummary("Take &(attacks) extra attacks when taking a full attack action.")
 		.addParameter("penalty", -2)
 		.addParameter("attacks", 1),
 
 		new ClassFeatureDefinition("unarmed_strike", "Unarmed Strike")
-		.addSummary("Your unarmed attacks deal &(damage) lethal damage and apply full strength bonus.")		// TODO calculate value
-		.addParameter("damage", "1d6"),
+		.addSummary("Your unarmed attacks deal &(damage)&(strmod) lethal damage.")
+		.addParameter("damage", "1d6")
+		.addParameter("strmod", new Format(true, new AbilityMod(AbilityScore.Type.STRENGTH))),
 
 		new ClassFeatureDefinition("evasion", "Evasion", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("If an attack allows a Reflex save for half damage, then take no damage on a successful save."),
@@ -410,12 +444,13 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		new ClassFeatureDefinition("smite_evil", "Smite Evil", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("&(times) per day, add &(chrbonus) to your attack roll; if the creature you strike is evil, you inflict +&(level) extra damage.")
 		.addParameter("times", "Once")
-		.addParameter("chrbonus", new AbilityMod(AbilityScore.Type.CHARISMA, true))
+		.addParameter("chrbonus", new Format(new AbilityMod(AbilityScore.Type.CHARISMA, true)))
 		.addParameter("level", new ClassLevel(CharacterClass.PALADIN)),
 
 		new ClassFeatureDefinition("divine_grace", "Divine Grace", SpecialAbilityType.SUPERNATURAL)
-		.addSummary("Add a +&(chrbonus) bonus to all saves.")
-		.addParameter("chrbonus", new AbilityMod(AbilityScore.Type.CHARISMA, true)),		// TODO apply bonus
+		.addSummary("Add a &(chrbonus) bonus to all saves.")
+		.addParameter("chrbonus", new Format(new AbilityMod(AbilityScore.Type.CHARISMA, true)))
+		.addAbilityModifier(Creature.STATISTIC_SAVING_THROWS, AbilityScore.Type.CHARISMA),		// TODO should only be bonus, not mod
 
 		new ClassFeatureDefinition("lay_on_hands", "Lay on Hands", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("As a standard action, you can heal yourself or someone else. You can cure &(total) points of damage per day. These points can also be used to harm undead.")
