@@ -202,6 +202,7 @@ public enum CharacterClass {
 		}
 	}
 
+	// will not add duplicate features
 	static class AddFeatureAction extends LevelUpAction {
 		ClassFeatureDefinition factory;
 
@@ -217,7 +218,7 @@ public enum CharacterClass {
 
 		@Override
 		public void apply(Character c) {
-			c.addClassFeature(factory.getFeature(c));
+			if (c.getClassFeature(factory.id) == null) c.addClassFeature(factory.getFeature(c));
 		}
 	}
 
@@ -263,6 +264,37 @@ public enum CharacterClass {
 		}
 	}
 
+	static class IfFeatureExistsAction extends LevelUpAction {
+		String ifFeature;
+		LevelUpAction thenAction;
+		LevelUpAction elseAction;
+
+		IfFeatureExistsAction(String ifFeat, LevelUpAction thenAct) {
+			this(ifFeat, thenAct, null);
+		}
+
+		IfFeatureExistsAction(String ifFeat, LevelUpAction thenAct, LevelUpAction elseAct) {
+			if (ClassFeatureDefinition.findFeatureFactory(ifFeat) == null) throw new IllegalArgumentException("Unknown feature " + ifFeat);
+			ifFeature = ifFeat;
+			thenAction = thenAct;
+			elseAction = elseAct;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%d: IfFeatureExists(%s, %s, %s)", level, ifFeature, thenAction == null ? "" : thenAction.toString(), elseAction == null ? "" : elseAction.toString());
+		}
+
+		@Override
+		public void apply(Character c) {
+			if (c.getClassFeature(ifFeature) != null) {
+				if (thenAction != null) thenAction.apply(c);
+			} else {
+				if (elseAction != null) elseAction.apply(c);
+			}
+		}
+	}
+
 	//TODO monk Armor Restriction: If wearing ANY armor or carrying a shield, you lose your Wisdom bonus to AC, fast movement and flurry of blows abilities.
 	// TODO ChooseFeatureAction
 	// TODO IfFeatureExistsAction - if-then-else
@@ -270,7 +302,7 @@ public enum CharacterClass {
 		try {
 			BARBARIAN.addAction(1, new AddFeatureAction("barbarian_fast_movement"));
 			BARBARIAN.addAction(1, new AddFeatureAction("illiteracy"));
-			BARBARIAN.addAction(2, new AddFeatureAction("uncanny_dodge"));	// TODO if already have uncanny_dodge then change this to improved_uncanny_dodge
+			BARBARIAN.addAction(2, new IfFeatureExistsAction("uncanny_dodge", new AddFeatureAction("improved_uncanny_dodge"), new AddFeatureAction("uncanny_dodge")));
 			BARBARIAN.addAction(5, new AddFeatureAction("improved_uncanny_dodge"));
 			BARBARIAN.addAction(14, new AddFeatureAction("indomitable_will"));
 			BARBARIAN.addAction(17, new AddFeatureAction("tireless_rage"));
@@ -486,17 +518,22 @@ public enum CharacterClass {
 			RANGER.addAction(1, new AddFeatureAction("favored_enemy"));
 			RANGER.addAction(1, new AddBonusFeatAction(false, new String[] { "Track" }));
 			RANGER.addAction(1, new AddFeatureAction("wild_empathy"));
-			// TODO 2 combat style
+			// TODO 2 combat style:
+			RANGER.addAction(1, new AddFeatureAction("combat_style_2weapon"));	// FIXME testing
+			// combat_style_archery
+			// combat_style_2weapon
 			RANGER.addAction(3, new AddBonusFeatAction(false, new String[] { "Endurance" }));
 			RANGER.addAction(4, new AddFeatureAction("animal_companion"));
 			RANGER.addAction(4, new AddFeatureAction("ranger_spells"));
 			// TODO 5 second favoured enemy
-			// TODO 6 improved combat style
+			RANGER.addAction(6, new IfFeatureExistsAction("combat_style_archery", new AddFeatureAction("improved_combat_archery")));
+			RANGER.addAction(6, new IfFeatureExistsAction("combat_style_2weapon", new AddFeatureAction("improved_combat_2weapon")));
 			RANGER.addAction(7, new AddFeatureAction("woodland_stride"));
 			RANGER.addAction(8, new AddFeatureAction("swift_tracker"));
 			RANGER.addAction(9, new AddFeatureAction("evasion"));
 			// TODO 10 third favoured enemy
-			// TODO 11 combat style mastery
+			RANGER.addAction(11, new IfFeatureExistsAction("combat_style_archery", new AddFeatureAction("combat_mastery_archery")));
+			RANGER.addAction(11, new IfFeatureExistsAction("combat_style_2weapon", new AddFeatureAction("combat_mastery_2weapon")));
 			RANGER.addAction(13, new AddFeatureAction("camouflage"));
 			// TODO 15 fourth favoured enemy
 			RANGER.addAction(17, new AddFeatureAction("hide_in_plain_sight"));
@@ -523,8 +560,8 @@ public enum CharacterClass {
 			ROGUE.addAction(15, new SetParameterAction("trap_sense", "bonus", 5));
 			ROGUE.addAction(18, new SetParameterAction("trap_sense", "bonus", 6));
 
-			ROGUE.addAction(4, new AddFeatureAction("uncanny_dodge"));	// TODO replace with improved_uncanny_dodge if already has uncanny_dodge
-			ROGUE.addAction(8, new AddFeatureAction("improved_uncanny_dodge"));	// TODO replace with improved_uncanny_dodge if already has uncanny_dodge
+			ROGUE.addAction(4, new IfFeatureExistsAction("uncanny_dodge", new AddFeatureAction("improved_uncanny_dodge"), new AddFeatureAction("uncanny_dodge")));
+			ROGUE.addAction(8, new AddFeatureAction("improved_uncanny_dodge"));
 			// TODO 10 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
 			// TODO 13 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
 			// TODO 16 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat

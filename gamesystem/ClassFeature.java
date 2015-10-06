@@ -371,7 +371,6 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		new ClassFeatureDefinition("tireless_rage", "Tireless Rage", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You no longer become fatigued at the end of your rage"),
 
-		// TODO should Bardic Knowledge be treated as a skill?
 		new ClassFeatureDefinition("bardic_knowledge", "Bardic Knowledge", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You can make a special knowledge check for stray bits of trivia. This check is 1d20&(bonus).")
 		.addParameter("bonus", new Format(true, new Sum(new ClassLevel(CharacterClass.BARD), new AbilityMod(AbilityScore.Type.INTELLIGENCE)))),
@@ -611,6 +610,24 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		// TODO choose enemy, calculate bonuses
 		new ClassFeatureDefinition("favored_enemy", "Favored Enemy", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You have certain types of enemies that you have extensive knowledge about. Against these creatures, you gain the listed bonus to Bluff, Listen, Sense Motive, Spot, and Survival checks, as well as weapon damage rolls."),
+
+		new ClassFeatureDefinition("combat_style_archery", "Combat Style (Archery)", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You are treated as having the Rapid Shot feat, provided you are wearing light or no armour"),
+
+		new ClassFeatureDefinition("combat_style_2weapon", "Combat Style (Two-Weapon Combat)", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You are treated as having the Two-Weapon Fighting feat, provided you are wearing light or no armour"),
+
+		new ClassFeatureDefinition("improved_combat_archery", "Improved Combat Style (Archery)", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You are treated as having the Manyshot feat, provided you are wearing light or no armour"),
+
+		new ClassFeatureDefinition("improved_combat_2weapon", "Improved Combat Style (Two-Weapon Combat)", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You are treated as having the Improved Two-Weapon Fighting feat, provided you are wearing light or no armour"),
+
+		new ClassFeatureDefinition("combat_mastery_archery", "Combat Style Mastery (Archery)", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You are treated as having the Improved Precise Shot feat, provided you are wearing light or no armour"),
+
+		new ClassFeatureDefinition("combat_mastery_2weapon", "Combat Style Mastery (Two-Weapon Combat)", SpecialAbilityType.EXTRAORDINARY)
+		.addSummary("You are treated as having the Greater Two-Weapon Fighting feat, provided you are wearing light or no armour"),
 
 		new ClassFeatureDefinition("ranger_spells", "Spells")
 		.addSummary("You can cast divine spells drawn from the ranger spell list. Your caster level is &(cl).")
