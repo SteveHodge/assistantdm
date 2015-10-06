@@ -199,7 +199,7 @@ public class CalculatedValue {
 		}
 	}
 
-	// intended for use as the root Calcualtion in the expression. produces a term that produces formatted string output.
+	// intended for use as the root Calculation in the expression. produces a term that produces formatted string output.
 	// currently formats the output as modifier value (positive values have '+' prepended). if supressZero is true then
 	// toString() returns an empty string if the current value is 0.
 	static class Format extends Calculation {

@@ -823,6 +823,12 @@ public class Character extends Creature {
 		//System.out.println("Updated " + feature);
 	}
 
+/*	public Object getClassFeatureParameter(String id, String parameter) {
+		ClassFeature feature = getClassFeature(id);
+		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
+		return feature.getParameter(parameter);
+	}*/
+
 //------------ Buffs -------------
 // XXX this is a hack to enable autosave on buff changes
 

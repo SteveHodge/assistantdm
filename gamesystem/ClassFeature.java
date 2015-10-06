@@ -9,6 +9,7 @@ import gamesystem.CalculatedValue.Format;
 import gamesystem.CalculatedValue.Product;
 import gamesystem.CalculatedValue.Sum;
 import gamesystem.ClassFeature.ClassFeatureDefinition;
+import gamesystem.ClassFeature.ClassFeatureDefinition.ParameterModifier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +28,6 @@ import java.util.Map;
  *   SetParameterAction - change a parameter on an existing class feature
  *
  * ToDo:
- * Calculation system for determining variable bonuses, DCs, etc
  * UI for selecting options
  * ClassFeatures might need to track what classes they came from. this might be important for things that stack across classes
  * Extend calculated parameters to FeatDefinition
@@ -48,7 +48,22 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		} else {
 			if (parameters == null) parameters = new HashMap<>();
 			parameters.put(param, val);
+
+			// update any modifiers relying on this parameter
+			for (Modifier m : modifiers.keySet()) {
+				if (m instanceof ParameterModifier) {
+					ParameterModifier p = (ParameterModifier)m;
+					if (p.parameter.equals(param)) p.updateValue();
+				}
+			}
 		}
+	}
+
+	public Object getParameter(String parameter) {
+		if (parameters != null) {
+			return parameters.get(parameter);
+		}
+		return null;
 	}
 
 	public String getNameAndType() {
@@ -160,6 +175,16 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			return this;
 		}
 
+		ClassFeatureDefinition addParameterModifier(String target, String parameter, String type, String condition) {
+			ParameterModifierEffect e = new ParameterModifierEffect();
+			e.type = type;
+			e.target = target;
+			e.parameter = parameter;
+			e.condition = condition;
+			effects.add(e);
+			return this;
+		}
+
 		ClassFeature getFeature(Creature c) {
 			ClassFeature f = new ClassFeature(this);
 
@@ -174,6 +199,8 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 				Modifier m;
 				if (e instanceof AbilityBonusEffect) {
 					m = ((AbilityBonusEffect) e).getModifier(c, name);
+				} else if (e instanceof ParameterModifierEffect) {
+					m = ((ParameterModifierEffect) e).getModifier(f);
 				} else {
 					m = e.getModifier(name);
 				}
@@ -229,8 +256,84 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 				};
 			}
 		}
+
+		static class ParameterModifierEffect extends Effect {
+			String parameter;
+
+			Modifier getModifier(ClassFeature feature) {
+				return new ParameterModifier(feature, parameter, type, condition);
+			}
+		}
+
+		static class ParameterModifier extends AbstractModifier {
+			ClassFeature feature;
+			String parameter;
+			String type;
+			String condition;
+
+			ParameterModifier(ClassFeature f, String param, String type, String cond) {
+				feature = f;
+				parameter = param;
+				this.type = type;
+				condition = cond;
+			}
+
+			void updateValue() {
+				pcs.firePropertyChange("value", null, getModifier());
+			}
+
+			@Override
+			public int getModifier() {
+				Object value = feature.getParameter(parameter);
+				if (value != null && value instanceof Integer) {
+					return (Integer) value;
+				}
+				return 0;
+			}
+
+			@Override
+			public String getType() {
+				return type;
+			}
+
+			@Override
+			public String getSource() {
+				return feature.getName();
+			}
+
+			@Override
+			public String getCondition() {
+				return condition;
+			}
+		}
 	}
 
+/*	static class ParameterValue extends Calculation {
+		String feature;
+		String parameter;
+
+		ParameterValue(String feature, String parameter) {
+			this.feature = feature;
+			this.parameter = parameter;
+		}
+
+		@Override
+		Term bind(CalculatedValue calc, Creature c) {
+			return new Term() {
+				@Override
+				int value() {
+					if (c instanceof party.Character) {
+						Object val = ((party.Character) c).getClassFeatureParameter(feature, parameter);
+						if (val != null && val instanceof Integer) {
+							return (Integer) val;
+						}
+					}
+					return 0;
+				}
+			};
+		}
+	}
+ */
 	static ClassFeatureDefinition[] featureDefinitions = {
 		new ClassFeatureDefinition("barbarian_fast_movement", "Fast Movement", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("+10 to land speed when in medium armor or lighter and not carrying a heavy load."),
@@ -244,7 +347,7 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 				.addParameter("times", "once")
 				.addParameter("ability_bonus", 4)
 				.addParameter("save_bonus", 2)
-				.addParameter("duration", new Sum(new Constant(3), new AbilityMod(AbilityScore.Type.CONSTITUTION))),	// TODO should include the ability bonus/2 (as it's con mod after the bonus)
+				.addParameter("duration", new Sum(new Constant(3), new AbilityMod(AbilityScore.Type.CONSTITUTION))),	// XXX perhaps should include the ability bonus/2 (as it's con mod after the bonus)
 
 				new ClassFeatureDefinition("uncanny_dodge", "Uncanny Dodge", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("You retain your Dexterity bonus to AC even if flatfooted or struck by an invisible attacker."),
@@ -252,9 +355,11 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		new ClassFeatureDefinition("improved_uncanny_dodge", "Improved Uncanny Dodge", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Can no longer be flanked."),
 
-		new ClassFeatureDefinition("trap_sense", "Trap Sense", SpecialAbilityType.EXTRAORDINARY)	// TODO bonuses
+		new ClassFeatureDefinition("trap_sense", "Trap Sense", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("+&(bonus) to Reflex saves and AC against traps.")
-		.addParameter("bonus", 1),
+		.addParameter("bonus", 1)
+		.addParameterModifier(Creature.STATISTIC_REFLEX_SAVE, "bonus", null, "vs Traps")
+		.addParameterModifier(Creature.STATISTIC_AC, "bonus", null, "vs Traps"),
 
 		new ClassFeatureDefinition("damage_reduction", "Damage Reduction", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("&(dr)/-")
@@ -385,7 +490,6 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 		new ClassFeatureDefinition("thousand_faces", "A Thousand Faces", SpecialAbilityType.SUPERNATURAL)
 		.addSummary("You can change your appearance at will, as if using the spell <i>alter self</i>."),
 
-		// TODO apply bonuses
 		new ClassFeatureDefinition("ac_bonus", "AC Bonus", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary(
 				"Add your Wisdom bonus (&(wisbonus)) to your AC; this bonus is only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")
@@ -393,7 +497,8 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 						"Add your Wisdom bonus (&(wisbonus)) and a +&(bonus) bonus to your AC; these bonuses are only lost if you are immobilized, wearing armor, carrying a shield, or carrying a medium/heavy load.")
 						.addParameter("bonus", 0)
 						.addParameter("wisbonus", new Format(new AbilityMod(AbilityScore.Type.WISDOM, true)))
-						.addAbilityBonus(Creature.STATISTIC_AC, AbilityScore.Type.WISDOM, false),
+						.addAbilityBonus(Creature.STATISTIC_AC, AbilityScore.Type.WISDOM, false)
+						.addParameterModifier(Creature.STATISTIC_AC, "bonus", null, null),
 
 						new ClassFeatureDefinition("flurry_of_blows", "Flurry of Blows", SpecialAbilityType.EXTRAORDINARY)
 		.addSummary("Take &(attacks) extra attacks when taking a full attack action. All attacks in the round suffer a &(penalty) penalty.")
