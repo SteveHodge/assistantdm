@@ -34,6 +34,7 @@ public abstract class Creature {
 	public final static String PROPERTY_XP = "XP";
 	public final static String PROPERTY_BAB = "BAB";
 	public final static String PROPERTY_SIZE = "Size";
+	public final static String PROPERTY_TYPE = "Type";	// not currently sent to listeners
 
 	public final static String PROPERTY_SPACE = "Space";	// currently only a property on Monster
 	public final static String PROPERTY_REACH = "Reach";	// currently only a property on Monster
@@ -85,6 +86,8 @@ public abstract class Creature {
 	protected Attacks attacks;
 	protected Property<Integer> bab;
 
+	protected MonsterType type;
+
 	public BuffUI.BuffListModel<Buff> buffs = new BuffUI.BuffListModel<>();	// TODO should be protected
 	protected Map<String, Object> extraProperties = new HashMap<>();
 
@@ -131,6 +134,10 @@ public abstract class Creature {
 	}
 
 	abstract public void setName(String name);	// TODO shouldn't be abstract
+
+	public MonsterType getType() {
+		return type;
+	}
 
 	public HPs getHPStatistic() {
 		return hps;
@@ -278,6 +285,8 @@ public abstract class Creature {
 			return getReach();
 		else if (prop.equals(PROPERTY_BAB))
 			return bab.getValue();
+		else if (prop.equals(PROPERTY_TYPE))
+			return getType();
 		else if (extraProperties.containsKey(prop)) {
 //			System.out.println("extra property '"+prop+"': "+extraProperties.get(prop));
 			return extraProperties.get(prop);

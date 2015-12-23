@@ -10,9 +10,11 @@ import gamesystem.CreatureProcessor;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
+import gamesystem.MonsterType;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
-import gamesystem.core.ValueProperty;
+import gamesystem.core.AbstractProperty;
+import gamesystem.core.Property;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -103,7 +105,9 @@ public class Monster extends Creature {
 			saves.put(t, s);
 		}
 
-		hitDice = HitDice.parse("1d8");
+		type = MonsterType.HUMANOID;
+
+		hitDice = HitDice.parse("1d" + type.getHitDiceType());
 
 		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), hitDice);
 		hps.setMaximumHitPoints(0);
@@ -134,7 +138,7 @@ public class Monster extends Creature {
 		}
 		ac.addPropertyChangeListener(statListener);
 
-		bab = new ValueProperty<Integer>(0);
+		bab = new BABProperty();
 
 		attacks = new Attacks(this);
 		// TODO size modifier to attack needs to be setup correctly
@@ -145,13 +149,36 @@ public class Monster extends Creature {
 		attacks.addPropertyChangeListener(statListener);
 	}
 
+	// TODO fix this. it should listen to the relavent stats instead of requiring recalculateBAB. change once hitDice and type are notified properties/statistics
+	class BABProperty extends AbstractProperty<Integer> {
+		@Override
+		public Integer getBaseValue() {
+			if (type == null) return 0;
+			return type.getBAB(hitDice.getHitDiceCount());
+		}
+
+		public void recalculateBAB(int old) {
+			super.firePropertyChanged(old, false);
+		}
+	}
+
 	public HitDice getHitDice() {
 		return hitDice;
 	}
 
 	@Override
-	public ValueProperty<Integer> getBAB() {
-		return (ValueProperty<Integer>) bab;
+	public Property<Integer> getBAB() {
+		return bab;
+	}
+
+	@Override
+	public MonsterType getType() {
+		return type;
+	}
+
+	public void setType(MonsterType t) {
+		type = t;
+		((BABProperty) bab).recalculateBAB(bab.getValue());
 	}
 
 	public class MonsterAttackRoutine {
@@ -266,9 +293,11 @@ public class Monster extends Creature {
 
 	public void setHitDice(HitDice hd) {
 		// TODO should check con bonus is applied correctly
+		int old = bab.getValue();
 		hitDice = hd;
 		hps.setHitDice(hitDice);
 		hps.setMaximumHitPoints((int) hitDice.getMeanRoll());
+		((BABProperty) bab).recalculateBAB(old);
 	}
 
 	public boolean isEditable() {

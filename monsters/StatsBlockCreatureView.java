@@ -123,6 +123,8 @@ public class StatsBlockCreatureView {
 
 		Monster m = new Monster(name, abilities);
 
+		m.setType(blk.getType());
+
 		m.setInitiativeModifier(blk.getInitiativeModifier());
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
@@ -177,7 +179,7 @@ public class StatsBlockCreatureView {
 		}
 
 		Attacks attacks = m.getAttacksStatistic();
-		m.getBAB().setBaseValue(blk.getBAB());
+		//m.getBAB().setBaseValue(blk.getBAB());	// not necessary since it will be determined by HD
 		int sizeMod = m.getSize().getSizeModifier();
 		if (sizeMod != 0) attacks.addModifier(new ImmutableModifier(sizeMod, "Size"));
 
@@ -323,8 +325,9 @@ public class StatsBlockCreatureView {
 //			}
 
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
-			int bab = StatisticsBlock.parseBAB(value);
-			creature.getBAB().setBaseValue(bab);
+			// XXX currently disabled as it's determined by hitdice
+			//int bab = StatisticsBlock.parseBAB(value);
+			//creature.getBAB().setBaseValue(bab);
 
 		} else if (field == Field.INITIATIVE) {
 			int init = StatisticsBlock.parseInitiativeModifier(value);
@@ -410,6 +413,8 @@ public class StatsBlockCreatureView {
 			s.append(creature.getHPStatistic().getMaximumHitPoints()).append(" hp)");
 		} else if (field == Field.SIZE_TYPE) {
 			s.append(creature.getSizeStatistic().getSize());
+			s.append(" ");
+			s.append(creature.getType());
 		} else if (field == Field.SPACE_REACH) {
 			s.append(creature.getSizeStatistic().getSpace() / 2);
 			if (creature.getSizeStatistic().getSpace() % 2 == 1) s.append("½");
