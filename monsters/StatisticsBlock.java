@@ -54,38 +54,46 @@ public class StatisticsBlock {
 		NAME("Name:"),
 		URL("URL:"),
 
-		SIZE_TYPE("Size/Type:"),
+		SIZE_TYPE("Size/Type:", "size-type"),
 		CLASS_LEVELS("Class Levels:"),
-		HITDICE("Hit Dice:"),
-		INITIATIVE("Initiative:"),
-		SPEED("Speed:"),
-		AC("Armor Class:"),
-		BASE_ATTACK_GRAPPLE("Base Attack/Grapple:"),
-		ATTACK("Attack:"),
-		FULL_ATTACK("Full Attack:"),
-		SPACE_REACH("Space/Reach:"),
-		SPECIAL_ATTACKS("Special Attacks:"),
-		SPECIAL_QUALITIES("Special Qualities:"),
-		SAVES("Saves:"),
-		ABILITIES("Abilities:"),
-		SKILLS("Skills:"),
-		FEATS("Feats:"),
-		ENVIRONMENT("Environment:"),
-		ORGANIZATION("Organization:"),
-		CR("Challenge Rating:"),
-		TREASURE("Treasure:"),
-		ALIGNMENT("Alignment:"),
-		ADVANCEMENT("Advancement:"),
-		LEVEL_ADJUSTMENT("Level Adjustment:");
+		HITDICE("Hit Dice:", "hitdice"),
+		INITIATIVE("Initiative:", "initiative"),
+		SPEED("Speed:", "speed"),
+		AC("Armor Class:", "ac"),
+		BASE_ATTACK_GRAPPLE("Base Attack/Grapple:", "bab-grapple"),
+		ATTACK("Attack:", "attack"),
+		FULL_ATTACK("Full Attack:", "full-attack"),
+		SPACE_REACH("Space/Reach:", "space-reach"),
+		SPECIAL_ATTACKS("Special Attacks:", "special-attacks"),
+		SPECIAL_QUALITIES("Special Qualities:", "special-qualities"),
+		SAVES("Saves:", "saves"),
+		ABILITIES("Abilities:", "abilities"),
+		SKILLS("Skills:", "skills"),
+		FEATS("Feats:", "feats"),
+		ENVIRONMENT("Environment:", "environment"),
+		ORGANIZATION("Organization:", "ogranization"),
+		CR("Challenge Rating:", "cr"),
+		TREASURE("Treasure:", "treasure"),
+		ALIGNMENT("Alignment:", "alignment"),
+		ADVANCEMENT("Advancement:", "advancement"),
+		LEVEL_ADJUSTMENT("Level Adjustment:", "level-adjustment");
 //		'Type:' - from the dragon pages
 
 		@Override
 		public String toString() {return label;}
 
-		public static Field fromString(String p) {
+		public static Field fromLabel(String p) {
 			// TODO more efficient implementation
 			for (Field prop : Field.values()) {
-				if (prop.toString().equals(p)) return prop;
+				if (prop.label.equals(p)) return prop;
+			}
+			return null;
+		}
+
+		public static Field fromTagName(String t) {
+			// TODO more efficient implementation
+			for (Field prop : Field.values()) {
+				if (prop.tag != null && prop.tag.equals(t)) return prop;
 			}
 			return null;
 		}
@@ -119,9 +127,17 @@ public class StatisticsBlock {
 			LEVEL_ADJUSTMENT
 		};
 
-		private Field(String l) {label = l;}
+		private Field(String l) {
+			label = l;
+		}
+
+		private Field(String l, String t) {
+			label = l;
+			tag = t;
+		}
 
 		private String label;
+		private String tag;
 	}
 
 	static final String STATBLOCKCLASS = "statBlock";
@@ -197,7 +213,7 @@ public class StatisticsBlock {
 
 	/**
 	 * Parses the SPACE_REACH field value and returns the space taken by the creature in 6" units.
-	 * The SPACE_REACH value should be of the form "X ft./...". X should be an integer or either "2 1/2" or "2½".
+	 * The SPACE_REACH value should be of the form "X ft./...". X should be an integer or "2 1/2" or "2½" or "1/2" or "½".
 	 * If SPACE_REACH has no value or it can't be parsed to extract the space value then -1 is returned
 	 *
 	 * @return the space taken by the creature in 6" units or -1 if the SPACE_REACH field can't be parsed
@@ -206,6 +222,7 @@ public class StatisticsBlock {
 		String space = get(Field.SPACE_REACH);
 		if (space == null || space.indexOf(" ft./") < 1) return -1;
 		space = space.substring(0, space.indexOf(" ft./"));
+		if (space.equals("1/2") || space.equals("½")) return 1;
 		if (space.equals("2 1/2") || space.equals("2½")) return 5;
 		int s = -1;
 		try {
@@ -306,6 +323,7 @@ public class StatisticsBlock {
 			System.out.println("WARN: "+getName()+" has no initiative");
 			return 0;
 		}
+		if (init.contains("(")) init = init.substring(0, init.indexOf("(") - 1);
 		return parseModifier(init);
 	}
 
@@ -1212,8 +1230,7 @@ public class StatisticsBlock {
 		try {
 			// first remove any fragment from the URL:
 			URL u = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getFile());
-			File f = new File(u.toURI());
-			return parseFile(null, f);
+			return parseFile(null, new File(u.toURI()));
 		} catch (URISyntaxException | MalformedURLException ex) {
 			ex.printStackTrace();
 		}
@@ -1226,6 +1243,95 @@ public class StatisticsBlock {
 	}
 
 	static List<StatisticsBlock> parseFile(Source source, File file) {
+		if (file.getName().endsWith(".xml")) {
+			return parseXMLFile(source, file);
+		} else {
+			return parseHTMLFile(source, file);
+		}
+	}
+
+	private static List<StatisticsBlock> parseXMLFile(Source source, File file) {
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		Document dom;
+		List<StatisticsBlock> blocks = new ArrayList<>();
+		try {
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			builder.setEntityResolver(new LocalEntityResolver());
+			dom = builder.parse(file);
+
+			NodeList monsters = dom.getElementsByTagName("monster");
+			for (int i = 0; i < monsters.getLength(); i++) {
+				Element monster = (Element) monsters.item(i);
+
+				String name = monster.getAttribute("name");
+				URL url;
+				if (source != null) {
+					url = new File(source.getLocation() + "\\" + file.getName()).toURI().toURL();
+				} else {
+					url = file.toURI().toURL();
+				}
+
+				System.out.println("Parsing " + name);
+
+				// find the statsblocks
+				List<StatisticsBlock> statsBlocks = new ArrayList<>();
+				NodeList children = monster.getElementsByTagName("statsblock");
+				for (int j = 0; j < children.getLength(); j++) {
+					Map<String, Integer> tags = new HashMap<>();	// counts of how many of each tag we've seen. For detecting multiple columns
+					int maxTags = 0;	// highest number of one type of tag we've seen. Ultimately this is the number of columns in this statsblock
+
+					NodeList rows = ((Element) children.item(j)).getChildNodes();
+					for (int k = 0; k < rows.getLength(); k++) {
+						if (rows.item(k).getNodeType() == Node.ELEMENT_NODE) {
+							Element row = (Element) rows.item(k);
+							String tag = row.getTagName();
+
+							int index = 0;
+							if (tags.containsKey(tag)) index = tags.get(tag);
+							index++;
+							tags.put(tag, index);
+
+							StatisticsBlock block;
+							if (index > maxTags) {
+								// add a block
+								block = new StatisticsBlock();
+								block.fields.put(Field.NAME, name);
+								block.fields.put(Field.URL, url.toString());
+								statsBlocks.add(block);
+								maxTags = index;
+							} else {
+								block = statsBlocks.get(index - 1);
+							}
+
+							if (tag.equals("form")) {
+								block.fields.put(Field.NAME, name + " (" + row.getTextContent().trim() + ")");
+							} else {
+								Field f = Field.fromTagName(tag);
+								if (f != null) block.fields.put(f, row.getTextContent().trim());
+							}
+						}
+					}
+				}
+
+				for (StatisticsBlock block : statsBlocks) {
+					System.out.println("Found " + block.getName());
+					block.source = source;
+					blocks.add(block);
+				}
+			}
+
+		} catch (SAXException | IOException | ParserConfigurationException e) {
+			e.printStackTrace();
+		}
+
+		for (StatisticsBlock s : blocks) {
+			s.images = new URL[0];
+		}
+
+		return blocks;
+	}
+
+	private static List<StatisticsBlock> parseHTMLFile(Source source, File file) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		Document dom;
 		List<StatisticsBlock> blocks = new ArrayList<>();
@@ -1274,7 +1380,7 @@ public class StatisticsBlock {
 					} else if (child.getTagName().equals("table")) {
 						String classString = child.getAttribute("class");
 						if (classString != null && classString.contains(STATBLOCKCLASS)) {
-							for (StatisticsBlock block : parseStatBlock(child, name, url.toString())) {
+							for (StatisticsBlock block : parseHTMLStatBlock(child, name, url.toString())) {
 								block.source = source;
 								blocks.add(block);
 							}
@@ -1308,7 +1414,7 @@ public class StatisticsBlock {
 		return blocks;
 	}
 
-	private static List<StatisticsBlock> parseStatBlock(Element table, String defaultName, String url) {
+	private static List<StatisticsBlock> parseHTMLStatBlock(Element table, String defaultName, String url) {
 		//System.out.println("Found stat block");
 		List<StatisticsBlock> statsBlock = new ArrayList<>();
 
@@ -1346,7 +1452,7 @@ public class StatisticsBlock {
 								block.fields.put(Field.NAME, el.getTextContent().trim());
 								//System.out.println("Set name to "+block.properties.get(Field.NAME));
 							} else {
-								Field p = Field.fromString(stat);
+								Field p = Field.fromLabel(stat);
 								if (p != null) block.fields.put(p, el.getTextContent().trim());
 								//System.out.println(""+col+": "+stat+" = "+el.getTextContent());
 							}
