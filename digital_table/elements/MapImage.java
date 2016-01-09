@@ -82,11 +82,6 @@ public class MapImage extends Group {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
 	}
 
-	public MapImage(URI uri, String label) {
-		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
-		setURI(uri);
-	}
-
 	protected MapImage(int id, String label) {
 		super(id);
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);

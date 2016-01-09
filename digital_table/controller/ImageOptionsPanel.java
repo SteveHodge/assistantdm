@@ -57,6 +57,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		element = new MapImage(label);
 		display.addElement(element, parent);
 		display.setMedia(element, MapImage.PROPERTY_IMAGE, uri);
+		// RemoteImageDisplays will set the size of the image incorrectly so we need to manually reset the size here
+		display.setProperty(element, MapImage.PROPERTY_WIDTH, element.getProperty(MapImage.PROPERTY_WIDTH), Mode.REMOTE);
+		display.setProperty(element, MapImage.PROPERTY_HEIGHT, element.getProperty(MapImage.PROPERTY_HEIGHT), Mode.REMOTE);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
