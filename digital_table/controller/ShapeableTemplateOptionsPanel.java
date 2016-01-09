@@ -118,8 +118,8 @@ class ShapeableTemplateOptionsPanel extends OptionsPanel<ShapeableTemplate> {
 			if (e.getClickCount() != 1) return;
 
 			// get nearest grid intersection
-			int x = (int)(gridloc.getX() + 0.5d);
-			int y = (int)(gridloc.getY() + 0.5d);
+			int x = (int) (Math.round(gridloc.getX()));
+			int y = (int) (Math.round(gridloc.getY()));
 			Point p = new Point(x,y);
 			if (element.contains(p)) {
 				display.setProperty(element, ShapeableTemplate.PROPERTY_REMOVECUBE, p, Mode.REMOTE);
