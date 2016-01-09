@@ -7,12 +7,17 @@ import gamesystem.Attacks.AttackForm;
 import gamesystem.Buff;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
+import gamesystem.Feat;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
+import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
+import gamesystem.SkillType;
+import gamesystem.Skills;
+import gamesystem.Statistic;
 import gamesystem.core.AbstractProperty;
 import gamesystem.core.Property;
 
@@ -36,6 +41,10 @@ public class Monster extends Creature {
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
 	HitDice hitDice;	// TODO should be notified
+	List<Feat> feats = new ArrayList<Feat>();			// applied feats from hitdice
+	List<Feat> bonusFeats = new ArrayList<Feat>();		// applied bonus feats
+	List<String> subtypes = new ArrayList<String>();	// subtypes
+	Skills skills;		// TODO probably refactor back to Creature
 
 	// this listener forwards events from Statstics as property changes
 	private PropertyChangeListener statListener = new PropertyChangeListener() {
@@ -98,16 +107,16 @@ public class Monster extends Creature {
 		initiative.setBaseValue(0);
 		initiative.addPropertyChangeListener(statListener);
 
+		type = MonsterType.HUMANOID;
+
+		hitDice = HitDice.parse("1d" + type.getHitDiceType());
+
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), null);
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
 			s.setBaseOverride(0);
 			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
-
-		type = MonsterType.HUMANOID;
-
-		hitDice = HitDice.parse("1d" + type.getHitDiceType());
 
 		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), hitDice);
 		hps.setMaximumHitPoints(0);
@@ -138,6 +147,9 @@ public class Monster extends Creature {
 		}
 		ac.addPropertyChangeListener(statListener);
 
+		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
+		skills.addPropertyChangeListener(statListener);
+
 		bab = new BABProperty();
 
 		attacks = new Attacks(this);
@@ -154,7 +166,9 @@ public class Monster extends Creature {
 		@Override
 		public Integer getBaseValue() {
 			if (type == null) return 0;
-			return type.getBAB(hitDice.getHitDiceCount());
+			MonsterType t = getAugmentedType();
+			if (t == null) t = type;
+			return t.getBAB(hitDice.getHitDiceCount());
 		}
 
 		public void recalculateBAB(int old) {
@@ -179,6 +193,35 @@ public class Monster extends Creature {
 	public void setType(MonsterType t) {
 		type = t;
 		((BABProperty) bab).recalculateBAB(bab.getValue());
+		if (hitDice != null) hitDice.setMonsterType(t);
+	}
+
+	boolean hasSubtype(String t) {
+		return subtypes.contains(t);
+	}
+
+	void addSubtype(String s) {
+		subtypes.add(s);
+	}
+
+	// Returns the original type as specified in the "Augmented..." subtype, if any
+	MonsterType getAugmentedType() {
+		for (String subtype : subtypes) {
+			if (subtype.startsWith("Augmented ")) {
+				return MonsterType.getMonsterType(subtype.substring(10));
+			}
+		}
+		return null;
+	}
+
+	// TODO will want store progression for some monsters eventually
+	SaveProgression getSaveProgression(SavingThrow.Type type) {
+		MonsterType t = getType();
+		if (t == MonsterType.ELEMENTAL) {
+			if (type == SavingThrow.Type.FORTITUDE && (hasSubtype("Earth") || hasSubtype("Water"))) return SaveProgression.FAST;
+			if (type == SavingThrow.Type.REFLEX && (hasSubtype("Air") || hasSubtype("Fire"))) return SaveProgression.FAST;
+		}
+		return t.getProgression(type);
 	}
 
 	public class MonsterAttackRoutine {
@@ -291,6 +334,7 @@ public class Monster extends Creature {
 		}
 	}
 
+	// FIXME !!!!! replacing HitDice is bad. Need to do this properly so listeners fire etc.
 	public void setHitDice(HitDice hd) {
 		// TODO should check con bonus is applied correctly
 		int old = bab.getValue();
@@ -298,6 +342,10 @@ public class Monster extends Creature {
 		hps.setHitDice(hitDice);
 		hps.setMaximumHitPoints((int) hitDice.getMeanRoll());
 		((BABProperty) bab).recalculateBAB(old);
+		if (type != null) hitDice.setMonsterType(type);
+		for (SavingThrow s : saves.values()) {
+			s.setHitDice(hitDice);
+		}
 	}
 
 	public boolean isEditable() {
@@ -328,6 +376,14 @@ public class Monster extends Creature {
 	public boolean hasFeat(String feat) {
 		if (feat == null) return false;
 		String f = feat.toLowerCase();
+		// check recognised feats
+		for (Feat ff : feats) {
+			if (ff.getName().equals(name)) return true;
+		}
+		for (Feat ff : bonusFeats) {
+			if (ff.getName().equals(name)) return true;
+		}
+		// check other feats and properties
 		String feats = (String) getProperty(Field.FEATS.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		feats = (String) getProperty(Field.SPECIAL_QUALITIES.name());
@@ -353,6 +409,18 @@ public class Monster extends Creature {
 			setTouchAC((Integer) value);
 		else
 			super.setProperty(prop, value);
+	}
+
+	@Override
+	public Statistic getStatistic(String name) {
+		if (name.equals(STATISTIC_SKILLS)) {
+			return skills;
+		} else if (name.startsWith(STATISTIC_SKILLS + ".")) {
+			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length() + 1));
+			return skills.getSkill(type);
+		} else {
+			return super.getStatistic(name);
+		}
 	}
 
 	// TODO this is reimplementation of Creature version. should fold into that

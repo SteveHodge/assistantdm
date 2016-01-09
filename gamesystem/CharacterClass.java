@@ -297,7 +297,6 @@ public enum CharacterClass {
 
 	//TODO monk Armor Restriction: If wearing ANY armor or carrying a shield, you lose your Wisdom bonus to AC, fast movement and flurry of blows abilities.
 	// TODO ChooseFeatureAction
-	// TODO IfFeatureExistsAction - if-then-else
 	static {
 		try {
 			BARBARIAN.addAction(1, new AddFeatureAction("barbarian_fast_movement"));

@@ -12,7 +12,7 @@ import java.util.Map;
 // TODO should XP be here too or separate?
 // TODO support monsters?
 
-public class Levels extends Statistic implements HitDice {
+public class Levels extends HitDice {
 	int level = 1;
 	List<CharacterClass> classes = new ArrayList<>();	// this can have more entries than the current level (if classes have been removed they are remembered)
 
@@ -90,7 +90,7 @@ public class Levels extends Statistic implements HitDice {
 	}
 
 	// TODO use streams API
-	int getBaseSave(SavingThrow.Type type) {
+	public int getBaseSave(SavingThrow.Type type) {
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 
 		int save = 0;
@@ -101,7 +101,7 @@ public class Levels extends Statistic implements HitDice {
 	}
 
 	// TODO use streams API
-	int getBAB() {
+	public int getBAB() {
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 
 		int bab = 0;

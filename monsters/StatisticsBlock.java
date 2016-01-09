@@ -182,9 +182,9 @@ public class StatisticsBlock {
 		return null;
 	}
 
-	// always returns a valid set (which may be empty)
-	Set<String> getSubtypes() {
-		Set<String> subtypes = new HashSet<>();
+	// always returns a valid list (which may be empty)
+	List<String> getSubtypes() {
+		List<String> subtypes = new ArrayList<>();
 
 		String sizeType = get(Field.SIZE_TYPE);
 		if (sizeType == null || sizeType.indexOf('(') < 0) return subtypes;
@@ -334,6 +334,17 @@ public class StatisticsBlock {
 	// returns the parsed BAB.
 	public int getBAB() {
 		return parseBAB(get(Field.BASE_ATTACK_GRAPPLE));
+	}
+
+	// returns the parsed grapple modifier
+	// TODO perhaps better to return Integer and use null as guard value?
+	public int getGrapple() {
+		String field = get(Field.BASE_ATTACK_GRAPPLE);
+		field = field.substring(field.indexOf('/') + 1);
+		if (field.contains(" (")) field = field.substring(0, field.indexOf(" ("));
+		if (field.contains(",")) field = field.substring(0, field.indexOf(","));
+		if (field.equals("—")) return Integer.MIN_VALUE;
+		return parseModifier(field);
 	}
 
 	// parse class levels:
@@ -1271,8 +1282,6 @@ public class StatisticsBlock {
 					url = file.toURI().toURL();
 				}
 
-				System.out.println("Parsing " + name);
-
 				// find the statsblocks
 				List<StatisticsBlock> statsBlocks = new ArrayList<>();
 				NodeList children = monster.getElementsByTagName("statsblock");
@@ -1314,7 +1323,6 @@ public class StatisticsBlock {
 				}
 
 				for (StatisticsBlock block : statsBlocks) {
-					System.out.println("Found " + block.getName());
 					block.source = source;
 					blocks.add(block);
 				}

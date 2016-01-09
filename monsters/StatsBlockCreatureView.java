@@ -4,6 +4,8 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Creature;
+import gamesystem.Feat;
+import gamesystem.Feat.FeatDefinition;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
@@ -124,6 +126,9 @@ public class StatsBlockCreatureView {
 		Monster m = new Monster(name, abilities);
 
 		m.setType(blk.getType());
+		for (String s : blk.getSubtypes()) {
+			m.addSubtype(s);
+		}
 
 		m.setInitiativeModifier(blk.getInitiativeModifier());
 
@@ -187,6 +192,19 @@ public class StatsBlockCreatureView {
 		// need feats/special qualities before setting up attacks
 		m.setProperty(Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));
 		m.setProperty(Field.FEATS.name(), blk.get(Field.FEATS));
+		// apply any feats we recognise:
+		if (blk.get(Field.FEATS) != null) {
+			String[] feats = blk.get(Field.FEATS).split("\\s*,\\s*");
+			for (String f : feats) {
+				if (f.endsWith("B")) {
+					FeatDefinition def = Feat.getFeatDefinition(f.substring(0, f.length() - 1));
+					if (def != null) def.getFeat().apply(m);
+				} else {
+					FeatDefinition def = Feat.getFeatDefinition(f);
+					if (def != null) def.getFeat().apply(m);
+				}
+			}
+		}
 
 		setAttackList(m, blk.getAttacks(false));
 		setFullAttackList(m, blk.getAttacks(true));
@@ -429,8 +447,7 @@ public class StatsBlockCreatureView {
 			s.append(creature.getBAB().getValue()).append("/");
 
 			if (getStatsBlock() != null) {
-				Set<String> subtypes = getStatsBlock().getSubtypes();
-				if (subtypes.contains("Incorporeal") || subtypes.contains("Swarm")) {
+				if (creature.hasSubtype("Incorporeal") || creature.hasSubtype("Swarm")) {
 					s.append("—");
 				} else {
 					if (a.getGrappleValue() >= 0) s.append("+");

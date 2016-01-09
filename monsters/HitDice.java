@@ -1,5 +1,8 @@
 package monsters;
 
+import gamesystem.MonsterType;
+import gamesystem.SavingThrow;
+
 import java.lang.ref.SoftReference;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -8,7 +11,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-public class HitDice implements gamesystem.HitDice {
+public class HitDice extends gamesystem.HitDice {
 	public static java.util.Random rand = new Random();
 
 	// the length of these lists are always identical
@@ -16,9 +19,12 @@ public class HitDice implements gamesystem.HitDice {
 	private List<Integer> type = new ArrayList<>();
 	private List<Integer> modifier = new ArrayList<>();
 
+	private MonsterType monsterType;
+
 	private SoftReference<BigInteger[]> probabilities;
 
 	private HitDice() {
+		super("HitDice");
 	}
 
 	// num of 0 means 1/2, -1 means 1/4
@@ -28,9 +34,31 @@ public class HitDice implements gamesystem.HitDice {
 
 	// num of 0 means 1/2, -1 means 1/4
 	private HitDice(int num, int type, int mod) {
+		super("HitDice");
 		this.number.add(num);
 		this.type.add(type);
 		this.modifier.add(mod);
+	}
+
+	void setMonsterType(MonsterType t) {
+		monsterType = t;
+	}
+
+	@Override
+	public int getBAB() {
+		if (monsterType != null) {
+			return monsterType.getBAB(getHitDiceCount());
+		}
+		return 0;
+	}
+
+	// save progression can vary even within a monster type so this might not be correct for a specific monster
+	@Override
+	public int getBaseSave(SavingThrow.Type type) {
+		if (monsterType != null) {
+			return monsterType.getBaseSave(type, getHitDiceCount());
+		}
+		return 0;
 	}
 
 	// returns the number of combinations on the dice in this HitDice that total i (note that any modifiers

@@ -4,6 +4,7 @@ import gamesystem.CharacterClass;
 import gamesystem.Creature;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
+import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.SizeCategory;
 
@@ -27,35 +28,44 @@ import monsters.StatisticsBlock.Field;
 
 
 public class GetStatsBlock {
-	static String baseName = "D:\\Programming\\Workspace\\AssistantDM\\html\\monsters\\";
+	static String baseName = "D:\\Programming\\git\\assistantdm\\html\\monsters\\";
 
 	public static void main(String[] args) {
 		List<StatisticsBlock> blocks = new ArrayList<>();
 		Source[] sources = new Source[] {
 				new Source("Monster Manual", "monster_manual"),
-				new Source("Monster Manual II", "monster_manual_ii"),
-				new Source("Monster Manual III", "monster_manual_iii"),
-				new Source("Ptolus", "ptolus")
+//				new Source("Monster Manual II", "monster_manual_ii"),
+//				new Source("Monster Manual III", "monster_manual_iii"),
+//				new Source("Ptolus", "ptolus"),
+//				new Source("Cthulhu", "cthulhu")
 		};
 
 		int blockCount = 0;
 		int fileCount = 0;
 		for (Source source : sources) {
 			File dir = new File(baseName+source.getLocation());
+			System.out.println(dir);
 			File[] files = dir.listFiles((d, name) -> {
 				//if (name.equals("HalfGolem.htm")) return true;
-					if (name.toLowerCase().endsWith("html")) return true;
-					if (name.toLowerCase().endsWith("htm")) return true;
-					return false;
+				if (name.equals("All.html")) return false;
+				if (name.toLowerCase().endsWith("html")) return true;
+				if (name.toLowerCase().endsWith("htm")) return true;
+				if (name.toLowerCase().endsWith("xml")) return true;
+				return false;
 			});
 
 			for (File file : files) {
-				//				System.out.println("File "+file.getName());
-				List<StatisticsBlock> fileBlocks = StatisticsBlock.parseFile(source, file);
-				//				for (StatisticsBlock b : fileBlocks) {
-				//					System.out.println("\t"+b.getName());
-				//				}
-				blocks.addAll(fileBlocks);
+				try {
+					//				System.out.println("File "+file.getName());
+					List<StatisticsBlock> fileBlocks = StatisticsBlock.parseFile(source, file);
+					//				for (StatisticsBlock b : fileBlocks) {
+					//					System.out.println("\t"+b.getName());
+					//				}
+					blocks.addAll(fileBlocks);
+				} catch (Exception e) {
+					System.err.println("Exception processing " + file + ":");
+					e.printStackTrace();
+				}
 			}
 
 			System.out.println(source.getName()+": "+files.length+" files, "+(blocks.size()-blockCount)+" stats blocks");
@@ -72,6 +82,19 @@ public class GetStatsBlock {
 				System.out.println(block);
 			} else {
 				names.add(block.getName());
+			}
+		}
+
+		for (StatisticsBlock block : blocks) {
+			try {
+				validateBlock(block);
+			} catch (Exception e) {
+				try {
+					System.err.println("Exception processing '" + block.getName() + "' from " + block.getURL());
+				} catch (MalformedURLException e1) {
+					System.err.println("Exception processing '" + block.getName() + "' " + e1.getMessage());
+				}
+				e.printStackTrace();
 			}
 		}
 
@@ -244,7 +267,74 @@ public class GetStatsBlock {
 //			}
 //		}
 
-		getAllACComponents(blocks);
+//		getAllACComponents(blocks);
+	}
+
+	// checks the supplied block for consistency with the rules. primarily compares values found in the block with values from a Monster instance created
+	// from the block (at least for those values that are built/calculated from scratch in the Monster instance).
+	private static void validateBlock(StatisticsBlock block) {
+		// FIXME handle templates, creatures with character classes
+		// Values that are checked:
+		// BAB, grapple
+		// TODO attack bonuses
+		// TODO number of feats
+		// saves
+		// TODO number of skills
+		// TODO hit dice bonuses
+		// TODO size/reach
+
+		if (block.getClassLevels().size() > 0) {
+			System.err.println(block.getName() + " skipped due to class levels");
+			return;
+		}
+
+		@SuppressWarnings("serial")
+		class Messages extends ArrayList<String> {
+			void checkValues(String field, int parsed, int calculated) {
+				if (parsed != calculated) {
+					add(field + ": " + parsed + " != calculated value of " + calculated);
+				}
+			}
+
+			void checkSave(SavingThrow.Type type, Monster m) {
+				int parsed = block.getSavingThrow(type);
+				SavingThrow save = m.getSavingThrowStatistic(type);
+				int fast = save.getValueForProgression(SaveProgression.FAST);
+				int slow = save.getValueForProgression(SaveProgression.SLOW);
+				SaveProgression found = null;
+				if (fast == parsed) {
+					found = SaveProgression.FAST;
+				} else if (slow == parsed) {
+					found = SaveProgression.SLOW;
+				}
+				if (found == null) {
+					add(type.name() + " Save: " + parsed + " != calculated values of " + fast + " (fast) or " + slow + " (slow)");
+				} else if (found != m.getSaveProgression(type)) {
+					add(type.name() + " Save: using " + found + " progression rather than " + m.getSaveProgression(type) + " as is usual for " + m.getType());
+				}
+			}
+		}
+		;
+
+		Messages messages = new Messages();
+		Monster m = StatsBlockCreatureView.createMonster(block);
+
+		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue());
+		messages.checkValues("Grapple", block.getGrapple(), m.hasSubtype("Incorporeal") || m.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getAttacksStatistic().getGrappleValue());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
+		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
+		messages.checkSave(SavingThrow.Type.REFLEX, m);
+		messages.checkSave(SavingThrow.Type.WILL, m);
+
+		if (messages.size() == 0) {
+			System.out.println(block.getName() + " OK");
+		} else {
+			System.out.println(block.getName());
+			for (String s : messages) {
+				System.out.println("  " + s);
+			}
+			System.out.println("  Feats: " + block.get(Field.FEATS));
+			System.out.println("  Subtypes: " + String.join(", ", m.subtypes));
+		}
 	}
 
 	static void getAllACComponents(List<StatisticsBlock> blocks) {
@@ -505,7 +595,7 @@ public class GetStatsBlock {
 		// list distinct subtypes:
 		HashSet<String> subtypes = new HashSet<>();
 		for (StatisticsBlock block : blocks) {
-			Set<String> subs = block.getSubtypes();
+			List<String> subs = block.getSubtypes();
 			//System.out.println(block.getName()+": "+block.get(Property.SIZE_TYPE));
 			for (String s : subs) {
 				subtypes.add(s);
@@ -714,7 +804,7 @@ public class GetStatsBlock {
 					continue;
 				}
 
-				Set<String> subtypes = block.getSubtypes();
+				List<String> subtypes = block.getSubtypes();
 
 				SizeCategory size = block.getSize();
 				if (size == null) {
