@@ -1,6 +1,19 @@
 package gamesystem;
 
-
+/*
+ * Monsters' Types define the creature's features and traits. Generally when a template changes a creature's type the creature retains the features of the original type but uses the traits of the new type.
+ * Also note that creatures with 1 HD or fewer advance by class and use the features of their class(es) instead of their type's features.
+ * Features:
+ *   Hit Dice type
+ *   BAB progression
+ *   Saving throw progression
+ *   Skill points
+ * Traits:
+ *   Special qualities and immunities
+ *   Weapon proficiencies
+ *   Armor proficiencies
+ *   Whether or not they breathe, eat, and sleep
+ */
 
 public enum MonsterType {
 	ABERRATION("Aberration", 8, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST),

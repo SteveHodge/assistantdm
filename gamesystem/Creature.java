@@ -84,9 +84,10 @@ public abstract class Creature {
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 
 	protected Attacks attacks;
-	protected Property<Integer> bab;
+	public Property<Integer> bab;	// TODO shouldn't be public - change where StatBlockCreatureView doesn't need to manipulate bab when adding levels
 
 	protected MonsterType type;
+	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
 	public BuffUI.BuffListModel<Buff> buffs = new BuffUI.BuffListModel<>();	// TODO should be protected
 	protected Map<String, Object> extraProperties = new HashMap<>();

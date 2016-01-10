@@ -90,6 +90,7 @@ public class Levels extends HitDice {
 	}
 
 	// TODO use streams API
+	@Override
 	public int getBaseSave(SavingThrow.Type type) {
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 
@@ -101,6 +102,7 @@ public class Levels extends HitDice {
 	}
 
 	// TODO use streams API
+	@Override
 	public int getBAB() {
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 
@@ -111,6 +113,7 @@ public class Levels extends HitDice {
 		return bab;
 	}
 
+	// TODO remove this once Monster.BABProeprty is ready for top level
 	// TODO probably changes should be pushed down from rather than adding a listener
 	public class BAB extends AbstractProperty<Integer> {
 		int bab;	// latest value, used for change notification

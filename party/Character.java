@@ -101,7 +101,6 @@ public class Character extends Creature {
 
 	//	private Set<Feat> feats = new HashSet<>();
 
-	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 	public int xp = 0;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
 	public EnumMap<ACComponentType, Modifier> acMods = new EnumMap<>(ACComponentType.class); // TODO should move to AC panel

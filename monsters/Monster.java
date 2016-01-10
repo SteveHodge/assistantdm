@@ -162,17 +162,74 @@ public class Monster extends Creature {
 	}
 
 	// TODO fix this. it should listen to the relavent stats instead of requiring recalculateBAB. change once hitDice and type are notified properties/statistics
+	// once the monster's type has it's own property we can promote this to a top level class
 	class BABProperty extends AbstractProperty<Integer> {
-		@Override
-		public Integer getBaseValue() {
-			if (type == null) return 0;
-			MonsterType t = getAugmentedType();
-			if (t == null) t = type;
-			return t.getBAB(hitDice.getHitDiceCount());
+		int bab;	// latest value, used for change notification
+
+		public BABProperty() {
+			bab = getBAB();
+
+			if (level != null) {
+				level.addPropertyChangeListener((e) -> recalculateBAB());
+			}
+
+			// TODO need to listen to type changes as well. currently relying on Monster calling recalculate() on changes
 		}
 
-		public void recalculateBAB(int old) {
-			super.firePropertyChanged(old, false);
+		private int getBAB() {
+			int bab = 0;
+
+			// get any bab from levels
+			if (level != null) {
+				bab = level.getBAB();
+			}
+
+			if (type == null) return bab;
+			MonsterType t = getAugmentedType();
+			if (t == null) t = type;
+			int hd = hitDice.getHitDiceCount();	// at the moment this includes class levels so filter then out:
+			if (level != null) {
+				hd -= level.getHitDiceCount();
+			}
+			if (hd <= 1) return bab;
+			bab += t.getBAB(hd);
+			return bab;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder s = new StringBuilder();
+			s.append("(");
+
+			MonsterType t = getAugmentedType();
+			if (t == null) t = type;
+			int hd = hitDice.getHitDiceCount();
+
+			if (level != null) {
+				s.append(level.getBAB()).append(" from classes");
+				if (t != null && hd > 1) s.append(" + ");
+			}
+
+			if (t != null && hd > 1) {
+				s.append(t.getBAB(hd)).append(" from " + hd + " " + t + " hitdice");
+			}
+
+			s.append(")");
+			return s.toString();
+		}
+
+		@Override
+		public Integer getBaseValue() {
+			// we don't use cached value just incase it's stale
+			assert (bab == getBAB());
+			return getBAB();
+		}
+
+		public void recalculateBAB() {
+			if (getBAB() != bab) {
+				firePropertyChanged(bab, false);
+				bab = getBAB();
+			}
 		}
 	}
 
@@ -185,6 +242,7 @@ public class Monster extends Creature {
 		return bab;
 	}
 
+	// TODO this type related stuff needs to be moved to a property
 	@Override
 	public MonsterType getType() {
 		return type;
@@ -192,7 +250,7 @@ public class Monster extends Creature {
 
 	public void setType(MonsterType t) {
 		type = t;
-		((BABProperty) bab).recalculateBAB(bab.getValue());
+		((BABProperty) bab).recalculateBAB();
 		if (hitDice != null) hitDice.setMonsterType(t);
 	}
 
@@ -337,11 +395,10 @@ public class Monster extends Creature {
 	// FIXME !!!!! replacing HitDice is bad. Need to do this properly so listeners fire etc.
 	public void setHitDice(HitDice hd) {
 		// TODO should check con bonus is applied correctly
-		int old = bab.getValue();
 		hitDice = hd;
 		hps.setHitDice(hitDice);
 		hps.setMaximumHitPoints((int) hitDice.getMeanRoll());
-		((BABProperty) bab).recalculateBAB(old);
+		((BABProperty) bab).recalculateBAB();
 		if (type != null) hitDice.setMonsterType(type);
 		for (SavingThrow s : saves.values()) {
 			s.setHitDice(hitDice);

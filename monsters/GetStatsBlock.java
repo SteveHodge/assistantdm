@@ -283,8 +283,8 @@ public class GetStatsBlock {
 		// TODO hit dice bonuses
 		// TODO size/reach
 
-		if (block.getClassLevels().size() > 0) {
-			System.err.println(block.getName() + " skipped due to class levels");
+		if (block.getClassLevels().size() == 0) {
+			//System.err.println(block.getName() + " skipped due to no class levels");
 			return;
 		}
 
@@ -293,6 +293,12 @@ public class GetStatsBlock {
 			void checkValues(String field, int parsed, int calculated) {
 				if (parsed != calculated) {
 					add(field + ": " + parsed + " != calculated value of " + calculated);
+				}
+			}
+
+			void checkValues(String field, int parsed, int calculated, String msg) {
+				if (parsed != calculated) {
+					add(field + ": " + parsed + " != calculated value of " + calculated + ": " + msg);
 				}
 			}
 
@@ -319,7 +325,7 @@ public class GetStatsBlock {
 		Messages messages = new Messages();
 		Monster m = StatsBlockCreatureView.createMonster(block);
 
-		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue());
+		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue(), m.getBAB().toString());
 		messages.checkValues("Grapple", block.getGrapple(), m.hasSubtype("Incorporeal") || m.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getAttacksStatistic().getGrappleValue());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
 		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
 		messages.checkSave(SavingThrow.Type.REFLEX, m);

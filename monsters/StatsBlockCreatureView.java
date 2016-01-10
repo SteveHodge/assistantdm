@@ -3,11 +3,13 @@ package monsters;
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
+import gamesystem.CharacterClass;
 import gamesystem.Creature;
 import gamesystem.Feat;
 import gamesystem.Feat.FeatDefinition;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
+import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
@@ -130,6 +132,24 @@ public class StatsBlockCreatureView {
 			m.addSubtype(s);
 		}
 
+		Map<CharacterClass, Integer> lvls = blk.getClassLevels();
+		for (CharacterClass c : lvls.keySet()) {
+			int l = lvls.get(c);
+			if (l > 1) {
+				int old = 0;
+				if (m.level == null) {
+					m.level = new Levels();
+					m.level.addPropertyChangeListener((e) -> ((Monster.BABProperty) (m.bab)).recalculateBAB());
+				} else {
+					old = m.level.getLevel();
+				}
+				m.level.setLevel(old + l);
+				for (i = old + 1; i <= m.level.getLevel(); i++) {
+					m.level.setClass(i, c);
+				}
+			}
+		}
+
 		m.setInitiativeModifier(blk.getInitiativeModifier());
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
@@ -140,7 +160,7 @@ public class StatsBlockCreatureView {
 			}
 		}
 
-		m.setHitDice(blk.getHitDice());
+		m.setHitDice(blk.getHitDice());		// TODO need to only apply base HD, class HD need to be removed
 
 		HPs hps = m.getHPStatistic();
 		hps.setMaximumHitPoints(blk.getDefaultHPs());
