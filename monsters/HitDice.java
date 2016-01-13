@@ -282,7 +282,7 @@ public class HitDice {
 		return num;
 	}
 
-	int getComponentCount() {
+	public int getComponentCount() {
 		return type.size();
 	}
 

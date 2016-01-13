@@ -374,24 +374,6 @@ public class Monster extends Creature {
 		}
 	}
 
-	// Sets the racial hitdice based on the supplied total hitdice and existing class levels.
-	public void setHitDice(HitDice hd) {
-		if (level != null && level.getHitDice() != null) {
-			System.out.println("Setting HD to " + hd + ", class HD = " + level.getHitDice());
-			HitDice diff = HitDice.difference(hd, level.getHitDice());
-			if (diff.getComponentCount() == 0) {
-				// no difference
-				// FIXME need to set the racial hitdice to null?
-				return;
-			}
-			if (diff.getComponentCount() > 1) throw new IllegalArgumentException("Remaining HD not suitable: total = " + hd + ", class HD = " + level.getHitDice());
-			race.setHitDice(diff);
-		} else {
-			race.setHitDice(hd);
-		}
-		hps.setMaximumHitPoints((int) hitDice.getValue().getMeanRoll());
-	}
-
 	public boolean isEditable() {
 		return true;
 	}

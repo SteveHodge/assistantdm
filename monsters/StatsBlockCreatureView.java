@@ -160,7 +160,7 @@ public class StatsBlockCreatureView {
 			}
 		}
 
-		m.setHitDice(blk.getHitDice());		// TODO need to only apply base HD, class HD need to be removed
+		m.hitDice.setHitDice(blk.getHitDice());
 
 		HPs hps = m.getHPStatistic();
 		hps.setMaximumHitPoints(blk.getDefaultHPs());

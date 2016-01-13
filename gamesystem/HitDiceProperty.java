@@ -57,6 +57,23 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 		}
 	}
 
+	// Sets the racial hitdice based on the supplied total hitdice and existing class levels.
+	public void setHitDice(HitDice hd) {
+		if (levels != null && levels.getHitDice() != null) {
+			System.out.println("Setting HD to " + hd + ", class HD = " + levels.getHitDice());
+			HitDice diff = HitDice.difference(hd, levels.getHitDice());
+			if (diff.getComponentCount() == 0) {
+				// no difference
+				// FIXME need to set the racial hitdice to null?
+				return;
+			}
+			if (diff.getComponentCount() > 1) throw new IllegalArgumentException("Remaining HD not suitable: total = " + hd + ", class HD = " + levels.getHitDice());
+			race.setHitDice(diff);
+		} else {
+			race.setHitDice(hd);
+		}
+	}
+
 	@Override
 	public HitDice getBaseValue() {
 		return hitDice;

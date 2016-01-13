@@ -66,7 +66,8 @@ public class XMLMonsterParser extends XMLParserHelper {
 			} else if (tag.equals("HitDice")) {
 				String hdstr = e.getAttribute("dice");
 				HitDice dice = HitDice.parse(hdstr);
-				m.setHitDice(dice);
+				m.hitDice.setHitDice(dice);
+				m.getHPStatistic().setMaximumHitPoints((int) m.hitDice.getValue().getMeanRoll());
 
 			} else if (tag.equals("Initiative")) {
 				parseInitiativeModifier(e, m);

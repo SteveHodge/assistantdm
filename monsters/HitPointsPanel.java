@@ -54,7 +54,7 @@ class HitPointsPanel extends DetailPanel {
 				HitDice test = HitDice.parse(s);
 				if (creature != null) {
 					hitdice = test;
-					creature.setHitDice(test);	// will fire property change that will trigger update
+					creature.hitDice.setHitDice(test);	// will fire property change that will trigger update
 				}
 				hitDiceField.setBackground(defaultBG);
 			} catch(Exception e) {
