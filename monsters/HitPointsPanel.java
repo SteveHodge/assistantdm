@@ -25,6 +25,7 @@ import javax.swing.JTextField;
 
 
 // TODO hitdice should show con bonus as read-only and auto-adjust with change to con
+// FIXME probably wrong with new implementation
 
 @SuppressWarnings("serial")
 class HitPointsPanel extends DetailPanel {
@@ -217,7 +218,7 @@ class HitPointsPanel extends DetailPanel {
 		if (creature != null) {
 			hps = creature.getHPStatistic();
 			hps.addPropertyChangeListener(hpListener);
-			hitdice = creature.getHitDice();
+			hitdice = creature.getHitDice().getValue();
 		} else {
 			hps = null;
 		}

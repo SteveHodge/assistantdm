@@ -127,9 +127,9 @@ public class StatsBlockCreatureView {
 
 		Monster m = new Monster(name, abilities);
 
-		m.setType(blk.getType());
+		m.race.setType(blk.getType());
 		for (String s : blk.getSubtypes()) {
-			m.addSubtype(s);
+			m.race.addSubtype(s);
 		}
 
 		Map<CharacterClass, Integer> lvls = blk.getClassLevels();
@@ -444,7 +444,7 @@ public class StatsBlockCreatureView {
 			}
 		} else if (field == Field.HITDICE) {
 			// TODO need to add con mod to this:
-			s.append(creature.hitDice).append(" (");
+			s.append(creature.hitDice.getValue()).append(" (");
 			if (creature.getHPStatistic().getValue() != creature.getHPStatistic().getMaximumHitPoints()) {
 				s.append(creature.getHPStatistic().getValue()).append("/");
 			}
@@ -452,7 +452,7 @@ public class StatsBlockCreatureView {
 		} else if (field == Field.SIZE_TYPE) {
 			s.append(creature.getSizeStatistic().getSize());
 			s.append(" ");
-			s.append(creature.getType());
+			s.append(creature.race.getType());
 		} else if (field == Field.SPACE_REACH) {
 			s.append(creature.getSizeStatistic().getSpace() / 2);
 			if (creature.getSizeStatistic().getSpace() % 2 == 1) s.append("½");
@@ -467,7 +467,7 @@ public class StatsBlockCreatureView {
 			s.append(creature.getBAB().getValue()).append("/");
 
 			if (getStatsBlock() != null) {
-				if (creature.hasSubtype("Incorporeal") || creature.hasSubtype("Swarm")) {
+				if (creature.race.hasSubtype("Incorporeal") || creature.race.hasSubtype("Swarm")) {
 					s.append("—");
 				} else {
 					if (a.getGrappleValue() >= 0) s.append("+");

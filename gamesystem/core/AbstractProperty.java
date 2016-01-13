@@ -80,6 +80,7 @@ abstract public class AbstractProperty<T> implements Property<T> {
 
 	@SuppressWarnings("unchecked")
 	protected void firePropertyChanged(T oldVal, boolean compChange) {
+		if (listenerList == null) return;
 		Object[] listeners = listenerList.getListenerList();
 		PropertyEvent<T> event = null;
 		for (int i = listeners.length - 2; i >= 0; i -= 2) {

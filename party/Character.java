@@ -12,6 +12,7 @@ import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
 import gamesystem.HPs;
+import gamesystem.HitDiceProperty;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
@@ -268,9 +269,10 @@ public class Character extends Creature {
 		initiative.addPropertyChangeListener(statListener);
 
 		level = new Levels();
+		hitDice = new HitDiceProperty(null, level);
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), level);
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
 			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
@@ -281,7 +283,7 @@ public class Character extends Creature {
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
 		skills.addPropertyChangeListener(statListener);
 
-		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), level);
+		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), hitDice);
 		hps.addPropertyChangeListener(statListener);
 
 		bab = level.new BAB();

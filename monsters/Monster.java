@@ -9,9 +9,11 @@ import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
 import gamesystem.HPs;
+import gamesystem.HitDiceProperty;
 import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
+import gamesystem.Race;
 import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
@@ -40,11 +42,10 @@ public class Monster extends Creature {
 
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
-	HitDice hitDice;	// TODO should be notified
 	List<Feat> feats = new ArrayList<Feat>();			// applied feats from hitdice
 	List<Feat> bonusFeats = new ArrayList<Feat>();		// applied bonus feats
-	List<String> subtypes = new ArrayList<String>();	// subtypes
 	Skills skills;		// TODO probably refactor back to Creature
+	Race race;
 
 	// this listener forwards events from Statstics as property changes
 	private PropertyChangeListener statListener = new PropertyChangeListener() {
@@ -107,9 +108,8 @@ public class Monster extends Creature {
 		initiative.setBaseValue(0);
 		initiative.addPropertyChangeListener(statListener);
 
-		type = MonsterType.HUMANOID;
-
-		hitDice = HitDice.parse("1d" + type.getHitDiceType());
+		race = new Race();
+		hitDice = new HitDiceProperty(race, level);
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
@@ -173,7 +173,19 @@ public class Monster extends Creature {
 				level.addPropertyChangeListener((e) -> recalculateBAB());
 			}
 
-			// TODO need to listen to type changes as well. currently relying on Monster calling recalculate() on changes
+			if (race != null) {
+				race.addPropertyListener(new PropertyListener<String>() {
+					@Override
+					public void valueChanged(gamesystem.core.Property.PropertyEvent<String> event) {
+						recalculateBAB();
+					}
+
+					@Override
+					public void compositionChanged(gamesystem.core.Property.PropertyEvent<String> event) {
+						recalculateBAB();
+					}
+				});
+			}
 		}
 
 		private int getBAB() {
@@ -184,10 +196,10 @@ public class Monster extends Creature {
 				bab = level.getBAB();
 			}
 
-			if (type == null) return bab;
-			MonsterType t = getAugmentedType();
-			if (t == null) t = type;
-			int hd = hitDice.getHitDiceCount();	// at the moment this includes class levels so filter then out:
+			if (race == null) return bab;
+			MonsterType t = race.getAugmentedType();
+			if (t == null) t = race.getType();
+			int hd = race.getHitDiceCount();	// at the moment this includes class levels so filter then out:
 			if (level != null) {
 				hd -= level.getHitDiceCount();
 			}
@@ -201,9 +213,9 @@ public class Monster extends Creature {
 			StringBuilder s = new StringBuilder();
 			s.append("(");
 
-			MonsterType t = getAugmentedType();
-			if (t == null) t = type;
-			int hd = hitDice.getHitDiceCount();
+			MonsterType t = race.getAugmentedType();
+			if (t == null) t = race.getType();
+			int hd = race.getHitDiceCount();
 
 			if (level != null) {
 				s.append(level.getBAB()).append(" from classes");
@@ -233,7 +245,7 @@ public class Monster extends Creature {
 		}
 	}
 
-	public HitDice getHitDice() {
+	public HitDiceProperty getHitDice() {
 		return hitDice;
 	}
 
@@ -242,42 +254,12 @@ public class Monster extends Creature {
 		return bab;
 	}
 
-	// TODO this type related stuff needs to be moved to a property
-	@Override
-	public MonsterType getType() {
-		return type;
-	}
-
-	public void setType(MonsterType t) {
-		type = t;
-		((BABProperty) bab).recalculateBAB();
-		if (hitDice != null) hitDice.setMonsterType(t);
-	}
-
-	boolean hasSubtype(String t) {
-		return subtypes.contains(t);
-	}
-
-	void addSubtype(String s) {
-		subtypes.add(s);
-	}
-
-	// Returns the original type as specified in the "Augmented..." subtype, if any
-	MonsterType getAugmentedType() {
-		for (String subtype : subtypes) {
-			if (subtype.startsWith("Augmented ")) {
-				return MonsterType.getMonsterType(subtype.substring(10));
-			}
-		}
-		return null;
-	}
-
 	// TODO will want store progression for some monsters eventually
 	SaveProgression getSaveProgression(SavingThrow.Type type) {
-		MonsterType t = getType();
+		MonsterType t = race.getType();
 		if (t == MonsterType.ELEMENTAL) {
-			if (type == SavingThrow.Type.FORTITUDE && (hasSubtype("Earth") || hasSubtype("Water"))) return SaveProgression.FAST;
-			if (type == SavingThrow.Type.REFLEX && (hasSubtype("Air") || hasSubtype("Fire"))) return SaveProgression.FAST;
+			if (type == SavingThrow.Type.FORTITUDE && (race.hasSubtype("Earth") || race.hasSubtype("Water"))) return SaveProgression.FAST;
+			if (type == SavingThrow.Type.REFLEX && (race.hasSubtype("Air") || race.hasSubtype("Fire"))) return SaveProgression.FAST;
 		}
 		return t.getProgression(type);
 	}
@@ -392,17 +374,22 @@ public class Monster extends Creature {
 		}
 	}
 
-	// FIXME !!!!! replacing HitDice is bad. Need to do this properly so listeners fire etc.
+	// Sets the racial hitdice based on the supplied total hitdice and existing class levels.
 	public void setHitDice(HitDice hd) {
-		// TODO should check con bonus is applied correctly
-		hitDice = hd;
-		hps.setHitDice(hitDice);
-		hps.setMaximumHitPoints((int) hitDice.getMeanRoll());
-		((BABProperty) bab).recalculateBAB();
-		if (type != null) hitDice.setMonsterType(type);
-		for (SavingThrow s : saves.values()) {
-			s.setHitDice(hitDice);
+		if (level != null && level.getHitDice() != null) {
+			System.out.println("Setting HD to " + hd + ", class HD = " + level.getHitDice());
+			HitDice diff = HitDice.difference(hd, level.getHitDice());
+			if (diff.getComponentCount() == 0) {
+				// no difference
+				// FIXME need to set the racial hitdice to null?
+				return;
+			}
+			if (diff.getComponentCount() > 1) throw new IllegalArgumentException("Remaining HD not suitable: total = " + hd + ", class HD = " + level.getHitDice());
+			race.setHitDice(diff);
+		} else {
+			race.setHitDice(hd);
 		}
+		hps.setMaximumHitPoints((int) hitDice.getValue().getMeanRoll());
 	}
 
 	public boolean isEditable() {
@@ -489,7 +476,8 @@ public class Monster extends Creature {
 			processor.processAbilityScore(s);
 		}
 
-		processor.processHitdice(hitDice);
+//		processor.processHitdice(hitDice);
+		// FIXME need to process level and race
 		processor.processHPs(hps);
 		processor.processInitiative(initiative);
 		processor.processSize(size);

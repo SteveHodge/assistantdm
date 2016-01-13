@@ -86,8 +86,8 @@ public abstract class Creature {
 	protected Attacks attacks;
 	public Property<Integer> bab;	// TODO shouldn't be public - change where StatBlockCreatureView doesn't need to manipulate bab when adding levels
 
-	protected MonsterType type;
 	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
+	public HitDiceProperty hitDice;		// TODO shouldn't be public
 
 	public BuffUI.BuffListModel<Buff> buffs = new BuffUI.BuffListModel<>();	// TODO should be protected
 	protected Map<String, Object> extraProperties = new HashMap<>();
@@ -135,10 +135,6 @@ public abstract class Creature {
 	}
 
 	abstract public void setName(String name);	// TODO shouldn't be abstract
-
-	public MonsterType getType() {
-		return type;
-	}
 
 	public HPs getHPStatistic() {
 		return hps;
@@ -286,8 +282,6 @@ public abstract class Creature {
 			return getReach();
 		else if (prop.equals(PROPERTY_BAB))
 			return bab.getValue();
-		else if (prop.equals(PROPERTY_TYPE))
-			return getType();
 		else if (extraProperties.containsKey(prop)) {
 //			System.out.println("extra property '"+prop+"': "+extraProperties.get(prop));
 			return extraProperties.get(prop);

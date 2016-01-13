@@ -1,5 +1,9 @@
 package gamesystem;
 
+import gamesystem.core.Property.PropertyEvent;
+import gamesystem.core.Property.PropertyListener;
+import monsters.HitDice;
+
 public class SavingThrow extends Statistic {
 	public enum Type {
 		FORTITUDE("Fortitude", "Fort", AbilityScore.Type.CONSTITUTION),
@@ -34,28 +38,32 @@ public class SavingThrow extends Statistic {
 	}
 
 	final private Type type;
-	private HitDice hitdice;
+	private HitDiceProperty hitdice;
 	private int baseValue = -1;		// base value override (-1 means no override)
 
 	// TODO verify that the ability is the correct one. alternatively pass all ability scores (that would allow the rules for non-abilities to be applied)
-	public SavingThrow(Type type, AbilityScore ability, HitDice hitDice2) {
+	public SavingThrow(Type type, AbilityScore ability, HitDiceProperty hd) {
 		super(type.toString());
 		this.type = type;
 		if (ability != null) addModifier(ability.getModifier());
-		hitdice = hitDice2;
-		if (hitdice != null) {
-			hitdice.addPropertyChangeListener((e) -> {
-				pcs.firePropertyChange("value", null, getValue());
-			});
-		}
+		setHitDice(hd);
 	}
 
-	// FIXME !!!!! shouldn't allow this. fix up Hitdice/Levels and listeners for them
-	public void setHitDice(HitDice hd) {
+	public void setHitDice(HitDiceProperty hd) {
 		hitdice = hd;
-		hitdice.addPropertyChangeListener((e) -> {
-			pcs.firePropertyChange("value", null, getValue());
-		});
+		if (hitdice != null) {
+			hitdice.addPropertyListener(new PropertyListener<HitDice>() {
+				@Override
+				public void valueChanged(PropertyEvent<HitDice> event) {
+					pcs.firePropertyChange("value", null, getValue());
+				}
+
+				@Override
+				public void compositionChanged(PropertyEvent<HitDice> event) {
+					pcs.firePropertyChange("value", null, getValue());
+				}
+			});
+		}
 	}
 
 	public int getValueForProgression(SaveProgression progression) {

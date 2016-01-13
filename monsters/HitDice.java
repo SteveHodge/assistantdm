@@ -1,8 +1,5 @@
 package monsters;
 
-import gamesystem.MonsterType;
-import gamesystem.SavingThrow;
-
 import java.lang.ref.SoftReference;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -11,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-public class HitDice extends gamesystem.HitDice {
+public class HitDice {
 	public static java.util.Random rand = new Random();
 
 	// the length of these lists are always identical
@@ -19,46 +16,110 @@ public class HitDice extends gamesystem.HitDice {
 	private List<Integer> type = new ArrayList<>();
 	private List<Integer> modifier = new ArrayList<>();
 
-	private MonsterType monsterType;
-
 	private SoftReference<BigInteger[]> probabilities;
 
 	private HitDice() {
-		super("HitDice");
 	}
 
 	// num of 0 means 1/2, -1 means 1/4
-	private HitDice(int num, int type) {
+	public HitDice(int num, int type) {
 		this(num, type, 0);
 	}
 
 	// num of 0 means 1/2, -1 means 1/4
 	private HitDice(int num, int type, int mod) {
-		super("HitDice");
 		this.number.add(num);
 		this.type.add(type);
 		this.modifier.add(mod);
 	}
 
-	void setMonsterType(MonsterType t) {
-		monsterType = t;
+	public void add(int num, int type) {
+		add(num, type, 0);
+	}
+
+	// TODO should probably support fractional hitdice. currently doesn't (throws an exception)
+	public void add(int num, int type, int mod) {
+		if (num < 1) throw new IllegalArgumentException("Fractional dice are not supported");
+		// try to find that dice type first
+		for (int i = 0; i < this.type.size(); i++) {
+			if (this.type.get(i) == type) {
+				int existing = number.get(i);
+				if (existing < 1) throw new IllegalArgumentException("Fractional dice are not supported");
+				number.set(i, existing + num);
+				modifier.set(i, modifier.get(i) + mod);
+				return;
+			}
+		}
+
+		// didn't return in the loop so we need to add the type as a new component
+		number.add(num);
+		this.type.add(type);
+		modifier.add(mod);
+	}
+
+	public void add(HitDice hd) {
+		for (int i = 0; i < hd.type.size(); i++) {
+			add(hd.number.get(i), hd.type.get(i), hd.modifier.get(i));
+		}
+	}
+
+	// TODO should probably support fractional hitdice. currently doesn't (throws an exception)
+	// Note: returns a valid HitDice in all cases. If there is no difference then the returned value will have no components.
+	// If the only difference is in the modifier then will return a value with 1 dice of type 0 plus the modifier.
+	public static HitDice difference(HitDice hitDice, HitDice hd) {
+		HitDice diff = new HitDice();
+		int extraMod = 0;
+		for (int i = 0; i < hitDice.type.size(); i++) {
+			int type = hitDice.type.get(i);
+			int num = hitDice.number.get(i);
+			if (num < 1) throw new IllegalArgumentException("Fractional dice are not supported");
+			int mod = hitDice.modifier.get(i);
+			for (int j = 0; j < hd.type.size(); j++) {
+				if (hd.type.get(j) == type) {
+					num -= hd.number.get(j);
+					mod -= hd.modifier.get(j);
+				}
+			}
+			if (num >= 1) {
+				diff.add(num, type, mod);
+			} else if (mod != 0) {
+				extraMod += mod;
+			}
+		}
+		if (extraMod != 0) {
+			// we've got a modifier than hasn't been included with any dice. add it to the first dice
+			if (diff.type.size() >= 1) {
+				diff.modifier.set(0, diff.modifier.get(0) + extraMod);
+			} else {
+				diff.add(1, 0, extraMod);
+			}
+		}
+		return diff;
 	}
 
 	@Override
-	public int getBAB() {
-		if (monsterType != null) {
-			return monsterType.getBAB(getHitDiceCount());
+	public boolean equals(Object x) {
+		if (x == null) return false;
+		if (x instanceof HitDice) {
+			HitDice hd = (HitDice)x;
+			// first check total modifiers
+			if (getModifier() != hd.getModifier()) return false;
+			// check number and type. these are not sorted so this is inefficient for HitDice with large numbers of different types
+			for (int i = 0; i < type.size(); i++) {
+				int t = type.get(i);
+				int n = number.get(i);
+				boolean found = false;
+				for (int j = 0; i < hd.type.size(); i++) {
+					if (hd.type.get(j) == t) {
+						if (hd.number.get(j) != n) return false;
+						found = true;
+					}
+				}
+				if (!found) return false;
+			}
+			return true;
 		}
-		return 0;
-	}
-
-	// save progression can vary even within a monster type so this might not be correct for a specific monster
-	@Override
-	public int getBaseSave(SavingThrow.Type type) {
-		if (monsterType != null) {
-			return monsterType.getBaseSave(type, getHitDiceCount());
-		}
-		return 0;
+		return false;
 	}
 
 	// returns the number of combinations on the dice in this HitDice that total i (note that any modifiers
@@ -203,7 +264,7 @@ public class HitDice extends gamesystem.HitDice {
 	}
 
 // returns the total modifier applied to all dice
-	int getModifier() {
+	public int getModifier() {
 		int mod = 0;
 		for (int m : modifier) {
 			mod += m;
@@ -249,7 +310,6 @@ public class HitDice extends gamesystem.HitDice {
 		return components;
 	}
 
-	@Override
 	public int getHitDiceCount() {
 		return getNumber();
 	}

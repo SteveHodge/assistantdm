@@ -7,12 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import monsters.HitDice;
+
 //TODO this is statistic for the listener stuff but it doesn't really need modifiers so perhaps refactor
 
 // TODO should XP be here too or separate?
 // TODO support monsters?
 
-public class Levels extends HitDice {
+public class Levels extends Statistic {
 	int level = 1;
 	List<CharacterClass> classes = new ArrayList<>();	// this can have more entries than the current level (if classes have been removed they are remembered)
 
@@ -24,7 +26,6 @@ public class Levels extends HitDice {
 		return level;
 	}
 
-	@Override
 	public int getHitDiceCount() {
 		return level;
 	}
@@ -90,7 +91,6 @@ public class Levels extends HitDice {
 	}
 
 	// TODO use streams API
-	@Override
 	public int getBaseSave(SavingThrow.Type type) {
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 
@@ -102,7 +102,6 @@ public class Levels extends HitDice {
 	}
 
 	// TODO use streams API
-	@Override
 	public int getBAB() {
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 
@@ -138,5 +137,18 @@ public class Levels extends HitDice {
 			assert (bab == getBAB());
 			return getBAB();
 		}
+	}
+
+	public HitDice getHitDice() {
+		HitDice hd = null;
+		Map<CharacterClass, Integer> classLvl = getClassLevels();
+		for (CharacterClass c : classLvl.keySet()) {
+			if (hd == null) {
+				hd = new HitDice(classLvl.get(c), c.getHitDiceType());
+			} else {
+				hd.add(classLvl.get(c), c.getHitDiceType());
+			}
+		}
+		return null;
 	}
 }

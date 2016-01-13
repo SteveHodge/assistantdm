@@ -1,11 +1,16 @@
 package gamesystem;
 
+import gamesystem.core.Property.PropertyEvent;
+import gamesystem.core.Property.PropertyListener;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+
+import monsters.HitDice;
 
 
 // TODO change temp hitpoints to a property
@@ -16,7 +21,7 @@ import java.util.Map;
  * 1. If temporary hit points are granted more than once then only the best one applies (FAQ)
  * 2. If temporary hit points are granted from different sources then they stack (FAQ)
  * 3. Damages comes off the oldest source first (FAQ) - this is interpreted to mean the oldest active source
- * 
+ *
  * There is still a question as to what happens when there are multiples instances from a single source and
  * then some of the instances are removed (e.g. dispelled). Consider:
  * 1. Character gets 15 temporary hit points from Aid
@@ -31,9 +36,9 @@ import java.util.Map;
  * Option A is exploitable and would cause unintuitive results (a successful dispel should not result in higher hps). It
  * would effectively mean that effects from the same source did stack in certain situations. For those reasons option B
  * is preferred.
- * 
+ *
  * Variant rule: temporary hit points don't stack regardless of source.
- * 
+ *
  * Implementation:
  * Need to track source and current value in order
  * When damage is sustained, selected the first source. remove the damage from all temp hps of that source
@@ -43,7 +48,7 @@ import java.util.Map;
 // TODO fix up encapsulation since parsing has moved to XMLCreatureParser
 public class HPs extends Statistic {
 	Modifier conMod = null;
-	HitDice hitdice;
+	HitDiceProperty hitdice;
 	int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
 	int hps, wounds, nonLethal;
 	List<TempHPs> tempHPs = new ArrayList<>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
@@ -82,10 +87,10 @@ public class HPs extends Statistic {
 		}
 	}
 
-	// TODO should add a listener to level
-	public HPs(AbilityScore con, HitDice level) {
+	// TODO should probably move con monitoring to HitDiceProperty
+	public HPs(AbilityScore con, HitDiceProperty hd) {
 		super("Hit Points");
-		hitdice = level;
+		setHitDice(hd);
 
 		if (con != null) {
 			conMod = con.getModifier();
@@ -102,8 +107,30 @@ public class HPs extends Statistic {
 		}
 	}
 
-	public void setHitDice(HitDice level) {
-		hitdice = level;
+	public void setHitDice(HitDiceProperty hd) {
+		hitdice = hd;
+		hitdice.addPropertyListener(new PropertyListener<HitDice>() {
+			@Override
+			public void valueChanged(PropertyEvent<HitDice> event) {
+				updateModifier(event.getOldValue().getModifier());
+			}
+
+			@Override
+			public void compositionChanged(PropertyEvent<HitDice> event) {
+				updateModifier(event.getOldValue().getModifier());
+			}
+		});
+	}
+
+	// apply any modifier change to maximum hitpoints
+	private void updateModifier(int oldMod) {
+		int oldhps = getMaximumHitPoints();
+		int newhps = oldhps + hitdice.getValue().getModifier() - oldMod;
+		if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();
+		if (newhps == oldhps) return;
+		System.out.println("changing max hps from " + oldhps + " to " + newhps);
+		setMaximumHitPoints(newhps);
+
 	}
 
 	public int getMaximumHitPoints() {

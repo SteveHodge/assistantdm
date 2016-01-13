@@ -316,7 +316,7 @@ public class GetStatsBlock {
 				if (found == null) {
 					add(type.name() + " Save: " + parsed + " != calculated values of " + fast + " (fast) or " + slow + " (slow)");
 				} else if (found != m.getSaveProgression(type)) {
-					add(type.name() + " Save: using " + found + " progression rather than " + m.getSaveProgression(type) + " as is usual for " + m.getType());
+					add(type.name() + " Save: using " + found + " progression rather than " + m.getSaveProgression(type) + " as is usual for " + m.race.getType());
 				}
 			}
 		}
@@ -326,7 +326,7 @@ public class GetStatsBlock {
 		Monster m = StatsBlockCreatureView.createMonster(block);
 
 		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue(), m.getBAB().toString());
-		messages.checkValues("Grapple", block.getGrapple(), m.hasSubtype("Incorporeal") || m.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getAttacksStatistic().getGrappleValue());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
+		messages.checkValues("Grapple", block.getGrapple(), m.race.hasSubtype("Incorporeal") || m.race.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getAttacksStatistic().getGrappleValue());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
 		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
 		messages.checkSave(SavingThrow.Type.REFLEX, m);
 		messages.checkSave(SavingThrow.Type.WILL, m);
@@ -339,7 +339,7 @@ public class GetStatsBlock {
 				System.out.println("  " + s);
 			}
 			System.out.println("  Feats: " + block.get(Field.FEATS));
-			System.out.println("  Subtypes: " + String.join(", ", m.subtypes));
+			System.out.println("  Subtypes: " + String.join(", ", m.race.subtypes));
 		}
 	}
 
