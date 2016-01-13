@@ -2,6 +2,7 @@ package monsters;
 
 import gamesystem.AbilityScore;
 import gamesystem.Buff;
+import gamesystem.HitDice;
 import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
 import gamesystem.XMLParserHelper;

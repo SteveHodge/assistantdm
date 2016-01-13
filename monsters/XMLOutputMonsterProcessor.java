@@ -3,6 +3,7 @@ package monsters;
 import gamesystem.AC;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
+import gamesystem.HitDice;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;

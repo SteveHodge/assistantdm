@@ -1,4 +1,4 @@
-package monsters;
+package gamesystem;
 
 import java.lang.ref.SoftReference;
 import java.math.BigInteger;
@@ -124,7 +124,7 @@ public class HitDice {
 
 	// returns the number of combinations on the dice in this HitDice that total i (note that any modifiers
 	// are not included in the total). E.g. for "2d6+2" this will return 1 for i = 2
-	BigInteger getCombinations(int i) {
+	public BigInteger getCombinations(int i) {
 		return getCombinations()[i];
 	}
 
@@ -273,7 +273,7 @@ public class HitDice {
 	}
 
 // returns the total number of dice (any fractional components are treated as 1)
-	int getNumber() {
+	public int getNumber() {
 		int num = 0;
 		for (int n : number) {
 			if (n <= 0) n = 1;
@@ -290,18 +290,18 @@ public class HitDice {
 		return modifier.get(i);
 	}
 
-	int getNumber(int i) {
+	public int getNumber(int i) {
 		return number.get(i);
 	}
 
-	int getType(int i) {
+	public int getType(int i) {
 		return type.get(i);
 	}
 
 // returns the components of this HitDice separately. Each of the returned HitDice will have exactly one
 // dice and modifier. All the returned HitDice are newly created even if this HitDice only has a single
 // component
-	Set<HitDice> getComponents() {
+	public Set<HitDice> getComponents() {
 		Set<HitDice> components = new HashSet<>();
 		for (int i = 0; i < type.size(); i++) {
 			HitDice d = new HitDice(number.get(i), type.get(i), modifier.get(i));
@@ -342,7 +342,7 @@ public class HitDice {
 // returns a random total where each die is re-rolled until its value is at least half of the maximum
 // TODO this should also give max hitpoints for the first HD, as with the character rule
 // XXX this might be incorrect for odd dice types (e.g. d5, d7)
-	int rollMinHalf() {
+	public int rollMinHalf() {
 		int roll = 0;
 
 		for (int i = 0; i < number.size(); i++) {

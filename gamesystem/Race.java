@@ -5,8 +5,6 @@ import gamesystem.core.AbstractProperty;
 import java.util.ArrayList;
 import java.util.List;
 
-import monsters.HitDice;
-
 /* Race encapsulates monster advancement: it is the monster equivalent of Levels. As a Property it encapsulates a creature's type and subtypes (if any).
  * The String value reported is a description: "type (subtype, subtype,...)".
  */
@@ -18,7 +16,7 @@ public class Race extends AbstractProperty<String> {
 
 	public Race() {
 		type = MonsterType.HUMANOID;
-		hitDice = monsters.HitDice.parse("1d" + type.getHitDiceType());
+		hitDice = gamesystem.HitDice.parse("1d" + type.getHitDiceType());
 	}
 
 	@Override

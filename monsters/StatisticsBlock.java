@@ -3,6 +3,7 @@ package monsters;
 import gamesystem.AbilityScore;
 import gamesystem.AbilityScore.Type;
 import gamesystem.CharacterClass;
+import gamesystem.HitDice;
 import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;

@@ -2,7 +2,6 @@ package gamesystem;
 
 import gamesystem.core.Property.PropertyEvent;
 import gamesystem.core.Property.PropertyListener;
-import monsters.HitDice;
 
 public class SavingThrow extends Statistic {
 	public enum Type {

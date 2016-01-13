@@ -2,7 +2,6 @@ package gamesystem;
 
 import gamesystem.SavingThrow.Type;
 import gamesystem.core.AbstractProperty;
-import monsters.HitDice;
 
 /* HitDiceProperty monitors Levels and monster hitdice (Race) and provides a combined hitdice property that other properties such as BAB can be based on.
  */

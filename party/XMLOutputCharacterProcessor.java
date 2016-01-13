@@ -5,11 +5,11 @@ import gamesystem.CharacterClass.ClassOption;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
+import gamesystem.HitDice;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
-import monsters.HitDice;
 import monsters.Monster.MonsterAttackRoutine;
 
 import org.w3c.dom.Document;

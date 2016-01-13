@@ -2,6 +2,7 @@ package monsters;
 import gamesystem.AbilityScore;
 import gamesystem.CharacterClass;
 import gamesystem.Creature;
+import gamesystem.HitDice;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
 import gamesystem.SaveProgression;

@@ -2,6 +2,7 @@ package monsters;
 
 import gamesystem.Creature;
 import gamesystem.HPs;
+import gamesystem.HitDice;
 
 import java.awt.Color;
 import java.awt.Dimension;

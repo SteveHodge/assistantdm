@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import monsters.HitDice;
-
 
 // TODO change temp hitpoints to a property
 // TODO there are difference in how damage and healing are handled (particularly with temporary hitpoints). going to need undo

@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import monsters.HitDice;
-
 //TODO this is statistic for the listener stuff but it doesn't really need modifiers so perhaps refactor
 
 // TODO should XP be here too or separate?
