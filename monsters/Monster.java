@@ -11,6 +11,7 @@ import gamesystem.Feat;
 import gamesystem.HPs;
 import gamesystem.HitDiceProperty;
 import gamesystem.InitiativeModifier;
+import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
 import gamesystem.Race;
@@ -109,6 +110,7 @@ public class Monster extends Creature {
 		initiative.addPropertyChangeListener(statListener);
 
 		race = new Race();
+		level = new Levels();
 		hitDice = new HitDiceProperty(race, level);
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
@@ -169,42 +171,31 @@ public class Monster extends Creature {
 		public BABProperty() {
 			bab = getBAB();
 
-			if (level != null) {
-				level.addPropertyChangeListener((e) -> recalculateBAB());
-			}
+			level.addPropertyChangeListener((e) -> recalculateBAB());
 
-			if (race != null) {
-				race.addPropertyListener(new PropertyListener<String>() {
-					@Override
-					public void valueChanged(gamesystem.core.Property.PropertyEvent<String> event) {
-						recalculateBAB();
-					}
+			race.addPropertyListener(new PropertyListener<String>() {
+				@Override
+				public void valueChanged(gamesystem.core.Property.PropertyEvent<String> event) {
+					recalculateBAB();
+				}
 
-					@Override
-					public void compositionChanged(gamesystem.core.Property.PropertyEvent<String> event) {
-						recalculateBAB();
-					}
-				});
-			}
+				@Override
+				public void compositionChanged(gamesystem.core.Property.PropertyEvent<String> event) {
+					recalculateBAB();
+				}
+			});
 		}
 
 		private int getBAB() {
-			int bab = 0;
-
 			// get any bab from levels
-			if (level != null) {
-				bab = level.getBAB();
-			}
+			int bab = level.getBAB();
 
-			if (race == null) return bab;
-			MonsterType t = race.getAugmentedType();
-			if (t == null) t = race.getType();
-			int hd = race.getHitDiceCount();	// at the moment this includes class levels so filter then out:
-			if (level != null) {
-				hd -= level.getHitDiceCount();
+			int hd = race.getHitDiceCount();
+			if (hd > 1 || level.getHitDice() == null) {
+				MonsterType t = race.getAugmentedType();
+				if (t == null) t = race.getType();
+				if (t != null) bab += t.getBAB(hd);
 			}
-			if (hd <= 1) return bab;
-			bab += t.getBAB(hd);
 			return bab;
 		}
 
@@ -217,7 +208,7 @@ public class Monster extends Creature {
 			if (t == null) t = race.getType();
 			int hd = race.getHitDiceCount();
 
-			if (level != null) {
+			if (level.getHitDice() != null) {
 				s.append(level.getBAB()).append(" from classes");
 				if (t != null && hd > 1) s.append(" + ");
 			}
@@ -262,6 +253,20 @@ public class Monster extends Creature {
 			if (type == SavingThrow.Type.REFLEX && (race.hasSubtype("Air") || race.hasSubtype("Fire"))) return SaveProgression.FAST;
 		}
 		return t.getProgression(type);
+	}
+
+	// used for testing progression
+	public int getSaveUsingProgression(SavingThrow.Type type, SaveProgression progression) {
+		int value = getSavingThrowStatistic(type).getModifiersTotal();
+		//System.out.println("Evaluating " + type + " using " + progression + " progression");
+		//System.out.println("modifiers = " + value);
+		if (hitDice.hasRaceHD()) {
+			value += progression.getBaseSave(race.getHitDiceCount());
+			//System.out.println("racial (" + race.getHitDiceCount() + " HD) = " + progression.getBaseSave(race.getHitDiceCount()));
+		}
+		value += level.getBaseSave(type);
+		//System.out.println("level = " + level.getBaseSave(type));
+		return value;
 	}
 
 	public class MonsterAttackRoutine {

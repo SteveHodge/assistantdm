@@ -13,7 +13,7 @@ import java.util.Map;
 // TODO support monsters?
 
 public class Levels extends Statistic {
-	int level = 1;
+	int level = 0;
 	List<CharacterClass> classes = new ArrayList<>();	// this can have more entries than the current level (if classes have been removed they are remembered)
 
 	public Levels() {
@@ -73,7 +73,7 @@ public class Levels extends Statistic {
 	}
 
 	// TODO use streams API if possible
-	Map<CharacterClass, Integer> getClassLevels() {
+	public Map<CharacterClass, Integer> getClassLevels() {
 		Map<CharacterClass, Integer> classLvl = new HashMap<>();
 		for (int i = 0; i < level && i < classes.size(); i++) {
 			CharacterClass c = classes.get(i);
@@ -110,7 +110,7 @@ public class Levels extends Statistic {
 		return bab;
 	}
 
-	// TODO remove this once Monster.BABProeprty is ready for top level
+	// FIXME remove this once Monster.BABProeprty is ready for top level
 	// TODO probably changes should be pushed down from rather than adding a listener
 	public class BAB extends AbstractProperty<Integer> {
 		int bab;	// latest value, used for change notification
@@ -147,6 +147,16 @@ public class Levels extends Statistic {
 				hd.add(classLvl.get(c), c.getHitDiceType());
 			}
 		}
-		return null;
+		return hd;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		Map<CharacterClass, Integer> classLvl = getClassLevels();
+		for (CharacterClass c : classLvl.keySet()) {
+			b.append(c).append(" ").append(classLvl.get(c));
+		}
+		return b.toString();
 	}
 }

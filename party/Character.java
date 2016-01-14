@@ -269,6 +269,7 @@ public class Character extends Creature {
 		initiative.addPropertyChangeListener(statListener);
 
 		level = new Levels();
+		level.setLevel(1);
 		hitDice = new HitDiceProperty(null, level);
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {

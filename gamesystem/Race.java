@@ -92,7 +92,7 @@ public class Race extends AbstractProperty<String> {
 
 	// TODO do some verification on this
 	public void setHitDice(HitDice hd) {
-		System.out.println("Setting racial hitdice to " + hd);
+		//System.out.println("Setting racial hitdice to " + hd);
 		// TODO should check con bonus is applied correctly
 		String old = toString();
 		hitDice = hd;

@@ -306,8 +306,9 @@ public class GetStatsBlock {
 			void checkSave(SavingThrow.Type type, Monster m) {
 				int parsed = block.getSavingThrow(type);
 				SavingThrow save = m.getSavingThrowStatistic(type);
-				int fast = save.getValueForProgression(SaveProgression.FAST);
-				int slow = save.getValueForProgression(SaveProgression.SLOW);
+				if (save.getValue() == parsed) return;
+				int fast = m.getSaveUsingProgression(type, SaveProgression.FAST);
+				int slow = m.getSaveUsingProgression(type, SaveProgression.SLOW);
 				SaveProgression found = null;
 				if (fast == parsed) {
 					found = SaveProgression.FAST;
@@ -315,7 +316,9 @@ public class GetStatsBlock {
 					found = SaveProgression.SLOW;
 				}
 				if (found == null) {
-					add(type.name() + " Save: " + parsed + " != calculated values of " + fast + " (fast) or " + slow + " (slow)");
+					add(type.name() + " Save: " + parsed + " != value of " + save.getValue() + " or calculated values of " + fast + " (fast) or " + slow + " (slow)");
+					if (m.race != null && m.level != null)
+						add(type.name() + " Save: racial save bonus = " + m.race.getBaseSave(type) + ", level save bonus = " + m.level.getBaseSave(type) + ", modifiers = " + save.toString());
 				} else if (found != m.getSaveProgression(type)) {
 					add(type.name() + " Save: using " + found + " progression rather than " + m.getSaveProgression(type) + " as is usual for " + m.race.getType());
 				}
@@ -341,6 +344,7 @@ public class GetStatsBlock {
 			}
 			System.out.println("  Feats: " + block.get(Field.FEATS));
 			System.out.println("  Subtypes: " + String.join(", ", m.race.subtypes));
+			System.out.println("  Classes: " + m.level);
 		}
 	}
 

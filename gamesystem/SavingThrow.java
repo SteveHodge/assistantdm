@@ -65,12 +65,6 @@ public class SavingThrow extends Statistic {
 		}
 	}
 
-	public int getValueForProgression(SaveProgression progression) {
-		int value = super.getValue();
-		if (hitdice != null) value += progression.getBaseSave(hitdice.getHitDiceCount());
-		return value;
-	}
-
 	public int getNonOverrideValue() {
 		int value = super.getValue();
 		if (hitdice != null) value += hitdice.getBaseSave(type);

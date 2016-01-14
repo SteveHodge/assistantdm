@@ -126,7 +126,7 @@ public class HPs extends Statistic {
 		int newhps = oldhps + hitdice.getValue().getModifier() - oldMod;
 		if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();
 		if (newhps == oldhps) return;
-		System.out.println("changing max hps from " + oldhps + " to " + newhps);
+		//System.out.println("changing max hps from " + oldhps + " to " + newhps);
 		setMaximumHitPoints(newhps);
 
 	}
