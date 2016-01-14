@@ -135,7 +135,7 @@ public class StatsBlockCreatureView {
 		Map<CharacterClass, Integer> lvls = blk.getClassLevels();
 		for (CharacterClass c : lvls.keySet()) {
 			int l = lvls.get(c);
-			if (l > 1) {
+			if (l >= 1) {
 				int old = m.level.getLevel();
 				m.level.setLevel(old + l);
 				for (i = old + 1; i <= m.level.getLevel(); i++) {
@@ -146,13 +146,13 @@ public class StatsBlockCreatureView {
 
 		m.setInitiativeModifier(blk.getInitiativeModifier());
 
-		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = m.getSavingThrowStatistic(t);
-			int save = blk.getSavingThrow(t);
-			if (save > Integer.MIN_VALUE) {
-				s.setBaseOverride(save - s.getValue());
-			}
-		}
+//		for (SavingThrow.Type t : SavingThrow.Type.values()) {
+//			SavingThrow s = m.getSavingThrowStatistic(t);
+//			int save = blk.getSavingThrow(t);
+//			if (save > Integer.MIN_VALUE) {
+//				s.setBaseOverride(save - s.getValue());
+//			}
+//		}
 
 		m.hitDice.setHitDice(blk.getHitDice());
 

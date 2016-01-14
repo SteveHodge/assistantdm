@@ -317,8 +317,10 @@ public class GetStatsBlock {
 				}
 				if (found == null) {
 					add(type.name() + " Save: " + parsed + " != value of " + save.getValue() + " or calculated values of " + fast + " (fast) or " + slow + " (slow)");
-					if (m.race != null && m.level != null)
-						add(type.name() + " Save: racial save bonus = " + m.race.getBaseSave(type) + ", level save bonus = " + m.level.getBaseSave(type) + ", modifiers = " + save.toString());
+					if (m.race != null && m.level != null) {
+						add(type.name() + " Save: racial save bonus = " + m.race.getBaseSave(type) + ", level save bonus = " + m.level.getBaseSave(type) + ", calculation = " + save.getSummary());
+						//add(type.name() + " Save: base = " + m.hitDice.getBaseSave(type) + ", override = " + save.getBaseOverride());
+					}
 				} else if (found != m.getSaveProgression(type)) {
 					add(type.name() + " Save: using " + found + " progression rather than " + m.getSaveProgression(type) + " as is usual for " + m.race.getType());
 				}

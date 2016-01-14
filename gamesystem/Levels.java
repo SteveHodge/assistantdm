@@ -124,6 +124,7 @@ public class Levels extends Statistic {
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
+		//b.append("level ").append(level).append(": ");
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 		for (CharacterClass c : classLvl.keySet()) {
 			b.append(c).append(" ").append(classLvl.get(c));

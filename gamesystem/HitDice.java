@@ -3,8 +3,10 @@ package gamesystem;
 import java.lang.ref.SoftReference;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -63,11 +65,39 @@ public class HitDice {
 		}
 	}
 
+	// produces a new HitDice with only one component of each die type (combines any components with the same die type)
+	// TODO won't handle fractions correctly
+	private HitDice simplify() {
+		Map<Integer, Integer> dice = new HashMap<>();
+		Map<Integer, Integer> mods = new HashMap<>();
+
+		for (int i = 0; i < type.size(); i++) {
+			int t = type.get(i);
+			int n = number.get(i);
+			int m = modifier.get(i);
+			if (dice.containsKey(t)) {
+				n += dice.get(t);
+				m += mods.get(t);
+			}
+			dice.put(t, n);
+			mods.put(t, m);
+		}
+
+		HitDice hd = new HitDice();
+		for (int t : dice.keySet()) {
+			hd.add(dice.get(t), t, mods.get(t));
+		}
+		return hd;
+	}
+
 	// TODO should probably support fractional hitdice. currently doesn't (throws an exception)
 	// Note: returns a valid HitDice in all cases. If there is no difference then the returned value will have no components.
 	// If the only difference is in the modifier then will return a value with 1 dice of type 0 plus the modifier.
+	// FIXME won't work right if a component of hd is greater than the corresponding component of hitDice
+	// TODO reimplement so we start with diff = hitDice.simplify
 	public static HitDice difference(HitDice hitDice, HitDice hd) {
 		HitDice diff = new HitDice();
+		hitDice = hitDice.simplify();
 		int extraMod = 0;
 		for (int i = 0; i < hitDice.type.size(); i++) {
 			int type = hitDice.type.get(i);
