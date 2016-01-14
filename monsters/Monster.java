@@ -4,6 +4,7 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
+import gamesystem.BAB;
 import gamesystem.Buff;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
@@ -21,7 +22,6 @@ import gamesystem.Size;
 import gamesystem.SkillType;
 import gamesystem.Skills;
 import gamesystem.Statistic;
-import gamesystem.core.AbstractProperty;
 import gamesystem.core.Property;
 
 import java.beans.PropertyChangeEvent;
@@ -46,7 +46,6 @@ public class Monster extends Creature {
 	List<Feat> feats = new ArrayList<Feat>();			// applied feats from hitdice
 	List<Feat> bonusFeats = new ArrayList<Feat>();		// applied bonus feats
 	Skills skills;		// TODO probably refactor back to Creature
-	Race race;
 
 	// this listener forwards events from Statstics as property changes
 	private PropertyChangeListener statListener = new PropertyChangeListener() {
@@ -152,7 +151,7 @@ public class Monster extends Creature {
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
 		skills.addPropertyChangeListener(statListener);
 
-		bab = new BABProperty();
+		bab = new BAB(race, level);
 
 		attacks = new Attacks(this);
 		// TODO size modifier to attack needs to be setup correctly
@@ -161,79 +160,6 @@ public class Monster extends Creature {
 		attackList = new ArrayList<>();
 		fullAttackList = new ArrayList<>();
 		attacks.addPropertyChangeListener(statListener);
-	}
-
-	// TODO fix this. it should listen to the relavent stats instead of requiring recalculateBAB. change once hitDice and type are notified properties/statistics
-	// once the monster's type has it's own property we can promote this to a top level class
-	class BABProperty extends AbstractProperty<Integer> {
-		int bab;	// latest value, used for change notification
-
-		public BABProperty() {
-			bab = getBAB();
-
-			level.addPropertyChangeListener((e) -> recalculateBAB());
-
-			race.addPropertyListener(new PropertyListener<String>() {
-				@Override
-				public void valueChanged(gamesystem.core.Property.PropertyEvent<String> event) {
-					recalculateBAB();
-				}
-
-				@Override
-				public void compositionChanged(gamesystem.core.Property.PropertyEvent<String> event) {
-					recalculateBAB();
-				}
-			});
-		}
-
-		private int getBAB() {
-			// get any bab from levels
-			int bab = level.getBAB();
-
-			int hd = race.getHitDiceCount();
-			if (hd > 1 || level.getHitDice() == null) {
-				MonsterType t = race.getAugmentedType();
-				if (t == null) t = race.getType();
-				if (t != null) bab += t.getBAB(hd);
-			}
-			return bab;
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder s = new StringBuilder();
-			s.append("(");
-
-			MonsterType t = race.getAugmentedType();
-			if (t == null) t = race.getType();
-			int hd = race.getHitDiceCount();
-
-			if (level.getHitDice() != null) {
-				s.append(level.getBAB()).append(" from classes");
-				if (t != null && hd > 1) s.append(" + ");
-			}
-
-			if (t != null && hd > 1) {
-				s.append(t.getBAB(hd)).append(" from " + hd + " " + t + " hitdice");
-			}
-
-			s.append(")");
-			return s.toString();
-		}
-
-		@Override
-		public Integer getBaseValue() {
-			// we don't use cached value just incase it's stale
-			assert (bab == getBAB());
-			return getBAB();
-		}
-
-		public void recalculateBAB() {
-			if (getBAB() != bab) {
-				firePropertyChanged(bab, false);
-				bab = getBAB();
-			}
-		}
 	}
 
 	public HitDiceProperty getHitDice() {

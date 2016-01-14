@@ -3,6 +3,7 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
+import gamesystem.BAB;
 import gamesystem.Buff;
 import gamesystem.CharacterClass;
 import gamesystem.CharacterClass.ClassOption;
@@ -17,6 +18,7 @@ import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
 import gamesystem.Modifier;
+import gamesystem.Race;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
 import gamesystem.Skill;
@@ -268,6 +270,7 @@ public class Character extends Creature {
 		initiative = new InitiativeModifier(abilities.get(AbilityScore.Type.DEXTERITY));
 		initiative.addPropertyChangeListener(statListener);
 
+		race = new Race();
 		level = new Levels();
 		level.setLevel(1);
 		hitDice = new HitDiceProperty(null, level);
@@ -287,7 +290,7 @@ public class Character extends Creature {
 		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), hitDice);
 		hps.addPropertyChangeListener(statListener);
 
-		bab = level.new BAB();
+		bab = new BAB(race, level);
 
 		attacks = new Attacks(this);
 		attacks.addPropertyChangeListener(statListener);

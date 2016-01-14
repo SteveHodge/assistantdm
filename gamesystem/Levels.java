@@ -1,7 +1,5 @@
 package gamesystem;
 
-import gamesystem.core.AbstractProperty;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -108,33 +106,6 @@ public class Levels extends Statistic {
 			bab += c.getBAB(classLvl.get(c));
 		}
 		return bab;
-	}
-
-	// FIXME remove this once Monster.BABProeprty is ready for top level
-	// TODO probably changes should be pushed down from rather than adding a listener
-	public class BAB extends AbstractProperty<Integer> {
-		int bab;	// latest value, used for change notification
-
-		public BAB() {
-			bab = getBAB();
-			addPropertyChangeListener((e) -> {
-				if (getBAB() != bab) {
-					if (overrides != null) {
-						firePropertyChanged(getValue(), true);
-					} else {
-						firePropertyChanged(bab, false);
-					}
-					bab = getBAB();
-				}
-			});
-		}
-
-		@Override
-		public Integer getBaseValue() {
-			// we don't use cached value just incase it's stale
-			assert (bab == getBAB());
-			return getBAB();
-		}
 	}
 
 	public HitDice getHitDice() {

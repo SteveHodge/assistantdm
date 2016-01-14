@@ -2,7 +2,6 @@ package gamesystem;
 
 
 import gamesystem.core.Property;
-import gamesystem.core.ValueProperty;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -84,8 +83,9 @@ public abstract class Creature {
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 
 	protected Attacks attacks;
-	public Property<Integer> bab;	// TODO shouldn't be public - change where StatBlockCreatureView doesn't need to manipulate bab when adding levels
+	public BAB bab;	// TODO shouldn't be public - change where StatBlockCreatureView doesn't need to manipulate bab when adding levels
 
+	public Race race;		// TODO shouldn't be public
 	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 	public HitDiceProperty hitDice;		// TODO shouldn't be public
 
@@ -311,9 +311,8 @@ public abstract class Creature {
 		else if (prop.equals(PROPERTY_REACH))
 			setReach((Integer) value);
 		else if (prop.equals(PROPERTY_BAB)) {
-			if (bab instanceof ValueProperty) {
-				((ValueProperty<Integer>) bab).setBaseValue((Integer) value);
-			}
+			System.err.println("Setting BAB");
+			bab.addOverride((Integer) value);		// TODO is this what we want to do?
 		} else {
 			//System.out.println("Attempt to set unknown property: " + prop + " to " + value);
 			Object old = extraProperties.get(prop);
