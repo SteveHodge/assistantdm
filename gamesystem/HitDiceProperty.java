@@ -6,13 +6,13 @@ import gamesystem.core.AbstractProperty;
 /* HitDiceProperty monitors Levels and monster hitdice (Race) and provides a combined hitdice property that other properties such as BAB can be based on.
  */
 
-// TODO probably should track con bonus too
 public class HitDiceProperty extends AbstractProperty<HitDice> {
 	private Race race;
 	private Levels levels;
-	private HitDice hitDice;
+	private HitDice hitDice;	// TODO switch to CombinedDice
+	private Modifier conMod;
 
-	public HitDiceProperty(Race r, Levels l) {
+	public HitDiceProperty(Race r, Levels l, AbilityScore con) {
 		if (r == null) throw new IllegalArgumentException("Race parameter cannot be null");
 		if (l == null) throw new IllegalArgumentException("Levels parameter cannot be null");
 		race = r;
@@ -35,6 +35,13 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 		levels.addPropertyChangeListener((e) -> {
 			updateHitDice();
 		});
+
+		if (conMod != null) {
+			conMod = con.getModifier();
+			conMod.addPropertyChangeListener(e -> {
+				updateHitDice();
+			});
+		}
 	}
 
 	private void updateHitDice() {
@@ -44,6 +51,14 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 			hitDice = race.getHitDice();
 		} else if (race.getHitDiceCount() > 1) {
 			hitDice.add(race.getHitDice());
+		}
+		// clear the modifiers
+		for (int i = 0; i < hitDice.getComponentCount(); i++) {
+			if (conMod != null && i == 0) {
+				hitDice.setModifier(i, conMod.getModifier() * getHitDiceCount());
+			} else {
+				hitDice.setModifier(i, 0);
+			}
 		}
 		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
 			firePropertyChanged(old, false);
@@ -56,8 +71,8 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 		if (levels.getHitDice() != null) {
 			HitDice diff = HitDice.difference(hd, levels.getHitDice());
 			if (diff.getComponentCount() == 0) {
-				// no difference
-				// FIXME need to set the racial hitdice to null?
+				// no difference - reset race hitdice back to 1
+				race.setHitDiceCount(1);
 				return;
 			}
 			if (diff.getComponentCount() > 1) throw new IllegalArgumentException("Remaining HD not suitable: total = " + hd + ", class HD = " + levels.getHitDice());

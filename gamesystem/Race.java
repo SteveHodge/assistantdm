@@ -9,6 +9,8 @@ import java.util.List;
  * The String value reported is a description: "type (subtype, subtype,...)".
  */
 
+// FIXME maybe replace the hitDice with separate count/type/modifier values. we should have multiple dice types (I think) and it is potentially problematic
+
 public class Race extends AbstractProperty<String> {
 	protected MonsterType type;
 	public List<String> subtypes = new ArrayList<String>();	// subtypes			// TODO should be protected
@@ -16,7 +18,7 @@ public class Race extends AbstractProperty<String> {
 
 	public Race() {
 		type = MonsterType.HUMANOID;
-		hitDice = gamesystem.HitDice.parse("1d" + type.getHitDiceType());
+		hitDice = new HitDice(1, type.getHitDiceType());
 	}
 
 	@Override
@@ -96,6 +98,14 @@ public class Race extends AbstractProperty<String> {
 		// TODO should check con bonus is applied correctly
 		String old = toString();
 		hitDice = hd;
+		firePropertyChanged(old, true);
+	}
+
+	public void setHitDiceCount(int count) {
+		// TODO should check con bonus is applied correctly
+		String old = toString();
+		hitDice = new HitDice(1, hitDice.getType(0), hitDice.getModifier(0));
+		// TODO add any additional dice?
 		firePropertyChanged(old, true);
 	}
 }

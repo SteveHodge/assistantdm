@@ -45,9 +45,7 @@ import java.util.Map;
 
 // TODO fix up encapsulation since parsing has moved to XMLCreatureParser
 public class HPs extends Statistic {
-	Modifier conMod = null;
 	HitDiceProperty hitdice;
-	int oldMod;	// TODO tracking the old modifier here is fragile. really need accurate reporting of changes in the event
 	int hps, wounds, nonLethal;
 	List<TempHPs> tempHPs = new ArrayList<>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
 	Map<Modifier, TempHPs> modMap = new HashMap<>();
@@ -86,26 +84,9 @@ public class HPs extends Statistic {
 	}
 
 	// TODO should probably move con monitoring to HitDiceProperty
-	public HPs(AbilityScore con, HitDiceProperty hd) {
+	public HPs(HitDiceProperty hd) {
 		super("Hit Points");
-		setHitDice(hd);
 
-		if (con != null) {
-			conMod = con.getModifier();
-			oldMod = conMod.getModifier();
-			conMod.addPropertyChangeListener(e -> {
-				int oldhps = getMaximumHitPoints();
-				int newhps = oldhps + (hitdice.getHitDiceCount() * (conMod.getModifier() - oldMod));
-				System.out.println("hitdice = " + hitdice.getHitDiceCount() + " oldMod = " + oldMod + ", newMod = " + conMod.getModifier());
-				if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// FIXME if we need to use this then it won't be reversable. probably need a max hp override
-				System.out.println("changing max hps from " + oldhps + " to " + newhps);
-				setMaximumHitPoints(newhps);
-				oldMod = conMod.getModifier();
-			});
-		}
-	}
-
-	public void setHitDice(HitDiceProperty hd) {
 		hitdice = hd;
 		hitdice.addPropertyListener(new PropertyListener<HitDice>() {
 			@Override
@@ -124,11 +105,10 @@ public class HPs extends Statistic {
 	private void updateModifier(int oldMod) {
 		int oldhps = getMaximumHitPoints();
 		int newhps = oldhps + hitdice.getValue().getModifier() - oldMod;
-		if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();
+		if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// TODO if we need to use this then it won't be reversable. probably need a max hp override
 		if (newhps == oldhps) return;
 		//System.out.println("changing max hps from " + oldhps + " to " + newhps);
 		setMaximumHitPoints(newhps);
-
 	}
 
 	public int getMaximumHitPoints() {

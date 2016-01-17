@@ -115,7 +115,6 @@ public class StatsBlockCreatureView {
 		return stats.getName();
 	}
 
-	// FIXME because the level statistic is setup after Hitdice and BAB those properties never get level set. probably better to have the level stat always non-null
 	public static Monster createMonster(StatisticsBlock blk) {
 		String name = blk.getName();
 
@@ -132,6 +131,7 @@ public class StatsBlockCreatureView {
 			m.race.addSubtype(s);
 		}
 
+		// FIXME need to apply the features of the classes
 		Map<CharacterClass, Integer> lvls = blk.getClassLevels();
 		for (CharacterClass c : lvls.keySet()) {
 			int l = lvls.get(c);

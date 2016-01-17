@@ -110,7 +110,7 @@ public class Monster extends Creature {
 
 		race = new Race();
 		level = new Levels();
-		hitDice = new HitDiceProperty(race, level);
+		hitDice = new HitDiceProperty(race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
@@ -119,7 +119,7 @@ public class Monster extends Creature {
 			saves.put(t, s);
 		}
 
-		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), hitDice);
+		hps = new HPs(hitDice);
 		hps.setMaximumHitPoints(0);
 		hps.addPropertyChangeListener(statListener);
 

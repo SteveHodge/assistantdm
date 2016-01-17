@@ -143,9 +143,6 @@ public class XMLParserHelper {
 		c.hps.hps = Integer.parseInt(e.getAttribute("maximum"));
 		if (e.hasAttribute("wounds")) c.hps.wounds = Integer.parseInt(e.getAttribute("wounds"));
 		if (e.hasAttribute("non-lethal")) c.hps.nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
-		if (c.hps.conMod != null) {
-			c.hps.oldMod = c.hps.conMod.getModifier();	// we need to set the oldMod so that any future con changes are correctly calculated
-		}
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
 
 		// set any existing temporary hps to 0. this prevents temporary hitpoints that have been used for a particular

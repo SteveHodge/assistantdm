@@ -273,7 +273,7 @@ public class Character extends Creature {
 		race = new Race();
 		level = new Levels();
 		level.setLevel(1);
-		hitDice = new HitDiceProperty(null, level);
+		hitDice = new HitDiceProperty(race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
@@ -287,7 +287,7 @@ public class Character extends Creature {
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
 		skills.addPropertyChangeListener(statListener);
 
-		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), hitDice);
+		hps = new HPs(hitDice);
 		hps.addPropertyChangeListener(statListener);
 
 		bab = new BAB(race, level);

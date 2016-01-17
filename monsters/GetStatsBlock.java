@@ -274,7 +274,7 @@ public class GetStatsBlock {
 	// checks the supplied block for consistency with the rules. primarily compares values found in the block with values from a Monster instance created
 	// from the block (at least for those values that are built/calculated from scratch in the Monster instance).
 	private static void validateBlock(StatisticsBlock block) {
-		// FIXME handle templates, creatures with character classes
+		// TODO can we do more to handle templates?
 		// Values that are checked:
 		// BAB, grapple
 		// TODO attack bonuses
@@ -283,11 +283,6 @@ public class GetStatsBlock {
 		// TODO number of skills
 		// TODO hit dice bonuses
 		// TODO size/reach
-
-		if (block.getClassLevels().size() == 0) {
-			//System.err.println(block.getName() + " skipped due to no class levels");
-			return;
-		}
 
 		@SuppressWarnings("serial")
 		class Messages extends ArrayList<String> {

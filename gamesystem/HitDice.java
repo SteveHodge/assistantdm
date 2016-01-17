@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+// FIXME switch to using regular dice classes
+
 public class HitDice {
 	public static java.util.Random rand = new Random();
 
@@ -29,7 +31,7 @@ public class HitDice {
 	}
 
 	// num of 0 means 1/2, -1 means 1/4
-	private HitDice(int num, int type, int mod) {
+	HitDice(int num, int type, int mod) {
 		this.number.add(num);
 		this.type.add(type);
 		this.modifier.add(mod);
@@ -318,6 +320,10 @@ public class HitDice {
 
 	int getModifier(int i) {
 		return modifier.get(i);
+	}
+
+	public void setModifier(int i, int mod) {
+		modifier.set(i, mod);
 	}
 
 	public int getNumber(int i) {
