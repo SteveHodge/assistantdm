@@ -41,14 +41,13 @@ public class HitDice {
 		add(num, type, 0);
 	}
 
-	// TODO should probably support fractional hitdice. currently doesn't (throws an exception)
+	// TODO support fractional hitdice for multiple dice? currently doesn't (throws an exception)
 	public void add(int num, int type, int mod) {
-		if (num < 1) throw new IllegalArgumentException("Fractional dice are not supported");
 		// try to find that dice type first
 		for (int i = 0; i < this.type.size(); i++) {
 			if (this.type.get(i) == type) {
 				int existing = number.get(i);
-				if (existing < 1) throw new IllegalArgumentException("Fractional dice are not supported");
+				if (existing < 1 || num < 1) throw new IllegalArgumentException("Fractional dice are not supported");
 				number.set(i, existing + num);
 				modifier.set(i, modifier.get(i) + mod);
 				return;
@@ -132,26 +131,25 @@ public class HitDice {
 	@Override
 	public boolean equals(Object x) {
 		if (x == null) return false;
-		if (x instanceof HitDice) {
-			HitDice hd = (HitDice)x;
-			// first check total modifiers
-			if (getModifier() != hd.getModifier()) return false;
-			// check number and type. these are not sorted so this is inefficient for HitDice with large numbers of different types
-			for (int i = 0; i < type.size(); i++) {
-				int t = type.get(i);
-				int n = number.get(i);
-				boolean found = false;
-				for (int j = 0; i < hd.type.size(); i++) {
-					if (hd.type.get(j) == t) {
-						if (hd.number.get(j) != n) return false;
-						found = true;
-					}
+		if (!(x instanceof HitDice)) return false;
+		HitDice hd1 = simplify();
+		HitDice hd2 = ((HitDice) x).simplify();
+		// first check total modifiers
+		if (hd1.getModifier() != hd2.getModifier()) return false;
+		// check number and type. these are not sorted so this is inefficient for HitDice with large numbers of different types
+		for (int i = 0; i < hd1.type.size(); i++) {
+			int t = hd1.type.get(i);
+			int n = hd1.number.get(i);
+			boolean found = false;
+			for (int j = 0; i < hd2.type.size(); i++) {
+				if (hd2.type.get(j) == t) {
+					if (hd2.number.get(j) != n) return false;
+					found = true;
 				}
-				if (!found) return false;
 			}
-			return true;
+			if (!found) return false;
 		}
-		return false;
+		return true;
 	}
 
 	// returns the number of combinations on the dice in this HitDice that total i (note that any modifiers

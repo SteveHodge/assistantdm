@@ -1,6 +1,7 @@
 package gamesystem;
 
 import gamesystem.core.AbstractProperty;
+import gamesystem.dice.HDDice;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +15,11 @@ import java.util.List;
 public class Race extends AbstractProperty<String> {
 	protected MonsterType type;
 	public List<String> subtypes = new ArrayList<String>();	// subtypes			// TODO should be protected
-	protected HitDice hitDice;	// TODO should be protected
+	protected HDDice hitDice;
 
 	public Race() {
 		type = MonsterType.HUMANOID;
-		hitDice = new HitDice(1, type.getHitDiceType());
+		hitDice = new HDDice(type.getHitDiceType());
 	}
 
 	@Override
@@ -71,7 +72,7 @@ public class Race extends AbstractProperty<String> {
 
 	public int getBAB() {
 		if (type != null) {
-			return type.getBAB(hitDice.getHitDiceCount());
+			return type.getBAB(hitDice.getNumber());
 		}
 		return 0;
 	}
@@ -79,32 +80,30 @@ public class Race extends AbstractProperty<String> {
 	// save progression can vary even within a monster type so this might not be correct for a specific monster
 	public int getBaseSave(SavingThrow.Type t) {
 		if (type != null) {
-			return type.getBaseSave(t, hitDice.getHitDiceCount());
+			return type.getBaseSave(t, hitDice.getNumber());
 		}
 		return 0;
 	}
 
 	public int getHitDiceCount() {
-		return hitDice.getHitDiceCount();
+		return hitDice.getNumber();
 	}
 
-	public HitDice getHitDice() {
+	public HDDice getHitDice() {
 		return hitDice;
 	}
 
 	// TODO do some verification on this
-	public void setHitDice(HitDice hd) {
+	public void setHitDice(HDDice hd) {
 		//System.out.println("Setting racial hitdice to " + hd);
-		// TODO should check con bonus is applied correctly
 		String old = toString();
 		hitDice = hd;
 		firePropertyChanged(old, true);
 	}
 
 	public void setHitDiceCount(int count) {
-		// TODO should check con bonus is applied correctly
 		String old = toString();
-		hitDice = new HitDice(1, hitDice.getType(0), hitDice.getModifier(0));
+		hitDice = new HDDice(count, hitDice.getType(), hitDice.getConstant());
 		// TODO add any additional dice?
 		firePropertyChanged(old, true);
 	}

@@ -281,19 +281,19 @@ public class GetStatsBlock {
 		// TODO number of feats
 		// saves
 		// TODO number of skills
-		// TODO hit dice bonuses
+		// hit dice bonuses
 		// TODO size/reach
 
 		@SuppressWarnings("serial")
 		class Messages extends ArrayList<String> {
-			void checkValues(String field, int parsed, int calculated) {
-				if (parsed != calculated) {
+			void checkValues(String field, Object parsed, Object calculated) {
+				if (!parsed.equals(calculated)) {
 					add(field + ": " + parsed + " != calculated value of " + calculated);
 				}
 			}
 
-			void checkValues(String field, int parsed, int calculated, String msg) {
-				if (parsed != calculated) {
+			void checkValues(String field, Object parsed, Object calculated, String msg) {
+				if (!parsed.equals(calculated)) {
 					add(field + ": " + parsed + " != calculated value of " + calculated + ": " + msg);
 				}
 			}
@@ -331,6 +331,7 @@ public class GetStatsBlock {
 		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
 		messages.checkSave(SavingThrow.Type.REFLEX, m);
 		messages.checkSave(SavingThrow.Type.WILL, m);
+		messages.checkValues("HD", block.getHitDice(), m.getHitDice().getValue(), "Bonus HPs = " + m.getHitDice().bonusHPs);
 
 		if (messages.size() == 0) {
 			System.out.println(block.getName() + " OK");

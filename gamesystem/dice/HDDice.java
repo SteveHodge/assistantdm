@@ -33,6 +33,14 @@ public class HDDice implements Dice {
 		constant = s.constant;
 	}
 
+	public int getType() {
+		return type;
+	}
+
+	public int getNumber() {
+		return number;
+	}
+
 	public int getConstant() {
 		return constant;
 	}

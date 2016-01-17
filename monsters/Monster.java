@@ -23,6 +23,8 @@ import gamesystem.SkillType;
 import gamesystem.Skills;
 import gamesystem.Statistic;
 import gamesystem.core.Property;
+import gamesystem.core.Property.PropertyEvent;
+import gamesystem.core.Property.PropertyListener;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -55,6 +57,7 @@ public class Monster extends Creature {
 				pcs.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
 			} else if (evt.getSource() == size) {
 				if (evt.getPropertyName().equals("value")) {
+					hitDice.updateBonusHPs(size, feats);
 					pcs.firePropertyChange(PROPERTY_SIZE, evt.getOldValue(), evt.getNewValue());
 				} else if (evt.getPropertyName().equals("space")) {
 					pcs.firePropertyChange(PROPERTY_SPACE, evt.getOldValue(), evt.getNewValue());
@@ -109,6 +112,17 @@ public class Monster extends Creature {
 		initiative.addPropertyChangeListener(statListener);
 
 		race = new Race();
+		race.addPropertyListener(new PropertyListener<String>() {
+			@Override
+			public void valueChanged(PropertyEvent<String> event) {
+				hitDice.updateBonusHPs(size, feats);
+			}
+
+			@Override
+			public void compositionChanged(PropertyEvent<String> event) {
+				hitDice.updateBonusHPs(size, feats);
+			}
+		});
 		level = new Levels();
 		hitDice = new HitDiceProperty(race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
 

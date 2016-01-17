@@ -208,16 +208,33 @@ public class StatsBlockCreatureView {
 		m.setProperty(Field.FEATS.name(), blk.get(Field.FEATS));
 		// apply any feats we recognise:
 		if (blk.get(Field.FEATS) != null) {
-			String[] feats = blk.get(Field.FEATS).split("\\s*,\\s*");
+			String[] feats = blk.get(Field.FEATS).split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
 			for (String f : feats) {
+				int count = 1;
+				if (f.contains("(")) {
+					try {
+						count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
+					} catch (NumberFormatException e) {
+						// assume if it's not a number then it's a subtype
+					}
+					f = f.substring(0, f.indexOf("(")).trim();
+				}
 				if (f.endsWith("B")) {
-					FeatDefinition def = Feat.getFeatDefinition(f.substring(0, f.length() - 1));
-					if (def != null) def.getFeat().apply(m);
+					f = f.substring(0, f.length() - 1);
+				}
+				f = f.trim();
+				FeatDefinition def = Feat.getFeatDefinition(f);
+				if (def != null) {
+					for (int j = 0; j < count; j++) {
+						Feat feat = def.getFeat();
+						feat.apply(m);
+						m.feats.add(feat);
+					}
 				} else {
-					FeatDefinition def = Feat.getFeatDefinition(f);
-					if (def != null) def.getFeat().apply(m);
+					//System.out.println("Couldn't find feat '" + f + "'");
 				}
 			}
+			m.hitDice.updateBonusHPs(m.size, m.feats);
 		}
 
 		setAttackList(m, blk.getAttacks(false));

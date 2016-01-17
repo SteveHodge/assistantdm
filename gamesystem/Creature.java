@@ -73,7 +73,7 @@ public abstract class Creature {
 	protected String name;
 
 	protected HPs hps;
-	protected Size size;
+	public Size size;	// TODO shouldn't be public
 	protected InitiativeModifier initiative;
 	protected EnumMap<SavingThrow.Type, SavingThrow> saves = new EnumMap<>(SavingThrow.Type.class);
 	protected EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<>(AbilityScore.Type.class);
