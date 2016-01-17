@@ -45,8 +45,7 @@ public class Monster extends Creature {
 
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
-	List<Feat> feats = new ArrayList<Feat>();			// applied feats from hitdice
-	List<Feat> bonusFeats = new ArrayList<Feat>();		// applied bonus feats
+	List<Feat> feats = new ArrayList<Feat>();			// applied feats
 	Skills skills;		// TODO probably refactor back to Creature
 
 	// this listener forwards events from Statstics as property changes
@@ -351,15 +350,40 @@ public class Monster extends Creature {
 		for (Feat ff : feats) {
 			if (ff.getName().equals(name)) return true;
 		}
-		for (Feat ff : bonusFeats) {
-			if (ff.getName().equals(name)) return true;
-		}
 		// check other feats and properties
 		String feats = (String) getProperty(Field.FEATS.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		feats = (String) getProperty(Field.SPECIAL_QUALITIES.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		return false;
+	}
+
+	// returns the counts of regular feats and bonus feats parsed from the FEATS property. Does not consider the feats member.
+	public int[] countFeats() {
+		int[] counts = { 0, 0 };
+		String list = (String) getProperty(Field.FEATS.name());
+		if (list == null || list.equals("—")) return counts;
+
+		String[] feats = list.split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
+		for (String f : feats) {
+			int count = 1;
+			boolean bonus = false;
+			if (f.contains("(")) {
+				try {
+					count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
+				} catch (NumberFormatException e) {
+					// assume if it's not a number then it's a subtype list
+					count = f.substring(f.indexOf("(") + 1, f.indexOf(")")).split(",").length;
+				}
+				f = f.substring(0, f.indexOf("(")).trim();
+			}
+			if (f.endsWith("B")) {
+				f = f.substring(0, f.length() - 1);
+				bonus = true;
+			}
+			counts[bonus ? 1 : 0] += count;
+		}
+		return counts;
 	}
 
 	@Override

@@ -211,6 +211,7 @@ public class StatsBlockCreatureView {
 			String[] feats = blk.get(Field.FEATS).split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
 			for (String f : feats) {
 				int count = 1;
+				boolean bonus = false;
 				if (f.contains("(")) {
 					try {
 						count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
@@ -221,12 +222,14 @@ public class StatsBlockCreatureView {
 				}
 				if (f.endsWith("B")) {
 					f = f.substring(0, f.length() - 1);
+					bonus = true;
 				}
 				f = f.trim();
 				FeatDefinition def = Feat.getFeatDefinition(f);
 				if (def != null) {
 					for (int j = 0; j < count; j++) {
 						Feat feat = def.getFeat();
+						feat.bonus = bonus;
 						feat.apply(m);
 						m.feats.add(feat);
 					}

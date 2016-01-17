@@ -88,6 +88,7 @@ public class GetStatsBlock {
 
 		for (StatisticsBlock block : blocks) {
 			try {
+				if (block.getURL().getFile().contains("/Lycanthrope.html")) continue;		// Lycanthrope template uses special rules that would require custom code
 				validateBlock(block);
 			} catch (Exception e) {
 				try {
@@ -278,7 +279,7 @@ public class GetStatsBlock {
 		// Values that are checked:
 		// BAB, grapple
 		// TODO attack bonuses
-		// TODO number of feats
+		// number of feats (but TODO count class bonus feats)
 		// saves
 		// TODO number of skills
 		// hit dice bonuses
@@ -332,6 +333,8 @@ public class GetStatsBlock {
 		messages.checkSave(SavingThrow.Type.REFLEX, m);
 		messages.checkSave(SavingThrow.Type.WILL, m);
 		messages.checkValues("HD", block.getHitDice(), m.getHitDice().getValue(), "Bonus HPs = " + m.getHitDice().bonusHPs);
+		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
+				" bonus feats = " + m.countFeats()[1]);
 
 		if (messages.size() == 0) {
 			System.out.println(block.getName() + " OK");
