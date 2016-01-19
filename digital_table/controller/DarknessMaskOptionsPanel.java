@@ -107,15 +107,13 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		@Override
 		public void mousePressed(MouseEvent e, Point2D gridloc) {
 			button = e.getButton();
-			Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
-			dragClear = element.isMasked(p);
+			dragClear = element.isMasked(gridCell(gridloc));
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e, Point2D gridloc) {
 			if (dragging) {
-				Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
-				setMasked(p, !dragClear);	// TODO might not be necessary - not sure if a mouseDragged event is generated or not for location of the release
+				setMasked(gridCell(gridloc), !dragClear);	// TODO might not be necessary - not sure if a mouseDragged event is generated or not for location of the release
 				dragging = false;
 			}
 		}
@@ -124,16 +122,13 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
 			if (e.getButton() != MouseEvent.BUTTON1) return;
 			if (e.getClickCount() != 1) return;
-
-			Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
-			setMasked(p, !element.isMasked(p));
+			setMasked(gridCell(gridloc), !element.isMasked(gridCell(gridloc)));
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {
 			if (dragging) {
-				Point p = new Point((int)gridloc.getX(), (int)gridloc.getY());
-				setMasked(p, !dragClear);
+				setMasked(gridCell(gridloc), !dragClear);
 			} else if (button == MouseEvent.BUTTON1) {
 				dragging = true;
 			}

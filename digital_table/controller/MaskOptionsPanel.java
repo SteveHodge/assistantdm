@@ -262,15 +262,13 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		@Override
 		public void mousePressed(MouseEvent e, Point2D gridloc) {
 			button = e.getButton();
-			Point p = new Point((int) gridloc.getX(), (int) gridloc.getY());
-			dragClear = element.isCleared(p);
+			dragClear = element.isCleared(gridCell(gridloc));
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e, Point2D gridloc) {
 			if (dragging) {
-				Point p = new Point((int) gridloc.getX(), (int) gridloc.getY());
-				setCleared(p, !dragClear);	// TODO might not be necessary - not sure if a mouseDragged event is generated or not for location of the release
+				setCleared(gridCell(gridloc), !dragClear);	// TODO might not be necessary - not sure if a mouseDragged event is generated or not for location of the release
 				dragging = false;
 			}
 		}
@@ -279,16 +277,13 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
 			if (e.getButton() != MouseEvent.BUTTON1) return;
 			if (e.getClickCount() != 1) return;
-
-			Point p = new Point((int) gridloc.getX(), (int) gridloc.getY());
-			setCleared(p, !element.isCleared(p));
+			setCleared(gridCell(gridloc), !element.isCleared(gridCell(gridloc)));
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {
 			if (dragging) {
-				Point p = new Point((int) gridloc.getX(), (int) gridloc.getY());
-				setCleared(p, !dragClear);
+				setCleared(gridCell(gridloc), !dragClear);
 			} else if (button == MouseEvent.BUTTON1) {
 				dragging = true;
 			}

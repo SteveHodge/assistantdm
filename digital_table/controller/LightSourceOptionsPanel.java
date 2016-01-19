@@ -110,8 +110,8 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(element, LightSource.PROPERTY_X, (int) p.getX());
-			display.setProperty(element, LightSource.PROPERTY_Y, (int) p.getY());
+			display.setProperty(element, LightSource.PROPERTY_X, (int) Math.round(p.getX()));
+			display.setProperty(element, LightSource.PROPERTY_Y, (int) Math.round(p.getY()));
 		}
 
 		@Override

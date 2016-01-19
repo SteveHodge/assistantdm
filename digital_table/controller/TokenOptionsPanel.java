@@ -34,9 +34,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import util.ModuleRegistry;
+
 import combat.CombatEntry;
 import combat.EncounterModule;
 import combat.InitiativeListModel;
+
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
@@ -474,14 +476,14 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(element, Group.PROPERTY_X, (int) p.getX());
-			display.setProperty(element, Group.PROPERTY_Y, (int) p.getY());
+			display.setProperty(element, Group.PROPERTY_X, (int) Math.round(p.getX()));
+			display.setProperty(element, Group.PROPERTY_Y, (int) Math.round(p.getY()));
 		}
 
 		@Override
 		Point2D getTargetLocation() {
-			int x = ((Double) element.getProperty(Group.PROPERTY_X)).intValue();
-			int y = ((Double) element.getProperty(Group.PROPERTY_Y)).intValue();
+			int x = (int) Math.round((Double) element.getProperty(Group.PROPERTY_X));
+			int y = (int) Math.round((Double) element.getProperty(Group.PROPERTY_Y));
 			return new Point(x, y);
 		}
 	};

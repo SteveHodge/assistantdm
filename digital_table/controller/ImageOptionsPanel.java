@@ -247,7 +247,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			if (e.getButton() != MouseEvent.BUTTON1) return;
 			if (e.getClickCount() != 1) return;
 
-			Point p = new Point((int) (gridloc.getX()), (int) (gridloc.getY()));
+			Point p = gridCell(gridloc);
 			boolean clear = !element.isCleared(p);
 			element.setCleared(p, clear);
 			if (clear) {

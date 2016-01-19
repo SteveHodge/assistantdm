@@ -102,7 +102,7 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			Point gridP = new Point((int) p.getX(), (int) p.getY());
+			Point gridP = new Point((int) Math.round(p.getX()), (int) Math.round(p.getY()));
 			display.setProperty(element, Group.PROPERTY_LOCATION, gridP);
 		}
 	};

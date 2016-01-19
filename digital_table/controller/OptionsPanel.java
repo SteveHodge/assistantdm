@@ -246,6 +246,11 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		return null;
 	}
 
+	// rounds grid coordinates to whole numbers - effectively returns the coordinates of the grid cell that contains the point gridloc
+	static Point gridCell(Point2D gridloc) {
+		return new Point((int) Math.floor(gridloc.getX()), (int) Math.floor(gridloc.getY()));	// must use floor in order to round negatives correctly
+	}
+
 	abstract class DefaultDragger implements MapElementMouseListener {
 		boolean dragging = false;
 		int button;

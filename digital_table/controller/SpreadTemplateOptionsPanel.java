@@ -149,8 +149,8 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(element, SpreadTemplate.PROPERTY_X, (int) p.getX());
-			display.setProperty(element, SpreadTemplate.PROPERTY_Y, (int) p.getY());
+			display.setProperty(element, SpreadTemplate.PROPERTY_X, (int) Math.round(p.getX()));
+			display.setProperty(element, SpreadTemplate.PROPERTY_Y, (int) Math.round(p.getY()));
 		}
 
 		@Override

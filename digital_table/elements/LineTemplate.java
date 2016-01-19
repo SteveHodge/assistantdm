@@ -243,12 +243,12 @@ public class LineTemplate extends MapElement {
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_ORIGIN_LOCATION)) {
 			Point2D p = (Point2D) value;
-			originX.setValue((int) p.getX());
-			originY.setValue((int) p.getY());
+			originX.setValue((int) Math.round(p.getX()));
+			originY.setValue((int) Math.round(p.getY()));
 		} else if (property.equals(PROPERTY_TARGET_LOCATION)) {
 			Point2D p = (Point2D) value;
-			targetX.setValue((int) p.getX());
-			targetY.setValue((int) p.getY());
+			targetX.setValue((int) Math.round(p.getX()));
+			targetY.setValue((int) Math.round(p.getY()));
 		} else if (property.equals(PROPERTY_IMAGE)) {
 			URI uri = (URI) value;
 			if (uri == null) {

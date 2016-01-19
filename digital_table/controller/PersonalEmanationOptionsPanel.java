@@ -123,8 +123,8 @@ class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(element, PersonalEmanation.PROPERTY_X, (int) p.getX());
-			display.setProperty(element, PersonalEmanation.PROPERTY_Y, (int) p.getY());
+			display.setProperty(element, PersonalEmanation.PROPERTY_X, (int) Math.round(p.getX()));
+			display.setProperty(element, PersonalEmanation.PROPERTY_Y, (int) Math.round(p.getY()));
 		}
 
 		@Override
