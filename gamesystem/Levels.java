@@ -1,5 +1,8 @@
 package gamesystem;
 
+import gamesystem.dice.DiceList;
+import gamesystem.dice.SimpleDice;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -108,15 +111,11 @@ public class Levels extends Statistic {
 		return bab;
 	}
 
-	public HitDice getHitDice() {
-		HitDice hd = null;
+	public DiceList getHitDice() {
+		DiceList hd = new DiceList();
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 		for (CharacterClass c : classLvl.keySet()) {
-			if (hd == null) {
-				hd = new HitDice(classLvl.get(c), c.getHitDiceType());
-			} else {
-				hd.add(classLvl.get(c), c.getHitDiceType());
-			}
+			hd.add(new SimpleDice(classLvl.get(c), c.getHitDiceType()));
 		}
 		return hd;
 	}

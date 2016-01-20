@@ -65,4 +65,12 @@ public class SimpleDice implements Dice {
 	public int getMaximum() {
 		return type;
 	}
+
+	public int getNumber() {
+		return number;
+	}
+
+	public int getType() {
+		return type;
+	}
 }

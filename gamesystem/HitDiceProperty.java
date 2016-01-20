@@ -2,7 +2,9 @@ package gamesystem;
 
 import gamesystem.SavingThrow.Type;
 import gamesystem.core.AbstractProperty;
+import gamesystem.dice.Dice;
 import gamesystem.dice.HDDice;
+import gamesystem.dice.SimpleDice;
 
 import java.util.List;
 
@@ -50,26 +52,39 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 
 	private void updateHitDice() {
 		HitDice old = hitDice;
-		hitDice = levels.getHitDice();
+		hitDice = getLevelsHD();
 		HitDice raceHD = new HitDice(race.getHitDice().getNumber(), race.getHitDice().getType(), race.getHitDice().getConstant());
 		if (hitDice == null) {
 			hitDice = raceHD;
 		} else if (race.getHitDiceCount() > 1) {
 			hitDice.add(raceHD);
 		}
-		// clear the modifiers
-		for (int i = 0; i < hitDice.getComponentCount(); i++) {
-			if (conMod != null && i == 0) {
-				hitDice.setModifier(i, conMod.getModifier() * getHitDiceCount() + bonusHPs);
-			} else if (i == 0) {
-				hitDice.setModifier(i, bonusHPs);
+		// add the modifiers
+		if (hitDice.getComponentCount() > 0) {
+			if (conMod != null) {
+				hitDice.setModifier(0, conMod.getModifier() * getHitDiceCount() + bonusHPs);
 			} else {
-				hitDice.setModifier(i, 0);
+				hitDice.setModifier(0, bonusHPs);
 			}
 		}
 		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
 			firePropertyChanged(old, false);
 		}
+	}
+
+	private HitDice getLevelsHD() {
+		HitDice hd = null;
+		for (Dice d : levels.getHitDice()) {
+			if (d instanceof SimpleDice) {
+				final SimpleDice s = (SimpleDice) d;
+				if (hd == null) {
+					hd = new HitDice(s.getNumber(), s.getType());
+				} else {
+					hd.add(s.getNumber(), s.getType());
+				}
+			}
+		}
+		return hd;
 	}
 
 	// Sets the racial hitdice based on the supplied total hitdice and existing class levels. Assumes that hd includes the con bonus which is factored out.
@@ -79,7 +94,7 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 		int mod = hd.getModifier();
 		if (conMod != null) mod -= conMod.getModifier() * getHitDiceCount();
 		if (levels.getHitDice() != null) {
-			HitDice diff = HitDice.difference(hd, levels.getHitDice());
+			HitDice diff = HitDice.difference(hd, getLevelsHD());
 			if (diff.getComponentCount() == 0) {
 				// no difference - reset race hitdice back to 1
 				race.setHitDiceCount(1);

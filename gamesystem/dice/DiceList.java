@@ -3,9 +3,10 @@ package gamesystem.dice;
 
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-public class DiceList implements Dice {
+public class DiceList implements Dice, Iterable<Dice> {
 	List<Dice> dice = new ArrayList<>();
 
 	public void add(Dice d) {
@@ -48,4 +49,10 @@ public class DiceList implements Dice {
 		}
 		return max;
 	}
+
+	@Override
+	public Iterator<Dice> iterator() {
+		return dice.iterator();
+	}
+
 }
