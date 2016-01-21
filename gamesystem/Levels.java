@@ -111,8 +111,8 @@ public class Levels extends Statistic {
 		return bab;
 	}
 
-	public DiceList getHitDice() {
-		DiceList hd = new DiceList();
+	public DiceList<SimpleDice> getHitDice() {
+		DiceList<SimpleDice> hd = new DiceList<>();
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 		for (CharacterClass c : classLvl.keySet()) {
 			hd.add(new SimpleDice(classLvl.get(c), c.getHitDiceType()));

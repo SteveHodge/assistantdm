@@ -2,7 +2,6 @@ package gamesystem;
 
 import gamesystem.SavingThrow.Type;
 import gamesystem.core.AbstractProperty;
-import gamesystem.dice.Dice;
 import gamesystem.dice.HDDice;
 import gamesystem.dice.SimpleDice;
 
@@ -74,14 +73,11 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 
 	private HitDice getLevelsHD() {
 		HitDice hd = null;
-		for (Dice d : levels.getHitDice()) {
-			if (d instanceof SimpleDice) {
-				final SimpleDice s = (SimpleDice) d;
-				if (hd == null) {
-					hd = new HitDice(s.getNumber(), s.getType());
-				} else {
-					hd.add(s.getNumber(), s.getType());
-				}
+		for (SimpleDice s : levels.getHitDice()) {
+			if (hd == null) {
+				hd = new HitDice(s.getNumber(), s.getType());
+			} else {
+				hd.add(s.getNumber(), s.getType());
 			}
 		}
 		return hd;

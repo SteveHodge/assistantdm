@@ -6,17 +6,17 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class DiceList implements Dice, Iterable<Dice> {
-	List<Dice> dice = new ArrayList<>();
+public class DiceList<T extends Dice> implements Dice, Iterable<T> {
+	List<T> dice = new ArrayList<>();
 
-	public void add(Dice d) {
+	public void add(T d) {
 		dice.add(d);
 	}
 
 	@Override
 	public int roll() {
 		int roll = 0;
-		for (Dice d : dice) {
+		for (T d : dice) {
 			roll += d.roll();
 		}
 		return roll;
@@ -25,7 +25,7 @@ public class DiceList implements Dice, Iterable<Dice> {
 	@Override
 	public String toString() {
 		String s = "";
-		for (Dice d : dice) {
+		for (T d : dice) {
 			if (s.length() > 0) s += " plus ";
 			s += d.toString();
 		}
@@ -35,7 +35,7 @@ public class DiceList implements Dice, Iterable<Dice> {
 	@Override
 	public int getMinimum() {
 		int min = 0;
-		for (Dice d : dice) {
+		for (T d : dice) {
 			min += d.getMinimum();
 		}
 		return min;
@@ -44,14 +44,14 @@ public class DiceList implements Dice, Iterable<Dice> {
 	@Override
 	public int getMaximum() {
 		int max = 0;
-		for (Dice d : dice) {
+		for (T d : dice) {
 			max += d.getMaximum();
 		}
 		return max;
 	}
 
 	@Override
-	public Iterator<Dice> iterator() {
+	public Iterator<T> iterator() {
 		return dice.iterator();
 	}
 
