@@ -46,5 +46,5 @@ public interface CreatureProcessor {
 
 	public void processMonsterFullAttackForm(MonsterAttackRoutine a);
 
-	public void processHitdice(HitDice hitDice);
+	public void processHitdice(HitDiceProperty hitDice);
 }

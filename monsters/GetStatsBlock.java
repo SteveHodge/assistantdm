@@ -2,12 +2,13 @@ package monsters;
 import gamesystem.AbilityScore;
 import gamesystem.CharacterClass;
 import gamesystem.Creature;
-import gamesystem.HitDice;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
 import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.SizeCategory;
+import gamesystem.dice.DiceList;
+import gamesystem.dice.HDDice;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -828,7 +829,7 @@ public class GetStatsBlock {
 				StringBuilder babStr = new StringBuilder();
 
 				Map<CharacterClass, Integer> classes = block.getClassLevels();
-				Set<HitDice> hitdice = block.getHitDice().getComponents();
+				Set<HDDice> hitdice = new HashSet<>(block.getHitDice());
 
 				// figure out the base monster hitdice by removing all the class level hitdice
 				// also add the class derived bab
@@ -839,9 +840,9 @@ public class GetStatsBlock {
 					if (babStr.length() > 0) babStr.append(" + ");
 					babStr.append(cls.getBAB(level)).append(" (").append(cls).append(" ").append(level).append(")");
 
-					HitDice classHD = null;
-					for (HitDice d : hitdice) {
-						if (d.getNumber(0) == level && d.getType(0) == cls.getHitDiceType()) {
+					HDDice classHD = null;
+					for (HDDice d : hitdice) {
+						if (d.getNumber() == level && d.getType() == cls.getHitDiceType()) {
 							classHD = d;
 							break;
 						}
@@ -849,7 +850,7 @@ public class GetStatsBlock {
 					if (classHD != null) {
 						hitdice.remove(classHD);
 					} else {
-						System.out.println("WARN: could not for hitdice for level-" + level + " " + cls + ": " + getNameURL(block));
+						System.out.println("WARN: could not find hitdice for level-" + level + " " + cls + ": " + getNameURL(block));
 						System.out.println("  expected " + level + "d" + cls.getHitDiceType() + ", only found " + block.getHitDice());
 					}
 				}
@@ -858,29 +859,29 @@ public class GetStatsBlock {
 					// probably this is a templated creature
 					// TODO
 					System.out.println("WARN: extra hitdice found in " + getNameURL(block));
-					for (HitDice d : hitdice) {
+					for (HDDice d : hitdice) {
 						System.out.println("  " + d);
 					}
 				} else if (hitdice.size() == 1) {
-					HitDice hd = hitdice.iterator().next();
+					HDDice hd = hitdice.iterator().next();
 
 					MonsterType babType = type;
 					// check that the type is correct
-					if (hd.getType(0) == type.getHitDiceType()) {
+					if (hd.getType() == type.getHitDiceType()) {
 						// type is correct
-					} else if (block.getAugmentedType() != null && hd.getType(0) == block.getAugmentedType().getHitDiceType()) {
+					} else if (block.getAugmentedType() != null && hd.getType() == block.getAugmentedType().getHitDiceType()) {
 						// augmented creature using original hitdice type. use the original BAB progression
 						babType = block.getAugmentedType();
 					} else {
 						System.out.println("WARN: creature has incorrect hitdice for type: " + getNameURL(block));
-						System.out.println("  Should be d" + type.getHitDiceType() + " but found d" + hd.getType(0));
+						System.out.println("  Should be d" + type.getHitDiceType() + " but found d" + hd.getType());
 					}
 
-					int num = hd.getNumber(0);
+					int num = hd.getNumber();
 					if (num < 1) num = 1;
 					bab += babType.getBAB(num);
 					if (babStr.length() > 0) babStr.append(" + ");
-					babStr.append(babType.getBAB(num)).append(" (").append(babType).append(" ").append(hd.getNumber(0)).append(")");
+					babStr.append(babType.getBAB(num)).append(" (").append(babType).append(" ").append(hd.getNumber()).append(")");
 				}
 
 				// TODO augmented creatures could be calculated using the wrong type - really need to check both and use whichever matches
@@ -995,7 +996,7 @@ public class GetStatsBlock {
 		}
 	}
 
-	public static void doTrails(int number, HitDice hd) {
+	public static void doTrails(int number, DiceList<HDDice> hd) {
 		int min = Integer.MAX_VALUE;
 		int max = 0;
 		int total = 0;

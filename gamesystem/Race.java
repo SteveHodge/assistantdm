@@ -10,8 +10,6 @@ import java.util.List;
  * The String value reported is a description: "type (subtype, subtype,...)".
  */
 
-// FIXME maybe replace the hitDice with separate count/type/modifier values. we should have multiple dice types (I think) and it is potentially problematic
-
 public class Race extends AbstractProperty<String> {
 	protected MonsterType type;
 	public List<String> subtypes = new ArrayList<String>();	// subtypes			// TODO should be protected

@@ -5,7 +5,7 @@ import gamesystem.CharacterClass.ClassOption;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
-import gamesystem.HitDice;
+import gamesystem.HitDiceProperty;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
@@ -122,6 +122,6 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 	}
 
 	@Override
-	public void processHitdice(HitDice hitDice) {
+	public void processHitdice(HitDiceProperty hitDice) {
 	}
 }

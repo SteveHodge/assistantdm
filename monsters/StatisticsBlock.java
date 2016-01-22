@@ -3,12 +3,12 @@ package monsters;
 import gamesystem.AbilityScore;
 import gamesystem.AbilityScore.Type;
 import gamesystem.CharacterClass;
-import gamesystem.HitDice;
 import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
 import gamesystem.SavingThrow;
 import gamesystem.SizeCategory;
+import gamesystem.dice.HDDice;
 
 import java.io.File;
 import java.io.IOException;
@@ -373,12 +373,12 @@ public class StatisticsBlock {
 	// multiple dice rolls can be separated by " plus "
 	// hitdice section ends with " (# hp)"
 	// first number may be "½ "
-	HitDice parseHitDice(String hd) {
+	List<HDDice> parseHitDice(String hd) {
 		hd = hd.substring(0, hd.indexOf(" ("));
-		return HitDice.parse(hd);
+		return HDDice.parseList(hd);
 	}
 
-	public HitDice getHitDice() {
+	public List<HDDice> getHitDice() {
 		String hd = get(Field.HITDICE);
 		if (hd == null || hd.indexOf(" (") < 0) {
 			System.out.println("WARN: "+getName()+" has no default hp ending hitdice");

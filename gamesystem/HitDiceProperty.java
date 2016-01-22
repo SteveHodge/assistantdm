@@ -5,15 +5,16 @@ import gamesystem.core.AbstractProperty;
 import gamesystem.dice.HDDice;
 import gamesystem.dice.SimpleDice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /* HitDiceProperty monitors Levels and monster hitdice (Race) and provides a combined hitdice property that other properties such as BAB can be based on.
  */
 
-public class HitDiceProperty extends AbstractProperty<HitDice> {
+public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	private Race race;
 	private Levels levels;
-	private HitDice hitDice;	// TODO switch to CombinedDice
+	private List<HDDice> hitDice;
 	private Modifier conMod;
 	public int bonusHPs = 0;	// TODO remove this hack
 
@@ -50,56 +51,65 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 	}
 
 	private void updateHitDice() {
-		HitDice old = hitDice;
-		hitDice = getLevelsHD();
-		HitDice raceHD = new HitDice(race.getHitDice().getNumber(), race.getHitDice().getType(), race.getHitDice().getConstant());
-		if (hitDice == null) {
-			hitDice = raceHD;
-		} else if (race.getHitDiceCount() > 1) {
+		List<HDDice> old = hitDice;
+		int mod = 0;
+		if (conMod != null) mod = conMod.getModifier();
+		hitDice = new ArrayList<>();
+		HDDice raceHD = race.getHitDice();
+		boolean doneBonus = bonusHPs == 0;	// will be initialised to true if we don't need to worry about this
+
+		if (levels.getHitDiceCount() == 0 || raceHD.getNumber() > 1) {
+			int constant = raceHD.getConstant() + mod * raceHD.getNumber();
+			if (!doneBonus) {
+				constant += bonusHPs;
+				doneBonus = true;
+			}
+			raceHD = new HDDice(raceHD.getNumber(), raceHD.getType(), constant);
 			hitDice.add(raceHD);
 		}
-		// add the modifiers
-		if (hitDice.getComponentCount() > 0) {
-			if (conMod != null) {
-				hitDice.setModifier(0, conMod.getModifier() * getHitDiceCount() + bonusHPs);
-			} else {
-				hitDice.setModifier(0, bonusHPs);
+
+		for (SimpleDice s : levels.getHitDice()) {
+			int constant = mod * s.getNumber();
+			if (!doneBonus) {
+				constant += bonusHPs;
+				doneBonus = true;
 			}
+			hitDice.add(new HDDice(s.getNumber(), s.getType(), constant));
 		}
+
 		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
 			firePropertyChanged(old, false);
 		}
 	}
 
-	private HitDice getLevelsHD() {
-		HitDice hd = null;
+	private List<HDDice> getLevelsHD() {
+		List<HDDice> hd = new ArrayList<>();
+		int mod = 0;
+		if (conMod != null) mod = conMod.getModifier();
+
 		for (SimpleDice s : levels.getHitDice()) {
-			if (hd == null) {
-				hd = new HitDice(s.getNumber(), s.getType());
-			} else {
-				hd.add(s.getNumber(), s.getType());
-			}
+			int constant = mod * s.getNumber();
+			hd.add(new HDDice(s.getNumber(), s.getType(), constant));
 		}
 		return hd;
 	}
 
-	// Sets the racial hitdice based on the supplied total hitdice and existing class levels. Assumes that hd includes the con bonus which is factored out.
-	// Though note that currently updateHitDice() removes all modifiers.
-	public void setHitDice(HitDice hd) {
-		//System.out.println("Setting HD to " + hd + ", class HD = " + levels.getHitDice() + " based on level " + levels.getLevel());
-		int mod = hd.getModifier();
-		if (conMod != null) mod -= conMod.getModifier() * getHitDiceCount();
+	// Sets the racial hitdice based on the supplied total hitdice and existing class levels. Modifiers are ignored as these are calculated later (though they are used to identify which parts of hd are from levels)
+	public void setHitDice(List<HDDice> hd) {
+		//System.out.println("Setting HD to " + DiceList.toString(hd) + ", class HD = " + levels.getHitDice() + " based on level " + levels.getLevel());
 		if (levels.getHitDice() != null) {
-			HitDice diff = HitDice.difference(hd, getLevelsHD());
-			if (diff.getComponentCount() == 0) {
+			List<HDDice> diff = HDDice.difference(hd, getLevelsHD());
+			if (diff.size() == 0) {
 				// no difference - reset race hitdice back to 1
 				race.setHitDiceCount(1);
 				return;
 			}
-			if (diff.getComponentCount() > 1) throw new IllegalArgumentException("Remaining HD not suitable: total = " + hd + ", class HD = " + levels.getHitDice());
-			race.setHitDice(new HDDice(diff.getNumber(0), diff.getType(0), mod));
+			if (diff.size() > 1) throw new IllegalArgumentException("Remaining HD not suitable: total = " + hd + ", class HD = " + levels.getHitDice());
+			HDDice d = diff.get(0);
+			race.setHitDice(new HDDice(d.getNumber(), d.getType(), 0));
 		} else {
-			race.setHitDice(new HDDice(hd.getNumber(0), hd.getType(0), mod));
+			HDDice d = hd.get(0);
+			race.setHitDice(new HDDice(d.getNumber(), d.getType(), 0));
 		}
 		updateHitDice();
 	}
@@ -113,12 +123,16 @@ public class HitDiceProperty extends AbstractProperty<HitDice> {
 	}
 
 	@Override
-	public HitDice getBaseValue() {
+	public List<HDDice> getBaseValue() {
 		return hitDice;
 	}
 
 	public int getHitDiceCount() {
-		return hitDice.getHitDiceCount();
+		int num = 0;
+		for (HDDice d : hitDice) {
+			if (d.getNumber() >= 1) num += d.getNumber();
+		}
+		return num;
 	}
 
 	public int getBaseSave(Type type) {

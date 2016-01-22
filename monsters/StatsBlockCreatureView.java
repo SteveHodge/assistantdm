@@ -12,6 +12,7 @@ import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
+import gamesystem.dice.DiceList;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -457,8 +458,7 @@ public class StatsBlockCreatureView {
 				if (t != SavingThrow.Type.WILL) s.append(", ");
 			}
 		} else if (field == Field.HITDICE) {
-			// TODO need to add con mod to this:
-			s.append(creature.hitDice.getValue()).append(" (");
+			s.append(DiceList.toString(creature.hitDice.getValue())).append(" (");
 			if (creature.getHPStatistic().getValue() != creature.getHPStatistic().getMaximumHitPoints()) {
 				s.append(creature.getHPStatistic().getValue()).append("/");
 			}

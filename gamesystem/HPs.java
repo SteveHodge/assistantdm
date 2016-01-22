@@ -2,6 +2,7 @@ package gamesystem;
 
 import gamesystem.core.Property.PropertyEvent;
 import gamesystem.core.Property.PropertyListener;
+import gamesystem.dice.HDDice;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,15 +89,15 @@ public class HPs extends Statistic {
 		super("Hit Points");
 
 		hitdice = hd;
-		hitdice.addPropertyListener(new PropertyListener<HitDice>() {
+		hitdice.addPropertyListener(new PropertyListener<List<HDDice>>() {
 			@Override
-			public void valueChanged(PropertyEvent<HitDice> event) {
-				updateModifier(event.getOldValue().getModifier());
+			public void valueChanged(PropertyEvent<List<HDDice>> event) {
+				updateModifier(HDDice.getTotalConstant(event.getOldValue()));
 			}
 
 			@Override
-			public void compositionChanged(PropertyEvent<HitDice> event) {
-				updateModifier(event.getOldValue().getModifier());
+			public void compositionChanged(PropertyEvent<List<HDDice>> event) {
+				updateModifier(HDDice.getTotalConstant(event.getOldValue()));
 			}
 		});
 	}
@@ -104,7 +105,7 @@ public class HPs extends Statistic {
 	// apply any modifier change to maximum hitpoints
 	private void updateModifier(int oldMod) {
 		int oldhps = getMaximumHitPoints();
-		int newhps = oldhps + hitdice.getValue().getModifier() - oldMod;
+		int newhps = oldhps + HDDice.getTotalConstant(hitdice.getValue()) - oldMod;
 		if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// TODO if we need to use this then it won't be reversable. probably need a max hp override
 		if (newhps == oldhps) return;
 		//System.out.println("changing max hps from " + oldhps + " to " + newhps);

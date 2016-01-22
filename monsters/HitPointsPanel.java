@@ -2,7 +2,8 @@ package monsters;
 
 import gamesystem.Creature;
 import gamesystem.HPs;
-import gamesystem.HitDice;
+import gamesystem.dice.DiceList;
+import gamesystem.dice.HDDice;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -15,6 +16,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.math.BigInteger;
+import java.util.List;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -32,7 +34,7 @@ import javax.swing.JTextField;
 class HitPointsPanel extends DetailPanel {
 	private Monster creature;
 	private HPs hps;				// cached copy from creature
-	private HitDice hitdice;		// cached copy from creature
+	private DiceList<HDDice> hitdice;		// cached copy from creature
 
 	private JTextField hitDiceField;
 	private Color defaultBG;
@@ -52,9 +54,9 @@ class HitPointsPanel extends DetailPanel {
 		hitDiceField.addActionListener(evt -> {
 			String s = hitDiceField.getText();
 			try {
-				HitDice test = HitDice.parse(s);
+				List<HDDice> test = HDDice.parseList(s);
 				if (creature != null) {
-					hitdice = test;
+					hitdice = DiceList.fromList(test);
 					creature.hitDice.setHitDice(test);	// will fire property change that will trigger update
 				}
 				hitDiceField.setBackground(defaultBG);
@@ -71,8 +73,8 @@ class HitPointsPanel extends DetailPanel {
 				//TODO some type checking should be done
 				if (creature != null) {
 					int value = (Integer) hitPointsField.getValue();
-					if (value < hitdice.getMinimumRoll()) value = hitdice.getMinimumRoll();
-					if (value > hitdice.getMaximumRoll()) value = hitdice.getMaximumRoll();
+					if (value < hitdice.getMinimum()) value = hitdice.getMinimum();
+					if (value > hitdice.getMaximum()) value = hitdice.getMaximum();
 					creature.setProperty(Creature.PROPERTY_MAXHPS, value);
 				}
 			}
@@ -145,8 +147,8 @@ class HitPointsPanel extends DetailPanel {
 
 				@Override
 				public void mousePressed(MouseEvent e) {
-					int len = hitdice.getMaximumRoll() - hitdice.getMinimumRoll() + 1;
-					int hps = e.getX() * len / getSize().width + hitdice.getMinimumRoll();
+					int len = hitdice.getMaximum() - hitdice.getMinimum() + 1;
+					int hps = e.getX() * len / getSize().width + hitdice.getMinimum();
 					creature.setMaximumHitPoints(hps);
 				}
 			});
@@ -164,7 +166,7 @@ class HitPointsPanel extends DetailPanel {
 			if (creature == null) return;
 
 			int first = hitdice.getNumber();
-			int length = hitdice.getMaximumRoll() - hitdice.getModifier() + 1;
+			int length = hitdice.getMaximum() - hitdice.getModifier() + 1;
 			int possTotals = length - first;
 
 			BigInteger max = hitdice.getCombinations(first);
@@ -219,7 +221,7 @@ class HitPointsPanel extends DetailPanel {
 		if (creature != null) {
 			hps = creature.getHPStatistic();
 			hps.addPropertyChangeListener(hpListener);
-			hitdice = creature.getHitDice().getValue();
+			hitdice = DiceList.fromList(creature.getHitDice().getValue());
 		} else {
 			hps = null;
 		}
@@ -239,11 +241,11 @@ class HitPointsPanel extends DetailPanel {
 			int maxHPs = hps.getMaximumHitPoints();
 			hitDiceField.setText(hitdice.toString());
 			hitPointsField.setValue(new Integer(maxHPs));
-			hpRangeLabel.setText("(" + hitdice.getMinimumRoll() + " - " + hitdice.getMaximumRoll() + ")");
+			hpRangeLabel.setText("(" + hitdice.getMinimum() + " - " + hitdice.getMaximum() + ")");
 			double stdDev = hitdice.getStdDeviation();
 			double devs = Math.abs(maxHPs - hitdice.getMeanRoll()) / stdDev;
 			statsLabel.setText(String.format("%dth percentile, %.2f standard deviations (std dev = %.2f)", getPercentile(maxHPs, hitdice), devs, stdDev));
-			averageHPsButton.setText("Fixed average (" + (int) hitdice.getMeanRoll() + ")");
+			averageHPsButton.setText("Fixed average (" + hitdice.getMeanRoll() + ")");
 		} else {
 			hitDiceField.setText("");
 			hitPointsField.setValue(new Integer(0));
@@ -256,13 +258,13 @@ class HitPointsPanel extends DetailPanel {
 
 	// calculates percentile as the % of possible rolls that are less than hps. half of rolls equals to hps are counted
 	// as less.
-	private static int getPercentile(int hps, HitDice hd) {
+	private static int getPercentile(int hps, DiceList<HDDice> hd) {
 		BigInteger total = BigInteger.ZERO;
 		BigInteger larger = BigInteger.ZERO;
 		BigInteger equal = BigInteger.ZERO;
 		hps -= hd.getModifier();	// remove constant modifier so hps represents index
 
-		int length = hd.getMaximumRoll() - hd.getModifier();
+		int length = hd.getMaximum() - hd.getModifier();
 		for (int i = 0; i < length; i++) {
 			if (hd.getCombinations(i) != null) {
 				total = total.add(hd.getCombinations(i));

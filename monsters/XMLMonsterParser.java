@@ -2,10 +2,11 @@ package monsters;
 
 import gamesystem.AbilityScore;
 import gamesystem.Buff;
-import gamesystem.HitDice;
 import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
 import gamesystem.XMLParserHelper;
+import gamesystem.dice.DiceList;
+import gamesystem.dice.HDDice;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -66,9 +67,9 @@ public class XMLMonsterParser extends XMLParserHelper {
 
 			} else if (tag.equals("HitDice")) {
 				String hdstr = e.getAttribute("dice");
-				HitDice dice = HitDice.parse(hdstr);
+				List<HDDice> dice = HDDice.parseList(hdstr);
 				m.hitDice.setHitDice(dice);
-				m.getHPStatistic().setMaximumHitPoints((int) m.hitDice.getValue().getMeanRoll());
+				m.getHPStatistic().setMaximumHitPoints((int) DiceList.fromList(m.hitDice.getValue()).getMeanRoll());
 
 			} else if (tag.equals("Initiative")) {
 				parseInitiativeModifier(e, m);

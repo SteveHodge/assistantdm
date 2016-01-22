@@ -3,7 +3,7 @@ package monsters;
 import gamesystem.AC;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
-import gamesystem.HitDice;
+import gamesystem.HitDiceProperty;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
@@ -114,7 +114,7 @@ public class XMLOutputMonsterProcessor extends XMLOutputHelper implements Creatu
 	}
 
 	@Override
-	public void processHitdice(HitDice hitDice) {
+	public void processHitdice(HitDiceProperty hitDice) {
 		if (creatureEl == null) return;
 
 		Element e = doc.createElement("HitDice");

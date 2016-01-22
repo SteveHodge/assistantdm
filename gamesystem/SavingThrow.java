@@ -2,6 +2,9 @@ package gamesystem;
 
 import gamesystem.core.Property.PropertyEvent;
 import gamesystem.core.Property.PropertyListener;
+import gamesystem.dice.HDDice;
+
+import java.util.List;
 
 public class SavingThrow extends Statistic {
 	public enum Type {
@@ -51,14 +54,14 @@ public class SavingThrow extends Statistic {
 	public void setHitDice(HitDiceProperty hd) {
 		hitdice = hd;
 		if (hitdice != null) {
-			hitdice.addPropertyListener(new PropertyListener<HitDice>() {
+			hitdice.addPropertyListener(new PropertyListener<List<HDDice>>() {
 				@Override
-				public void valueChanged(PropertyEvent<HitDice> event) {
+				public void valueChanged(PropertyEvent<List<HDDice>> event) {
 					pcs.firePropertyChange("value", null, getValue());
 				}
 
 				@Override
-				public void compositionChanged(PropertyEvent<HitDice> event) {
+				public void compositionChanged(PropertyEvent<List<HDDice>> event) {
 					pcs.firePropertyChange("value", null, getValue());
 				}
 			});
