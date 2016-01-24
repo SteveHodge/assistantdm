@@ -1,7 +1,7 @@
 package gamesystem;
 
 
-
+// TODO shouldn't be able to set the baseValue, instead use overrides
 public class InitiativeModifier extends Statistic {
 	protected int baseValue = 0;
 

@@ -21,8 +21,6 @@ import party.Character;
 // TODO attack form specific combat options (+DOM)
 // TODO damage
 // TODO implement modifier particular to one attack mode (ranged/grapple etc) (note that grapple size modifier is different from regular attack size modifier)
-// TODO think about grapple - most modifier to attack shouldn't apply...
-// TODO promote grapple to full (sub) statistic. grapple size mod and improved grapple should be modifiers
 // TODO consider if it is worth including situational modifiers (e.g. flanking, squeezing, higher, shooting into combat etc)
 // TODO cleanup AttackForm - hide public fields and update modifier type methods
 // TODO need to listen for changes to attacks
@@ -73,7 +71,7 @@ public class Attacks extends Statistic {
 		}
 	};
 
-	// TODO would prefer not to require a Character. however we do need BAB, abilityscores, feats, and AC for some combat options
+	// FIXME monsters have feats now so clean up feats handling
 	public Attacks(Creature c) {
 		super("Attacks");
 
@@ -202,13 +200,6 @@ public class Attacks extends Statistic {
 
 	public int getRangedModifiersTotal(Set<String> excluding) {
 		return getModifiersTotalExcluding(getRangedMods(), excluding);
-	}
-
-	public int getGrappleValue() {
-		int grapple = bab.getValue() + creature.getSize().getGrappleModifier();
-		if (strMod != null) grapple += strMod.getModifier();
-		if (creature.hasFeat(Feat.FEAT_IMPROVED_GRAPPLE)) grapple += 4;
-		return grapple;
 	}
 
 	public AttackForm addAttackForm(String name) {

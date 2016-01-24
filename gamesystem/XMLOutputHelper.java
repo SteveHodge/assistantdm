@@ -224,7 +224,7 @@ public class XMLOutputHelper {
 		getAbilityScoreElement(s);
 	}
 
-	public void processAttacks(Attacks attacks) {
+	public void processAttacks(Attacks attacks, GrappleModifier grapple) {
 		getAttacksElement(attacks);
 	}
 

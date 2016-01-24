@@ -84,6 +84,7 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 		new FeatDefinition("Diligent").addSkillBonuses("Appraise", "Decipher Script").summary("+2 bonus on Appraise and Decipher Script checks.").ref("PH 93"),
 		new FeatDefinition("Great Fortitude").addBonus(Creature.STATISTIC_FORTITUDE_SAVE, 2).summary("+2 bonus on Fortitude saves.").ref("PH 94"),
 		new FeatDefinition("Improved Initiative").addBonus(Creature.STATISTIC_INITIATIVE, 4).summary("+4 bonus on initiative checks.").ref("PH 96"),
+		new FeatDefinition("Improved Grapple").addBonus(Creature.STATISTIC_GRAPPLE, 4).summary("+4 bonus on grapple checks; no attack of opportunity.").ref("PH 95"),		// +4 grapple check
 		new FeatDefinition("Investigator").addSkillBonuses("Gather Information", "Search").summary("+2 bonus on Gather Information and Search checks.").ref("PH 96"),
 		new FeatDefinition("Iron Will").addBonus(Creature.STATISTIC_WILL_SAVE, 2).summary("+2 bonus on Will saves.").ref("PH 97"),
 		new FeatDefinition("Lightning Reflexes").addBonus(Creature.STATISTIC_REFLEX_SAVE, 2).summary("+2 bonus on Reflex saves.").ref("PH 97"),
@@ -133,7 +134,6 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 
 		// other:
 		new FeatDefinition("Improved Unarmed Strike").summary("Considered armed even when unarmed.").ref("PH 96"),		// deals lethal or non-lethal damage
-		new FeatDefinition("Improved Grapple").summary("+4 bonus on grapple checks; no attack of opportunity.").ref("PH 95"),		// +4 grapple check
 
 		// but with no effect in AssistantDM:
 		new FeatDefinition("Blind-Fight").summary("Reroll miss chance for concealment").ref("PH 89"),

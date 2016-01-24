@@ -62,6 +62,7 @@ public abstract class Creature {
 	public final static String STATISTIC_ATTACKS = "attacks";
 	public final static String STATISTIC_DAMAGE = "damage";
 	public final static String STATISTIC_SIZE = "size";
+	public final static String STATISTIC_GRAPPLE = "grapple";
 
 	// The order of these needs to be the same as the ability enum in AbilityScore
 	public final static String[] STATISTIC_ABILITY = {STATISTIC_STRENGTH,STATISTIC_DEXTERITY,STATISTIC_CONSTITUTION,STATISTIC_INTELLIGENCE,STATISTIC_WISDOM,STATISTIC_CHARISMA};
@@ -84,6 +85,7 @@ public abstract class Creature {
 
 	protected Attacks attacks;
 	public BAB bab;	// TODO shouldn't be public - change where StatBlockCreatureView doesn't need to manipulate bab when adding levels
+	protected GrappleModifier grapple;
 
 	public Race race;		// TODO shouldn't be public
 	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
@@ -130,7 +132,7 @@ public abstract class Creature {
 		idMap.put(id, this);
 	}
 
-	public static Creature getCreature(int id) {
+	protected static Creature getCreature(int id) {
 		return idMap.get(id);
 	}
 
@@ -166,6 +168,10 @@ public abstract class Creature {
 
 	public Property<Integer> getBAB() {
 		return bab;
+	}
+
+	public GrappleModifier getGrappleModifier() {
+		return grapple;
 	}
 
 	//------------------- BAB -------------------
@@ -231,6 +237,8 @@ public abstract class Creature {
 			return attacks.getDamageStatistic();
 		} else if (name.equals(STATISTIC_SIZE)) {
 			return size;
+		} else if (name.equals(STATISTIC_GRAPPLE)) {
+			return grapple;
 		} else {
 			System.out.println("Unknown statistic " + name);
 			return null;
@@ -546,7 +554,7 @@ public abstract class Creature {
 		}
 
 		processor.processAC(ac);
-		processor.processAttacks(attacks);
+		processor.processAttacks(attacks, grapple);
 
 		for (int i = 0; i < buffs.getSize(); i++) {
 			Buff b = buffs.get(i);

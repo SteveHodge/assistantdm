@@ -1,6 +1,7 @@
 package gamesystem;
 
 // TODO need to store certain size related characteristics of creatures: whether they are tall or long (for reach), and whether they count as quadrupeds for carrying capacity
+// FIXME should make the size modifier and the grapple modifier real modifiers
 public class Size extends Statistic {
 	private SizeCategory category = SizeCategory.MEDIUM;
 	private int space = SizeCategory.MEDIUM.getSpace();

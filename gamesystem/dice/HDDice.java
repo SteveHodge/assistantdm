@@ -179,15 +179,15 @@ public class HDDice extends SimpleDice {
 		return getTotalConstant(list.dice);
 	}
 
-	public static <U extends HDDice> List<U> difference(List<U> list1, List<U> list2) {
-		List<U> l1 = new ArrayList<>(list1);
-		List<U> l2 = new ArrayList<>(list2);
+	public static List<HDDice> difference(List<HDDice> list1, List<HDDice> list2) {
+		List<HDDice> l1 = new ArrayList<>(list1);
+		List<HDDice> l2 = new ArrayList<>(list2);
 
-		// for each component of l1 first see if there is an identical matching component in l2, if so then remove it from both
+		// remove all components that are common to both lists
 		for (int i = l1.size() - 1; i >= 0; i--) {
-			U d1 = l1.get(i);
+			HDDice d1 = l1.get(i);
 			for (int j = l2.size() - 1; j >= 0; j--) {
-				U d2 = l2.get(j);
+				HDDice d2 = l2.get(j);
 				if (d1.equals(d2)) {
 					l1.remove(i);
 					l2.remove(j);
@@ -195,9 +195,38 @@ public class HDDice extends SimpleDice {
 			}
 		}
 
-		// TODO for each remaining component of l1 see if there are any components in l2 with the same type and lower number and constant. pick the l2 component with highest number and constant and remove it from both
+		// if there are remaining components of list2 then convert the lists to CombinedDice and calculate the difference between them
+		if (list2.size() > 0) {
+			CombinedDice c1 = convertToCombined(l1);
+			CombinedDice c2 = convertToCombined(l2);
+			c1.subtract(c2);
+			convertFromCombined(l1, c1);
+		}
 
 		return l1;
+	}
+
+	private static CombinedDice convertToCombined(List<HDDice> list) {
+		CombinedDice c = new CombinedDice();
+		for (HDDice d : list) {
+			c.add(d);
+		}
+		return c;
+	}
+
+	// note will empty list first
+	private static void convertFromCombined(List<HDDice> list, CombinedDice c) {
+		list.clear();
+		for (int t : c.dice.keySet()) {
+			SimpleDice s = c.dice.get(t);
+			HDDice d;
+			if (list.size() == 0) {
+				d = new HDDice(s.number, s.type, c.constant);
+			} else {
+				d = new HDDice(s.number, s.type);
+			}
+			list.add(d);
+		}
 	}
 
 // returns an array containing the number of combinations of possible total of <num>d<type>. the array is indexed

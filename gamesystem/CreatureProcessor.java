@@ -16,7 +16,7 @@ public interface CreatureProcessor {
 
 	public void processAC(AC a);
 
-	public void processAttacks(Attacks a);
+	public void processAttacks(Attacks a, GrappleModifier g);
 
 	public void processHPs(HPs hps);
 

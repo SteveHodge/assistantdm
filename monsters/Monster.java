@@ -9,6 +9,7 @@ import gamesystem.Buff;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
+import gamesystem.GrappleModifier;
 import gamesystem.HPs;
 import gamesystem.HitDiceProperty;
 import gamesystem.InitiativeModifier;
@@ -165,6 +166,8 @@ public class Monster extends Creature {
 		skills.addPropertyChangeListener(statListener);
 
 		bab = new BAB(race, level);
+
+		grapple = new GrappleModifier(bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
 		attacks = new Attacks(this);
 		// TODO size modifier to attack needs to be setup correctly
@@ -368,6 +371,11 @@ public class Monster extends Creature {
 		for (String f : feats) {
 			int count = 1;
 			boolean bonus = false;
+			f.trim();
+			if (f.endsWith("B")) {
+				f = f.substring(0, f.length() - 1);
+				bonus = true;
+			}
 			if (f.contains("(")) {
 				try {
 					count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
@@ -376,10 +384,6 @@ public class Monster extends Creature {
 					count = f.substring(f.indexOf("(") + 1, f.indexOf(")")).split(",").length;
 				}
 				f = f.substring(0, f.indexOf("(")).trim();
-			}
-			if (f.endsWith("B")) {
-				f = f.substring(0, f.length() - 1);
-				bonus = true;
 			}
 			counts[bonus ? 1 : 0] += count;
 		}
@@ -440,7 +444,7 @@ public class Monster extends Creature {
 
 		processor.processAC(ac);
 
-		processor.processAttacks(attacks);
+		processor.processAttacks(attacks, grapple);
 		for (MonsterAttackRoutine a : attackList) {
 			processor.processMonsterAttackForm(a);
 		}

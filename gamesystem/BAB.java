@@ -2,8 +2,6 @@ package gamesystem;
 
 import gamesystem.core.AbstractProperty;
 
-// TODO fix this. it should listen to the relavent stats instead of requiring recalculateBAB. change once hitDice and type are notified properties/statistics
-// once the monster's type has it's own property we can promote this to a top level class
 public class BAB extends AbstractProperty<Integer> {
 	final Race race;
 	final Levels levels;
@@ -34,7 +32,7 @@ public class BAB extends AbstractProperty<Integer> {
 		int bab = levels.getBAB();
 
 		int hd = race.getHitDiceCount();
-		if (hd > 1 || levels.getHitDice() == null) {
+		if (hd > 1 || levels.getLevel() == 0) {
 			MonsterType t = race.getAugmentedType();
 			if (t == null) t = race.getType();
 			if (t != null) bab += t.getBAB(hd);
@@ -51,12 +49,12 @@ public class BAB extends AbstractProperty<Integer> {
 		if (t == null) t = race.getType();
 		int hd = race.getHitDiceCount();
 
-		if (levels.getHitDice() != null) {
+		if (levels.getLevel() > 0) {
 			s.append(levels.getBAB()).append(" from classes");
 			if (t != null && hd > 1) s.append(" + ");
 		}
 
-		if (t != null && hd > 1) {
+		if (t != null && (hd > 1 || levels.getLevel() == 0)) {
 			s.append(t.getBAB(hd)).append(" from " + hd + " " + t + " hitdice");
 		}
 
@@ -71,7 +69,7 @@ public class BAB extends AbstractProperty<Integer> {
 		return getBAB();
 	}
 
-	public void recalculateBAB() {
+	private void recalculateBAB() {
 		if (getBAB() != bab) {
 			firePropertyChanged(bab, false);
 			bab = getBAB();

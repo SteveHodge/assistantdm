@@ -59,7 +59,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		boolean doneBonus = bonusHPs == 0;	// will be initialised to true if we don't need to worry about this
 
 		if (levels.getHitDiceCount() == 0 || raceHD.getNumber() > 1) {
-			int constant = raceHD.getConstant() + mod * raceHD.getNumber();
+			int constant = raceHD.getConstant() + mod * (raceHD.getNumber() < 1 ? 1 : raceHD.getNumber());
 			if (!doneBonus) {
 				constant += bonusHPs;
 				doneBonus = true;
@@ -97,7 +97,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	// Sets the racial hitdice based on the supplied total hitdice and existing class levels. Modifiers are ignored as these are calculated later (though they are used to identify which parts of hd are from levels)
 	public void setHitDice(List<HDDice> hd) {
 		//System.out.println("Setting HD to " + DiceList.toString(hd) + ", class HD = " + levels.getHitDice() + " based on level " + levels.getLevel());
-		if (levels.getHitDice() != null) {
+		if (levels.getLevel() != 0) {
 			List<HDDice> diff = HDDice.difference(hd, getLevelsHD());
 			if (diff.size() == 0) {
 				// no difference - reset race hitdice back to 1
@@ -117,7 +117,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	// Returns true if the base value includes racial hitdice. Creatures without class levels should always have racial hitdice.
 	// Creatures with class levels lose their racial hitdice if they have 1 HD or less.
 	public boolean hasRaceHD() {
-		if (levels.getHitDice() == null) return true;
+		if (levels.getLevel() == 0) return true;
 		if (race.getHitDiceCount() > 1) return true;
 		return false;
 	}

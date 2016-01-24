@@ -36,9 +36,9 @@ public class GetStatsBlock {
 		List<StatisticsBlock> blocks = new ArrayList<>();
 		Source[] sources = new Source[] {
 				new Source("Monster Manual", "monster_manual"),
-//				new Source("Monster Manual II", "monster_manual_ii"),
-//				new Source("Monster Manual III", "monster_manual_iii"),
-//				new Source("Ptolus", "ptolus"),
+				new Source("Monster Manual II", "monster_manual_ii"),
+				new Source("Monster Manual III", "monster_manual_iii"),
+				new Source("Ptolus", "ptolus"),
 //				new Source("Cthulhu", "cthulhu")
 		};
 
@@ -90,7 +90,9 @@ public class GetStatsBlock {
 		for (StatisticsBlock block : blocks) {
 			try {
 				if (block.getURL().getFile().contains("/Lycanthrope.html")) continue;		// Lycanthrope template uses special rules that would require custom code
+				//if (block.getName().equals("Elder Arrowhawk"))
 				validateBlock(block);
+				//Monster m = StatsBlockCreatureView.createMonster(block);
 			} catch (Exception e) {
 				try {
 					System.err.println("Exception processing '" + block.getName() + "' from " + block.getURL());
@@ -319,7 +321,7 @@ public class GetStatsBlock {
 						//add(type.name() + " Save: base = " + m.hitDice.getBaseSave(type) + ", override = " + save.getBaseOverride());
 					}
 				} else if (found != m.getSaveProgression(type)) {
-					add(type.name() + " Save: using " + found + " progression rather than " + m.getSaveProgression(type) + " as is usual for " + m.race.getType());
+					//add(type.name() + " Save: using " + found + " progression rather than " + m.getSaveProgression(type) + " as is usual for " + m.race.getType());
 				}
 			}
 		}
@@ -329,24 +331,25 @@ public class GetStatsBlock {
 		Monster m = StatsBlockCreatureView.createMonster(block);
 
 		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue(), m.getBAB().toString());
-		messages.checkValues("Grapple", block.getGrapple(), m.race.hasSubtype("Incorporeal") || m.race.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getAttacksStatistic().getGrappleValue());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
-		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
-		messages.checkSave(SavingThrow.Type.REFLEX, m);
-		messages.checkSave(SavingThrow.Type.WILL, m);
-		messages.checkValues("HD", block.getHitDice(), m.getHitDice().getValue(), "Bonus HPs = " + m.getHitDice().bonusHPs);
-		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
-				" bonus feats = " + m.countFeats()[1]);
+		messages.checkValues("Grapple", block.getGrapple(), m.race.hasSubtype("Incorporeal") || m.race.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getGrappleModifier().getValue(), m
+				.getGrappleModifier().getSummary());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
+//		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
+//		messages.checkSave(SavingThrow.Type.REFLEX, m);
+//		messages.checkSave(SavingThrow.Type.WILL, m);
+//		messages.checkValues("HD", block.getHitDice(), m.getHitDice().getValue(), "Bonus HPs = " + m.getHitDice().bonusHPs);
+//		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
+//				" bonus feats = " + m.countFeats()[1]);
 
 		if (messages.size() == 0) {
-			System.out.println(block.getName() + " OK");
+			//System.out.println(block.getName() + " OK");
 		} else {
 			System.out.println(block.getName());
 			for (String s : messages) {
 				System.out.println("  " + s);
 			}
-			System.out.println("  Feats: " + block.get(Field.FEATS));
-			System.out.println("  Subtypes: " + String.join(", ", m.race.subtypes));
+			System.out.println("  Race: " + m.race + " " + m.race.getHitDiceCount());
 			System.out.println("  Classes: " + m.level);
+			System.out.println("  Feats: " + block.get(Field.FEATS));
 		}
 	}
 

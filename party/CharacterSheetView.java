@@ -9,6 +9,7 @@ import gamesystem.ClassFeature;
 import gamesystem.Creature;
 import gamesystem.Feat;
 import gamesystem.Feat.FeatDefinition;
+import gamesystem.GrappleModifier;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
@@ -315,7 +316,7 @@ public class CharacterSheetView {
 		private Set<String> rangedExcl = new HashSet<>(Arrays.asList(new String[] { AbilityScore.Type.DEXTERITY.toString(), "Size" }));
 
 		@Override
-		public void processAttacks(Attacks attacks) {
+		public void processAttacks(Attacks attacks, GrappleModifier grapple) {
 			Element e = getAttacksElement(attacks);
 			Property<Integer> bab = attacks.getBAB();
 			if (bab.hasOverride()) {
@@ -330,7 +331,7 @@ public class CharacterSheetView {
 
 			Element e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Grapple");
-			e1.setAttribute("total", getModifierString(attacks.getGrappleValue()));
+			e1.setAttribute("total", getModifierString(grapple.getValue()));
 			e1.setAttribute("misc", "+0");				// TODO implement
 			e.appendChild(e1);
 			e1 = doc.createElement("Attack");

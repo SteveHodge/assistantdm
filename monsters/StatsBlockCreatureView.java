@@ -213,6 +213,13 @@ public class StatsBlockCreatureView {
 			for (String f : feats) {
 				int count = 1;
 				boolean bonus = false;
+				f = f.trim();
+				//System.out.print("  '" + f + "': ");
+				if (f.endsWith("B")) {
+					f = f.substring(0, f.length() - 1);
+					bonus = true;
+					//System.out.print("bonus feat, ");
+				}
 				if (f.contains("(")) {
 					try {
 						count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
@@ -220,14 +227,12 @@ public class StatsBlockCreatureView {
 						// assume if it's not a number then it's a subtype
 					}
 					f = f.substring(0, f.indexOf("(")).trim();
-				}
-				if (f.endsWith("B")) {
-					f = f.substring(0, f.length() - 1);
-					bonus = true;
+					//System.out.print("stripped specialisation/count leaving '" + f + "', ");
 				}
 				f = f.trim();
 				FeatDefinition def = Feat.getFeatDefinition(f);
 				if (def != null) {
+					//System.out.println("Found " + def.name + ", count = " + count);
 					for (int j = 0; j < count; j++) {
 						Feat feat = def.getFeat();
 						feat.bonus = bonus;
@@ -243,6 +248,18 @@ public class StatsBlockCreatureView {
 
 		setAttackList(m, blk.getAttacks(false));
 		setFullAttackList(m, blk.getAttacks(true));
+
+		// add racial modifier to grapple (if any)
+		Map<String, Integer> mods = blk.getGrappleModifiers();
+		for (String type : mods.keySet()) {
+			ImmutableModifier mod = new ImmutableModifier(mods.get(type), type);
+			if (type.equals("racial")) {
+				m.getGrappleModifier().addModifier(mod);
+			} else {
+				System.out.println(blk.getName() + " unimplemented grapple modifier: " + mod + " from '" + blk.get(Field.BASE_ATTACK_GRAPPLE) + "'");
+			}
+
+		}
 
 		// add fields we don't use as extra properties:
 		m.setProperty(Field.CLASS_LEVELS.name(), blk.get(Field.CLASS_LEVELS));
@@ -476,20 +493,15 @@ public class StatsBlockCreatureView {
 		} else if (field == Field.FULL_ATTACK) {
 			s.append(getAttackHTML(creature.fullAttackList));
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
-			Attacks a = creature.getAttacksStatistic();
 			if (creature.getBAB().getValue() >= 0) s.append("+");
 			s.append(creature.getBAB().getValue()).append("/");
 
-			if (getStatsBlock() != null) {
-				if (creature.race.hasSubtype("Incorporeal") || creature.race.hasSubtype("Swarm")) {
-					s.append("—");
-				} else {
-					if (a.getGrappleValue() >= 0) s.append("+");
-					s.append(a.getGrappleValue());
-				}
+			if (creature.race.hasSubtype("Incorporeal") || creature.race.hasSubtype("Swarm")) {
+				s.append("—");
 			} else {
-				if (a.getGrappleValue() >= 0) s.append("+");
-				s.append(a.getGrappleValue());
+				int g = creature.getGrappleModifier().getValue();
+				if (g >= 0) s.append("+");
+				s.append(g);
 			}
 		}
 

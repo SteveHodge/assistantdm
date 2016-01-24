@@ -12,6 +12,7 @@ import gamesystem.ClassFeature;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
+import gamesystem.GrappleModifier;
 import gamesystem.HPs;
 import gamesystem.HitDiceProperty;
 import gamesystem.ImmutableModifier;
@@ -291,6 +292,8 @@ public class Character extends Creature {
 		hps.addPropertyChangeListener(statListener);
 
 		bab = new BAB(race, level);
+
+		grapple = new GrappleModifier(bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
 		attacks = new Attacks(this);
 		attacks.addPropertyChangeListener(statListener);
@@ -1258,7 +1261,7 @@ public class Character extends Creature {
 		processor.processSkills(skills);
 		processor.processAC(ac);
 
-		processor.processAttacks(attacks);
+		processor.processAttacks(attacks, grapple);
 		for (CharacterAttackForm a : attackForms) {
 			processor.processCharacterAttackForm(a);
 		}

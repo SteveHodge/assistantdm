@@ -111,4 +111,27 @@ public class CombinedDice implements Dice {
 		}
 		return dice;
 	}
+
+	// Subtracts the dice in c2 that correspond to dice in this. Does not change any type that has more dice in c2 than in this. Returns a new ConstantDice containing any remaining dice from c2.
+	// The constant in c2 is always subtracted from this object's constant so the remainder's constant will always be 0.
+	CombinedDice subtract(CombinedDice c2) {
+		CombinedDice remainder = new CombinedDice();
+		for (int t : c2.dice.keySet()) {
+			SimpleDice d2 = c2.dice.get(t);
+			if (dice.containsKey(t)) {
+				SimpleDice d = dice.get(t);
+				if (d2.number == d.number) {
+					dice.remove(t);
+				} else if (d2.number < d.number) {
+					d.number -= d2.number;
+				} else {
+					remainder.add(new SimpleDice(d2.number, t));
+				}
+			} else {
+				remainder.add(new SimpleDice(d2.number, t));
+			}
+		}
+		constant -= c2.constant;
+		return remainder;
+	}
 }
