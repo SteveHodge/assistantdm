@@ -295,11 +295,11 @@ public class Character extends Creature {
 
 		grapple = new GrappleModifier(bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
-		attacks = new Attacks(this);
-		attacks.addPropertyChangeListener(statListener);
-
 		size = new Size();
 		size.addPropertyChangeListener(statListener);
+
+		attacks = new Attacks(this);
+		attacks.addPropertyChangeListener(statListener);
 	}
 
 	@Override

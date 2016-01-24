@@ -36,9 +36,9 @@ public class GetStatsBlock {
 		List<StatisticsBlock> blocks = new ArrayList<>();
 		Source[] sources = new Source[] {
 				new Source("Monster Manual", "monster_manual"),
-				new Source("Monster Manual II", "monster_manual_ii"),
+				//				new Source("Monster Manual II", "monster_manual_ii"),
 				new Source("Monster Manual III", "monster_manual_iii"),
-				new Source("Ptolus", "ptolus"),
+				//				new Source("Ptolus", "ptolus"),
 //				new Source("Cthulhu", "cthulhu")
 		};
 

@@ -1,14 +1,33 @@
 package gamesystem;
 
 // TODO need to store certain size related characteristics of creatures: whether they are tall or long (for reach), and whether they count as quadrupeds for carrying capacity
-// FIXME should make the size modifier and the grapple modifier real modifiers
 public class Size extends Statistic {
 	private SizeCategory category = SizeCategory.MEDIUM;
 	private int space = SizeCategory.MEDIUM.getSpace();
 	private int reach = SizeCategory.MEDIUM.getReachTall();
+	private final Modifier grappleMod = new SizeModifier() {
+		@Override
+		public int getModifier() {
+			return category.getGrappleModifier();
+		}
+	};
+	private final Modifier sizeMod = new SizeModifier() {
+		@Override
+		public int getModifier() {
+			return category.getSizeModifier();
+		}
+	};
 
 	public Size() {
 		super("Size");
+	}
+
+	public Modifier getSizeModifier() {
+		return sizeMod;
+	}
+
+	public Modifier getGrappleSizeModifier() {
+		return grappleMod;
 	}
 
 	// TODO should probably replace the modifier with an ImmutableModifier of enhancement type
@@ -70,4 +89,25 @@ public class Size extends Statistic {
 		reach = r;
 		pcs.firePropertyChange("reach", null, reach);
 	}
+
+	protected abstract class SizeModifier extends AbstractModifier {
+		public SizeModifier() {
+			Size.this.addPropertyChangeListener(evt ->
+			pcs.firePropertyChange("value", null, getModifier()));
+		}
+
+		@Override
+		public String getType() {
+			return name;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder s = new StringBuilder();
+			if (getModifier() >= 0) s.append("+");
+			s.append(getModifier()).append(" size modifier");
+			return s.toString();
+		}
+	};
+
 }

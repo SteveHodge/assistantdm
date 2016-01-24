@@ -198,11 +198,6 @@ public class StatsBlockCreatureView {
 			}
 		}
 
-		Attacks attacks = m.getAttacksStatistic();
-		//m.getBAB().setBaseValue(blk.getBAB());	// not necessary since it will be determined by HD
-		int sizeMod = m.getSize().getSizeModifier();
-		if (sizeMod != 0) attacks.addModifier(new ImmutableModifier(sizeMod, "Size"));
-
 		m.setProperty(PROPERTY_STATS_BLOCK, blk);
 		// need feats/special qualities before setting up attacks
 		m.setProperty(Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));

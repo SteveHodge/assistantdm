@@ -48,12 +48,12 @@ public class AbilityScore extends Statistic {
 	}
 
 	protected class AbilityModifier extends AbstractModifier {
-		public AbilityModifier(AbilityScore score) {
-			score.addPropertyChangeListener(evt -> 
-				//int oldValue = ((Integer)evt.getOldValue())/2-5;
-				//int newValue = ((Integer)evt.getNewValue())/2-5;
-				//modpcs.firePropertyChange("value", null, newValue);
-				pcs.firePropertyChange("value", null, getModifier()));
+		public AbilityModifier() {
+			AbilityScore.this.addPropertyChangeListener(evt ->
+			//int oldValue = ((Integer)evt.getOldValue())/2-5;
+			//int newValue = ((Integer)evt.getNewValue())/2-5;
+			//modpcs.firePropertyChange("value", null, newValue);
+			pcs.firePropertyChange("value", null, getModifier()));
 		}
 
 		@Override
@@ -78,7 +78,7 @@ public class AbilityScore extends Statistic {
 	public AbilityScore(Type type) {
 		super(type.toString());
 		this.type = type;
-		modifier = new AbilityModifier(this);
+		modifier = new AbilityModifier();
 	}
 
 	public Type getType() {

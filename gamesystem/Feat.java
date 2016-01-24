@@ -59,7 +59,6 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 		return null;
 	}
 
-	public static final String FEAT_IMPROVED_GRAPPLE = "Improved Grapple";
 	public static final String FEAT_MULTI_WEAPON_FIGHTING = "Multiweapon Fighting";
 	public static final String FEAT_MULTIATTACK = "Multiattack";
 	public static final String FEAT_POWER_ATTACK = "Power Attack";

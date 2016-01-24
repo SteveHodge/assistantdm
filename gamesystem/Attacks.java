@@ -99,6 +99,8 @@ public class Attacks extends Statistic {
 
 		dexMod = creature.getAbilityModifier(AbilityScore.Type.DEXTERITY);
 		if (dexMod != null) dexMod.addPropertyChangeListener(listener);
+
+		addModifier(c.getSizeStatistic().getSizeModifier());
 	}
 
 	@Override
