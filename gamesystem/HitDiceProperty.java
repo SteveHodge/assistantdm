@@ -8,6 +8,9 @@ import gamesystem.dice.SimpleDice;
 import java.util.ArrayList;
 import java.util.List;
 
+import monsters.Monster;
+import monsters.StatisticsBlock.Field;
+
 /* HitDiceProperty monitors Levels and monster hitdice (Race) and provides a combined hitdice property that other properties such as BAB can be based on.
  */
 
@@ -143,14 +146,15 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	}
 
 	// TODO this is a bit of a hack
-	public void updateBonusHPs(Size size, List<Feat> feats) {
+	public void updateBonusHPs(Monster m) {
 		int old = bonusHPs;
+		bonusHPs = 0;
 
 		// bonus hitpoints for constructs
 		MonsterType t = race.getAugmentedType();
 		if (t == null) t = race.getType();
-		if (t == MonsterType.CONSTRUCT) {
-			switch (size.getSize()) {
+		if (t == MonsterType.CONSTRUCT && !race.hasSubtype("Living Construct")) {
+			switch (m.size.getSize()) {
 			case SMALL:
 				bonusHPs = 10;
 				break;
@@ -170,21 +174,34 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 				bonusHPs = 80;
 				break;
 			default:
-				bonusHPs = 0;
 				break;
 			}
 		}
 
-		// bonus hitpoints for toughness
-		for (Feat feat : feats) {
+		// bonus hitpoints from feats
+		for (Feat feat : m.feats) {
 			String f = feat.getName();
-			if (f.startsWith("Toughness")) {
-				int count = 1;
-				if (f.contains("(")) {
-					count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
-				}
-				bonusHPs += 3 * count;
+			if (f.equals("Toughness")) {
+				bonusHPs += 3;
+			} else if (f.equals("Improved Toughness")) {
+				bonusHPs += getHitDiceCount();
 			}
+		}
+
+		// unholy toughness: add charisma bonus per hd
+		String quals = (String) m.getProperty(Field.SPECIAL_QUALITIES.name());
+		if (quals != null && quals.toLowerCase().contains("unholy toughness")) {
+			Modifier chr = m.getAbilityModifier(AbilityScore.Type.CHARISMA);
+			if (chr != null) {
+				// TODO add listener to chr (but only once)
+				bonusHPs += getHitDiceCount() * chr.getModifier();
+			}
+		}
+
+		// desecrating aura (+2 hp per hd)
+		quals = (String) m.getProperty(Field.SPECIAL_ATTACKS.name());
+		if (quals != null && quals.toLowerCase().contains("desecrating aura")) {
+			bonusHPs += getHitDiceCount() * 2;
 		}
 
 		if (bonusHPs != old) updateHitDice();

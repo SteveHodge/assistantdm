@@ -240,10 +240,9 @@ public class StatsBlockCreatureView {
 						m.feats.add(feat);
 					}
 				} else {
-					//System.out.println("Couldn't find feat '" + f + "'");
+					System.out.println("Couldn't find feat '" + f + "'");
 				}
 			}
-			m.hitDice.updateBonusHPs(m.size, m.feats);
 		}
 
 		setAttackList(m, blk.getAttacks(false));
@@ -252,9 +251,6 @@ public class StatsBlockCreatureView {
 		// add racial modifier to grapple (if any)
 		List<Modifier> mods = blk.getGrappleModifiers();
 		for (Modifier mod : mods) {
-			if (mod.getCondition() != null) {
-				System.err.println("Got conditional modifier " + mod + " from " + blk.get(Field.BASE_ATTACK_GRAPPLE));
-			}
 			if (mod.getType().equals("racial")) {
 				m.getGrappleModifier().addModifier(mod);
 			} else {
@@ -275,6 +271,8 @@ public class StatsBlockCreatureView {
 		m.setProperty(Field.ALIGNMENT.name(), blk.get(Field.ALIGNMENT));
 		m.setProperty(Field.ADVANCEMENT.name(), blk.get(Field.ADVANCEMENT));
 		m.setProperty(Field.LEVEL_ADJUSTMENT.name(), blk.get(Field.LEVEL_ADJUSTMENT));
+
+		m.hitDice.updateBonusHPs(m);	// doing this last because it may use special attacks
 
 		return m;
 	}

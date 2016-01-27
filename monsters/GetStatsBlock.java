@@ -7,6 +7,7 @@ import gamesystem.MonsterType;
 import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.SizeCategory;
+import gamesystem.dice.CombinedDice;
 import gamesystem.dice.DiceList;
 import gamesystem.dice.HDDice;
 
@@ -327,7 +328,7 @@ public class GetStatsBlock {
 		}
 		;
 
-		if (block.getClassLevels().keySet().size() == 0) return;	// skip creatures with class levels for now
+		//if (block.getClassLevels().size() == 0) return;	// skip creatures with no class levels for now
 
 		Messages messages = new Messages();
 		Monster m = StatsBlockCreatureView.createMonster(block);
@@ -335,15 +336,23 @@ public class GetStatsBlock {
 		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue(), m.getBAB().toString());
 		messages.checkValues("Grapple", block.getGrapple(), m.race.hasSubtype("Incorporeal") || m.race.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getGrappleModifier().getValue(), m
 				.getGrappleModifier().getSummary());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
-		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
-		messages.checkSave(SavingThrow.Type.REFLEX, m);
-		messages.checkSave(SavingThrow.Type.WILL, m);
-		messages.checkValues("HD", block.getHitDice(), m.getHitDice().getValue(), "Bonus HPs = " + m.getHitDice().bonusHPs);
+//		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
+//		messages.checkSave(SavingThrow.Type.REFLEX, m);
+//		messages.checkSave(SavingThrow.Type.WILL, m);
+
+		// we want to compare CombindDice versions of lists of dice because we don't care where the constants are, but we can't add fractional dice (which
+		// should only occur in monsters with no class levels) so if there is only one element in the HD list then compare that.
+		List<HDDice> blockHD = block.getHitDice();
+		List<HDDice> monsterHD = m.getHitDice().getValue();
+		Object blockDice = blockHD.size() == 1 ? blockHD.get(0) : CombinedDice.fromList(blockHD);
+		Object monsterDice = monsterHD.size() == 1 ? monsterHD.get(0) : CombinedDice.fromList(monsterHD);
+		messages.checkValues("HD", blockDice, monsterDice, "Bonus HPs = " + m.getHitDice().bonusHPs);
+
 		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
 				" bonus feats = " + m.countFeats()[1]);
 
 		if (messages.size() == 0) {
-			System.out.println(block.getName() + " OK");
+			//System.out.println(block.getName() + " OK");
 		} else {
 			System.out.println(block.getName());
 			for (String s : messages) {
@@ -352,6 +361,8 @@ public class GetStatsBlock {
 			System.out.println("  Race: " + m.race + " " + m.race.getHitDiceCount());
 			System.out.println("  Classes: " + m.level);
 			System.out.println("  Feats: " + block.get(Field.FEATS));
+			System.out.println("  Special Attacks: " + m.getProperty(Field.SPECIAL_ATTACKS.name()));
+			System.out.println("  Special Qualities: " + m.getProperty(Field.SPECIAL_QUALITIES.name()));
 		}
 	}
 

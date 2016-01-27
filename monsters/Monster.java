@@ -44,7 +44,7 @@ public class Monster extends Creature {
 
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
-	List<Feat> feats = new ArrayList<Feat>();			// applied feats
+	public List<Feat> feats = new ArrayList<Feat>();			// applied feats	// TODO should not be public. should be notified
 
 	// this listener forwards events from Statstics as property changes
 	private PropertyChangeListener statListener = new PropertyChangeListener() {
@@ -54,7 +54,7 @@ public class Monster extends Creature {
 				pcs.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
 			} else if (evt.getSource() == size) {
 				if (evt.getPropertyName().equals("value")) {
-					hitDice.updateBonusHPs(size, feats);
+					hitDice.updateBonusHPs(Monster.this);
 					pcs.firePropertyChange(PROPERTY_SIZE, evt.getOldValue(), evt.getNewValue());
 				} else if (evt.getPropertyName().equals("space")) {
 					pcs.firePropertyChange(PROPERTY_SPACE, evt.getOldValue(), evt.getNewValue());
@@ -112,12 +112,12 @@ public class Monster extends Creature {
 		race.addPropertyListener(new PropertyListener<String>() {
 			@Override
 			public void valueChanged(PropertyEvent<String> event) {
-				hitDice.updateBonusHPs(size, feats);
+				hitDice.updateBonusHPs(Monster.this);
 			}
 
 			@Override
 			public void compositionChanged(PropertyEvent<String> event) {
-				hitDice.updateBonusHPs(size, feats);
+				hitDice.updateBonusHPs(Monster.this);
 			}
 		});
 		level = new Levels();

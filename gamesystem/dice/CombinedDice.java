@@ -1,6 +1,7 @@
 package gamesystem.dice;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 // CombinedDice is similar to DiceList except that it only accepts SimpleDice and it will combine dice of the same type
@@ -45,6 +46,20 @@ public class CombinedDice implements Dice {
 			roll += d.roll();
 		}
 		return roll;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof CombinedDice) {
+			CombinedDice d = (CombinedDice) o;
+			if (d.constant != constant) return false;
+			if (d.dice.size() != dice.size()) return false;
+			for (int t : dice.keySet()) {
+				if (!dice.get(t).equals(d.dice.get(t))) return false;
+			}
+			return true;
+		}
+		return false;
 	}
 
 	// TODO this should return the dice in a constant order
@@ -108,6 +123,14 @@ public class CombinedDice implements Dice {
 					dice.constant += c;
 				}
 			}
+		}
+		return dice;
+	}
+
+	public static CombinedDice fromList(List<HDDice> list) {
+		CombinedDice dice = new CombinedDice();
+		for (HDDice d : list) {
+			dice.add(d);
 		}
 		return dice;
 	}
