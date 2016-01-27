@@ -89,8 +89,12 @@ import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
  *
- * Skills for monsters
+ * Skill parsing for monsters
  * Make HitDiceProperty into Statistic (rename to HitDice) so that bonus hps from feats and race (constructs) can be added as a modifier
+ * Saving throw modifiers in monster stats blocks
+ *
+ * Remote input - joysticks, web
+ *
  * Rework Statistic change notification. Consider making it a subclass of property (override would override total value). Consider factoring out interface.
  * ? properties for statistics: bab, convert temp hps
  * ? consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the

@@ -9,8 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import party.Character;
-
 
 public enum CharacterClass {
 	// basic classes
@@ -123,7 +121,7 @@ public enum CharacterClass {
 	public abstract static class LevelUpAction {
 		int level;
 
-		public abstract void apply(party.Character c);
+		public abstract void apply(Creature c);
 	}
 
 	public static class ClassOption {
@@ -157,7 +155,7 @@ public enum CharacterClass {
 		}
 
 		@Override
-		public void apply(Character c) {
+		public void apply(Creature c) {
 			String selection = null;
 			ClassOption opt = c.classOptions.get(id);
 
@@ -194,7 +192,7 @@ public enum CharacterClass {
 				if (feat != null) {
 					Feat f = feat.getFeat();
 					f.bonus = true;
-					c.feats.addElement(f);
+					c.addFeat(f);
 				} else {
 					System.err.println("Could not find feat " + options[0]);
 				}
@@ -217,7 +215,7 @@ public enum CharacterClass {
 		}
 
 		@Override
-		public void apply(Character c) {
+		public void apply(Creature c) {
 			if (c.getClassFeature(factory.id) == null) c.addClassFeature(factory.getFeature(c));
 		}
 	}
@@ -236,7 +234,7 @@ public enum CharacterClass {
 		}
 
 		@Override
-		public void apply(Character c) {
+		public void apply(Creature c) {
 			c.removeClassFeature(feature);
 		}
 	}
@@ -259,7 +257,7 @@ public enum CharacterClass {
 		}
 
 		@Override
-		public void apply(Character c) {
+		public void apply(Creature c) {
 			c.setClassFeatureParameter(feature, parameter, value);
 		}
 	}
@@ -286,7 +284,7 @@ public enum CharacterClass {
 		}
 
 		@Override
-		public void apply(Character c) {
+		public void apply(Creature c) {
 			if (c.getClassFeature(ifFeature) != null) {
 				if (thenAction != null) thenAction.apply(c);
 			} else {

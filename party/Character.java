@@ -101,8 +101,6 @@ public class Character extends Creature {
 
 	public EnumMap<SavingThrow.Type, Modifier> saveMisc = new EnumMap<>(SavingThrow.Type.class);	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
-	public Skills skills;		// TODO shouldn't be public - change when XMLCreatureParser has character specific subclass
-
 	//	private Set<Feat> feats = new HashSet<>();
 
 	public int xp = 0;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
@@ -112,10 +110,6 @@ public class Character extends Creature {
 	public List<CharacterAttackForm> attackForms = new ArrayList<>();
 
 	public BuffUI.BuffListModel<Feat> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
-
-	List<ClassFeature> features = new ArrayList<>();
-
-	public Map<String, ClassOption> classOptions = new HashMap<>();
 
 	public List<XPHistoryItem> xpChanges = new ArrayList<>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
@@ -802,40 +796,10 @@ public class Character extends Creature {
 		return false;
 	}
 
-//------------ Features -------------
-	public void addClassFeature(ClassFeature f) {
-		features.add(f);
-		f.apply(this);
-		//System.out.println("Added " + f);
+	@Override
+	public void addFeat(Feat f) {
+		feats.addElement(f);
 	}
-
-	public void removeClassFeature(String id) {
-		ClassFeature feature = getClassFeature(id);
-		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
-		//System.out.println("Removed " + feature);
-		feature.remove(this);
-		features.remove(feature);
-	}
-
-	public ClassFeature getClassFeature(String id) {
-		for (ClassFeature f : features) {
-			if (f.definition.id.equals(id)) return f;
-		}
-		return null;
-	}
-
-	public void setClassFeatureParameter(String id, String parameter, Object value) {
-		ClassFeature feature = getClassFeature(id);
-		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
-		feature.setParameter(parameter, value);
-		//System.out.println("Updated " + feature);
-	}
-
-/*	public Object getClassFeatureParameter(String id, String parameter) {
-		ClassFeature feature = getClassFeature(id);
-		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
-		return feature.getParameter(parameter);
-	}*/
 
 //------------ Buffs -------------
 // XXX this is a hack to enable autosave on buff changes
@@ -877,23 +841,6 @@ public class Character extends Creature {
 	}
 
 //------------------- Import/Export and other methods -------------------
-	@Override
-	public Statistic getStatistic(String name) {
-		if (name.equals(STATISTIC_SKILLS)) {
-			return skills;
-		} else if (name.startsWith(STATISTIC_SKILLS+".")) {
-			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length()+1));
-			return skills.getSkill(type);
-//		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
-//			// TODO implement?
-//			return null;
-		} else if (name.equals(STATISTIC_LEVEL)) {
-			return level;
-		} else {
-			return super.getStatistic(name);
-		}
-	}
-
 	public static Character parseDOM(Element el) {
 		XMLCharacterParser parser = new XMLCharacterParser();
 		Character c = parser.parseDOM(el);

@@ -4,6 +4,7 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.CharacterClass;
+import gamesystem.CharacterClass.LevelUpAction;
 import gamesystem.Creature;
 import gamesystem.Feat;
 import gamesystem.Feat.FeatDefinition;
@@ -132,7 +133,6 @@ public class StatsBlockCreatureView {
 			m.race.addSubtype(s);
 		}
 
-		// FIXME need to apply the features of the classes
 		Map<CharacterClass, Integer> lvls = blk.getClassLevels();
 		for (CharacterClass c : lvls.keySet()) {
 			int l = lvls.get(c);
@@ -141,6 +141,11 @@ public class StatsBlockCreatureView {
 				m.level.setLevel(old + l);
 				for (i = old + 1; i <= m.level.getLevel(); i++) {
 					m.level.setClass(i, c);
+					Set<LevelUpAction> actions = c.getActions(m.level.getClassLevel(c));
+					//System.out.println("Applying actions for " + c + " level " + m.level.getClassLevel(c));
+					for (LevelUpAction action : actions) {
+						action.apply(m);
+					}
 				}
 			}
 		}
@@ -245,15 +250,17 @@ public class StatsBlockCreatureView {
 		setFullAttackList(m, blk.getAttacks(true));
 
 		// add racial modifier to grapple (if any)
-		Map<String, Integer> mods = blk.getGrappleModifiers();
-		for (String type : mods.keySet()) {
-			ImmutableModifier mod = new ImmutableModifier(mods.get(type), type);
-			if (type.equals("racial")) {
+		List<Modifier> mods = blk.getGrappleModifiers();
+		for (Modifier mod : mods) {
+			if (mod.getCondition() != null) {
+				System.err.println("Got conditional modifier " + mod + " from " + blk.get(Field.BASE_ATTACK_GRAPPLE));
+			}
+			if (mod.getType().equals("racial")) {
 				m.getGrappleModifier().addModifier(mod);
 			} else {
+				// TODO handle dex modifier. dex can either replace strength or the highest can be used. could possibly assume the later. tricky to replace the strength mod though
 				System.out.println(blk.getName() + " unimplemented grapple modifier: " + mod + " from '" + blk.get(Field.BASE_ATTACK_GRAPPLE) + "'");
 			}
-
 		}
 
 		// add fields we don't use as extra properties:

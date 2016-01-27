@@ -348,20 +348,27 @@ public class StatisticsBlock {
 		return parseModifier(field);
 	}
 
-	// TODO handle conditional modifiers
-	public Map<String, Integer> getGrappleModifiers() {
+	public List<Modifier> getGrappleModifiers() {
 		String field = get(Field.BASE_ATTACK_GRAPPLE);
 		field = field.substring(field.indexOf('/') + 1);	// get the grapple part of the field
 		String[] variants = field.split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
 
-		Map<String, Integer>mods = new HashMap<>();
-		if (variants[0].contains("(")) {
-			String[] modStrs = variants[0].substring(variants[0].indexOf("(") + 1, variants[0].indexOf(")")).split(",");
-			for (String mod : modStrs) {
-				mod = mod.trim();
-				int val = parseModifier(mod.substring(0, mod.indexOf(" ")));
-				String type = mod.substring(mod.indexOf(" ") + 1).trim();
-				mods.put(type, val);
+		List<Modifier> mods = new ArrayList<>();
+		for (int i = 0; i < variants.length; i++) {
+			if (variants[i].contains("(")) {
+				String variant = variants[i].trim();
+				String condition = null;
+				if (variant.indexOf(" ") + 1 < variant.indexOf("(")) {
+					condition = variant.substring(variant.indexOf(" ") + 1, variant.indexOf("(")).trim();
+				}
+				String[] modStrs = variant.substring(variant.indexOf("(") + 1, variant.indexOf(")")).split(",");
+				for (String mod : modStrs) {
+					mod = mod.trim();
+					int val = parseModifier(mod.substring(0, mod.indexOf(" ")));
+					String type = mod.substring(mod.indexOf(" ") + 1).trim();
+					ImmutableModifier m = new ImmutableModifier(val, type, null, condition);
+					mods.add(m);
+				}
 			}
 		}
 		return mods;

@@ -327,21 +327,23 @@ public class GetStatsBlock {
 		}
 		;
 
+		if (block.getClassLevels().keySet().size() == 0) return;	// skip creatures with class levels for now
+
 		Messages messages = new Messages();
 		Monster m = StatsBlockCreatureView.createMonster(block);
 
 		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue(), m.getBAB().toString());
 		messages.checkValues("Grapple", block.getGrapple(), m.race.hasSubtype("Incorporeal") || m.race.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getGrappleModifier().getValue(), m
 				.getGrappleModifier().getSummary());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
-//		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
-//		messages.checkSave(SavingThrow.Type.REFLEX, m);
-//		messages.checkSave(SavingThrow.Type.WILL, m);
-//		messages.checkValues("HD", block.getHitDice(), m.getHitDice().getValue(), "Bonus HPs = " + m.getHitDice().bonusHPs);
-//		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
-//				" bonus feats = " + m.countFeats()[1]);
+		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
+		messages.checkSave(SavingThrow.Type.REFLEX, m);
+		messages.checkSave(SavingThrow.Type.WILL, m);
+		messages.checkValues("HD", block.getHitDice(), m.getHitDice().getValue(), "Bonus HPs = " + m.getHitDice().bonusHPs);
+		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
+				" bonus feats = " + m.countFeats()[1]);
 
 		if (messages.size() == 0) {
-			//System.out.println(block.getName() + " OK");
+			System.out.println(block.getName() + " OK");
 		} else {
 			System.out.println(block.getName());
 			for (String s : messages) {

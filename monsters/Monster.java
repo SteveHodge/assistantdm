@@ -20,9 +20,7 @@ import gamesystem.Race;
 import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
-import gamesystem.SkillType;
 import gamesystem.Skills;
-import gamesystem.Statistic;
 import gamesystem.core.Property;
 import gamesystem.core.Property.PropertyEvent;
 import gamesystem.core.Property.PropertyListener;
@@ -47,7 +45,6 @@ public class Monster extends Creature {
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
 	List<Feat> feats = new ArrayList<Feat>();			// applied feats
-	Skills skills;		// TODO probably refactor back to Creature
 
 	// this listener forwards events from Statstics as property changes
 	private PropertyChangeListener statListener = new PropertyChangeListener() {
@@ -361,6 +358,11 @@ public class Monster extends Creature {
 		return false;
 	}
 
+	@Override
+	public void addFeat(Feat f) {
+		feats.add(f);
+	}
+
 	// returns the counts of regular feats and bonus feats parsed from the FEATS property. Does not consider the feats member.
 	public int[] countFeats() {
 		int[] counts = { 0, 0 };
@@ -408,18 +410,6 @@ public class Monster extends Creature {
 			setTouchAC((Integer) value);
 		else
 			super.setProperty(prop, value);
-	}
-
-	@Override
-	public Statistic getStatistic(String name) {
-		if (name.equals(STATISTIC_SKILLS)) {
-			return skills;
-		} else if (name.startsWith(STATISTIC_SKILLS + ".")) {
-			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length() + 1));
-			return skills.getSkill(type);
-		} else {
-			return super.getStatistic(name);
-		}
 	}
 
 	// TODO this is reimplementation of Creature version. should fold into that

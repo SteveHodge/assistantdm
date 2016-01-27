@@ -125,6 +125,7 @@ public class Levels extends Statistic {
 		//b.append("level ").append(level).append(": ");
 		Map<CharacterClass, Integer> classLvl = getClassLevels();
 		for (CharacterClass c : classLvl.keySet()) {
+			if (b.length() > 0) b.append("/");
 			b.append(c).append(" ").append(classLvl.get(c));
 		}
 		return b.toString();
