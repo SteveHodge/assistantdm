@@ -48,7 +48,7 @@ public enum MediaManager {
 				e.printStackTrace();
 			}
 		} else {
-			bytes = getFile(uri);
+			bytes = getFileContents(uri);
 		}
 
 		if (bytes == null) return null;
@@ -119,7 +119,7 @@ public enum MediaManager {
 	}
 
 	// TODO cache the contents of the file
-	public byte[] getFile(URI uri) {
+	public byte[] getFileContents(URI uri) {
 //		System.out.println("getFile(" + uri + ")");
 		uri = mediaURI.resolve(uri.normalize());
 		File f = new File(uri);
@@ -133,10 +133,9 @@ public enum MediaManager {
 		return null;
 	}
 
-	public String getName(URI uri) {
+	public File getFile(URI uri) {
 		uri = mediaURI.resolve(uri.normalize());
-		File f = new File(uri);
-		return f.getName();
+		return new File(uri);
 	}
 
 	// if the URI is relative then it's assumed to be relative to mediaPath and we'll create a persistent copy of the media

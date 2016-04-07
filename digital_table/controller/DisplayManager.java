@@ -132,7 +132,7 @@ class DisplayManager implements CoordinateConverter {
 			if (uri == null) {
 				remote.setElementProperty(element, property, null);
 			} else {
-				byte[] bytes = MediaManager.INSTANCE.getFile(uri);
+				byte[] bytes = MediaManager.INSTANCE.getFileContents(uri);
 
 				if (!remote.hasMedia(uri)) {
 					remote.addMedia(uri, bytes);

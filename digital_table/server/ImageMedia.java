@@ -489,7 +489,7 @@ public abstract class ImageMedia {
 		void readImages() {
 			for (int i = 0; i < frames.length; i++) {
 				try {
-					byte[] bytes = MediaManager.INSTANCE.getFile(getImageURI(i));
+					byte[] bytes = MediaManager.INSTANCE.getFileContents(getImageURI(i));
 					ByteArrayInputStream in = new ByteArrayInputStream(bytes);
 					BufferedImage image = ImageIO.read(in);
 

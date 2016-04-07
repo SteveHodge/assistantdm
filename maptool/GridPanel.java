@@ -8,7 +8,7 @@ import java.awt.geom.Point2D;
 import javax.swing.JPanel;
 
 public class GridPanel extends JPanel {
-	Point2D ref1;
+	Point2D ref1;	// stored as fraction of image width/height
 	Point2D ref2;
 	int colsSep, rowsSep;
 	ScalableImagePanel image;
@@ -59,13 +59,15 @@ public class GridPanel extends JPanel {
 	}
 
 	double getXOffset() {
-		if (ref1 == null) return 0d;
-		return 1.0d - (ref1.getX() % 1);
+		if (ref1 == null || ref2 == null || colsSep <= 0) return 0d;
+		double x = ref1.getX() * image.getImageWidth() / getGridCellWidth();
+		return 1.0d + (-x % 1);
 	}
 
 	double getYOffset() {
-		if (ref1 == null) return 0d;
-		return 1.0d - (ref1.getY() % 1);
+		if (ref1 == null || ref2 == null || rowsSep <= 0) return 0d;
+		double y = ref1.getY() * image.getImageHeight() / getGridCellHeight();
+		return 1.0d + (-y % 1);
 	}
 
 	@Override
