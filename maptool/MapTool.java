@@ -33,6 +33,13 @@ import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import util.XMLUtils;
 
 public class MapTool extends JFrame {
 	double scale = 1.0d;
@@ -50,6 +57,7 @@ public class MapTool extends JFrame {
 	JFormattedTextField rows;
 	ButtonGroup gridGroup;
 	GridPanel grid;
+	URI imageURI;
 
 	public static void main(String[] args) {
 		try {
@@ -69,12 +77,14 @@ public class MapTool extends JFrame {
 		super("MapTool");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-		image = openImage(new File("D:/Programming/git/assistantdm/media/Maps/Chapter 5/The Halls of Wrath/Background.png"));
+		lastDir = new File("D:/Programming/git/assistantdm/media/Maps/Chapter 5/The Halls of Wrath/Background.png");
+		imageURI = lastDir.toURI();
+		image = openImage(lastDir);
 
 		imagePane = new ScalableImagePanel(image);
 		imagePane.addMouseListener(mouseListener);
 
-		grid = new GridPanel();
+		grid = new GridPanel(imagePane);
 
 		JLayeredPane p = new JLayeredPane();
 		p.setLayout(new MapLayoutManager(imagePane, grid));
@@ -170,45 +180,110 @@ public class MapTool extends JFrame {
 	}
 
 	private void openFile() {
-		URI uri = null;
+		File f = null;
 
 		if (lastDir != null) chooser.setCurrentDirectory(lastDir);
 		chooser.setMultiSelectionEnabled(false);
 		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-			File f = chooser.getSelectedFile();
-			if (f != null) {
-//				lastDir = f;
-				uri = f.toURI();
-//				uri = mediaURI.relativize(uri);
-			}
+			f = chooser.getSelectedFile();
 		} else {
 			System.out.println("Cancelled");
 			return;
 		}
 
-//		uri = mediaURI.resolve(uri.normalize());
-		System.out.println(uri);
-		File f = new File(uri);
+		if (f == null) {
+			System.out.println("No file selected");
+			return;
+		}
+
+		lastDir = f;
+		System.out.println(f);
 		image = openImage(f);
+		imageURI = f.toURI();
 		imagePane.setImage(image);
 		setZoom(1.0d);
 		sizeLabel.setText(String.format("Original size: %dx%d\n", image.getWidth(), image.getHeight()));
 	}
 
+	private void saveFile() {
+		File f = null;
+
+		if (lastDir != null) chooser.setCurrentDirectory(lastDir);
+		chooser.setMultiSelectionEnabled(false);
+		if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+			f = chooser.getSelectedFile();
+		} else {
+			System.out.println("Cancelled");
+			return;
+		}
+
+		if (f == null) {
+			System.out.println("No file selected");
+			return;
+		}
+
+		lastDir = f;
+		if (!f.getName().endsWith(".map")) {
+			f = new File(f.toString() + ".map");
+		}
+		System.out.println(f);
+
+		try {
+			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			Element root = doc.createElement("Map");
+			if (image != null) {
+				root.setAttribute("uri", imageURI.toString());
+				if (grid.getGridCellWidth() != 0) {
+					root.setAttribute("width", Double.toString(grid.getGridWidth()));
+					root.setAttribute("height", Double.toString(grid.getGridHeight()));
+					double xoff = grid.getXOffset();
+					double yoff = grid.getYOffset();
+					root.setAttribute("location", String.format("%f,  %f", xoff, yoff));
+				}
+			}
+
+//		    <Image
+//			alpha="1.0"
+//			aspect_locked="true"
+//			background="#FFFFFF"
+//			label="Background.png"
+//			remote_visible="VISIBLE"
+//			rotations="3"
+//			show_background="false"
+//			show_border="false"
+//			visible="VISIBLE"
+
+			doc.appendChild(root);
+
+//			Element el = doc.createElement("Elements");
+//			List<MapElement> selected = elements.getSelectedValuesList();
+//			for (MapElement element : selected) {
+//				if (!(element instanceof Grid)) {
+//					addElement(doc, el, element);
+//				}
+//			}
+//			root.appendChild(el);
+
+			XMLUtils.writeDOM(doc, f);
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void updateGrid() {
-		double w = grid.getGridCellWidth();
-		double h = grid.getGridCellHeight();
+		double w = grid.getGridWidth();
+		double h = grid.getGridHeight();
 		if (w != 0 && h != 0) {
-			System.out.println("Grid size = " + w + "x" + h);
-			double width = imagePane.displayWidth / w;
-			double height = imagePane.displayHeight / h;
-			gridLabel.setText(String.format("%.2f x %.2f", width, height));
+			gridLabel.setText(String.format("%.2f x %.2f", w, h));
 		}
 	}
 
 	private JPanel makeControls() {
 		JButton openButton = new JButton("Open");
 		openButton.addActionListener(e -> openFile());
+
+		JButton saveButton = new JButton("Save");
+		saveButton.addActionListener(e -> saveFile());
 
 		sizeLabel = new JLabel(String.format("Original size: %dx%d\n", image.getWidth(), image.getHeight()));
 
@@ -260,6 +335,8 @@ public class MapTool extends JFrame {
 		c.gridwidth = 2;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		pane.add(openButton, c);
+		c.gridy++;
+		pane.add(saveButton, c);
 		c.gridy++;
 		addSeparator(pane, c);
 

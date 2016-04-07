@@ -11,18 +11,20 @@ public class GridPanel extends JPanel {
 	Point2D ref1;
 	Point2D ref2;
 	int colsSep, rowsSep;
+	ScalableImagePanel image;
 
-	public GridPanel() {
+	public GridPanel(ScalableImagePanel i) {
 		setOpaque(false);
+		image = i;
 	}
 
 	void setRef1(int x, int y) {
-		ref1 = new Point2D.Double((double) x / getWidth(), (double) y / getHeight());
+		ref1 = new Point2D.Double((double) x / image.getImageWidth(), (double) y / image.getImageHeight());
 		repaint();
 	}
 
 	void setRef2(int x, int y) {
-		ref2 = new Point2D.Double((double) x / getWidth(), (double) y / getHeight());
+		ref2 = new Point2D.Double((double) x / image.getImageWidth(), (double) y / image.getImageHeight());
 		repaint();
 	}
 
@@ -38,12 +40,32 @@ public class GridPanel extends JPanel {
 
 	double getGridCellWidth() {
 		if (ref1 == null || ref2 == null || colsSep <= 0) return 0d;
-		return Math.abs((ref2.getX() - ref1.getX()) * getWidth() / colsSep);
+		return Math.abs((ref2.getX() - ref1.getX()) * image.getImageWidth() / colsSep);
 	}
 
 	double getGridCellHeight() {
 		if (ref1 == null || ref2 == null || rowsSep <= 0) return 0d;
-		return Math.abs((ref2.getY() - ref1.getY()) * getHeight() / rowsSep);
+		return Math.abs((ref2.getY() - ref1.getY()) * image.getImageHeight() / rowsSep);
+	}
+
+	double getGridWidth() {
+		if (ref1 == null || ref2 == null || colsSep <= 0) return 0d;
+		return colsSep / ((Math.abs((ref2.getX() - ref1.getX()))));
+	}
+
+	double getGridHeight() {
+		if (ref1 == null || ref2 == null || rowsSep <= 0) return 0d;
+		return rowsSep / ((Math.abs((ref2.getY() - ref1.getY()))));
+	}
+
+	double getXOffset() {
+		if (ref1 == null) return 0d;
+		return 1.0d - (ref1.getX() % 1);
+	}
+
+	double getYOffset() {
+		if (ref1 == null) return 0d;
+		return 1.0d - (ref1.getY() % 1);
 	}
 
 	@Override
@@ -55,10 +77,10 @@ public class GridPanel extends JPanel {
 		double h = getGridCellHeight();
 		if (w > 0 && h > 0) {
 			g.setColor(Color.BLACK);
-			double offsetX = (getWidth() * ref1.getX()) % w;
-			double offsetY = (getHeight() * ref1.getY()) % h;
-			System.out.println("Ref1 = " + ref1 + ", cell size = " + w + " x " + h);
-			System.out.println("Offset = " + offsetX + " x " + offsetY);
+			double offsetX = (image.getImageWidth() * ref1.getX()) % w;
+			double offsetY = (image.getImageHeight() * ref1.getY()) % h;
+			//System.out.println("Ref1 = " + ref1 + ", cell size = " + w + " x " + h);
+			//System.out.println("Offset = " + offsetX + " x " + offsetY);
 			for (int i = 0; i < getWidth() / w; i++) {
 				g.drawLine((int) (offsetX + i * w), 0, (int) (offsetX + i * w), getHeight());
 			}
@@ -69,14 +91,14 @@ public class GridPanel extends JPanel {
 
 		if (ref1 != null) {
 			g.setColor(Color.RED);
-			g.drawLine((int) (ref1.getX() * getWidth()), 0, (int) (ref1.getX() * getWidth()), getHeight());
-			g.drawLine(0, (int) (ref1.getY() * getHeight()), getWidth(), (int) (ref1.getY() * getHeight()));
+			g.drawLine((int) (ref1.getX() * image.getImageWidth()), 0, (int) (ref1.getX() * image.getImageWidth()), getHeight());
+			g.drawLine(0, (int) (ref1.getY() * image.getImageHeight()), getWidth(), (int) (ref1.getY() * image.getImageHeight()));
 		}
 
 		if (ref2 != null) {
 			g.setColor(Color.BLUE);
-			g.drawLine((int) (ref2.getX() * getWidth()), 0, (int) (ref2.getX() * getWidth()), getHeight());
-			g.drawLine(0, (int) (ref2.getY() * getHeight()), getWidth(), (int) (ref2.getY() * getHeight()));
+			g.drawLine((int) (ref2.getX() * image.getImageWidth()), 0, (int) (ref2.getX() * image.getImageWidth()), getHeight());
+			g.drawLine(0, (int) (ref2.getY() * image.getImageHeight()), getWidth(), (int) (ref2.getY() * image.getImageHeight()));
 		}
 
 	}

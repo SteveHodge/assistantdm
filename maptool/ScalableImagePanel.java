@@ -52,6 +52,14 @@ public class ScalableImagePanel extends JPanel {
 		if (img != null) setImage(img);
 	}
 
+	public int getImageWidth() {
+		return displayWidth;
+	}
+
+	public int getImageHeight() {
+		return displayHeight;
+	}
+
 	public void scaleToFit(int availWidth, int availHeight) {
 		//System.out.println("scaleImage: width(avail,display) = "+availWidth+", "+displayWidth
 		//		+", height (avail,display) = "+availHeight+", "+displayHeight);
