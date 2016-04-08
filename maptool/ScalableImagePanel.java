@@ -1,8 +1,11 @@
 package maptool;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Rectangle;
@@ -43,6 +46,8 @@ public class ScalableImagePanel extends JPanel {
 
 	protected boolean allowEnlarge = true;
 
+	protected float alpha = 1.0f;
+
 	public ScalableImagePanel(Image img, Image loading) {
 		loadingImage = loading;
 		if (img != null) setImage(img);
@@ -50,6 +55,12 @@ public class ScalableImagePanel extends JPanel {
 
 	public ScalableImagePanel(Image img) {
 		if (img != null) setImage(img);
+	}
+
+	public void setAlpha(float a) {
+		if (alpha == a) return;
+		alpha = a;
+		repaint();
 	}
 
 	public int getImageWidth() {
@@ -111,8 +122,13 @@ public class ScalableImagePanel extends JPanel {
 	}
 
 	@Override
-	protected void paintComponent(Graphics g) {
-		//System.out.println("Image: " + getSize());
+	protected void paintComponent(Graphics graphics) {
+		//System.out.println("Painting image: " + sourceImage + ": " + getSize());
+
+		Graphics2D g = (Graphics2D) graphics;
+		Composite c = g.getComposite();
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+
 		if (isOpaque()) { //paint background
 			g.setColor(getBackground());
 			g.fillRect(0, 0, getWidth(), getHeight());
@@ -151,6 +167,7 @@ public class ScalableImagePanel extends JPanel {
 				g.drawImage(displayImage, x, y, this);
 			}
 		}
+		g.setComposite(c);
 	}
 
 	public void scale(double s) {

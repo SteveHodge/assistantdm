@@ -8,11 +8,9 @@ import java.awt.LayoutManager;
 
 public class MapLayoutManager implements LayoutManager {
 	ScalableImagePanel image;
-	GridPanel grid;
 
-	MapLayoutManager(ScalableImagePanel i, GridPanel g) {
+	MapLayoutManager(ScalableImagePanel i) {
 		image = i;
-		grid = g;
 	}
 
 	@Override
@@ -20,11 +18,12 @@ public class MapLayoutManager implements LayoutManager {
 	}
 
 	@Override
-	public void layoutContainer(Container c) {
-		image.setSize(c.getSize());
-		grid.setSize(c.getSize());
-		image.setLocation(0, 0);
-		image.setLocation(0, 0);
+	public void layoutContainer(Container parent) {
+		for (int i = 0; i < parent.getComponentCount(); i++) {
+			Component c = parent.getComponent(i);
+			c.setSize(parent.getSize());
+			c.setLocation(0, 0);
+		}
 	}
 
 	@Override

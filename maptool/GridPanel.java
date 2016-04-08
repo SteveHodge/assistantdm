@@ -7,6 +7,7 @@ import java.awt.geom.Point2D;
 
 import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class GridPanel extends JPanel {
 	Point2D ref1;	// stored as fraction of image width/height
 	Point2D ref2;
@@ -72,7 +73,7 @@ public class GridPanel extends JPanel {
 
 	@Override
 	protected void paintComponent(Graphics graphics) {
-		//System.out.println("Grid: " + getSize());
+		//System.out.println("Painting grid: " + getSize());
 		Graphics2D g = (Graphics2D) graphics;
 
 		double w = getGridCellWidth();

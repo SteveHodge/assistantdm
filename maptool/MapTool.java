@@ -1,6 +1,7 @@
 package maptool;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -13,7 +14,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -29,10 +32,13 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.JToggleButton;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.table.AbstractTableModel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -41,13 +47,17 @@ import org.w3c.dom.Element;
 
 import util.XMLUtils;
 
+@SuppressWarnings("serial")
 public class MapTool extends JFrame {
 	double scale = 1.0d;
 	JLabel zoomLabel;
 	JLabel sizeLabel;
 	JLabel gridLabel;
+	JLabel pixelLabel;
+	JLabel memLabel;
 	ScalableImagePanel imagePane;
 	BufferedImage image;
+	JLayeredPane canvas;
 	File lastDir = null;
 	JFileChooser chooser = new JFileChooser();
 	JToggleButton grid1;
@@ -58,6 +68,8 @@ public class MapTool extends JFrame {
 	ButtonGroup gridGroup;
 	GridPanel grid;
 	URI imageURI;
+	JTable maskTable;
+	MasksModel masksModel;
 
 	public static void main(String[] args) {
 		try {
@@ -86,12 +98,12 @@ public class MapTool extends JFrame {
 
 		grid = new GridPanel(imagePane);
 
-		JLayeredPane p = new JLayeredPane();
-		p.setLayout(new MapLayoutManager(imagePane, grid));
-		p.add(imagePane, JLayeredPane.DEFAULT_LAYER);
-		p.add(grid, new Integer(100));
+		canvas = new JLayeredPane();
+		canvas.setLayout(new MapLayoutManager(imagePane));
+		canvas.add(imagePane, JLayeredPane.DEFAULT_LAYER);
+		canvas.add(grid, new Integer(100));
 
-		JScrollPane scroller = new JScrollPane(p);
+		JScrollPane scroller = new JScrollPane(canvas);
 		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -196,6 +208,8 @@ public class MapTool extends JFrame {
 			return;
 		}
 
+		masksModel.deleteAll();
+
 		lastDir = f;
 		System.out.println(f);
 		image = openImage(f);
@@ -276,6 +290,22 @@ public class MapTool extends JFrame {
 		if (w != 0 && h != 0) {
 			gridLabel.setText(String.format("%.2f x %.2f", w, h));
 		}
+		double pixels = w * h * 25400 * 25400 / (294 * 294);	// based on 0.294 mm dot pitch monitor
+		pixelLabel.setText(String.format("%.2f MP", (pixels / 1000000f)));
+		// TODO need to get size of each mask and include that
+		long mem = ((long) pixels) * 4L;
+		String unit = "B";
+		if (mem >= 1024 && mem < 1024 * 1024) {
+			unit = "kB";
+			mem = mem / 1024;
+		} else if (mem < 1024 * 1024 * 1024) {
+			unit = "MB";
+			mem = mem / (1024 * 1024);
+		} else {
+			unit = "GB";
+			mem = mem / (1024 * 1024 * 1024);
+		}
+		memLabel.setText(mem + " " + unit);
 	}
 
 	private JPanel makeControls() {
@@ -324,7 +354,9 @@ public class MapTool extends JFrame {
 		});
 		grid.setRefSeparationColumns(10);
 		grid.setRefSeparationRows(10);
-		gridLabel = new JLabel();
+		gridLabel = new JLabel(" ");
+		pixelLabel = new JLabel(" ");
+		memLabel = new JLabel(" ");
 
 		JPanel pane = new JPanel(new GridBagLayout());
 		pane.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 6));
@@ -385,6 +417,19 @@ public class MapTool extends JFrame {
 		pane.add(new JLabel("Map size in squares:"), c);
 		c.gridy++;
 		pane.add(gridLabel, c);
+		c.gridy++;
+		pane.add(new JLabel("Pixels:"), c);
+		c.gridy++;
+		pane.add(pixelLabel, c);
+		c.gridy++;
+		pane.add(new JLabel("Memory required:"), c);
+		c.gridy++;
+		pane.add(memLabel, c);
+		c.gridy++;
+		addSeparator(pane, c);
+
+		c.gridy++;
+		pane.add(getMaskPanel(), c);
 
 		c.gridy++;
 		c.gridwidth = 2;
@@ -395,9 +440,208 @@ public class MapTool extends JFrame {
 		return pane;
 	}
 
+	private JPanel getMaskPanel() {
+		JButton addMaskButton = new JButton("Add Mask");
+		addMaskButton.addActionListener(e -> {
+			if (lastDir != null) chooser.setCurrentDirectory(lastDir);
+			chooser.setMultiSelectionEnabled(true);
+			if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+				File[] fs = chooser.getSelectedFiles();
+				if (fs != null) {
+					for (int i = 0; i < fs.length; i++) {
+						lastDir = fs[i];
+						masksModel.add(fs[i]);
+					}
+				}
+//			} else {
+//				System.out.println("Cancelled");
+			}
+		});
+
+		JButton delMaskButton = new JButton("Delete");
+		delMaskButton.addActionListener(e -> {
+			masksModel.delete(maskTable.getSelectedRow());
+		});
+
+		JButton upMaskButton = new JButton("/\\");
+		upMaskButton.addActionListener(e -> {
+			masksModel.promote(maskTable.getSelectedRow());
+		});
+
+		JButton downMaskButton = new JButton("\\/");
+		downMaskButton.addActionListener(e -> {
+			masksModel.demote(maskTable.getSelectedRow());
+		});
+
+		JPanel p = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+
+
+		masksModel = new MasksModel();
+		maskTable = new JTable(masksModel);
+		maskTable.getColumnModel().getColumn(0).setPreferredWidth(5);
+		maskTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+		maskTable.getColumnModel().getColumn(2).setPreferredWidth(5);
+		maskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JScrollPane scrollPane = new JScrollPane(maskTable);
+		scrollPane.setPreferredSize(new Dimension(300, 400));
+		maskTable.setFillsViewportHeight(true);
+
+		c.gridx = 0;
+		c.gridy = 0;
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+
+		p.add(addMaskButton, c);
+		c.gridx++;
+		p.add(delMaskButton, c);
+		c.gridx++;
+		p.add(upMaskButton, c);
+		c.gridx++;
+		p.add(downMaskButton, c);
+
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
+		c.weightx = 1.0d;
+		c.gridx = 0;
+		c.gridy++;
+		c.gridwidth = 4;
+		p.add(scrollPane, c);
+
+		return p;
+	}
+
 	private void addSeparator(JPanel p, GridBagConstraints c) {
 		c.insets = new Insets(10, 3, 10, 3);
 		p.add(new JSeparator(), c);
 		c.insets = new Insets(0, 0, 0, 0);
+	}
+
+	private static class Mask {
+		File file;
+		boolean visible;
+		String name;
+		boolean isImage;
+		BufferedImage image;
+		ScalableImagePanel imagePane;
+	}
+
+	private class MasksModel extends AbstractTableModel {
+		private List<Mask> masks = new ArrayList<>();
+
+		private void add(File file) {
+			Mask m = new Mask();
+			m.file = file;
+			m.visible = true;
+			m.isImage = false;
+			m.name = file.getName();
+			m.image = openImage(m.file);
+			if (m.image != null) {
+				m.imagePane = new ScalableImagePanel(m.image);
+				m.imagePane.setAlpha(0.50f);
+				m.imagePane.setOpaque(false);
+				masks.add(m);
+				canvas.add(m.imagePane, new Integer(50));
+				canvas.setLayer(m.imagePane, 50, masks.size() - 1);
+				canvas.revalidate();
+				fireTableRowsInserted(masks.size() - 1, masks.size() - 1);
+			}
+		}
+
+		void deleteAll() {
+			for (int i = masks.size() - 1; i >= 0; i--) {
+				delete(i);
+			}
+		}
+
+		void delete(int row) {
+			Mask m = masks.remove(row);
+			if (m != null) {
+				System.out.println("removing");
+				canvas.remove(m.imagePane);
+				canvas.repaint();
+			}
+			fireTableRowsDeleted(row, row);
+		}
+
+		void promote(int row) {
+			if (row > 0) {
+				masks.add(row - 1, masks.remove(row));
+				// we update the layering for all masks as delete() leaves gaps in the order
+				for (int i = 0; i < masks.size(); i++) {
+					Mask m = masks.get(i);
+					canvas.setLayer(m.imagePane, m.isImage ? 25 : 50, i);
+				}
+				fireTableRowsUpdated(row - 1, row);
+				maskTable.setRowSelectionInterval(row - 1, row - 1);
+			}
+		}
+
+		void demote(int row) {
+			if (row < masks.size() - 1) {
+				masks.add(row + 1, masks.remove(row));
+				// we update the layering for all masks as delete() leaves gaps in the order
+				for (int i = 0; i < masks.size(); i++) {
+					Mask m = masks.get(i);
+					canvas.setLayer(m.imagePane, m.isImage ? 25 : 50, i);
+				}
+				fireTableRowsUpdated(row, row + 1);
+				maskTable.setRowSelectionInterval(row + 1, row + 1);
+			}
+		}
+
+		@Override
+		public void setValueAt(Object value, int row, int col) {
+			Mask m = masks.get(row);
+			if (m == null) return;
+			if (col == 0) {
+				m.visible = (Boolean) value;
+				m.imagePane.setVisible(m.visible);
+			}
+			if (col == 1) m.name = (String) value;
+			if (col == 2) {
+				m.isImage = (Boolean) value;
+				m.imagePane.setAlpha(m.isImage ? 1.0f : 0.5f);
+				canvas.setLayer(m.imagePane, m.isImage ? 25 : 50, masks.indexOf(m));
+			}
+		}
+
+		@Override
+		public Class<?> getColumnClass(int col) {
+			if (col == 0) return Boolean.class;
+			if (col == 2) return Boolean.class;
+			return String.class;
+		}
+
+		@Override
+		public String getColumnName(int col) {
+			if (col == 0) return "Visible?";
+			if (col == 1) return "Mask Name";
+			if (col == 2) return "Image?";
+			return super.getColumnName(col);
+		}
+
+		@Override
+		public boolean isCellEditable(int row, int col) {
+			return true;
+		}
+
+		@Override
+		public int getColumnCount() {
+			return 3;
+		}
+
+		@Override
+		public int getRowCount() {
+			return masks.size();
+		}
+
+		@Override
+		public Object getValueAt(int row, int col) {
+			if (col == 0) return masks.get(row).visible;
+			if (col == 1) return masks.get(row).name;
+			if (col == 2) return masks.get(row).isImage;
+			return null;
+		}
 	}
 }
