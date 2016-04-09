@@ -1,6 +1,7 @@
 package maptool;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -47,8 +48,16 @@ import org.w3c.dom.Element;
 
 import util.XMLUtils;
 
+/* TODO:
+ * Open function should handle .map files
+ * Functionality to trim masks
+ */
 @SuppressWarnings("serial")
 public class MapTool extends JFrame {
+	// TODO should probably use MediaManager for file handling
+	private File mediaPath = new File("media/");
+	private URI mediaURI = mediaPath.getAbsoluteFile().toURI();
+
 	double scale = 1.0d;
 	JLabel zoomLabel;
 	JLabel sizeLabel;
@@ -158,7 +167,7 @@ public class MapTool extends JFrame {
 		zoomLabel.setText(String.format("Zoom: %.1f%%", 100 * scale));
 	}
 
-	private BufferedImage openImage(File f) {
+	BufferedImage openImage(File f) {
 		byte[] bytes = new byte[0];
 		BufferedImage image = null;
 
@@ -246,7 +255,8 @@ public class MapTool extends JFrame {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			Element root = doc.createElement("Map");
 			if (image != null) {
-				root.setAttribute("uri", imageURI.toString());
+				URI uri = mediaURI.relativize(imageURI);
+				root.setAttribute("uri", uri.toString());
 				if (grid.getGridCellWidth() != 0) {
 					root.setAttribute("width", Double.toString(grid.getGridWidth()));
 					root.setAttribute("height", Double.toString(grid.getGridHeight()));
@@ -256,27 +266,23 @@ public class MapTool extends JFrame {
 				}
 			}
 
-//		    <Image
-//			alpha="1.0"
-//			aspect_locked="true"
-//			background="#FFFFFF"
-//			label="Background.png"
-//			remote_visible="VISIBLE"
-//			rotations="3"
-//			show_background="false"
-//			show_border="false"
-//			visible="VISIBLE"
-
 			doc.appendChild(root);
 
-//			Element el = doc.createElement("Elements");
-//			List<MapElement> selected = elements.getSelectedValuesList();
-//			for (MapElement element : selected) {
-//				if (!(element instanceof Grid)) {
-//					addElement(doc, el, element);
-//				}
-//			}
-//			root.appendChild(el);
+			if (masksModel.getRowCount() > 0) {
+				Element el = doc.createElement("MaskSet");
+				for (int i = 0; i < masksModel.getRowCount(); i++) {
+					Mask mask = masksModel.masks.get(i);
+					Element m = doc.createElement("Mask");
+					m.setAttribute("name", mask.name);
+					m.setAttribute("type", mask.isImage ? "IMAGE" : "MASK");
+					URI uri = mask.file.toURI();
+					uri = mediaURI.relativize(uri);
+					m.setAttribute("uri", uri.toString());
+					m.setAttribute("visible", mask.visible ? "VISIBLE" : "HIDDEN");
+					el.appendChild(m);
+				}
+				root.appendChild(el);
+			}
 
 			XMLUtils.writeDOM(doc, f);
 		} catch (ParserConfigurationException e) {
@@ -292,8 +298,30 @@ public class MapTool extends JFrame {
 		}
 		double pixels = w * h * 25400 * 25400 / (294 * 294);	// based on 0.294 mm dot pitch monitor
 		pixelLabel.setText(String.format("%.2f MP", (pixels / 1000000f)));
-		// TODO need to get size of each mask and include that
-		long mem = ((long) pixels) * 4L;
+
+		double mem = 0;
+		// calculate the scale factor in x and y directions from the original image to the remote image
+		// for the map image we could just use the pixel calculation above but masks may be smaller
+		double xscale = image.getWidth() / w;		//source image pixels per grid
+		double yscale = image.getHeight() / h;
+		for (int i = 0; i < canvas.getComponentCount(); i++) {
+			Component c = canvas.getComponent(i);
+			if (c instanceof ScalableImagePanel) {
+				ScalableImagePanel s = (ScalableImagePanel) c;
+				if (!(s.sourceImage instanceof BufferedImage)) {
+					// currently only handle BufferedImages which is all that we shound encounter
+					System.err.println("Unexpected Image type");
+					return;
+				}
+				BufferedImage img = (BufferedImage) s.sourceImage;
+				double remoteWidth = 25400 * img.getWidth() / (xscale * 294);	// source image size in grid units * pixels per grid on remote display
+				double remoteHeight = 25400 * img.getHeight() / (yscale * 294);
+				long m = (long) remoteWidth * (long) remoteHeight;
+				mem += m * img.getColorModel().getPixelSize() / 8;
+				//System.out.format("Remote pixels = %d, memory = %d\n", m, m * img.getColorModel().getPixelSize() / 8);
+			}
+		}
+
 		String unit = "B";
 		if (mem >= 1024 && mem < 1024 * 1024) {
 			unit = "kB";
@@ -305,7 +333,7 @@ public class MapTool extends JFrame {
 			unit = "GB";
 			mem = mem / (1024 * 1024 * 1024);
 		}
-		memLabel.setText(mem + " " + unit);
+		memLabel.setText(String.format("%.1f %s", mem, unit));
 	}
 
 	private JPanel makeControls() {
@@ -447,11 +475,12 @@ public class MapTool extends JFrame {
 			chooser.setMultiSelectionEnabled(true);
 			if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 				File[] fs = chooser.getSelectedFiles();
-				if (fs != null) {
+				if (fs != null && fs.length > 0) {
 					for (int i = 0; i < fs.length; i++) {
 						lastDir = fs[i];
 						masksModel.add(fs[i]);
 					}
+					updateGrid();
 				}
 //			} else {
 //				System.out.println("Cancelled");
@@ -461,6 +490,7 @@ public class MapTool extends JFrame {
 		JButton delMaskButton = new JButton("Delete");
 		delMaskButton.addActionListener(e -> {
 			masksModel.delete(maskTable.getSelectedRow());
+			updateGrid();
 		});
 
 		JButton upMaskButton = new JButton("/\\");
@@ -475,7 +505,6 @@ public class MapTool extends JFrame {
 
 		JPanel p = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
-
 
 		masksModel = new MasksModel();
 		maskTable = new JTable(masksModel);
@@ -517,7 +546,7 @@ public class MapTool extends JFrame {
 		c.insets = new Insets(0, 0, 0, 0);
 	}
 
-	private static class Mask {
+	static class Mask {
 		File file;
 		boolean visible;
 		String name;
@@ -526,15 +555,17 @@ public class MapTool extends JFrame {
 		ScalableImagePanel imagePane;
 	}
 
-	private class MasksModel extends AbstractTableModel {
+
+	class MasksModel extends AbstractTableModel {
 		private List<Mask> masks = new ArrayList<>();
 
-		private void add(File file) {
-			Mask m = new Mask();
+		void add(File file) {
+			Mask m = new MapTool.Mask();
 			m.file = file;
 			m.visible = true;
 			m.isImage = false;
 			m.name = file.getName();
+			if (m.name.contains(".")) m.name = m.name.substring(0, m.name.lastIndexOf('.'));
 			m.image = openImage(m.file);
 			if (m.image != null) {
 				m.imagePane = new ScalableImagePanel(m.image);

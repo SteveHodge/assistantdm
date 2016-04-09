@@ -25,6 +25,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import digital_table.controller.DisplayManager.Mode;
@@ -175,7 +177,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.gridwidth = 2;
 		add(new JPanel(), c);
 
-		if (mapNode != null) parseMapNode(mapNode);
+		if (mapNode != null) parseMapNode(mapNode, maskFactory);
 	}
 
 	private Element getMapNode(URI uri) {
@@ -297,7 +299,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		}
 	};
 
-	private void parseMapNode(Element e) {
+	private void parseMapNode(Element e, ElementFactory<MaskOptionsPanel> maskFactory) {
 		display.setProperty(element, MapImage.PROPERTY_ASPECT_LOCKED, false, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
@@ -311,6 +313,18 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			display.setProperty(element, Group.PROPERTY_LOCATION, value);
 //			} catch (NumberFormatException e) {
 //			}
+		}
+
+		NodeList nodes = e.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element el = (Element) nodes.item(i);
+			if (el.getTagName().equals("MaskSet")) {
+				if (mask == null) {
+					mask = maskFactory.addElement(element);
+				}
+				mask.parseDOM(el, this);
+			}
 		}
 	}
 
