@@ -10,6 +10,7 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -308,17 +309,36 @@ public class MapTool extends JFrame {
 			Component c = canvas.getComponent(i);
 			if (c instanceof ScalableImagePanel) {
 				ScalableImagePanel s = (ScalableImagePanel) c;
+				int imgW = 0;
+				int imgH = 0;
 				if (!(s.sourceImage instanceof BufferedImage)) {
 					// currently only handle BufferedImages which is all that we shound encounter
 					System.err.println("Unexpected Image type");
 					return;
 				}
+				String name = s.toString();
+				if (s == imagePane) name = "Background";
 				BufferedImage img = (BufferedImage) s.sourceImage;
-				double remoteWidth = 25400 * img.getWidth() / (xscale * 294);	// source image size in grid units * pixels per grid on remote display
-				double remoteHeight = 25400 * img.getHeight() / (yscale * 294);
+				for (int j = 0; j < masksModel.getRowCount(); j++) {
+					Mask mask = masksModel.masks.get(j);
+					if (mask.imagePane == s) {
+						name = mask.name;
+						if (mask.trimmedHeight > 0 && mask.trimmedWidth > 0) {
+							imgW = mask.trimmedWidth;
+							imgH = mask.trimmedHeight;
+						}
+						break;
+					}
+				}
+				if (imgW == 0 || imgH == 0) {
+					imgW = img.getWidth();
+					imgH = img.getHeight();
+				}
+				double remoteWidth = 25400 * imgW / (xscale * 294);	// source image size in grid units * pixels per grid on remote display
+				double remoteHeight = 25400 * imgH / (yscale * 294);
 				long m = (long) remoteWidth * (long) remoteHeight;
 				mem += m * img.getColorModel().getPixelSize() / 8;
-				//System.out.format("Remote pixels = %d, memory = %d\n", m, m * img.getColorModel().getPixelSize() / 8);
+				System.out.format("%s: Remote pixels = %d, memory = %.2f MB\n", name, m, (double) m * img.getColorModel().getPixelSize() / (8 * 1024 * 1024));
 			}
 		}
 
@@ -503,6 +523,9 @@ public class MapTool extends JFrame {
 			masksModel.demote(maskTable.getSelectedRow());
 		});
 
+		JButton trimButton = new JButton("Test trim masks");
+		trimButton.addActionListener(e -> masksModel.trimMasks());
+
 		JPanel p = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 
@@ -529,12 +552,15 @@ public class MapTool extends JFrame {
 		c.gridx++;
 		p.add(downMaskButton, c);
 
-		c.fill = GridBagConstraints.BOTH;
-		c.weighty = 1.0d;
-		c.weightx = 1.0d;
 		c.gridx = 0;
 		c.gridy++;
 		c.gridwidth = 4;
+		p.add(trimButton, c);
+
+		c.gridy++;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
+		c.weightx = 1.0d;
 		p.add(scrollPane, c);
 
 		return p;
@@ -553,6 +579,8 @@ public class MapTool extends JFrame {
 		boolean isImage;
 		BufferedImage image;
 		ScalableImagePanel imagePane;
+		int trimmedWidth = -1;
+		int trimmedHeight = -1;
 	}
 
 
@@ -577,6 +605,39 @@ public class MapTool extends JFrame {
 				canvas.revalidate();
 				fireTableRowsInserted(masks.size() - 1, masks.size() - 1);
 			}
+		}
+
+		void trimMasks() {
+			for (Mask m : masks) {
+				if (m.imagePane.sourceImage instanceof BufferedImage) {
+					BufferedImage img = (BufferedImage) m.imagePane.sourceImage;
+					WritableRaster raster = img.getRaster();
+					int[] row = null;
+					int minX = raster.getWidth() * 4;
+					int maxX = -1;
+					int minY = raster.getHeight();
+					int maxY = -1;
+					for (int y = 0; y < raster.getHeight(); y++) {
+						row = raster.getPixels(raster.getMinX(), y + raster.getMinY(), raster.getWidth(), 1, row);
+						int rowMinX = raster.getWidth() * 4;
+						int rowMaxX = -1;
+						for (int x = 0; x < row.length; x += 4) {
+							int val = row[x] << 24 | row[x + 1] << 16 | row[x + 2] << 8 | row[x + 3];
+							if (val != 0xffffff00) {
+								if (rowMaxX == -1) rowMinX = x;
+								if (x > rowMaxX) rowMaxX = x;
+								if (maxY == -1) minY = y;
+								if (y > maxY) maxY = y;
+							}
+						}
+						if (rowMinX < minX) minX = rowMinX;
+						if (rowMaxX > maxX) maxX = rowMaxX;
+					}
+					m.trimmedWidth = (maxX - minX) / 4 + 1;
+					m.trimmedHeight = maxY - minY + 1;
+				}
+			}
+			updateGrid();
 		}
 
 		void deleteAll() {

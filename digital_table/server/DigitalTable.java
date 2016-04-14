@@ -302,4 +302,9 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	public void addMedia(URI uri, byte[] bytes) throws RemoteException {
 		MediaManager.INSTANCE.addMedia(uri, bytes);
 	}
+
+	@Override
+	public MemoryLog getMemoryUsage() throws RemoteException {
+		return canvas.getMemoryUsage();
+	}
 }

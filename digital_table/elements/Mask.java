@@ -19,6 +19,7 @@ import java.util.List;
 import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
+import digital_table.server.MemoryLog;
 
 // TODO we don't detect changes in the underlying image - need to fix the architecture
 // TODO (check this, looks like it might be done) should detect changes in image location - if the fractional part of the location changes then any cleared cells will be incorrectly aligned
@@ -67,6 +68,31 @@ public class Mask extends MapElement {
 	@Override
 	public Order getDefaultOrder() {
 		return Order.ABOVEGRID;
+	}
+
+	@Override
+	public MemoryLog getMemoryUsage() {
+		List<MemoryLog> logs = new ArrayList<>();
+		if (combinedMask != null) {
+			MemoryLog m = new MemoryLog("Combined Mask", 0);
+			m.total = ImageMedia.getMemoryUsage(combinedMask);
+			logs.add(m);
+		}
+		if (combinedImage != null) {
+			MemoryLog m = new MemoryLog("Combined Image", 0);
+			m.total = ImageMedia.getMemoryUsage(combinedImage);
+			logs.add(m);
+		}
+		for (MaskImage mask : masks) {
+			if (mask.image != null) {
+				logs.add(mask.image.getMemoryUsage());
+			}
+		}
+		String name = "";
+		MemoryLog m = new MemoryLog("Mask" + name, id, logs.size());
+		logs.toArray(m.components);
+		m.updateTotal();
+		return m;
 	}
 
 	@Override

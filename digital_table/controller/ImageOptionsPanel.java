@@ -60,17 +60,16 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r, final ElementFactory<MaskOptionsPanel> maskFactory) {
 		super(r);
-		this.uri = uri;
 
 		Element mapNode = getMapNode(uri);
 		if (mapNode != null) {
 			try {
 				uri = new URI(mapNode.getAttribute("uri"));
-				System.out.println("URI = " + uri);
 			} catch (URISyntaxException e1) {
 				e1.printStackTrace();
 			}
 		}
+		this.uri = uri;
 
 		String label = MediaManager.INSTANCE.getFile(uri).getName();
 		element = new MapImage(label);

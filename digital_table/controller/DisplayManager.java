@@ -7,6 +7,7 @@ import digital_table.elements.MapElement;
 import digital_table.server.CoordinateConverter;
 import digital_table.server.MapCanvas;
 import digital_table.server.MediaManager;
+import digital_table.server.MemoryLog;
 
 /**
  * DisplayManager provides the interface between elements and the various displays. It insulates the elements from
@@ -143,6 +144,10 @@ class DisplayManager implements CoordinateConverter {
 
 		if (image != null) image.setProperty(element, property, uri);
 		element.setProperty(property, uri);
+	}
+
+	public MemoryLog getRemoteMemoryUsage() {
+		return remote.getMemoryUsage();
 	}
 
 	// CoordinateConverter methods

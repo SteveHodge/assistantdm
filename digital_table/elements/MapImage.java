@@ -19,6 +19,7 @@ import java.util.List;
 import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
+import digital_table.server.MemoryLog;
 
 // TODO could have border color property
 // TODO dragging the image after clearing cells does not move the cleared cells which is weird
@@ -90,6 +91,17 @@ public class MapImage extends Group {
 	protected MapImage(int id, String label) {
 		super(id);
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
+	}
+
+	@Override
+	public MemoryLog getMemoryUsage() {
+		MemoryLog m = new MemoryLog("Image (" + label + ")", id);
+		if (image != null) {
+			m.components = new MemoryLog[1];
+			m.components[0] = image.getMemoryUsage();
+			m.updateTotal();
+		}
+		return m;
 	}
 
 	@Override

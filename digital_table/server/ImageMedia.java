@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -621,5 +622,38 @@ public abstract class ImageMedia {
 				this.delays[i] = delays.get(i);
 			}
 		}
+	}
+
+	public MemoryLog getMemoryUsage() {
+		List<MemoryLog> logs = new ArrayList<>();
+		if (frames != null) {
+			int i = 0;
+			for (BufferedImage img : frames) {
+				if (img != null) {
+					MemoryLog m = new MemoryLog("Source frame " + i++, hashCode());
+					m.total = getMemoryUsage(img);
+					logs.add(m);
+				}
+			}
+		}
+		if (transformed != null) {
+			int i = 0;
+			for (BufferedImage img : transformed) {
+				if (img != null) {
+					MemoryLog m = new MemoryLog("Transformed frame " + i++, hashCode());
+					m.total = getMemoryUsage(img);
+					logs.add(m);
+				}
+			}
+		}
+		MemoryLog log = new MemoryLog("MediaImage", hashCode(), logs.size());
+		if (logs.size() > 0) logs.toArray(log.components);
+		log.updateTotal();
+		return log;
 	};
+
+	public static long getMemoryUsage(BufferedImage img) {
+		if (img == null) return 0;
+		return (long) img.getWidth() * (long) img.getHeight() * img.getColorModel().getPixelSize() / 8;
+	}
 }
