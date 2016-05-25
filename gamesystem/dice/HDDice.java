@@ -33,6 +33,13 @@ public class HDDice implements Dice {
 		constant = s.constant;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof HDDice)) return false;
+		HDDice d = (HDDice) o;
+		return number == d.number && type == d.type && constant == d.constant;
+	}
+
 	public int getConstant() {
 		return constant;
 	}

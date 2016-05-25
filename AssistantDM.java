@@ -1,3 +1,5 @@
+import gamesystem.RuleSet;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -340,6 +342,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		tabbedPane = new JTabbedPane();
 
+		RuleSet.parseXML(new File("rulesets/core3.5.xml"));
 		party = Party.parseXML(file);
 
 		JComponent panel;

@@ -28,6 +28,25 @@ public class BuffFactory {
 		return name;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof BuffFactory)) return false;
+		BuffFactory b = (BuffFactory) o;
+//		if (!name.equals(b.name)) return false;
+		if (effects.size() != b.effects.size()) return false;
+		for (Effect e : effects) {
+			boolean found = false;
+			for (Effect be : b.effects) {
+				if (e.equals(be)) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) return false;
+		}
+		return true;
+	}
+
 	public String getDescription() {
 		StringBuilder s = new StringBuilder();
 		s.append("<html><body>");
@@ -155,12 +174,12 @@ public class BuffFactory {
 		.addEffect(Creature.STATISTIC_ATTACKS,"Morale",2)
 		.addEffect(Creature.STATISTIC_SAVING_THROWS,"Morale",2)
 		.addEffect(Creature.STATISTIC_SKILLS,"Morale",2),
-		(new BuffFactory("Greater Heroism"))
+		(new BuffFactory("Heroism, Greater"))
 		.addEffect(Creature.STATISTIC_ATTACKS,"Morale",4)
 		.addEffect(Creature.STATISTIC_SAVING_THROWS,"Morale",4)
 		.addEffect(Creature.STATISTIC_SKILLS,"Morale",4)
 		.addBonus(Creature.STATISTIC_HPS, null, 0, 1, 20),					// +1/CL (max +20) temp hps
-		(new BuffFactory("Hero's Feast"))
+		(new BuffFactory("Heroes' Feast"))
 		.addEffect(Creature.STATISTIC_ATTACKS,"Morale",1)
 		.addBonus(Creature.STATISTIC_HPS, null, new HDDice(8), 2, 10)		// 1d8 + 1/2 CL (max +10) temp hps
 		.addEffect(Creature.STATISTIC_WILL_SAVE,"Morale",1),
@@ -229,7 +248,7 @@ public class BuffFactory {
 		.addEffect(Creature.STATISTIC_SAVING_THROWS, "Resistance", 2, "vs lawful"),
 		(new BuffFactory("Mind Fog"))
 		.addEffect(Creature.STATISTIC_WILL_SAVE, "Competence", -10),
-		(new BuffFactory("Otto's Irresistable Dance"))
+		(new BuffFactory("Otto's Irresistible Dance"))
 		.addEffect(Creature.STATISTIC_AC, null, -4)
 		//negate ac bonus of shield
 		.addEffect(Creature.STATISTIC_REFLEX_SAVE, null, -10),
@@ -254,7 +273,7 @@ public class BuffFactory {
 		.addEffect(Creature.STATISTIC_ATTACKS, "Morale", 2)
 		.addEffect(Creature.STATISTIC_DAMAGE, "Morale", 2)
 		.addEffect(Creature.STATISTIC_SKILLS, "Morale", 2),
-		(new BuffFactory("Crushing Dispair"))
+		(new BuffFactory("Crushing Despair"))
 		.addEffect(Creature.STATISTIC_SAVING_THROWS, null, -2)
 		.addEffect(Creature.STATISTIC_ATTACKS, null, -2)
 		.addEffect(Creature.STATISTIC_DAMAGE, null, -2)

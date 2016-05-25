@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ruleset name="Core 3.5">
+	<include file="core3.5/Spells.xml"/>
+</ruleset>

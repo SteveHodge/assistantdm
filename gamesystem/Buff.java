@@ -190,6 +190,9 @@ public class Buff {
 	public abstract static class Effect {
 		public String target;
 
+		@Override
+		abstract public boolean equals(Object o);
+
 		public boolean requiresCasterLevel() {
 			return false;
 		};
@@ -207,6 +210,18 @@ public class Buff {
 		@Override
 		public String toString() {
 			return description;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof PropertyEffect)) return false;
+			PropertyEffect p = (PropertyEffect) o;
+			if (!target.equals(p.target)) return false;
+			if (!property.equals(p.property)) return false;
+			if (!value.equals(p.value)) return false;
+			if (description != null && (p.description == null || !description.equals(p.description))
+					|| description == null && p.description != null) return false;
+			return true;
 		}
 	}
 
@@ -295,6 +310,21 @@ public class Buff {
 			if (baseMod instanceof Dice) return (Dice)baseMod;
 			return null;
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof CLEffect)) return false;
+			CLEffect c = (CLEffect) o;
+			if (!target.equals(c.target)) return false;
+
+			if (type != null && (c.type == null || !type.equals(c.type))
+					|| type == null && c.type != null) return false;
+			if (condition != null && (c.condition == null || !condition.equals(c.condition))
+					|| condition == null && c.condition != null) return false;
+
+			// maxPerCL ignored if perCL is 0
+			return perCL == c.perCL && (perCL == 0 || maxPerCL == c.maxPerCL) && penalty == c.penalty && baseMod.equals(c.baseMod);
+		}
 	}
 
 	public static class FixedEffect extends ModifierEffect {
@@ -323,6 +353,20 @@ public class Buff {
 			s.append(" to ").append(getTargetDescription(target));
 			if (condition != null) s.append(" ").append(condition);
 			return s.toString();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof FixedEffect)) return false;
+			FixedEffect e = (FixedEffect) o;
+			if (!target.equals(e.target)) return false;
+
+			if (type != null && (e.type == null || !type.equals(e.type))
+					|| type == null && e.type != null) return false;
+			if (condition != null && (e.condition == null || !condition.equals(e.condition))
+					|| condition == null && e.condition != null) return false;
+
+			return modifier == e.modifier;
 		}
 	}
 
