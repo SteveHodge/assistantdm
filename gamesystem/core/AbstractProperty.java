@@ -42,6 +42,7 @@ abstract public class AbstractProperty<T> implements Property<T> {
 		T old = getValue();
 		if (overrides.remove(key)) {
 			firePropertyChanged(old, true);
+			firePropertyChanged(old, false);	// value also changed
 		} else {
 			throw new NoSuchElementException();
 		}
@@ -79,15 +80,17 @@ abstract public class AbstractProperty<T> implements Property<T> {
 
 	@SuppressWarnings("unchecked")
 	protected void firePropertyChanged(T oldVal, boolean compChange) {
+		if (listenerList == null) return;
 		Object[] listeners = listenerList.getListenerList();
 		PropertyEvent<T> event = null;
 		for (int i = listeners.length - 2; i >= 0; i -= 2) {
 			if (listeners[i] == PropertyListener.class) {
 				if (event == null) event = new PropertyEvent<>(this, oldVal);
-				if (compChange)
+				if (compChange) {
 					((PropertyListener<T>) listeners[i + 1]).compositionChanged(event);
-				else
+				} else if (getValue() != oldVal) {
 					((PropertyListener<T>) listeners[i + 1]).valueChanged(event);
+				}
 			}
 		}
 	}

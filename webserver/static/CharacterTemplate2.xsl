@@ -276,7 +276,7 @@
 		<xsl:value-of select="@campaign"/>
   </td>
   <td colspan='27' rowspan='3' class='campaign-name'>
-		<xsl:value-of select="@xp"/> / <xsl:value-of select="@xp-req"/>
+		<xsl:value-of select="Level/@xp"/> / <xsl:value-of select="Level/@xp-req"/>
   </td>
   <td/>
   <td colspan='43' class='title' >SPECIAL ABILITIES</td>
@@ -286,26 +286,26 @@
   <td/>
   <td colspan='43' rowspan='64' class='special-abilities'>
   	<xsl:if test="SpecialAbilities/Ability[@type='racial']">
-	RACE ABILITIES
+	&#x2013;&#x2013; RACE ABILITIES &#x2013;&#x2013;
   	<ul>
   		<xsl:for-each select="SpecialAbilities/Ability[@type='racial']">
-  		<li><xsl:value-of select="."/></li>
+  		<li><xsl:copy-of select="."/></li>
   		</xsl:for-each>
   	</ul>
   	</xsl:if>
   	<xsl:if test="SpecialAbilities/Ability[@type='class']">
-   CLASS ABILITIES
+   &#x2013;&#x2013; CLASS ABILITIES &#x2013;&#x2013;
    <ul>
   		<xsl:for-each select="SpecialAbilities/Ability[@type='class']">
-  		<li><xsl:value-of select="."/></li>
+  		<li><xsl:copy-of select="."/></li>
   		</xsl:for-each>
   	</ul>
   	</xsl:if>
   	<xsl:if test="SpecialAbilities/Ability[@type='feat']">
-	FEATS
+	&#x2013;&#x2013; FEATS &#x2013;&#x2013;
 	<ul>
   		<xsl:for-each select="SpecialAbilities/Ability[@type='feat']">
-  		<li><xsl:value-of select="."/></li>
+  		<li><xsl:copy-of select="."/></li>
   		</xsl:for-each>
   	</ul>
   	</xsl:if>
@@ -345,10 +345,10 @@
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='17' rowspan='2' class='weapon-name'><xsl:value-of select="Armor/@name"/></td>
-  <td colspan='11' rowspan='2' class='weapon-name'><xsl:value-of select="Armor/@type"/></td>
-  <td colspan='13' rowspan='2' class='weapon-name'><xsl:value-of select="Armor/@bonus"/></td>
-  <td colspan='13' rowspan='2' class='weapon-name'><xsl:value-of select="Armor/@max-dex"/></td>
+  <td colspan='17' rowspan='2' class='weapon-name'><xsl:value-of select="AC/Armor/@description"/></td>
+  <td colspan='11' rowspan='2' class='weapon-name'><xsl:value-of select="AC/Armor/@type"/></td>
+  <td colspan='13' rowspan='2' class='weapon-name' title='Armor Bonus' info='{AC/Armor/@info}' onclick='showInfo(this);'><xsl:value-of select="AC/Armor/@total_bonus"/></td>
+  <td colspan='13' rowspan='2' class='weapon-name'><xsl:value-of select="AC/Armor/@max_dex"/></td>
   <td/>
  </tr>
  <tr class='single-row'>
@@ -365,11 +365,11 @@
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='7' rowspan='2' class='weapon-name' ><xsl:value-of select="Armor/@acp"/></td>
-  <td colspan='7' rowspan='2' class='weapon-name' ><xsl:value-of select="Armor/@spell-failure"/></td>
-  <td colspan='5' rowspan='2' class='weapon-name' ><xsl:value-of select="Armor/@speed"/></td>
-  <td colspan='5' rowspan='2' class='weapon-name' ><xsl:value-of select="Armor/@weight"/></td>
-  <td colspan='30' rowspan='2' class='weapon-name' ><xsl:value-of select="Armor/@properties"/></td>
+  <td colspan='7' rowspan='2' class='weapon-name' ><xsl:value-of select="AC/Armor/@acp"/></td>
+  <td colspan='7' rowspan='2' class='weapon-name' ><xsl:value-of select="AC/Armor/@spell_failure"/></td>
+  <td colspan='5' rowspan='2' class='weapon-name' ><xsl:value-of select="AC/Armor/@speed"/></td>
+  <td colspan='5' rowspan='2' class='weapon-name' ><xsl:value-of select="AC/Armor/@weight"/></td>
+  <td colspan='30' rowspan='2' class='weapon-name' ><xsl:value-of select="AC/Armor/@properties"/></td>
   <td/>
  </tr>
  <tr class='single-row'>
@@ -430,11 +430,11 @@
  </tr>
  <tr class='single-row'>
   <td/>
-  <td colspan='17' rowspan='2' class='weapon-name'><xsl:value-of select="Shield/@name"/></td>
-  <td colspan='15' rowspan='2' class='weapon-name'><xsl:value-of select="Shield/@bonus"/></td>
-  <td colspan='6' rowspan='2' class='weapon-name'><xsl:value-of select="Shield/@weight"/></td>
-  <td colspan='8' rowspan='2' class='weapon-name'><xsl:value-of select="Shield/@acp"/></td>
-  <td colspan='8' rowspan='2' class='weapon-name'><xsl:value-of select="Shield/@spell-failure"/></td>
+  <td colspan='17' rowspan='2' class='weapon-name'><xsl:value-of select="AC/Shield/@description"/></td>
+  <td colspan='15' rowspan='2' class='weapon-name' title='Shield Bonus' info='{AC/Shield/@info}' onclick='showInfo(this);'><xsl:value-of select="AC/Shield/@total_bonus"/></td>
+  <td colspan='6' rowspan='2' class='weapon-name'><xsl:value-of select="AC/Shield/@weight"/></td>
+  <td colspan='8' rowspan='2' class='weapon-name'><xsl:value-of select="AC/Shield/@acp"/></td>
+  <td colspan='8' rowspan='2' class='weapon-name'><xsl:value-of select="AC/Shield/@spell_failure"/></td>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -447,7 +447,7 @@
  </tr>
  <tr class='single-row'>
   <td/>
-  <td colspan='54' rowspan='2' class='weapon-name' ><xsl:value-of select="Shield/@properties"/></td>
+  <td colspan='54' rowspan='2' class='weapon-name' ><xsl:value-of select="AC/Shield/@properties"/></td>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -823,13 +823,13 @@
   <td colspan='14' class='underlined-text'></td>
   <td class='R'></td>
   <td/>
-  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Weight/@light"/></td>
+  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Encumberance/@light"/></td>
   <td/>
   <td/>
-  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Weight/@medium"/></td>
+  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Encumberance/@medium"/></td>
   <td/>
   <td/>
-  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Weight/@heavy"/></td>
+  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Encumberance/@heavy"/></td>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -898,13 +898,13 @@
   <td colspan='14' class='underlined-text'></td>
   <td class='R'></td>
   <td/>
-  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Weight/@over-head"/></td>
+  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Encumberance/@over-head"/></td>
   <td/>
   <td/>
-  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Weight/@off-ground"/></td>
+  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Encumberance/@off-ground"/></td>
   <td/>
   <td/>
-  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Weight/@drag"/></td>
+  <td colspan='4' rowspan='2' class='data-value'><xsl:value-of select="Encumberance/@drag"/></td>
   <td/>
  </tr>
  <tr class='double-row'>

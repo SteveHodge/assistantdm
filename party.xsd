@@ -186,6 +186,12 @@
 <xs:element name="Level">
 	<xs:complexType>
 		<xs:sequence>
+			<xs:element name="ClassOption" minOccurs="0" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attribute name="id" type="xs:string" use="required"/>
+					<xs:attribute name="selection" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
 			<xs:choice minOccurs="0" maxOccurs="unbounded">
 				<xs:element name="Class">
 					<xs:complexType>
@@ -237,11 +243,7 @@
 
 <xs:element name="Feat">
 	<xs:complexType>
-		<xs:sequence>
-			<xs:element ref="Modifier" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required"/>
-		<xs:attribute name="id" type="xs:int"/>
 	</xs:complexType>
 </xs:element>
 

@@ -4,8 +4,12 @@ import gamesystem.CharacterClass;
 import gamesystem.Creature;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
+import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.SizeCategory;
+import gamesystem.dice.CombinedDice;
+import gamesystem.dice.DiceList;
+import gamesystem.dice.HDDice;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -27,35 +31,44 @@ import monsters.StatisticsBlock.Field;
 
 
 public class GetStatsBlock {
-	static String baseName = "D:\\Programming\\Workspace\\AssistantDM\\html\\monsters\\";
+	static String baseName = "D:\\Programming\\git\\assistantdm\\html\\monsters\\";
 
 	public static void main(String[] args) {
 		List<StatisticsBlock> blocks = new ArrayList<>();
 		Source[] sources = new Source[] {
 				new Source("Monster Manual", "monster_manual"),
-				new Source("Monster Manual II", "monster_manual_ii"),
+				//				new Source("Monster Manual II", "monster_manual_ii"),
 				new Source("Monster Manual III", "monster_manual_iii"),
-				new Source("Ptolus", "ptolus")
+				//				new Source("Ptolus", "ptolus"),
+//				new Source("Cthulhu", "cthulhu")
 		};
 
 		int blockCount = 0;
 		int fileCount = 0;
 		for (Source source : sources) {
 			File dir = new File(baseName+source.getLocation());
+			System.out.println(dir);
 			File[] files = dir.listFiles((d, name) -> {
 				//if (name.equals("HalfGolem.htm")) return true;
-					if (name.toLowerCase().endsWith("html")) return true;
-					if (name.toLowerCase().endsWith("htm")) return true;
-					return false;
+				if (name.equals("All.html")) return false;
+				if (name.toLowerCase().endsWith("html")) return true;
+				if (name.toLowerCase().endsWith("htm")) return true;
+				if (name.toLowerCase().endsWith("xml")) return true;
+				return false;
 			});
 
 			for (File file : files) {
-				//				System.out.println("File "+file.getName());
-				List<StatisticsBlock> fileBlocks = StatisticsBlock.parseFile(source, file);
-				//				for (StatisticsBlock b : fileBlocks) {
-				//					System.out.println("\t"+b.getName());
-				//				}
-				blocks.addAll(fileBlocks);
+				try {
+					//				System.out.println("File "+file.getName());
+					List<StatisticsBlock> fileBlocks = StatisticsBlock.parseFile(source, file);
+					//				for (StatisticsBlock b : fileBlocks) {
+					//					System.out.println("\t"+b.getName());
+					//				}
+					blocks.addAll(fileBlocks);
+				} catch (Exception e) {
+					System.err.println("Exception processing " + file + ":");
+					e.printStackTrace();
+				}
 			}
 
 			System.out.println(source.getName()+": "+files.length+" files, "+(blocks.size()-blockCount)+" stats blocks");
@@ -72,6 +85,22 @@ public class GetStatsBlock {
 				System.out.println(block);
 			} else {
 				names.add(block.getName());
+			}
+		}
+
+		for (StatisticsBlock block : blocks) {
+			try {
+				if (block.getURL().getFile().contains("/Lycanthrope.html")) continue;		// Lycanthrope template uses special rules that would require custom code
+				//if (block.getName().equals("Elder Arrowhawk"))
+				validateBlock(block);
+				//Monster m = StatsBlockCreatureView.createMonster(block);
+			} catch (Exception e) {
+				try {
+					System.err.println("Exception processing '" + block.getName() + "' from " + block.getURL());
+				} catch (MalformedURLException e1) {
+					System.err.println("Exception processing '" + block.getName() + "' " + e1.getMessage());
+				}
+				e.printStackTrace();
 			}
 		}
 
@@ -244,7 +273,97 @@ public class GetStatsBlock {
 //			}
 //		}
 
-		getAllACComponents(blocks);
+//		getAllACComponents(blocks);
+	}
+
+	// checks the supplied block for consistency with the rules. primarily compares values found in the block with values from a Monster instance created
+	// from the block (at least for those values that are built/calculated from scratch in the Monster instance).
+	private static void validateBlock(StatisticsBlock block) {
+		// TODO can we do more to handle templates?
+		// Values that are checked:
+		// BAB, grapple
+		// TODO attack bonuses
+		// number of feats (but TODO count class bonus feats)
+		// saves
+		// TODO number of skills
+		// hit dice bonuses
+		// TODO size/reach
+
+		@SuppressWarnings("serial")
+		class Messages extends ArrayList<String> {
+			void checkValues(String field, Object parsed, Object calculated) {
+				if (!parsed.equals(calculated)) {
+					add(field + ": " + parsed + " != calculated value of " + calculated);
+				}
+			}
+
+			void checkValues(String field, Object parsed, Object calculated, String msg) {
+				if (!parsed.equals(calculated)) {
+					add(field + ": " + parsed + " != calculated value of " + calculated + ": " + msg);
+				}
+			}
+
+			void checkSave(SavingThrow.Type type, Monster m) {
+				int parsed = block.getSavingThrow(type);
+				SavingThrow save = m.getSavingThrowStatistic(type);
+				if (save.getValue() == parsed) return;
+				int fast = m.getSaveUsingProgression(type, SaveProgression.FAST);
+				int slow = m.getSaveUsingProgression(type, SaveProgression.SLOW);
+				SaveProgression found = null;
+				if (fast == parsed) {
+					found = SaveProgression.FAST;
+				} else if (slow == parsed) {
+					found = SaveProgression.SLOW;
+				}
+				if (found == null) {
+					add(type.name() + " Save: " + parsed + " != value of " + save.getValue() + " or calculated values of " + fast + " (fast) or " + slow + " (slow)");
+					if (m.race != null && m.level != null) {
+						add(type.name() + " Save: racial save bonus = " + m.race.getBaseSave(type) + ", level save bonus = " + m.level.getBaseSave(type) + ", calculation = " + save.getSummary());
+						//add(type.name() + " Save: base = " + m.hitDice.getBaseSave(type) + ", override = " + save.getBaseOverride());
+					}
+				} else if (found != m.getSaveProgression(type)) {
+					//add(type.name() + " Save: using " + found + " progression rather than " + m.getSaveProgression(type) + " as is usual for " + m.race.getType());
+				}
+			}
+		}
+		;
+
+		//if (block.getClassLevels().size() == 0) return;	// skip creatures with no class levels for now
+
+		Messages messages = new Messages();
+		Monster m = StatsBlockCreatureView.createMonster(block);
+
+		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue(), m.getBAB().toString());
+		messages.checkValues("Grapple", block.getGrapple(), m.race.hasSubtype("Incorporeal") || m.race.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getGrappleModifier().getValue(), m
+				.getGrappleModifier().getSummary());	// TODO handle types/subtypes with no grapple (incorporal, swarms), racial bonuses
+//		messages.checkSave(SavingThrow.Type.FORTITUDE, m);
+//		messages.checkSave(SavingThrow.Type.REFLEX, m);
+//		messages.checkSave(SavingThrow.Type.WILL, m);
+
+		// we want to compare CombindDice versions of lists of dice because we don't care where the constants are, but we can't add fractional dice (which
+		// should only occur in monsters with no class levels) so if there is only one element in the HD list then compare that.
+		List<HDDice> blockHD = block.getHitDice();
+		List<HDDice> monsterHD = m.getHitDice().getValue();
+		Object blockDice = blockHD.size() == 1 ? blockHD.get(0) : CombinedDice.fromList(blockHD);
+		Object monsterDice = monsterHD.size() == 1 ? monsterHD.get(0) : CombinedDice.fromList(monsterHD);
+		messages.checkValues("HD", blockDice, monsterDice, "Bonus HPs = " + m.getHitDice().bonusHPs);
+
+		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
+				" bonus feats = " + m.countFeats()[1]);
+
+		if (messages.size() == 0) {
+			//System.out.println(block.getName() + " OK");
+		} else {
+			System.out.println(block.getName());
+			for (String s : messages) {
+				System.out.println("  " + s);
+			}
+			System.out.println("  Race: " + m.race + " " + m.race.getHitDiceCount());
+			System.out.println("  Classes: " + m.level);
+			System.out.println("  Feats: " + block.get(Field.FEATS));
+			System.out.println("  Special Attacks: " + m.getProperty(Field.SPECIAL_ATTACKS.name()));
+			System.out.println("  Special Qualities: " + m.getProperty(Field.SPECIAL_QUALITIES.name()));
+		}
 	}
 
 	static void getAllACComponents(List<StatisticsBlock> blocks) {
@@ -505,7 +624,7 @@ public class GetStatsBlock {
 		// list distinct subtypes:
 		HashSet<String> subtypes = new HashSet<>();
 		for (StatisticsBlock block : blocks) {
-			Set<String> subs = block.getSubtypes();
+			List<String> subs = block.getSubtypes();
 			//System.out.println(block.getName()+": "+block.get(Property.SIZE_TYPE));
 			for (String s : subs) {
 				subtypes.add(s);
@@ -714,7 +833,7 @@ public class GetStatsBlock {
 					continue;
 				}
 
-				Set<String> subtypes = block.getSubtypes();
+				List<String> subtypes = block.getSubtypes();
 
 				SizeCategory size = block.getSize();
 				if (size == null) {
@@ -726,7 +845,7 @@ public class GetStatsBlock {
 				StringBuilder babStr = new StringBuilder();
 
 				Map<CharacterClass, Integer> classes = block.getClassLevels();
-				Set<HitDice> hitdice = block.getHitDice().getComponents();
+				Set<HDDice> hitdice = new HashSet<>(block.getHitDice());
 
 				// figure out the base monster hitdice by removing all the class level hitdice
 				// also add the class derived bab
@@ -737,9 +856,9 @@ public class GetStatsBlock {
 					if (babStr.length() > 0) babStr.append(" + ");
 					babStr.append(cls.getBAB(level)).append(" (").append(cls).append(" ").append(level).append(")");
 
-					HitDice classHD = null;
-					for (HitDice d : hitdice) {
-						if (d.getNumber(0) == level && d.getType(0) == cls.getHitDiceType()) {
+					HDDice classHD = null;
+					for (HDDice d : hitdice) {
+						if (d.getNumber() == level && d.getType() == cls.getHitDiceType()) {
 							classHD = d;
 							break;
 						}
@@ -747,7 +866,7 @@ public class GetStatsBlock {
 					if (classHD != null) {
 						hitdice.remove(classHD);
 					} else {
-						System.out.println("WARN: could not for hitdice for level-" + level + " " + cls + ": " + getNameURL(block));
+						System.out.println("WARN: could not find hitdice for level-" + level + " " + cls + ": " + getNameURL(block));
 						System.out.println("  expected " + level + "d" + cls.getHitDiceType() + ", only found " + block.getHitDice());
 					}
 				}
@@ -756,29 +875,29 @@ public class GetStatsBlock {
 					// probably this is a templated creature
 					// TODO
 					System.out.println("WARN: extra hitdice found in " + getNameURL(block));
-					for (HitDice d : hitdice) {
+					for (HDDice d : hitdice) {
 						System.out.println("  " + d);
 					}
 				} else if (hitdice.size() == 1) {
-					HitDice hd = hitdice.iterator().next();
+					HDDice hd = hitdice.iterator().next();
 
 					MonsterType babType = type;
 					// check that the type is correct
-					if (hd.getType(0) == type.getHitDiceType()) {
+					if (hd.getType() == type.getHitDiceType()) {
 						// type is correct
-					} else if (block.getAugmentedType() != null && hd.getType(0) == block.getAugmentedType().getHitDiceType()) {
+					} else if (block.getAugmentedType() != null && hd.getType() == block.getAugmentedType().getHitDiceType()) {
 						// augmented creature using original hitdice type. use the original BAB progression
 						babType = block.getAugmentedType();
 					} else {
 						System.out.println("WARN: creature has incorrect hitdice for type: " + getNameURL(block));
-						System.out.println("  Should be d" + type.getHitDiceType() + " but found d" + hd.getType(0));
+						System.out.println("  Should be d" + type.getHitDiceType() + " but found d" + hd.getType());
 					}
 
-					int num = hd.getNumber(0);
+					int num = hd.getNumber();
 					if (num < 1) num = 1;
 					bab += babType.getBAB(num);
 					if (babStr.length() > 0) babStr.append(" + ");
-					babStr.append(babType.getBAB(num)).append(" (").append(babType).append(" ").append(hd.getNumber(0)).append(")");
+					babStr.append(babType.getBAB(num)).append(" (").append(babType).append(" ").append(hd.getNumber()).append(")");
 				}
 
 				// TODO augmented creatures could be calculated using the wrong type - really need to check both and use whichever matches
@@ -893,7 +1012,7 @@ public class GetStatsBlock {
 		}
 	}
 
-	public static void doTrails(int number, HitDice hd) {
+	public static void doTrails(int number, DiceList<HDDice> hd) {
 		int min = Integer.MAX_VALUE;
 		int max = 0;
 		int total = 0;

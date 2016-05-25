@@ -159,12 +159,14 @@ public class XMLOutputHelper {
 		buffEl.appendChild(getBuffElement(b, "Buff"));
 	}
 
-	public void processFeat(Buff feat) {
+	public void processFeat(Feat feat) {
 		if (featEl == null) {
 			featEl = doc.createElement("Feats");
 			creatureEl.appendChild(featEl);
 		}
-		featEl.appendChild(getBuffElement(feat, "Feat"));
+		Element e = doc.createElement("Feat");
+		e.setAttribute("name", feat.getName());
+		featEl.appendChild(e);
 	}
 
 	protected Element getBuffElement(Buff b, String tag) {
@@ -222,7 +224,7 @@ public class XMLOutputHelper {
 		getAbilityScoreElement(s);
 	}
 
-	public void processAttacks(Attacks attacks) {
+	public void processAttacks(Attacks attacks, GrappleModifier grapple) {
 		getAttacksElement(attacks);
 	}
 

@@ -2,6 +2,7 @@ package gamesystem;
 
 import gamesystem.Attacks.AttackForm;
 import gamesystem.Buff.PropertyChange;
+import gamesystem.Feat.FeatDefinition;
 import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
@@ -28,7 +29,8 @@ public class XMLParserHelper {
 		c.initiative.setBaseValue(Integer.parseInt(e.getAttribute("value")));
 	}
 
-	protected void parseLevel(Element e, Levels lvl) {
+	// TODO Character param here is bad. currently need it to do levelups.
+	protected void parseLevel(Element e, Levels lvl, party.Character c) {
 		if (!e.getTagName().equals("Level")) return;
 		lvl.setLevel(Integer.parseInt(e.getAttribute("level")));
 
@@ -37,7 +39,17 @@ public class XMLParserHelper {
 		for (int j = 0; j < classes.getLength(); j++) {
 			if (classes.item(j).getNodeName().equals("Class")) {
 				CharacterClass cls = CharacterClass.getCharacterClass(((Element) classes.item(j)).getAttribute("class"));
-				lvl.setClass(i++, cls);
+				if (c != null) {
+					c.setClass(i++, cls);
+				} else {
+					lvl.setClass(i++, cls);
+				}
+
+			} else if (classes.item(j).getNodeName().equals("ClassOption")) {
+				Element el = (Element) classes.item(j);
+				if (c != null) {
+					c.setClassOption(el.getAttribute("id"), el.getAttribute("selection"));
+				}
 			}
 		}
 
@@ -131,9 +143,6 @@ public class XMLParserHelper {
 		c.hps.hps = Integer.parseInt(e.getAttribute("maximum"));
 		if (e.hasAttribute("wounds")) c.hps.wounds = Integer.parseInt(e.getAttribute("wounds"));
 		if (e.hasAttribute("non-lethal")) c.hps.nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
-		if (c.hps.conMod != null) {
-			c.hps.oldMod = c.hps.conMod.getModifier();	// we need to set the oldMod so that any future con changes are correctly calculated
-		}
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
 
 		// set any existing temporary hps to 0. this prevents temporary hitpoints that have been used for a particular
@@ -208,8 +217,15 @@ public class XMLParserHelper {
 		if (e.getAttribute("fighting_defensively").equals("true") || e.getAttribute("total_defense").equals("1")) c.attacks.setFightingDefensively(true);
 	}
 
+	protected Feat parseFeat(Element b) {
+		if (!b.getTagName().equals("Feat")) return null;
+		FeatDefinition featDef = Feat.getFeatDefinition(b.getAttribute("name"));
+		Feat feat = featDef.getFeat();
+		return feat;
+	}
+
 	protected Buff parseBuff(Element b) {
-		//if (!b.getTagName().equals("Buff")) return null;
+		if (!b.getTagName().equals("Buff")) return null;
 		Buff buff = new Buff();
 		if (b.hasAttribute("caster_level")) buff.casterLevel = Integer.parseInt(b.getAttribute("caster_level"));
 		buff.name = b.getAttribute("name");

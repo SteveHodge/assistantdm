@@ -5,6 +5,11 @@ import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
 import gamesystem.CharacterClass;
+import gamesystem.ClassFeature;
+import gamesystem.Creature;
+import gamesystem.Feat;
+import gamesystem.Feat.FeatDefinition;
+import gamesystem.GrappleModifier;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
@@ -17,6 +22,8 @@ import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import gamesystem.core.Property;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,11 +33,14 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import party.Character.ACComponentType;
 import util.Updater;
@@ -85,8 +95,63 @@ public class CharacterSheetView {
 
 	// TODO this should probably include all the same data as the regular save as well as additional stuff
 	class CharacterSheetProcessor extends XMLOutputCharacterProcessor {
+		Element specials;
+
 		public CharacterSheetProcessor(Document doc) {
 			super(doc);
+		}
+
+		@Override
+		public void processCreature(Creature c) {
+			super.processCreature(c);
+
+			// class features
+			if (specials == null) {
+				specials = doc.createElement("SpecialAbilities");
+				creatureEl.appendChild(specials);
+			}
+
+			for (ClassFeature f : character.features) {
+				Element el;
+				try {
+					// building an html string and then parsing it lets us handle html in the content correctly (it gets escaped when using setTextContent)
+					String html = "<Ability>" + f.getNameAndTypeHTML() + ": " + f.getSummary() + "</Ability>";
+
+					DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+					Document d = factory.newDocumentBuilder().parse(new InputSource(new StringReader(html)));
+					el = (Element) doc.importNode(d.getDocumentElement(), true);
+				} catch (SAXException | IOException | ParserConfigurationException e) {
+					e.printStackTrace();
+					el = doc.createElement("Ability");
+					el.setTextContent(f.getNameAndType() + ": " + f.getSummary());
+				}
+				el.setAttribute("type", "class");
+				specials.appendChild(el);
+			}
+		}
+
+		@Override
+		public void processFeat(Feat feat) {
+			if (specials == null) {
+				specials = doc.createElement("SpecialAbilities");
+				creatureEl.appendChild(specials);
+			}
+			Element el = doc.createElement("Ability");
+			el.setAttribute("type", "feat");
+			el.appendChild(doc.createTextNode(feat.getName()));
+			if (feat.bonus) {
+				Element sup = doc.createElement("sup");
+				sup.setTextContent("B");
+				el.appendChild(sup);
+			}
+			FeatDefinition f = feat.definition;
+			if (f.ref != null) {
+				el.appendChild(doc.createTextNode(" (" + f.ref + ")"));
+			}
+			if (f.summary != null) {
+				el.appendChild(doc.createTextNode(": " + f.summary));
+			}
+			specials.appendChild(el);
 		}
 
 		@Override
@@ -215,7 +280,12 @@ public class CharacterSheetView {
 					child.setAttribute("info", info);
 
 					if (child.hasAttribute("max_dex")) {
-						child.setAttribute("max_dex", getModifierString(Integer.parseInt(child.getAttribute("max_dex"))));
+						int val = Integer.parseInt(child.getAttribute("max_dex"));
+						if (val == Integer.MAX_VALUE) {
+							child.removeAttribute("max_dex");	// no limit, just remove the attribute
+						} else {
+							child.setAttribute("max_dex", getModifierString(val));
+						}
 					}
 					if (child.hasAttribute("acp")) {
 						child.setAttribute("acp", getModifierString(Integer.parseInt(child.getAttribute("acp"))));
@@ -246,7 +316,7 @@ public class CharacterSheetView {
 		private Set<String> rangedExcl = new HashSet<>(Arrays.asList(new String[] { AbilityScore.Type.DEXTERITY.toString(), "Size" }));
 
 		@Override
-		public void processAttacks(Attacks attacks) {
+		public void processAttacks(Attacks attacks, GrappleModifier grapple) {
 			Element e = getAttacksElement(attacks);
 			Property<Integer> bab = attacks.getBAB();
 			if (bab.hasOverride()) {
@@ -261,7 +331,7 @@ public class CharacterSheetView {
 
 			Element e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Grapple");
-			e1.setAttribute("total", getModifierString(attacks.getGrappleValue()));
+			e1.setAttribute("total", getModifierString(grapple.getValue()));
 			e1.setAttribute("misc", "+0");				// TODO implement
 			e.appendChild(e1);
 			e1 = doc.createElement("Attack");

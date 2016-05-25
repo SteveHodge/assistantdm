@@ -34,6 +34,15 @@ public class SimpleDice implements Dice {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (o instanceof SimpleDice) {
+			SimpleDice d = (SimpleDice) o;
+			return d.number == number && d.type == type;
+		}
+		return false;
+	}
+
+	@Override
 	public String toString() {
 		String s = String.valueOf(number);
 		s += "d"+type;
@@ -63,6 +72,14 @@ public class SimpleDice implements Dice {
 
 	@Override
 	public int getMaximum() {
+		return type;
+	}
+
+	public int getNumber() {
+		return number;
+	}
+
+	public int getType() {
 		return type;
 	}
 }

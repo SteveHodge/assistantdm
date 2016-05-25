@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 
 import javafx.application.Platform;
 import digital_table.elements.MapElement;
+import digital_table.server.MemoryLog;
 import digital_table.server.TableDisplay;
 
 /**
@@ -156,6 +157,15 @@ public class RemoteConnection {
 		} catch (RemoteException e) {
 			System.err.printf("addMedia(%s, bytes) failed: %s\n", uri.toString(), e);
 		}
+	}
+
+	public MemoryLog getMemoryUsage() {
+		try {
+			return remote.getMemoryUsage();
+		} catch (RemoteException e) {
+			System.err.printf("getMemoryUsage() failed: %s\n", e);
+		}
+		return null;
 	}
 
 }

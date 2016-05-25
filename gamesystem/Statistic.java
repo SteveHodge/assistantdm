@@ -10,7 +10,7 @@ import java.util.Set;
 
 /*
  * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
- * In many cases there is a base value that the modifiers are applied to. But the base value may not be editable so it's implementation
+ * In many cases there is a base value that the modifiers are applied to. But the base value may not be editable so its implementation
  * is left to the subclasses.
  *
  * Reports a single property "value" which is the total of the base value and the applicable modifiers.

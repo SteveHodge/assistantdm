@@ -200,6 +200,19 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		}
 	}
 
+	public MemoryLog getMemoryUsage() {
+		List<MemoryLog> logs = new ArrayList<>();
+		for (int i = 0; i < model.getSize(); i++) {
+			MapElement e = model.elementAt(i);
+			MemoryLog l = e.getMemoryUsage();
+			if (l != null) logs.add(l);
+		}
+		MemoryLog total = new MemoryLog("MapCanvas", hashCode(), logs.size());
+		logs.toArray(total.components);
+		total.updateTotal();
+		return total;
+	}
+
 	// ----------------------- coordinate conversion related methods -----------------------
 	// returns a CoordinateConverter that can convert values expressed in remote display units (pixels) into remote
 	// grid units. the default implementation simply returns 'this' (i.e. this MapCanvas already operates in remote

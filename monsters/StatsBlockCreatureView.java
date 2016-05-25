@@ -3,12 +3,17 @@ package monsters;
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
+import gamesystem.CharacterClass;
+import gamesystem.CharacterClass.LevelUpAction;
 import gamesystem.Creature;
+import gamesystem.Feat;
+import gamesystem.Feat.FeatDefinition;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
+import gamesystem.dice.DiceList;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -123,17 +128,39 @@ public class StatsBlockCreatureView {
 
 		Monster m = new Monster(name, abilities);
 
-		m.setInitiativeModifier(blk.getInitiativeModifier());
+		m.race.setType(blk.getType());
+		for (String s : blk.getSubtypes()) {
+			m.race.addSubtype(s);
+		}
 
-		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = m.getSavingThrowStatistic(t);
-			int save = blk.getSavingThrow(t);
-			if (save > Integer.MIN_VALUE) {
-				s.setBaseOverride(save - s.getValue());
+		Map<CharacterClass, Integer> lvls = blk.getClassLevels();
+		for (CharacterClass c : lvls.keySet()) {
+			int l = lvls.get(c);
+			if (l >= 1) {
+				int old = m.level.getLevel();
+				m.level.setLevel(old + l);
+				for (i = old + 1; i <= m.level.getLevel(); i++) {
+					m.level.setClass(i, c);
+					Set<LevelUpAction> actions = c.getActions(m.level.getClassLevel(c));
+					//System.out.println("Applying actions for " + c + " level " + m.level.getClassLevel(c));
+					for (LevelUpAction action : actions) {
+						action.apply(m);
+					}
+				}
 			}
 		}
 
-		m.setHitDice(blk.getHitDice());
+		m.setInitiativeModifier(blk.getInitiativeModifier());
+
+//		for (SavingThrow.Type t : SavingThrow.Type.values()) {
+//			SavingThrow s = m.getSavingThrowStatistic(t);
+//			int save = blk.getSavingThrow(t);
+//			if (save > Integer.MIN_VALUE) {
+//				s.setBaseOverride(save - s.getValue());
+//			}
+//		}
+
+		m.hitDice.setHitDice(blk.getHitDice());
 
 		HPs hps = m.getHPStatistic();
 		hps.setMaximumHitPoints(blk.getDefaultHPs());
@@ -176,18 +203,61 @@ public class StatsBlockCreatureView {
 			}
 		}
 
-		Attacks attacks = m.getAttacksStatistic();
-		m.getBAB().setBaseValue(blk.getBAB());
-		int sizeMod = m.getSize().getSizeModifier();
-		if (sizeMod != 0) attacks.addModifier(new ImmutableModifier(sizeMod, "Size"));
-
 		m.setProperty(PROPERTY_STATS_BLOCK, blk);
 		// need feats/special qualities before setting up attacks
 		m.setProperty(Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));
 		m.setProperty(Field.FEATS.name(), blk.get(Field.FEATS));
+		// apply any feats we recognise:
+		if (blk.get(Field.FEATS) != null) {
+			String[] feats = blk.get(Field.FEATS).split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
+			for (String f : feats) {
+				int count = 1;
+				boolean bonus = false;
+				f = f.trim();
+				//System.out.print("  '" + f + "': ");
+				if (f.endsWith("B")) {
+					f = f.substring(0, f.length() - 1);
+					bonus = true;
+					//System.out.print("bonus feat, ");
+				}
+				if (f.contains("(")) {
+					try {
+						count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
+					} catch (NumberFormatException e) {
+						// assume if it's not a number then it's a subtype
+					}
+					f = f.substring(0, f.indexOf("(")).trim();
+					//System.out.print("stripped specialisation/count leaving '" + f + "', ");
+				}
+				f = f.trim();
+				FeatDefinition def = Feat.getFeatDefinition(f);
+				if (def != null) {
+					//System.out.println("Found " + def.name + ", count = " + count);
+					for (int j = 0; j < count; j++) {
+						Feat feat = def.getFeat();
+						feat.bonus = bonus;
+						feat.apply(m);
+						m.feats.add(feat);
+					}
+				} else {
+					System.out.println("Couldn't find feat '" + f + "'");
+				}
+			}
+		}
 
 		setAttackList(m, blk.getAttacks(false));
 		setFullAttackList(m, blk.getAttacks(true));
+
+		// add racial modifier to grapple (if any)
+		List<Modifier> mods = blk.getGrappleModifiers();
+		for (Modifier mod : mods) {
+			if (mod.getType().equals("racial")) {
+				m.getGrappleModifier().addModifier(mod);
+			} else {
+				// TODO handle dex modifier. dex can either replace strength or the highest can be used. could possibly assume the later. tricky to replace the strength mod though
+				System.out.println(blk.getName() + " unimplemented grapple modifier: " + mod + " from '" + blk.get(Field.BASE_ATTACK_GRAPPLE) + "'");
+			}
+		}
 
 		// add fields we don't use as extra properties:
 		m.setProperty(Field.CLASS_LEVELS.name(), blk.get(Field.CLASS_LEVELS));
@@ -201,6 +271,8 @@ public class StatsBlockCreatureView {
 		m.setProperty(Field.ALIGNMENT.name(), blk.get(Field.ALIGNMENT));
 		m.setProperty(Field.ADVANCEMENT.name(), blk.get(Field.ADVANCEMENT));
 		m.setProperty(Field.LEVEL_ADJUSTMENT.name(), blk.get(Field.LEVEL_ADJUSTMENT));
+
+		m.hitDice.updateBonusHPs(m);	// doing this last because it may use special attacks
 
 		return m;
 	}
@@ -323,8 +395,9 @@ public class StatsBlockCreatureView {
 //			}
 
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
-			int bab = StatisticsBlock.parseBAB(value);
-			creature.getBAB().setBaseValue(bab);
+			// XXX currently disabled as it's determined by hitdice
+			//int bab = StatisticsBlock.parseBAB(value);
+			//creature.getBAB().setBaseValue(bab);
 
 		} else if (field == Field.INITIATIVE) {
 			int init = StatisticsBlock.parseInitiativeModifier(value);
@@ -402,14 +475,15 @@ public class StatsBlockCreatureView {
 				if (t != SavingThrow.Type.WILL) s.append(", ");
 			}
 		} else if (field == Field.HITDICE) {
-			// TODO need to add con mod to this:
-			s.append(creature.hitDice).append(" (");
+			s.append(DiceList.toString(creature.hitDice.getValue())).append(" (");
 			if (creature.getHPStatistic().getValue() != creature.getHPStatistic().getMaximumHitPoints()) {
 				s.append(creature.getHPStatistic().getValue()).append("/");
 			}
 			s.append(creature.getHPStatistic().getMaximumHitPoints()).append(" hp)");
 		} else if (field == Field.SIZE_TYPE) {
 			s.append(creature.getSizeStatistic().getSize());
+			s.append(" ");
+			s.append(creature.race.getType());
 		} else if (field == Field.SPACE_REACH) {
 			s.append(creature.getSizeStatistic().getSpace() / 2);
 			if (creature.getSizeStatistic().getSpace() % 2 == 1) s.append("½");
@@ -419,21 +493,15 @@ public class StatsBlockCreatureView {
 		} else if (field == Field.FULL_ATTACK) {
 			s.append(getAttackHTML(creature.fullAttackList));
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
-			Attacks a = creature.getAttacksStatistic();
 			if (creature.getBAB().getValue() >= 0) s.append("+");
 			s.append(creature.getBAB().getValue()).append("/");
 
-			if (getStatsBlock() != null) {
-				Set<String> subtypes = getStatsBlock().getSubtypes();
-				if (subtypes.contains("Incorporeal") || subtypes.contains("Swarm")) {
-					s.append("—");
-				} else {
-					if (a.getGrappleValue() >= 0) s.append("+");
-					s.append(a.getGrappleValue());
-				}
+			if (creature.race.hasSubtype("Incorporeal") || creature.race.hasSubtype("Swarm")) {
+				s.append("—");
 			} else {
-				if (a.getGrappleValue() >= 0) s.append("+");
-				s.append(a.getGrappleValue());
+				int g = creature.getGrappleModifier().getValue();
+				if (g >= 0) s.append("+");
+				s.append(g);
 			}
 		}
 

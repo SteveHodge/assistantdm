@@ -8,7 +8,10 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -17,9 +20,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
@@ -52,8 +60,18 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r, final ElementFactory<MaskOptionsPanel> maskFactory) {
 		super(r);
+
+		Element mapNode = getMapNode(uri);
+		if (mapNode != null) {
+			try {
+				uri = new URI(mapNode.getAttribute("uri"));
+			} catch (URISyntaxException e1) {
+				e1.printStackTrace();
+			}
+		}
 		this.uri = uri;
-		String label = MediaManager.INSTANCE.getName(uri);
+
+		String label = MediaManager.INSTANCE.getFile(uri).getName();
 		element = new MapImage(label);
 		display.addElement(element, parent);
 		display.setMedia(element, MapImage.PROPERTY_IMAGE, uri);
@@ -160,6 +178,31 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.gridx = 0;
 		c.gridwidth = 2;
 		add(new JPanel(), c);
+
+		if (mapNode != null) parseMapNode(mapNode, maskFactory);
+	}
+
+	private Element getMapNode(URI uri) {
+		if (uri.getPath().endsWith(".map")) {
+			File file = MediaManager.INSTANCE.getFile(uri);
+			System.out.println("Opening map " + file.getAbsolutePath());
+
+			Document dom = null;
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			//InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
+			//factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
+			try {
+				dom = factory.newDocumentBuilder().parse(file);
+			} catch (SAXException | IOException | ParserConfigurationException ex) {
+				ex.printStackTrace();
+			}
+
+			if (dom != null) {
+				Element mapNode = dom.getDocumentElement();
+				if (mapNode.getNodeName().equals("Map")) return mapNode;
+			}
+		}
+		return null;
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -258,7 +301,36 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		}
 	};
 
-	// ---- XML serialisation methods ----
+	private void parseMapNode(Element e, ElementFactory<MaskOptionsPanel> maskFactory) {
+		display.setProperty(element, MapImage.PROPERTY_ASPECT_LOCKED, false, Mode.ALL);
+		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
+		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
+
+		if (e.hasAttribute(Group.PROPERTY_LOCATION)) {
+//			try {
+			String coords[] = e.getAttribute(Group.PROPERTY_LOCATION).split(",");
+			Double x = Double.parseDouble(coords[0]);
+			Double y = Double.parseDouble(coords[1]);
+			Point2D value = new Point2D.Double(x, y);
+			display.setProperty(element, Group.PROPERTY_LOCATION, value);
+//			} catch (NumberFormatException e) {
+//			}
+		}
+
+		NodeList nodes = e.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element el = (Element) nodes.item(i);
+			if (el.getTagName().equals("MaskSet")) {
+				if (mask == null) {
+					mask = maskFactory.addElement(element);
+				}
+				mask.parseDOM(el, this);
+			}
+		}
+	}
+
+// ---- XML serialisation methods ----
 	final static String XML_TAG = "Image";
 	final static String FILE_ATTRIBUTE_NAME = "uri";
 	private final static String CLEARED_CELL_LIST_ATTRIBUTE = "cleared_cells";
