@@ -1,6 +1,7 @@
 package gamesystem.dice;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 // CombinedDice is similar to DiceList except that it only accepts SimpleDice and it will combine dice of the same type
@@ -45,6 +46,20 @@ public class CombinedDice implements Dice {
 			roll += d.roll();
 		}
 		return roll;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof CombinedDice) {
+			CombinedDice d = (CombinedDice) o;
+			if (d.constant != constant) return false;
+			if (d.dice.size() != dice.size()) return false;
+			for (int t : dice.keySet()) {
+				if (!dice.get(t).equals(d.dice.get(t))) return false;
+			}
+			return true;
+		}
+		return false;
 	}
 
 	// TODO this should return the dice in a constant order
@@ -110,5 +125,36 @@ public class CombinedDice implements Dice {
 			}
 		}
 		return dice;
+	}
+
+	public static CombinedDice fromList(List<HDDice> list) {
+		CombinedDice dice = new CombinedDice();
+		for (HDDice d : list) {
+			dice.add(d);
+		}
+		return dice;
+	}
+
+	// Subtracts the dice in c2 that correspond to dice in this. Does not change any type that has more dice in c2 than in this. Returns a new ConstantDice containing any remaining dice from c2.
+	// The constant in c2 is always subtracted from this object's constant so the remainder's constant will always be 0.
+	CombinedDice subtract(CombinedDice c2) {
+		CombinedDice remainder = new CombinedDice();
+		for (int t : c2.dice.keySet()) {
+			SimpleDice d2 = c2.dice.get(t);
+			if (dice.containsKey(t)) {
+				SimpleDice d = dice.get(t);
+				if (d2.number == d.number) {
+					dice.remove(t);
+				} else if (d2.number < d.number) {
+					d.number -= d2.number;
+				} else {
+					remainder.add(new SimpleDice(d2.number, t));
+				}
+			} else {
+				remainder.add(new SimpleDice(d2.number, t));
+			}
+		}
+		constant -= c2.constant;
+		return remainder;
 	}
 }

@@ -3,7 +3,6 @@ package gamesystem;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
-import monsters.HitDice;
 import monsters.Monster.MonsterAttackRoutine;
 import party.CharacterAttackForm;
 
@@ -17,7 +16,7 @@ public interface CreatureProcessor {
 
 	public void processAC(AC a);
 
-	public void processAttacks(Attacks a);
+	public void processAttacks(Attacks a, GrappleModifier g);
 
 	public void processHPs(HPs hps);
 
@@ -31,7 +30,7 @@ public interface CreatureProcessor {
 
 	public void processSize(Size size);
 
-	public void processFeat(Buff buff);
+	public void processFeat(Feat feat);
 
 	public void processLevel(Levels level);
 
@@ -47,5 +46,5 @@ public interface CreatureProcessor {
 
 	public void processMonsterFullAttackForm(MonsterAttackRoutine a);
 
-	public void processHitdice(HitDice hitDice);
+	public void processHitdice(HitDiceProperty hitDice);
 }

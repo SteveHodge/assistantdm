@@ -4,15 +4,26 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
+import gamesystem.BAB;
 import gamesystem.Buff;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
+import gamesystem.Feat;
+import gamesystem.GrappleModifier;
 import gamesystem.HPs;
+import gamesystem.HitDiceProperty;
 import gamesystem.InitiativeModifier;
+import gamesystem.Levels;
 import gamesystem.Modifier;
+import gamesystem.MonsterType;
+import gamesystem.Race;
+import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
-import gamesystem.core.ValueProperty;
+import gamesystem.Skills;
+import gamesystem.core.Property;
+import gamesystem.core.Property.PropertyEvent;
+import gamesystem.core.Property.PropertyListener;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -33,7 +44,7 @@ public class Monster extends Creature {
 
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
-	HitDice hitDice;	// TODO should be notified
+	public List<Feat> feats = new ArrayList<Feat>();			// applied feats	// TODO should not be public. should be notified
 
 	// this listener forwards events from Statstics as property changes
 	private PropertyChangeListener statListener = new PropertyChangeListener() {
@@ -43,6 +54,7 @@ public class Monster extends Creature {
 				pcs.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
 			} else if (evt.getSource() == size) {
 				if (evt.getPropertyName().equals("value")) {
+					hitDice.updateBonusHPs(Monster.this);
 					pcs.firePropertyChange(PROPERTY_SIZE, evt.getOldValue(), evt.getNewValue());
 				} else if (evt.getPropertyName().equals("space")) {
 					pcs.firePropertyChange(PROPERTY_SPACE, evt.getOldValue(), evt.getNewValue());
@@ -96,16 +108,29 @@ public class Monster extends Creature {
 		initiative.setBaseValue(0);
 		initiative.addPropertyChangeListener(statListener);
 
+		race = new Race();
+		race.addPropertyListener(new PropertyListener<String>() {
+			@Override
+			public void valueChanged(PropertyEvent<String> event) {
+				hitDice.updateBonusHPs(Monster.this);
+			}
+
+			@Override
+			public void compositionChanged(PropertyEvent<String> event) {
+				hitDice.updateBonusHPs(Monster.this);
+			}
+		});
+		level = new Levels();
+		hitDice = new HitDiceProperty(race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
+
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), null);
-			s.setBaseOverride(0);
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
+			//s.setBaseOverride(0);
 			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
 
-		hitDice = HitDice.parse("1d8");
-
-		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), hitDice);
+		hps = new HPs(hitDice);
 		hps.setMaximumHitPoints(0);
 		hps.addPropertyChangeListener(statListener);
 
@@ -134,7 +159,12 @@ public class Monster extends Creature {
 		}
 		ac.addPropertyChangeListener(statListener);
 
-		bab = new ValueProperty<Integer>(0);
+		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
+		skills.addPropertyChangeListener(statListener);
+
+		bab = new BAB(race, level);
+
+		grapple = new GrappleModifier(bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
 		attacks = new Attacks(this);
 		// TODO size modifier to attack needs to be setup correctly
@@ -145,13 +175,37 @@ public class Monster extends Creature {
 		attacks.addPropertyChangeListener(statListener);
 	}
 
-	public HitDice getHitDice() {
+	public HitDiceProperty getHitDice() {
 		return hitDice;
 	}
 
 	@Override
-	public ValueProperty<Integer> getBAB() {
-		return (ValueProperty<Integer>) bab;
+	public Property<Integer> getBAB() {
+		return bab;
+	}
+
+	// TODO will want store progression for some monsters eventually
+	SaveProgression getSaveProgression(SavingThrow.Type type) {
+		MonsterType t = race.getType();
+		if (t == MonsterType.ELEMENTAL) {
+			if (type == SavingThrow.Type.FORTITUDE && (race.hasSubtype("Earth") || race.hasSubtype("Water"))) return SaveProgression.FAST;
+			if (type == SavingThrow.Type.REFLEX && (race.hasSubtype("Air") || race.hasSubtype("Fire"))) return SaveProgression.FAST;
+		}
+		return t.getProgression(type);
+	}
+
+	// used for testing progression
+	public int getSaveUsingProgression(SavingThrow.Type type, SaveProgression progression) {
+		int value = getSavingThrowStatistic(type).getModifiersTotal();
+		//System.out.println("Evaluating " + type + " using " + progression + " progression");
+		//System.out.println("modifiers = " + value);
+		if (hitDice.hasRaceHD()) {
+			value += progression.getBaseSave(race.getHitDiceCount());
+			//System.out.println("racial (" + race.getHitDiceCount() + " HD) = " + progression.getBaseSave(race.getHitDiceCount()));
+		}
+		value += level.getBaseSave(type);
+		//System.out.println("level = " + level.getBaseSave(type));
+		return value;
 	}
 
 	public class MonsterAttackRoutine {
@@ -264,13 +318,6 @@ public class Monster extends Creature {
 		}
 	}
 
-	public void setHitDice(HitDice hd) {
-		// TODO should check con bonus is applied correctly
-		hitDice = hd;
-		hps.setHitDice(hitDice);
-		hps.setMaximumHitPoints((int) hitDice.getMeanRoll());
-	}
-
 	public boolean isEditable() {
 		return true;
 	}
@@ -299,11 +346,50 @@ public class Monster extends Creature {
 	public boolean hasFeat(String feat) {
 		if (feat == null) return false;
 		String f = feat.toLowerCase();
+		// check recognised feats
+		for (Feat ff : feats) {
+			if (ff.getName().equals(name)) return true;
+		}
+		// check other feats and properties
 		String feats = (String) getProperty(Field.FEATS.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		feats = (String) getProperty(Field.SPECIAL_QUALITIES.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		return false;
+	}
+
+	@Override
+	public void addFeat(Feat f) {
+		feats.add(f);
+	}
+
+	// returns the counts of regular feats and bonus feats parsed from the FEATS property. Does not consider the feats member.
+	public int[] countFeats() {
+		int[] counts = { 0, 0 };
+		String list = (String) getProperty(Field.FEATS.name());
+		if (list == null || list.equals("—")) return counts;
+
+		String[] feats = list.split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
+		for (String f : feats) {
+			int count = 1;
+			boolean bonus = false;
+			f.trim();
+			if (f.endsWith("B")) {
+				f = f.substring(0, f.length() - 1);
+				bonus = true;
+			}
+			if (f.contains("(")) {
+				try {
+					count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
+				} catch (NumberFormatException e) {
+					// assume if it's not a number then it's a subtype list
+					count = f.substring(f.indexOf("(") + 1, f.indexOf(")")).split(",").length;
+				}
+				f = f.substring(0, f.indexOf("(")).trim();
+			}
+			counts[bonus ? 1 : 0] += count;
+		}
+		return counts;
 	}
 
 	@Override
@@ -335,7 +421,8 @@ public class Monster extends Creature {
 			processor.processAbilityScore(s);
 		}
 
-		processor.processHitdice(hitDice);
+//		processor.processHitdice(hitDice);
+		// FIXME need to process level and race
 		processor.processHPs(hps);
 		processor.processInitiative(initiative);
 		processor.processSize(size);
@@ -347,7 +434,7 @@ public class Monster extends Creature {
 
 		processor.processAC(ac);
 
-		processor.processAttacks(attacks);
+		processor.processAttacks(attacks, grapple);
 		for (MonsterAttackRoutine a : attackList) {
 			processor.processMonsterAttackForm(a);
 		}

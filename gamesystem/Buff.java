@@ -38,7 +38,7 @@ public class Buff {
 		String description;
 	}
 
-	final static Map<String,String> TARGET_DESC;
+	final static Map<String, String> TARGET_DESC;
 	static {
 		HashMap<String, String> map = new HashMap<>();
 		map.put(Creature.STATISTIC_STRENGTH, AbilityScore.Type.STRENGTH.toString());
@@ -48,18 +48,18 @@ public class Buff {
 		map.put(Creature.STATISTIC_CONSTITUTION, AbilityScore.Type.CONSTITUTION.toString());
 		map.put(Creature.STATISTIC_CHARISMA, AbilityScore.Type.CHARISMA.toString());
 		map.put(Creature.STATISTIC_SAVING_THROWS, "saves");
-		map.put(Creature.STATISTIC_FORTITUDE_SAVE, SavingThrow.Type.FORTITUDE+" save");
-		map.put(Creature.STATISTIC_WILL_SAVE, SavingThrow.Type.WILL+" save");
-		map.put(Creature.STATISTIC_REFLEX_SAVE, SavingThrow.Type.REFLEX+" save");
+		map.put(Creature.STATISTIC_FORTITUDE_SAVE, SavingThrow.Type.FORTITUDE + " save");
+		map.put(Creature.STATISTIC_WILL_SAVE, SavingThrow.Type.WILL + " save");
+		map.put(Creature.STATISTIC_REFLEX_SAVE, SavingThrow.Type.REFLEX + " save");
 		map.put(Creature.STATISTIC_SKILLS, "skills");
 		map.put(Creature.STATISTIC_AC, "AC");
 		map.put(Creature.STATISTIC_ARMOR, "armor");
 		map.put(Creature.STATISTIC_SHIELD, "shield");
 		map.put(Creature.STATISTIC_NATURAL_ARMOR, "natural_armor");
-		map.put(Creature.STATISTIC_INITIATIVE, "Initiative");
+		map.put(Creature.STATISTIC_INITIATIVE, "initiative");
 		map.put(Creature.STATISTIC_ATTACKS, "attack rolls");
 		map.put(Creature.STATISTIC_DAMAGE, "damage");
-		map.put(Creature.STATISTIC_HPS,"temporary hit points");
+		map.put(Creature.STATISTIC_HPS, "temporary hit points");
 		TARGET_DESC = Collections.unmodifiableMap(map);
 	}
 
@@ -165,14 +165,14 @@ public class Buff {
 
 	public static String getTargetDescription(String target) {
 		String d = TARGET_DESC.get(target);
-		if (target.startsWith(Creature.STATISTIC_SKILLS+".")) {
-			return target.substring(Creature.STATISTIC_SKILLS.length()+1);
+		if (target.startsWith(Creature.STATISTIC_SKILLS + ".")) {
+			return target.substring(Creature.STATISTIC_SKILLS.length() + 1);
 		}
 		if (d != null) return d;
 		return target;
 	}
 
-	protected Statistic[] getTargetStats(Creature c, String target) {
+	protected static Statistic[] getTargetStats(Creature c, String target) {
 		Statistic[] stats;
 		if (target.equals(Creature.STATISTIC_SAVING_THROWS)) {
 			stats = new Statistic[3];

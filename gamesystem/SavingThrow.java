@@ -1,5 +1,11 @@
 package gamesystem;
 
+import gamesystem.core.Property.PropertyEvent;
+import gamesystem.core.Property.PropertyListener;
+import gamesystem.dice.HDDice;
+
+import java.util.List;
+
 public class SavingThrow extends Statistic {
 	public enum Type {
 		FORTITUDE("Fortitude", "Fort", AbilityScore.Type.CONSTITUTION),
@@ -34,20 +40,38 @@ public class SavingThrow extends Statistic {
 	}
 
 	final private Type type;
-	private Levels level;
+	private HitDiceProperty hitdice;
 	private int baseValue = -1;		// base value override (-1 means no override)
 
 	// TODO verify that the ability is the correct one. alternatively pass all ability scores (that would allow the rules for non-abilities to be applied)
-	public SavingThrow(Type type, AbilityScore ability, Levels lvl) {
+	public SavingThrow(Type type, AbilityScore ability, HitDiceProperty hd) {
 		super(type.toString());
 		this.type = type;
 		if (ability != null) addModifier(ability.getModifier());
-		level = lvl;
-		if (level != null) {
-			level.addPropertyChangeListener((e) -> {
-				pcs.firePropertyChange("value", null, getValue());
+		setHitDice(hd);
+	}
+
+	public void setHitDice(HitDiceProperty hd) {
+		hitdice = hd;
+		if (hitdice != null) {
+			hitdice.addPropertyListener(new PropertyListener<List<HDDice>>() {
+				@Override
+				public void valueChanged(PropertyEvent<List<HDDice>> event) {
+					pcs.firePropertyChange("value", null, getValue());
+				}
+
+				@Override
+				public void compositionChanged(PropertyEvent<List<HDDice>> event) {
+					pcs.firePropertyChange("value", null, getValue());
+				}
 			});
 		}
+	}
+
+	public int getNonOverrideValue() {
+		int value = super.getValue();
+		if (hitdice != null) value += hitdice.getBaseSave(type);
+		return value;
 	}
 
 	public Type getType() {
@@ -61,14 +85,14 @@ public class SavingThrow extends Statistic {
 
 	// gets the current base value - either the level derived value or the override if any
 	public int getBaseValue() {
-		if (level != null && baseValue == -1) return level.getBaseSave(type);
+		if (hitdice != null && baseValue == -1) return hitdice.getBaseSave(type);
 		return baseValue;
 	}
 
 	// gets the base save for the character level
 	public int getCalculatedBase() {
-		if (level == null) return 0;
-		return level.getBaseSave(type);
+		if (hitdice == null) return 0;
+		return hitdice.getBaseSave(type);
 	}
 
 	public void setBaseOverride(int v) {

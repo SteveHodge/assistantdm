@@ -1,6 +1,7 @@
 package party;
 
 import gamesystem.Buff;
+import gamesystem.Feat;
 import gamesystem.SavingThrow;
 import gamesystem.XMLParserHelper;
 import gamesystem.XP;
@@ -53,7 +54,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 				parseInitiativeModifier(e, c);
 
 			} else if (tag.equals("Level")) {
-				parseLevel(e, c.level);
+				parseLevel(e, c.level, c);
 				c.xp = Integer.parseInt(e.getAttribute("xp"));
 				NodeList awards = e.getChildNodes();
 				for (int j = 0; j < awards.getLength(); j++) {
@@ -120,9 +121,8 @@ public class XMLCharacterParser extends XMLParserHelper {
 				NodeList children = e.getChildNodes();
 				for (int j = 0; j < children.getLength(); j++) {
 					if (children.item(j).getNodeName().equals("Feat")) {
-						if (!children.item(j).getNodeName().equals("Feat")) continue;
-						Buff b = parseBuff((Element) children.item(j));
-						b.applyBuff(c);
+						Feat b = parseFeat((Element) children.item(j));
+						b.apply(c);
 						c.feats.addElement(b);
 					}
 				}

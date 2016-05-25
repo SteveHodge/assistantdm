@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Window;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -18,6 +21,11 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.html.HTMLDocument;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 @SuppressWarnings("serial")
 public class MonsterFrame extends JFrame {
@@ -37,6 +45,24 @@ public class MonsterFrame extends JFrame {
 	}
 
 	private void createFrame(String info, URL url) {
+		String html = null;
+		try {
+			if (url.getFile().endsWith(".xml")) {
+				File xmlFile = new File(url.toURI());
+				File stylesheet = new File(xmlFile.getParent() + "/Monster.xsl");
+				Transformer transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(stylesheet));
+				StringWriter output = new StringWriter();
+				transformer.transform(new StreamSource(xmlFile), new StreamResult(output));
+				html = output.toString();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		JPanel topPanel = new JPanel();
+		topPanel.setLayout(new BorderLayout());
+		topPanel.add(new JLabel(info), BorderLayout.NORTH);
+
 		JPanel buttons = new JPanel();
 		buttons.setLayout(new GridLayout(0, 5));
 		List<StatisticsBlock> blocks = StatisticsBlock.parseURL(url);
@@ -44,13 +70,9 @@ public class MonsterFrame extends JFrame {
 			JButton button = new AddMonsterButton(block);
 			buttons.add(button);
 		}
-
-		JPanel topPanel = new JPanel();
-		topPanel.setLayout(new BorderLayout());
-		topPanel.add(new JLabel(info), BorderLayout.NORTH);
 		topPanel.add(buttons);
+		JEditorPane p = createWebPanel(url, html);
 
-		JEditorPane p = createWebPanel(url);
 		JScrollPane sp = new JScrollPane(p);
 		sp.setSize(new Dimension(800, 600));
 		sp.setPreferredSize(new Dimension(800, 600));
@@ -62,7 +84,7 @@ public class MonsterFrame extends JFrame {
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 	}
 
-	private JEditorPane createWebPanel(URL url) {
+	private JEditorPane createWebPanel() {
 		JEditorPane p = new JEditorPane();
 		p.setEditable(false);
 		p.addHyperlinkListener(e -> {
@@ -91,9 +113,27 @@ public class MonsterFrame extends JFrame {
 				ex.printStackTrace();
 			}
 		});
+		return p;
+	}
+
+	private JEditorPane createWebPanel(URL url, String html) {
+		if (html == null) return createWebPanel(url);
+
+		JEditorPane p = createWebPanel();
+		p.setContentType("text/html; charset=utf-8");
+		p.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
+		if (p.getDocument() instanceof HTMLDocument) {
+			((HTMLDocument) p.getDocument()).setBase(url);
+		}
+		p.setText(html);
+		return p;
+	}
+
+	private JEditorPane createWebPanel(URL url) {
+		JEditorPane p = createWebPanel();
 		try {
 			p.setPage(url);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return p;

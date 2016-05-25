@@ -2,6 +2,7 @@ package ui;
 
 import gamesystem.Buff;
 import gamesystem.Feat;
+import gamesystem.Feat.FeatDefinition;
 
 import java.awt.GridLayout;
 import java.util.Arrays;
@@ -25,30 +26,29 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		super(c);
 		setLayout(new GridLayout(0,2));
 
-		Feat[] availableFeats = Arrays.copyOf(Feat.FEATS, Feat.FEATS.length);
+		FeatDefinition[] availableFeats = Arrays.copyOf(Feat.FEATS, Feat.FEATS.length);
 		Arrays.sort(availableFeats, (a, b) -> a.name.compareTo(b.name));
 		FeatListModel bfModel = new FeatListModel(availableFeats);
-		final JListWithToolTips<Feat> feats = new JListWithToolTips<>(bfModel);
+		final JListWithToolTips<FeatDefinition> feats = new JListWithToolTips<>(bfModel);
 		feats.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		feats.setVisibleRowCount(20);
 
-		final JListWithToolTips<Buff> chosen = new JListWithToolTips<>(character.feats);
+		final JListWithToolTips<Feat> chosen = new JListWithToolTips<>(character.feats);
 		chosen.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		chosen.setVisibleRowCount(8);
 
 		JButton apply = new JButton("Take Feat");
 		apply.addActionListener(e -> SwingUtilities.invokeLater(() -> {
 			// need to invoke this code later since it involves a modal dialog
-			Feat bf = feats.getSelectedValue();
-			Buff buff = applyFeat(bf);
-			character.feats.addElement(buff);
+			Feat feat = applyFeat(feats.getSelectedValue());
+			character.feats.addElement(feat);
 		}));
 
 		JButton remove = new JButton("Untake Feat");
 		remove.addActionListener(e -> {
-			for (Buff b : chosen.getSelectedValuesList()) {
-				b.removeBuff(character);
-				character.feats.removeElement(b);
+			for (Feat f : chosen.getSelectedValuesList()) {
+				f.remove(character);
+				character.feats.removeElement(f);
 			}
 		});
 
@@ -70,20 +70,20 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		add(right);
 	}
 
-	protected Buff applyFeat(Feat bf) {
-		Buff buff = bf.getBuff();
-		buff.applyBuff(character);
-		return buff;
+	protected Feat applyFeat(FeatDefinition bf) {
+		Feat feat = bf.getFeat();
+		feat.apply(character);
+		return feat;
 	}
 
-	public static class FeatListModel extends DefaultListModel<Feat> implements ListModelWithToolTips<Feat> {
+	public static class FeatListModel extends DefaultListModel<FeatDefinition> implements ListModelWithToolTips<FeatDefinition> {
 		public FeatListModel() {
 			super();
 		}
 
-		public FeatListModel(Feat[] buffs) {
+		public FeatListModel(FeatDefinition[] buffs) {
 			super();
-			for (Feat bf : buffs) {
+			for (FeatDefinition bf : buffs) {
 				addElement(bf);
 			}
 		}
@@ -92,8 +92,8 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		public String getToolTipAt(int index) {
 			if (index < 0) return null;
 			Object o = get(index);
-			if (o instanceof Feat) {
-				return ((Feat)o).getDescription();
+			if (o instanceof FeatDefinition) {
+				return ((FeatDefinition)o).getDescription();
 			} else if (o instanceof Buff) {
 				return ((Buff)o).getDescription();
 			}

@@ -1,5 +1,15 @@
 package gamesystem;
 
+import gamesystem.ClassFeature.ClassFeatureDefinition;
+import gamesystem.Feat.FeatDefinition;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+
 public enum CharacterClass {
 	// basic classes
 	BARBARIAN("Barbarian", 12, BABProgression.FAST, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW),
@@ -76,6 +86,14 @@ public enum CharacterClass {
 		return null;
 	}
 
+	public Set<LevelUpAction> getActions(int level) {
+		Set<LevelUpAction> actions = new HashSet<>();
+		for (LevelUpAction a : levelUpActions) {
+			if (a.level == level) actions.add(a);
+		}
+		return actions;
+	}
+
 	private CharacterClass(String name, int hitdice, BABProgression bab, SaveProgression fort, SaveProgression ref, SaveProgression will) {
 		this.name = name;
 		this.hitdice = hitdice;
@@ -85,8 +103,501 @@ public enum CharacterClass {
 		this.will = will;
 	}
 
+	private void addAction(int level, LevelUpAction action) {
+		action.level = level;
+		levelUpActions.add(action);
+	}
+
 	private String name;
 	private int hitdice;
 	private BABProgression bab;
 	private SaveProgression fortitude, reflex, will;
+
+	private List<LevelUpAction> levelUpActions = new ArrayList<LevelUpAction>();
+
+	// addAction adds a level up action to a class
+	// actions are executed to perform the required modification to the character. actions can have parameters
+
+	public abstract static class LevelUpAction {
+		int level;
+
+		public abstract void apply(Creature c);
+	}
+
+	public static class ClassOption {
+		public String id;
+		String[] options;
+		public String selection;
+
+		public ClassOption(String id) {
+			this.id = id;
+		}
+	}
+
+	static class AddBonusFeatAction extends LevelUpAction {
+		String id;
+		boolean requirePrereqs = true;
+		String[] options;
+
+		AddBonusFeatAction(boolean preqs, String[] options) {
+			this(null, preqs, options);
+		}
+
+		AddBonusFeatAction(String id, boolean preqs, String[] options) {
+			this.id = id;
+			requirePrereqs = preqs;
+			this.options = options;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%d: AddBonusFeatAction(reqPreqs = %b, options = [%s])", level, requirePrereqs, String.join(", ", options));
+		}
+
+		@Override
+		public void apply(Creature c) {
+			String selection = null;
+			ClassOption opt = c.classOptions.get(id);
+
+			if (options.length == 1) {
+				selection = options[0];
+			} else {
+				if (opt != null) {
+					if (Arrays.asList(options).contains(opt.selection)) {
+						selection = opt.selection;
+						System.out.println("Found selection for " + opt.id + " = " + selection);
+					} else {
+						// opt.selection is invalid, reset it. note selection should still be null
+						opt.selection = null;
+					}
+				} else {
+					opt = new ClassOption(id);
+					opt.options = options;	// TODO perhaps should filter options are aren't selectable (e.g. preqs are required and no fullfilled), but then we'll need to reset this each time
+					c.classOptions.put(id, opt);
+				}
+				// TODO if there is only one reasonable option (because other feats are taken) and we don't already have a selection then automatically select it
+				// TODO think I'll need to reset options each time (as they may be missing on load)?
+			}
+
+			if (selection != null) {
+				System.out.println("Selected feat = " + selection);
+				// find the Feat
+				FeatDefinition feat = null;
+				for (FeatDefinition f : Feat.FEATS) {
+					if (f.name.equals(selection)) {
+						feat = f;
+						break;
+					}
+				}
+				if (feat != null) {
+					Feat f = feat.getFeat();
+					f.bonus = true;
+					c.addFeat(f);
+				} else {
+					System.err.println("Could not find feat " + options[0]);
+				}
+			}
+		}
+	}
+
+	// will not add duplicate features
+	static class AddFeatureAction extends LevelUpAction {
+		ClassFeatureDefinition factory;
+
+		AddFeatureAction(String feature) {
+			this.factory = ClassFeatureDefinition.findFeatureFactory(feature);
+			if (this.factory == null) throw new IllegalArgumentException("Unknown feature " + feature);
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%d: AddFeatureAction(%s)", level, factory.name);
+		}
+
+		@Override
+		public void apply(Creature c) {
+			if (c.getClassFeature(factory.id) == null) c.addClassFeature(factory.getFeature(c));
+		}
+	}
+
+	static class RemoveFeatureAction extends LevelUpAction {
+		String feature;
+
+		RemoveFeatureAction(String feature) {
+			if (ClassFeatureDefinition.findFeatureFactory(feature) == null) throw new IllegalArgumentException("Unknown feature " + feature);
+			this.feature = feature;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%d: RemoveFeatureAction(%s)", level, feature);
+		}
+
+		@Override
+		public void apply(Creature c) {
+			c.removeClassFeature(feature);
+		}
+	}
+
+	static class SetParameterAction extends LevelUpAction {
+		String feature;
+		String parameter;
+		Object value;
+
+		SetParameterAction(String feature, String param, Object value) {
+			if (ClassFeatureDefinition.findFeatureFactory(feature) == null) throw new IllegalArgumentException("Unknown feature " + feature);
+			this.feature = feature;
+			parameter = param;
+			this.value = value;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%d: SetParameterAction(feature = %s, parameter = %s, value = %s)", level, feature, parameter, value.toString());
+		}
+
+		@Override
+		public void apply(Creature c) {
+			c.setClassFeatureParameter(feature, parameter, value);
+		}
+	}
+
+	static class IfFeatureExistsAction extends LevelUpAction {
+		String ifFeature;
+		LevelUpAction thenAction;
+		LevelUpAction elseAction;
+
+		IfFeatureExistsAction(String ifFeat, LevelUpAction thenAct) {
+			this(ifFeat, thenAct, null);
+		}
+
+		IfFeatureExistsAction(String ifFeat, LevelUpAction thenAct, LevelUpAction elseAct) {
+			if (ClassFeatureDefinition.findFeatureFactory(ifFeat) == null) throw new IllegalArgumentException("Unknown feature " + ifFeat);
+			ifFeature = ifFeat;
+			thenAction = thenAct;
+			elseAction = elseAct;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%d: IfFeatureExists(%s, %s, %s)", level, ifFeature, thenAction == null ? "" : thenAction.toString(), elseAction == null ? "" : elseAction.toString());
+		}
+
+		@Override
+		public void apply(Creature c) {
+			if (c.getClassFeature(ifFeature) != null) {
+				if (thenAction != null) thenAction.apply(c);
+			} else {
+				if (elseAction != null) elseAction.apply(c);
+			}
+		}
+	}
+
+	//TODO monk Armor Restriction: If wearing ANY armor or carrying a shield, you lose your Wisdom bonus to AC, fast movement and flurry of blows abilities.
+	// TODO ChooseFeatureAction
+	static {
+		try {
+			BARBARIAN.addAction(1, new AddFeatureAction("barbarian_fast_movement"));
+			BARBARIAN.addAction(1, new AddFeatureAction("illiteracy"));
+			BARBARIAN.addAction(2, new IfFeatureExistsAction("uncanny_dodge", new AddFeatureAction("improved_uncanny_dodge"), new AddFeatureAction("uncanny_dodge")));
+			BARBARIAN.addAction(5, new AddFeatureAction("improved_uncanny_dodge"));
+			BARBARIAN.addAction(14, new AddFeatureAction("indomitable_will"));
+			BARBARIAN.addAction(17, new AddFeatureAction("tireless_rage"));
+
+			BARBARIAN.addAction(1, new AddFeatureAction("rage"));
+			BARBARIAN.addAction(4, new SetParameterAction("rage", "times", "2 times"));
+			BARBARIAN.addAction(8, new SetParameterAction("rage", "times", "3 times"));
+			BARBARIAN.addAction(12, new SetParameterAction("rage", "times", "4 times"));
+			BARBARIAN.addAction(16, new SetParameterAction("rage", "times", "5 times"));
+			BARBARIAN.addAction(20, new SetParameterAction("rage", "times", "6 times"));
+			BARBARIAN.addAction(11, new SetParameterAction("rage", "ability_bonus", 6));
+			BARBARIAN.addAction(11, new SetParameterAction("rage", "save_bonus", 3));
+			BARBARIAN.addAction(20, new SetParameterAction("rage", "ability_bonus", 8));
+			BARBARIAN.addAction(20, new SetParameterAction("rage", "save_bonus", 4));
+
+			BARBARIAN.addAction(3, new AddFeatureAction("trap_sense"));
+			BARBARIAN.addAction(6, new SetParameterAction("trap_sense", "bonus", 2));
+			BARBARIAN.addAction(9, new SetParameterAction("trap_sense", "bonus", 3));
+			BARBARIAN.addAction(12, new SetParameterAction("trap_sense", "bonus", 4));
+			BARBARIAN.addAction(15, new SetParameterAction("trap_sense", "bonus", 5));
+			BARBARIAN.addAction(18, new SetParameterAction("trap_sense", "bonus", 6));
+
+			BARBARIAN.addAction(7, new AddFeatureAction("damage_reduction"));
+			BARBARIAN.addAction(10, new SetParameterAction("damage_reduction", "dr", 2));
+			BARBARIAN.addAction(13, new SetParameterAction("damage_reduction", "dr", 3));
+			BARBARIAN.addAction(16, new SetParameterAction("damage_reduction", "dr", 4));
+			BARBARIAN.addAction(19, new SetParameterAction("damage_reduction", "dr", 5));
+
+			BARD.addAction(1, new AddFeatureAction("bardic_knowledge"));
+			BARD.addAction(1, new AddFeatureAction("bardic_music"));
+			BARD.addAction(1, new AddFeatureAction("countersong"));
+
+			BARD.addAction(1, new AddFeatureAction("fascinate"));
+			BARD.addAction(4, new SetParameterAction("fascinate", "targets", 2));
+			BARD.addAction(7, new SetParameterAction("fascinate", "targets", 3));
+			BARD.addAction(10, new SetParameterAction("fascinate", "targets", 4));
+			BARD.addAction(13, new SetParameterAction("fascinate", "targets", 5));
+			BARD.addAction(16, new SetParameterAction("fascinate", "targets", 6));
+			BARD.addAction(19, new SetParameterAction("fascinate", "targets", 7));
+
+			BARD.addAction(3, new AddFeatureAction("inspire_competence"));
+			BARD.addAction(6, new AddFeatureAction("suggestion"));
+
+			BARD.addAction(9, new AddFeatureAction("inspire_greatness"));
+			BARD.addAction(12, new SetParameterAction("inspire_greatness", "targets", 2));
+			BARD.addAction(15, new SetParameterAction("inspire_greatness", "targets", 3));
+			BARD.addAction(18, new SetParameterAction("inspire_greatness", "targets", 4));
+
+			BARD.addAction(12, new AddFeatureAction("song_of_freedom"));
+			BARD.addAction(15, new AddFeatureAction("inspire_heroics"));
+			BARD.addAction(18, new SetParameterAction("inspire_heroics", "targets", 2));
+
+			BARD.addAction(18, new AddFeatureAction("mass_suggestion"));
+
+			BARD.addAction(1, new AddFeatureAction("inspire_courage"));
+			BARD.addAction(8, new SetParameterAction("inspire_courage", "bonus", 2));
+			BARD.addAction(14, new SetParameterAction("inspire_courage", "bonus", 3));
+			BARD.addAction(20, new SetParameterAction("inspire_courage", "bonus", 4));
+
+			CLERIC.addAction(1, new AddFeatureAction("aura"));
+			CLERIC.addAction(2, new SetParameterAction("aura", "strength", "a moderate"));
+			CLERIC.addAction(5, new SetParameterAction("aura", "strength", "a strong"));
+			CLERIC.addAction(11, new SetParameterAction("aura", "strength", "an overwhelming"));
+
+			CLERIC.addAction(1, new AddFeatureAction("cleric_spells"));
+			CLERIC.addAction(1, new AddFeatureAction("cleric_spontaneous"));
+			CLERIC.addAction(1, new AddFeatureAction("turning"));
+
+			DRUID.addAction(1, new AddFeatureAction("druid_spells"));
+			DRUID.addAction(1, new AddFeatureAction("druid_spontaneous"));
+			DRUID.addAction(1, new AddFeatureAction("animal_companion"));
+			DRUID.addAction(1, new AddFeatureAction("nature_sense"));
+			DRUID.addAction(1, new AddFeatureAction("wild_empathy"));
+			DRUID.addAction(2, new AddFeatureAction("woodland_stride"));
+			DRUID.addAction(3, new AddFeatureAction("trackless_step"));
+			DRUID.addAction(4, new AddFeatureAction("resist_natures_lure"));
+			DRUID.addAction(9, new AddFeatureAction("venom_immunity"));
+			DRUID.addAction(13, new AddFeatureAction("thousand_faces"));
+			DRUID.addAction(15, new AddFeatureAction("timeless_body"));
+
+			DRUID.addAction(5, new AddFeatureAction("wild_shape"));
+			DRUID.addAction(8, new SetParameterAction("wild_shape", "size", "small, medium, or large"));
+			DRUID.addAction(11, new SetParameterAction("wild_shape", "size", "tiny, small, medium, or large"));
+			DRUID.addAction(15, new SetParameterAction("wild_shape", "size", "tiny, small, medium, large, or huge"));
+			DRUID.addAction(12, new SetParameterAction("wild_shape", "type", "animal or plant"));
+			DRUID.addAction(6, new SetParameterAction("wild_shape", "frequency", "2 times"));
+			DRUID.addAction(7, new SetParameterAction("wild_shape", "frequency", "3 times"));
+			DRUID.addAction(10, new SetParameterAction("wild_shape", "frequency", "4 times"));
+			DRUID.addAction(14, new SetParameterAction("wild_shape", "frequency", "5 times"));
+			DRUID.addAction(18, new SetParameterAction("wild_shape", "frequency", "6 times"));
+
+			DRUID.addAction(16, new AddFeatureAction("elemental_shape"));
+			DRUID.addAction(18, new SetParameterAction("elemental_shape", "size", "small, medium, large, or huge"));
+			DRUID.addAction(18, new SetParameterAction("elemental_shape", "frequency", "2 times"));
+			DRUID.addAction(20, new SetParameterAction("elemental_shape", "frequency", "3 times"));
+
+			final String[] fighterBonusFeats = {
+					"Improved Initiative", "Exotic Weapon Proficiency", Feat.FEAT_COMBAT_EXPERTISE, "Rapid Shot",
+					"Manyshot", Feat.FEAT_POWER_ATTACK, Feat.FEAT_TWO_WEAPON_FIGHTING,
+					Feat.FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Feat.FEAT_GREATER_TWO_WEAPON_FIGHTING,
+					Feat.FEAT_WEAPON_FINESSE, "Weapon Focus", "Greater Weapon Focus", "Dodge",
+					"Improved Shield Bash", "Two-Weapon Defense", "Improved Critical", "Weapon Specialization",
+					"Greater Weapon Specialization", "Improved Unarmed Strike", "Improved Grapple", "Blind-Fight",
+					"Improved Disarm", "Improved Feint", "Improved Trip", "Whirlwind Attack", "Combat Reflexes",
+					"Mobility", "Spring Attack", "Deflect Arrows", "Snatch Arrows", "Stunning Fist",
+					"Mounted Combat", "Mounted Archery", "Ride-By Attack", "Trample", "Spirited Charge",
+					"Point Blank Shot", "Far Shot", "Precise Shot", "Improved Precise Shot", "Shot on the Run",
+					"Cleave", "Great Cleave", "Improved Bull Rush", "Improved Overrun", "Improved Sunder",
+					"Rapid Reload", "Quick Draw"
+			};
+
+			FIGHTER.addAction(1, new AddBonusFeatAction("fighter_bonus_1", true, fighterBonusFeats));
+			FIGHTER.addAction(2, new AddBonusFeatAction("fighter_bonus_2", true, fighterBonusFeats));
+			FIGHTER.addAction(4, new AddBonusFeatAction("fighter_bonus_4", true, fighterBonusFeats));
+			FIGHTER.addAction(6, new AddBonusFeatAction("fighter_bonus_6", true, fighterBonusFeats));
+			FIGHTER.addAction(8, new AddBonusFeatAction("fighter_bonus_8", true, fighterBonusFeats));
+			FIGHTER.addAction(10, new AddBonusFeatAction("fighter_bonus_10", true, fighterBonusFeats));
+			FIGHTER.addAction(12, new AddBonusFeatAction("fighter_bonus_12", true, fighterBonusFeats));
+			FIGHTER.addAction(14, new AddBonusFeatAction("fighter_bonus_14", true, fighterBonusFeats));
+			FIGHTER.addAction(16, new AddBonusFeatAction("fighter_bonus_16", true, fighterBonusFeats));
+			FIGHTER.addAction(18, new AddBonusFeatAction("fighter_bonus_18", true, fighterBonusFeats));
+			FIGHTER.addAction(20, new AddBonusFeatAction("fighter_bonus_20", true, fighterBonusFeats));
+
+			MONK.addAction(1, new AddBonusFeatAction("monk_bonus_1", false, new String[] { "Improved Grapple", "Stunning Fist" }));
+			MONK.addAction(1, new AddBonusFeatAction(false, new String[] { "Improved Unarmed Strike" }));
+			MONK.addAction(2, new AddBonusFeatAction("monk_bonus_2", false, new String[] { "Combat Reflexes", "Deflect Arrows" }));
+			MONK.addAction(2, new AddFeatureAction("evasion"));
+			MONK.addAction(3, new AddFeatureAction("still_mind"));
+			MONK.addAction(5, new AddFeatureAction("purity_of_body"));
+			MONK.addAction(6, new AddBonusFeatAction("monk_bonus_3", false, new String[] { "Improved Disarm", "Improved Trip" }));
+			MONK.addAction(7, new AddFeatureAction("wholeness_of_body"));
+			MONK.addAction(9, new RemoveFeatureAction("evasion"));
+			MONK.addAction(9, new AddFeatureAction("improved_evasion"));
+			MONK.addAction(11, new AddFeatureAction("diamond_body"));
+			MONK.addAction(12, new AddFeatureAction("abundant_step"));
+			MONK.addAction(13, new AddFeatureAction("diamond_soul"));
+			MONK.addAction(15, new AddFeatureAction("quivering_palm"));
+			MONK.addAction(17, new AddFeatureAction("timeless_body"));
+			MONK.addAction(17, new AddFeatureAction("tongue_of_the_sun_and_moon"));
+			MONK.addAction(19, new AddFeatureAction("empty_body"));
+			MONK.addAction(20, new AddFeatureAction("perfect_self"));
+
+			MONK.addAction(1, new AddFeatureAction("ac_bonus"));
+			MONK.addAction(5, new SetParameterAction("ac_bonus", "template", 1));
+			MONK.addAction(5, new SetParameterAction("ac_bonus", "bonus", 1));
+			MONK.addAction(10, new SetParameterAction("ac_bonus", "bonus", 2));
+			MONK.addAction(15, new SetParameterAction("ac_bonus", "bonus", 3));
+			MONK.addAction(20, new SetParameterAction("ac_bonus", "bonus", 4));
+
+			MONK.addAction(1, new AddFeatureAction("flurry_of_blows"));
+			MONK.addAction(5, new SetParameterAction("flurry_of_blows", "penalty", 1));
+			MONK.addAction(9, new SetParameterAction("flurry_of_blows", "penalty", 0));
+			MONK.addAction(9, new SetParameterAction("flurry_of_blows", "template", 1));
+			MONK.addAction(11, new SetParameterAction("flurry_of_blows", "attacks", 2));
+
+			MONK.addAction(1, new AddFeatureAction("unarmed_strike"));
+			MONK.addAction(4, new SetParameterAction("unarmed_strike", "damage", "1d8"));
+			MONK.addAction(8, new SetParameterAction("unarmed_strike", "damage", "1d10"));
+			MONK.addAction(12, new SetParameterAction("unarmed_strike", "damage", "2d6"));
+			MONK.addAction(16, new SetParameterAction("unarmed_strike", "damage", "2d8"));
+			MONK.addAction(20, new SetParameterAction("unarmed_strike", "damage", "2d10"));
+
+			MONK.addAction(3, new AddFeatureAction("monk_fast_movement"));
+			MONK.addAction(6, new SetParameterAction("monk_fast_movement", "bonus", 20));
+			MONK.addAction(9, new SetParameterAction("monk_fast_movement", "bonus", 30));
+			MONK.addAction(12, new SetParameterAction("monk_fast_movement", "bonus", 40));
+			MONK.addAction(15, new SetParameterAction("monk_fast_movement", "bonus", 50));
+			MONK.addAction(18, new SetParameterAction("monk_fast_movement", "bonus", 60));
+
+			MONK.addAction(4, new AddFeatureAction("ki_strike"));
+			MONK.addAction(10, new SetParameterAction("ki_strike", "type", "magic and lawful"));
+			MONK.addAction(16, new SetParameterAction("ki_strike", "type", "magic, lawful, and adamantine"));
+
+			MONK.addAction(4, new AddFeatureAction("slow_fall"));
+			MONK.addAction(6, new SetParameterAction("slow_fall", "height", 30));
+			MONK.addAction(8, new SetParameterAction("slow_fall", "height", 40));
+			MONK.addAction(10, new SetParameterAction("slow_fall", "height", 50));
+			MONK.addAction(12, new SetParameterAction("slow_fall", "height", 60));
+			MONK.addAction(14, new SetParameterAction("slow_fall", "height", 70));
+			MONK.addAction(16, new SetParameterAction("slow_fall", "height", 80));
+			MONK.addAction(18, new SetParameterAction("slow_fall", "height", 90));
+			MONK.addAction(18, new SetParameterAction("slow_fall", "template", 1));
+
+			PALADIN.addAction(1, new AddFeatureAction("code_of_conduct"));
+
+			PALADIN.addAction(1, new AddFeatureAction("aura"));
+			PALADIN.addAction(2, new SetParameterAction("aura", "strength", "a moderate"));
+			PALADIN.addAction(5, new SetParameterAction("aura", "strength", "a strong"));
+			PALADIN.addAction(11, new SetParameterAction("aura", "strength", "an overwhelming"));
+
+			PALADIN.addAction(1, new AddFeatureAction("detect_evil"));
+
+			PALADIN.addAction(1, new AddFeatureAction("smite_evil"));
+			PALADIN.addAction(5, new SetParameterAction("smite_evil", "times", "2 times"));
+			PALADIN.addAction(10, new SetParameterAction("smite_evil", "times", "3 times"));
+			PALADIN.addAction(15, new SetParameterAction("smite_evil", "times", "4 times"));
+			PALADIN.addAction(20, new SetParameterAction("smite_evil", "times", "5 times"));
+
+			PALADIN.addAction(2, new AddFeatureAction("divine_grace"));
+			PALADIN.addAction(2, new AddFeatureAction("lay_on_hands"));
+			PALADIN.addAction(3, new AddFeatureAction("aura_of_courage"));
+			PALADIN.addAction(3, new AddFeatureAction("divine_health"));
+			PALADIN.addAction(4, new AddFeatureAction("turning"));
+			PALADIN.addAction(4, new AddFeatureAction("paladin_spells"));
+			PALADIN.addAction(5, new AddFeatureAction("special_mount"));
+
+			PALADIN.addAction(6, new AddFeatureAction("remove_disease"));
+			PALADIN.addAction(9, new SetParameterAction("remove_disease", "times", "2 times"));
+			PALADIN.addAction(12, new SetParameterAction("remove_disease", "times", "3 times"));
+			PALADIN.addAction(15, new SetParameterAction("remove_disease", "times", "4 times"));
+			PALADIN.addAction(18, new SetParameterAction("remove_disease", "times", "5 times"));
+
+			RANGER.addAction(1, new AddFeatureAction("favored_enemy"));
+			RANGER.addAction(1, new AddBonusFeatAction(false, new String[] { "Track" }));
+			RANGER.addAction(1, new AddFeatureAction("wild_empathy"));
+			// TODO 2 combat style:
+			RANGER.addAction(1, new AddFeatureAction("combat_style_2weapon"));	// FIXME testing
+			// combat_style_archery
+			// combat_style_2weapon
+			RANGER.addAction(3, new AddBonusFeatAction(false, new String[] { "Endurance" }));
+			RANGER.addAction(4, new AddFeatureAction("animal_companion"));
+			RANGER.addAction(4, new AddFeatureAction("ranger_spells"));
+			// TODO 5 second favoured enemy
+			RANGER.addAction(6, new IfFeatureExistsAction("combat_style_archery", new AddFeatureAction("improved_combat_archery")));
+			RANGER.addAction(6, new IfFeatureExistsAction("combat_style_2weapon", new AddFeatureAction("improved_combat_2weapon")));
+			RANGER.addAction(7, new AddFeatureAction("woodland_stride"));
+			RANGER.addAction(8, new AddFeatureAction("swift_tracker"));
+			RANGER.addAction(9, new AddFeatureAction("evasion"));
+			// TODO 10 third favoured enemy
+			RANGER.addAction(11, new IfFeatureExistsAction("combat_style_archery", new AddFeatureAction("combat_mastery_archery")));
+			RANGER.addAction(11, new IfFeatureExistsAction("combat_style_2weapon", new AddFeatureAction("combat_mastery_2weapon")));
+			RANGER.addAction(13, new AddFeatureAction("camouflage"));
+			// TODO 15 fourth favoured enemy
+			RANGER.addAction(17, new AddFeatureAction("hide_in_plain_sight"));
+			// TODO 20 fifth favoured enemy
+
+			ROGUE.addAction(1, new AddFeatureAction("sneak_attack"));
+			ROGUE.addAction(3, new SetParameterAction("sneak_attack", "dice", "2d6"));
+			ROGUE.addAction(5, new SetParameterAction("sneak_attack", "dice", "3d6"));
+			ROGUE.addAction(7, new SetParameterAction("sneak_attack", "dice", "4d6"));
+			ROGUE.addAction(9, new SetParameterAction("sneak_attack", "dice", "5d6"));
+			ROGUE.addAction(11, new SetParameterAction("sneak_attack", "dice", "6d6"));
+			ROGUE.addAction(13, new SetParameterAction("sneak_attack", "dice", "7d6"));
+			ROGUE.addAction(15, new SetParameterAction("sneak_attack", "dice", "8d6"));
+			ROGUE.addAction(17, new SetParameterAction("sneak_attack", "dice", "9d6"));
+			ROGUE.addAction(19, new SetParameterAction("sneak_attack", "dice", "10d6"));
+
+			ROGUE.addAction(1, new AddFeatureAction("trapfinding"));
+			ROGUE.addAction(2, new AddFeatureAction("evasion"));
+
+			ROGUE.addAction(3, new AddFeatureAction("trap_sense"));
+			ROGUE.addAction(6, new SetParameterAction("trap_sense", "bonus", 2));
+			ROGUE.addAction(9, new SetParameterAction("trap_sense", "bonus", 3));
+			ROGUE.addAction(12, new SetParameterAction("trap_sense", "bonus", 4));
+			ROGUE.addAction(15, new SetParameterAction("trap_sense", "bonus", 5));
+			ROGUE.addAction(18, new SetParameterAction("trap_sense", "bonus", 6));
+
+			ROGUE.addAction(4, new IfFeatureExistsAction("uncanny_dodge", new AddFeatureAction("improved_uncanny_dodge"), new AddFeatureAction("uncanny_dodge")));
+			ROGUE.addAction(8, new AddFeatureAction("improved_uncanny_dodge"));
+			// TODO 10 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
+			// TODO 13 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
+			// TODO 16 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
+			// TODO 19 special ability: choose between crippling_strike, defensive_roll, opportunist, skill_mastery, slippery_mind, bonus feat
+
+			SORCERER.addAction(1, new AddFeatureAction("sorcerer_spells"));
+			SORCERER.addAction(1, new AddFeatureAction("familiar"));
+
+			WIZARD.addAction(1, new AddFeatureAction("wizard_spells"));
+			WIZARD.addAction(1, new AddFeatureAction("familiar"));
+			WIZARD.addAction(1, new AddBonusFeatAction(false, new String[] { "Scribe Scroll" }));
+
+			final String[] wizardBonusFeats = {
+					"Spell Mastery",
+					"Empower Spell",
+					"Enlarge Spell",
+					"Extend Spell",
+					"Heighten Spell",
+					"Maximize Spell",
+					"Quicken Spell",
+					"Silent Spell",
+					"Still Spell",
+					"Widen Spell",
+					"Brew Potion",
+					"Craft Magic Arms and Armor",
+					"Craft Rod",
+					"Craft Staff",
+					"Craft Wand",
+					"Craft Wondrous Item",
+					"Forge Ring"
+			};
+
+			WIZARD.addAction(5, new AddBonusFeatAction("wizard_bonus_5", true, wizardBonusFeats));
+			WIZARD.addAction(10, new AddBonusFeatAction("wizard_bonus_10", true, wizardBonusFeats));
+			WIZARD.addAction(15, new AddBonusFeatAction("wizard_bonus_15", true, wizardBonusFeats));
+			WIZARD.addAction(20, new AddBonusFeatAction("wizard_bonus_20", true, wizardBonusFeats));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

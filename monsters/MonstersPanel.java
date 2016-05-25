@@ -56,6 +56,7 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		monsters.parseXML(new File("html/monsters/monster_manual_ii.xml"));
 		monsters.parseXML(new File("html/monsters/monster_manual_iii.xml"));
 		monsters.parseXML(new File("html/monsters/ptolus.xml"));
+		monsters.parseXML(new File("html/monsters/cthulhu.xml"));
 		//filterModel = new FilterTableModel<>(monsters);
 		table = new JTable(monsters);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -204,9 +205,9 @@ public class MonstersPanel extends JPanel implements MouseListener {
 				System.out.println("URL: " + url);
 				System.out.println("Selected: " + me.name);
 
-				List<StatisticsBlock> blocks = StatisticsBlock.parseURL(url);
-				StatisticsBlock selected = null;
 				int matched = 0;
+				StatisticsBlock selected = null;
+				List<StatisticsBlock> blocks = StatisticsBlock.parseURL(url);
 				for (StatisticsBlock block : blocks) {
 					// tries to match the selected MonsterEntry name to a StatisticsBlock name, in one of these ways:
 					// 1. MonsterEntry name == StatisticsBlock name

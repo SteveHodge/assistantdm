@@ -3,14 +3,23 @@ import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
+import gamesystem.BAB;
 import gamesystem.Buff;
+import gamesystem.CharacterClass;
+import gamesystem.CharacterClass.ClassOption;
+import gamesystem.CharacterClass.LevelUpAction;
+import gamesystem.ClassFeature;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
+import gamesystem.Feat;
+import gamesystem.GrappleModifier;
 import gamesystem.HPs;
+import gamesystem.HitDiceProperty;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
 import gamesystem.Modifier;
+import gamesystem.Race;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
 import gamesystem.Skill;
@@ -30,7 +39,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.w3c.dom.Document;
@@ -90,18 +101,15 @@ public class Character extends Creature {
 
 	public EnumMap<SavingThrow.Type, Modifier> saveMisc = new EnumMap<>(SavingThrow.Type.class);	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
-	public Skills skills;		// TODO shouldn't be public - change when XMLCreatureParser has character specific subclass
-
 	//	private Set<Feat> feats = new HashSet<>();
 
-	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 	public int xp = 0;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
 	public EnumMap<ACComponentType, Modifier> acMods = new EnumMap<>(ACComponentType.class); // TODO should move to AC panel
 
 	public List<CharacterAttackForm> attackForms = new ArrayList<>();
 
-	public BuffUI.BuffListModel<Buff> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
+	public BuffUI.BuffListModel<Feat> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
 
 	public List<XPHistoryItem> xpChanges = new ArrayList<>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
@@ -257,10 +265,13 @@ public class Character extends Creature {
 		initiative = new InitiativeModifier(abilities.get(AbilityScore.Type.DEXTERITY));
 		initiative.addPropertyChangeListener(statListener);
 
+		race = new Race();
 		level = new Levels();
+		level.setLevel(1);
+		hitDice = new HitDiceProperty(race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), level);
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
 			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
@@ -271,16 +282,18 @@ public class Character extends Creature {
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
 		skills.addPropertyChangeListener(statListener);
 
-		hps = new HPs(abilities.get(AbilityScore.Type.CONSTITUTION), level);
+		hps = new HPs(hitDice);
 		hps.addPropertyChangeListener(statListener);
 
-		bab = level.new BAB();
+		bab = new BAB(race, level);
 
-		attacks = new Attacks(this);
-		attacks.addPropertyChangeListener(statListener);
+		grapple = new GrappleModifier(bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
 		size = new Size();
 		size.addPropertyChangeListener(statListener);
+
+		attacks = new Attacks(this);
+		attacks.addPropertyChangeListener(statListener);
 	}
 
 	@Override
@@ -656,6 +669,72 @@ public class Character extends Creature {
 		firePropertyChange(PROPERTY_LEVEL, old, level.getLevel());
 	}
 
+	// TODO this functionality should move to the Levels object
+	public void setClass(int lvl, CharacterClass cls) {
+		CharacterClass old = level.getClass(lvl);
+		if (old == cls) return;	// no change, do nothing
+
+		level.setClass(lvl, cls);
+
+		if (old != null) {
+			// class features will need to rebuilt as a class level has been removed
+			rebuildClassFeatures();
+		} else {
+			// get the levelup actions for the class in question. only need the actions for the latest class level
+			Set<LevelUpAction> actions = cls.getActions(level.getClassLevel(cls));
+			//System.out.println("Applying actions for " + cls + " level " + level.getClassLevel(cls));
+			for (LevelUpAction action : actions) {
+				action.apply(this);
+			}
+		}
+
+		firePropertyChange(PROPERTY_LEVEL, null, level.getLevel());
+	}
+
+	private void rebuildClassFeatures() {
+		// remove any bonus feats
+
+		for (int i = feats.getSize() - 1; i >= 0; i--) {
+			Feat f = feats.get(i);
+			if (f.bonus) feats.remove(i);
+		}
+
+		// remove all class features
+		for (ClassFeature f : features) {
+			f.remove(this);
+		}
+		features.clear();
+
+		Map<CharacterClass, Integer> classes = new HashMap<>();
+		for (int i = 1; i <= level.getLevel(); i++) {
+			CharacterClass c = level.getClass(i);
+			if (c == null) continue;
+			int l = 1;
+			if (classes.containsKey(c)) {
+				l = classes.get(c) + 1;
+			}
+			classes.put(c, l);
+			//System.out.println("Reapplying " + c + " level " + l);
+			Set<LevelUpAction> actions = c.getActions(l);
+			for (LevelUpAction action : actions) {
+				//System.out.println(action);
+				action.apply(this);
+			}
+		}
+	}
+
+	public void setClassOption(String id, String selection) {
+		ClassOption opt = classOptions.get(id);
+		if (opt != null && (opt.selection == null && selection == null || opt.selection != null && !opt.selection.equals(selection))) return;	// no change
+		if (opt == null) {
+			opt = new ClassOption(id);
+			classOptions.put(id, opt);
+		}
+		opt.selection = selection;
+		rebuildClassFeatures();
+		firePropertyChange(PROPERTY_LEVEL, null, level.getLevel());
+	}
+
 //------------------- XP History ------------------
 	public void addXPChange(XP.XPChange change) {	// TODO should not be public
 		XPHistoryItem item = new XPHistoryItem();
@@ -711,10 +790,15 @@ public class Character extends Creature {
 	@Override
 	public boolean hasFeat(String name) {
 		for (int i = 0; i < feats.size(); i++) {
-			Buff f = feats.get(i);
-			if (f.name.equals(name)) return true;
+			Feat f = feats.get(i);
+			if (f.getName().equals(name)) return true;
 		}
 		return false;
+	}
+
+	@Override
+	public void addFeat(Feat f) {
+		feats.addElement(f);
 	}
 
 //------------ Buffs -------------
@@ -757,23 +841,6 @@ public class Character extends Creature {
 	}
 
 //------------------- Import/Export and other methods -------------------
-	@Override
-	public Statistic getStatistic(String name) {
-		if (name.equals(STATISTIC_SKILLS)) {
-			return skills;
-		} else if (name.startsWith(STATISTIC_SKILLS+".")) {
-			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length()+1));
-			return skills.getSkill(type);
-//		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
-//			// TODO implement?
-//			return null;
-		} else if (name.equals(STATISTIC_LEVEL)) {
-			return level;
-		} else {
-			return super.getStatistic(name);
-		}
-	}
-
 	public static Character parseDOM(Element el) {
 		XMLCharacterParser parser = new XMLCharacterParser();
 		Character c = parser.parseDOM(el);
@@ -1141,7 +1208,7 @@ public class Character extends Creature {
 		processor.processSkills(skills);
 		processor.processAC(ac);
 
-		processor.processAttacks(attacks);
+		processor.processAttacks(attacks, grapple);
 		for (CharacterAttackForm a : attackForms) {
 			processor.processCharacterAttackForm(a);
 		}

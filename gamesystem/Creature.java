@@ -1,13 +1,15 @@
 package gamesystem;
 
 
+import gamesystem.CharacterClass.ClassOption;
 import gamesystem.core.Property;
-import gamesystem.core.ValueProperty;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import swing.ListModelWithToolTips;
@@ -34,6 +36,7 @@ public abstract class Creature {
 	public final static String PROPERTY_XP = "XP";
 	public final static String PROPERTY_BAB = "BAB";
 	public final static String PROPERTY_SIZE = "Size";
+	public final static String PROPERTY_TYPE = "Type";	// not currently sent to listeners
 
 	public final static String PROPERTY_SPACE = "Space";	// currently only a property on Monster
 	public final static String PROPERTY_REACH = "Reach";	// currently only a property on Monster
@@ -62,6 +65,7 @@ public abstract class Creature {
 	public final static String STATISTIC_ATTACKS = "attacks";
 	public final static String STATISTIC_DAMAGE = "damage";
 	public final static String STATISTIC_SIZE = "size";
+	public final static String STATISTIC_GRAPPLE = "grapple";
 
 	// The order of these needs to be the same as the ability enum in AbilityScore
 	public final static String[] STATISTIC_ABILITY = {STATISTIC_STRENGTH,STATISTIC_DEXTERITY,STATISTIC_CONSTITUTION,STATISTIC_INTELLIGENCE,STATISTIC_WISDOM,STATISTIC_CHARISMA};
@@ -73,7 +77,7 @@ public abstract class Creature {
 	protected String name;
 
 	protected HPs hps;
-	protected Size size;
+	public Size size;	// TODO shouldn't be public
 	protected InitiativeModifier initiative;
 	protected EnumMap<SavingThrow.Type, SavingThrow> saves = new EnumMap<>(SavingThrow.Type.class);
 	protected EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<>(AbilityScore.Type.class);
@@ -83,10 +87,19 @@ public abstract class Creature {
 	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
 
 	protected Attacks attacks;
-	protected Property<Integer> bab;
+	public BAB bab;	// TODO shouldn't be public - change where StatBlockCreatureView doesn't need to manipulate bab when adding levels
+	protected GrappleModifier grapple;
+
+	public Race race;		// TODO shouldn't be public
+	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
+	public Map<String, ClassOption> classOptions = new HashMap<>();
+	public List<ClassFeature> features = new ArrayList<>();		// TODO shouldn't be public
+	public HitDiceProperty hitDice;		// TODO shouldn't be public
 
 	public BuffUI.BuffListModel<Buff> buffs = new BuffUI.BuffListModel<>();	// TODO should be protected
 	protected Map<String, Object> extraProperties = new HashMap<>();
+
+	public Skills skills;		// TODO shouldn't be public
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -126,7 +139,7 @@ public abstract class Creature {
 		idMap.put(id, this);
 	}
 
-	public static Creature getCreature(int id) {
+	protected static Creature getCreature(int id) {
 		return idMap.get(id);
 	}
 
@@ -163,6 +176,47 @@ public abstract class Creature {
 	public Property<Integer> getBAB() {
 		return bab;
 	}
+
+	public GrappleModifier getGrappleModifier() {
+		return grapple;
+	}
+
+	abstract public void addFeat(Feat f);
+
+	//------------ Features -------------
+	public void addClassFeature(ClassFeature f) {
+		features.add(f);
+		f.apply(this);
+		//System.out.println("Added " + f);
+	}
+
+	public void removeClassFeature(String id) {
+		ClassFeature feature = getClassFeature(id);
+		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
+		//System.out.println("Removed " + feature);
+		feature.remove(this);
+		features.remove(feature);
+	}
+
+	public ClassFeature getClassFeature(String id) {
+		for (ClassFeature f : features) {
+			if (f.definition.id.equals(id)) return f;
+		}
+		return null;
+	}
+
+	public void setClassFeatureParameter(String id, String parameter, Object value) {
+		ClassFeature feature = getClassFeature(id);
+		if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
+		feature.setParameter(parameter, value);
+		//System.out.println("Updated " + feature);
+	}
+
+	/*	public Object getClassFeatureParameter(String id, String parameter) {
+			ClassFeature feature = getClassFeature(id);
+			if (feature == null) throw new IllegalArgumentException("Character " + this + " does not have class feature " + id);
+			return feature.getParameter(parameter);
+		}*/
 
 	//------------------- BAB -------------------
 	private Property.PropertyValue<Integer> babOverride;
@@ -209,16 +263,16 @@ public abstract class Creature {
 			return ac.getNaturalArmor();
 		} else if (name.equals(STATISTIC_INITIATIVE)) {
 			return initiative;
-//		} else if (name.equals(STATISTIC_SKILLS)) {
-//			return skills;
-//		} else if (name.startsWith(STATISTIC_SKILLS+".")) {
-//			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length()+1));
-//			return skills.getSkill(type);
-////		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
-////			// TODO implement?
-////			return null;
-//		} else if (name.equals(STATISTIC_LEVEL)) {
-//			return level;
+		} else if (name.equals(STATISTIC_SKILLS)) {
+			return skills;
+		} else if (name.startsWith(STATISTIC_SKILLS + ".")) {
+			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length() + 1));
+			return skills.getSkill(type);
+//		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
+//			// TODO implement?
+//			return null;
+		} else if (name.equals(STATISTIC_LEVEL)) {
+			return level;
 		} else if (name.equals(STATISTIC_HPS)) {
 			return hps;
 		} else if (name.equals(STATISTIC_ATTACKS)) {
@@ -227,8 +281,11 @@ public abstract class Creature {
 			return attacks.getDamageStatistic();
 		} else if (name.equals(STATISTIC_SIZE)) {
 			return size;
+		} else if (name.equals(STATISTIC_GRAPPLE)) {
+			return grapple;
 		} else {
-			System.out.println("Unknown statistic " + name);
+			System.err.println("Unknown statistic " + name + " in " + this);
+			Thread.dumpStack();
 			return null;
 		}
 	}
@@ -307,9 +364,8 @@ public abstract class Creature {
 		else if (prop.equals(PROPERTY_REACH))
 			setReach((Integer) value);
 		else if (prop.equals(PROPERTY_BAB)) {
-			if (bab instanceof ValueProperty) {
-				((ValueProperty<Integer>) bab).setBaseValue((Integer) value);
-			}
+			System.err.println("Setting BAB");
+			bab.addOverride((Integer) value);		// TODO is this what we want to do?
 		} else {
 			//System.out.println("Attempt to set unknown property: " + prop + " to " + value);
 			Object old = extraProperties.get(prop);
@@ -543,7 +599,7 @@ public abstract class Creature {
 		}
 
 		processor.processAC(ac);
-		processor.processAttacks(attacks);
+		processor.processAttacks(attacks, grapple);
 
 		for (int i = 0; i < buffs.getSize(); i++) {
 			Buff b = buffs.get(i);

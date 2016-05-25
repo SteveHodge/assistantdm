@@ -82,6 +82,7 @@ import digital_table.elements.MapImage;
 import digital_table.elements.SpreadTemplate;
 import digital_table.elements.Token;
 import digital_table.server.MediaManager;
+import digital_table.server.MemoryLog;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
@@ -268,6 +269,14 @@ public class ControllerFrame extends JFrame {
 			}
 		});
 
+		JButton debugButton = new JButton("Debug");
+		debugButton.addActionListener(e -> {
+			System.out.print("Local memory usage: ");
+			printMemoryUsage(miniMapCanvas.getMemoryUsage());
+			System.out.print("Remote memory usage: ");
+			printMemoryUsage(display.getRemoteMemoryUsage());
+		});
+
 		JButton loadButton = new JButton("Load...");
 		loadButton.addActionListener(loadListener);
 
@@ -295,6 +304,8 @@ public class ControllerFrame extends JFrame {
 		rightPanel.add(resetButton, c);
 
 		c.gridy++;
+		c.gridx = 1;
+		rightPanel.add(debugButton, c);
 		c.gridx = 2;
 		rightPanel.add(loadButton, c);
 		c.gridx = 3;
@@ -325,6 +336,37 @@ public class ControllerFrame extends JFrame {
 		if (remoteImg != null) {
 			remoteImg.setOutputEnabled(true);
 		}
+	}
+
+	private static void printMemoryUsage(MemoryLog log) {
+		printMemoryUsage("", log);
+	}
+
+	private static void printMemoryUsage(String prefix, MemoryLog log) {
+		System.out.printf("%s%s (%08x) %s\n", prefix, log.name, log.id, formatMemoryValue(log.total));
+		if (log.components != null && log.components.length > 0) {
+			for (int i = 0; i < log.components.length; i++) {
+				if (log.components[i] != null) {
+					printMemoryUsage(prefix + "  ", log.components[i]);
+				} else {
+					System.out.println(prefix + "** null component " + i);
+				}
+			}
+		}
+	}
+
+	private static String formatMemoryValue(long m) {
+		double mem = m / 1024.0;
+		String units = "kB";
+		if (mem >= 1024) {
+			mem /= 1024;
+			units = "MB";
+		}
+		if (mem >= 1024) {
+			mem /= 1024;
+			units = "GB";
+		}
+		return String.format("%.2f %s", mem, units);
 	}
 
 	private void resetAll() {

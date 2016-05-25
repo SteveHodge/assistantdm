@@ -89,6 +89,25 @@ import digital_table.controller.DigitalTableController;
 
 /* TODO current priorities:
  *
+ * Skill parsing for monsters
+ * Make HitDiceProperty into Statistic (rename to HitDice) so that bonus hps from feats and race (constructs) can be added as a modifier
+ * Saving throw modifiers in monster stats blocks
+ *
+ * Remote input - joysticks, web
+ *
+ * Rework Statistic change notification. Consider making it a subclass of property (override would override total value). Consider factoring out interface.
+ * ? properties for statistics: bab, convert temp hps
+ * ? consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
+ * ?    level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
+ * ? review Statistics vs creature Properties
+ * ? ... need to review how properties work on Character and BoundIntegerField
+ * ? character is not registered as a listener on the attack forms so it doesn't get notified of changes. probably should revisit the whole property/statistic notification system
+ * ? rework statistc notification system. a listener registered with the top of a tree (like Skills or Attacks)
+ * ?    should get notification of all sub-statistics. consider whether statistics need to provide old and new values
+ * ?    (this is desirable for mutable Modifiers at least)
+ * ? ... convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
+ * ?    that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
+ *
  * BUG: Fractional weights for weapons
  * BUG: Fractional ranks for skill in table
  * BUG: Interface to add skills
@@ -111,21 +130,8 @@ import digital_table.controller.DigitalTableController;
  * live character sheet: add calculations for remaining statistics (attacks, ac, weapon damage, armor, level, size)
  * live character sheet: consider adding list of buffs/effects
  *
- * properties for statistics: bab, convert temp hps
- * consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
- *    level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
- * review Statistics vs creature Properties
- * ... need to review how properties work on Character and BoundIntegerField
- *
  * rework attacks - they need an interface to filter properties like type etc. then filters can be used to build
  *    target lists (e.g  "type=bludgeoning and subclass=one handed melee")
- *
- * character is not registered as a listener on the attack forms so it doesn't get notified of changes. probably should revisit the whole property/statistic notification system
- * rework statistc notification system. a listener registered with the top of a tree (like Skills or Attacks)
- *    should get notification of all sub-statistics. consider whether statistics need to provide old and new values
- *    (this is desirable for mutable Modifiers at least)
- * ... convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
- *    that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
  *
  * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes
  * Continue to update for new module system (particularly digital table controller)
@@ -201,7 +207,7 @@ import digital_table.controller.DigitalTableController;
 
 /* Game system things to implement:
  *  (in progress) Size
- *  Race
+ *  (in progress) Race
  *  (in progress) Feats
  *  (in progress) Grapple modifier
  *  Ability score checks
@@ -225,6 +231,7 @@ import digital_table.controller.DigitalTableController;
  * digital_table.elements - displayable elements common to both local and remote displays
  * digital_table.server - core functionality for both local and remote displays and remote only classes
  * gamesystem - core code related to the 3.5 mechanics
+ * gamesystem.core - low level classes (statistic and property) not intimately tied to the ruleset
  * gamesystem.dice - classes representing dice
  * magicgenerator - random magic item generator
  * magicitems - shop panel ui and functionality

@@ -123,7 +123,7 @@ public class CharacterClassesPanel extends CharacterSubPanel {
 		@Override
 		public void setValueAt(Object value, int row, int col) {
 			if (col != 1 || row < 0 || row > currentLevel - 1) return;	// TODO throw exception?
-			level.setClass(row + 1, (CharacterClass) value);
+			character.setClass(row + 1, (CharacterClass) value);
 		}
 
 		@Override
