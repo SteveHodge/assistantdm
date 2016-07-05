@@ -5,12 +5,16 @@ import gamesystem.Buff.Effect;
 import gamesystem.Buff.ModifierEffect;
 import gamesystem.BuffFactory;
 import gamesystem.Modifier;
+import gamesystem.Spell;
 import gamesystem.dice.Dice;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Predicate;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -27,13 +31,16 @@ import swing.ListModelWithToolTips;
 public class BuffUI {
 	@SuppressWarnings("serial")
 	public static class BuffListModel<T> extends DefaultListModel<T> implements ListModelWithToolTips<T> {
+		List<T> source;		// unfiltered list of objects
+
 		public BuffListModel() {
 			super();
 		}
 
 		public BuffListModel(T[] buffs) {
 			super();
-			for (T bf : buffs) {
+			source = new ArrayList<T>(Arrays.asList(buffs));
+			for (T bf : source) {
 				addElement(bf);
 			}
 		}
@@ -48,6 +55,14 @@ public class BuffUI {
 				return ((Buff)o).getDescription();
 			}
 			return null;
+		}
+
+		// TODO should not remove all elements, instead only remove elements as necessary and only add elements as required
+		public void filter(Predicate<T> pred) {
+			removeAllElements();
+			for (T bf : source) {
+				if (pred.test(bf)) addElement(bf);
+			}
 		}
 	}
 
@@ -99,18 +114,29 @@ public class BuffUI {
 	}
 
 	public JListWithToolTips<BuffFactory> getBuffList() {
-		BuffFactory[] availableBuffs = Arrays.copyOf(BuffFactory.buffs, BuffFactory.buffs.length);
+		List<BuffFactory> buffsList = new ArrayList<>();
+		for (Spell s : Spell.spells) {
+			for (BuffFactory f : s.buffFactories.values()) {
+				buffsList.add(f);
+			}
+		}
+		BuffFactory[] availableBuffs = buffsList.toArray(new BuffFactory[buffsList.size()]);
 		Arrays.sort(availableBuffs, (a, b) -> a.name.compareTo(b.name));
 		BuffUI.BuffListModel<BuffFactory> bfModel = new BuffUI.BuffListModel<>(availableBuffs);
 		final JListWithToolTips<BuffFactory> buffs = new JListWithToolTips<>(bfModel);
 		buffs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		buffs.setVisibleRowCount(20);
 		buffs.addListSelectionListener(e -> {
-			buff = buffs.getSelectedValue().getBuff();
-			buff.setCasterLevel(clModel.getNumber().intValue());
-			buff.empowered = empCheckBox.isSelected();
-			buff.maximized = maxCheckBox.isSelected();
-			updateBuffOptions();
+			if (buffs.getSelectedValue() != null) {
+				buff = buffs.getSelectedValue().getBuff();
+				buff.setCasterLevel(clModel.getNumber().intValue());
+				buff.empowered = empCheckBox.isSelected();
+				buff.maximized = maxCheckBox.isSelected();
+				updateBuffOptions();
+			} else {
+				buff = null;
+				buffOptionsPanel.removeAll();
+			}
 		});
 		return buffs;
 	}

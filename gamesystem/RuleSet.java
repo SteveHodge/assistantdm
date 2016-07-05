@@ -5,8 +5,6 @@ import gamesystem.dice.HDDice;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -92,26 +90,26 @@ public class RuleSet {
 		if (!el.getTagName().equals("spells")) return;
 		System.out.print("Parsing spells... ");
 
-		Map<String, Spell> spells = new HashMap<>();
 		NodeList nodes = el.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
 			Element e = (Element) nodes.item(i);
 			if (e.getTagName().equals("spell")) {
 				Spell s = parseSpell(e);
-				spells.put(s.name, s);
+				Spell.spells.add(s);
 			} else {
 				System.err.println("Ignoring unexpected node: " + e.getTagName());
 				continue;
 			}
 		}
-		System.out.println(spells.size() + " found");
+		System.out.println(Spell.spells.size() + " found");
 	}
 
 	private Spell parseSpell(Element el) {
 		if (!el.getTagName().equals("spell")) return null;
 		Spell s = new Spell();
 		s.name = el.getAttribute("name");
+		s.domNode = el;
 		NodeList nodes = el.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
@@ -160,7 +158,11 @@ public class RuleSet {
 				s.xpCost = e.getTextContent();
 
 			} else if (e.getTagName().equals("modifiers")) {
-				BuffFactory buff = new BuffFactory(s.name);
+				String variant = e.getAttribute("variant");
+				String name = s.name;
+				if (variant.length() > 0) name += " (" + variant + ")";
+				BuffFactory buff = new BuffFactory(name);
+				buff.source = s;
 				NodeList mods = e.getChildNodes();
 				for (int j = 0; j < mods.getLength(); j++) {
 					if (mods.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
@@ -197,7 +199,6 @@ public class RuleSet {
 						buff.addEffect(stat, type, val, condition);
 					}
 				}
-				String variant = e.getAttribute("variant");
 				s.buffFactories.put(variant, buff);
 
 			} else {

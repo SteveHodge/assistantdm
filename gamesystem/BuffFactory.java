@@ -1,7 +1,6 @@
 package gamesystem;
 
 import gamesystem.Buff.Effect;
-import gamesystem.dice.HDDice;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +14,7 @@ import java.util.Set;
 public class BuffFactory {
 	public String name;
 	Set<Effect> effects = new HashSet<>();
+	public Object source;	// source object with more details, e.g. Spell
 
 	public Buff getBuff() {
 		Buff b = new Buff();
@@ -127,8 +127,9 @@ public class BuffFactory {
 			.addEffect(Creature.STATISTIC_STRENGTH,"Enhancement",4)
 			.addEffect(Creature.STATISTIC_CONSTITUTION,"Resistence",4);
 
-	public static BuffFactory[] buffs = {
-		(new BuffFactory("Shield Other"))
+/*
+  	public static BuffFactory[] buffs = {
+ 		(new BuffFactory("Shield Other"))
 		.addEffect(Creature.STATISTIC_AC,"Deflection",1)
 		.addEffect(Creature.STATISTIC_SAVING_THROWS,"Resistence",1),
 		(new BuffFactory("Resistance"))
@@ -369,4 +370,5 @@ public class BuffFactory {
 //skickened -2 attack, damage, saves, skills, ability checks
 //stunned -2 to ac, lose dex bonus to ac
 	};
+ */
 }
