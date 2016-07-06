@@ -266,4 +266,8 @@ public class BuffUI {
 	public JPanel getOptionsPanel() {
 		return buffOptionsPanel;
 	}
+
+	public void setCasterLevel(int level) {
+		clModel.setValue(level);
+	}
 }

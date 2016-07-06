@@ -72,6 +72,7 @@ class NewEffectPanel extends JPanel {
 			if (buff != null) {
 				effectField.setText(buff.name);
 				targets = dialog.getTargets();
+				sourceField.setSelectedItem(dialog.getSourceName());
 			}
 		});
 

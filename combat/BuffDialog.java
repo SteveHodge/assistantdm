@@ -43,6 +43,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import party.Character;
 import swing.JListWithToolTips;
 import ui.BuffUI;
 import ui.BuffUI.BuffEntry;
@@ -52,6 +53,7 @@ import ui.BuffUI.BuffListModel;
 class BuffDialog extends JDialog {
 	private JComponent owner;
 	private BuffUI ui;
+	private EffectSourceModel sourceModel;
 
 	private boolean okSelected = false;
 	private Map<JCheckBox, Creature> targets = new HashMap<>();
@@ -129,9 +131,18 @@ class BuffDialog extends JDialog {
 		});
 		JCheckBox casterOnly = new JCheckBox("Caster Only");
 
-		EffectSourceModel sourceModel = new EffectSourceModel(ilm);
+		sourceModel = new EffectSourceModel(ilm);
 		JComboBox<Object> sourceField = new JComboBox<>(sourceModel);
 		sourceField.setEditable(true);
+		sourceField.addActionListener((e) -> {
+			if (sourceField.getSelectedIndex() != -1) {
+				CombatEntry ce = ilm.getElementAt(sourceField.getSelectedIndex());
+				if (ce.creature instanceof Character) {
+					Character c = (Character)ce.creature;
+					ui.setCasterLevel(c.getLevel());
+				}
+			}
+		});
 
 		JButton infoButton = new JButton("Info");
 		infoButton.addActionListener(e -> popupInfo(buffs.getSelectedValue()));
@@ -231,6 +242,11 @@ class BuffDialog extends JDialog {
 
 	Buff getBuff() {
 		if (okSelected) return ui.getBuff();
+		return null;
+	}
+
+	String getSourceName() {
+		if (okSelected) return sourceModel.getSelectedItem().toString();
 		return null;
 	}
 
