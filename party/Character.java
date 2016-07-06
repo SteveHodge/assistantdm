@@ -47,8 +47,6 @@ import java.util.Set;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import ui.BuffUI;
-
 /**
  * @author Steve
  *
@@ -109,7 +107,7 @@ public class Character extends Creature {
 
 	public List<CharacterAttackForm> attackForms = new ArrayList<>();
 
-	public BuffUI.BuffListModel<Feat> feats = new BuffUI.BuffListModel<>();	// TODO reimplement for better encapsulation
+	public BuffListModel<Feat> feats = new BuffListModel<>();	// TODO reimplement for better encapsulation
 
 	public List<XPHistoryItem> xpChanges = new ArrayList<>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 

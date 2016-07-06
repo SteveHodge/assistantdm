@@ -12,8 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.DefaultListModel;
+
 import swing.ListModelWithToolTips;
-import ui.BuffUI;
 
 // TODO the initiative property should either be the base value or the total - pick one
 // TODO should probably convert these constants to enums
@@ -96,7 +97,22 @@ public abstract class Creature {
 	public List<ClassFeature> features = new ArrayList<>();		// TODO shouldn't be public
 	public HitDiceProperty hitDice;		// TODO shouldn't be public
 
-	public BuffUI.BuffListModel<Buff> buffs = new BuffUI.BuffListModel<>();	// TODO should be protected
+	@SuppressWarnings("serial")
+	public class BuffListModel<T> extends DefaultListModel<T> implements ListModelWithToolTips<T> {
+		@Override
+		public String getToolTipAt(int index) {
+			if (index < 0) return null;
+			Object o = get(index);
+			if (o instanceof BuffFactory) {
+				return ((BuffFactory) o).getDescription();
+			} else if (o instanceof Buff) {
+				return ((Buff) o).getDescription();
+			}
+			return null;
+		}
+	}
+
+	public BuffListModel<Buff> buffs = new BuffListModel<>();		// TODO should be protected
 	protected Map<String, Object> extraProperties = new HashMap<>();
 
 	public Skills skills;		// TODO shouldn't be public

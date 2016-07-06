@@ -1,7 +1,6 @@
 package combat;
 
 import gamesystem.Buff;
-import gamesystem.BuffFactory;
 import gamesystem.Creature;
 import gamesystem.Spell;
 
@@ -46,6 +45,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import swing.JListWithToolTips;
 import ui.BuffUI;
+import ui.BuffUI.BuffEntry;
 import ui.BuffUI.BuffListModel;
 
 @SuppressWarnings("serial")
@@ -62,7 +62,7 @@ class BuffDialog extends JDialog {
 
 		ui = new BuffUI();
 
-		JListWithToolTips<BuffFactory> buffs = ui.getBuffList();
+		JListWithToolTips<BuffEntry> buffs = ui.getBuffList(true);
 		buffs.addListSelectionListener(e -> pack());
 
 		JScrollPane scroller = new JScrollPane(buffs);
@@ -118,12 +118,12 @@ class BuffDialog extends JDialog {
 			}
 
 			private void updateFilter() {
-				BuffUI.BuffListModel<BuffFactory> model = (BuffListModel<BuffFactory>) buffs.getModel();
+				BuffUI.BuffListModel model = (BuffListModel) buffs.getModel();
 				String text = filter.getText().toLowerCase();
 				if (text.length() == 0) {
-					model.filter((BuffFactory f) -> true);
+					model.filter((BuffEntry e) -> true);
 				} else {
-					model.filter((BuffFactory f) -> f.name.toLowerCase().contains(text));
+					model.filter((BuffEntry e) -> e.name.toLowerCase().contains(text));
 				}
 			}
 		});
@@ -198,7 +198,7 @@ class BuffDialog extends JDialog {
 		setVisible(true);
 	}
 
-	private void popupInfo(BuffFactory buff) {
+	private void popupInfo(BuffEntry buff) {
 		if (buff.source instanceof Spell) {
 			Spell s = (Spell) buff.source;
 

@@ -14,6 +14,8 @@ import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 
 import javax.swing.BoxLayout;
@@ -29,20 +31,40 @@ import swing.JListWithToolTips;
 import swing.ListModelWithToolTips;
 
 public class BuffUI {
+	public static class BuffEntry implements Comparable<Object> {
+		public String name;
+		public BuffFactory factory;
+		public Object source;
+
+		@Override
+		public String toString() {
+			return name;
+		}
+
+		@Override
+		public int compareTo(Object arg0) {
+			return name.compareTo(arg0.toString());
+		}
+	}
+
 	@SuppressWarnings("serial")
-	public static class BuffListModel<T> extends DefaultListModel<T> implements ListModelWithToolTips<T> {
-		List<T> source;		// unfiltered list of objects
+	public static class BuffListModel extends DefaultListModel<BuffEntry> implements ListModelWithToolTips<BuffEntry> {
+		SortedMap<BuffEntry, Boolean> source = new TreeMap<>();	// state of all buffs in the list
 
 		public BuffListModel() {
 			super();
 		}
 
-		public BuffListModel(T[] buffs) {
+		public BuffListModel(BuffEntry[] buffs) {
 			super();
-			source = new ArrayList<T>(Arrays.asList(buffs));
-			for (T bf : source) {
+			for (BuffEntry bf : buffs) {
+				source.put(bf, true);
 				addElement(bf);
 			}
+		}
+
+		public void addBuff(Buff b) {
+
 		}
 
 		@Override
@@ -58,9 +80,9 @@ public class BuffUI {
 		}
 
 		// TODO should not remove all elements, instead only remove elements as necessary and only add elements as required
-		public void filter(Predicate<T> pred) {
+		public void filter(Predicate<BuffEntry> pred) {
 			removeAllElements();
-			for (T bf : source) {
+			for (BuffEntry bf : source.keySet()) {
 				if (pred.test(bf)) addElement(bf);
 			}
 		}
@@ -113,22 +135,39 @@ public class BuffUI {
 		clPanel.add(maxCheckBox);
 	}
 
-	public JListWithToolTips<BuffFactory> getBuffList() {
-		List<BuffFactory> buffsList = new ArrayList<>();
+	public JListWithToolTips<BuffEntry> getBuffList() {
+		return getBuffList(false);
+	}
+
+	public JListWithToolTips<BuffEntry> getBuffList(boolean allSpells) {
+		List<BuffEntry> buffsList = new ArrayList<>();
 		for (Spell s : Spell.spells) {
-			for (BuffFactory f : s.buffFactories.values()) {
-				buffsList.add(f);
+			if (allSpells && s.buffFactories.size() == 0) {
+				BuffEntry e = new BuffEntry();
+				e.source = s;
+				e.name = s.name;
+				buffsList.add(e);
+			} else {
+				for (BuffFactory f : s.buffFactories.values()) {
+					BuffEntry e = new BuffEntry();
+					e.source = s;
+					e.name = f.name;
+					e.factory = f;
+					buffsList.add(e);
+				}
 			}
 		}
-		BuffFactory[] availableBuffs = buffsList.toArray(new BuffFactory[buffsList.size()]);
+		BuffEntry[] availableBuffs = buffsList.toArray(new BuffEntry[buffsList.size()]);
 		Arrays.sort(availableBuffs, (a, b) -> a.name.compareTo(b.name));
-		BuffUI.BuffListModel<BuffFactory> bfModel = new BuffUI.BuffListModel<>(availableBuffs);
-		final JListWithToolTips<BuffFactory> buffs = new JListWithToolTips<>(bfModel);
+		BuffListModel bfModel = new BuffListModel(availableBuffs);
+		final JListWithToolTips<BuffEntry> buffs = new JListWithToolTips<>(bfModel);
 		buffs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		buffs.setVisibleRowCount(20);
 		buffs.addListSelectionListener(e -> {
-			if (buffs.getSelectedValue() != null) {
-				buff = buffs.getSelectedValue().getBuff();
+			BuffFactory b = null;
+			if (buffs.getSelectedValue() != null) b = buffs.getSelectedValue().factory;
+			if (b != null) {
+				buff = b.getBuff();
 				buff.setCasterLevel(clModel.getNumber().intValue());
 				buff.empowered = empCheckBox.isSelected();
 				buff.maximized = maxCheckBox.isSelected();
