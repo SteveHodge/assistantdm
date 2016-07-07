@@ -7,6 +7,7 @@ import gamesystem.Spell;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -24,6 +25,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -57,6 +59,9 @@ class BuffDialog extends JDialog {
 
 	private boolean okSelected = false;
 	private Map<JCheckBox, Creature> targets = new HashMap<>();
+	private JFormattedTextField durationField;
+	private JComboBox<String> unitsField;
+	private JLabel durationHint = new JLabel();
 
 	BuffDialog(JComponent own, InitiativeListModel ilm) {
 		super(SwingUtilities.windowForComponent(own), "Choose buff", Dialog.ModalityType.DOCUMENT_MODAL);
@@ -65,14 +70,25 @@ class BuffDialog extends JDialog {
 		ui = new BuffUI();
 
 		JListWithToolTips<BuffEntry> buffs = ui.getBuffList(true);
-		buffs.addListSelectionListener(e -> pack());
+		buffs.addListSelectionListener(e -> {
+			BuffEntry buff = buffs.getSelectedValue();
+			if (buff != null && buff.source instanceof Spell) {
+				Spell s = (Spell) buff.source;
+				durationHint.setText("(" + s.duration.trim() + ")");
+			} else {
+				durationHint.setText("");
+			}
+			pack();
+		});
 
 		JScrollPane scroller = new JScrollPane(buffs);
 		//scroller.setPreferredSize(preferredSize);
 
 		JPanel right = new JPanel();
 		right.setLayout(new BoxLayout(right, BoxLayout.PAGE_AXIS));
-		right.add(ui.getOptionsPanel());
+		JPanel optPanel = ui.getOptionsPanel();
+		optPanel.setAlignmentX(0.0f);
+		right.add(optPanel);
 
 		JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 		right.add(separator);
@@ -81,6 +97,7 @@ class BuffDialog extends JDialog {
 			CombatEntry e = ilm.getElementAt(i);
 			if (!e.blank) {
 				JCheckBox cb = new JCheckBox(e.creature.getName());
+				cb.setAlignmentX(0.0f);
 				right.add(cb);
 				targets.put(cb, e.creature);
 			}
@@ -147,6 +164,13 @@ class BuffDialog extends JDialog {
 		JButton infoButton = new JButton("Info");
 		infoButton.addActionListener(e -> popupInfo(buffs.getSelectedValue()));
 
+		durationField = new JFormattedTextField();
+		durationField.setValue(new Integer(0));
+		durationField.setColumns(3);
+
+		String[] units = { "Rounds", "Minutes", "Hours" };
+		unitsField = new JComboBox<>(units);
+
 		JPanel pane = new JPanel();
 		pane.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -187,16 +211,25 @@ class BuffDialog extends JDialog {
 		pane.add(new JLabel("Caster: "));
 
 		c.weightx = 0.5;
-		c.weighty = 1;
-		c.gridheight = 2;
+		c.weighty = 0;
+		c.gridheight = 1;
 		c.gridwidth = 2;
+		c.gridy++;
+		JPanel p = new JPanel();
+		p.setLayout(new FlowLayout());
+		p.add(new JLabel("Duration:"));
+		p.add(durationHint);
+		p.add(durationField);
+		p.add(unitsField);
+		pane.add(p, c);
+
+		c.weighty = 1;
 		c.gridy++;
 		c.fill = GridBagConstraints.BOTH;
 		pane.add(right, c);
 
 		c.gridx = 3;
 		c.gridy = 0;
-		c.weightx = 0.5;
 		c.weighty = 0;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
@@ -248,6 +281,16 @@ class BuffDialog extends JDialog {
 	String getSourceName() {
 		if (okSelected) return sourceModel.getSelectedItem().toString();
 		return null;
+	}
+
+	String getDurationUnit() {
+		if (okSelected) return unitsField.getSelectedItem().toString();
+		return null;
+	}
+
+	int getDuration() {
+		if (okSelected) return (Integer) durationField.getValue();
+		return 0;
 	}
 
 	Set<Creature> getTargets() {

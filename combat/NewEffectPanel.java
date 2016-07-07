@@ -73,6 +73,8 @@ class NewEffectPanel extends JPanel {
 				effectField.setText(buff.name);
 				targets = dialog.getTargets();
 				sourceField.setSelectedItem(dialog.getSourceName());
+				durationField.setValue(dialog.getDuration());
+				unitsField.setSelectedItem(dialog.getDurationUnit());
 			}
 		});
 

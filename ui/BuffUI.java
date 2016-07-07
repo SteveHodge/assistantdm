@@ -79,11 +79,18 @@ public class BuffUI {
 			return null;
 		}
 
-		// TODO should not remove all elements, instead only remove elements as necessary and only add elements as required
 		public void filter(Predicate<BuffEntry> pred) {
-			removeAllElements();
+			int i = 0;
 			for (BuffEntry bf : source.keySet()) {
-				if (pred.test(bf)) addElement(bf);
+				boolean current = source.get(bf);
+				boolean newVal = pred.test(bf);
+				if (newVal) {
+					if (!current) add(i, bf);
+					i++;
+				} else if (current) {
+					removeElement(bf);
+				}
+				source.put(bf, newVal);
 			}
 		}
 	}
