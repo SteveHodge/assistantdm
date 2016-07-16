@@ -30,17 +30,17 @@
 			$('#webcam').css('min-height', $('#photo1').height()+'px');
 		});
 	
-		$.getJSON('static/initiative.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
+		$.getJSON('/assistantdm/static/initiative.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 			updateInitiativeText(data);
 		});
 		
-		$.getJSON('static/tokens.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
+		$.getJSON('/assistantdm/static/tokens.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 			updateTokensText(data);
 		});
 	
 		addListener('initiative.json', function() {
 			logMessage('updated initiatives');
-			$.get('static/initiative.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
+			$.get('/assistantdm/static/initiative.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 				updateInitiativeText(data);
 			});
 		});
@@ -57,7 +57,7 @@
 		
 		addListener('tokens.json', function() {
 			logMessage('updated token legend', true);
-			$.get('static/tokens.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
+			$.get('/assistantdm/static/tokens.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 				updateTokensText(data);
 			});
 		});
@@ -86,12 +86,18 @@
 						displayCharacterXML(sheet2,xml, xsl2);
 					});
 				}
+
+				var effectUpdater = $('#effectsList').data('updater');
+				if (effectUpdater) effectUpdater(xml);
 			});
 
 			addListener(name+'.xml', function() {
 				$.get('/assistantdm/'+name+'/xml?token='+token+'&r='+(new Date()).valueOf(), function(xml) {
 					if (sheet1) displayCharacterXML(sheet1, xml, xsl1);
 					if (sheet2) displayCharacterXML(sheet2, xml, xsl2);
+					
+					var effectUpdater = $('#effectsList').data('updater');
+					if (effectUpdater) effectUpdater(xml);
 				});
 			});
 		}
@@ -127,8 +133,10 @@
 
 		source.addEventListener('error', function(event) {
 			if (event.target.readyState === EventSource.CLOSED) {
-				if (source) source.close();
 				logError('Lost connection to server');
+				if (source) source.close();
+				source = null;
+				setTimeout(openConnection, 1000);
 			} else if (event.target.readyState === EventSource.CONNECTING) {
 				logMessage('Lost connection to server, attempting reconnect');
 			} else {
@@ -247,7 +255,7 @@
 		}
 	}
 
-	function logError (msg) {
+	function logError (msg, debug) {
 		if (document.getElementById('messageDiv')) {
 			if (document.getElementById('debugcheck').checked) {
 				$('#messageDiv').append((new Date()).toLocaleTimeString()+': '+msg+'<br>');

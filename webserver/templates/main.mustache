@@ -50,7 +50,7 @@
 		<section id="tab_sheet2" style="display:none; font-size:{{fontsize}}px;" class="tab" name="Sheet 2" character="{{name}}"></section>
 		{{/sheet2}}
 
-		{{#content}}
+		{{#casttab}}
 		<section id="tab_cast" style="display:none;" class="tab" name="{{#hasspells}}Cast / {{/hasspells}}Use" saveurl="{{saveurl}}">
 			{{#hasspells}}
 			<div>
@@ -60,11 +60,10 @@
 					<div class="selectable">{{{html}}}</div>
 					{{/spells}}
 				</div>
-				<br><input type="button" id="btnSpells" value="Cast" />
-				<input type="button" id="btnRest" value="Rest" />
+				<br><span><input type="button" id="btnSpells" value="Cast" /><input type="button" id="btnRest" value="Rest" /></span>
 			</div>
 			{{/hasspells}}
-			<div>
+			<div id="ability-div">
 				<table class="abilities" button="btnDeleteAbility">
 					<tr><th><h3>Daily Abilities</h3></th><th><input type="button" value="&#x271a" id="btnAbility"/></th></tr>
 					{{#dailies}}
@@ -75,10 +74,25 @@
 					<tr class="selectable"><td>{{name}}</td><td><input type="text" size="4" value="{{remain}}"/><input type="button" value="&#x25b2" /><input type="button" value="&#x25bc"/></td></tr>
 					{{/charges}}
 				</table>
-				<br><input type="button" id="btnDeleteAbility" value="Delete" />
+				<br><span><input type="button" id="btnDeleteAbility" value="Delete" /></span>
+			</div>
+			<div>
+				<h3>Applied to Character Sheet</h3>
+				<div id="effectsList" class="scrollable">
+				</div>
+				{{#hasspells}}
+				<br>
+				<h3>Cast Spells</h3>
+				<div id="castList" class="scrollable" button="btnDeleteCast btnUncast">
+					{{#castList}}
+					<div class="selectable">{{{html}}}</div>
+					{{/castList}}
+				</div>
+				<br><span><input type="button" id="btnDeleteCast" value="Delete" /><input type="button" id="btnUncast" value="Uncast" /></span>
+				{{/hasspells}}
 			</div>
 		</section>
-		{{/content}}
+		{{/casttab}}
 
 		{{{content}}}
 
@@ -100,7 +114,7 @@
 						<option value="5" {{#fontsize5}}selected{{/fontsize5}}>5</option>
 					</select><br>
 				</div>
-				Spells/uses: <input type="checkbox" name="spells" {{#content}}checked{{/content}}><br>
+				Spells/uses: <input type="checkbox" name="spells" {{#casttab}}checked{{/casttab}}><br>
 				<input type="submit" value="Save">
 			</form>
 		</section>

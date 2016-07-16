@@ -10,6 +10,7 @@ var ordinals = ['th','st','nd','rd'];
 
 // frequently accessed elements (these are set on load and shouldn't ever change)
 var spellList;
+var castList;
 // frequently accessed tab elements (these are set when a prepare tab is selected)
 // TODO could move these to the current tab element
 var tabPrefix;				// id prefix for the current tab
@@ -38,11 +39,16 @@ function isSelected(element) {
 // the attached button (if any), otherwise disable it.
 function updateButton(list) {
 	'use strict';
-	var button;
+	var button, buttons, i;
 
 	if (list.hasAttribute('button')) {
-		button = document.getElementById(list.getAttribute('button'));
-		button.disabled = $(list).has('.selectable.selected').length == 0;
+		buttons = list.getAttribute('button').split(/\s+/);
+		for (i in buttons) {
+			button = document.getElementById(buttons[i]);
+			if (button) {
+				button.disabled = $(list).has('.selectable.selected').length == 0;
+			}
+		}
 	}
 }
 
@@ -196,6 +202,10 @@ function save() {
 		return { html: this.innerHTML };
 	}).get();
 
+	output['castList'] = $('#castList div').map(function() {
+		return { html: this.innerHTML };
+	}).get();
+
 	output['dailies'] = $('#tab_cast tr[max]').map(function(i,e) {
 		return {
 			name: $(e).children('td').first().text(),
@@ -244,7 +254,7 @@ function save() {
 			}
 		}
 	};
-	req.send(JSON.stringify(output));
+	req.send(JSON.stringify(output, null, '\t'));
 }
 
 function addSpell(text, superfix, italic) {
@@ -677,11 +687,40 @@ function castSpell() {
 		nextNode = node.nextElementSibling;
 		if (isSelected(node)) {
 			spellList.removeChild(node);
+			castList.insertBefore(node, castList.firstChild);
+			deselect(node);	// this will update the buttons. if we didn't deselect we'd need to update the buttons explicitly
 		}
 		node = nextNode;
 	}
 	
 	save();
+}
+
+function deleteCast() {
+	'use strict';
+	save();
+	updateButton(castList);
+}
+
+function uncastSpell() {
+	'use strict';
+	var node, nextNode;
+
+	node = castList.firstElementChild;
+	while (node !== null) {
+		nextNode = node.nextElementSibling;
+		if (isSelected(node)) {
+			castList.removeChild(node);
+			spellList.insertBefore(node, spellList.firstChild);
+			deselect(node);	// this will update the buttons. if we didn't deselect we'd need to update the buttons explicitly
+		}
+		node = nextNode;
+	}
+
+	sortList(spellList);
+
+	save();
+	updateButton(castList);
 }
 
 function rest() {
@@ -716,6 +755,10 @@ function rest() {
 	$('#tab_cast tr[max] input[type="checkbox"]').each(function(i,e) {
 		$(e).prop('checked', false);
 	});
+
+	// remove all cast spells
+	$('#castList').empty();
+	updateButton(castList);
 
 	save();
 	
@@ -809,9 +852,21 @@ function usesChanged(e) {
 	}
 }
 
+function updateEffects(xml) {
+	console.log("updating effects");
+	var $xml = $(xml);
+	$('#effectsList').empty();
+	var $buffs = $xml.find('Buffs > Buff');
+	$buffs.each(function(i) {
+		$('<div class="selectable">'+$(this).attr('name')+'</div>').appendTo($('#effectsList'));
+	});
+}
+
 $(document).ready(function() {
 	'use strict';
 	var i, knownList, spell, slotList;
+
+	$('#effectsList').data('updater', updateEffects);
 
 	// TODO probably better to do this by detecting lack of "ontouchstart"
 	// load extra stylesheet for non-ios browsers:
@@ -828,6 +883,8 @@ $(document).ready(function() {
 	$('#btnAbility').on('click', newAbility);
 	$('#btnItem').on('click', newItem);
 	$('#btnDeleteAbility').on('click', deleteAbility);
+	$('#btnDeleteCast').on('click', deleteCast);
+	$('#btnUncast').on('click', uncastSpell);
 
 	// event handlers for prepare tabs
 	$('.tab.prepare').each(function(i,e) {
@@ -866,6 +923,7 @@ $(document).ready(function() {
 
 	// setup global element pointers
 	spellList = document.getElementById('spellList');
+	castList = document.getElementById('castList');
 
 	// setup spell list(s) correctly
 	setupSpellLists(document.getElementsByClassName('prepare'));

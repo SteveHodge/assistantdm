@@ -72,15 +72,9 @@ app.use(express.logger(':remote-addr [:date] :method ":url" :status'));
 app.use(express.json());
 app.use(express.urlencoded());
 
-app.get('/static/:name', function(req, res, next) {
-	if (req.query.token) {
-		if (!sub_tracking[req.query.token]) sub_tracking[req.query.token] = {};
-		if (!sub_tracking[req.query.token][req.params.name]) sub_tracking[req.query.token][req.params.name] = {};
-		sub_tracking[req.query.token][req.params.name].last_fetched = new Date();
-		sub_tracking[req.query.token][req.params.name].latest = true;
-	}
-	next();
-});
+
+app.get('/static/:name', subscribeFile);	// static files
+app.get('/:name/xml', subscribeFile);		// character xml files
 
 app.use('/static', express.static(__dirname+'/static'));
 
@@ -134,6 +128,8 @@ app.get('/:name/spells', function(req, res, next) {
 
 		content.title = content.name;
 		content.saveurl = '/assistantdm/'+req.params.name+'/spells';
+		content.casttab = true;
+		//console.log(util.inspect(content));
 		res.send(mustache.to_html(main_template, content));
 	});
 });
@@ -180,7 +176,6 @@ app.post('/:name', function(req, res, next) {
 		config.sheet2 = false;
 	}
 	if (!config.fontsize) config.fontsize = 8;
-	console.log(util.inspect(config));
 
 	fs.writeFile(__dirname+'/players/'+req.params.name+'.player', JSON.stringify(config), function(err) {
 		if (err) return next('Failed to save configuration');
@@ -240,6 +235,8 @@ app.get('/:name', function(req, res, next) {
 						if (config.sheet2) pageData.sheet2 = true;
 					}
 				}
+
+				if (config.spells) pageData.casttab = true;
 
 				res.send(mustache.to_html(main_template, pageData));
 			}
@@ -385,6 +382,20 @@ var server = app.listen(8888, function() {
 	'use strict';
 
 	console.log('Listening on port %d', server.address().port);
+	
+	// keepalive timer for SSE streams - not sure this helps
+	setInterval(function() {
+		var now = new Date();
+		for (var i = 0; i < subscribers.length; i++) {
+			if (subscribers[i] && !subscribers[i].closed) {
+				if (now - subscribers[i].last_messaged > 19000) {
+//					console.log("Sending keepalive message at "+now+" as no message since "+subscribers[i].last_messaged);
+					subscribers[i].res.write('data: x\n\n');
+					subscribers[i].last_messaged = now;
+				}
+			}
+		}		
+	}, 10000);
 });
 
 function saveFile(file, req, res, next) {
@@ -405,16 +416,32 @@ function saveFile(file, req, res, next) {
 				var f = path.basename(file);
 				//console.log('data: '+f);
 				if (subscribers[i] && (subscribers[i].file === '*' || subscribers[i].file === f)) {
+					var now = new Date();
 					subscribers[i].res.write('data: '+f+'\n\n');
+					subscribers[i].last_messaged = now;
 					var token = subscribers[i].token;
 					if (token && sub_tracking[token] && sub_tracking[token][f]) {
-						sub_tracking[token][f].updated = new Date();
+						sub_tracking[token][f].updated = now;
 						sub_tracking[token][f].latest = false;
 					}
 				}
 			}
 		});
 	});
+}
+
+// TODO should probably check the files exists
+// filename is taken from the request query params. if it contains 'static' then it's a static file (name used as is), otherwise '.xml' is appended
+function subscribeFile(req, res, next) {
+	if (req.query.token) {
+		var file = req.params.name;
+		if (file.indexOf('static') == -1) file += '.xml';
+		if (!sub_tracking[req.query.token]) sub_tracking[req.query.token] = {};
+		if (!sub_tracking[req.query.token][file]) sub_tracking[req.query.token][file] = {};
+		sub_tracking[req.query.token][file].last_fetched = new Date();
+		sub_tracking[req.query.token][file].latest = true;
+	}
+	next();	
 }
 
 function subscribe(file, req, res, next) {
@@ -433,16 +460,26 @@ function subscribe(file, req, res, next) {
 	res.write('\n');
 
 	//track subscriber
-	// if there is an existing closed connection with the same ip address and token we'll replace that, otherwise we'll add a new one
+	// if there is an existing connection with the same ip address and token we'll replace that, otherwise we'll add a new one
 	var found = false;
 	for (var i = 0; i < subscribers.length; i++) {
-		if (subscribers[i] && subscribers[i].token === req.query.token && subscribers[i].closed && subscribers[i].req.ip === req.ip) {
+		if (subscribers[i] && subscribers[i].token === req.query.token && subscribers[i].req.ip === req.ip) {
 			found = true;
 			subscribers[i].req = req;
 			subscribers[i].res = res;
 			subscribers[i].file = file;
 			subscribers[i].closed = false;
 			subscribers[i].reconnects++;
+			subscribers[i].last_messaged = new Date();
+			
+			// check if any updates have been missed (can happen if a reconnect misses a notification
+			var tracking = sub_tracking[subscribers[i].token];
+			for (var file in tracking) {
+				if (tracking.hasOwnProperty(file) && !tracking[file].latest) {
+					subscribers[i].res.write('data: '+file+'\n\n');
+//					console.log("Resnding update to "+file+": "+JSON.stringify(tracking, null, 2));
+				}
+			}			
 			break;
 		}
 	}	
@@ -454,7 +491,8 @@ function subscribe(file, req, res, next) {
 			'file': file,
 			'token': req.query.token,
 			'reconnects': 0,
-			'first_connect': new Date
+			'first_connect': new Date(),
+			'last_messaged': new Date()
 		});
 	}
 

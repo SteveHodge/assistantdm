@@ -90,12 +90,32 @@ section.tab > div {
     padding: 4px;
 }
 
+#tab_cast {
+    display: flex;
+}
+
+#tab_cast > div {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#tab_cast > div#ability-div {
+	flex-grow: 0;
+}
+
 .scrollable {
-    width: 200px;
-    height: 20em;
-    border: 1px solid black;
-    overflow-y: scroll;
+	width: 300px;
+	min-height: 20em;
+	max-height: 40em;
+	border: 1px solid black;
+	overflow-y: scroll;
 /*    -webkit-overflow-scrolling: touch;*/
+}
+
+#tab_cast .scrollable {
+	width: auto;
+	flex-grow: 1;
 }
 
 .selected {

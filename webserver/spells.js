@@ -1551,6 +1551,7 @@ function buildConfig(character, spells) {
 	}
 	tab.dailies = spells.dailies;
 	tab.charges = spells.charges;
+	tab.castList = spells.castList;
 	output.push(tab);
 
 	return output;
@@ -1620,7 +1621,7 @@ function getConfig(name, callback) {
 function setSpells(name, data, callback) {
 	'use strict';
 	
-	fs.writeFile(__dirname+'/characters/'+name+'.spells', JSON.stringify(data), function(err) {
+	fs.writeFile(__dirname+'/characters/'+name+'.spells', JSON.stringify(data, null, 2), function(err) {
 		callback(err);
 	});
 }
@@ -1645,6 +1646,7 @@ function getContent(name, callback) {
 				}
 				data.dailies = config[i].dailies;
 				data.charges = config[i].charges;
+				data.castList = config[i].castList;
 			} else {
 				data.content += mustache.to_html(tab_templates[config[i].type], config[i]);
 			}
