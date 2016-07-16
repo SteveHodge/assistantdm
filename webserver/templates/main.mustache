@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!--	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">-->
 <!--<meta name="viewport" content="width=480">-->
-	<link rel="stylesheet" type="text/css" href="/assistantdm/static/spelllist.css">
+	<meta charset="UTF-8">
+	<link rel="stylesheet" type="text/css" href="/assistantdm/static/spelllist.css"/>
 	<link rel="stylesheet" type="text/css" href="/assistantdm/static/character.css"/>
 	<link rel="stylesheet" type="text/css" href="/assistantdm/static/webcam.css"/>
 	<title>{{title}}</title>
@@ -88,7 +89,7 @@
 					<div class="selectable">{{{html}}}</div>
 					{{/castList}}
 				</div>
-				<br><span><input type="button" id="btnDeleteCast" value="Delete" /><input type="button" id="btnUncast" value="Uncast" /></span>
+				<br><span><input type="button" id="btnDeleteCast" value="Delete" /><input type="button" id="btnUncast" value="Uncast" />&nbsp;(double click to add note)</span>
 				{{/hasspells}}
 			</div>
 		</section>

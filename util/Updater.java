@@ -1,11 +1,10 @@
 package util;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -107,11 +106,12 @@ public class Updater {
 		try {
 			Transformer trans = TransformerFactory.newInstance().newTransformer();
 			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+			trans.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-			FileWriter outputStream = new FileWriter(new File(name+".xml"));
+			FileOutputStream outputStream = new FileOutputStream(new File(name + ".xml"));
 			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
 
-			StringWriter writer = new StringWriter();
+			ByteArrayOutputStream writer = new ByteArrayOutputStream();
 			trans.transform(new DOMSource(doc), new StreamResult(writer));
 			byte[] bytes = writer.toString().getBytes();
 

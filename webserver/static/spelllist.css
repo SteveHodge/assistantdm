@@ -118,6 +118,15 @@ section.tab > div {
 	flex-grow: 1;
 }
 
+#castList input {
+	width: 90%;
+	margin-left: 5%;
+}
+
+#effectsList pre {
+	margin: 0 0 0 5%;
+}
+
 .selected {
 	background-color: rgb(180,180,180);
 }

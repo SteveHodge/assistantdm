@@ -265,6 +265,7 @@ app.get('/:name', function(req, res, next) {
 		data.title = data.name;
 		data.sheet1 = true;
 		data.sheet2 = true;
+		data.spells = true;
 		data.fontsize = 8;
 		data.saveurl = '/assistantdm/'+req.params.name+'/spells';
 		res.send(mustache.to_html(main_template, data));

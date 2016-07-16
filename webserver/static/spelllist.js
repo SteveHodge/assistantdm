@@ -687,12 +687,25 @@ function castSpell() {
 		nextNode = node.nextElementSibling;
 		if (isSelected(node)) {
 			spellList.removeChild(node);
+			// move to cast list and add double click handler
 			castList.insertBefore(node, castList.firstChild);
+			$(node).dblclick(addNote);
 			deselect(node);	// this will update the buttons. if we didn't deselect we'd need to update the buttons explicitly
 		}
 		node = nextNode;
 	}
 	
+	save();
+}
+
+function addNote() {
+	$(this)
+		.append($('<br>'))
+		.append($('<input type="text">').on('change', noteChanged));
+}
+
+function noteChanged(e) {
+	$(e.target).attr('value', $(e.target).val());	// set the value attribute so the note text gets saved
 	save();
 }
 
@@ -711,6 +724,11 @@ function uncastSpell() {
 		nextNode = node.nextElementSibling;
 		if (isSelected(node)) {
 			castList.removeChild(node);
+			$(node)
+				.off('dblclick')
+				.find('br').remove();
+			$(node)
+				.find('input').remove();
 			spellList.insertBefore(node, spellList.firstChild);
 			deselect(node);	// this will update the buttons. if we didn't deselect we'd need to update the buttons explicitly
 		}
@@ -853,12 +871,19 @@ function usesChanged(e) {
 }
 
 function updateEffects(xml) {
-	console.log("updating effects");
 	var $xml = $(xml);
 	$('#effectsList').empty();
 	var $buffs = $xml.find('Buffs > Buff');
 	$buffs.each(function(i) {
-		$('<div class="selectable">'+$(this).attr('name')+'</div>').appendTo($('#effectsList'));
+		var name = $(this).attr('name');
+		var $mods = $(this).find('Modifier');
+		var details = [];
+		$mods.each(function(j) {
+			details.push($(this).attr('description').replace(' (from '+name+')', ''));
+		});
+		$('<div class="selectable">'+name+'</div>')
+			.append($('<pre>').text(details.join('\n')))
+			.appendTo($('#effectsList'));
 	});
 }
 
@@ -866,7 +891,7 @@ $(document).ready(function() {
 	'use strict';
 	var i, knownList, spell, slotList;
 
-	$('#effectsList').data('updater', updateEffects);
+	$('#effectsList').data('updater', updateEffects);	// attach the function that processes the buffs data attached to the character so the updater code can find it
 
 	// TODO probably better to do this by detecting lack of "ontouchstart"
 	// load extra stylesheet for non-ios browsers:
@@ -917,6 +942,13 @@ $(document).ready(function() {
 
 	// add the click handler for selectable list items
 	$('.selectable').on('click', listItemClickHandler);
+
+	// events for cast spells
+	$('#castList .selectable')
+		.on('dblclick', addNote)
+		.find('input')
+			.on('change', noteChanged);
+	$('#castList input[value=""]').remove();	// remove empty notes
 
 	// add the event handler needed for metamagic changes
 	$("input[name='metamagic']").on('change', metamagicChange);

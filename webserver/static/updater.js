@@ -133,7 +133,7 @@
 
 		source.addEventListener('error', function(event) {
 			if (event.target.readyState === EventSource.CLOSED) {
-				logError('Lost connection to server');
+				logMessage('Lost connection to server');
 				if (source) source.close();
 				source = null;
 				setTimeout(openConnection, 1000);
