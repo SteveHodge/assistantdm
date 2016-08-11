@@ -19,11 +19,10 @@ import org.w3c.dom.Element;
  * Once the Buff is applied, it's effects are fixed.
  */
 
-public class Buff {
+public class Buff extends Feature<Buff, BuffFactory> {
 	public String name;
-	public List<Effect> effects = new ArrayList<>();
+	public List<FeatureDefinition.Effect> effects = new ArrayList<>();
 	boolean realised = false;	// set to true once the effects have been fixed
-	Map<Modifier, String> modifiers = new HashMap<>();	// map of modifier to the target it will be applied to
 	Map<PropertyChange, String> propertyChanges = new HashMap<>();	// map of property changes to the target
 	int casterLevel = 0;
 	Map<Dice, Integer> rolls = new HashMap<>();
@@ -64,12 +63,13 @@ public class Buff {
 	}
 
 	public Buff() {
+		super(null);
 		//System.out.println("Creating Buff with id " + nextid);
 		id = nextid++;
 	}
 
 	public boolean requiresCasterLevel() {
-		for (Effect e : effects) {
+		for (FeatureDefinition.Effect e : effects) {
 			if (e.requiresCasterLevel()) return true;
 		}
 		return false;
@@ -77,6 +77,11 @@ public class Buff {
 
 	@Override
 	public String toString() {
+		return name;
+	}
+
+	@Override
+	public String getName() {
 		return name;
 	}
 
@@ -92,12 +97,13 @@ public class Buff {
 		rolls.put(d, r);
 	}
 
-	public void applyBuff(Creature c) {
+	@Override
+	public void apply(Creature c) {
 		if (!realised) {
 			// create modifiers/properties for each Effect. this will fix the specifics of the Effects
-			for (Effect e : effects) {
-				if (e instanceof ModifierEffect) {
-					modifiers.put(((ModifierEffect)e).getModifier(this), e.target);
+			for (FeatureDefinition.Effect e : effects) {
+				if (e instanceof FeatureDefinition.ModifierEffect) {
+					modifiers.put(((FeatureDefinition.ModifierEffect)e).getModifier(this), e.target);
 				} else if (e instanceof PropertyEffect) {
 					PropertyChange change = new PropertyChange();
 					change.property = ((PropertyEffect)e).property;
@@ -109,28 +115,19 @@ public class Buff {
 			realised = true;
 		}
 
-		for (Modifier m : modifiers.keySet()) {
-			// add modifier to target stat
-			for (Statistic s : getTargetStats(c, modifiers.get(m))) {
-				s.addModifier(m);
-			}
-		}
+		super.apply(c);
 		for (PropertyChange p : propertyChanges.keySet()) {
-			for (Statistic s : getTargetStats(c, propertyChanges.get(p))) {
+			for (Statistic s : Feature.getTargetStats(c, propertyChanges.get(p))) {
 				s.setProperty(p.property, p.value, name, id);
 			}
 		}
 	}
 
-	public void removeBuff(Creature c) {
-		for (Modifier m : modifiers.keySet()) {
-			// remove modifier from target stat
-			for (Statistic s : getTargetStats(c, modifiers.get(m))) {
-				s.removeModifier(m);
-			}
-		}
+	@Override
+	public void remove(Creature c) {
+		super.remove(c);
 		for (PropertyChange p : propertyChanges.keySet()) {
-			for (Statistic s : getTargetStats(c, propertyChanges.get(p))) {
+			for (Statistic s : Feature.getTargetStats(c, propertyChanges.get(p))) {
 				s.resetProperty(p.property, id);
 			}
 		}
@@ -172,37 +169,7 @@ public class Buff {
 		return target;
 	}
 
-	protected static Statistic[] getTargetStats(Creature c, String target) {
-		Statistic[] stats;
-		if (target.equals(Creature.STATISTIC_SAVING_THROWS)) {
-			stats = new Statistic[3];
-			stats[0] = c.getStatistic(Creature.STATISTIC_FORTITUDE_SAVE);
-			stats[1] = c.getStatistic(Creature.STATISTIC_WILL_SAVE);
-			stats[2] = c.getStatistic(Creature.STATISTIC_REFLEX_SAVE);
-		} else {
-			stats = new Statistic[1];
-			stats[0] = c.getStatistic(target);
-		}
-		if (stats[0] == null) return new Statistic[0];
-		return stats;
-	}
-
-	public abstract static class Effect {
-		public String target;
-
-		@Override
-		abstract public boolean equals(Object o);
-
-		public boolean requiresCasterLevel() {
-			return false;
-		};
-
-		public Dice getDice() {
-			return null;
-		}
-	}
-
-	public static class PropertyEffect extends Effect {
+	public static class PropertyEffect extends FeatureDefinition.Effect {
 		String property;
 		Object value;
 		String description;
@@ -225,14 +192,7 @@ public class Buff {
 		}
 	}
 
-	public abstract static class ModifierEffect extends Effect {
-		public String type;
-		String condition;
-
-		public abstract Modifier getModifier(Buff b);
-	}
-
-	protected static class CLEffect extends ModifierEffect {
+	protected static class CLEffect extends FeatureDefinition.ModifierEffect {
 		Object baseMod;
 		int perCL;
 		int maxPerCL;
@@ -327,46 +287,14 @@ public class Buff {
 		}
 	}
 
-	public static class FixedEffect extends ModifierEffect {
+	public static class FixedEffect extends FeatureDefinition.FixedEffect {
 		public int modifier;
 
 		@Override
-		public Modifier getModifier(Buff b) {
-			ImmutableModifier m = new ImmutableModifier(modifier, type, b.name, condition);
+		public ImmutableModifier getModifier(Buff b) {
+			ImmutableModifier m = super.getModifier(b);
 			m.id = b.id;
 			return m;
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder s = new StringBuilder();
-
-			if (modifier >= 0) s.append("+");
-			s.append(modifier);
-			if (type != null) s.append(" ").append(type);
-			if (modifier >= 0) {
-				s.append(" bonus");
-			} else {
-				s.append(" penalty");
-			}
-
-			s.append(" to ").append(getTargetDescription(target));
-			if (condition != null) s.append(" ").append(condition);
-			return s.toString();
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (!(o instanceof FixedEffect)) return false;
-			FixedEffect e = (FixedEffect) o;
-			if (!target.equals(e.target)) return false;
-
-			if (type != null && (e.type == null || !type.equals(e.type))
-					|| type == null && e.type != null) return false;
-			if (condition != null && (e.condition == null || !condition.equals(e.condition))
-					|| condition == null && e.condition != null) return false;
-
-			return modifier == e.modifier;
 		}
 	}
 

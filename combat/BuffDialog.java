@@ -1,6 +1,7 @@
 package combat;
 
 import gamesystem.Buff;
+import gamesystem.BuffFactory;
 import gamesystem.Creature;
 import gamesystem.Spell;
 
@@ -48,7 +49,6 @@ import javax.xml.transform.stream.StreamSource;
 import party.Character;
 import swing.JListWithToolTips;
 import ui.BuffUI;
-import ui.BuffUI.BuffEntry;
 import ui.BuffUI.BuffListModel;
 
 @SuppressWarnings("serial")
@@ -69,9 +69,9 @@ class BuffDialog extends JDialog {
 
 		ui = new BuffUI();
 
-		JListWithToolTips<BuffEntry> buffs = ui.getBuffList(true);
+		JListWithToolTips<BuffFactory> buffs = ui.getBuffList(true);
 		buffs.addListSelectionListener(e -> {
-			BuffEntry buff = buffs.getSelectedValue();
+			BuffFactory buff = buffs.getSelectedValue();
 			if (buff != null && buff.source instanceof Spell) {
 				Spell s = (Spell) buff.source;
 				durationHint.setText("(" + s.duration.trim() + ")");
@@ -140,9 +140,9 @@ class BuffDialog extends JDialog {
 				BuffUI.BuffListModel model = (BuffListModel) buffs.getModel();
 				String text = filter.getText().toLowerCase();
 				if (text.length() == 0) {
-					model.filter((BuffEntry e) -> true);
+					model.filter((BuffFactory e) -> true);
 				} else {
-					model.filter((BuffEntry e) -> e.name.toLowerCase().contains(text));
+					model.filter((BuffFactory e) -> e.name.toLowerCase().contains(text));
 				}
 			}
 		});
@@ -242,7 +242,7 @@ class BuffDialog extends JDialog {
 		setVisible(true);
 	}
 
-	private void popupInfo(BuffEntry buff) {
+	private void popupInfo(BuffFactory buff) {
 		if (buff.source instanceof Spell) {
 			Spell s = (Spell) buff.source;
 
@@ -273,8 +273,20 @@ class BuffDialog extends JDialog {
 		}
 	}
 
+	boolean okSelected() {
+		return okSelected;
+	}
+
 	Buff getBuff() {
 		if (okSelected) return ui.getBuff();
+		return null;
+	}
+
+	String getBuffName() {
+		if (okSelected) {
+			System.out.println("Selected = " + sourceModel.getSelectedItem());
+			return sourceModel.getSelectedItem().toString();
+		}
 		return null;
 	}
 

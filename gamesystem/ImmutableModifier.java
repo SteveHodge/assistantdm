@@ -27,7 +27,7 @@ public class ImmutableModifier implements Modifier {
 
 	public ImmutableModifier(int mod, String type, String source, String condition) {
 		this.modifier = mod;
-		this.type = type;
+		if (type != null && type.length() > 0) this.type = type;
 		this.source = source;
 		this.condition = condition;
 	}

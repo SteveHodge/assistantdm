@@ -1,5 +1,7 @@
 package gamesystem;
 
+import gamesystem.dice.Dice;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,23 +44,50 @@ public abstract class FeatureDefinition<S extends FeatureDefinition<S>> {
 		return (S) this;
 	}
 
-	protected void addFixedEffect(String target, String type, int modifier, String condition) {
-		Effect e = new Effect();
+	@SuppressWarnings("unchecked")
+	protected S addFixedEffect(String target, String type, int modifier, String condition) {
+		FixedEffect e = new FixedEffect();
 		e.target = target;
-		e.type = type;
+		if (type != null && type.length() > 0) e.type = type;
 		e.modifier = modifier;
 		e.condition = condition;
 		effects.add(e);
+		return (S) this;
 	}
 
-	static class Effect {
-		String target;
-		String type;
+	public abstract static class Effect {
+		public String target;
+
+		@Override
+		abstract public boolean equals(Object o);
+
+		public boolean requiresCasterLevel() {
+			return false;
+		};
+
+		public Dice getDice() {
+			return null;
+		}
+	}
+
+	public abstract static class ModifierEffect extends Effect {
+		public String type;
 		String condition;
+
+		public abstract Modifier getModifier(Buff b);
+	}
+
+	static class FixedEffect extends ModifierEffect {
 		int modifier;
 
-		Modifier getModifier(String name) {
+		ImmutableModifier getModifier(String name) {
 			ImmutableModifier m = new ImmutableModifier(modifier, type, name, condition);
+			return m;
+		}
+
+		@Override
+		public ImmutableModifier getModifier(Buff b) {
+			ImmutableModifier m = new ImmutableModifier(modifier, type, b.name, condition);
 			return m;
 		}
 
@@ -78,6 +107,20 @@ public abstract class FeatureDefinition<S extends FeatureDefinition<S>> {
 			s.append(" to ").append(Buff.getTargetDescription(target));
 			if (condition != null) s.append(" ").append(condition);
 			return s.toString();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof FixedEffect)) return false;
+			FixedEffect e = (FixedEffect) o;
+			if (!target.equals(e.target)) return false;
+
+			if (type != null && (e.type == null || !type.equals(e.type))
+					|| type == null && e.type != null) return false;
+			if (condition != null && (e.condition == null || !condition.equals(e.condition))
+					|| condition == null && e.condition != null) return false;
+
+			return modifier == e.modifier;
 		}
 	}
 }

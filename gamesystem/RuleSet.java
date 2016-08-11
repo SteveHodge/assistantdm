@@ -196,7 +196,7 @@ public class RuleSet {
 							buff.addBonus(stat, type, baseMod, perCL, max, condition);
 						}
 					} else {
-						buff.addEffect(stat, type, val, condition);
+						buff.addFixedEffect(stat, type, val, condition);
 					}
 				}
 				s.buffFactories.put(variant, buff);

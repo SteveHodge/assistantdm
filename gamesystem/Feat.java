@@ -30,7 +30,8 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 			Feat b = new Feat(this);
 
 			for (Effect e : effects) {
-				b.modifiers.put(e.getModifier(name), e.target);
+				if (e instanceof FixedEffect)
+					b.modifiers.put(((FixedEffect) e).getModifier(name), e.target);
 			}
 			return b;
 		}
@@ -204,24 +205,24 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 		new FeatDefinition("Craft Staff").summary("Create magic staves.").ref("PH 92"),
 		new FeatDefinition("Craft Wand").summary("Create magic wands.").ref("PH 92"),
 		new FeatDefinition("Craft Wondrous Item").summary("Create magic wondrous items.").ref("PH 92"),
-			new FeatDefinition("Forge Ring").summary("Create magic rings.").ref("PH 94"),
-			/*
-			 * monster feats
-			 */
-			new FeatDefinition("Ability Focus").summary("+2 to DC of saves against selected attack.").ref("MM 303"),
-			new FeatDefinition("Awesome Blow").summary("").ref("MM 303"),
-			new FeatDefinition("Craft Construct").summary("").ref("MM 303"),
-			new FeatDefinition("Empower Spell-like Ability").summary("").ref("MM 303"),
-			new FeatDefinition("Flyby Attack").summary("").ref("MM 303"),
-			new FeatDefinition("Hover").summary("").ref("MM 304"),
-			new FeatDefinition("Improved Natural Armor").summary("").ref("MM 303"),
-			new FeatDefinition("Improved Natural Attack").summary("").ref("MM 303"),
-			new FeatDefinition("Multiattack").summary("").ref("MM 303"),
-			new FeatDefinition("Multiweapon Fighting").summary("").ref("MM 303"),
-			new FeatDefinition("Quicken Spell-like Ability").summary("").ref("MM 303"),
-			new FeatDefinition("Snatch").summary("").ref("MM 303"),
-			new FeatDefinition("Wingover").summary("").ref("MM 303"),
-			new FeatDefinition("Improved Toughness").summary("").ref("MM3 207"),
-			new FeatDefinition("Powerful Charge").summary("").ref("MM3 207"),
+		new FeatDefinition("Forge Ring").summary("Create magic rings.").ref("PH 94"),
+		/*
+		 * monster feats
+		 */
+		new FeatDefinition("Ability Focus").summary("+2 to DC of saves against selected attack.").ref("MM 303"),
+		new FeatDefinition("Awesome Blow").summary("").ref("MM 303"),
+		new FeatDefinition("Craft Construct").summary("").ref("MM 303"),
+		new FeatDefinition("Empower Spell-like Ability").summary("").ref("MM 303"),
+		new FeatDefinition("Flyby Attack").summary("").ref("MM 303"),
+		new FeatDefinition("Hover").summary("").ref("MM 304"),
+		new FeatDefinition("Improved Natural Armor").summary("").ref("MM 303"),
+		new FeatDefinition("Improved Natural Attack").summary("").ref("MM 303"),
+		new FeatDefinition("Multiattack").summary("").ref("MM 303"),
+		new FeatDefinition("Multiweapon Fighting").summary("").ref("MM 303"),
+		new FeatDefinition("Quicken Spell-like Ability").summary("").ref("MM 303"),
+		new FeatDefinition("Snatch").summary("").ref("MM 303"),
+		new FeatDefinition("Wingover").summary("").ref("MM 303"),
+		new FeatDefinition("Improved Toughness").summary("").ref("MM3 207"),
+		new FeatDefinition("Powerful Charge").summary("").ref("MM3 207"),
 	};
 }

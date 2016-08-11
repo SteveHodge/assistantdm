@@ -1,6 +1,7 @@
 package ui;
 
 import gamesystem.Buff;
+import gamesystem.BuffFactory;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -11,7 +12,6 @@ import javax.swing.border.TitledBorder;
 
 import party.Character;
 import swing.JListWithToolTips;
-import ui.BuffUI.BuffEntry;
 
 @SuppressWarnings("serial")
 public class CharacterBuffsPanel extends CharacterSubPanel {
@@ -20,7 +20,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
 		final BuffUI ui = new BuffUI();
-		JListWithToolTips<BuffEntry> buffs = ui.getBuffList();
+		JListWithToolTips<BuffFactory> buffs = ui.getBuffList();
 		buffs.setVisibleRowCount(20);
 		add(buffs);
 

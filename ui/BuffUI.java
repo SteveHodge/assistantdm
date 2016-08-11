@@ -1,9 +1,8 @@
 package ui;
 
 import gamesystem.Buff;
-import gamesystem.Buff.Effect;
-import gamesystem.Buff.ModifierEffect;
 import gamesystem.BuffFactory;
+import gamesystem.FeatureDefinition;
 import gamesystem.Modifier;
 import gamesystem.Spell;
 import gamesystem.dice.Dice;
@@ -31,40 +30,20 @@ import swing.JListWithToolTips;
 import swing.ListModelWithToolTips;
 
 public class BuffUI {
-	public static class BuffEntry implements Comparable<Object> {
-		public String name;
-		public BuffFactory factory;
-		public Object source;
-
-		@Override
-		public String toString() {
-			return name;
-		}
-
-		@Override
-		public int compareTo(Object arg0) {
-			return name.compareTo(arg0.toString());
-		}
-	}
-
 	@SuppressWarnings("serial")
-	public static class BuffListModel extends DefaultListModel<BuffEntry> implements ListModelWithToolTips<BuffEntry> {
-		SortedMap<BuffEntry, Boolean> source = new TreeMap<>();	// state of all buffs in the list
+	public static class BuffListModel extends DefaultListModel<BuffFactory> implements ListModelWithToolTips<BuffFactory> {
+		SortedMap<BuffFactory, Boolean> source = new TreeMap<>();	// state of all buffs in the list
 
 		public BuffListModel() {
 			super();
 		}
 
-		public BuffListModel(BuffEntry[] buffs) {
+		public BuffListModel(BuffFactory[] buffs) {
 			super();
-			for (BuffEntry bf : buffs) {
+			for (BuffFactory bf : buffs) {
 				source.put(bf, true);
 				addElement(bf);
 			}
-		}
-
-		public void addBuff(Buff b) {
-
 		}
 
 		@Override
@@ -79,9 +58,9 @@ public class BuffUI {
 			return null;
 		}
 
-		public void filter(Predicate<BuffEntry> pred) {
+		public void filter(Predicate<BuffFactory> pred) {
 			int i = 0;
-			for (BuffEntry bf : source.keySet()) {
+			for (BuffFactory bf : source.keySet()) {
 				boolean current = source.get(bf);
 				boolean newVal = pred.test(bf);
 				if (newVal) {
@@ -104,6 +83,7 @@ public class BuffUI {
 	private JCheckBox empCheckBox;
 	private JCheckBox maxCheckBox;
 	private JPanel clPanel;
+	private JListWithToolTips<BuffFactory> buffs;
 
 	// controls used in the descriptions of the effects of the buff
 	private JLabel[] effectLabels;
@@ -114,8 +94,10 @@ public class BuffUI {
 
 		clModel = new SpinnerNumberModel(1, 1, 20, 1);
 		clModel.addChangeListener(e -> {
-			buff.setCasterLevel(clModel.getNumber().intValue());
-			updateEffects(buff);
+			if (buff != null) {
+				buff.setCasterLevel(clModel.getNumber().intValue());
+				updateEffects(buff);
+			}
 		});
 		clSpinner = new JSpinner(clModel);
 
@@ -142,37 +124,31 @@ public class BuffUI {
 		clPanel.add(maxCheckBox);
 	}
 
-	public JListWithToolTips<BuffEntry> getBuffList() {
+	public JListWithToolTips<BuffFactory> getBuffList() {
 		return getBuffList(false);
 	}
 
-	public JListWithToolTips<BuffEntry> getBuffList(boolean allSpells) {
-		List<BuffEntry> buffsList = new ArrayList<>();
+	public JListWithToolTips<BuffFactory> getBuffList(boolean allSpells) {
+		List<BuffFactory> buffsList = new ArrayList<>();
 		for (Spell s : Spell.spells) {
 			if (allSpells && s.buffFactories.size() == 0) {
-				BuffEntry e = new BuffEntry();
+				BuffFactory e = new BuffFactory(s.name);
 				e.source = s;
-				e.name = s.name;
 				buffsList.add(e);
 			} else {
 				for (BuffFactory f : s.buffFactories.values()) {
-					BuffEntry e = new BuffEntry();
-					e.source = s;
-					e.name = f.name;
-					e.factory = f;
-					buffsList.add(e);
+					buffsList.add(f);
 				}
 			}
 		}
-		BuffEntry[] availableBuffs = buffsList.toArray(new BuffEntry[buffsList.size()]);
+		BuffFactory[] availableBuffs = buffsList.toArray(new BuffFactory[buffsList.size()]);
 		Arrays.sort(availableBuffs, (a, b) -> a.name.compareTo(b.name));
 		BuffListModel bfModel = new BuffListModel(availableBuffs);
-		final JListWithToolTips<BuffEntry> buffs = new JListWithToolTips<>(bfModel);
+		buffs = new JListWithToolTips<>(bfModel);
 		buffs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		buffs.setVisibleRowCount(20);
 		buffs.addListSelectionListener(e -> {
-			BuffFactory b = null;
-			if (buffs.getSelectedValue() != null) b = buffs.getSelectedValue().factory;
+			BuffFactory b = buffs.getSelectedValue();
 			if (b != null) {
 				buff = b.getBuff();
 				buff.setCasterLevel(clModel.getNumber().intValue());
@@ -210,7 +186,7 @@ public class BuffUI {
 		c.insets = new Insets(2, 5, 2, 5);
 		c.gridy = 0;
 		int i = 0;
-		for (Effect e : buff.effects) {
+		for (FeatureDefinition.Effect e : buff.effects) {
 			JLabel l = new JLabel(e.toString().trim());
 			c.gridx = 0;
 			c.gridwidth = 3;
@@ -256,11 +232,11 @@ public class BuffUI {
 
 	private void updateEffects(Buff buff) {
 		int i = 0;
-		for (Effect e : buff.effects) {
-			if (e instanceof ModifierEffect) {
+		for (FeatureDefinition.Effect e : buff.effects) {
+			if (e instanceof FeatureDefinition.ModifierEffect) {
 				if (e.requiresCasterLevel()) {
 					StringBuilder s = new StringBuilder("Total: ");
-					Modifier m = ((ModifierEffect) e).getModifier(buff);
+					Modifier m = ((FeatureDefinition.ModifierEffect) e).getModifier(buff);
 					if (m.getModifier() >= 0) s.append("+");
 					s.append(m.getModifier());
 					effectLabels[i].setText(s.toString());

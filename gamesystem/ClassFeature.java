@@ -196,15 +196,15 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 
 			// add any effects:
 			for (Effect e : effects) {
-				Modifier m;
+				Modifier m = null;
 				if (e instanceof AbilityBonusEffect) {
 					m = ((AbilityBonusEffect) e).getModifier(c, name);
 				} else if (e instanceof ParameterModifierEffect) {
 					m = ((ParameterModifierEffect) e).getModifier(f);
-				} else {
-					m = e.getModifier(name);
+				} else if (e instanceof FixedEffect) {
+					m = ((FixedEffect) e).getModifier(name);
 				}
-				f.modifiers.put(m, e.target);
+				if (m != null) f.modifiers.put(m, e.target);
 			}
 
 			return f;
@@ -223,7 +223,7 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			return null;
 		}
 
-		static class AbilityBonusEffect extends Effect {
+		static class AbilityBonusEffect extends FixedEffect {
 			Type ability;
 
 			Modifier getModifier(Creature c, String feature) {
@@ -257,7 +257,7 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			}
 		}
 
-		static class ParameterModifierEffect extends Effect {
+		static class ParameterModifierEffect extends FixedEffect {
 			String parameter;
 
 			Modifier getModifier(ClassFeature feature) {
@@ -274,7 +274,7 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 			ParameterModifier(ClassFeature f, String param, String type, String cond) {
 				feature = f;
 				parameter = param;
-				this.type = type;
+				if (type != null && type.length() > 0) this.type = type;
 				condition = cond;
 			}
 

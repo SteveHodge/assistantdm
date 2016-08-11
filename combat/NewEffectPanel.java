@@ -68,13 +68,13 @@ class NewEffectPanel extends JPanel {
 		buffButton = new JButton("Buff...");
 		buffButton.addActionListener(e -> {
 			BuffDialog dialog = new BuffDialog(NewEffectPanel.this, im);
-			buff = dialog.getBuff();
-			if (buff != null) {
+			if (dialog.okSelected()) {
+				buff = dialog.getBuff();
 				effectField.setText(buff.name);
 				targets = dialog.getTargets();
-				sourceField.setSelectedItem(dialog.getSourceName());
 				durationField.setValue(dialog.getDuration());
 				unitsField.setSelectedItem(dialog.getDurationUnit());
+				sourceField.setSelectedItem(dialog.getSourceName());
 			}
 		});
 

@@ -167,7 +167,7 @@ public class Statistic {
 		for (Modifier m : modifiers) {
 			boolean include = true;
 
-			// if the modifier is 0 then exlcude it
+			// if the modifier is 0 then exclude it
 			if (m.getModifier() == 0) include = false;
 
 			// check if there are modifiers with the same source, type and sign

@@ -312,12 +312,12 @@ public abstract class Creature {
 	}
 
 	public void addBuff(Buff b) {
-		b.applyBuff(this);
+		b.apply(this);
 		buffs.addElement(b);
 	}
 
 	public void removeBuff(Buff b) {
-		b.removeBuff(this);
+		b.remove(this);
 		buffs.removeElement(b);
 	}
 
@@ -326,7 +326,7 @@ public abstract class Creature {
 		for (int i = 0; i < buffs.getSize(); i++) {
 			Buff b = buffs.get(i);
 			if (b.id == id) {
-				b.removeBuff(this);
+				b.remove(this);
 				buffs.removeElement(b);
 			}
 		}

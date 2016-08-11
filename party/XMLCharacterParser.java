@@ -132,7 +132,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 				for (int j = 0; j < buffs.getLength(); j++) {
 					if (!buffs.item(j).getNodeName().equals("Buff")) continue;
 					Buff b = parseBuff((Element) buffs.item(j));
-					b.applyBuff(c);
+					b.apply(c);
 					c.buffs.addElement(b);
 				}
 
