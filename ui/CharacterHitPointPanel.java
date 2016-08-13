@@ -41,7 +41,7 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 
 	CharacterHitPointPanel(Character chr) {
 		super(chr);
-		hps = (HPs)chr.getStatistic(Creature.STATISTIC_HPS);
+		hps = chr.getHPStatistic();
 
 		setLayout(new GridBagLayout());
 

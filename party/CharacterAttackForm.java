@@ -1,6 +1,7 @@
 package party;
 
 import gamesystem.Attacks.AttackForm;
+import gamesystem.Buff;
 import gamesystem.Feat;
 
 import java.beans.PropertyChangeListener;
@@ -64,16 +65,18 @@ public class CharacterAttackForm {
 	public String ammunition;
 	public Kind kind;					// weapon kind (melee/ranged/thrown etc)
 	public Usage usage;					// style of use (one-handed, two-handed, primary, etc) // TODO when we have weapon definitions this should default to the correct "normal" use of the weapon
+	public int id;					// used to uniquely identify this attack form, primarily for the purposes of targeting effects	// TODO probably id should be refactored into AttackForm
 
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	private final PropertyChangeListener propertyListener = e -> pcs.firePropertyChange(e.getPropertyName(), e.getOldValue(), e.getNewValue());
 
-	public CharacterAttackForm(Character c, AttackForm a) {
+	public CharacterAttackForm(Character c, AttackForm a, int id) {
 		character = c;
 		attack = a;
 		attack.natural = false;	// character attacks are currently always manufactured
 		attack.addPropertyChangeListener(propertyListener);
+		this.id = id;
 	}
 
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
@@ -227,5 +230,9 @@ public class CharacterAttackForm {
 
 	public String getDamageSummary() {
 		return attack.getDamageSummary();
+	}
+
+	public void addBuff(Buff buff) {
+		character.addBuff(buff);
 	}
 }

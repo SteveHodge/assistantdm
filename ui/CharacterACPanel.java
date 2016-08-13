@@ -110,7 +110,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 	public CharacterACPanel(Character c) {
 		super(c);
 
-		ac = (AC)character.getStatistic(Creature.STATISTIC_AC);
+		ac = character.getACStatistic();
 		armor = ac.getArmor();
 		shield = ac.getShield();
 

@@ -30,7 +30,7 @@ public abstract class Feature<T extends Feature<T, S>, S extends FeatureDefiniti
 	public void apply(Creature c) {
 		for (Modifier m : modifiers.keySet()) {
 			// add modifier to target stat
-			for (Statistic s : getTargetStats(c, modifiers.get(m))) {
+			for (Statistic s : c.getStatistics(modifiers.get(m))) {
 				s.addModifier(m);
 			}
 		}
@@ -39,24 +39,9 @@ public abstract class Feature<T extends Feature<T, S>, S extends FeatureDefiniti
 	public void remove(Creature c) {
 		for (Modifier m : modifiers.keySet()) {
 			// remove modifier from target stat
-			for (Statistic s : getTargetStats(c, modifiers.get(m))) {
+			for (Statistic s : c.getStatistics(modifiers.get(m))) {
 				s.removeModifier(m);
 			}
 		}
-	}
-
-	protected static Statistic[] getTargetStats(Creature c, String target) {
-		Statistic[] stats;
-		if (target.equals(Creature.STATISTIC_SAVING_THROWS)) {
-			stats = new Statistic[3];
-			stats[0] = c.getStatistic(Creature.STATISTIC_FORTITUDE_SAVE);
-			stats[1] = c.getStatistic(Creature.STATISTIC_WILL_SAVE);
-			stats[2] = c.getStatistic(Creature.STATISTIC_REFLEX_SAVE);
-		} else {
-			stats = new Statistic[1];
-			stats[0] = c.getStatistic(target);
-		}
-		if (stats[0] == null) return new Statistic[0];
-		return stats;
 	}
 }

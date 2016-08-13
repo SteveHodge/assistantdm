@@ -33,7 +33,7 @@ class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChan
 		baseInit = new BoundIntegerField(character, Creature.PROPERTY_INITIATIVE, 3);
 		add(baseInit);
 
-		InitiativeModifier stat = (InitiativeModifier) character.getStatistic(Creature.STATISTIC_INITIATIVE);
+		InitiativeModifier stat = character.getInitiativeStatistic();
 		totLabel = new JLabel("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 		add(totLabel);
 
@@ -58,7 +58,7 @@ class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChan
 	private void updateToolTip() {
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>");
-		InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
+		InitiativeModifier stat = character.getInitiativeStatistic();
 		text.append(stat.getSummary());
 		text.append("</body></html>");
 		totLabel.setToolTipText(text.toString());
@@ -69,7 +69,7 @@ class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChan
 		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.Type.DEXTERITY)) {
 			dexLabel.setText("Dex Mod: "+character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
 		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
-			InitiativeModifier stat = (InitiativeModifier)character.getStatistic(Creature.STATISTIC_INITIATIVE);
+			InitiativeModifier stat = character.getInitiativeStatistic();
 			totLabel.setText("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
 			updateToolTip();
 			updateSummaries((character.getInitiativeModifier() >= 0 ? "+" : "") + character.getInitiativeModifier());

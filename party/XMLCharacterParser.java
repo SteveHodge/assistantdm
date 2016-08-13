@@ -39,6 +39,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 
 		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con
 		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise
+		Element buffsElement = null;	// need to process after everything else so that all target statistics are set up (specifically
 
 		NodeList nodes = el.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
@@ -128,19 +129,14 @@ public class XMLCharacterParser extends XMLParserHelper {
 				}
 
 			} else if (tag.equals("Buffs")) {
-				NodeList buffs = e.getChildNodes();
-				for (int j = 0; j < buffs.getLength(); j++) {
-					if (!buffs.item(j).getNodeName().equals("Buff")) continue;
-					Buff b = parseBuff((Element) buffs.item(j));
-					b.apply(c);
-					c.buffs.addElement(b);
-				}
+				buffsElement = e;
 
 			} else if (tag.equals("Size")) {
 				parseSize(e, c);
 			}
 		}
 
+		// process the deferred elements (see variable declarations for reasons)
 		if (hpElement != null) {
 			parseHPs(hpElement, c);
 		}
@@ -151,11 +147,29 @@ public class XMLCharacterParser extends XMLParserHelper {
 			for (int j = 0; j < children.getLength(); j++) {
 				if (children.item(j).getNodeName().equals("AttackForm")) {
 					Element attackEl = (Element) children.item(j);
-					CharacterAttackForm atk = c.addAttackForm(addAttackForm(c, attackEl.getAttribute("name")));
+					String idStr = attackEl.getAttribute("id");
+					CharacterAttackForm atk;
+					try {
+						int id = Integer.parseInt(idStr);
+						atk = c.addAttackForm(addAttackForm(c, attackEl.getAttribute("name")), id);
+					} catch (NumberFormatException e) {
+						atk = c.addAttackForm(addAttackForm(c, attackEl.getAttribute("name")));
+					}
 					parseCharacterAttackForm(attackEl, atk);
 				}
 			}
 		}
+
+		if (buffsElement != null) {
+			NodeList buffs = buffsElement.getChildNodes();
+			for (int j = 0; j < buffs.getLength(); j++) {
+				if (!buffs.item(j).getNodeName().equals("Buff")) continue;
+				Buff b = parseBuff((Element) buffs.item(j));
+				b.apply(c);
+				c.buffs.addElement(b);
+			}
+		}
+
 		return c;
 	}
 

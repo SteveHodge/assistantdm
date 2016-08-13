@@ -117,7 +117,7 @@ public class Buff extends Feature<Buff, BuffFactory> {
 
 		super.apply(c);
 		for (PropertyChange p : propertyChanges.keySet()) {
-			for (Statistic s : Feature.getTargetStats(c, propertyChanges.get(p))) {
+			for (Statistic s : c.getStatistics(propertyChanges.get(p))) {
 				s.setProperty(p.property, p.value, name, id);
 			}
 		}
@@ -127,7 +127,7 @@ public class Buff extends Feature<Buff, BuffFactory> {
 	public void remove(Creature c) {
 		super.remove(c);
 		for (PropertyChange p : propertyChanges.keySet()) {
-			for (Statistic s : Feature.getTargetStats(c, propertyChanges.get(p))) {
+			for (Statistic s : c.getStatistics(propertyChanges.get(p))) {
 				s.resetProperty(p.property, id);
 			}
 		}

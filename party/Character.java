@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -820,9 +821,41 @@ public class Character extends Creature {
 		firePropertyChange(PROPERTY_BUFFS, null, 1);
 	}
 
+	// TODO handling of AttackForm selection should probably be done by the Attacks statistic
+	@Override
+	public Set<Statistic> getStatistics(String selector) {
+		HashSet<Statistic> stats = new HashSet<>();
+		if (selector.startsWith(STATISTIC_ATTACKS + "[id=")) {
+			String idStr = selector.substring(selector.indexOf("[id=") + 4, selector.indexOf("]"));
+			int id = Integer.parseInt(idStr);
+			try {
+				for (CharacterAttackForm f : attackForms) {
+					if (f.id == id) stats.add(f.attack);
+				}
+				if (stats.size() == 0) {
+					System.err.println("Statistic " + selector + " not found amoungst " + attackForms.size() + " attacks");
+				}
+			} catch (NumberFormatException e) {
+				System.err.println("Invalid statistic designation '" + selector + "'");
+				Thread.dumpStack();
+			}
+		} else if (selector.startsWith(STATISTIC_DAMAGE + "[id=")) {
+		} else {
+			return super.getStatistics(selector);
+		}
+		return stats;
+	}
+
 //------------ Attacks -------------
+	private int nextAttackId = 1;
+
 	public CharacterAttackForm addAttackForm(AttackForm attack) {
-		CharacterAttackForm a = new CharacterAttackForm(this, attack);
+		return addAttackForm(attack, nextAttackId++);
+	}
+
+	public CharacterAttackForm addAttackForm(AttackForm attack, int id) {
+		if (id >= nextAttackId) nextAttackId = id + 1;
+		CharacterAttackForm a = new CharacterAttackForm(this, attack, id);
 		a.addPropertyChangeListener(statListener);
 		attackForms.add(a);
 		firePropertyChange(PROPERTY_ATTACKS, null, 1);

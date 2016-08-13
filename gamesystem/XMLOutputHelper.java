@@ -96,6 +96,7 @@ public class XMLOutputHelper {
 
 	public void processCharacterAttackForm(CharacterAttackForm a) {
 		Element e = getAttackFormElement(a.attack);
+		e.setAttribute("id", "" + a.id);
 		e.setAttribute("critical", a.critical);
 		if (a.range > 0) e.setAttribute("range", "" + a.range);
 		if (a.weight > 0) e.setAttribute("weight", "" + a.weight);

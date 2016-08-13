@@ -9,8 +9,10 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.DefaultListModel;
 
@@ -250,6 +252,21 @@ public abstract class Creature {
 	}
 
 	// buff related methods
+
+	// returns any statistics that match the supplied selector. always returns a valid Set, which may be empty
+	public Set<Statistic> getStatistics(String selector) {
+		HashSet<Statistic> stats = new HashSet<>();
+		if (selector.equals(STATISTIC_SAVING_THROWS)) {
+			stats.add(saves.get(SavingThrow.Type.FORTITUDE));
+			stats.add(saves.get(SavingThrow.Type.WILL));
+			stats.add(saves.get(SavingThrow.Type.REFLEX));
+		} else {
+			Statistic s = getStatistic(selector);
+			if (s != null) stats.add(s);
+		}
+		return stats;
+	}
+
 	public Statistic getStatistic(String name) {
 		if (name.equals(STATISTIC_STRENGTH)) {
 			return abilities.get(AbilityScore.Type.STRENGTH);
@@ -284,9 +301,6 @@ public abstract class Creature {
 		} else if (name.startsWith(STATISTIC_SKILLS + ".")) {
 			SkillType type = SkillType.getSkill(name.substring(STATISTIC_SKILLS.length() + 1));
 			return skills.getSkill(type);
-//		} else if (name.equals(STATISTIC_SAVING_THROWS)) {
-//			// TODO implement?
-//			return null;
 		} else if (name.equals(STATISTIC_LEVEL)) {
 			return level;
 		} else if (name.equals(STATISTIC_HPS)) {

@@ -1,5 +1,7 @@
 package ui;
 
+import gamesystem.BuffFactory;
+import gamesystem.Creature;
 import gamesystem.Modifier.StandardType;
 import gamesystem.SizeCategory;
 import gamesystem.dice.CombinedDice;
@@ -17,6 +19,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.BorderFactory;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -410,16 +413,18 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			modField.setValue(new Integer(0));
 			modField.setColumns(3);
 
+			final JCheckBox attackMod = new JCheckBox("attack");
+			attackMod.setSelected(true);
+			final JCheckBox damageMod = new JCheckBox("damage");
+			damageMod.setSelected(true);
+
 			JButton addButton = new JButton("Add");
-			addButton.setEnabled(false);
 			addButton.addActionListener(e -> {
-				// TODO implement - need to be able to get to the character (ultimately should appear in the list of the possessor, but remain linked to the item)
-//					BuffFactory bf = new BuffFactory(nameField.getText());
-//					int mod = (Integer) modField.getValue();
-//					bf.addEffect(statName, typeBox.getSelectedItem().toString(), mod);
-//					Buff buff = bf.getBuff();
-//					buff.applyBuff(character);
-//					character.buffs.addElement(buff);
+				BuffFactory bf = new BuffFactory(nameField.getText());
+				int mod = (Integer) modField.getValue();
+				if (attackMod.isSelected()) bf.addEffect(Creature.STATISTIC_ATTACKS + "[id=" + attack.id + "]", typeBox.getSelectedItem().toString(), mod);
+				if (damageMod.isSelected()) bf.addEffect(Creature.STATISTIC_DAMAGE + "[id=" + attack.id + "]", typeBox.getSelectedItem().toString(), mod);
+				attack.addBuff(bf.getBuff());
 			});
 
 			JPanel addPanel = new JPanel();
@@ -454,6 +459,14 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 			c.gridx++;
 			addPanel.add(addButton, c);
+
+			c.gridy++;
+			c.gridx = 0;
+			addPanel.add(attackMod, c);
+
+			c.gridx++;
+			addPanel.add(damageMod, c);
+
 			return addPanel;
 		}
 

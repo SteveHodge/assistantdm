@@ -61,7 +61,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 	CharacterAttacksPanel(Character chr) {
 		super(chr);
-		attacks = (Attacks)chr.getStatistic(Creature.STATISTIC_ATTACKS);
+		attacks = chr.getAttacksStatistic();
 		summary = getSummary();
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
