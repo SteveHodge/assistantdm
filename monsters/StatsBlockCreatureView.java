@@ -340,7 +340,7 @@ public class StatsBlockCreatureView {
 			}
 
 			for (String mod : a.damageModifiers.keySet()) {
-				f.attack.addDamageModifier(new ImmutableModifier(a.modifiers.get(mod), mod));
+				f.attack.getDamageStatistic().addModifier(new ImmutableModifier(a.modifiers.get(mod), mod));
 			}
 
 			if (a.enhancementBonus != 0)

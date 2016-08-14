@@ -840,6 +840,19 @@ public class Character extends Creature {
 				Thread.dumpStack();
 			}
 		} else if (selector.startsWith(STATISTIC_DAMAGE + "[id=")) {
+			String idStr = selector.substring(selector.indexOf("[id=") + 4, selector.indexOf("]"));
+			int id = Integer.parseInt(idStr);
+			try {
+				for (CharacterAttackForm f : attackForms) {
+					if (f.id == id) stats.add(f.attack.getDamageStatistic());
+				}
+				if (stats.size() == 0) {
+					System.err.println("Statistic " + selector + " not found amoungst " + attackForms.size() + " attacks");
+				}
+			} catch (NumberFormatException e) {
+				System.err.println("Invalid statistic designation '" + selector + "'");
+				Thread.dumpStack();
+			}
 		} else {
 			return super.getStatistics(selector);
 		}

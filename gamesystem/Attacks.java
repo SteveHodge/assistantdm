@@ -19,7 +19,6 @@ import javax.swing.event.ListDataListener;
 import party.Character;
 
 // TODO attack form specific combat options (+DOM)
-// TODO damage
 // TODO implement modifier particular to one attack mode (ranged/grapple etc) (note that grapple size modifier is different from regular attack size modifier)
 // TODO consider if it is worth including situational modifiers (e.g. flanking, squeezing, higher, shooting into combat etc)
 // TODO cleanup AttackForm - hide public fields and update modifier type methods
@@ -30,6 +29,7 @@ import party.Character;
  * Attacks - the melee attack statistic
  * Attacks.damageStat - stat for collecting damage specific modifiers
  * .AttackForm - a particular attack mode
+ * .AttackForm.damageStat - stat for collecting damage specific modifiers
  * Properties provided:
  * extra_attacks - additional attacks at top attack bonus
  * base_attack_bonus - TODO
@@ -173,7 +173,7 @@ public class Attacks extends Statistic {
 	}
 
 	@Override
-	protected Set<Modifier> getModifierSet() {
+	public Set<Modifier> getModifierSet() {
 		Set<Modifier> mods = new HashSet<>();
 		mods.addAll(modifiers);
 		if (strMod != null) {
@@ -324,7 +324,7 @@ public class Attacks extends Statistic {
 		return text.toString();
 	}
 
-	// ------------ Damage statstic --------------
+	// ------------ Damage statistic --------------
 	// TODO may need to split this into melee and ranged versions
 	// this is really just an interface for adding modifiers.
 	// listener modifications are forwarded to the Attacks instance (which means the source of any events will be that instance)
@@ -443,7 +443,6 @@ public class Attacks extends Statistic {
 		public boolean doublePADmg = false;	// true if the power attack damage bonus is double the penalty taken (ie. two handed melee weapon)
 		public int maxAttacks = 4;	// limit on number of attacks with due to high BAB (e.g. weapons that need to be reloaded)
 		public boolean weaponSpecApplies = false;	// TODO remove when we move to full embedded Statistic for damage
-		public Set<Modifier> damageMods = null;	// TODO remove when we move to full Statistic for damage
 
 		private AttackForm(String name) {
 			super(name);
@@ -509,55 +508,81 @@ public class Attacks extends Statistic {
 
 		public String getDamage() {
 			int oldC = damage.getConstant();
-			damage.setConstant(oldC + getModifiersTotal(getDamageModifiersSet(), null));
+			damage.setConstant(oldC + getModifiersTotal(dmgStat.getModifierSet(), null));
 			String dmg = damage.toString();
 			damage.setConstant(oldC);
 			return dmg;
 		}
 
-		public void addDamageModifier(Modifier mod) {
-			if (damageMods == null) damageMods = new HashSet<>();
-			damageMods.add(mod);
-			pcs.firePropertyChange("damage", null, damage.toString());
-		}
+		// ------------ Damage statistic --------------
+		// this is really just an interface for adding modifiers.
+		// listener modifications are forwarded to the Attacks instance (which means the source of any events will be that instance)
+		// getValue() returns the total of the modifiers.
+		protected final Statistic dmgStat = new Statistic("Damage") {
+			@Override
+			public void addPropertyChangeListener(PropertyChangeListener listener) {
+				Attacks.this.addPropertyChangeListener(listener);
+			}
 
-		public Map<Modifier,Boolean> getDamageModifiers() {
-			return getModifiers(getDamageModifiersSet());
-		}
+			@Override
+			public void removePropertyChangeListener(PropertyChangeListener listener) {
+				Attacks.this.removePropertyChangeListener(listener);
+			}
 
-		public Set<Modifier> getDamageModifiersSet() {
-			Set<Modifier> mods = new HashSet<>();
-			mods.addAll(damageStat.modifiers);
+			@Override
+			protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
+				Attacks.this.firePropertyChange(prop, oldVal, newVal);	// XXX should this be setting prop to "damage"?
+			}
 
-			if (strMod != null) {
-				// strength modifier
-				int mod = strMod.getModifier();
-				if (mod < 0 && strMultiplier > 0) {
-					// penalty normal applies (an exception is some missile weapons)
-					mods.add(new ImmutableModifier(mod, null, "Strength"));
-				} else if (mod > 0) {
-					// TODO think this should add a live multipier strmod
-					mods.add(new ImmutableModifier(Math.min(mod * strMultiplier / 2, strLimit), null, "Strength"));
+			@Override
+			public String getSummary() {
+				StringBuilder text = new StringBuilder();
+				text.append(getBaseDamage()).append(" base damage<br/>");
+				Map<Modifier, Boolean> mods = getModifiers();
+				text.append(Statistic.getModifiersHTML(mods));
+				text.append(getDamage()).append(" total damage");
+				String conds = Statistic.getModifiersHTML(mods, true);
+				if (conds.length() > 0) text.append("<br/><br/>").append(conds);
+				return text.toString();
+			}
+
+			@Override
+			public Set<Modifier> getModifierSet() {
+				Set<Modifier> mods = new HashSet<>();
+				mods.addAll(damageStat.modifiers);
+
+				if (strMod != null) {
+					// strength modifier
+					int mod = strMod.getModifier();
+					if (mod < 0 && strMultiplier > 0) {
+						// penalty normal applies (an exception is some missile weapons)
+						mods.add(new ImmutableModifier(mod, null, "Strength"));
+					} else if (mod > 0) {
+						// TODO think this should add a live multipier strmod
+						mods.add(new ImmutableModifier(Math.min(mod * strMultiplier / 2, strLimit), null, "Strength"));
+					}
 				}
+
+				// powerAttack modifier
+				if (powerAttack != null && powerAttack.getModifier() < 0) {
+					mods.add(new ImmutableModifier(-powerAttack.getModifier() * (doublePADmg ? 2 : 1), null, "Power Attack"));
+				}
+
+				// enhancement modifier
+				if (enhancement != null && !masterwork) mods.add(enhancement);
+
+				// weapon specialization
+				// TODO should recheck this against feats rather than using a stored value. or have the client set it
+				if (weaponSpecApplies) mods.add(new ImmutableModifier(2, null, "Weapon specialization"));
+
+				mods.addAll(dmgStat.modifiers);
+
+				return mods;
 			}
+		};
 
-			// powerAttack modifier
-			if (powerAttack != null && powerAttack.getModifier() < 0) {
-				mods.add(new ImmutableModifier(-powerAttack.getModifier() * (doublePADmg ? 2 : 1), null, "Power Attack"));
-			}
-
-			// enhancement modifier
-			if (enhancement != null && !masterwork) mods.add(enhancement);
-
-			// weapon specialization
-			// TODO should recheck this against feats rather than using a stored value. or have the client set it
-			if (weaponSpecApplies) mods.add(new ImmutableModifier(2, null, "Weapon specialization"));
-
-			if (damageMods != null) {
-				mods.addAll(damageMods);
-			}
-
-			return mods;
+		public Statistic getDamageStatistic() {
+			return dmgStat;
 		}
 
 		// recalculates the two-weapon fighting penalty
@@ -672,17 +697,6 @@ public class Attacks extends Statistic {
 			Map<Modifier, Boolean> mods = getModifiers();
 			text.append(Statistic.getModifiersHTML(mods));
 			text.append(getValue()).append(" total");
-			String conds = Statistic.getModifiersHTML(mods, true);
-			if (conds.length() > 0) text.append("<br/><br/>").append(conds);
-			return text.toString();
-		}
-
-		public String getDamageSummary() {
-			StringBuilder text = new StringBuilder();
-			text.append(getBaseDamage()).append(" base damage<br/>");
-			Map<Modifier, Boolean> mods = getDamageModifiers();
-			text.append(Statistic.getModifiersHTML(mods));
-			text.append(getDamage()).append(" total damage");
 			String conds = Statistic.getModifiersHTML(mods, true);
 			if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 			return text.toString();

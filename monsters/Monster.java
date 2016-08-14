@@ -253,9 +253,10 @@ public class Monster extends Creature {
 				}
 
 				// modifiers that apply to attack and damage
-				if (attack.damageMods != null && attack.damageMods.size() > 0) {
+				Set<Modifier> dmgMods = attack.getDamageStatistic().getModifierSet();
+				if (dmgMods != null && dmgMods.size() > 0) {
 					s.append("(");
-					for (Modifier m : attack.damageMods) {
+					for (Modifier m : dmgMods) {
 						if (s.charAt(s.length() - 1) != '(') s.append(", ");
 						if (m.getModifier() > 0) s.append("+");
 						s.append(m.getModifier()).append(" ").append(m.getType());
@@ -276,9 +277,9 @@ public class Monster extends Creature {
 							|| m.getType().equals(AbilityScore.Type.STRENGTH.toString())
 							|| m.getType().equals(AbilityScore.Type.DEXTERITY.toString()))) {
 						iter.remove();
-					} else if (attack.damageMods != null) {
+					} else if (dmgMods != null) {
 						// check if the modifier also applies to damage:
-						for (Modifier mod : attack.damageMods) {
+						for (Modifier mod : dmgMods) {
 							if (mod.equals(m)) iter.remove();
 						}
 					}

@@ -358,7 +358,7 @@ public class CharacterSheetView {
 			Element e = super.getAttackFormElement(a);
 			e.setAttribute("attacks", a.getAttacksDescription());
 			e.setAttribute("info", a.getSummary());
-			e.setAttribute("damage_info", a.getDamageSummary());
+			e.setAttribute("damage_info", a.getDamageStatistic().getSummary());
 			return e;
 		}
 

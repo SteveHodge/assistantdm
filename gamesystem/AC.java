@@ -143,7 +143,7 @@ public class AC extends Statistic {
 		}
 
 		@Override
-		protected Set<Modifier> getModifierSet() {
+		public Set<Modifier> getModifierSet() {
 			Set<Modifier> mods = new HashSet<>(AC.this.modifiers);
 			for (Modifier m : AC.this.modifiers) {
 				if (m.getType() != null
@@ -197,7 +197,7 @@ public class AC extends Statistic {
 		}
 
 		@Override
-		protected Set<Modifier> getModifierSet() {
+		public Set<Modifier> getModifierSet() {
 			Set<Modifier> mods = new HashSet<>(AC.this.modifiers);
 			for (Modifier m : AC.this.modifiers) {
 				if (m.getType() != null && (m.getType().equals(AbilityScore.Type.DEXTERITY.toString()) && m.getModifier() > 0 || m.getType().equals(Modifier.StandardType.DODGE.toString()))) {

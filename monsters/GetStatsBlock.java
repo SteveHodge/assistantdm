@@ -436,7 +436,7 @@ public class GetStatsBlock {
 								if (block.getBAB() > 0) atk.append("+");
 								atk.append(block.getBAB()).append(" BAB");
 								atk.append(". Damage: ");
-								for (Modifier m : f.attack.getDamageModifiersSet()) {
+								for (Modifier m : f.attack.getDamageStatistic().getModifierSet()) {
 									atk.append(m).append(", ");
 								}
 							}

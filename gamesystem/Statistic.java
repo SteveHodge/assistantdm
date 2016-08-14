@@ -99,8 +99,9 @@ public class Statistic {
 	}
 
 	// getModifiers() and the getModifiersTotal() methods should all be overridden if a subclasses
-	// does any manipulation filtering of modifiers
-	protected Set<Modifier> getModifierSet() {
+	// does any manipulation or filtering of modifiers
+	// TODO change this back to protected
+	public Set<Modifier> getModifierSet() {
 		return modifiers;
 	}
 

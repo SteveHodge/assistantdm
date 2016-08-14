@@ -229,7 +229,7 @@ public class CharacterAttackForm {
 	}
 
 	public String getDamageSummary() {
-		return attack.getDamageSummary();
+		return attack.getDamageStatistic().getSummary();
 	}
 
 	public void addBuff(Buff buff) {
