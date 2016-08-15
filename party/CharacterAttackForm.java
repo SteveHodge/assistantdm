@@ -212,6 +212,10 @@ public class CharacterAttackForm {
 		attack.setAttackEnhancement(val);
 	}
 
+	public void setMasterwork(boolean mw) {
+		attack.setMasterwork(mw);
+	}
+
 	public String getAttacksDescription() {
 		return attack.getAttacksDescription();
 	}
@@ -234,5 +238,9 @@ public class CharacterAttackForm {
 
 	public void addBuff(Buff buff) {
 		character.addBuff(buff);
+	}
+
+	public boolean isMasterwork() {
+		return attack.isMasterwork();
 	}
 }

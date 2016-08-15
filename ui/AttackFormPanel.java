@@ -216,14 +216,17 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 			if (e.getDocument() == nameField.getDocument()) {
 				attack.setName(nameField.getText());
 			} else if (e.getDocument() == attackBonusField.getDocument()) {
+				String txt = attackBonusField.getText();
 				try {
-					int val = Integer.parseInt(attackBonusField.getText());
+					int val = Integer.parseInt(txt);
 					attack.setAttackEnhancement(val);
 					String s = attack.getAttacksDescription();
 					if (attack.isTotalDefense()) s = "<html><body><s>"+s+"</s></body></html>";
 					totalAttackLabel.setText(s);
 				} catch (NumberFormatException ex) {
-					// TODO do what?
+					if (txt.toLowerCase().equals("mw") || txt.toLowerCase().equals("masterwork")) {
+						attack.setMasterwork(true);
+					}
 				}
 			} else if (e.getDocument() == criticalField.getDocument()) {
 				attack.critical = criticalField.getText();
@@ -312,7 +315,11 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 		updateAttack = false;	// don't apply these changes to the attack (since they come from the attack)
 		nameField.setText(attack.getName());
-		attackBonusField.setText("" + attack.getAttackEnhancement());
+		if (attack.isMasterwork()) {
+			attackBonusField.setText("Masterwork");
+		} else {
+			attackBonusField.setText("" + attack.getAttackEnhancement());
+		}
 		damageField.setText(attack.getBaseDamage());
 		criticalField.setText(attack.critical);
 		rangeField.setText("" + attack.range);

@@ -424,6 +424,7 @@ public class Attacks extends Statistic {
 //	Greater Weapon Focus	// specific weapon type
 
 	// TODO some of the stuff in here is defining the weapon, some is defining the attack. eventually will want to separate
+	// TODO enhancement doesn't need to be handled this way, masterwork too - both should be dropped in favour of simple modifiers applied by the ui (though that would expose them in the buffs list)
 	public class AttackForm extends Statistic {
 		private Modifier twoWeaponPenalty = null;	// TODO rename as this includes natural secondary attacks
 		Modifier enhancement = null;
@@ -493,6 +494,10 @@ public class Attacks extends Statistic {
 			if (masterwork == val) return;
 			masterwork = val;
 			setAttackEnhancement(masterwork ? 1 : 0, "Masterwork weapon");
+		}
+
+		public boolean isMasterwork() {
+			return masterwork;
 		}
 
 		// returns the String version of the base damage

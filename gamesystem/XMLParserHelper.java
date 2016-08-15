@@ -286,6 +286,7 @@ public class XMLParserHelper {
 		if (e.hasAttribute("enhancement")) {
 			f.setAttackEnhancement(Integer.parseInt(e.getAttribute("enhancement")));
 		}
+		if (e.getAttribute("masterwork").equals("true") || e.getAttribute("masterwork").equals("1")) f.setMasterwork(true);
 		f.damage = CombinedDice.parse(e.getAttribute("base_damage"));
 		if (e.hasAttribute("size")) f.size = SizeCategory.getSize(e.getAttribute("size"));
 		f.updateModifiers();

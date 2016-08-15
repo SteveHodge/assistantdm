@@ -80,11 +80,12 @@ public class XMLOutputHelper {
 	protected Element getAttackFormElement(AttackForm a) {
 		Element e = doc.createElement("AttackForm");
 		e.setAttribute("name", a.name);
-		if (a.enhancement != null) {
+		if (a.enhancement != null && !a.isMasterwork()) {
 			e.setAttribute("enhancement", "" + a.enhancement.getModifier());
 		} else {
 			e.setAttribute("enhancement", "0");
 		}
+		if (a.isMasterwork()) e.setAttribute("masterwork", "true");
 		e.setAttribute("base_damage", a.damage.toString());
 		e.setAttribute("damage", a.getDamage());
 		e.setAttribute("size", "" + a.size);
