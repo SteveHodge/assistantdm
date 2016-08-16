@@ -424,7 +424,7 @@ public class Attacks extends Statistic {
 //	Greater Weapon Focus	// specific weapon type
 
 	// TODO some of the stuff in here is defining the weapon, some is defining the attack. eventually will want to separate
-	// TODO enhancement doesn't need to be handled this way, masterwork too - both should be dropped in favour of simple modifiers applied by the ui (though that would expose them in the buffs list)
+	// TODO enhancement doesn't need to be handled this way, masterwork too - both should be dropped in favour of simple modifiers applied by the ui/CharacterAttackForm
 	public class AttackForm extends Statistic {
 		private Modifier twoWeaponPenalty = null;	// TODO rename as this includes natural secondary attacks
 		Modifier enhancement = null;
@@ -551,6 +551,7 @@ public class Attacks extends Statistic {
 				return text.toString();
 			}
 
+			// TODO inefficient as we create new modifiers every time this is called
 			@Override
 			public Set<Modifier> getModifierSet() {
 				Set<Modifier> mods = new HashSet<>();
@@ -558,12 +559,12 @@ public class Attacks extends Statistic {
 
 				if (strMod != null) {
 					// strength modifier
+					// could use modifiers that track the strength mod dynamically, but the parent Attacks stat has a listener that will fire a value change if strength changes so it's not necessary.
 					int mod = strMod.getModifier();
 					if (mod < 0 && strMultiplier > 0) {
 						// penalty normal applies (an exception is some missile weapons)
 						mods.add(new ImmutableModifier(mod, null, "Strength"));
 					} else if (mod > 0) {
-						// TODO think this should add a live multipier strmod
 						mods.add(new ImmutableModifier(Math.min(mod * strMultiplier / 2, strLimit), null, "Strength"));
 					}
 				}

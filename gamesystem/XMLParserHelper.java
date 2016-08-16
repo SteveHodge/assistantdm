@@ -272,8 +272,8 @@ public class XMLParserHelper {
 		if (e.hasAttribute("weight")) f.weight = Integer.parseInt(e.getAttribute("weight"));
 		f.damage_type = e.getAttribute("type");
 		f.ammunition = e.getAttribute("ammunition");
-		f.kind = CharacterAttackForm.Kind.getKind(e.getAttribute("kind"));
-		if (e.hasAttribute("usage")) f.usage = CharacterAttackForm.Usage.values()[Integer.parseInt(e.getAttribute("usage"))];
+		f.setKind(CharacterAttackForm.Kind.getKind(e.getAttribute("kind")));
+		if (e.hasAttribute("usage")) f.setUsage(CharacterAttackForm.Usage.values()[Integer.parseInt(e.getAttribute("usage"))]);
 		String s = e.getAttribute("properties");
 		if (s != null && !s.equals(f.usage)) {
 			f.properties = s;

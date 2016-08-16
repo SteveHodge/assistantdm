@@ -30,13 +30,14 @@ Plan:
 
 Bugs/Priority:
 * create effect dialog
-* weapon usage
 * adhoc weapon bonuses: done
     ... Implementation only works for characters (via CharacterAttackForm), for monsters would want to refactor the id stuff back to AttackForm and come up with a way to locate given attack forms.
     ... Implementation includes the beginnings of Effect targets that select multiple Statistics based on some criterion (in this case id), this can be expanded for use with things like Feats
     ... that apply to a specific class or type of weapon. But will need a way to specify that such effects are ongoing and should be applied to future cases that match.
     ... Currently the dynamic targeting is handled in Character, it should probably be handled by the Attack statistic itself.
     ... TODO Need to look at names/description of targets, it's ugly in some cases, particularly with selectors ("attacks[id=1]")
+* split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels
+* implement negative levels
     
 /* Proposed architecture:
  * A Statistic is a value that can be modified by bonuses and penalties and can also be overridden. Statistics can have
