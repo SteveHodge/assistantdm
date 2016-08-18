@@ -36,6 +36,17 @@ public class AC extends Statistic {
 		naturalArmor.addPropertyChangeListener(e -> firePropertyChange("value", null, getValue()));
 	}
 
+	// touch ac and flat-footed ac are also statistics, but they are not targettable (they are entirely based on the main AC stat with certain modifiers ignored)
+	@Override
+	public String[][] getValidTargets() {
+		String[][] targets = {
+				{ armor.name, Creature.STATISTIC_ARMOR },
+				{ shield.name, Creature.STATISTIC_SHIELD },
+				{ naturalArmor.name, Creature.STATISTIC_NATURAL_ARMOR }
+		};
+		return targets;
+	}
+
 	@Override
 	public int getValue() {
 		return 10 + super.getValue();

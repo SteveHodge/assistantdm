@@ -194,6 +194,10 @@ public class PartyPanel extends JPanel implements PartyListener {
 			System.out.println("Right PreferredSize = "+rightPanel.getPreferredSize());
 			System.out.println("PreferredSize = "+panel.getPreferredSize());
 			System.out.println("Size = "+panel.getSize());
+			String[][] targets = c.getValidTargets();
+			for (String[] t : targets) {
+				System.out.println(t[0] + ": " + t[1]);
+			}
 		});
 
 		return scroller;

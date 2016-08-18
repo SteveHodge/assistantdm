@@ -43,6 +43,16 @@ public class SkillType implements Comparable<SkillType> {
 		return trainedOnly;
 	}
 
+	public static String[][] getValidTargets() {
+		String[][] targets = new String[skills.size()][];
+		int i = 0;
+		for (String t : skills.keySet()) {
+			SkillType s = skills.get(t);
+			targets[i++] = new String[] { s.name, t };
+		}
+		return targets;
+	}
+
 	public static AbilityScore.Type getAbilityForSkill(String skill) {
 		SkillType s = getSkill(skill);
 		if (s != null) return s.ability;

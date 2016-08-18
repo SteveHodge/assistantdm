@@ -7,6 +7,7 @@ import gamesystem.core.Property;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -252,6 +253,33 @@ public abstract class Creature {
 	}
 
 	// buff related methods
+	public String[][] getValidTargets() {
+		List<String[]> targets = new ArrayList<>();
+		targets.add(new String[] {AbilityScore.Type.STRENGTH.toString(), STATISTIC_STRENGTH});
+		targets.add(new String[] {AbilityScore.Type.INTELLIGENCE.toString(), STATISTIC_INTELLIGENCE});
+		targets.add(new String[] {AbilityScore.Type.WISDOM.toString(), STATISTIC_WISDOM});
+		targets.add(new String[] {AbilityScore.Type.DEXTERITY.toString(), STATISTIC_DEXTERITY});
+		targets.add(new String[] {AbilityScore.Type.CONSTITUTION.toString(), STATISTIC_CONSTITUTION});
+		targets.add(new String[] {AbilityScore.Type.CHARISMA.toString(), STATISTIC_CHARISMA});
+		targets.add(new String[] {"Saving Throws", STATISTIC_SAVING_THROWS});
+		targets.add(new String[] {SavingThrow.Type.FORTITUDE.toString(), STATISTIC_FORTITUDE_SAVE});
+		targets.add(new String[] {SavingThrow.Type.WILL.toString(), STATISTIC_WILL_SAVE});
+		targets.add(new String[] {SavingThrow.Type.REFLEX.toString(), STATISTIC_REFLEX_SAVE});
+		targets.add(new String[] {skills.name, STATISTIC_SKILLS});
+		Collections.addAll(targets, skills.getValidTargets());
+		targets.add(new String[] {ac.name, STATISTIC_AC});
+		Collections.addAll(targets, ac.getValidTargets());
+		targets.add(new String[] {initiative.name, STATISTIC_INITIATIVE});
+		targets.add(new String[] {hps.name, STATISTIC_HPS});
+		targets.add(new String[] {level.name, STATISTIC_LEVEL});
+		targets.add(new String[] {attacks.name, STATISTIC_ATTACKS});
+		// add attacks subtargets
+		targets.add(new String[] {attacks.getDamageStatistic().name, STATISTIC_DAMAGE});
+		// add attacks subtargets
+		targets.add(new String[] { size.name, STATISTIC_SIZE });
+		targets.add(new String[] { grapple.name, STATISTIC_GRAPPLE });
+		return targets.toArray(new String[0][]);
+	}
 
 	// returns any statistics that match the supplied selector. always returns a valid Set, which may be empty
 	public Set<Statistic> getStatistics(String selector) {

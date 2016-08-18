@@ -35,6 +35,15 @@ public class Skills extends Statistic {
 		acp.addPropertyChangeListener(modifierListener);
 	}
 
+	@Override
+	public String[][] getValidTargets() {
+		String[][] targets = SkillType.getValidTargets();
+		for (String[] skill : targets) {
+			skill[1] = Creature.STATISTIC_SKILLS + "." + skill[1];
+		}
+		return targets;
+	}
+
 	public Skill getSkill(SkillType s) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
