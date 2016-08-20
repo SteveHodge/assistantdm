@@ -21,7 +21,7 @@ import swing.ListModelWithToolTips;
 
 // TODO the initiative property should either be the base value or the total - pick one
 // TODO should probably convert these constants to enums
-public abstract class Creature {
+public abstract class Creature implements StatisticsCollection {
 	// properties
 	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
 	public final static String PROPERTY_MAXHPS = "Hit Points";
@@ -253,35 +253,36 @@ public abstract class Creature {
 	}
 
 	// buff related methods
-	public String[][] getValidTargets() {
-		List<String[]> targets = new ArrayList<>();
-		targets.add(new String[] {AbilityScore.Type.STRENGTH.toString(), STATISTIC_STRENGTH});
-		targets.add(new String[] {AbilityScore.Type.INTELLIGENCE.toString(), STATISTIC_INTELLIGENCE});
-		targets.add(new String[] {AbilityScore.Type.WISDOM.toString(), STATISTIC_WISDOM});
-		targets.add(new String[] {AbilityScore.Type.DEXTERITY.toString(), STATISTIC_DEXTERITY});
-		targets.add(new String[] {AbilityScore.Type.CONSTITUTION.toString(), STATISTIC_CONSTITUTION});
-		targets.add(new String[] {AbilityScore.Type.CHARISMA.toString(), STATISTIC_CHARISMA});
-		targets.add(new String[] {"Saving Throws", STATISTIC_SAVING_THROWS});
-		targets.add(new String[] {SavingThrow.Type.FORTITUDE.toString(), STATISTIC_FORTITUDE_SAVE});
-		targets.add(new String[] {SavingThrow.Type.WILL.toString(), STATISTIC_WILL_SAVE});
-		targets.add(new String[] {SavingThrow.Type.REFLEX.toString(), STATISTIC_REFLEX_SAVE});
-		targets.add(new String[] {skills.name, STATISTIC_SKILLS});
-		Collections.addAll(targets, skills.getValidTargets());
-		targets.add(new String[] {ac.name, STATISTIC_AC});
-		Collections.addAll(targets, ac.getValidTargets());
-		targets.add(new String[] {initiative.name, STATISTIC_INITIATIVE});
-		targets.add(new String[] {hps.name, STATISTIC_HPS});
-		targets.add(new String[] {level.name, STATISTIC_LEVEL});
-		targets.add(new String[] {attacks.name, STATISTIC_ATTACKS});
+	@Override
+	public StatisticDescription[] getStatistics() {
+		List<StatisticDescription> targets = new ArrayList<>();
+		targets.add(new StatisticDescription(AbilityScore.Type.STRENGTH.toString(), STATISTIC_STRENGTH));
+		targets.add(new StatisticDescription(AbilityScore.Type.INTELLIGENCE.toString(), STATISTIC_INTELLIGENCE));
+		targets.add(new StatisticDescription(AbilityScore.Type.WISDOM.toString(), STATISTIC_WISDOM));
+		targets.add(new StatisticDescription(AbilityScore.Type.DEXTERITY.toString(), STATISTIC_DEXTERITY));
+		targets.add(new StatisticDescription(AbilityScore.Type.CONSTITUTION.toString(), STATISTIC_CONSTITUTION));
+		targets.add(new StatisticDescription(AbilityScore.Type.CHARISMA.toString(), STATISTIC_CHARISMA));
+		targets.add(new StatisticDescription("Saving Throws", STATISTIC_SAVING_THROWS));
+		targets.add(new StatisticDescription(SavingThrow.Type.FORTITUDE.toString(), STATISTIC_FORTITUDE_SAVE));
+		targets.add(new StatisticDescription(SavingThrow.Type.WILL.toString(), STATISTIC_WILL_SAVE));
+		targets.add(new StatisticDescription(SavingThrow.Type.REFLEX.toString(), STATISTIC_REFLEX_SAVE));
+		targets.add(new StatisticDescription(ac.name, STATISTIC_AC));
+		Collections.addAll(targets, ac.getStatistics());
+		targets.add(new StatisticDescription(initiative.name, STATISTIC_INITIATIVE));
+		targets.add(new StatisticDescription(hps.name, STATISTIC_HPS));
+		targets.add(new StatisticDescription(level.name, STATISTIC_LEVEL));
+		targets.add(new StatisticDescription(attacks.name, STATISTIC_ATTACKS));
 		// add attacks subtargets
-		targets.add(new String[] {attacks.getDamageStatistic().name, STATISTIC_DAMAGE});
+		targets.add(new StatisticDescription(attacks.getDamageStatistic().name, STATISTIC_DAMAGE));
 		// add attacks subtargets
-		targets.add(new String[] { size.name, STATISTIC_SIZE });
-		targets.add(new String[] { grapple.name, STATISTIC_GRAPPLE });
-		return targets.toArray(new String[0][]);
+		targets.add(new StatisticDescription(size.name, STATISTIC_SIZE));
+		targets.add(new StatisticDescription(grapple.name, STATISTIC_GRAPPLE));
+		targets.add(new StatisticDescription(skills.name, STATISTIC_SKILLS));
+		Collections.addAll(targets, skills.getStatistics());
+		return targets.toArray(new StatisticDescription[targets.size()]);
 	}
 
-	// returns any statistics that match the supplied selector. always returns a valid Set, which may be empty
+// returns any statistics that match the supplied selector. always returns a valid Set, which may be empty
 	public Set<Statistic> getStatistics(String selector) {
 		HashSet<Statistic> stats = new HashSet<>();
 		if (selector.equals(STATISTIC_SAVING_THROWS)) {
@@ -348,7 +349,7 @@ public abstract class Creature {
 		}
 	}
 
-	// TODO refactor the BuffListModel class and this accessor
+// TODO refactor the BuffListModel class and this accessor
 	public ListModelWithToolTips<Buff> getBuffListModel() {
 		return buffs;
 	}
@@ -445,8 +446,8 @@ public abstract class Creature {
 		return name;
 	}
 
-	//------------------- property level get/set methods -------------------
-	// TODO most of these should be removed - they should be manipulated via the statistic
+//------------------- property level get/set methods -------------------
+// TODO most of these should be removed - they should be manipulated via the statistic
 
 	public Modifier getAbilityModifier(AbilityScore.Type ability) {
 		if (abilities.get(ability) == null) return null;
@@ -461,9 +462,9 @@ public abstract class Creature {
 		initiative.setBaseValue(i - initiative.getValue());
 	}
 
-	//------------------- Hit Points -------------------
-	// Hit points have a maximum value, wounds taken, non-lethal taken and a calculated
-	// current value
+//------------------- Hit Points -------------------
+// Hit points have a maximum value, wounds taken, non-lethal taken and a calculated
+// current value
 
 	public int getMaximumHitPoints() {
 		return hps.getMaximumHitPoints();
@@ -493,7 +494,7 @@ public abstract class Creature {
 		return hps.getHPs();
 	}
 
-	//------------- Size --------------
+//------------- Size --------------
 	public SizeCategory getSize() {
 		return size.getSize();
 	}
@@ -518,7 +519,7 @@ public abstract class Creature {
 		size.setBaseReach(r);
 	}
 
-	//------------------- Armor Class -------------------
+//------------------- Armor Class -------------------
 	/**
 	 * Returns the temporary ac if there is one, otherwise calculates the total ac
 	 * from the ac components
@@ -632,14 +633,14 @@ public abstract class Creature {
 		firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
-	//------------- Others --------------
+//------------- Others --------------
 	abstract public boolean hasFeat(String feat);
 
 	public boolean hasProperty(String name) {
 		return extraProperties.containsKey(name);
 	}
 
-	// ----- visitor pattern for processing -----
+// ----- visitor pattern for processing -----
 	public void executeProcess(CreatureProcessor processor) {
 		processor.processCreature(this);
 

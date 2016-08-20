@@ -19,7 +19,7 @@ import java.util.Set;
 // TODO proficiencies - acp to attacks when not proficient
 // XXX should touch and flatfooted ac be statistics? can they be targeted by modifiers?
 // TODO handle null dex more elegantly
-public class AC extends Statistic {
+public class AC extends Statistic implements StatisticsCollection {
 	final ArmorCheckPenalty armorCheckPenalty = new ArmorCheckPenalty();
 	final Armor armor = new Armor();
 	final Shield shield = new Shield();
@@ -38,11 +38,11 @@ public class AC extends Statistic {
 
 	// touch ac and flat-footed ac are also statistics, but they are not targettable (they are entirely based on the main AC stat with certain modifiers ignored)
 	@Override
-	public String[][] getValidTargets() {
-		String[][] targets = {
-				{ armor.name, Creature.STATISTIC_ARMOR },
-				{ shield.name, Creature.STATISTIC_SHIELD },
-				{ naturalArmor.name, Creature.STATISTIC_NATURAL_ARMOR }
+	public StatisticDescription[] getStatistics() {
+		StatisticDescription[] targets = {
+				new StatisticDescription(armor.name, Creature.STATISTIC_ARMOR),
+				new StatisticDescription(shield.name, Creature.STATISTIC_SHIELD),
+				new StatisticDescription(naturalArmor.name, Creature.STATISTIC_NATURAL_ARMOR)
 		};
 		return targets;
 	}

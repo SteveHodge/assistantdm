@@ -19,25 +19,23 @@ Also need to incorporate effects that can be added to a creature but that don't 
 
 refactor: Buff/BuffFactory -> SpellEffect and AdhocEffect
 
-Plan:
-* move definitions of FeatDefinition, ClassFeatureDefinition, and BuffFactory to XML. (also Skills)
+Plan/Bugs/Priority:
+* implement StatisticsCollection for Attacks 
+* split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels
+* implement negative levels
 * implement conditions.
+* implement caster levels with saving to website. (probably easiest to have a dedicated field for the relevant ability for rememorising, to be eventually replaced with a system that knows what modifiers are temporary and therefore shouldn't be counted)
+* implement periodic special abilities and item uses/charges.
+* move definitions of FeatDefinition, ClassFeatureDefinition, and BuffFactory to XML. (also Skills)
 * clarify how Feature "types" should work (simply the class or explicit field). clarify how Feature "source" should work.
 * expand to allow override effects (property changes already implemented for buffs).
 * implement items. probably better to rename Feature to Effect or something more generic.
-* implement periodic special abilities and item uses/charges.
-* implement caster levels with saving to website.
-
-Bugs/Priority:
-* create effect dialog
 * adhoc weapon bonuses: done
     ... Implementation only works for characters (via CharacterAttackForm), for monsters would want to refactor the id stuff back to AttackForm and come up with a way to locate given attack forms.
     ... Implementation includes the beginnings of Effect targets that select multiple Statistics based on some criterion (in this case id), this can be expanded for use with things like Feats
     ... that apply to a specific class or type of weapon. But will need a way to specify that such effects are ongoing and should be applied to future cases that match.
     ... Currently the dynamic targeting is handled in Character, it should probably be handled by the Attack statistic itself.
     ... TODO Need to look at names/description of targets, it's ugly in some cases, particularly with selectors ("attacks[id=1]")
-* split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels
-* implement negative levels
     
 /* Proposed architecture:
  * A Statistic is a value that can be modified by bonuses and penalties and can also be overridden. Statistics can have

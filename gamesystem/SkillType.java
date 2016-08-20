@@ -1,5 +1,7 @@
 package gamesystem;
 
+import gamesystem.StatisticsCollection.StatisticDescription;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,12 +45,12 @@ public class SkillType implements Comparable<SkillType> {
 		return trainedOnly;
 	}
 
-	public static String[][] getValidTargets() {
-		String[][] targets = new String[skills.size()][];
+	public static StatisticDescription[] getStatistics() {
+		StatisticDescription[] targets = new StatisticDescription[skills.size()];
 		int i = 0;
 		for (String t : skills.keySet()) {
 			SkillType s = skills.get(t);
-			targets[i++] = new String[] { s.name, t };
+			targets[i++] = new StatisticDescription(s.name, t);
 		}
 		return targets;
 	}

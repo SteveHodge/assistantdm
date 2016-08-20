@@ -16,7 +16,7 @@ import java.util.Set;
  * "value" property changes denote changes to global skills modifiers (or ability modifiers). All skills should be considered updated
  */
 // TODO reimplement misc as Modifier
-public class Skills extends Statistic {
+public class Skills extends Statistic implements StatisticsCollection {
 	final public Map<SkillType, Skill> skills = new HashMap<>();	// TODO public for Character.getXML. change when no longer required
 	final protected EnumMap<AbilityScore.Type, Modifier> abilityMods = new EnumMap<>(AbilityScore.Type.class);
 	final protected Modifier acp;
@@ -36,10 +36,10 @@ public class Skills extends Statistic {
 	}
 
 	@Override
-	public String[][] getValidTargets() {
-		String[][] targets = SkillType.getValidTargets();
-		for (String[] skill : targets) {
-			skill[1] = Creature.STATISTIC_SKILLS + "." + skill[1];
+	public StatisticDescription[] getStatistics() {
+		StatisticDescription[] targets = SkillType.getStatistics();
+		for (StatisticDescription skill : targets) {
+			skill.target = Creature.STATISTIC_SKILLS + "." + skill.target;
 		}
 		return targets;
 	}

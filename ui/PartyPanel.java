@@ -1,4 +1,6 @@
 package ui;
+import gamesystem.StatisticsCollection.StatisticDescription;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -194,9 +196,9 @@ public class PartyPanel extends JPanel implements PartyListener {
 			System.out.println("Right PreferredSize = "+rightPanel.getPreferredSize());
 			System.out.println("PreferredSize = "+panel.getPreferredSize());
 			System.out.println("Size = "+panel.getSize());
-			String[][] targets = c.getValidTargets();
-			for (String[] t : targets) {
-				System.out.println(t[0] + ": " + t[1]);
+			StatisticDescription[] targets = c.getStatistics();
+			for (StatisticDescription t : targets) {
+				System.out.println(t.target + ": " + t.name);
 			}
 		});
 

@@ -46,12 +46,6 @@ public class Statistic {
 		return name;
 	}
 
-	// returns an array of any subtargets that this object handles. each element of the array is a two element array containing name and target designation
-	// note: does not include this statistic in the array; it's assumed that the parent already nows about this statistic
-	public String[][] getValidTargets() {
-		return null;
-	};
-
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
 	}

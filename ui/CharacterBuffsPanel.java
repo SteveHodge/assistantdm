@@ -3,6 +3,7 @@ package ui;
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
 import gamesystem.Modifier;
+import gamesystem.StatisticsCollection.StatisticDescription;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
@@ -87,17 +88,17 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		add(right);
 	}
 
-	static class TargetComboBoxModel extends AbstractListModel<String> implements ComboBoxModel<String> {
-		String[][] targets;
-		Object selected;
+	static class TargetComboBoxModel extends AbstractListModel<StatisticDescription> implements ComboBoxModel<StatisticDescription> {
+		StatisticDescription[] targets;
+		StatisticDescription selected;
 
 		TargetComboBoxModel(Character c) {
-			targets = c.getValidTargets();
+			targets = c.getStatistics();
 		}
 
 		@Override
-		public String getElementAt(int i) {
-			return targets[i][0];
+		public StatisticDescription getElementAt(int i) {
+			return targets[i];
 		}
 
 		@Override
@@ -106,28 +107,20 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		}
 
 		@Override
-		public Object getSelectedItem() {
+		public StatisticDescription getSelectedItem() {
 			return selected;
 		}
 
 		@Override
 		public void setSelectedItem(Object s) {
-			selected = s;
-		}
-
-		public String getSelectedTarget() {
-			for (String[] t : targets) {
-				if (t[0] == selected) return t[1];
-			}
-			return null;
+			selected = (StatisticDescription) s;
 		}
 	}
 
 	static class ModifierDef {
 		int modifier;
 		String type;
-		String target;
-		String targetName;
+		StatisticDescription target;
 
 		@Override
 		public String toString() {
@@ -138,7 +131,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			} else {
 				s = modifier + s + " penalty";
 			}
-			s += " to " + targetName;
+			s += " to " + target.name;
 			return s;
 		}
 	}
@@ -163,7 +156,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			typeBox.setEditable(true);
 
 			final TargetComboBoxModel targetModel = new TargetComboBoxModel(chr);
-			final JComboBox<String> targetStat = new JComboBox<>(targetModel);
+			final JComboBox<StatisticDescription> targetStat = new JComboBox<>(targetModel);
 
 			final JList<ModifierDef> modsList = new JList<>(modsModel);
 			JScrollPane scroller = new JScrollPane(modsList);
@@ -174,8 +167,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 				ModifierDef m = new ModifierDef();
 				m.modifier = (Integer) modField.getValue();
 				m.type = typeBox.getSelectedItem().toString();
-				m.targetName = targetStat.getSelectedItem().toString();
-				m.target = targetModel.getSelectedTarget();
+				m.target = targetModel.getSelectedItem();
 				modsModel.addElement(m);
 			});
 
@@ -286,7 +278,7 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			BuffFactory bf = new BuffFactory(sourceField.getText());
 			for (int i = 0; i < modsModel.getSize(); i++) {
 				ModifierDef d = modsModel.get(i);
-				bf.addEffect(d.target, d.type, d.modifier);
+				bf.addEffect(d.target.target, d.type, d.modifier);
 			}
 			return bf.getBuff();
 		}
