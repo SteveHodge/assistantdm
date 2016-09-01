@@ -232,8 +232,10 @@ public class Token extends Group {
 			bounds = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - labelHeight);
 			if (bounds.getHeight() > 0f) {
 				resizeImage(bounds);
-				g.drawImage(cachedImage, (int) (bounds.getX() + (bounds.getWidth() - cachedSize.width) / 2),
-						(int) (bounds.getY() + (bounds.getHeight() - cachedSize.height) / 2), null);
+				if (cachedImage != null) {
+					g.drawImage(cachedImage, (int) (bounds.getX() + (bounds.getWidth() - cachedSize.width) / 2),
+							(int) (bounds.getY() + (bounds.getHeight() - cachedSize.height) / 2), null);
+				}
 			}
 		}
 
@@ -379,6 +381,7 @@ public class Token extends Group {
 		Dimension b = new Dimension((int) bounds.getWidth(), (int) bounds.getHeight());
 		int scaledWidth = (int) (sourceImage.getWidth() * b.getHeight() / sourceImage.getHeight());	// width if we scale to fit the height
 		int scaledHeight = (int) (sourceImage.getHeight() * b.getWidth() / sourceImage.getWidth());	// // height if we scale to fit the width
+		if (scaledWidth == 0 || scaledHeight == 0) return;
 		//System.out.println("scaledWidth = "+scaledWidth+", scaledHeight = "+scaledHeight);
 		if (scaledWidth <= bounds.getWidth()) {
 			// scaledWidth fits so use (scaledWidth, bounds.getHeight())

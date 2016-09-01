@@ -201,10 +201,12 @@ public abstract class MapElement implements Serializable {
 	}
 
 	public static Color darken(Color c) {
+		if (c == null) return null;
 		return (new Color(c.getRed() * 3 / 5, c.getGreen() * 3 / 5, c.getBlue() * 3 / 5));
 	}
 
 	public static Color lighten(Color c) {
+		if (c == null) return null;
 		return (new Color(c.getRed() / 2 + 127, c.getGreen() / 2 + 127, c.getBlue() / 2 + 127));
 	}
 }

@@ -85,8 +85,10 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				Color newColor = JColorChooser.showDialog(OptionsPanel.this, "Choose colour", (Color) element.getProperty(property));
-				display.setProperty(element, property, newColor, Mode.ALL);
-				colorPanel.setBackground(newColor);
+				if (newColor != null) {
+					display.setProperty(element, property, newColor, Mode.ALL);
+					colorPanel.setBackground(newColor);
+				}
 			}
 		});
 		return colorPanel;
