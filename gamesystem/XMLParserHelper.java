@@ -145,6 +145,9 @@ public class XMLParserHelper {
 		if (e.hasAttribute("non-lethal")) c.hps.nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
 
+//		System.out.println("Before parse:");
+//		c.hps.printTempHPs();
+
 		// set any existing temporary hps to 0. this prevents temporary hitpoints that have been used for a particular
 		// buff being reset. after we've parsed this element we'll remove any remaining temporary hitpoints.
 		for (HPs.TempHPs temp : c.hps.tempHPs) {
@@ -204,7 +207,9 @@ public class XMLParserHelper {
 			c.hps.tempHPs.remove(temp);
 			// TODO need to notify source / remove source if it has no other effect
 		}
-		//printTempHPs(tempHPs);
+
+//		System.out.println("After parse:");
+//		c.hps.printTempHPs();
 	}
 
 	protected void parseAttacks(Element e, Creature c) {

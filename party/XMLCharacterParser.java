@@ -37,9 +37,9 @@ public class XMLCharacterParser extends XMLParserHelper {
 		c.setProperty(Character.PROPERTY_ACTION_POINTS, el.getAttribute("action-points"));
 		c.setProperty(Character.PROPERTY_CAMPAIGN, el.getAttribute("campaign"));
 
-		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con
+		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con and buffs to ensure temp hps are set correctly
 		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise
-		Element buffsElement = null;	// need to process after everything else so that all target statistics are set up (specifically
+		Element buffsElement = null;	// need to process after attacks so that all target statistics are set up
 
 		NodeList nodes = el.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
@@ -137,10 +137,6 @@ public class XMLCharacterParser extends XMLParserHelper {
 		}
 
 		// process the deferred elements (see variable declarations for reasons)
-		if (hpElement != null) {
-			parseHPs(hpElement, c);
-		}
-
 		if (attacksElement != null) {
 			parseAttacks(attacksElement, c);
 			NodeList children = attacksElement.getChildNodes();
@@ -168,6 +164,10 @@ public class XMLCharacterParser extends XMLParserHelper {
 				b.apply(c);
 				c.buffs.addElement(b);
 			}
+		}
+
+		if (hpElement != null) {
+			parseHPs(hpElement, c);
 		}
 
 		return c;

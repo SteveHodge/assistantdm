@@ -7,7 +7,6 @@ import gamesystem.core.Property;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -267,7 +266,11 @@ public abstract class Creature implements StatisticsCollection {
 		targets.add(new StatisticDescription(SavingThrow.Type.WILL.toString(), STATISTIC_WILL_SAVE));
 		targets.add(new StatisticDescription(SavingThrow.Type.REFLEX.toString(), STATISTIC_REFLEX_SAVE));
 		targets.add(new StatisticDescription(ac.name, STATISTIC_AC));
-		Collections.addAll(targets, ac.getStatistics());
+		StatisticDescription[] tgts = ac.getStatistics();
+		for (StatisticDescription t : tgts) {
+			t.name = "... " + t.name;
+			targets.add(t);
+		}
 		targets.add(new StatisticDescription(initiative.name, STATISTIC_INITIATIVE));
 		targets.add(new StatisticDescription(hps.name, STATISTIC_HPS));
 		targets.add(new StatisticDescription(level.name, STATISTIC_LEVEL));
@@ -278,7 +281,11 @@ public abstract class Creature implements StatisticsCollection {
 		targets.add(new StatisticDescription(size.name, STATISTIC_SIZE));
 		targets.add(new StatisticDescription(grapple.name, STATISTIC_GRAPPLE));
 		targets.add(new StatisticDescription(skills.name, STATISTIC_SKILLS));
-		Collections.addAll(targets, skills.getStatistics());
+		tgts = skills.getStatistics();
+		for (StatisticDescription t : tgts) {
+			t.name = "... " + t.name;
+			targets.add(t);
+		}
 		return targets.toArray(new StatisticDescription[targets.size()]);
 	}
 
