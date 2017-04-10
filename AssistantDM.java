@@ -1,5 +1,3 @@
-import gamesystem.RuleSet;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -42,14 +40,20 @@ import javax.swing.table.TableModel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.Document;
+
+import camera.Camera;
+import camera.CameraPanel;
+import combat.CombatPanel;
+import combat.InitiativeListModel;
+import combat.MonsterCombatEntry;
+import digital_table.controller.DigitalTableController;
+import gamesystem.RuleSet;
 import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
 import magicitems.ShoppingPanel;
 import monsters.EncounterDialog;
 import monsters.MonstersPanel;
-
-import org.w3c.dom.Document;
-
 import party.Character;
 import party.CharacterLibrary;
 import party.Party;
@@ -63,14 +67,6 @@ import ui.XPEntryDialog;
 import util.ModuleRegistry;
 import util.Updater;
 import util.XMLUtils;
-import camera.Camera;
-import camera.CameraPanel;
-
-import combat.CombatPanel;
-import combat.InitiativeListModel;
-import combat.MonsterCombatEntry;
-
-import digital_table.controller.DigitalTableController;
 
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener {
@@ -174,7 +170,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		tabbedPane = new JTabbedPane();
 
-		RuleSet.parseXML(new File("rulesets/core3.5.xml"));
+		RuleSet.parseXML(new File("rulesets/ptolus.xml"));
 		party = Party.parseXML(file);
 
 		JComponent panel;

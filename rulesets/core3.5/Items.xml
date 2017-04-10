@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items>
+	<item slot="weapon" name="Gauntlet" cost="2 gp" weight="1 lb.">
+		<attack proficiency="Simple" type="Unarmed" damage="1d3" non-lethal="true" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Unarmed strike">
+		<attack proficiency="Simple" type="Unarmed" damage="1d3" critical="x2" non-lethal="true" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Dagger" cost="2 gp" weight="1 lb.">
+		<attack proficiency="Simple" type="Light Melee" damage="1d4" critical="19–20/x2" range="10 ft." damage-type="P/S"/>
+	</item>
+	<item slot="weapon" name="Dagger, punching" cost="2 gp" weight="1 lb.">
+		<attack proficiency="Simple" type="Light Melee" damage="1d4" critical="x3" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Gauntlet, spiked" cost="5 gp" weight="1 lb.">
+		<attack proficiency="Simple" type="Light Melee" damage="1d4" critical="x2" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Mace, light" cost="5 gp" weight="4 lb.">
+		<attack proficiency="Simple" type="Light Melee" damage="1d6" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Sickle" cost="6 gp" weight="2 lb.">
+		<attack proficiency="Simple" type="Light Melee" damage="1d6" critical="x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Club" weight="3 lb.">
+		<attack proficiency="Simple" type="One-Handed Melee" damage="1d6" critical="x2" range="10 ft." damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Mace, heavy" cost="12 gp" weight="8 lb.">
+		<attack proficiency="Simple" type="One-Handed Melee" damage="1d8" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Morningstar" cost="8 gp" weight="6 lb.">
+		<attack proficiency="Simple" type="One-Handed Melee" damage="1d8" critical="x2" damage-type="B+P"/>
+	</item>
+	<item slot="weapon" name="Shortspear" cost="1 gp" weight="3 lb.">
+		<attack proficiency="Simple" type="One-Handed Melee" damage="1d6" critical="x2" range="20 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Longspear" cost="5 gp" weight="9 lb.">
+		<attack proficiency="Simple" type="Two-Handed Melee" damage="1d8" critical="x3" damage-type="P" reach="true"/>
+	</item>
+	<item slot="weapon" name="Quarterstaff" weight="4 lb.">
+		<attack proficiency="Simple" type="Two-Handed Melee" damage="1d6" critical="x2" damage-type="B"/>
+		<attack proficiency="Simple" type="Two-Handed Melee" damage="1d6" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Spear" cost="2 gp" weight="6 lb.">
+		<attack proficiency="Simple" type="Two-Handed Melee" damage="1d8" critical="x3" range="20 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Crossbow, heavy" cost="50 gp" weight="8 lb.">
+		<attack proficiency="Simple" type="Ranged" damage="1d10" critical="19–20/x2" range="120 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Crossbow, light" cost="35 gp" weight="4 lb.">
+		<attack proficiency="Simple" type="Ranged" damage="1d8" critical="19–20/x2" range="80 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Dart" cost="5 sp" weight="1/2 lb.">
+		<attack proficiency="Simple" type="Ranged" damage="1d4" critical="x2" range="20 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Javelin" cost="1 gp" weight="2 lb.">
+		<attack proficiency="Simple" type="Ranged" damage="1d6" critical="x2" range="30 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Sling" damage="1d4" weight="0 lb.">
+		<attack proficiency="Simple" type="Ranged" damage="1d4" critical="x2" range="50 ft." damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Axe, throwing" cost="8 gp" weight="2 lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d6" critical="x2" range="10 ft." damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Hammer, light" cost="1 gp" weight="2 lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d4" critical="x2" range="20 ft." damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Handaxe" cost="6 gp" weight="lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d6" critical="x3" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Kukri" cost="8 gp" weight="2 lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d4" critical="18–20/x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Pick, light" cost="4 gp" weight="3 lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d4" critical="x4" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Sap" cost="1 gp" weight="2 lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d6" critical="x2" non-lethal="true" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Sword, short" cost="10 gp" weight="2 lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d6" critical="19–20/x2" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Battleaxe" cost="10 gp" weight="6 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d8" critical="x3" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Flail" cost="8 gp" weight="5 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d8" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Longsword" cost="15 gp" weight="4 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d8" critical="19–20/x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Pick, heavy" cost="8 gp" weight="6 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d6" critical="x4" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Rapier" cost="20 gp" weight="2 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d6" critical="18–20/x2" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Scimitar" cost="15 gp" weight="4 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d6" critical="18–20/x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Trident" cost="15 gp" weight="4 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d8" critical="x2" range="10 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Warhammer" cost="12 gp" weight="5 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d8" critical="x3" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Falchion" cost="75 gp" weight="8 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="2d4" critical="18–20/x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Glaive" cost="8 gp" weight="10 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="1d10" critical="x3" damage-type="S" reach="true"/>
+	</item>
+	<item slot="weapon" name="Greataxe" cost="20 gp" weight="12 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="1d12" critical="x3" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Greatclub" cost="5 gp" weight="8 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="1d10" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Flail, heavy" cost="15 gp" weight="10 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="1d10" critical="19–20/x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Greatsword" cost="50 gp" weight="8 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="2d6" critical="19–20/x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Guisarme" cost="9 gp" weight="12 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="2d4" critical="x3" damage-type="S" reach="true"/>
+	</item>
+	<item slot="weapon" name="Halberd" cost="10 gp" weight="12 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="1d10" critical="x3" damage-type="P/S"/>
+	</item>
+	<item slot="weapon" name="Lance" cost="10 gp" weight="10 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="1d8" critical="x3" damage-type="P" reach="true"/>
+	</item>
+	<item slot="weapon" name="Ranseur" cost="10 gp" weight="12 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="2d4" critical="x3" damage-type="P" reach="true"/>
+	</item>
+	<item slot="weapon" name="Scythe" cost="18 gp" weight="10 lb.">
+		<attack proficiency="Martial" type="Two-Handed Melee" damage="2d4" critical="x4" damage-type="P/S"/>
+	</item>
+	<item slot="weapon" name="Longbow" cost="75 gp" weight="3 lb.">
+		<attack proficiency="Martial" type="Ranged" damage="1d8" critical="x3" range="100 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Longbow, composite" cost="100 gp" weight="3 lb.">
+		<attack proficiency="Martial" type="Ranged" damage="1d8" critical="x3" range="110 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Shortbow" cost="30 gp" weight="2 lb.">
+		<attack proficiency="Martial" type="Ranged" damage="1d6" critical="x3" range="60 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Shortbow, composite" cost="75 gp" weight="2 lb.">
+		<attack proficiency="Martial" type="Ranged" damage="1d6" critical="x3" range="70 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Kama" cost="2 gp" weight="2 lb.">
+		<attack proficiency="Exotic" type="Light Melee" damage="1d6" critical="x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Nunchaku" cost="2 gp" weight="2 lb.">
+		<attack proficiency="Exotic" type="Light Melee" damage="1d6" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Sai" cost="1 gp" weight="1 lb.">
+		<attack proficiency="Exotic" type="Light Melee" damage="1d4" critical="x2" range="10 ft." damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Siangham" cost="3 gp" weight="1 lb.">
+		<attack proficiency="Exotic" type="Light Melee" damage="1d6" critical="x2" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Sword, bastard" cost="35 gp" weight="6 lb.">
+		<attack proficiency="Exotic" type="One-Handed Melee" damage="1d10" critical="19–20/x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Waraxe, dwarven" cost="30 gp" weight="8 lb.">
+		<attack proficiency="Exotic" type="One-Handed Melee" damage="1d10" critical="x3" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Whip" cost="1 gp" weight="2 lb.">
+		<attack proficiency="Exotic" type="One-Handed Melee" damage="1d3" non-lethal="true" critical="x2" damage-type="S" reach="true"/>
+	</item>
+	<item slot="weapon" name="Axe, orc double" cost="60 gp" weight="15 lb.">
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d8" critical="x3" damage-type="S"/>
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d8" critical="x3" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Chain, spiked" cost="25 gp" weight="10 lb.">
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="2d4" critical="x2" damage-type="P" reach="true"/>
+	</item>
+	<item slot="weapon" name="Flail, dire" cost="90 gp" weight="10 lb.">
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d8" critical="x2" damage-type="B"/>
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d8" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Hammer, gnome hooked" cost="20 gp" weight="6 lb.">
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d8" critical="x3" damage-type="B"/>
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d6" critical="x4" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Sword, two-bladed" cost="100 gp" weight="10 lb.">
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d8" critical="19–20/x2" damage-type="S"/>
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d8" critical="19–20/x2" damage-type="S"/>
+	</item>
+	<item slot="weapon" name="Urgrosh, dwarven" cost="50 gp" weight="12 lb.">
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d8" critical="x3" damage-type="S"/>
+		<attack proficiency="Exotic" type="Two-Handed Melee" damage="1d6" critical="x3" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Bolas" cost="5 gp" weight="2 lb.">
+		<attack proficiency="Exotic" type="Ranged" damage="1d43" critical="x2" range="10 ft." damage-type="B"/>
+	</item>
+	<item slot="weapon" name="Crossbow, hand" cost="100 gp" weight="2 lb.">
+		<attack proficiency="Exotic" type="Ranged" damage="1d4" critical="19–20/x2" range="30 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Crossbow, repeating heavy" cost="400 gp" weight="12 lb.">
+		<attack proficiency="Exotic" type="Ranged" damage="1d10" critical="19–20/x2" range="120 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Crossbow, repeating light" cost="250 gp" weight="6 lb.">
+		<attack proficiency="Exotic" type="Ranged" damage="1d8" critical="19–20/x2" range="80 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Net" cost="20 gp" weight="6 lb.">
+		<attack proficiency="Exotic" type="Ranged" damage="—" critical="—" range="10 ft." damage-type=""/>
+	</item>
+	<item slot="weapon" name="Shuriken (5)" cost="1 gp" weight="1/2 lb.">
+		<attack proficiency="Exotic" type="Ranged" damage="1d2" critical="x2" range="10 ft." damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Armor Spikes" cost="50 gp" weight="10 lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d6" critical="x2" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Light Shield Spikes" cost="10 gp" weight="5 lb.">
+		<attack proficiency="Martial" type="Light Melee" damage="1d4" critical="x2" damage-type="P"/>
+	</item>
+	<item slot="weapon" name="Heavy Shield Spikes" cost="10 gp" weight="5 lb.">
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d6" critical="x2" damage-type="P"/>
+	</item>
+	<item slot="armor" name="Padded" cost="5 gp" weight="10 lb.">
+		<armor type="Light" bonus="+1" max-dex="+8" acp="0" spell-failure="5%" speed="30 ft."/>
+	</item>
+	<item slot="armor" name="Leather" cost="10 gp" weight="15 lb.">
+		<armor type="Light" bonus="+2" max-dex="+6" acp="0" spell-failure="10%" speed="30 ft."/>
+	</item>
+	<item slot="armor" name="Studded leather" cost="25 gp" weight="20 lb.">
+		<armor type="Light" bonus="+3" max-dex="+5" acp="–1" spell-failure="15%" speed="30 ft."/>
+	</item>
+	<item slot="armor" name="Chain shirt" cost="100 gp" weight="25 lb.">
+		<armor type="Light" bonus="+4" max-dex="+4" acp="–2" spell-failure="20%" speed="30 ft."/>
+	</item>
+	<item slot="armor" name="Hide" cost="15 gp" weight="25 lb.">
+		<armor type="Medium" bonus="+3" max-dex="+4" acp="–3" spell-failure="20%" speed="20 ft."/>
+	</item>
+	<item slot="armor" name="Scale mail" cost="50 gp" weight="30 lb.">
+		<armor type="Medium" bonus="+4" max-dex="+3" acp="–4" spell-failure="25%" speed="20 ft."/>
+	</item>
+	<item slot="armor" name="Chainmail" cost="150 gp" weight="40 lb.">
+		<armor type="Medium" bonus="+5" max-dex="+2" acp="–5" spell-failure="30%" speed="20 ft."/>
+	</item>
+	<item slot="armor" name="Breastplate" cost="200 gp" weight="30 lb.">
+		<armor type="Medium" bonus="+5" max-dex="+3" acp="–4" spell-failure="25%" speed="20 ft."/>
+	</item>
+	<item slot="armor" name="Splint mail" cost="200 gp" weight="45 lb.">
+		<armor type="Heavy" bonus="+6" max-dex="+0" acp="–7" spell-failure="40%" speed="20 ft." slow-run="true"/>
+	</item>
+	<item slot="armor" name="Banded mail" cost="250 gp" weight="35 lb.">
+		<armor type="Heavy" bonus="+6" max-dex="+1" acp="–6" spell-failure="35%" speed="20 ft." slow-run="true"/>
+	</item>
+	<item slot="armor" name="Half-plate" cost="600 gp" weight="50 lb.">
+		<armor type="Heavy" bonus="+7" max-dex="+0" acp="–7" spell-failure="40%" speed="20 ft." slow-run="true"/>
+	</item>
+	<item slot="armor" name="Full plate" cost="1500 gp" weight="50 lb.">
+		<armor type="Heavy" bonus="+8" max-dex="+1" acp="–6" spell-failure="35%" speed="20 ft." slow-run="true"/>
+	</item>
+	<item slot="shield" name="Buckler" cost="15 gp" weight="5 lb.">
+		<shield bonus="+1" acp="–1" spell-failure="5%"/>
+	</item>
+	<item slot="shield" name="Shield, light wooden" cost="3 gp" weight="5 lb.">
+		<shield bonus="+1" acp="–1" spell-failure="5%"/>
+		<attack proficiency="Martial" type="Light Melee" damage="1d3" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="shield" name="Shield, light" cost="9 gp" weight="6 lb.">
+		<shield bonus="+1" acp="–1" spell-failure="5%"/>
+		<attack proficiency="Martial" type="Light Melee" damage="1d3" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="shield" name="Shield, heavy wooden" cost="7 gp" weight="10 lb.">
+		<shield bonus="+2" acp="–2" spell-failure="15%"/>
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d4" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="shield" name="Shield, heavy steel" cost="20 gp" weight="15 lb.">
+		<shield bonus="+2" acp="–2" spell-failure="15%"/>
+		<attack proficiency="Martial" type="One-Handed Melee" damage="1d4" critical="x2" damage-type="B"/>
+	</item>
+	<item slot="shield" name-="Shield, tower" cost="30 gp" weight="45 lb.">
+		<shield bonus="+4" max-dex="+2" acp="–10" spell-failure="50%"/>
+	</item>
+</items>
+

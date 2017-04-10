@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<skills>
+	<skill name="Appraise" ability="Intelligence" trained="false"/>
+	<skill name="Balance" ability="Dexterity" trained="false" acp="true"/>
+	<skill name="Bluff" ability="Charisma" trained="false"/>
+	<skill name="Climb" ability="Strength" trained="false" acp="true"/>
+	<skill name="Concentration" ability="Constitution" trained="false"/>
+	<skill name="Craft" ability="Intelligence" trained="false"/>
+	<skill name="Craft (Armorsmithing)" ability="Intelligence" trained="false"/>
+	<skill name="Craft (Alchemy)" ability="Intelligence" trained="false"/>
+	<skill name="Craft (Bowmaking)" ability="Intelligence" trained="false"/>
+	<skill name="Craft (Trapmaking)" ability="Intelligence" trained="false"/>
+	<skill name="Craft (Weaponsmithing)" ability="Intelligence" trained="false"/>
+	<skill name="Decipher Script" ability="Intelligence" trained="true"/>
+	<skill name="Diplomacy" ability="Charisma" trained="false"/>
+	<skill name="Disable Device" ability="Intelligence" trained="true"/>
+	<skill name="Disguise" ability="Charisma" trained="false"/>
+	<skill name="Escape Artist" ability="Dexterity" trained="false" acp="true"/>
+	<skill name="Forgery" ability="Intelligence" trained="false"/>
+	<skill name="Gather Information" ability="Charisma" trained="false"/>
+	<skill name="Handle Animal" ability="Charisma" trained="true"/>
+	<skill name="Heal" ability="Wisdom" trained="false"/>
+	<skill name="Hide" ability="Dexterity" trained="false" acp="true"/>
+	<skill name="Intimidate" ability="Charisma" trained="false"/>
+	<skill name="Jump" ability="Strength" trained="false" acp="true"/>
+	<skill name="Knowledge (Arcana)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (Arch and Eng)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (Dungeoneering)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (Geography)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (History)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (Local)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (Nature)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (Nobility)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (Religion)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (The Planes)" ability="Intelligence" trained="true"/>
+	<skill name="Listen" ability="Wisdom" trained="false"/>
+	<skill name="Move Silently" ability="Dexterity" trained="false" acp="true"/>
+	<skill name="Open Lock" ability="Dexterity" trained="true"/>
+	<skill name="Perform" ability="Charisma" trained="false"/>
+	<skill name="Profession" ability="Wisdom" trained="true"/>
+	<skill name="Ride" ability="Dexterity" trained="false"/>
+	<skill name="Search" ability="Intelligence" trained="false"/>
+	<skill name="Sense Motive" ability="Wisdom" trained="false"/>
+	<skill name="Sleight of Hand" ability="Dexterity" acp="true" trained="true"/>
+	<skill name="Spellcraft" ability="Intelligence" acp="true"/>
+	<skill name="Spot" ability="Wisdom" trained="false"/>
+	<skill name="Survival" ability="Wisdom" trained="false"/>
+	<skill name="Swim" ability="Strength" trained="false" acp="true" double-acp="true"/>
+	<skill name="Tumble" ability="Dexterity" acp="true" trained="true"/>
+	<skill name="Use Magic Device" ability="Charisma" trained="true"/>
+	<skill name="Use Rope" ability="Dexterity" trained="false"/>
+</skills>

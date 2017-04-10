@@ -1,10 +1,9 @@
 package gamesystem;
 
-import gamesystem.dice.HDDice;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -19,6 +18,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import gamesystem.dice.HDDice;
 
 // A RuleSet encapsulates the specific options used in a campaign, e.g. spells, feats, skills, classes, etc.
 // Currently only spells are  supported
@@ -76,14 +77,107 @@ public class RuleSet {
 				// not a ruleset node so drop through...
 			}
 
-			if (e.getTagName().equals("spells")) {
+			String tag = e.getTagName();
+			if (tag.equals("spells")) {
 				parseSpells(e);
+
+			} else if (tag.equals("skills")) {
+				parseSkills(e);
+
+			} else if (tag.equals("items")) {
+				parseItems(e);
 
 			} else {
 				System.err.println("Ignoring unexpected node: " + e.getTagName());
 				continue;
 			}
 		}
+	}
+
+	private void parseSkills(Element el) {
+		if (!el.getTagName().equals("skills")) return;
+		System.out.print("Parsing skills... ");
+
+		NodeList nodes = el.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element) nodes.item(i);
+			if (e.getTagName().equals("skill")) {
+				SkillType t = new SkillType(e.getAttribute("name"));
+				if (e.hasAttribute("ability"))
+					t.ability = AbilityScore.Type.getAbilityType(e.getAttribute("ability"));
+				t.trainedOnly = e.hasAttribute("trained") && e.getAttribute("trained").equals("true");
+				t.armorCheckPenaltyApplies = e.hasAttribute("acp") && e.getAttribute("acp").equals("true");
+				t.doubleACP = e.hasAttribute("double_acp") && e.getAttribute("double_acp").equals("true");
+			} else {
+				System.err.println("Ignoring unexpected node: " + e.getTagName());
+				continue;
+			}
+		}
+		System.out.println(SkillType.skills.size() + " found");
+	}
+
+	private void parseItems(Element el) {
+		if (!el.getTagName().equals("items")) return;
+		System.out.print("Parsing items... ");
+
+		NodeList nodes = el.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element) nodes.item(i);
+			if (e.getTagName().equals("item")) {
+				ItemDefinition item = new ItemDefinition();
+				if (e.hasAttribute("slot")) item.slot = e.getAttribute("slot");
+				if (e.hasAttribute("cost")) item.cost = e.getAttribute("cost");
+				if (e.hasAttribute("weight")) item.weight = e.getAttribute("weight");
+
+				NodeList children = e.getChildNodes();
+				for (int j = 0; j < children.getLength(); j++) {
+					if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+					Element c = (Element) nodes.item(i);
+					parseAttack(c, item);	// does nothing if the node tag is incorrect
+					parseArmor(c, item);	// does nothing if the node tag is incorrect
+					parseShield(c, item);	// does nothing if the node tag is incorrect
+				}
+				ItemDefinition.items.add(item);
+			}
+		}
+		System.out.println(ItemDefinition.items.size() + " found");
+	}
+
+	private void parseAttack(Element el, ItemDefinition item) {
+		if (!el.getTagName().equals("attack")) return;
+		ItemDefinition.Attack a = item.new Attack();
+		if (el.hasAttribute("proficiency")) a.proficiency = el.getAttribute("proficiency");
+		if (el.hasAttribute("type")) a.type = el.getAttribute("type");
+		if (el.hasAttribute("damage")) a.damage = el.getAttribute("damage");
+		if (el.hasAttribute("critical")) a.critical = el.getAttribute("critical");
+		if (el.hasAttribute("damage-type")) a.damageType = el.getAttribute("damage-type");
+		if (item.attacks == null) item.attacks = new ArrayList<>();
+		item.attacks.add(a);
+	}
+
+	private void parseArmor(Element el, ItemDefinition item) {
+		if (!el.getTagName().equals("armor")) return;
+		ItemDefinition.Armor a = item.new Armor();
+		if (el.hasAttribute("type")) a.type = el.getAttribute("type");
+		if (el.hasAttribute("bonus")) a.bonus = el.getAttribute("bonus");
+		if (el.hasAttribute("max-dex")) a.maxDex = el.getAttribute("max-dex");
+		if (el.hasAttribute("acp")) a.armorCheckPenalty = el.getAttribute("acp");
+		if (el.hasAttribute("spell-failure")) a.spellFailure = el.getAttribute("spell-failure");
+		if (el.hasAttribute("speed")) a.speed = el.getAttribute("speed");
+		a.slowRun = el.hasAttribute("slow-run") && el.getAttribute("slow-run").equals("true");
+		item.armor = a;
+	}
+
+	private void parseShield(Element el, ItemDefinition item) {
+		if (!el.getTagName().equals("armor")) return;
+		ItemDefinition.Shield a = item.new Shield();
+		if (el.hasAttribute("bonus")) a.bonus = el.getAttribute("bonus");
+		if (el.hasAttribute("max-dex")) a.maxDex = el.getAttribute("max-dex");
+		if (el.hasAttribute("acp")) a.armorCheckPenalty = el.getAttribute("acp");
+		if (el.hasAttribute("spell-failure")) a.spellFailure = el.getAttribute("spell-failure");
+		item.shield = a;
 	}
 
 	private void parseSpells(Element el) {

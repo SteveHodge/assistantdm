@@ -1,7 +1,5 @@
 package gamesystem;
 
-import gamesystem.StatisticsCollection.StatisticDescription;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import gamesystem.StatisticsCollection.StatisticDescription;
+
 public class SkillType implements Comparable<SkillType> {
 	public static Map<String,SkillType> skills;
 
@@ -19,6 +19,11 @@ public class SkillType implements Comparable<SkillType> {
 	protected boolean trainedOnly;
 	protected boolean armorCheckPenaltyApplies;
 	protected boolean doubleACP;
+
+	SkillType(String name) {
+		this.name = name;
+		skills.put(name.toLowerCase(), this);
+	}
 
 	private SkillType(String name, AbilityScore.Type ability, boolean trained, boolean acp, boolean doubleACP) {
 		this.name = name;
@@ -63,7 +68,10 @@ public class SkillType implements Comparable<SkillType> {
 
 	public static SkillType getSkill(String n) {
 		SkillType s = skills.get(n.toLowerCase());
-		if (s == null) s = addSkill(n);
+		if (s == null) {
+			System.err.println("Unknown skill " + n + " added");
+			s = addSkill(n);
+		}
 		return s;
 	}
 
@@ -110,7 +118,7 @@ public class SkillType implements Comparable<SkillType> {
 
 	static {
 		skills = new HashMap<>();
-		addSkill("Appraise",AbilityScore.Type.INTELLIGENCE,false);
+/*		addSkill("Appraise",AbilityScore.Type.INTELLIGENCE,false);
 		addSkill("Balance",AbilityScore.Type.DEXTERITY,false,true);
 		addSkill("Bluff",AbilityScore.Type.CHARISMA,false);
 		addSkill("Climb",AbilityScore.Type.STRENGTH,false,true);
@@ -157,5 +165,6 @@ public class SkillType implements Comparable<SkillType> {
 		addSkill("Tumble",AbilityScore.Type.DEXTERITY,true,true);
 		addSkill("Use Magic Device",AbilityScore.Type.CHARISMA,true);
 		addSkill("Use Rope",AbilityScore.Type.DEXTERITY,false);
+ */
 	}
 }
