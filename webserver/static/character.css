@@ -34,8 +34,8 @@
 	position:absolute;
 	left:41.76em;
 	top:30.72em;
-	width:38.88em;
-	height:15.36em;
+	width:37.44em;
+	height:12.8em;
 }
 
 #cs1_saving_throws {
@@ -48,10 +48,10 @@
 
 #cs1_special_info {
 	position:absolute;
-	left:54.72em;
+	left:54.44em;
 	top:48.64em;
 	width:24.48em;
-	height:32em;
+	height:30.56em;
 }
 
 #cs1_bab_grapple {
@@ -602,6 +602,11 @@ div.character-table .R {
 	border-right:2px solid black;
 }
 
+[info] {
+	cursor: pointer;
+	/*background: lightblue;*/
+}
+
 /*******************************************************************/
 /* classes for diff functionality */
 /*******************************************************************/
@@ -617,7 +622,7 @@ div.character-table .R {
 #dialog-header {display:block; position:relative; width:411px; padding:3px 6px 7px; height:14px; font-size:14px; font-weight:bold}
 #dialog-title {float:left}
 #dialog-close {float:right; cursor:pointer; margin:3px 3px 0 0; height:11px; width:11px; background:url(images/dialog_close.gif) no-repeat}
-#dialog-content {display:block; height:160px; padding:6px; color:#666666; font-size:13px}
+#dialog-content {display:block; min-height:160px; padding:6px; color:#666666; font-size:13px}
 #dialog-mask {position:absolute; top:0; left:0; min-height:100%; width:100%; background:#FFF; opacity:.75; filter:alpha(opacity=75); z-index:100}
 .info, .infoheader {margin:0; font-family:Verdana, Arial, Helvetica; font-size:14px}
 .info {background:#fff; border:1px solid #4f6d81; border-top:none}

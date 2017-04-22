@@ -48,6 +48,8 @@ import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChange;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
+import gamesystem.core.Property;
+import gamesystem.core.Property.PropertyEvent;
 
 /**
  * @author Steve
@@ -296,6 +298,28 @@ public class Character extends Creature {
 		attacks.addPropertyChangeListener(statListener);
 
 		sanity = new Sanity(abilities.get(AbilityScore.Type.WISDOM));
+		sanity.addPropertyListener(new Property.PropertyListener<Integer>() {
+			@Override
+			public void valueChanged(PropertyEvent<Integer> event) {
+				firePropertyChange(PROPERTY_SANITY, event.getOldValue(), sanity.getValue());
+			}
+
+			@Override
+			public void compositionChanged(PropertyEvent<Integer> event) {
+				firePropertyChange(PROPERTY_SANITY, event.getOldValue(), sanity.getValue());
+			}
+		});
+		sanity.getKnowledgeSkillProperty().addPropertyListener(new Property.PropertyListener<Integer>() {
+			@Override
+			public void valueChanged(PropertyEvent<Integer> event) {
+				firePropertyChange(PROPERTY_SANITY_KNOWLEDGE, event.getOldValue(), sanity.getKnowledgeSkillProperty().getValue());
+			}
+
+			@Override
+			public void compositionChanged(PropertyEvent<Integer> event) {
+				firePropertyChange(PROPERTY_SANITY_KNOWLEDGE, event.getOldValue(), sanity.getKnowledgeSkillProperty().getValue());
+			}
+		});
 	}
 
 	@Override

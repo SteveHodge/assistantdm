@@ -39,10 +39,10 @@ public abstract class Creature implements StatisticsCollection {
 	public final static String PROPERTY_BAB = "BAB";
 	public final static String PROPERTY_SIZE = "Size";
 	public final static String PROPERTY_TYPE = "Type";	// not currently sent to listeners
-//	public final static String PROPERTY_SANITY = "Sanity";
+	public final static String PROPERTY_SANITY = "Sanity";
 //	public final static String PROPERTY_STARTING_SANITY = "Starting Sanity";
 //	public final static String PROPERTY_MAX_SANITY = "Maximum Sanity";
-//	public final static String PROPERTY_SANITY_KNOWLEDGE = "Sanity-related Knowledge";
+	public final static String PROPERTY_SANITY_KNOWLEDGE = "Sanity-related Knowledge";
 
 	public final static String PROPERTY_SPACE = "Space";	// currently only a property on Monster
 	public final static String PROPERTY_REACH = "Reach";	// currently only a property on Monster

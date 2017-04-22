@@ -1,27 +1,5 @@
 package party;
 
-import gamesystem.AC;
-import gamesystem.AbilityScore;
-import gamesystem.Attacks;
-import gamesystem.Attacks.AttackForm;
-import gamesystem.CharacterClass;
-import gamesystem.ClassFeature;
-import gamesystem.Creature;
-import gamesystem.Feat;
-import gamesystem.Feat.FeatDefinition;
-import gamesystem.GrappleModifier;
-import gamesystem.HPs;
-import gamesystem.InitiativeModifier;
-import gamesystem.Levels;
-import gamesystem.SavingThrow;
-import gamesystem.SkillType;
-import gamesystem.Skills;
-import gamesystem.XP;
-import gamesystem.XP.XPChangeAdhoc;
-import gamesystem.XP.XPChangeChallenges;
-import gamesystem.XP.XPChangeLevel;
-import gamesystem.core.Property;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -42,6 +20,28 @@ import org.w3c.dom.ProcessingInstruction;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import gamesystem.AC;
+import gamesystem.AbilityScore;
+import gamesystem.Attacks;
+import gamesystem.Attacks.AttackForm;
+import gamesystem.CharacterClass;
+import gamesystem.ClassFeature;
+import gamesystem.Creature;
+import gamesystem.Feat;
+import gamesystem.Feat.FeatDefinition;
+import gamesystem.GrappleModifier;
+import gamesystem.HPs;
+import gamesystem.InitiativeModifier;
+import gamesystem.Levels;
+import gamesystem.Sanity;
+import gamesystem.SavingThrow;
+import gamesystem.SkillType;
+import gamesystem.Skills;
+import gamesystem.XP;
+import gamesystem.XP.XPChangeAdhoc;
+import gamesystem.XP.XPChangeChallenges;
+import gamesystem.XP.XPChangeLevel;
+import gamesystem.core.Property;
 import party.Character.ACComponentType;
 import util.Updater;
 
@@ -424,6 +424,14 @@ public class CharacterSheetView {
 			e.setAttribute("misc", getModifierString(initiative.getValue() - character.getAbilityStatistic(AbilityScore.Type.DEXTERITY).getModifierValue()));	// assumes only 1 dex modifier that will always apply
 			e.setAttribute("info", initiative.getSummary());
 			e.removeAttribute("value");
+		}
+
+		@Override
+		public void processSanity(Sanity sanity) {
+			Element e = getSanityElement(sanity);
+			e.setAttribute("maximum", "" + sanity.getMaximumSanityProperty().getValue());
+			e.setAttribute("starting", "" + sanity.getStartingSanityProperty().getValue());
+			e.setAttribute("knowledge-name", "Occult Knowledge");
 		}
 	}
 }

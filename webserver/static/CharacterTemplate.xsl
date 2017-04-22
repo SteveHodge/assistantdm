@@ -21,11 +21,11 @@
 			<td colspan="13" class="weapon-subtitle">DAMAGE</td>
 			<td colspan="9" class="weapon-subtitle">CRITICAL</td>
 		</tr>
-		<tr style="height:3.84em;">
+		<tr style="height:3.84em;" title="{$weapon/@name}" info="{$weapon/@info}&lt;p&gt;{$weapon/@damage_info}" onclick="showInfo(this);" roll="{$weapon/@attacks}/{$weapon/@damage}">
 			<td colspan="17" class="weapon-name">
 				<xsl:value-of select="$weapon/@name"/>
 			</td>
-			<td colspan="15" class="data-value-important" title="{$weapon/@name}" info="{$weapon/@info}" onclick="showInfo(this);">
+			<td colspan="15" class="data-value-important">
 				<xsl:choose>
 					<xsl:when test="Attacks/@total_defense = 'true'">
 						<s><xsl:value-of select="$weapon/@attacks"/></s>
@@ -35,7 +35,7 @@
 					</xsl:otherwise>
 				</xsl:choose>
 			</td>
-			<td colspan="13" class="data-value" title="{$weapon/@name}" info="{$weapon/@damage_info}" onclick="showInfo(this);">
+			<td colspan="13" class="data-value" title="{$weapon/@name}">
 					<xsl:value-of select="$weapon/@damage"/>
 			</td>
 			<td colspan="9" class="data-value">
@@ -108,12 +108,10 @@
 	<xsl:param name="abbr"/>
 	<xsl:param name="fullname"/>
 
-	<tr style="height:2.56em;">
+	<tr style="height:2.56em;" title="{$ability/@type}" info="{$ability/@info}" onclick="showInfo(this);" roll="{$ability/@modifier}">
 		<td class="title"><xsl:value-of select="$abbr"/></td>
 		<td/>
-		<td rowspan="2" class="data-value-important" title="{$ability/@type}" info="{$ability/@info}" onclick="showInfo(this);">
-			<xsl:value-of select="$ability/@total"/>
-		</td>
+		<td rowspan="2" class="data-value-important"><xsl:value-of select="$ability/@total"/></td>
 		<td/>
 		<td rowspan="2" class="data-value-important"><xsl:value-of select="$ability/@modifier"/></td>
 		<td/>
@@ -121,7 +119,7 @@
 		<td/>
 		<td rowspan="2" class="temp-value"><xsl:value-of select="$ability/@temp-modifier"/></td>
 	</tr>
-	<tr>
+	<tr title="{$ability/@type}" info="{$ability/@info}" onclick="showInfo(this);">
 		<td class="subtitle"><xsl:value-of select="$fullname"/></td>
 		<td/>
 		<td/>
@@ -202,28 +200,37 @@
 <xsl:template name="save">
 	<xsl:param name="save"/>
 	<xsl:param name="ability"/>
+	<xsl:param name="save-name"/>
+	<xsl:param name="ability-name"/>
 
-	<td colspan="4" rowspan="2" class="data-value-important" title="{$save/@type}" info="{$save/@info}" onclick="showInfo(this);">
-		<xsl:value-of select="$save/@total"/>
-	</td>
-	<td rowspan="2" class="symbol">=</td>
-	<td colspan="4" rowspan="2" class="data-value">
-		<xsl:value-of select="$save/@base"/>
-	</td>
-	<td rowspan="2" class="symbol">+</td>
-	<td colspan="4" rowspan="2" class="data-value">
-		<xsl:call-template name="ability-mod">
-			<xsl:with-param name="ability" select="$ability"/>
-		</xsl:call-template>
-	</td>
-	<td rowspan="2" class="symbol">+</td>
-	<td colspan="4" rowspan="2" class="data-value">
-		<xsl:value-of select="$save/@mods"/>
-	</td>
-	<td rowspan="2" class="symbol">+</td>
-	<td colspan="4" rowspan="2" class="temp-value">
-		<xsl:value-of select="$save/@misc"/>
-	</td>
+	<tr style="height:2.56em;" title="{$save/@type}" info="{$save/@info}" onclick="showInfo(this);" roll="{$save/@total}">
+		<td colspan="11" class="title"><xsl:value-of select="$save-name"/></td>
+		<td/>
+		<td colspan="4" rowspan="2" class="data-value-important" title="{$save/@type}">
+			<xsl:value-of select="$save/@total"/>
+		</td>
+		<td rowspan="2" class="symbol">=</td>
+		<td colspan="4" rowspan="2" class="data-value">
+			<xsl:value-of select="$save/@base"/>
+		</td>
+		<td rowspan="2" class="symbol">+</td>
+		<td colspan="4" rowspan="2" class="data-value">
+			<xsl:call-template name="ability-mod">
+				<xsl:with-param name="ability" select="$ability"/>
+			</xsl:call-template>
+		</td>
+		<td rowspan="2" class="symbol">+</td>
+		<td colspan="4" rowspan="2" class="data-value">
+			<xsl:value-of select="$save/@mods"/>
+		</td>
+		<td rowspan="2" class="symbol">+</td>
+		<td colspan="4" rowspan="2" class="temp-value">
+			<xsl:value-of select="$save/@misc"/>
+		</td>
+	</tr>
+	<tr title="{$save/@type}" info="{$save/@info}" onclick="showInfo(this);" roll="{$save/@total}">
+		<td colspan="11" class="subtitle">(<xsl:value-of select="$ability-name"/>)</td>
+	</tr>
 </xsl:template>
 
 <xsl:template name="saving-throws">
@@ -241,58 +248,43 @@
 		<td/>
 		<td colspan="4" class="label">TEMP MODIFIER</td>
 	</tr>
-	<tr style="height:2.56em;">
-		<td colspan="11" class="title">FORTITUDE</td>
-		<td/>
-		<xsl:call-template name="save">
-			<xsl:with-param name="save" select="SavingThrows/Save[@type='Fortitude']"/>
-			<xsl:with-param name="ability" select="AbilityScores/AbilityScore[@type='Constitution']"/>
-		</xsl:call-template>
-	</tr>
-	<tr>
-		<td colspan="11" class="subtitle">(CONSTITUTION)</td>
-	</tr>
+	<xsl:call-template name="save">
+		<xsl:with-param name="save" select="SavingThrows/Save[@type='Fortitude']"/>
+		<xsl:with-param name="ability" select="AbilityScores/AbilityScore[@type='Constitution']"/>
+		<xsl:with-param name="save-name" select="'FORTITUDE'"/>
+		<xsl:with-param name="ability-name" select="'CONSTITUTION'"/>
+	</xsl:call-template>
 	<tr>
 		<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 		<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 		<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 		<td/><td/><td/><td/><td/><td/>
 	</tr>
-	<tr style="height:2.56em;">
-		<td colspan="11" class="title">REFLEX</td>
-		<td/>
-		<xsl:call-template name="save">
-			<xsl:with-param name="save" select="SavingThrows/Save[@type='Reflex']"/>
-			<xsl:with-param name="ability" select="AbilityScores/AbilityScore[@type='Dexterity']"/>
-		</xsl:call-template>
-	</tr>
-	<tr>
-		<td colspan="11" class="subtitle">(DEXTERITY)</td>
-	</tr>
+	<xsl:call-template name="save">
+		<xsl:with-param name="save" select="SavingThrows/Save[@type='Reflex']"/>
+		<xsl:with-param name="ability" select="AbilityScores/AbilityScore[@type='Dexterity']"/>
+		<xsl:with-param name="save-name" select="'REFLEX'"/>
+		<xsl:with-param name="ability-name" select="'DEXTERITY'"/>
+	</xsl:call-template>
 	<tr>
 		<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 		<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 		<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 		<td/><td/><td/><td/><td/><td/>
 	</tr>
-	<tr style="height:2.56em;">
-		<td colspan="11" class="title">WILL</td>
-		<td/>
-		<xsl:call-template name="save">
-			<xsl:with-param name="save" select="SavingThrows/Save[@type='Will']"/>
-			<xsl:with-param name="ability" select="AbilityScores/AbilityScore[@type='Wisdom']"/>
-		</xsl:call-template>
-	</tr>
-	<tr>
-		<td colspan="11" class="subtitle">(WISDOM)</td>
-	</tr>
+	<xsl:call-template name="save">
+		<xsl:with-param name="save" select="SavingThrows/Save[@type='Will']"/>
+		<xsl:with-param name="ability" select="AbilityScores/AbilityScore[@type='Wisdom']"/>
+		<xsl:with-param name="save-name" select="'WILL'"/>
+		<xsl:with-param name="ability-name" select="'WISDOM'"/>
+	</xsl:call-template>
 </table>
 </xsl:template>
 
 <xsl:template name="skill">
 	<xsl:param name="skill"/>
 
-	<tr style="height:2.56em;" title="{$skill/@type}" info="{$skill/@info}" onclick="showInfo(this);">
+	<tr style="height:2.56em;" title="{$skill/@type}" info="{$skill/@info}" onclick="showInfo(this);" roll="{$skill/@total}">
 		<td colspan="2" class="symbol">
 			<xsl:choose>
 				<xsl:when test="$skill/@cross">&#x2612;</xsl:when>
@@ -376,10 +368,34 @@
 			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 			<td/><td/>
 		</tr>
-		<xsl:call-template name="skillrows">
-			<xsl:with-param name="pStart" select="1"/>
-			<xsl:with-param name="pEnd" select="57"/>
-		</xsl:call-template>
+		
+		<xsl:if test="Sanity/@knowledge = 0">
+			<xsl:call-template name="skillrows">
+				<xsl:with-param name="pStart" select="1"/>
+				<xsl:with-param name="pEnd" select="55"/>
+			</xsl:call-template>
+		</xsl:if>
+		<xsl:if test="Sanity/@knowledge > 0">
+			<tr style="height:2.56em;">
+				<td colspan="2" class="symbol">&#x2610;</td>
+				<td colspan="16" class="skills-name"><xsl:value-of select="Sanity/@knowledge-name"/></td>
+				<td colspan="4" class="skills-ability"></td>
+				<td />
+				<td colspan="4" class="skills-total B">+<xsl:value-of select="Sanity/@knowledge"/></td>
+				<td class="symbol">=</td>
+				<td colspan="4" class="skills-data"></td>
+				<td class="symbol">+</td>
+				<td colspan="4" class="skills-data"><xsl:value-of select="Sanity/@knowledge"/></td>
+				<td class="symbol">+</td>
+				<td colspan="4" class="skills-data" style="color:white;">0</td>
+			</tr>
+			
+			<xsl:call-template name="skillrows">
+				<xsl:with-param name="pStart" select="1"/>
+				<xsl:with-param name="pEnd" select="54"/>
+			</xsl:call-template>
+		</xsl:if>
+
 		<tr style="height:6.4em;">
 			<td colspan="42" class="skills-notes">
       Skills marked with <sup>1</sup> can be used normally even if the character has zero ranks.<br />
@@ -511,14 +527,15 @@
 			<td/>
 			<td colspan="10" class="label">CURRENT</td>
 			<td/>
-			<td colspan="10" class="label">WOUNDS</td>
+			<td colspan="6" class="label">WOUNDS</td>
 			<td/>
 			<td colspan="10" class="label">NONLETHAL DAMAGE</td>
+			<td colspan="10"/>
+			<td colspan="10" class="label">CURRENT</td>
 			<td/>
+			<td colspan="4" class="label">MAXIMUM</td>
 			<td/>
-			<td/>
-			<td/>
-			<td colspan="22" class="label">SPEED</td>
+			<td colspan="4" class="label">STARTING</td>
 		</tr>
 		<tr style="height:2.56em;">
 			<td colspan="6" class="title">HP</td>
@@ -531,7 +548,7 @@
 				<xsl:value-of select="HitPoints/@current"/>
 			</td>
 			<td/>
-			<td colspan="10" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
+			<td colspan="6" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
 				<xsl:value-of select="HitPoints/@wounds"/>
 			</td>
 			<td/>
@@ -541,9 +558,18 @@
 			<td/>
 			<td/>
 			<td/>
+			<td colspan="6" rowspan="2" class="title">SANITY</td>
 			<td/>
-			<td colspan="22" rowspan="2" class="data-value">
-				<xsl:value-of select="@speed"/>
+			<td colspan="10" rowspan="2" class="data-value" style="text-align:left; padding-left:10px">
+				<xsl:value-of select="Sanity/@current"/>
+			</td>
+			<td/>
+			<td colspan="4" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
+				<xsl:value-of select="Sanity/@maximum"/>
+			</td>
+			<td/>
+			<td colspan="4" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
+				<xsl:value-of select="Sanity/@starting"/>
 			</td>
 		</tr>
 		<tr>
@@ -661,7 +687,7 @@
 				<xsl:value-of select="AC/@touch"/>
 			</td>
 			<td/>
-			<td colspan="10" class="title">FLAT-FOOTED</td>
+			<td colspan="9" class="title">FLAT-FOOTED</td>
 			<td/>
 			<td colspan="4" rowspan="2" class="data-value-important">
 				<xsl:value-of select="AC/@flat-footed"/>
@@ -671,33 +697,15 @@
 			<td colspan="6" class="subtitle">ARMOR CLASS</td>
 			<td/>
 			<td/>
-			<td colspan="10" class="subtitle">ARMOR CLASS</td>
-			<td/>
+			<td colspan="9" class="subtitle">ARMOR CLASS</td>
 		</tr>
 		<tr>
-			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
-			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
-			<td/><td/><td/><td/><td/><td/><td/>
+			<td colspan="26"/>
 		</tr>
-		<tr>
-			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
-			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
-			<td/><td/><td/><td/><td/><td/><td/>
-		</tr>
-		<tr>
-			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
-			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
-			<td/><td/><td/><td/><td/><td/><td/>
-		</tr>
-		<tr>
-			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
-			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
-			<td/><td/><td/><td/><td/><td/><td/>
-		</tr>
-		<tr style="height:2.56em;">
+		<tr style="height:2.56em;" title="Initiative" info="{Initiative/@info}" onclick="showInfo(this);" roll="{Initiative/@total}">
 			<td colspan="11" class="title">INITIATIVE</td>
 			<td/>
-			<td colspan="4" rowspan="2" class="data-value-important" title="Initiative" info="{Initiative/@info}" onclick="showInfo(this);">
+			<td colspan="4" rowspan="2" class="data-value-important">
 				<xsl:value-of select="Initiative/@total"/>
 			</td>
 			<td rowspan="2" class="symbol">=</td>
@@ -711,11 +719,9 @@
 				<xsl:value-of select="Initiative/@misc"/>
 				<xsl:if test="not(Initiative/@misc)">+0</xsl:if>
 			</td>
-			<td/>
 		</tr>
-		<tr>
+		<tr title="Initiative" info="{Initiative/@info}" onclick="showInfo(this);" roll="{Initiative/@total}">
 			<td colspan="11" class="subtitle">MODIFIER</td>
-			<td/>
 		</tr>
 		<tr style="height:2.56em;">
 			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
@@ -725,8 +731,13 @@
 			<td colspan="4" class="label-under">DEX MODIFIER</td>
 			<td/>
 			<td colspan="4" class="label-under">MISC. MODIFIER</td>
-			<td/>
 		</tr>
+		<tr style="height:3.84em;" title="Speed">
+			<td colspan="6" class="title">SPEED</td>
+			<td/>
+			<td colspan="19" class="data-value"/>
+		</tr>
+		
 	</table>
 </xsl:template>
 
@@ -738,7 +749,7 @@
 		<tr>
 			<td colspan="3" class="conditional-heading">CONDITIONAL MODIFIERS</td>
 		</tr>
-		<tr style="height:15.36em;">
+		<tr style="height:19.2em;">
 			<td colspan="3" class="conditional-modifiers">
 				<xsl:for-each select="Buffs/Buff/Modifier[@condition]">
 					<xsl:value-of select="@description"/><br/>
@@ -749,24 +760,16 @@
 		<tr style="height:3.84em;">
 			<td class="title-smaller">SPELL RESISTANCE</td>
 			<td/>
-			<td class="data-value-important">
+			<td class="data-value">
 				<xsl:value-of select="@spell-resistance"/>
 			</td>
 		</tr>
 		<tr><td/><td/><td/></tr>
 		<tr style="height:3.84em;">
-			<td class="title-smaller">ARCANE SPELL FAILURE *</td>
-			<td/>
-			<td class="data-value">
-				<xsl:value-of select="@arcane-spell-failure"/>
-			</td>
-		</tr>
-		<tr><td/><td/><td/></tr>
-		<tr style="height:3.84em;">
-			<td class="title-smaller">ACTION POINTS</td>
+			<td class="title-smaller" style="font-size:1.4em">ARCANE SPELL FAILURE *</td>
 			<td/>
 			<td class="data-value-important">
-				<xsl:value-of select="@action-points"/>
+				<xsl:value-of select="@arcane-spell-failure"/>
 			</td>
 		</tr>
 	</table>
@@ -870,10 +873,10 @@
 			<td/>
 			<td colspan="4" class="label">TEMP. MODIFIER</td>
 		</tr>
-		<tr style="height:2.56em;">
+		<tr style="height:2.56em;" title="Melee Attack" info="{Attacks/Attack[@type='Melee']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Melee']/@attacks}">
 			<td colspan="11" class="title">MELEE</td>
 			<td/>
-			<td colspan="12" rowspan="2" class="data-value-important" title="Melee Attack" info="{Attacks/Attack[@type='Melee']/@info}" onclick="showInfo(this);">
+			<td colspan="12" rowspan="2" class="data-value-important">
 				<xsl:choose>
 					<xsl:when test="Attacks/@total_defense = 'true'">
 						<s><xsl:value-of select="Attacks/Attack[@type='Melee']/@attacks"/></s>
@@ -906,7 +909,7 @@
 				<xsl:value-of select="Attacks/Attack[@type='Melee']/@temp-modifier"/>
 			</td>
 		</tr>
-		<tr>
+		<tr title="Melee Attack" info="{Attacks/Attack[@type='Melee']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Melee']/@attacks}">
 			<td colspan="11" class="subtitle">ATTACK BONUS</td>
 		</tr>
 		<tr>
@@ -917,10 +920,10 @@
 			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 			<td/><td/><td/><td/>
 		</tr>
-		<tr>
+		<tr title="Ranged Attack" info="{Attacks/Attack[@type='Ranged']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Ranged']/@attacks}">
 			<td colspan="11" class="title">RANGED</td>
 			<td/>
-			<td colspan="12" rowspan="2" class="data-value-important" title="Ranged Attack" info="{Attacks/Attack[@type='Ranged']/@info}" onclick="showInfo(this);">
+			<td colspan="12" rowspan="2" class="data-value-important">
 				<xsl:choose>
 					<xsl:when test="Attacks/@total_defense = 'true'">
 						<s><xsl:value-of select="Attacks/Attack[@type='Ranged']/@attacks"/></s>
@@ -953,7 +956,7 @@
 				<xsl:value-of select="Attacks/Attack[@type='Ranged']/@temp-modifier"/>
 			</td>
 		</tr>
-		<tr>
+		<tr title="Ranged Attack" info="{Attacks/Attack[@type='Ranged']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Ranged']/@attacks}">
 			<td colspan="11" class="subtitle">ATTACK BONUS</td>
 		</tr>
 		<tr style="height:2.56em;">
