@@ -24,7 +24,7 @@ function leftPosition() {
 }
 
 // build/show the dialog box, populate the data and call the fadeDialog function //
-function showDialog(title,message,type,autohide) {
+function showDialog(title, message, type, autohide) {
   if(!type) {
     type = 'error';
   }
@@ -126,5 +126,58 @@ function fadeDialog(flag) {
 }
 
 function showInfo(element) {
-	showDialog(element.getAttribute('title'), element.getAttribute('info'), 'info');
+	var contents = element.getAttribute('info');
+	if (!contents || contents === '<p>') return;
+	var roll = element.getAttribute('roll');
+	if (roll && roll != '/') {
+		contents += '<br>';
+		var rolls = roll.split('/');
+		for (var i = 0; i < rolls.length; i++) {
+			if (rolls[i].indexOf('d') == -1) rolls[i] = '1d20'+rolls[i];
+			contents += '<button type="button" onmousedown="clearRoll();" onclick="roll(\''+rolls[i]+'\');">Roll '+rolls[i]+'</button>';
+		}
+	}
+	contents += '<br><div id="roll"/>';
+	showDialog(element.getAttribute('title'), contents, 'info', false);
+}
+
+function clearRoll() {
+	var rollDiv = document.getElementById('roll');
+	rollDiv.innerHTML = '';
+}
+
+// TODO add info for ac (no rolls)
+// TODO add info and/or rolls for bab, grapple
+// TODO do something about criticals?
+function roll(diceSpec) {
+	var rollDiv = document.getElementById('roll');
+	var dice = diceSpec.replace(/\s+/, '').replace('-', '+-').split('+');
+	var rolls = [];
+	var totalRolls = 0;
+	var mod = 0;
+	for (var i = 0; i <dice.length; i++) {
+		if (dice[i].indexOf('d') == -1) {
+			mod += parseInt(dice[i]);
+		} else {
+			var type = parseInt(dice[i].substr(dice[i].indexOf('d')+1));
+			var num = parseInt(dice[i].substring(0, dice[i].indexOf('d')));
+			for (var j = 0; j < num; j++) {
+				var r = 	Math.floor(Math.random()*type) + 1;
+				rolls.push(r);
+				totalRolls += r;
+			}
+		}
+	}
+
+	var rollTxt = ''+totalRolls + ' rolled';
+	if (rolls.length > 1) {
+		rollTxt += ' (' + rolls.join(', ') + ')';
+	}
+	totalRolls += mod;
+	if (mod != 0) {
+		rollTxt += '<br>' + (mod > 0 ? '+' : '') + mod + ' modifier<br><b>' + totalRolls + ' total</b>';
+	} else {
+		rollTxt = '<b>' + rollTxt + '</b>';
+	}
+	rollDiv.innerHTML = rollTxt;
 }
