@@ -1,14 +1,5 @@
 package gamesystem;
 
-import gamesystem.Attacks.AttackForm;
-import gamesystem.Buff.PropertyChange;
-import gamesystem.Feat.FeatDefinition;
-import gamesystem.XP.Challenge;
-import gamesystem.XP.XPChangeAdhoc;
-import gamesystem.XP.XPChangeChallenges;
-import gamesystem.XP.XPChangeLevel;
-import gamesystem.dice.CombinedDice;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,6 +11,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import gamesystem.Attacks.AttackForm;
+import gamesystem.Buff.PropertyChange;
+import gamesystem.Feat.FeatDefinition;
+import gamesystem.XP.Challenge;
+import gamesystem.XP.XPChangeAdhoc;
+import gamesystem.XP.XPChangeChallenges;
+import gamesystem.XP.XPChangeLevel;
+import gamesystem.dice.CombinedDice;
 import party.CharacterAttackForm;
 
 public class XMLParserHelper {
@@ -27,6 +26,13 @@ public class XMLParserHelper {
 	protected void parseInitiativeModifier(Element e, Creature c) {
 		if (!e.getTagName().equals("Initiative")) return;
 		c.initiative.setBaseValue(Integer.parseInt(e.getAttribute("value")));
+	}
+
+	protected void parseSanity(Element e, Creature c) {
+		if (!e.getTagName().equals("Sanity")) return;
+		int val = Integer.parseInt(e.getAttribute("current"));
+		c.sanity.setBaseValue(val);
+		c.sanity.getKnowledgeSkillProperty().setBaseValue(Integer.parseInt(e.getAttribute("knowledge")));
 	}
 
 	// TODO Character param here is bad. currently need it to do levelups.

@@ -21,6 +21,7 @@ public class ValueProperty<T> extends AbstractProperty<T> {
 		} else {
 			// no override
 			T old = value;
+			value = newVal;
 			firePropertyChanged(old, false);
 		}
 	}

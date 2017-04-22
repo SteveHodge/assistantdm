@@ -28,6 +28,8 @@ public interface CreatureProcessor {
 
 	public void processInitiative(InitiativeModifier initiative);
 
+	public void processSanity(Sanity sanity);
+
 	public void processSize(Size size);
 
 	public void processFeat(Feat feat);

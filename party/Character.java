@@ -1,4 +1,20 @@
 package party;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
@@ -20,6 +36,7 @@ import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.Race;
+import gamesystem.Sanity;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
 import gamesystem.Skill;
@@ -31,22 +48,6 @@ import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChange;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * @author Steve
@@ -293,6 +294,8 @@ public class Character extends Creature {
 
 		attacks = new Attacks(this);
 		attacks.addPropertyChangeListener(statListener);
+
+		sanity = new Sanity(abilities.get(AbilityScore.Type.WISDOM));
 	}
 
 	@Override
@@ -1242,6 +1245,7 @@ public class Character extends Creature {
 
 		processor.processHPs(hps);
 		processor.processInitiative(initiative);
+		processor.processSanity(sanity);
 		processor.processSize(size);
 
 		for (SavingThrow.Type t : saves.keySet()) {

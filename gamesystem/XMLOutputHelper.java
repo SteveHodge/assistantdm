@@ -1,18 +1,17 @@
 package gamesystem;
 
-import gamesystem.Attacks.AttackForm;
-import gamesystem.Buff.PropertyChange;
-import gamesystem.XP.Challenge;
-import gamesystem.XP.XPChangeAdhoc;
-import gamesystem.XP.XPChangeChallenges;
-import gamesystem.XP.XPChangeLevel;
-
 import java.util.ArrayList;
 import java.util.Collections;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import gamesystem.Attacks.AttackForm;
+import gamesystem.Buff.PropertyChange;
+import gamesystem.XP.Challenge;
+import gamesystem.XP.XPChangeAdhoc;
+import gamesystem.XP.XPChangeChallenges;
+import gamesystem.XP.XPChangeLevel;
 import party.CharacterAttackForm;
 
 // TODO extract creature generic super class and move character specific code to class in the party package
@@ -211,6 +210,17 @@ public class XMLOutputHelper {
 		return e;
 	}
 
+	protected Element getSanityElement(Sanity sanity) {
+		if (creatureEl == null) return null;
+
+		Element e = doc.createElement("Sanity");
+		e.setAttribute("current", "" + sanity.getBaseValue());
+		e.setAttribute("knowledge", "" + sanity.getKnowledgeSkillProperty().getBaseValue());
+
+		creatureEl.appendChild(e);
+		return e;
+	}
+
 	public void processSize(Size size) {
 		if (creatureEl == null) return;
 
@@ -255,6 +265,10 @@ public class XMLOutputHelper {
 
 	public void processInitiative(InitiativeModifier initiative) {
 		getInitiativeElement(initiative);
+	}
+
+	public void processSanity(Sanity sanity) {
+		getSanityElement(sanity);
 	}
 
 	public void processXPChange(XPChangeAdhoc xp) {

@@ -306,6 +306,12 @@
 					<xs:attribute name="value" type="xs:int" use="required"/>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="Sanity">
+				<xs:complexType>
+					<xs:attribute name="current" type="xs:int" use="required"/>
+					<xs:attribute name="knowledge" type="xs:int" use="required"/>
+				</xs:complexType>
+			</xs:element>
 			<xs:element name="Size">
 				<xs:complexType>
 					<xs:attribute name="category" type="SizeCategory" use="required"/>

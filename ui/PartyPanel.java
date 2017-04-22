@@ -1,6 +1,4 @@
 package ui;
-import gamesystem.StatisticsCollection.StatisticDescription;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -21,6 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
+import gamesystem.StatisticsCollection.StatisticDescription;
 import party.Character;
 import party.CharacterSheetView;
 import party.Party;
@@ -154,6 +153,13 @@ public class PartyPanel extends JPanel implements PartyListener {
 
 		rightPanel.setMinimumSize(new Dimension(300,300));
 		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
+
+		p = new CharacterSanityPanel(c);
+		sub = new JSubSection("Sanity", p);
+		p.addSummaryDisplay(new SummaryDisplay(sub));
+		rightPanel.add(sub);
+
+		rightPanel.add(Box.createRigidArea(padding));
 
 		p = new CharacterInitiativePanel(c);
 		sub = new JSubSection("Initiative", p);

@@ -1,15 +1,14 @@
 package party;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import gamesystem.Buff;
 import gamesystem.Feat;
 import gamesystem.SavingThrow;
 import gamesystem.XMLParserHelper;
 import gamesystem.XP;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import party.Character.ACComponentType;
 
 
@@ -53,6 +52,9 @@ public class XMLCharacterParser extends XMLParserHelper {
 
 			} else if (tag.equals("Initiative")) {
 				parseInitiativeModifier(e, c);
+
+			} else if (tag.equals("Sanity")) {
+				parseSanity(e, c);
 
 			} else if (tag.equals("Level")) {
 				parseLevel(e, c.level, c);
