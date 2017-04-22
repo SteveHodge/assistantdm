@@ -711,6 +711,17 @@ function noteChanged(e) {
 
 function deleteCast() {
 	'use strict';
+	var node, nextNode;
+
+	node = castList.firstElementChild;
+	while (node !== null) {
+		nextNode = node.nextElementSibling;
+		if (isSelected(node)) {
+			castList.removeChild(node);
+		}
+		node = nextNode;
+	}
+
 	save();
 	updateButton(castList);
 }

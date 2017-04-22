@@ -1630,7 +1630,7 @@ function setSpells(name, data, callback) {
 // data = {name: <name>, content: ..., spells: ...}
 function getContent(name, callback) {
 	getConfig(name, function(err, config) {
-		var i, data = {};
+		var i, j, data = {};
 
 		if (err) {
 			return callback(err, null);
@@ -1641,9 +1641,15 @@ function getContent(name, callback) {
 		for (i = 0; i < config.length; i++) {
 			if (config[i].type === 'cast') {
 				data.spells = config[i].spells;
-				if (data.spells && data.spells.length > 0) {
-					data.hasspells = true;
+				// the character could have spells if they have a prepare tab - fixes bug where character with no memorised spells would not have a spell list on the case/use tab and so couldn't memorise spells properly
+				for (j = 0; j < config.length; j++) {
+					if (config[j].type === 'prepare') {
+						data.hasspells = true;
+					}
 				}
+//				if (data.spells && data.spells.length > 0) {
+//					data.hasspells = true;
+//				}
 				data.dailies = config[i].dailies;
 				data.charges = config[i].charges;
 				data.castList = config[i].castList;
