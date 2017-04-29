@@ -18,13 +18,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import combat.EncounterModule;
-
-import util.ModuleRegistry;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Initiative;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
+import util.ModuleRegistry;
 
 @SuppressWarnings("serial")
 class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
@@ -39,6 +38,10 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 	InitiativeOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		element = new Initiative();
+		if (parent == null) {
+			element.setProperty(Initiative.PROPERTY_X, (double) r.getXOffset());
+			element.setProperty(Initiative.PROPERTY_Y, (double) r.getYOffset());
+		}
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);

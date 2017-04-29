@@ -73,6 +73,10 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 		String label = MediaManager.INSTANCE.getFile(uri).getName();
 		element = new MapImage(label);
+		if (parent == null) {
+			element.setProperty(Group.PROPERTY_X, (double) r.getXOffset());
+			element.setProperty(Group.PROPERTY_Y, (double) r.getYOffset());
+		}
 		display.addElement(element, parent);
 		display.setMedia(element, MapImage.PROPERTY_IMAGE, uri);
 		// RemoteImageDisplays will set the size of the image incorrectly so we need to manually reset the size here

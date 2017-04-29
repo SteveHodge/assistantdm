@@ -42,7 +42,10 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 
 	SpreadTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		element = new SpreadTemplate(4, 10, 10);
+		if (parent == null)
+			element = new SpreadTemplate(4, r.getXOffset(), r.getYOffset());
+		else
+			element = new SpreadTemplate(4, 0, 0);
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);

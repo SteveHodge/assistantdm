@@ -38,7 +38,9 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 
 	LineTemplateOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		element = new LineTemplate(18, 14, 21, 7);
+		int offX = parent == null ? r.getXOffset() : 0;
+		int offY = parent == null ? r.getYOffset() : 0;
+		element = new LineTemplate(offX, offY, 5 + offX, 5 + offY);
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
@@ -143,7 +145,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 					(Integer) element.getProperty(LineTemplate.PROPERTY_ORIGIN_Y)) < 2.0d
 					&& gridLocation.distance((Integer) element.getProperty(LineTemplate.PROPERTY_ORIGIN_X),
 							(Integer) element.getProperty(LineTemplate.PROPERTY_ORIGIN_Y))
-							< gridLocation.distance((Integer) element.getProperty(LineTemplate.PROPERTY_X), (Integer) element.getProperty(LineTemplate.PROPERTY_Y))) {
+					< gridLocation.distance((Integer) element.getProperty(LineTemplate.PROPERTY_X), (Integer) element.getProperty(LineTemplate.PROPERTY_Y))) {
 				return LineTemplate.PROPERTY_ORIGIN_LOCATION;
 			} else {
 				return LineTemplate.PROPERTY_TARGET_LOCATION;

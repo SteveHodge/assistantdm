@@ -32,6 +32,10 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 	GroupOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		element = new Group();
+		if (parent == null) {
+			element.setProperty(Group.PROPERTY_X, (double) r.getXOffset());
+			element.setProperty(Group.PROPERTY_Y, (double) r.getYOffset());
+		}
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);

@@ -1,8 +1,5 @@
 package digital_table.controller;
 
-import gamesystem.Creature;
-import gamesystem.SizeCategory;
-
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -33,18 +30,18 @@ import javax.swing.event.ListDataListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import util.ModuleRegistry;
-
 import combat.CombatEntry;
 import combat.EncounterModule;
 import combat.InitiativeListModel;
-
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
+import gamesystem.Creature;
+import gamesystem.SizeCategory;
+import util.ModuleRegistry;
 
 @SuppressWarnings("serial")
 public class TokenOptionsPanel extends OptionsPanel<Token> {
@@ -80,6 +77,10 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	TokenOptionsPanel(MapElement parent, DisplayManager r, final ElementFactory<LabelOptionsPanel> labelFactory, final ControllerFrame frame) {
 		super(r);
 		element = new Token();
+		if (parent == null) {
+			element.setProperty(Group.PROPERTY_X, r.getXOffset());
+			element.setProperty(Group.PROPERTY_Y, r.getYOffset());
+		}
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);

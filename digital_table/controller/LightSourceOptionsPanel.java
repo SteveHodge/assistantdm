@@ -34,7 +34,10 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 
 	LightSourceOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		element = new LightSource(4, 0, 0);
+		if (parent == null)
+			element = new LightSource(4, r.getXOffset(), r.getYOffset());
+		else
+			element = new LightSource(4, 0, 0);
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);

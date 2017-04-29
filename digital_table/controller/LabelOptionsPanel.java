@@ -41,6 +41,10 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 	LabelOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
 		element= new Label();
+		if (parent == null) {
+			element.setProperty(Label.PROPERTY_X, (double) r.getXOffset());
+			element.setProperty(Label.PROPERTY_Y, (double) r.getYOffset());
+		}
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);

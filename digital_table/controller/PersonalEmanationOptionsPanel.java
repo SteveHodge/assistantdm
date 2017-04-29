@@ -35,7 +35,10 @@ class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 
 	PersonalEmanationOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
-		element = new PersonalEmanation(2, 0, 0);
+		if (parent == null)
+			element = new PersonalEmanation(2, r.getXOffset(), r.getYOffset());
+		else
+			element = new PersonalEmanation(2, 0, 0);
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
