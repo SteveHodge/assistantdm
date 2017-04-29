@@ -196,10 +196,11 @@ public class MapImage extends Group {
 
 		g.drawImage(img, offset.x, offset.y, null);
 
-		// border
-		if (border.getValue()) {
-			g.setColor(Color.RED);
+		// explicit border or highlight border for selected element
+		if (border.getValue() || selected) {
+			g.setColor(selected ? Color.BLUE : Color.RED);
 			g.drawRect(offset.x, offset.y, image.getImage().getWidth(), image.getImage().getHeight());
+			g.drawRect(offset.x + 1, offset.y + 1, image.getImage().getWidth() - 2, image.getImage().getHeight() - 2);
 		}
 
 		g.setComposite(c);

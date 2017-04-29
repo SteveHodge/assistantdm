@@ -20,10 +20,15 @@ Also need to incorporate effects that can be added to a creature but that don't 
 refactor: Buff/BuffFactory -> SpellEffect and AdhocEffect
 
 Plan/Bugs/Priority:
-* implement StatisticsCollection for Attacks 
+* rework combat panels so they have hps and sanity and popup to modify either. also fix monster stats popover, it's annoying
+* tilemapper element for digital table
+* website track saves to verify not overwriting other client changes
+* "Repace token with image" function needs to preserve same position in the display priority list
+* Remote input - joysticks, web
 * split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels
 * implement negative levels
 * implement conditions.
+* implement StatisticsCollection for Attacks  
 * implement caster levels with saving to website. (probably easiest to have a dedicated field for the relevant ability for rememorising, to be eventually replaced with a system that knows what modifiers are temporary and therefore shouldn't be counted)
 * implement periodic special abilities and item uses/charges.
 * move definitions of FeatDefinition, ClassFeatureDefinition, and BuffFactory to XML. (also Skills)
@@ -36,6 +41,7 @@ Plan/Bugs/Priority:
     ... that apply to a specific class or type of weapon. But will need a way to specify that such effects are ongoing and should be applied to future cases that match.
     ... Currently the dynamic targeting is handled in Character, it should probably be handled by the Attack statistic itself.
     ... TODO Need to look at names/description of targets, it's ugly in some cases, particularly with selectors ("attacks[id=1]")
+* implement cross-class skills flag somehow, at least for straight class characters
     
 /* Proposed architecture:
  * A Statistic is a value that can be modified by bonuses and penalties and can also be overridden. Statistics can have
@@ -59,8 +65,6 @@ Plan/Bugs/Priority:
  * Skill parsing for monsters
  * Make HitDiceProperty into Statistic (rename to HitDice) so that bonus hps from feats and race (constructs) can be added as a modifier
  * Saving throw modifiers in monster stats blocks
- *
- * Remote input - joysticks, web
  *
  * Rework Statistic change notification. Consider making it a subclass of property (override would override total value). Consider factoring out interface.
  * ? properties for statistics: bab, convert temp hps
@@ -89,7 +93,6 @@ Plan/Bugs/Priority:
  * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
  * Sort out magic shops: make them fully configurable in XML
  * Upload character sheet should update caster config
- * "Repace token with image" function needs to preserve same position in the display priority list
  * Online character sheet: conditional modifiers, updatable posessions, slots, notes, money
  *
  * live character sheet: fix up incomplete fading of character sheet when dialog appears
