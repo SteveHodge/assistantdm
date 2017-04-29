@@ -1,7 +1,5 @@
 package digital_table.controller;
 
-import gamesystem.Creature;
-
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -23,8 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-
-import javafx.application.Platform;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -54,24 +50,16 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import monsters.Monster;
-import monsters.XMLMonsterParser;
-import monsters.XMLOutputMonsterProcessor;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import util.ModuleRegistry;
-import util.XMLUtils;
 import camera.CameraModule;
 import camera.CameraModuleListener;
-
 import combat.EncounterModule;
 import combat.MonsterCombatEntry;
-
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Calibrate;
 import digital_table.elements.Grid;
@@ -83,6 +71,13 @@ import digital_table.elements.SpreadTemplate;
 import digital_table.elements.Token;
 import digital_table.server.MediaManager;
 import digital_table.server.MemoryLog;
+import gamesystem.Creature;
+import javafx.application.Platform;
+import monsters.Monster;
+import monsters.XMLMonsterParser;
+import monsters.XMLOutputMonsterProcessor;
+import util.ModuleRegistry;
+import util.XMLUtils;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
@@ -502,8 +497,7 @@ public class ControllerFrame extends JFrame {
 
 	public void replaceToken(TokenOptionsPanel options, int x, int y, int width, int height, boolean visible) {
 //		int ret = JOptionPane.showConfirmDialog(this, "Replace this token with a corpse image?", "Replace token", JOptionPane.YES_NO_OPTION);
-//
-//		if (ret == JOptionPane.YES_OPTION) {
+//		if (ret != JOptionPane.YES_OPTION) return;
 
 		URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
 		if (uri != null) {
@@ -520,12 +514,13 @@ public class ControllerFrame extends JFrame {
 			image.addPropertyChangeListener(labelListener);
 			optionPanels.put(image, imagePanel);
 
+			display.reorganiseBefore(image, options.getElement());
+
 			display.removeElement(options.getElement());
 			optionPanels.remove(options.getElement());
 
 			elementTree.setSelectionPath(miniMapCanvas.getTreePath(image));
 		}
-//		}
 	}
 
 // this MapElementMouseListener changes the canvas offset when it detects mouse dragging

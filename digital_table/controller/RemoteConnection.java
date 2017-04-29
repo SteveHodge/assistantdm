@@ -8,10 +8,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.function.Consumer;
 
-import javafx.application.Platform;
 import digital_table.elements.MapElement;
 import digital_table.server.MemoryLog;
 import digital_table.server.TableDisplay;
+import javafx.application.Platform;
 
 /**
  * RemoteConnection provides the local interface to the remote display. It insulates clients
@@ -134,6 +134,14 @@ public class RemoteConnection {
 		}
 	}
 
+	public void reorganiseBefore(MapElement el1, MapElement el2) {
+		try {
+			remote.reorganiseBefore(el1.getID(), el2.getID());
+		} catch (RemoteException e) {
+			System.err.printf("remote.moveBefore(%s, %s) failed: %s\n", el1, el2, e);
+		}
+	}
+
 	public void setElementProperty(MapElement element, String property, Object value) {
 		try {
 			remote.setElementProperty(element.getID(), property, value);
@@ -167,5 +175,4 @@ public class RemoteConnection {
 		}
 		return null;
 	}
-
 }

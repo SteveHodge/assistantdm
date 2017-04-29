@@ -112,6 +112,13 @@ class DisplayManager implements CoordinateConverter {
 		if (remote != null) remote.demoteElement(element);
 	}
 
+	public void reorganiseBefore(MapElement el1, MapElement el2) {
+		if (local != null) local.reorganiseBefore(el1, el2);
+		if (overlay != null) overlay.reorganiseBefore(el1, el2);
+		if (image != null) image.reorganiseBefore(el1, el2);
+		if (remote != null) remote.reorganiseBefore(el1, el2);
+	}
+
 	void setProperty(MapElement element, String property, Object value) {
 		setProperty(element, property, value, Mode.ALL);
 	}

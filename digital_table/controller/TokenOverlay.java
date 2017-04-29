@@ -27,13 +27,13 @@ import java.util.TreeMap;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-import util.Updater;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 import digital_table.server.MapCanvas;
 import digital_table.server.MapCanvas.Order;
+import util.Updater;
 
 /**
  * Generates overlay images to be layered on top of the calibrated camera image to highlight the tokens. Token elements
@@ -354,6 +354,12 @@ class TokenOverlay {
 	void demoteElement(MapElement e) {
 		e = elements.get(e.getID());
 		canvas.demoteElement(e);
+	}
+
+	public void reorganiseBefore(MapElement el1, MapElement el2) {
+		el1 = elements.get(el1.getID());
+		el2 = elements.get(el2.getID());
+		canvas.reorganiseBefore(el1, el2);
 	}
 
 	void setProperty(MapElement element, String property, Object value) {

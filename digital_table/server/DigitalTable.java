@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javafx.application.Platform;
-
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -31,6 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import digital_table.elements.MapElement;
+import javafx.application.Platform;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
@@ -252,6 +251,13 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	public void demoteElement(int id) {
 		MapElement e = canvas.getElement(id);
 		if (e != null) canvas.demoteElement(e);
+	}
+
+	@Override
+	public void reorganiseBefore(int id, int id2) throws RemoteException {
+		MapElement e1 = canvas.getElement(id);
+		MapElement e2 = canvas.getElement(id2);
+		if (e1 != null && e2 != null) canvas.reorganiseBefore(e1, e2);
 	}
 
 	@Override

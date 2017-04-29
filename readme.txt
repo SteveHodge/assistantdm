@@ -23,7 +23,6 @@ Plan/Bugs/Priority:
 * rework combat panels so they have hps and sanity and popup to modify either. also fix monster stats popover, it's annoying
 * tilemapper element for digital table
 * website track saves to verify not overwriting other client changes
-* "Repace token with image" function needs to preserve same position in the display priority list
 * Remote input - joysticks, web
 * split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels
 * implement negative levels

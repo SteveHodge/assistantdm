@@ -160,6 +160,15 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		treeModel.fireTreeStructureChanged(null);
 	}
 
+	public void reorganiseBefore(MapElement el1, MapElement el2) {
+		int index = model.indexOf(el2);
+		if (index < 0 || model.indexOf(el1) < 0) return;
+
+		model.removeElement(el1);
+		model.add(index, el1);
+		treeModel.fireTreeStructureChanged(null);
+	}
+
 	public MapElement getElement(int id) {
 		for (int i = 0; i < model.getSize(); i++) {
 			MapElement e = model.getElementAt(i);
