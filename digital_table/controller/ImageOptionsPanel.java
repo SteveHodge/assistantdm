@@ -54,6 +54,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JCheckBox borderCheck;
 	private JCheckBox aspectCheck;
 	private JCheckBox backgroundCheck;
+	private JCheckBox mirrorCheck;
 	private JPanel colorPanel;
 
 	private MaskOptionsPanel mask = null;
@@ -95,6 +96,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		borderCheck = createCheckBox(MapImage.PROPERTY_SHOW_BORDER, Mode.LOCAL, "show border?");
 		aspectCheck = createCheckBox(MapImage.PROPERTY_ASPECT_LOCKED, Mode.ALL, "aspect locked?");
 		aspectCheck.setSelected(true);
+		mirrorCheck = createCheckBox(MapImage.PROPERTY_MIRRORED, Mode.ALL, "mirrored?");
 		backgroundCheck = createCheckBox(MapImage.PROPERTY_SHOW_BACKGROUND, Mode.ALL, "show background?");
 		colorPanel = createColorControl(MapImage.PROPERTY_BACKGROUND_COLOR);
 		snapCheck = new JCheckBox("snap to grid?");
@@ -153,6 +155,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		add(new JLabel("Width:"), c);
 		add(new JLabel("Height:"), c);
 		add(new JLabel("Rotation:"), c);
+		add(mirrorCheck, c);
 		add(new JLabel("Transparency:"), c);
 		add(backgroundCheck, c);
 
@@ -166,6 +169,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		add(widthField, c);
 		add(heightField, c);
 		add(rotationsCombo, c);
+		add(new JPanel(), c);
 		add(alphaSlider, c);
 		add(colorPanel, c);
 		JPanel checks = new JPanel();
@@ -241,6 +245,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_ROTATIONS)) {
 				rotationsCombo.setSelectedIndex((Integer)e.getNewValue());
+
+			} else if (e.getPropertyName().equals(MapImage.PROPERTY_MIRRORED)) {
+				mirrorCheck.setSelected((Boolean) e.getNewValue());
 
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_SHOW_BORDER)) {
 				borderCheck.setSelected((Boolean) e.getNewValue());
@@ -366,6 +373,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
 		parseBooleanAttribute(MapImage.PROPERTY_SHOW_BORDER, e, Mode.LOCAL);
 		parseBooleanAttribute(MapImage.PROPERTY_SHOW_BACKGROUND, e, Mode.ALL);
+		parseBooleanAttribute(MapImage.PROPERTY_MIRRORED, e, Mode.ALL);
 		parseColorAttribute(MapImage.PROPERTY_BACKGROUND_COLOR, e, Mode.ALL);
 		parseCellList(MapImage.PROPERTY_CLEARCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);
 

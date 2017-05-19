@@ -31,6 +31,7 @@ public class MapImage extends Group {
 	//	public final static String PROPERTY_FILENAME = "filename";	// String - read only
 	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_ROTATIONS = "rotations";	// int - number of quadrants rotated clockwise
+	public final static String PROPERTY_MIRRORED = "mirrored";	// boolean - image is flipped horizontally
 	public final static String PROPERTY_WIDTH = "width";	// double
 	public final static String PROPERTY_HEIGHT = "height";	// double
 	public final static String PROPERTY_CLEARCELL = "clear";	// Point - when this property is set the specified cell will be cleared
@@ -68,6 +69,7 @@ public class MapImage extends Group {
 			}
 		}
 	};
+	private Property<Boolean> mirrored = new Property<Boolean>(PROPERTY_MIRRORED, false, Boolean.class);
 
 	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	private Property<String> label;
@@ -124,7 +126,7 @@ public class MapImage extends Group {
 	}
 
 	// returns the AffineTransform that would transform an image of the specified width and height to the
-	// dimensions of this element. the AffineTransform includes and rotations set on this element
+	// dimensions of this element. the AffineTransform includes and rotations and mirroring set on this element
 	AffineTransform getTransform(int srcWidth, int srcHeight) {
 		// get the unrotated size of the element in display coordinates
 		double w, h;
@@ -137,7 +139,13 @@ public class MapImage extends Group {
 		}
 		Dimension displaySize = canvas.getDisplayDimension(w, h);
 
-		AffineTransform transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
+		AffineTransform transform;
+		if (mirrored.getValue()) {
+			transform = AffineTransform.getScaleInstance(-1, 1);
+			transform.quadrantRotate(-rotations.getValue());
+		} else {
+			transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
+		}
 		transform.scale(displaySize.getWidth() / srcWidth, displaySize.getHeight() / srcHeight);
 		return transform;
 	}
