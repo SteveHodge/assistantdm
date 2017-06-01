@@ -21,6 +21,7 @@ public class Tile {
 	public String tileSet = null;
 	public File file = null;
 	public BufferedImage image = null;
+	boolean mirrored = false;
 	Tile mirror = null;
 	public int width = 6;
 	int height = 6;
@@ -64,6 +65,8 @@ public class Tile {
 			mirror.tileSet = tileSet;
 			mirror.file = file;
 			mirror.image = flipImageHorizontal(image);
+			mirror.mirror = this;
+			mirror.mirrored = !mirrored;
 		}
 		return mirror;
 	}
@@ -134,6 +137,8 @@ public class Tile {
 		String heightStr = node.getAttribute("height");
 		t.height = height;
 		if (heightStr.length()>0) t.height = Integer.parseInt(heightStr);
+		String mirrorStr = node.getAttribute("mirrored");
+		if (mirrorStr.equals("true")) t.mirrored = true;
 		String styles = node.getAttribute("style");
 		if (styles.length() > 0) {
 			for (String s : styles.split(";")) {
@@ -151,6 +156,7 @@ public class Tile {
 		if (width != setWidth) s.append("\" width=\"").append(width);
 		if (height != setHeight) s.append("\" height=\"").append(height);
 		if (!defaultStyle.equals(styles)) s.append("\" style=\"").append(styles);
+		if (mirrored) s.append("\" mirrored=\"true");
 		s.append("\"/>");
 		return s.toString();
 	}

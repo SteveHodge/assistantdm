@@ -96,7 +96,7 @@ public class TilePalette extends JPanel implements MouseListener, Scrollable {
 	public void mouseClicked(MouseEvent e) {
 		topPalette.removeAll();
 		DraggableTile tile = (DraggableTile)e.getSource();
-//		System.out.println("Selected "+tile.tile.file);
+		System.out.println("Selected " + tile.tile.file);
 		for (int i = 0; i < 4; i++) {
 			DraggableTile t = new DraggableTile(tile.tile,gridSize);
 			t.setOrientation(i);

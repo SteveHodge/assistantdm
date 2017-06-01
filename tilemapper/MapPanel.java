@@ -82,14 +82,11 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		public String getXML(String indent, String nextIndent) {
 			StringBuilder b = new StringBuilder();
 			b.append(indent);
-			b.append("<Tile file=\"");
-			b.append(tile.file.getName());
-			b.append("\" x=\"");
-			b.append(x);
-			b.append("\" y=\"");
-			b.append(y);
-			b.append("\" orientation=\"");
-			b.append(orientation);
+			b.append("<Tile file=\"").append(tile.file.getName());
+			b.append("\" x=\"").append(x);
+			b.append("\" y=\"").append(y);
+			b.append("\" orientation=\"").append(orientation);
+			if (tile.mirrored) b.append("\" mirrored=\"true");
 			b.append("\"/>");
 			b.append(System.getProperty("line.separator"));
 			return b.toString();
@@ -424,10 +421,11 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 				String file = e.getAttribute("file");
 				Tile t = TileManager.getTile(file);
 				if (t != null) {
+					if (e.getAttribute("mirrored").equals("true")) t = t.getMirror();
 					int x = Integer.parseInt(e.getAttribute("x"));
 					int y = Integer.parseInt(e.getAttribute("y"));
 					int orient = Integer.parseInt(e.getAttribute("orientation"));
-					System.out.println("found tile "+file+" @ ("+x+", "+y+")");
+					System.out.println("found tile " + file + " @ (" + x + ", " + y + ") mirrored? " + e.getAttribute("mirrored"));
 					addTileGrid(t, x, y, orient);
 				} else {
 					System.err.println("Unknown tile "+file);

@@ -47,17 +47,15 @@ import org.w3c.dom.NodeList;
 
 /*
  * TODO
- * UI for determining tiles that fit. Need to be able to select a variable sized area (perhaps by dragging a template tile)
- * Random map
- *
- * Mini-map
- * Scaling UI
+ * Disappearing tile bug still happens
+ * Smooth dragging when it should be snapping still happens
+ * Produce tile number overlay
+ * Save to ADM map using tile numbers
+ * Wider than normal tiles don't drag properly (get cropped)
+ * Performance is bad
+ * Set management - better UI
  * Allow map panel to be used as palette as well (selected tile populates top palette, tiles can be used as drag source)
  * Keep recently used tiles in top palette
- * Set management
- * Image caching
- * Enforce correct placement / show incorrect fit while dragging and while warning dialog is up
- * Auto rotate tiles to fit
  */
 @SuppressWarnings("serial")
 public class TileMapper extends JPanel implements ActionListener, KeyListener {
@@ -139,6 +137,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
 			public void actionPerformed(ActionEvent arg0) {System.exit(0);}}));
 
+		// TODO there are too many sets. need a better UI
 		JMenu setMenu = new JMenu("Sets");
 		ArrayList<String> sets = new ArrayList<String>(TileManager.getSets());
 		Collections.sort(sets);
@@ -159,7 +158,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		ArrayList<String> styles = new ArrayList<String>(TileManager.getStyles());
 		Collections.sort(styles);
 		for (String s : styles) {
-			JCheckBoxMenuItem item = new JCheckBoxMenuItem(s,true);
+			JCheckBoxMenuItem item = new JCheckBoxMenuItem(s, false);
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {

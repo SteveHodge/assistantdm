@@ -22,21 +22,21 @@ import org.xml.sax.SAXParseException;
 
 
 public class TileManager {
-	protected static List<Tile> tiles = new ArrayList<>();
-	protected static Map<String, Boolean> sets = new HashMap<>();
-	protected static Map<String, Boolean> styles = new HashMap<>();
-	public static List<TileSet> tileSets = new ArrayList<>();
+	static List<Tile> tiles = new ArrayList<>();
+	static Map<String, Boolean> sets = new HashMap<>();
+	static Map<String, Boolean> styles = new HashMap<>();
+	static List<TileSet> tileSets = new ArrayList<>();
 
-	public static void addTile(Tile t) {
+	static void addTile(Tile t) {
 		tiles.add(t);
 		if (!sets.containsKey(t.tileSet)) sets.put(t.tileSet, true);
 		for (String s : t.styles) {
-			if (!styles.containsKey(t)) styles.put(s, true);
+			if (!styles.containsKey(t)) styles.put(s, false);
 		}
 	}
 
 	// TODO more efficient implementation
-	public static Tile getTile(String file) {
+	static Tile getTile(String file) {
 		for (Tile t : tiles) {
 			if (t.file.getName().equals(file)) return t;
 		}
@@ -44,16 +44,16 @@ public class TileManager {
 	}
 
 	// TODO more efficient implementation
-	public static Set<String> getSets() {
+	static Set<String> getSets() {
 		return sets.keySet();
 	}
 
 	// TODO more efficient implementation
-	public static Set<String> getStyles() {
+	static Set<String> getStyles() {
 		return styles.keySet();
 	}
 
-	public static List<Tile> getTiles() {
+	static List<Tile> getTiles() {
 		List<Tile> list = new ArrayList<Tile>();
 		for (Tile t : tiles) {
 			if (!sets.containsKey(t.tileSet) || !sets.get(t.tileSet).booleanValue()) continue; // set not visible; skip
@@ -67,13 +67,13 @@ public class TileManager {
 		return list;
 	}
 
-	public static void setSetVisible(String text, boolean state) {
+	static void setSetVisible(String text, boolean state) {
 		if (sets.containsKey(text)) {
 			sets.put(text, state);
 		}
 	}
 
-	public static void setStyleVisible(String text, boolean state) {
+	static void setStyleVisible(String text, boolean state) {
 		if (styles.containsKey(text)) {
 			styles.put(text, state);
 		}
@@ -99,7 +99,7 @@ public class TileManager {
 //		}
 //	}
 
-	public static void scanDirectory(File dir) {
+	static void scanDirectory(File dir) {
 		File[] dirFiles = dir.listFiles();
 		for (File f : dirFiles) {
 			if (f.isDirectory()) {
@@ -110,7 +110,7 @@ public class TileManager {
 		}
 	}
 
-	public static List<TileSet> readXMLConfig(File xmlFile) {
+	static List<TileSet> readXMLConfig(File xmlFile) {
 		ArrayList<TileSet> sets = new ArrayList<TileSet>();
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
