@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="Tile">
+	<xs:complexType>
+		<xs:attribute name="file" type="xs:string" use="required"/>
+		<xs:attribute name="x" type="xs:int" use="required"/>
+		<xs:attribute name="y" type="xs:int" use="required"/>
+		<xs:attribute name="orientation" type="xs:int" use="required"/>
+		<xs:attribute name="mirrored" type="xs:boolean"/>
+	</xs:complexType>
+</xs:element>
+
+<!-- =========== Top-Level Structure =========== -->
+
+<xs:element name="Map">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Tile" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+</xs:schema>

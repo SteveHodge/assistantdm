@@ -78,19 +78,6 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		public int getPixelY() {
 			return (y-minRow)*gridSize;
 		}
-
-		public String getXML(String indent, String nextIndent) {
-			StringBuilder b = new StringBuilder();
-			b.append(indent);
-			b.append("<Tile file=\"").append(tile.file.getName());
-			b.append("\" x=\"").append(x);
-			b.append("\" y=\"").append(y);
-			b.append("\" orientation=\"").append(orientation);
-			if (tile.mirrored) b.append("\" mirrored=\"true");
-			b.append("\"/>");
-			b.append(System.getProperty("line.separator"));
-			return b.toString();
-		}
 	}
 
 	public MapPanel(ComponentDragger dragger) {
@@ -390,19 +377,11 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		}
 	}
 
-	public String getXML(String indent, String nextIndent) {
-		StringBuilder b = new StringBuilder();
-		String nl = System.getProperty("line.separator");
-		b.append(indent);
-		b.append("<Map xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"map.xsd\">");
-		b.append(nl);
+	public void executeProcess(MapProcessor processor) {
+		processor.ProcessMap(this);
 		for (PlacedTile t : tiles) {
-			if (t.tile != null) {
-				b.append(t.getXML(indent+nextIndent,nextIndent));
-			}
+			if (t != null) processor.ProcessTile(t);
 		}
-		b.append(indent).append("</Map>").append(nl);
-		return b.toString();
 	}
 
 	public void parseDOM(Element node) {

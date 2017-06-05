@@ -9,8 +9,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.RenderedImage;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -36,9 +37,17 @@ import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.SchemaFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -70,6 +79,8 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	JFrame frame;
 	JSplitPane splitPane;
 	ComponentDragger dragger;
+
+	File defaultDir = new File("d:/programming/git/assistantdm/tilemapper");
 
 	public TileMapper() {
 		super(new BorderLayout());
@@ -234,7 +245,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	public void open() {
 		JFileChooser fc = new JFileChooser();
 		fc.addChoosableFileFilter(new FileNameExtensionFilter("Map Files", "map"));
-		fc.setCurrentDirectory(new File("d:/programming/workspace/tilemapper"));
+		fc.setCurrentDirectory(defaultDir);
 		//fc.setCurrentDirectory(file);
 		fc.setSelectedFile(file);
 		int returnVal = fc.showOpenDialog(this);
@@ -246,9 +257,8 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setValidating(true);
-			factory.setNamespaceAware(true);
-			factory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaLanguage", "http://www.w3.org/2001/XMLSchema");
+			InputStream is = this.getClass().getClassLoader().getResourceAsStream("tilemapper/Map.xsd");
+			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 
 			Document dom = factory.newDocumentBuilder().parse(file);
 
@@ -275,8 +285,6 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	}
 
 	public void save(File f) {
-		FileWriter outputStream = null;
-
 		// check if file exists
 		if (f.exists()) {
 			String filename = f.getName();
@@ -296,13 +304,23 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 			f = newF;
 		}
 
+		FileOutputStream outputStream = null;
 		try {
-			outputStream = new FileWriter(f);
-			outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-			outputStream.write(System.getProperty("line.separator"));
-			outputStream.write(System.getProperty("line.separator"));
-			outputStream.write(mapPanel.getXML("", "    "));
-		} catch (IOException ex) {
+			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+//			b.append("<Map xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"map.xsd\">");
+//			ProcessingInstruction pi = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/assistantdm/static/CharacterSheetTemplate.xsl\"");
+//			doc.appendChild(pi);
+			XMLMapProcessor processor = new XMLMapProcessor(doc);
+			mapPanel.executeProcess(processor);
+			doc.setXmlStandalone(true);
+
+			Transformer trans = TransformerFactory.newInstance().newTransformer();
+			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+			trans.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			outputStream = new FileOutputStream(f);
+			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
 			if (outputStream != null) {
@@ -318,7 +336,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	public void saveAs() {
 		JFileChooser fc = new JFileChooser();
 		fc.addChoosableFileFilter(new FileNameExtensionFilter("Map Files", "map"));
-		fc.setCurrentDirectory(new File("d:/programming/workspace/tilemapper"));
+		fc.setCurrentDirectory(defaultDir);
 //		fc.setCurrentDirectory(file);
 		fc.setSelectedFile(file);
 		int returnVal = fc.showSaveDialog(this);
@@ -333,7 +351,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	public void saveImage() {
 		JFileChooser fc = new JFileChooser();
 		fc.addChoosableFileFilter(new FileNameExtensionFilter("Jpeg Files", "jpg"));
-		fc.setCurrentDirectory(new File("d:/programming/workspace/tilemapper"));
+		fc.setCurrentDirectory(defaultDir);
 		//fc.setSelectedFile(file);
 		int returnVal = fc.showSaveDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
