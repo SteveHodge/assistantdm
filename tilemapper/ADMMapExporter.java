@@ -43,7 +43,7 @@ public class ADMMapExporter implements MapProcessor {
 		tileEl.setAttribute("rotations", "" + tile.orientation);
 		tileEl.setAttribute("height", "" + tile.getHeight());
 		tileEl.setAttribute("width", "" + tile.getWidth());
-		tileEl.setAttribute("label", tile.tile.file.getName());
+		tileEl.setAttribute("label", (tile.getIndex() + 1) + " - " + tile.tile.file.getName());
 		tileEl.setAttribute("mirrored", tile.tile.mirrored ? "true" : "false");
 
 		tileEl.setAttribute("alpha", "1.0");

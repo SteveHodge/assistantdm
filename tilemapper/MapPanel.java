@@ -5,11 +5,15 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.util.ArrayList;
@@ -77,6 +81,10 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 
 		public int getPixelY() {
 			return (y-minRow)*gridSize;
+		}
+
+		public int getIndex() {
+			return tiles.indexOf(this);
 		}
 	}
 
@@ -326,6 +334,55 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 				g.fillRect(0, 0, img.getWidth(), img.getHeight());
 			}
 			g.drawImage(t.image, (t.x-minx)*gridSize, (t.y-miny)*gridSize, null);
+		}
+		return img;
+	}
+
+	public RenderedImage getLayoutImage() {
+		if (tiles.size() < 1) return null;
+
+		// first determine the extent of the map
+		PlacedTile tt = tiles.get(0);
+		int minx = tt.x;
+		int miny = tt.y;
+		int maxx = tt.x + tt.tile.getWidth(tt.orientation);
+		int maxy = tt.y + tt.tile.getHeight(tt.orientation);
+		for (PlacedTile t : tiles) {
+			if (t.x < minx) minx = t.x;
+			if (t.y < miny) miny = t.y;
+			if (t.x + t.tile.getWidth(t.orientation) > maxx) maxx = t.x + t.tile.getWidth(t.orientation);
+			if (t.y + t.tile.getHeight(t.orientation) > maxy) maxy = t.y + t.tile.getHeight(t.orientation);
+		}
+		// add a one grid square border (bottom and right border is added when creating image)
+		minx--;
+		miny--;
+
+		BufferedImage img = null;
+		Graphics2D g = null;
+		for (PlacedTile t : tiles) {
+			if (img == null) {
+				img = new BufferedImage((maxx - minx + 1) * gridSize, (maxy - miny + 1) * gridSize, BufferedImage.TYPE_INT_ARGB);
+				g = (Graphics2D) img.getGraphics();
+				g.setColor(new Color(0, 0, 0, 0));
+				g.fillRect(0, 0, img.getWidth(), img.getHeight());
+				g.setColor(Color.RED);
+			}
+			Rectangle tileRect = new Rectangle((t.x - minx) * gridSize, (t.y - miny) * gridSize, t.getWidth() * gridSize, t.getHeight() * gridSize);
+			g.drawRect(tileRect.x, tileRect.y, tileRect.width, tileRect.height);
+			String label = "" + (t.getIndex() + 1);
+
+			Font f = g.getFont();
+			float newSize = (float) tileRect.getHeight();
+			if (newSize < 8.0f) newSize = 8.0f;
+			g.setFont(f.deriveFont(newSize));
+			FontMetrics metrics = g.getFontMetrics();
+			Rectangle2D bounds = metrics.getStringBounds(label, g);
+			double xPos = tileRect.getCenterX() - bounds.getWidth() / 2;
+			if (xPos < tileRect.getX()) xPos = tileRect.getX();
+			double yPos = tileRect.getMaxY() - metrics.getDescent() / 2;
+
+			g.drawString(label, (float) xPos, (float) yPos);
+
 		}
 		return img;
 	}

@@ -137,6 +137,13 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 			}
 		};
 
+		Action saveLayoutImageAction = new MapperAction("Save Layout Image...", new ImageIcon("tilemapper/Icons/SaveImage.png"), "Save layout image to file", KeyEvent.VK_I) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveLayoutImage();
+			}
+		};
+
 		Action listTilesAction = new MapperAction("List Tiles", new ImageIcon("tilemapper/Icons/ListTiles.png"), "List tiles in map", KeyEvent.VK_L) {
 
 			@Override
@@ -153,6 +160,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		fileMenu.add(new JMenuItem(saveAsAction));
 		fileMenu.add(new JMenuItem(saveImageAction));
 		fileMenu.add(new JMenuItem(saveADMAction));
+		fileMenu.add(new JMenuItem(saveLayoutImageAction));
 		fileMenu.add(new JMenuItem(listTilesAction));
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
 			public void actionPerformed(ActionEvent arg0) {System.exit(0);}}));
@@ -366,9 +374,28 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			RenderedImage img = mapPanel.getImage();
 			File file = fc.getSelectedFile();
-			System.out.println("Saving image to "+file.getAbsolutePath());
+			System.out.println("Saving image to " + file.getAbsolutePath());
 			try {
 				ImageIO.write(img, "jpeg", file);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+
+	public void saveLayoutImage() {
+		JFileChooser fc = new JFileChooser();
+		fc.addChoosableFileFilter(new FileNameExtensionFilter("Jpeg Files", "jpg"));
+		fc.setCurrentDirectory(defaultDir);
+		//fc.setSelectedFile(file);
+		int returnVal = fc.showSaveDialog(this);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			RenderedImage img = mapPanel.getLayoutImage();
+			File file = fc.getSelectedFile();
+			System.out.println("Saving image to "+file.getAbsolutePath());
+			try {
+				ImageIO.write(img, "png", file);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
