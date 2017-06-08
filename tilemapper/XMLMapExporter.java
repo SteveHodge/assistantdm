@@ -5,11 +5,11 @@ import org.w3c.dom.Element;
 
 import tilemapper.MapPanel.PlacedTile;
 
-public class XMLMapProcessor implements MapProcessor {
+public class XMLMapExporter implements MapProcessor {
 	protected Document doc;
 	protected Element mapEl;
 
-	public XMLMapProcessor(Document d) {
+	public XMLMapExporter(Document d) {
 		doc = d;
 	}
 

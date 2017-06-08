@@ -81,6 +81,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	ComponentDragger dragger;
 
 	File defaultDir = new File("d:/programming/git/assistantdm/tilemapper");
+	File mediaDir = new File("media");
 
 	public TileMapper() {
 		super(new BorderLayout());
@@ -129,6 +130,13 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 			}
 		};
 
+		Action saveADMAction = new MapperAction("Save As ADM...", new ImageIcon("tilemapper/Icons/SaveAs.png"), "Save map to AssistantDM file") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveADMMap();
+			}
+		};
+
 		Action listTilesAction = new MapperAction("List Tiles", new ImageIcon("tilemapper/Icons/ListTiles.png"), "List tiles in map", KeyEvent.VK_L) {
 
 			@Override
@@ -144,6 +152,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		fileMenu.add(new JMenuItem(saveAction));
 		fileMenu.add(new JMenuItem(saveAsAction));
 		fileMenu.add(new JMenuItem(saveImageAction));
+		fileMenu.add(new JMenuItem(saveADMAction));
 		fileMenu.add(new JMenuItem(listTilesAction));
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
 			public void actionPerformed(ActionEvent arg0) {System.exit(0);}}));
@@ -310,7 +319,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 //			b.append("<Map xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"map.xsd\">");
 //			ProcessingInstruction pi = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/assistantdm/static/CharacterSheetTemplate.xsl\"");
 //			doc.appendChild(pi);
-			XMLMapProcessor processor = new XMLMapProcessor(doc);
+			XMLMapExporter processor = new XMLMapExporter(doc);
 			mapPanel.executeProcess(processor);
 			doc.setXmlStandalone(true);
 
@@ -363,6 +372,41 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
+			}
+		}
+	}
+
+	public void saveADMMap() {
+		JFileChooser fc = new JFileChooser();
+		fc.addChoosableFileFilter(new FileNameExtensionFilter("ADM Map Files", "xml"));
+		fc.setCurrentDirectory(defaultDir);
+		int returnVal = fc.showSaveDialog(this);
+		if (returnVal != JFileChooser.APPROVE_OPTION) return;
+
+		File file = fc.getSelectedFile();
+		System.out.println("Saving ADM map file to " + file.getAbsolutePath());
+		FileOutputStream outputStream = null;
+		try {
+			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			ADMMapExporter processor = new ADMMapExporter(doc, mediaDir);
+			mapPanel.executeProcess(processor);
+			doc.setXmlStandalone(true);
+
+			Transformer trans = TransformerFactory.newInstance().newTransformer();
+			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+			trans.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			outputStream = new FileOutputStream(file);
+			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		}
 	}
