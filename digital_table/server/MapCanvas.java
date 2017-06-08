@@ -116,7 +116,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	}
 
 	private void removeChildren(Group parent) {
-		for (int i = 0; i < model.getSize(); i++) {
+		for (int i = model.getSize() - 1; i >= 0; i--) {
 			MapElement el = model.get(i);
 			if (el.getParent() == parent) {
 				if (el instanceof Group) removeChildren((Group) el);
