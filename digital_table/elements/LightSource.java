@@ -1,5 +1,6 @@
 package digital_table.elements;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -7,6 +8,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 import digital_table.server.MapCanvas.Order;
 
@@ -90,6 +92,17 @@ public class LightSource extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		if (isDragging()) {
+			Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
+			g.translate(o.getX(), o.getY());
+
+			Point p1 = canvas.convertGridCoordsToDisplay(x.getValue(), y.getValue(), null);
+			g.setColor(Color.RED);
+			g.drawLine(p1.x - 10, p1.y, p1.x + 10, p1.y);
+			g.drawLine(p1.x, p1.y - 10, p1.x, p1.y + 10);
+
+			g.translate(-o.getX(), -o.getY());
+		}
 	}
 
 	Area getBrightArea(DarknessMask.WallLayout walls) {
@@ -107,6 +120,12 @@ public class LightSource extends MapElement {
 		return getArea(r, walls);
 	}
 
+	// shadow mask cache:
+	DarknessMask.WallLayout cachedWalls = null;
+	Point cachedLocation = null;
+	double cachedRadius = 0;
+	Area cachedShadow = null;
+
 	private Area getArea(int radius, DarknessMask.WallLayout walls) {
 		Area area = new Area();
 		if (radius == 0) return area;
@@ -115,41 +134,56 @@ public class LightSource extends MapElement {
 		addQuadrant(area, -1, 1, radius);
 		addQuadrant(area, -1, -1, radius);
 
-		Double r = 2 * canvas.convertGridCoordsToDisplay(new Point2D.Double(radius, 0d)).getX();			// the 2* helps to ensure that the shadow extends far enough to cover the lit area. see below
+		Double r = canvas.convertGridCoordsToDisplay(new Point2D.Double(8 * this.radius.getValue(), 0d)).getX();			// the 8* is twice the maximum shadowy radius with low light vision. this helps make sure no bits that should be shadowed are seen
 
+//			long startTime = System.nanoTime();
 		if (walls != null && walls.walls != null) {
 			// create shadow mask and remove from area
-			Point origin = getAbsLocation();
-			origin = canvas.convertCanvasCoordsToDisplay(origin);
-			for (Line2D.Double l : walls.walls) {
-				// if the wall intersects the area then project lines from the centre through the end points to create a quadrilateral to remove from the area
-				// TODO optimise by checking if the line intersects the area
-				Point p1 = canvas.convertCanvasCoordsToDisplay(l.getP1());
-				Point p2 = canvas.convertCanvasCoordsToDisplay(l.getP2());
-				Point2D.Double mp = new Point2D.Double((p2.x + p1.x) / 2, (p2.y + p1.y) / 2);
-				if (p1.equals(origin) || p2.equals(origin) || mp.equals(origin)) continue;		// no shadow if the light is on one of the endpoints or the midpoint
-				Path2D.Double shadow = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-				shadow.moveTo(p1.x, p1.y);
-				Point2D.Double p = extendLine(p1.x, p1.y, origin, r);
-				shadow.lineTo(p.x, p.y);
-				p = extendLine(mp.x, mp.y, origin, r);	// extend a light from the midpoint - this helps ensure the shadow covers the lit area along with using double the actual radius.
-				// the "correct" but lower performance alternative would be to use a curved path around the edge of the lit area
-				shadow.lineTo(p.x, p.y);
-				p = extendLine(p2.x, p2.y, origin, r);
-				shadow.lineTo(p.x, p.y);
-				shadow.lineTo(p2.x, p2.y);
-				shadow.closePath();
-				try {
-					area.subtract(new Area(shadow));
-//					area.add(new Area(shadow));
-				} catch (InternalError e) {
-					// shouldn't occur
-					System.err.println(e);
-					System.err.println("Light at " + origin);
-					System.err.println("Wall: " + p1 + " to " + p2);
+			Point origin = canvas.convertCanvasCoordsToDisplay(getAbsLocation());
+
+			if (!origin.equals(cachedLocation) || walls != cachedWalls || cachedRadius != r) {
+				Area shadowArea = new Area(new Rectangle2D.Double(origin.x - r, origin.y - r, r * 2, r * 2));	// performance of Area.add sucks, so instead we subtract the shadows from a rectangle and the intersect the result with the lit area
+//					System.out.println("Cache out of date, updating shadow");
+				for (Line2D.Double l : walls.walls) {
+					// if the wall intersects the area then project lines from the centre through the end points to create a shadow mask to remove from the area
+					// TODO optimise by checking if the line intersects the area
+					Point p1 = canvas.convertCanvasCoordsToDisplay(l.getP1());
+					Point p2 = canvas.convertCanvasCoordsToDisplay(l.getP2());
+					Point2D.Double p1e = extendLine(p1.x, p1.y, origin, r);
+					Point2D.Double p2e = extendLine(p2.x, p2.y, origin, r);
+					Point2D.Double a = extendLine(p1e.x + (p2e.x - p1e.x) / 2, p1e.y + (p2e.y - p1e.y) / 2, origin, r);
+					//				System.out.println("origin = " + origin);
+					//				System.out.println("p1 = " + p1);
+					//				System.out.println("p2 = " + p2);
+					//				System.out.println("p1e = " + p1e);
+					//				System.out.println("p2e = " + p2e);
+					if (p1.equals(origin) || p2.equals(origin)) continue;		// no shadow if the light is on one of the endpoints
+					Path2D.Double shadow = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+					shadow.moveTo(p1.x, p1.y);
+					shadow.lineTo(p1e.x, p1e.y);
+					shadow.lineTo(a.x, a.y);
+					shadow.lineTo(p2e.x, p2e.y);
+					shadow.lineTo(p2.x, p2.y);
+					shadow.closePath();
+					try {
+						shadowArea.subtract(new Area(shadow));
+					} catch (InternalError e) {
+						// shouldn't occur
+						System.err.println(e);
+						System.err.println("Light at " + origin);
+						System.err.println("Wall: " + p1 + " to " + p2);
+					}
 				}
+				cachedShadow = shadowArea;
+				cachedWalls = walls;
+				cachedRadius = r;
+				cachedLocation = origin;
 			}
+			area.intersect(cachedShadow);
 		}
+//			double millis = (System.nanoTime() - startTime) / 1000000d;
+//			//logger.info("Painting complete for " + this + " in " + micros + "ms");
+//			System.out.printf("Shadow calculation took %.3fms\n", millis);
 		return area;
 	}
 
@@ -167,14 +201,17 @@ public class LightSource extends MapElement {
 		return new Point2D.Double(x2 + x1, y2 + y1);
 	}
 
+	Point lastLoc;
 	private Point getAbsLocation() {
+		if (isDragging()) return lastLoc;
 		Point2D p = new Point2D.Double(x.getValue(), y.getValue());
 		Group parent = getParent();
 		while (parent != null) {
 			p = parent.translate(p);
 			parent = parent.getParent();
 		}
-		return new Point((int) p.getX(), (int) p.getY());
+		lastLoc = new Point((int) p.getX(), (int) p.getY());
+		return lastLoc;
 	}
 
 	private void addQuadrant(Area area, int xdir, int ydir, int r) {

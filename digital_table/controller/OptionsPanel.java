@@ -288,9 +288,10 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		@Override
 		public void mouseReleased(MouseEvent e, Point2D gridloc) {
 			if (dragging) {
+				dragging = false;
+				display.setProperty(element, MapElement.PROPERTY_DRAGGING, false);
 				Point2D p = new Point2D.Double(gridloc.getX() - offset.getX(), gridloc.getY() - offset.getY());
 				setTargetLocation(p);
-				dragging = false;
 			}
 		}
 
@@ -298,6 +299,7 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {
 			if (button == MouseEvent.BUTTON1 && target != null) {
 				dragging = true;
+				display.setProperty(element, MapElement.PROPERTY_DRAGGING, true);
 			}
 			if (dragging) {
 				Point2D p = new Point2D.Double(gridloc.getX() - offset.getX(), gridloc.getY() - offset.getY());

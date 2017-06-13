@@ -26,6 +26,7 @@ public abstract class MapElement implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public static final String PROPERTY_VISIBLE = "visible";
+	public static final String PROPERTY_DRAGGING = "dragging";
 
 	private static int nextID = 1;
 	protected final int id;
@@ -33,6 +34,7 @@ public abstract class MapElement implements Serializable {
 	protected ScreenManager screenManager = null;
 	protected Map<String, Property<?>> properties = new HashMap<>();
 	protected Property<Visibility> visible = new Property<Visibility>(PROPERTY_VISIBLE, true, Visibility.HIDDEN, Visibility.class);
+	protected Property<Boolean> dragging = new Property<>(PROPERTY_DRAGGING, true, false, Boolean.class);
 	public Group parent = null;	// TODO should be private
 
 	protected boolean selected = false;
@@ -142,6 +144,11 @@ public abstract class MapElement implements Serializable {
 
 	public Group getParent() {
 		return parent;
+	}
+
+	public boolean isDragging() {
+		if (parent == null) return dragging.getValue();
+		return dragging.getValue() || parent.isDragging();
 	}
 
 	// returns true if this element and all ancestor elements are visible
