@@ -4,6 +4,8 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 
 import digital_table.server.MapCanvas.Order;
@@ -90,34 +92,79 @@ public class LightSource extends MapElement {
 	public void paint(Graphics2D g) {
 	}
 
-	protected Area getBrightArea() {
-		Area area = new Area();
+	Area getBrightArea(DarknessMask.WallLayout walls) {
 		int r = type.getValue().getBrightRadius(radius.getValue());
-		addQuadrant(area, 1, 1, r);
-		addQuadrant(area, 1, -1, r);
-		addQuadrant(area, -1, 1, r);
-		addQuadrant(area, -1, -1, r);
-		return area;
+		return getArea(r, walls);
 	}
 
-	protected Area getShadowArea() {
-		Area area = new Area();
+	Area getShadowArea(DarknessMask.WallLayout walls) {
 		int r = type.getValue().getShadowRadius(radius.getValue());
-		addQuadrant(area, 1, 1, r);
-		addQuadrant(area, 1, -1, r);
-		addQuadrant(area, -1, 1, r);
-		addQuadrant(area, -1, -1, r);
+		return getArea(r, walls);
+	}
+
+	Area getLowLightArea(DarknessMask.WallLayout walls) {
+		int r = 2 * type.getValue().getShadowRadius(radius.getValue());
+		return getArea(r, walls);
+	}
+
+	private Area getArea(int radius, DarknessMask.WallLayout walls) {
+		Area area = new Area();
+		if (radius == 0) return area;
+		addQuadrant(area, 1, 1, radius);
+		addQuadrant(area, 1, -1, radius);
+		addQuadrant(area, -1, 1, radius);
+		addQuadrant(area, -1, -1, radius);
+
+		Double r = 2 * canvas.convertGridCoordsToDisplay(new Point2D.Double(radius, 0d)).getX();			// the 2* helps to ensure that the shadow extends far enough to cover the lit area. see below
+
+		if (walls != null && walls.walls != null) {
+			// create shadow mask and remove from area
+			Point origin = getAbsLocation();
+			origin = canvas.convertCanvasCoordsToDisplay(origin);
+			for (Line2D.Double l : walls.walls) {
+				// if the wall intersects the area then project lines from the centre through the end points to create a quadrilateral to remove from the area
+				// TODO optimise by checking if the line intersects the area
+				Point p1 = canvas.convertCanvasCoordsToDisplay(l.getP1());
+				Point p2 = canvas.convertCanvasCoordsToDisplay(l.getP2());
+				Point2D.Double mp = new Point2D.Double((p2.x + p1.x) / 2, (p2.y + p1.y) / 2);
+				if (p1.equals(origin) || p2.equals(origin) || mp.equals(origin)) continue;		// no shadow if the light is on one of the endpoints or the midpoint
+				Path2D.Double shadow = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+				shadow.moveTo(p1.x, p1.y);
+				Point2D.Double p = extendLine(p1.x, p1.y, origin, r);
+				shadow.lineTo(p.x, p.y);
+				p = extendLine(mp.x, mp.y, origin, r);	// extend a light from the midpoint - this helps ensure the shadow covers the lit area along with using double the actual radius.
+				// the "correct" but lower performance alternative would be to use a curved path around the edge of the lit area
+				shadow.lineTo(p.x, p.y);
+				p = extendLine(p2.x, p2.y, origin, r);
+				shadow.lineTo(p.x, p.y);
+				shadow.lineTo(p2.x, p2.y);
+				shadow.closePath();
+				try {
+					area.subtract(new Area(shadow));
+//					area.add(new Area(shadow));
+				} catch (InternalError e) {
+					// shouldn't occur
+					System.err.println(e);
+					System.err.println("Light at " + origin);
+					System.err.println("Wall: " + p1 + " to " + p2);
+				}
+			}
+		}
 		return area;
 	}
 
-	protected Area getLowLightArea() {
-		Area area = new Area();
-		int r = 2 * type.getValue().getShadowRadius(radius.getValue());
-		addQuadrant(area, 1, 1, r);
-		addQuadrant(area, 1, -1, r);
-		addQuadrant(area, -1, 1, r);
-		addQuadrant(area, -1, -1, r);
-		return area;
+	private Point2D.Double extendLine(double x1, double y1, Point2D origin, double radius) {
+		double x = x1 - origin.getX();
+		double y = y1 - origin.getY();
+		double x2, y2;
+		if (Math.abs(x) < Math.abs(y)) {
+			y2 = (y < 0) ? -radius : radius;
+			x2 = y2 * x / y;
+		} else {
+			x2 = (x < 0) ? -radius : radius;
+			y2 = x2 * y / x;
+		}
+		return new Point2D.Double(x2 + x1, y2 + y1);
 	}
 
 	private Point getAbsLocation() {
@@ -153,7 +200,7 @@ public class LightSource extends MapElement {
 		return false;
 	}
 
-	// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
+// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
 	private Rectangle getRectangle(int x1, int y1, int x2, int y2) {
 		Point p1 = canvas.convertCanvasCoordsToDisplay(x1, y1, null);
 		Point p2 = canvas.convertCanvasCoordsToDisplay(x2, y2, null);

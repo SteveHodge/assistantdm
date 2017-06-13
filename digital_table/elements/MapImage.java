@@ -240,6 +240,7 @@ public class MapImage extends Group {
 
 	private void setURI(URI uri) {
 		image = MediaManager.INSTANCE.getImageMedia(canvas, uri);
+		if (image == null) return;
 		width.setValue(image.getSourceGridWidth());
 		height.setValue(image.getSourceGridHeight());
 	}

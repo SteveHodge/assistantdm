@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +29,51 @@ public class DarknessMask extends MapElement {
 	Property<Boolean> lowLight = new Property<Boolean>(PROPERTY_LOW_LIGHT, false, Boolean.class);
 
 	List<Point> cleared = new ArrayList<>();
+
+	class WallLayout {
+		List<Line2D.Double> walls = new ArrayList<Line2D.Double>();
+	}
+
+	transient WallLayout wallLayout;
+
+	{
+		wallLayout = new WallLayout();
+//		wallLayout.walls.add(new Line2D.Double(6.0d, 3.0d, 6.0d, 7.0d));
+		wallLayout.walls.add(new Line2D.Double(19.0d, 25.0d, 33.0d, 25.0d));
+//		wallLayout.walls.add(new Line2D.Double(10.0d, 7.0d, 13.0d, 8.5d));
+//		wallLayout.walls.add(new Line2D.Double(13.0d, 8.5d, 13.0d, 10d));
+//		wallLayout.walls.add(new Line2D.Double(13.0d, 10d, 8.0d, 10d));
+
+/*		try {
+			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			Document document = builder.parse("D:\\DnDBooks\\_Campaigns\\Ptolus Madness Rising\\Ratling Nest\\ShadowmaskLinear.svg");
+			// expecting svg->g->path, but we'll just get all the paths
+			NodeList paths = document.getElementsByTagName("path");
+			for (int i = 0; i < paths.getLength(); i++) {
+				Element p = (Element) paths.item(i);
+				String d = p.getAttribute("d");
+				String[] parts = d.split(" ");
+				double x1 = 0, y1 = 0;
+				for (int j = 0; j < parts.length;) {
+					String op = parts[j++];
+					String coords = parts[j++];
+					double x = Double.parseDouble(coords.substring(0, coords.indexOf(','))) / 160d;
+					double y = Double.parseDouble(coords.substring(coords.indexOf(',') + 1)) / 160d;
+					if (op.equals("L")) {
+						wallLayout.walls.add(new Line2D.Double(x1, y1, x, y));
+					} else if (!op.equals("M")) {
+						System.err.println("Unknown path operator: " + op);
+					}
+					x1 = x;
+					y1 = y;
+				}
+			}
+
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+	}
 
 	@Override
 	public Order getDefaultOrder() {
@@ -59,12 +105,12 @@ public class DarknessMask extends MapElement {
 			if (e instanceof LightSource) {
 				LightSource l = (LightSource) e;
 				if (l.visible.getValue() != Visibility.HIDDEN) {
-					dark.subtract(l.getBrightArea());
-					dark.subtract(l.getShadowArea());
-					shadow.add(l.getShadowArea());
+					dark.subtract(l.getBrightArea(wallLayout));
+					dark.subtract(l.getShadowArea(wallLayout));
+					shadow.add(l.getShadowArea(wallLayout));
 					if (this.lowLight.getValue()) {
-						dark.subtract(l.getLowLightArea());
-						lowLight.add(l.getLowLightArea());
+						dark.subtract(l.getLowLightArea(wallLayout));
+						lowLight.add(l.getLowLightArea(wallLayout));
 					}
 				}
 			}
@@ -75,10 +121,10 @@ public class DarknessMask extends MapElement {
 			if (e instanceof LightSource) {
 				LightSource l = (LightSource) e;
 				if (l.visible.getValue() != Visibility.HIDDEN) {
-					shadow.subtract(l.getBrightArea());
+					shadow.subtract(l.getBrightArea(wallLayout));
 					if (this.lowLight.getValue()) {
-						lowLight.subtract(l.getBrightArea());
-						lowLight.subtract(l.getShadowArea());
+						lowLight.subtract(l.getBrightArea(wallLayout));
+						lowLight.subtract(l.getShadowArea(wallLayout));
 					}
 				}
 			}
@@ -98,6 +144,16 @@ public class DarknessMask extends MapElement {
 		}
 
 		g.setComposite(c);
+
+
+		g.setColor(Color.RED);
+		if (wallLayout != null && wallLayout.walls != null) {
+			for (Line2D.Double l : wallLayout.walls) {
+				Point p1 = canvas.convertCanvasCoordsToDisplay(l.getP1());
+				Point p2 = canvas.convertCanvasCoordsToDisplay(l.getP2());
+				g.drawLine(p1.x, p1.y, p2.x, p2.y);
+			}
+		}
 	}
 
 	@Override
@@ -106,7 +162,7 @@ public class DarknessMask extends MapElement {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return array of the points defining the cells that have been removed from the mask
 	 */
 	public Point[] getCells() {
