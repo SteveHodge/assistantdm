@@ -7,22 +7,14 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
-import java.awt.geom.Line2D;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.ListModel;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import digital_table.server.MapCanvas.Order;
+
+// TODO processing the walls takes too long and happens for each display - it should be threaded and perhaps done before being passed to the MapElement
 
 public class DarknessMask extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -32,61 +24,12 @@ public class DarknessMask extends MapElement {
 	public final static String PROPERTY_LOW_LIGHT = "low_light";	// boolean
 	public final static String PROPERTY_MASKCELL = "mask";	// Point - when this property is set the specified point will be masked
 	public final static String PROPERTY_UNMASKCELL = "unmask";	// Point - when this property is set the specified point will be cleared
-	public final static String PROPERTY_SHOW_WALLS = "show_walls";	// boolean
 
 	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK, Color.class);
 	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	Property<Boolean> lowLight = new Property<Boolean>(PROPERTY_LOW_LIGHT, false, Boolean.class);
-	Property<Boolean> showWalls = new Property<Boolean>(PROPERTY_SHOW_WALLS, false, Boolean.class);
 
 	List<Point> cleared = new ArrayList<>();
-
-	class WallLayout {
-		List<Line2D.Double> walls = new ArrayList<Line2D.Double>();
-	}
-
-	transient WallLayout wallLayout = null;
-
-	void initializeWallLayout() {
-		wallLayout = new WallLayout();
-//		wallLayout.walls.add(new Line2D.Double(6.0d, 3.0d, 6.0d, 7.0d));
-//		wallLayout.walls.add(new Line2D.Double(19.0d, 25.0d, 33.0d, 25.0d));
-//		wallLayout.walls.add(new Line2D.Double(10.0d, 7.0d, 13.0d, 8.5d));
-//		wallLayout.walls.add(new Line2D.Double(13.0d, 8.5d, 13.0d, 10d));
-//		wallLayout.walls.add(new Line2D.Double(13.0d, 10d, 8.0d, 10d));
-
-		try {
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			Document document = builder.parse("D:\\DnDBooks\\_Campaigns\\Ptolus Madness Rising\\Ratling Nest\\ShadowmaskLinear.svg");
-			// expecting svg->g->path, but we'll just get all the paths
-			NodeList paths = document.getElementsByTagName("path");
-			for (int i = 0; i < paths.getLength(); i++) {
-				Element p = (Element) paths.item(i);
-				String d = p.getAttribute("d");
-				String[] parts = d.split(" ");
-				double x1 = 0, y1 = 0;
-				System.out.println("Path has " + parts.length / 2 + " segments");
-				for (int j = 0; j < parts.length;) {
-					String op = parts[j++];
-					String coords = parts[j++];
-					double x = Double.parseDouble(coords.substring(0, coords.indexOf(','))) / 160d;
-					double y = Double.parseDouble(coords.substring(coords.indexOf(',') + 1)) / 160d;
-					if (op.equals("L")) {
-						wallLayout.walls.add(new Line2D.Double(x1, y1, x, y));
-					} else if (!op.equals("M")) {
-						System.err.println("Unknown path operator: " + op);
-					}
-					x1 = x;
-					y1 = y;
-				}
-			}
-			System.out.println("Wall segments: " + wallLayout.walls.size());
-
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 	@Override
 	public Order getDefaultOrder() {
@@ -111,6 +54,16 @@ public class DarknessMask extends MapElement {
 		}
 
 		ListModel<MapElement> m = canvas.getModel();
+		Walls.WallLayout wallLayout = null;
+		// find the first wall layout
+		// TODO should support multiples
+		for (int i = 0; i < m.getSize(); i++) {
+			Object e = m.getElementAt(i);
+			if (e instanceof Walls) {
+				wallLayout = ((Walls) e).wallLayout;
+			}
+		}
+
 		// go through and remove any illuminated areas from the mask
 		// also create a mask of all shadowed area
 		for (int i = 0; i < m.getSize(); i++) {
@@ -157,24 +110,6 @@ public class DarknessMask extends MapElement {
 		}
 
 		g.setComposite(c);
-
-		if (wallLayout == null) {
-			initializeWallLayout();
-		}
-		if (showWalls.getValue()) {
-//			long startTime = System.nanoTime();
-			g.setColor(Color.RED);
-			if (wallLayout != null && wallLayout.walls != null) {
-				for (Line2D.Double l : wallLayout.walls) {
-					Point p1 = canvas.convertCanvasCoordsToDisplay(l.getP1());
-					Point p2 = canvas.convertCanvasCoordsToDisplay(l.getP2());
-					g.drawLine(p1.x, p1.y, p2.x, p2.y);
-				}
-			}
-//			double millis = (System.nanoTime() - startTime) / 1000000d;
-//			//logger.info("Painting complete for " + this + " in " + micros + "ms");
-//			System.out.printf("Wall painting took %.3fms\n", millis);
-		}
 	}
 
 	@Override

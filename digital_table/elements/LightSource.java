@@ -105,28 +105,28 @@ public class LightSource extends MapElement {
 		}
 	}
 
-	Area getBrightArea(DarknessMask.WallLayout walls) {
+	Area getBrightArea(Walls.WallLayout walls) {
 		int r = type.getValue().getBrightRadius(radius.getValue());
 		return getArea(r, walls);
 	}
 
-	Area getShadowArea(DarknessMask.WallLayout walls) {
+	Area getShadowArea(Walls.WallLayout walls) {
 		int r = type.getValue().getShadowRadius(radius.getValue());
 		return getArea(r, walls);
 	}
 
-	Area getLowLightArea(DarknessMask.WallLayout walls) {
+	Area getLowLightArea(Walls.WallLayout walls) {
 		int r = 2 * type.getValue().getShadowRadius(radius.getValue());
 		return getArea(r, walls);
 	}
 
 	// shadow mask cache:
-	DarknessMask.WallLayout cachedWalls = null;
+	Walls.WallLayout cachedWalls = null;
 	Point cachedLocation = null;
 	double cachedRadius = 0;
 	Area cachedShadow = null;
 
-	private Area getArea(int radius, DarknessMask.WallLayout walls) {
+	private Area getArea(int radius, Walls.WallLayout walls) {
 		Area area = new Area();
 		if (radius == 0) return area;
 		addQuadrant(area, 1, 1, radius);
@@ -134,21 +134,23 @@ public class LightSource extends MapElement {
 		addQuadrant(area, -1, 1, radius);
 		addQuadrant(area, -1, -1, radius);
 
-		Double r = canvas.convertGridCoordsToDisplay(new Point2D.Double(8 * this.radius.getValue(), 0d)).getX();			// the 8* is twice the maximum shadowy radius with low light vision. this helps make sure no bits that should be shadowed are seen
+		Double r = canvas.getDisplayDimension(4 * this.radius.getValue() + 1, 0).getWidth();			// the factor of 4 is the maximum shadowy radius with low light vision. the +1 helps make sure no bits that should be shadowed are seen
 
-//			long startTime = System.nanoTime();
+		long startTime = System.nanoTime();
 		if (walls != null && walls.walls != null) {
 			// create shadow mask and remove from area
 			Point origin = canvas.convertCanvasCoordsToDisplay(getAbsLocation());
 
 			if (!origin.equals(cachedLocation) || walls != cachedWalls || cachedRadius != r) {
-				Area shadowArea = new Area(new Rectangle2D.Double(origin.x - r, origin.y - r, r * 2, r * 2));	// performance of Area.add sucks, so instead we subtract the shadows from a rectangle and the intersect the result with the lit area
-//					System.out.println("Cache out of date, updating shadow");
+				System.out.println("Cache out of date, updating shadow");
+				Area shadowArea = new Area(new Rectangle2D.Double(origin.x - r, origin.y - r, r * 2, r * 2));	// performance of Area.add sucks, so instead we subtract the shadows from a rectangle and then intersect the result with the lit area
+				Rectangle2D shadowBounds = shadowArea.getBounds2D();
 				for (Line2D.Double l : walls.walls) {
 					// if the wall intersects the area then project lines from the centre through the end points to create a shadow mask to remove from the area
 					// TODO optimise by checking if the line intersects the area
 					Point p1 = canvas.convertCanvasCoordsToDisplay(l.getP1());
 					Point p2 = canvas.convertCanvasCoordsToDisplay(l.getP2());
+					if (!shadowBounds.intersectsLine(p1.x, p1.y, p2.x, p2.y)) continue;
 					Point2D.Double p1e = extendLine(p1.x, p1.y, origin, r);
 					Point2D.Double p2e = extendLine(p2.x, p2.y, origin, r);
 					Point2D.Double a = extendLine(p1e.x + (p2e.x - p1e.x) / 2, p1e.y + (p2e.y - p1e.y) / 2, origin, r);
@@ -181,9 +183,9 @@ public class LightSource extends MapElement {
 			}
 			area.intersect(cachedShadow);
 		}
-//			double millis = (System.nanoTime() - startTime) / 1000000d;
-//			//logger.info("Painting complete for " + this + " in " + micros + "ms");
-//			System.out.printf("Shadow calculation took %.3fms\n", millis);
+		double millis = (System.nanoTime() - startTime) / 1000000d;
+		//logger.info("Painting complete for " + this + " in " + micros + "ms");
+		System.out.printf("Shadow calculation took %.3fms\n", millis);
 		return area;
 	}
 
