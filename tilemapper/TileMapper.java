@@ -56,10 +56,10 @@ import org.w3c.dom.NodeList;
 
 /*
  * TODO
+ * Scale tiles, particularly for ADM save
  * Disappearing tile bug still happens
  * Smooth dragging when it should be snapping still happens
- * Produce tile number overlay
- * Save to ADM map using tile numbers
+ * Save to layout overlay image in ADM save file
  * Wider than normal tiles don't drag properly (get cropped)
  * Performance is bad
  * Set management - better UI

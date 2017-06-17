@@ -377,6 +377,15 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 			g.setFont(f.deriveFont(newSize));
 			FontMetrics metrics = g.getFontMetrics();
 			Rectangle2D bounds = metrics.getStringBounds(label, g);
+
+			if (bounds.getWidth() > tileRect.getWidth()) {
+				// label won't fit so scale it down
+				newSize = (float) (newSize * tileRect.getWidth() / bounds.getWidth());
+				if (newSize < 8.0f) newSize = 8.0f;
+				g.setFont(f.deriveFont(newSize));
+				bounds = metrics.getStringBounds(label, g);
+			}
+
 			double xPos = tileRect.getCenterX() - bounds.getWidth() / 2;
 			if (xPos < tileRect.getX()) xPos = tileRect.getX();
 			double yPos = tileRect.getMaxY() - metrics.getDescent() / 2;
