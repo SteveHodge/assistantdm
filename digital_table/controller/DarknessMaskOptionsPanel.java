@@ -28,7 +28,6 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 	private JSlider alphaSlider;
 	private JCheckBox lowLightCheck;
 	private JCheckBox visibleCheck;
-	private JCheckBox showWallsCheck;
 
 	DarknessMaskOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -43,27 +42,28 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		lowLightCheck = createCheckBox(DarknessMask.PROPERTY_LOW_LIGHT, Mode.ALL, "Lowlight vision");
 		visibleCheck = createVisibilityControl();
 		visibleCheck.setSelected(true);
-		showWallsCheck = createCheckBox(DarknessMask.PROPERTY_SHOW_WALLS, Mode.LOCAL, "Show Walls");
 
 		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 0;
-		c.gridy++; add(new JLabel("Colour:"), c);
-		c.gridy++; add(new JLabel("Transparency:"), c);
+		c.gridy = 1; add(new JLabel("Colour:"), c);
+		c.gridy = 2; add(new JLabel("Transparency:"), c);
 
-		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 0; add(visibleCheck, c);
-		c.gridy++; add(colorPanel, c);
-		c.gridy++; add(alphaSlider, c);
-		c.gridy++; add(lowLightCheck, c);
-		c.gridy++; add(showWallsCheck, c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(visibleCheck, c);
+		add(colorPanel, c);
+		add(alphaSlider, c);
+		add(lowLightCheck, c);
 
-		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0; c.gridy++; c.gridwidth = 2;
+		c.gridwidth = 2;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
 		add(new JPanel(), c);
+
 		//@formatter:on
 	}
 
@@ -83,7 +83,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 				lowLightCheck.setSelected((Boolean) e.getNewValue());
 
 			} else {
-				System.out.println("Unknown property: "+e.getPropertyName());
+				System.out.println("Unknown property changed: " + e.getPropertyName());
 			}
 		}
 	};

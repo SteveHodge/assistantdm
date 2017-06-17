@@ -174,6 +174,7 @@ public class ControllerFrame extends JFrame {
 				labelAction,
 				darknessAction,
 				lightSourceAction,
+				wallsAction,
 				initiativeAction,
 				browserAction,
 				groupAction,
@@ -1178,6 +1179,13 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
+	private AddElementAction<WallsOptionsPanel> wallsAction = new AddElementAction<WallsOptionsPanel>("Walls") {
+		@Override
+		protected WallsOptionsPanel createOptionsPanel(MapElement parent) {
+			return new WallsOptionsPanel(parent, display);
+		}
+	};
+
 	private AddElementAction<BrowserOptionsPanel> browserAction = new AddElementAction<BrowserOptionsPanel>("Browser") {
 		@Override
 		protected BrowserOptionsPanel createOptionsPanel(MapElement parent) {
@@ -1287,6 +1295,8 @@ public class ControllerFrame extends JFrame {
 			p = labelAction.addElement(parent);
 		} else if (tag.equals(DarknessMaskOptionsPanel.XML_TAG)) {
 			p = darknessAction.addElement(parent);
+		} else if (tag.equals(WallsOptionsPanel.XML_TAG)) {
+			p = wallsAction.addElement(parent);
 		} else if (tag.equals(LightSourceOptionsPanel.XML_TAG)) {
 			p = lightSourceAction.addElement(parent);
 		} else if (tag.equals(InitiativeOptionsPanel.XML_TAG)) {
