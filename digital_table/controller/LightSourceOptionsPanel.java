@@ -31,6 +31,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 	private JTextField labelField;
 	private JComboBox<Type> typeCombo;
 	private JCheckBox visibleCheck;
+	private JCheckBox allCornersCheck;
 
 	LightSourceOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -48,6 +49,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		typeCombo = createComboControl(LightSource.PROPERTY_TYPE, LightSource.Type.values());
 		labelField = createStringControl(LightSource.PROPERTY_LABEL, Mode.LOCAL);
 		visibleCheck = createVisibilityControl();
+		allCornersCheck = createCheckBox(LightSource.PROPERTY_ALL_CORNERS, Mode.ALL, "Radiate from all corners of token");
 
 		// @formatter:off
 		setLayout(new GridBagLayout());
@@ -67,8 +69,10 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		c.gridy++; add(xField, c);
 		c.gridy++; add(yField, c);
 
+		c.gridx = 0; c.gridwidth = 2;
+		c.gridy++; add(allCornersCheck, c);
+		c.gridy++;
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
 		add(new JPanel(), c);
 		// @formatter:on
 	}
@@ -93,6 +97,9 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 
 			} else if (e.getPropertyName().equals(LightSource.PROPERTY_TYPE)) {
 				typeCombo.setSelectedItem(e.getNewValue());
+
+			} else if (e.getPropertyName().equals(LightSource.PROPERTY_ALL_CORNERS)) {
+				allCornersCheck.setSelected((Boolean) e.getNewValue());
 
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
@@ -144,6 +151,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		parseIntegerAttribute(LightSource.PROPERTY_Y, e, Mode.ALL);
 		parseIntegerAttribute(LightSource.PROPERTY_RADIUS, e, Mode.ALL);
 		parseEnumAttribute(LightSource.PROPERTY_TYPE, LightSource.Type.class, e, Mode.ALL);
+		parseBooleanAttribute(LightSource.PROPERTY_ALL_CORNERS, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 }
