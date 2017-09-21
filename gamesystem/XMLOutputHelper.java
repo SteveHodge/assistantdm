@@ -216,6 +216,7 @@ public class XMLOutputHelper {
 		Element e = doc.createElement("Sanity");
 		e.setAttribute("current", "" + sanity.getBaseValue());
 		e.setAttribute("knowledge", "" + sanity.getKnowledgeSkillProperty().getBaseValue());
+		e.setAttribute("session", "" + sanity.getSessionStartingSanity());
 
 		creatureEl.appendChild(e);
 		return e;

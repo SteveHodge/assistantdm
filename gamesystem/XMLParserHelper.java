@@ -33,6 +33,11 @@ public class XMLParserHelper {
 		int val = Integer.parseInt(e.getAttribute("current"));
 		c.sanity.setBaseValue(val);
 		c.sanity.getKnowledgeSkillProperty().setBaseValue(Integer.parseInt(e.getAttribute("knowledge")));
+		if (e.hasAttribute("session")) {
+			c.sanity.sessionStart = Integer.parseInt(e.getAttribute("session"));
+		} else {
+			c.sanity.startSession();
+		}
 	}
 
 	// TODO Character param here is bad. currently need it to do levelups.

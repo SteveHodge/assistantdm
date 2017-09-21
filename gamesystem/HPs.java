@@ -1,15 +1,15 @@
 package gamesystem;
 
-import gamesystem.core.Property.PropertyEvent;
-import gamesystem.core.Property.PropertyListener;
-import gamesystem.dice.HDDice;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+
+import gamesystem.core.Property.PropertyEvent;
+import gamesystem.core.Property.PropertyListener;
+import gamesystem.dice.HDDice;
 
 
 // TODO change temp hitpoints to a property
@@ -276,9 +276,9 @@ public class HPs extends Statistic {
 		return total;
 	}
 
-	// TODO not sure this should include non-lethal
+	// returns the current hitpoints (not including any non-lethal damage)
 	public int getHPs() {
-		return hps + getTemporaryHPs() - wounds - nonLethal;
+		return hps + getTemporaryHPs() - wounds;
 	}
 
 	// Statistics methods
@@ -333,7 +333,6 @@ public class HPs extends Statistic {
 		StringBuilder text = new StringBuilder();
 		text.append(getMaximumHitPoints()).append(" maximum<br/>");
 		if (getWounds() != 0) text.append(-getWounds()).append(" wounds<br/>");
-		if (getNonLethal() != 0) text.append(-getNonLethal()).append(" non-lethal damage taken<br/>");
 
 		Map<Modifier, Boolean> mods = getModifiers();
 		for (Modifier m : mods.keySet()) {
@@ -348,16 +347,25 @@ public class HPs extends Statistic {
 		}
 
 		text.append("=").append(getHPs()).append(" current total<br/><br/>");
+		if (getNonLethal() != 0) text.append("Non-lethal damage taken: " + getNonLethal()).append("<br/><br/>");
 		return text.toString();
 	}
 
-//	private static void printTempHPs(List<TempHPs> tempHPs) {
-//		for (TempHPs t : tempHPs) {
-//			if (t.active) {
-//				System.out.println("   " + t.source + ": " + t.hps);
-//			} else {
-//				System.out.println("   (" + t.source + ": " + t.hps + ")");
-//			}
-//		}
-//	}
+	public String getShortSummary() {
+		StringBuilder text = new StringBuilder();
+		text.append(getHPs());
+		if (getNonLethal() != 0) text.append(" (" + getNonLethal()).append(" NL)");
+		text.append(" / ").append(getMaximumHitPoints());
+		return text.toString();
+	}
+
+	public void printTempHPs() {
+		for (TempHPs t : tempHPs) {
+			if (t.active) {
+				System.out.println("   " + t.source + ": " + t.hps);
+			} else {
+				System.out.println("   (" + t.source + ": " + t.hps + ")");
+			}
+		}
+	}
 }

@@ -1,4 +1,29 @@
-ARCHITECTURE:
+---=== CODE STRUCTURE ===---
+ camera - camera panel ui and functionality
+ combat - combat panel ui and functionality
+ digital_table - local and remote digital table functionality
+ digital_table.controller - local digital table controller ui
+ digital_table.elements - displayable elements common to both local and remote displays
+ digital_table.server - core functionality for both local and remote displays and remote only classes
+ gamesystem - core code related to the 3.5 mechanics
+ gamesystem.core - low level classes (statistic and property) not intimately tied to the ruleset
+ gamesystem.dice - classes representing dice
+ magicgenerator - random magic item generator
+ magicitems - shop panel ui and functionality
+ monsters - monsters panel ui and functionality
+ party - party panel functionality (should also contain ui for party and rolls panels)
+ swing - extended generic swing components
+ ui - ui for party and rolls panel and dialogs. should contain only common ui and dialogs
+ util - util classes for external communication (XML handling, file uploading, logging)
+
+
+---=== NEW NOTIFICATION IMPLEMENTATION ===---
+Plan is for there to be a single listener list (per character). Listeners will provide a string template for the sources they are interested in. Events will then be sent to interested listeners.
+Statistics will generate "value" and "modifiers" events and may have a "base" event (though the base value may itself be a Property). Properties will generate "value" and "overrides" events.
+E.g. event on "abilities.strength.value" would be received by listeners on "abilities", "abilities.strength", and "abilities.strength.value".
+The same naming hierarchy will be used for effect targets. 
+
+---=== ARCHITECTURE ===---
 
 Property - a value that can be overridden. can be a non-numeric value e.g. race. notifies changes.
 Statistic - a numeric value that can receive Modifiers. notifies changes. can also represent a collection of statistics (e.g. all skills, or attacks collectively).
@@ -19,9 +44,41 @@ Also need to incorporate effects that can be added to a creature but that don't 
 
 refactor: Buff/BuffFactory -> SpellEffect and AdhocEffect
 
-Plan/Bugs/Priority:
-* rework combat panels so they have hps and sanity and popup to modify either. also fix monster stats popover, it's annoying
-* tilemapper element for digital table
+(old) Proposed architecture:
+A Statistic is a value that can be modified by bonuses and penalties and can also be overridden. Statistics can have
+sub-Statistics which include all the parent's modifiers but can also be targeted separately. E.g. there will be a
+hierarchy of Attacks -> Melee Attack -> specific melee attack form.
+A Property is a value that can be overridden but is not a valid target for bonuses and penalties.
+Both Statistic and Property provide change notification.
+Creature is a collection of Statistics and Properties and acts as the root of the hierarchy. Creature also maintains
+other data such as feats, special abilities/qualities, xp (Characters subclass).
+
+There is a distinction between selected core feats, selected class bonus feats, and automatic class bonus feats - each
+will need to be tracked. In addition there are cases where creatures are treated as having a feat in some circumstances
+(e.g. ranger combat styles). Perhaps it would be best to have a list of "features" that can be tested for. Features
+would include some feats, racial abilities, class abilities, etc. The "Two-Weapon Fighting" feature could be provided
+by the "Two-Weapon Fighting" feat but it could also alternately be provided by a ranger's Combat Style class feature or
+even perhaps as a racial feature.
+
+---=== TODO ===---
+Game system things to implement:
+  (in progress) Size
+  (in progress) Race
+  (in progress) Feats
+  (in progress) Grapple modifier
+  Ability score checks
+  (in progress) Class levels - negative levels
+  Spell lists / spells per day (web version done)
+  Damage reduction
+  Spell resistance
+  Magic items slots
+  Weight/encumberance/ACP
+  Skill synergies
+  Skill named versions (Crafting, Profession etc)
+  Speed
+  (in progress) Items
+
+* rework combat panels so they have hps and sanity and popup to modify either. also fix monster stats tooltip, it's annoying
 * website track saves to verify not overwriting other client changes
 * Remote input - joysticks, web
 * split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels
@@ -30,7 +87,7 @@ Plan/Bugs/Priority:
 * implement StatisticsCollection for Attacks  
 * implement caster levels with saving to website. (probably easiest to have a dedicated field for the relevant ability for rememorising, to be eventually replaced with a system that knows what modifiers are temporary and therefore shouldn't be counted)
 * implement periodic special abilities and item uses/charges.
-* move definitions of FeatDefinition, ClassFeatureDefinition, and BuffFactory to XML. (also Skills)
+* move definitions of FeatDefinition, ClassFeatureDefinition, and BuffFactory to XML.
 * clarify how Feature "types" should work (simply the class or explicit field). clarify how Feature "source" should work.
 * expand to allow override effects (property changes already implemented for buffs).
 * implement items. probably better to rename Feature to Effect or something more generic.
@@ -42,25 +99,6 @@ Plan/Bugs/Priority:
     ... TODO Need to look at names/description of targets, it's ugly in some cases, particularly with selectors ("attacks[id=1]")
 * implement cross-class skills flag somehow, at least for straight class characters
     
-/* Proposed architecture:
- * A Statistic is a value that can be modified by bonuses and penalties and can also be overridden. Statistics can have
- * sub-Statistics which include all the parent's modifiers but can also be targeted separately. E.g. there will be a
- * hierarchy of Attacks -> Melee Attack -> specific melee attack form.
- * A Property is a value that can be overridden but is not a valid target for bonuses and penalties.
- * Both Statistic and Property provide change notification.
- * Creature is a collection of Statistics and Properties and acts as the root of the hierarchy. Creature also maintains
- * other data such as feats, special abilities/qualities, xp (Characters subclass).
- *
- * There is a distinction between selected core feats, selected class bonus feats, and automatic class bonus feats - each
- * will need to be tracked. In addition there are cases where creatures are treated as having a feat in some circumstances
- * (e.g. ranger combat styles). Perhaps it would be best to have a list of "features" that can be tested for. Features
- * would include some feats, racial abilities, class abilities, etc. The "Two-Weapon Fighting" feature could be provided
- * by the "Two-Weapon Fighting" feat but it could also alternately be provided by a ranger's Combat Style class feature or
- * even perhaps as a racial feature.
- */
-
-/* TODO current priorities:
- *
  * Skill parsing for monsters
  * Make HitDiceProperty into Statistic (rename to HitDice) so that bonus hps from feats and race (constructs) can be added as a modifier
  * Saving throw modifiers in monster stats blocks
@@ -104,23 +142,11 @@ Plan/Bugs/Priority:
  *
  * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes
  * Continue to update for new module system (particularly digital table controller)
- * Pre-guess the screen layout
- * Threaded remote display communication
- * Recalibrate display - could be done using screen bounds element
  * Perhaps make Updater a module
  * Clean up CameraPanel layout
  *
- * Allow setting of DarknessMask and Mask colours
- * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
- * ENH: Reordering the elements resets the group expanded/collapsed state
- * parsing display xml resets the node priorty - need to save the list model order
- * BUG: LineTemplate: setting image after rotation draws the un-transformed image
- * REF: Factor clear cells code into support class
  * Copy in encounters dialog should copy the current creature, not the base
  * In encounters dialog, adding an image should select it for the current creature
- * Look at the map element order - should moving a tree move all children?
- * Hidden elements in table display should clear ImageMedia transforms
- * ImageMedia could use a soft/weak/strong reference for transformed images
  *
  * Combat panel should save full monsters, not just combat entries
  * EncounterDialog: calc encounter level, display CRs
@@ -138,14 +164,8 @@ Plan/Bugs/Priority:
  * ... change 'value' attributes in xml. these should either be 'base' or 'total' attributes (support 'value' as 'base' for loading only). also fix differences in ac
  *
  * BUG handle io exceptions while reading display.xml
- * BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
- * asynchronous loading of images
- * soft references for ImageMedia - at least for transformed images
  * when temporary hitpoints from a buff are gone the buff should be removed if it has no other effect
  * should be able to temporarily disable armor/shield (once inventory is tracked should have way of selecting items in inventory)
- * add caching of loaded files in MediaManager
- * performance improvements in animation code - bounding boxes for elements
- * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
  * rearrange images. also find animal names - stats blocks
  * website: simplify updating - updates can be missed at the moment
  *
@@ -158,59 +178,46 @@ Plan/Bugs/Priority:
  * feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats
  * equipment, particularly magic item slots, armor, weapons
  */
-/* TODO digital tabletop (dtt) priorities:
- * Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
- * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
- * Add colour to the overlay tokens. either indicator of health or settable
- * Consider expanding "selected" support. Would need hierarchy support as with visibility
- * Refactor common utility methods into MapElement (e.g. template creation)
- * Alternate button dragging (e.g. resize, non-snapped to grid)
- * Auto configure - set defaults according to OS screen layout
- * Make line and spread templates editable?
- * Swarm Token (editable token with replicated painting)
- * dice roller element?
- * thrown object scatter? compass rose?
- */
-
 //TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
-
-/* Game system things to implement:
- *  (in progress) Size
- *  (in progress) Race
- *  (in progress) Feats
- *  (in progress) Grapple modifier
- *  Ability score checks
- *  (in progress) Class levels - negative levels
- *  Spell lists / spells per day (web version done)
- *  Damage reduction
- *  Spell resistance
- *  Magic items slots
- *  Weight/encumberance/ACP
- *  Skill synergies
- *  Skill named versions (Crafting, Profession etc)
- *  Speed
- */
-
-/* Architecture:
- * Packages:
- * camera - camera panel ui and functionality
- * combat - combat panel ui and functionality
- * digital_table - local and remote digital table functionality
- * digital_table.controller - local digital table controller ui
- * digital_table.elements - displayable elements common to both local and remote displays
- * digital_table.server - core functionality for both local and remote displays and remote only classes
- * gamesystem - core code related to the 3.5 mechanics
- * gamesystem.core - low level classes (statistic and property) not intimately tied to the ruleset
- * gamesystem.dice - classes representing dice
- * magicgenerator - random magic item generator
- * magicitems - shop panel ui and functionality
- * monsters - monsters panel ui and functionality
- * party - party panel functionality (should also contain ui for party and rolls panels)
- * swing - extended generic swing components
- * ui - ui for party and rolls panel and dialogs. should contain only common ui and dialogs
- * util - util classes for external communication (XML handling, file uploading, logging)
- */
-
-//WISH would be nice to have a library of creatures that could be selected for the combat panel
 //WISH refactor classes that should be in ui package
 //TODO add new party menu option, ask to save modified file
+
+
+---=== DIGITAL TABLE PRIORITIES ===---
+* layers for painting order
+* Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
+DONE? * Allow setting of DarknessMask and Mask colours
+* standard visibility controls
+* supoprt linking wall layouts to map images - if Walls element has image as parent then concatenate location, rotation, and mirroring
+* lightsources attached to tokens should behave as if there was one on each corner of the token
+* building wall layout from xml should be threaded for performance
+PART * tilemapper element - tilemapper editor added and maps supported as groups of images. a custom element would still have advantages
+* ENH: Reordering the elements resets the group expanded/collapsed state
+* free paint element
+* add caching of loaded files in MediaManager
+* performance improvements in animation code - bounding boxes for elements
+DONE? * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
+* BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
+* asynchronous loading of images
+* soft references for ImageMedia - at least for transformed images
+* BUG: "Set Image" on token options panel doesn't always immediately repaint with the new image
+* Pre-guess the screen layout
+* Threaded remote display communication
+* Recalibrate display - could be done using screen bounds element
+* BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
+* parsing display xml resets the node priorty - need to save the list model order
+* BUG: LineTemplate: setting image after rotation draws the un-transformed image
+* REF: Factor clear cells code into support class
+* Hidden elements in table display should clear ImageMedia transforms
+* ImageMedia could use a soft/weak/strong reference for transformed images
+* Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
+* Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
+* Add colour to the overlay tokens. either indicator of health or settable
+* Consider expanding "selected" support. Would need hierarchy support as with visibility
+* Refactor common utility methods into MapElement (e.g. template creation)
+* Alternate button dragging (e.g. resize, non-snapped to grid)
+* Auto configure - set defaults according to OS screen layout
+* Make line and spread templates editable?
+* Swarm Token (editable token with replicated painting)
+* dice roller element?
+* thrown object scatter? compass rose?

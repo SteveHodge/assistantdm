@@ -1,6 +1,4 @@
 package combat;
-import gamesystem.Creature;
-
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -17,12 +15,12 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import monsters.Monster;
-import monsters.StatsBlockCreatureView;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import gamesystem.Creature;
+import monsters.Monster;
+import monsters.StatsBlockCreatureView;
 import ui.BoundIntegerField;
 
 //TODO tooltips get lost on reload - the connection to the stat block is not stored in the xml file
@@ -68,6 +66,18 @@ public class MonsterCombatEntry extends CombatEntry {
 
 		creature.addPropertyChangeListener(this);
 		createPanel();
+	}
+
+	@Override
+	void createButtons() {
+		apply = new JButton("Apply");
+		apply.addActionListener(e -> {
+			int delta = ((Integer) dmgField.getValue());
+			applyDamage(delta, nonLethal.isSelected());
+		});
+
+		healAll = new JButton("Heal All");
+		healAll.addActionListener(e -> healAll());
 	}
 
 	@Override

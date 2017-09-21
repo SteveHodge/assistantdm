@@ -1,7 +1,5 @@
 package combat;
 
-import gamesystem.Creature;
-
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -28,6 +26,7 @@ import javax.swing.event.EventListenerList;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import gamesystem.Creature;
 import ui.Status;
 
 @SuppressWarnings("serial")
@@ -36,17 +35,17 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	JComponent modifierComp;
 	JFormattedTextField tiebreakField;
 	private JFormattedTextField maxHPsField;
-	private JFormattedTextField dmgField;
+	JFormattedTextField dmgField;
 	JLabel total;
 	JCheckBox onlyDM;
 	JTextField nameField;
 	JButton delete;
-	private JButton apply, healAll;
+	JButton apply, healAll;
 	boolean blank = true;
-	private JLabel currentHPs;
+	JLabel currentHPs;
 	JLabel acLabel, touchACLabel, flatFootedACLabel;
 	JComponent acComp, touchACComp, flatFootedACComp;
-	private JCheckBox nonLethal;
+	JCheckBox nonLethal;
 	private JPanel statusPanel = new JPanel();
 
 	Creature creature;
@@ -125,6 +124,8 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 
+		createButtons();
+
 		c.gridx = 0; c.gridy = 0;
 		c.gridheight = 3;
 		c.fill = GridBagConstraints.VERTICAL;
@@ -142,6 +143,14 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		c.gridwidth = 8; c.gridheight = 1;
 		add(createInitiativeSection(),c);
 
+		layoutHPComponents(c);
+
+		layoutACComponents(c);
+
+		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+	}
+
+	void layoutHPComponents(GridBagConstraints c) {
 		c.fill = GridBagConstraints.NONE;
 		c.gridy = 1;
 		c.gridwidth = 1;
@@ -149,9 +158,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		add(new JLabel("HP: "), c);
 		c.gridx = GridBagConstraints.RELATIVE;
 		c.weightx = 1.0;
-		String hps = ""+(creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
-		if (creature.getNonLethal() != 0) hps += " ("+creature.getNonLethal()+")";
-		currentHPs = new JLabel(hps);
+		currentHPs = new JLabel(creature.getHPStatistic().getShortSummary());
 		add(currentHPs, c);
 		c.weightx = 0.0;
 		add(new JLabel("Max: "), c);
@@ -173,14 +180,11 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		add(nonLethal, c);
 		c.anchor = GridBagConstraints.LINE_END;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		apply = new JButton("Apply");
-		apply.addActionListener(e -> {
-			int delta = ((Integer) dmgField.getValue());
-			applyDamage(delta, nonLethal.isSelected());
-		});
-		add(apply, c);
+		if (apply != null) add(apply, c);
 		c.fill = GridBagConstraints.NONE;
+	}
 
+	void layoutACComponents(GridBagConstraints c) {
 		// AC components should have been setup by subclasses
 		acLabel = new JLabel("AC: ");
 		touchACLabel = new JLabel("Touch: ");
@@ -203,12 +207,10 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		c.gridwidth = 1;
 		c.anchor = GridBagConstraints.LINE_END;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		healAll = new JButton("Heal All");
-		healAll.addActionListener(e -> healAll());
-		add(healAll, c);
-
-		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+		if (healAll != null) add(healAll, c);
 	}
+
+	abstract void createButtons();
 
 	JComponent createInitiativeSection() {
 		onlyDM = new JCheckBox();
@@ -281,9 +283,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 
 	private void updateHPs() {
-		String hps = ""+(creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
-		if (creature.getNonLethal() != 0) hps += " ("+creature.getNonLethal()+")";
-		currentHPs.setText(hps);
+		currentHPs.setText(creature.getHPStatistic().getShortSummary());
 		updateStatus();
 	}
 
@@ -335,7 +335,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	@Override
 	public String toString() {
 		return "CombatEntry (name="+getCreatureName()+", roll="+rollField.getValue()
-				+", modifier="+getModifier()+", tiebreak="+tiebreakField.getValue()+")";
+		+", modifier="+getModifier()+", tiebreak="+tiebreakField.getValue()+")";
 	}
 
 	public boolean isBlank() {

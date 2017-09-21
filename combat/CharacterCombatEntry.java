@@ -1,27 +1,37 @@
 package combat;
 
-import gamesystem.AC;
-import gamesystem.Creature;
-import gamesystem.HPs;
-import gamesystem.InitiativeModifier;
-import gamesystem.Modifier;
-import gamesystem.Statistic;
-
+import java.awt.GridBagConstraints;
 import java.beans.PropertyChangeEvent;
 import java.util.Map;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import gamesystem.AC;
+import gamesystem.Creature;
+import gamesystem.HPs;
+import gamesystem.InitiativeModifier;
+import gamesystem.Modifier;
+import gamesystem.Sanity;
+import gamesystem.Statistic;
+import gamesystem.core.Property.PropertyEvent;
+import gamesystem.core.Property.PropertyListener;
 import party.Character;
+import ui.CharacterDamageDialog;
 
 @SuppressWarnings("serial")
 public class CharacterCombatEntry extends CombatEntry {
+	JLabel sanityCurrent;
+	JLabel sanitySession;
+	Sanity sanity;
+
 	CharacterCombatEntry(Character character) {
 		this.creature = character;
+		sanity = character.getSanity();
 
 		blank = false;
 
@@ -133,6 +143,62 @@ public class CharacterCombatEntry extends CombatEntry {
 		text.append("</body></html>");
 		flatFootedACLabel.setToolTipText(text.toString());
 		flatFootedACComp.setToolTipText(text.toString());
+	}
+
+	@Override
+	void createButtons() {
+		apply = new JButton("Dmg/Heal");
+		apply.addActionListener(e -> {
+			CharacterDamageDialog.openDialog(this, "Damage and healing", (Character) creature);
+		});
+		healAll = null;
+	}
+
+	@Override
+	void layoutHPComponents(GridBagConstraints c) {
+		c.fill = GridBagConstraints.NONE;
+		c.gridy = 1;
+		c.gridwidth = 1;
+		c.weightx = 0.0;
+		add(new JLabel("HP: "), c);
+		c.gridx = GridBagConstraints.RELATIVE;
+		c.weightx = 1.0;
+		currentHPs = new JLabel(creature.getHPStatistic().getShortSummary());
+		add(currentHPs, c);
+		c.weightx = 0.0;
+		add(new JLabel("Sanity: "), c);
+		c.weightx = 1.0;
+		sanityCurrent = new JLabel(Integer.toString(creature.getSanity().getValue()));
+		add(sanityCurrent, c);
+		c.weightx = 0.0;
+		c.gridwidth = 2;
+		add(new JLabel("Session loss:"), c);
+		c.weightx = 1.0;
+		c.gridwidth = 1;
+		sanitySession = new JLabel(Integer.toString(creature.getSanity().getSessionStartingSanity() - creature.getSanity().getValue()));
+		add(sanitySession, c);
+		c.weightx = 0.0;
+		c.anchor = GridBagConstraints.LINE_END;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		if (apply != null) add(apply, c);
+		c.fill = GridBagConstraints.NONE;
+
+		sanity.addPropertyListener(new PropertyListener<Integer>() {
+			@Override
+			public void valueChanged(PropertyEvent<Integer> event) {
+				update();
+			}
+
+			@Override
+			public void compositionChanged(PropertyEvent<Integer> event) {
+				update();
+			}
+
+			private void update() {
+				sanityCurrent.setText(Integer.toString(creature.getSanity().getValue()));
+				sanitySession.setText(Integer.toString(creature.getSanity().getSessionStartingSanity() - creature.getSanity().getValue()));
+			}
+		});
 	}
 
 	@Override

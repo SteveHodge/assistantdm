@@ -947,6 +947,8 @@ public class ControllerFrame extends JFrame {
 				}
 
 				if (displayEl != null) parseDOM(displayEl, idMap);
+				else
+					System.out.println("No elements found in encounter");
 			}
 		}
 	};
@@ -1132,7 +1134,7 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
-	private AddElementAction<ImageOptionsPanel> imageElementAction = new AddElementAction<ImageOptionsPanel>("Image") {
+	private AddElementAction<ImageOptionsPanel> imageElementAction = new AddElementAction<ImageOptionsPanel>("Image/Map") {
 		@Override
 		protected ImageOptionsPanel createOptionsPanel(MapElement parent) {
 			URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);

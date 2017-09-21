@@ -166,6 +166,15 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		partyMenu.add(selectPartyItem);
 		partyMenu.add(xpItem);
 		partyMenu.add(xpHistoryItem);
+
+		JMenuItem sanityItem = new JMenuItem("Reset sanity session");
+		sanityItem.addActionListener(e -> {
+			for (Character c : party) {
+				c.getSanity().startSession();
+			}
+		});
+		partyMenu.add(sanityItem);
+
 		setJMenuBar(menuBar);
 
 		tabbedPane = new JTabbedPane();
