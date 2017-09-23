@@ -93,6 +93,11 @@ public class PartyPanel extends JPanel implements PartyListener {
 		actionsPane.add(saveHTML);
 		JButton debug = new JButton("Debug");
 		actionsPane.add(debug);
+		JButton healButton = new JButton("Damage/Heal");
+		healButton.addActionListener(e -> {
+			CharacterDamageDialog.openDialog(this, "Damage and healing", c);
+		});
+		actionsPane.add(healButton);
 		actionsPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, actionsPane.getMinimumSize().height));
 		leftPanel.add(actionsPane);
 

@@ -1,9 +1,9 @@
 package gamesystem;
 
-import gamesystem.dice.Dice;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import gamesystem.dice.Dice;
 
 /*
  * FeatureDefinition is a base class for factories like ClassFeatureDefinition and FeatDefinition. It allows the definition of simple fixed effects that are realised as
@@ -88,6 +88,7 @@ public abstract class FeatureDefinition<S extends FeatureDefinition<S>> {
 		@Override
 		public ImmutableModifier getModifier(Buff b) {
 			ImmutableModifier m = new ImmutableModifier(modifier, type, b.name, condition);
+			m.id = b.id;
 			return m;
 		}
 

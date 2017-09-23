@@ -59,6 +59,7 @@ import party.CharacterLibrary;
 import party.Party;
 import swing.JTableWithToolTips;
 import ui.PartyPanel;
+import ui.RestDialog;
 import ui.RollsPanel;
 import ui.SelectDiffsDialog;
 import ui.SelectPartyDialog;
@@ -167,13 +168,12 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		partyMenu.add(xpItem);
 		partyMenu.add(xpHistoryItem);
 
-		JMenuItem sanityItem = new JMenuItem("Reset sanity session");
-		sanityItem.addActionListener(e -> {
-			for (Character c : party) {
-				c.getSanity().startSession();
-			}
+		JMenuItem restItem = new JMenuItem("Rest / Reset Sanity...");
+		restItem.addActionListener(e -> {
+			RestDialog dialog = new RestDialog(this, party);
+			dialog.setVisible(true);
 		});
-		partyMenu.add(sanityItem);
+		partyMenu.add(restItem);
 
 		setJMenuBar(menuBar);
 

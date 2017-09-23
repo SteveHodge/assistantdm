@@ -1,9 +1,5 @@
 package ui;
 
-import gamesystem.Creature;
-import gamesystem.HPs;
-import gamesystem.Modifier;
-
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -21,12 +17,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
+import gamesystem.Creature;
+import gamesystem.HPs;
+import gamesystem.Modifier;
 import party.Character;
 
 // TODO probably don't want both damage and healing to be applied when user hits the apply button. either clear the other value when one value is changed or clear both fields after apply
@@ -80,35 +77,26 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 		GridBagConstraints c = new GridBagConstraints();
 		c.insets = new Insets(1,2,1,2);
 		c.gridx = 0;
-		c.gridwidth = 2; c.gridheight = 1;
+		c.gridwidth = 1;
+		c.gridheight = 1;
 		c.weightx = 0.0; c.weighty = 0.0;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridy = 0; add(new JLabel("Current Hitpoints:"),c);
 		c.gridy++; add(new JLabel("Maximum Hitpoints:"), c);
 		c.gridy++; add(new JLabel("Wounds:"), c);
 		c.gridy++; add(new JLabel("Non-lethal:"), c);
-		c.gridwidth = 3;
-		c.gridy++; add(new JSeparator(SwingConstants.HORIZONTAL), c);
-		c.gridwidth = 1;
-		c.gridy++; add(new JLabel("Damage:"), c);
-		c.gridy++; add(new JLabel("Healing:"), c);
 
 		c.gridx = 1;
-		c.gridy = 5; add(dmgField,c);
-		c.gridy++; add(healField,c);
-
-		c.gridx = 2;
 		c.gridy = 0; add(currHP,c);
 		c.gridy++; add(new BoundIntegerField(character, Creature.PROPERTY_MAXHPS, 3), c);
 		c.gridy++; add(new BoundIntegerField(character, Creature.PROPERTY_WOUNDS, 3), c);
 		c.gridy++; add(new BoundIntegerField(character, Creature.PROPERTY_NONLETHAL, 3), c);
-		c.gridy = 5; add(nonLethal,c);
-		c.gridy++; add(apply,c);
 
-		c.gridx = 3; c.gridy = 0;
+		c.gridx = 2;
+		c.gridy = 0;
 		c.weightx = 1.0; c.weighty = 1.0;
 		c.fill = GridBagConstraints.BOTH;
-		c.gridheight = 7;
+		c.gridheight = 4;
 		JScrollPane scroller = new JScrollPane(tempTable);
 		scroller.setPreferredSize(new Dimension(50,50));
 		scroller.setBorder(BorderFactory.createTitledBorder("Temporary Hitpoints"));
