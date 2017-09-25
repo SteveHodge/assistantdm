@@ -4,18 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import javax.swing.event.EventListenerList;
-
 /*
  * Abstract property implementation
  */
 
 abstract public class AbstractProperty<T> implements Property<T> {
 	protected List<PropertyValue<T>> overrides;
-	EventListenerList listenerList;
+	protected String name;
+	protected PropertyCollection parent;
 
-	// TODO name
-	// TODO hierarchy stuff
+	public AbstractProperty(String name, PropertyCollection parent) {
+		this.name = name;
+		this.parent = parent;
+		parent.addProperty(this);
+	}
 
 	@Override
 	abstract public T getBaseValue();
@@ -27,13 +29,23 @@ abstract public class AbstractProperty<T> implements Property<T> {
 	}
 
 	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public PropertyCollection getParent() {
+		return parent;
+	}
+
+	@Override
 	public PropertyValue<T> addOverride(T overrideVal) {
 		T old = getValue();
 		PropertyValue<T> v = new PropertyValue<>(overrideVal);
 		if (overrides == null) overrides = new ArrayList<>();
 		overrides.add(v);
-		firePropertyChanged(old, true);
-		firePropertyChanged(old, false);	// value also changed
+		parent.fireEvent(this, PropertyEventType.COMPOSITION_CHANGED, old);
+		parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, old);
 		return v;
 	}
 
@@ -41,8 +53,8 @@ abstract public class AbstractProperty<T> implements Property<T> {
 	public void removeOverride(PropertyValue<T> key) {
 		T old = getValue();
 		if (overrides.remove(key)) {
-			firePropertyChanged(old, true);
-			firePropertyChanged(old, false);	// value also changed
+			parent.fireEvent(this, PropertyEventType.COMPOSITION_CHANGED, old);
+			parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, old);
 		} else {
 			throw new NoSuchElementException();
 		}
@@ -68,30 +80,52 @@ abstract public class AbstractProperty<T> implements Property<T> {
 
 	@Override
 	public void addPropertyListener(PropertyListener<T> l) {
-		if (listenerList == null) listenerList = new EventListenerList();
-		listenerList.add(PropertyListener.class, l);
+		parent.addPropertyListener(this, l);
 	}
 
 	@Override
 	public void removePropertyListener(PropertyListener<T> l) {
-		if (listenerList == null) listenerList = new EventListenerList();
-		listenerList.remove(PropertyListener.class, l);
+		parent.removePropertyListener(this, l);
 	}
 
-	@SuppressWarnings("unchecked")
-	protected void firePropertyChanged(T oldVal, boolean compChange) {
-		if (listenerList == null) return;
-		Object[] listeners = listenerList.getListenerList();
-		PropertyEvent<T> event = null;
-		for (int i = listeners.length - 2; i >= 0; i -= 2) {
-			if (listeners[i] == PropertyListener.class) {
-				if (event == null) event = new PropertyEvent<>(this, oldVal);
-				if (compChange) {
-					((PropertyListener<T>) listeners[i + 1]).compositionChanged(event);
-				} else if (getValue() != oldVal) {
-					((PropertyListener<T>) listeners[i + 1]).valueChanged(event);
-				}
-			}
-		}
-	}
+// 	public static int listenerCount = 0;
+//
+//	public static int listenerLists = 0;
+//	public static int propertyCount = 0;
+//	{
+//		propertyCount++;
+//	}
+//
+//	@Override
+//	public void addPropertyListener(PropertyListener<T> l) {
+//		if (listenerList == null) {
+//			listenerList = new EventListenerList();
+//			listenerLists++;
+//		}
+//		listenerList.add(PropertyListener.class, l);
+//		listenerCount++;
+//	}
+//
+//	@Override
+//	public void removePropertyListener(PropertyListener<T> l) {
+//		if (listenerList == null) listenerList = new EventListenerList();
+//		listenerList.remove(PropertyListener.class, l);
+//	}
+//
+//	@SuppressWarnings("unchecked")
+//	protected void firePropertyChanged(T oldVal, boolean compChange) {
+//		if (listenerList == null) return;
+//		Object[] listeners = listenerList.getListenerList();
+//		PropertyEvent<T> event = null;
+//		for (int i = listeners.length - 2; i >= 0; i -= 2) {
+//			if (listeners[i] == PropertyListener.class) {
+//				if (event == null) event = new PropertyEvent<>(this, oldVal);
+//				if (compChange) {
+//					((PropertyListener<T>) listeners[i + 1]).compositionChanged(event);
+//				} else if (getValue() != oldVal) {
+//					((PropertyListener<T>) listeners[i + 1]).valueChanged(event);
+//				}
+//			}
+//		}
+//	}
 }

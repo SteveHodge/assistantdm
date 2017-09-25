@@ -1,6 +1,5 @@
 package gamesystem.core;
 
-import java.util.EventListener;
 import java.util.List;
 
 /* A Property represents a single value that is overridable and that notifies interested parties of changes.
@@ -24,7 +23,7 @@ import java.util.List;
  */
 
 public interface Property<T> {
-	// ProeprtyValue is used as an key for overrides. it could expose a method to return the associated value
+	// ProeprtyValue is used as a key for overrides. it could expose a method to return the associated value
 	class PropertyValue<U> {
 		final U value;
 
@@ -32,6 +31,14 @@ public interface Property<T> {
 			value = val;
 		}
 	}
+
+	public String getName();
+
+	public PropertyCollection getParent();
+
+	public void addPropertyListener(PropertyListener<T> l);
+
+	public void removePropertyListener(PropertyListener<T> l);
 
 	public T getValue();
 
@@ -45,32 +52,4 @@ public interface Property<T> {
 
 	// returns all values in order (base value then each override in the order they were added)
 	public List<T> getValues();
-
-	public void addPropertyListener(PropertyListener<T> l);
-
-	public void removePropertyListener(PropertyListener<T> l);
-
-	static class PropertyEvent<U> {
-		final Property<U> source;
-		final U oldValue;
-
-		PropertyEvent(Property<U> src, U old) {
-			source = src;
-			oldValue = old;
-		}
-
-		public Property<U> getSource() {
-			return source;
-		}
-
-		public U getOldValue() {
-			return oldValue;
-		}
-	}
-
-	interface PropertyListener<U> extends EventListener {
-		public void valueChanged(PropertyEvent<U> event);
-
-		public void compositionChanged(PropertyEvent<U> event);
-	}
 }

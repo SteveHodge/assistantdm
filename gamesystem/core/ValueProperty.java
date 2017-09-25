@@ -7,7 +7,8 @@ package gamesystem.core;
 public class ValueProperty<T> extends AbstractProperty<T> {
 	T value;
 
-	public ValueProperty(T initialVal) {
+	public ValueProperty(String name, PropertyCollection parent, T initialVal) {
+		super(name, parent);
 		value = initialVal;
 	}
 
@@ -17,12 +18,12 @@ public class ValueProperty<T> extends AbstractProperty<T> {
 			// have override so the final value won't change but the composition will
 			T old = getValue();
 			value = newVal;
-			firePropertyChanged(old, true);
+			parent.fireEvent(this, PropertyEventType.COMPOSITION_CHANGED, old);
 		} else {
 			// no override
 			T old = value;
 			value = newVal;
-			firePropertyChanged(old, false);
+			parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, old);
 		}
 	}
 
