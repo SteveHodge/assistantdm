@@ -1,7 +1,5 @@
 package monsters;
 
-import gamesystem.Creature;
-
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -42,19 +40,19 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import monsters.StatisticsBlock.Field;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import util.ModuleRegistry;
-import util.XMLUtils;
 import combat.EncounterModule;
 import combat.MonsterCombatEntry;
 import digital_table.controller.ControllerFrame;
+import gamesystem.Creature;
+import monsters.StatisticsBlock.Field;
+import util.ModuleRegistry;
+import util.XMLUtils;
 
 //TODO should keep a map of Field to DetailPanel so we can update them automatically and select the right one more easily
 //TODO details button checks for a statistics block, it should probably check for a URL
@@ -182,7 +180,7 @@ public class EncounterDialog extends JFrame {
 		detailsButton = new JButton("Details");
 		detailsButton.addActionListener(e -> {
 			if (selected == null) return;
-			StatisticsBlock blk = (StatisticsBlock) selected.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+			StatisticsBlock blk = (StatisticsBlock) selected.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 			if (blk == null) return;
 			JFrame frame = new MonsterFrame(blk);
 			frame.setVisible(true);
@@ -271,7 +269,7 @@ public class EncounterDialog extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO this should duplicate the monster directly rather than using the stats block (which may not be present once adhoc monsters can be bought into this dialog)
-			StatisticsBlock blk = (StatisticsBlock) selected.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+			StatisticsBlock blk = (StatisticsBlock) selected.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 			if (blk == null) return;
 
 			int ordinal = 1;
@@ -314,7 +312,7 @@ public class EncounterDialog extends JFrame {
 				Creature m = monsterListModel.getElementAt(i);
 				Integer imgIndex = imageIndexes.get(m);
 				File f = null;
-				List<URL> urls = imageURLs.get(m.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK));
+				List<URL> urls = imageURLs.get(m.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK));
 				if (urls != null && imgIndex != null && imgIndex.intValue() >= 0) {
 					URL url = urls.get(imgIndex.intValue());
 					// TODO fix this. probably addMonster should take a URL for the image
@@ -459,7 +457,7 @@ public class EncounterDialog extends JFrame {
 
 	public void addMonster(Monster m) {
 		monsterListModel.addMonster(m);
-		StatisticsBlock s = (StatisticsBlock) m.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+		StatisticsBlock s = (StatisticsBlock) m.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 		if (!imageURLs.containsKey(s)) {
 			List<URL> urls = new ArrayList<>();
 			if (s != null) Collections.addAll(urls, s.getImageURLs());
@@ -486,7 +484,7 @@ public class EncounterDialog extends JFrame {
 			} else {
 				addButton.setEnabled(true);
 				deleteButton.setEnabled(true);
-				StatisticsBlock blk = (StatisticsBlock) selected.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+				StatisticsBlock blk = (StatisticsBlock) selected.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 				detailsButton.setEnabled(blk != null);
 			}
 		}

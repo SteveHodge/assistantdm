@@ -1,9 +1,5 @@
 package monsters;
 
-import gamesystem.Buff;
-import gamesystem.BuffFactory;
-import gamesystem.Creature;
-
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -31,8 +27,11 @@ import javax.swing.ListModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import swing.ImagePanel;
 import digital_table.controller.TokenOptionsPanel;
+import gamesystem.Buff;
+import gamesystem.BuffFactory;
+import gamesystem.Creature;
+import swing.ImagePanel;
 
 @SuppressWarnings("serial")
 class NamePanel extends DetailPanel {
@@ -103,7 +102,7 @@ class NamePanel extends DetailPanel {
 				if (chooser.showOpenDialog(NamePanel.this) == JFileChooser.APPROVE_OPTION) {
 					try {
 						File imageFile = chooser.getSelectedFile();
-						StatisticsBlock blk = (StatisticsBlock) monster.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+						StatisticsBlock blk = (StatisticsBlock) monster.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
 						List<URL> urls = imageURLs.get(blk);
 						if (urls == null) {
 							urls = new ArrayList<>();
@@ -194,7 +193,7 @@ class NamePanel extends DetailPanel {
 	// handles out of range indexes
 	void setSelectedImage(int index) {
 		if (monster == null) return;
-		List<URL> urls = imageURLs.get(monster.getProperty(StatsBlockCreatureView.PROPERTY_STATS_BLOCK));
+		List<URL> urls = imageURLs.get(monster.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK));
 		if (index < 0) index = 0;
 		if (index >= urls.size()) index = urls.size() - 1;
 		imageIndexes.put(monster, index);

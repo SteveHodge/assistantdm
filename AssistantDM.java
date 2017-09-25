@@ -347,7 +347,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 				if (!diffsDialog.isCancelled()) {
 					List<String> updates = diffsDialog.getSelectedDiffs();
 					for (String prop : updates) {
-						oldChar.setProperty(prop,inChar.getProperty(prop));
+						oldChar.setProperty(prop, inChar.getPropertyValue(prop));
 					}
 				}
 			}

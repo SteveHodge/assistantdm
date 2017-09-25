@@ -1,11 +1,11 @@
 package ui;
 
-import gamesystem.Creature;
-
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+
+import gamesystem.Creature;
 
 
 // TODO this can be done with beans binding (JGoodies/JFace) - it's a more general solution. the alternative would be to have character supply models for properties/statistics
@@ -54,12 +54,12 @@ public class BoundTextField extends JTextField {
 			// if we try to set the text in this case it will cause an exception, so we set a flag
 			// TODO this is not threadsafe
 			if (!modifying) {
-				setText(creature.getProperty(property).toString());
+				setText(creature.getPropertyValue(property).toString());
 			}
 		});
 		setColumns(columns);
-		if (creature.getProperty(property) != null) {
-			setText(creature.getProperty(property).toString());
+		if (creature.getPropertyValue(property) != null) {
+			setText(creature.getPropertyValue(property).toString());
 		}
 	}
 }

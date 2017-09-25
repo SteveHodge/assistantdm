@@ -1,9 +1,5 @@
 package gamesystem;
 
-import gamesystem.core.Property;
-import gamesystem.core.Property.PropertyEvent;
-import gamesystem.dice.CombinedDice;
-
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +12,8 @@ import java.util.Set;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import gamesystem.core.Property;
+import gamesystem.dice.CombinedDice;
 import party.Character;
 
 // TODO attack form specific combat options (+DOM)
@@ -82,16 +80,8 @@ public class Attacks extends Statistic {
 		}
 		ac = creature.getACStatistic();
 		bab = creature.getBAB();
-		bab.addPropertyListener(new Property.PropertyListener<Integer>() {
-			@Override
-			public void valueChanged(PropertyEvent<Integer> event) {
-				firePropertyChange("value", null, getValue());	// may have been fired by the power attack or combate expertise, but maybe not
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<Integer> event) {
-				firePropertyChange("value", null, getValue());	// may have been fired by the power attack or combate expertise, but maybe not
-			}
+		bab.addPropertyListener((source, type, oldValue, newValue) -> {
+			firePropertyChange("value", null, getValue());	// may have been fired by the power attack or combate expertise, but maybe not
 		});
 
 		strMod = creature.getAbilityModifier(AbilityScore.Type.STRENGTH);

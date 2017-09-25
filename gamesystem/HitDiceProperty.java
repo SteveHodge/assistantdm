@@ -1,13 +1,14 @@
 package gamesystem;
 
-import gamesystem.SavingThrow.Type;
-import gamesystem.core.AbstractProperty;
-import gamesystem.dice.HDDice;
-import gamesystem.dice.SimpleDice;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import gamesystem.SavingThrow.Type;
+import gamesystem.core.AbstractProperty;
+import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEventType;
+import gamesystem.dice.HDDice;
+import gamesystem.dice.SimpleDice;
 import monsters.Monster;
 import monsters.StatisticsBlock.Field;
 
@@ -21,7 +22,8 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	private Modifier conMod;
 	public int bonusHPs = 0;	// TODO remove this hack
 
-	public HitDiceProperty(Race r, Levels l, AbilityScore con) {
+	public HitDiceProperty(PropertyCollection parent, Race r, Levels l, AbilityScore con) {
+		super("hitdice", parent);
 		if (r == null) throw new IllegalArgumentException("Race parameter cannot be null");
 		if (l == null) throw new IllegalArgumentException("Levels parameter cannot be null");
 		race = r;
@@ -34,16 +36,8 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			});
 		}
 
-		race.addPropertyListener(new PropertyListener<String>() {
-			@Override
-			public void valueChanged(gamesystem.core.Property.PropertyEvent<String> event) {
-				updateHitDice();
-			}
-
-			@Override
-			public void compositionChanged(gamesystem.core.Property.PropertyEvent<String> event) {
-				updateHitDice();
-			}
+		race.addPropertyListener((source, type, oldValue, newValue) -> {
+			updateHitDice();
 		});
 
 		levels.addPropertyChangeListener((e) -> {
@@ -81,7 +75,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		}
 
 		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
-			firePropertyChanged(old, false);
+			parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, old);
 		}
 	}
 
@@ -189,7 +183,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		}
 
 		// unholy toughness: add charisma bonus per hd
-		String quals = (String) m.getProperty(Field.SPECIAL_QUALITIES.name());
+		String quals = (String) m.getPropertyValue(Field.SPECIAL_QUALITIES.name());
 		if (quals != null && quals.toLowerCase().contains("unholy toughness")) {
 			Modifier chr = m.getAbilityModifier(AbilityScore.Type.CHARISMA);
 			if (chr != null) {
@@ -199,7 +193,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		}
 
 		// desecrating aura (+2 hp per hd)
-		quals = (String) m.getProperty(Field.SPECIAL_ATTACKS.name());
+		quals = (String) m.getPropertyValue(Field.SPECIAL_ATTACKS.name());
 		if (quals != null && quals.toLowerCase().contains("desecrating aura")) {
 			bonusHPs += getHitDiceCount() * 2;
 		}

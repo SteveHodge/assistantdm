@@ -1,7 +1,5 @@
 package ui;
 
-import gamesystem.Creature;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -17,6 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
+import gamesystem.Creature;
 import party.Character;
 
 @SuppressWarnings("serial")
@@ -122,8 +121,8 @@ public class SelectDiffsDialog extends JDialog implements ActionListener {
 		@Override
 		public Object getValueAt(int row, int column) {
 			if (column == 0) return diffs.get(row);
-			if (column == 1) return oldChar.getProperty(diffs.get(row));
-			if (column == 2) return newChar.getProperty(diffs.get(row));
+			if (column == 1) return oldChar.getPropertyValue(diffs.get(row));
+			if (column == 2) return newChar.getPropertyValue(diffs.get(row));
 			if (column == 3) {
 				Boolean sel = selected.get(diffs.get(row));
 				if (sel != null) return sel;

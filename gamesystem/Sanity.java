@@ -2,46 +2,40 @@ package gamesystem;
 
 import gamesystem.core.AbstractProperty;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEventType;
 import gamesystem.core.ValueProperty;
 
 public class Sanity extends ValueProperty<Integer> {
-	ValueProperty<Integer> knowledgeSkill = new ValueProperty<Integer>(0);
-
+	ValueProperty<Integer> knowledgeSkill;
 	AbstractProperty<Integer> startingSanity;
-
+	AbstractProperty<Integer> maxSanity;
 	int sessionStart;
 
-	AbstractProperty<Integer> maxSanity = new AbstractProperty<Integer>() {
-		{
-			knowledgeSkill.addPropertyListener(new PropertyListener<Integer>() {
-				@Override
-				public void valueChanged(gamesystem.core.Property.PropertyEvent<Integer> event) {
-					firePropertyChanged(99 - event.getOldValue(), false);
-				}
+	public Sanity(PropertyCollection parent, AbilityScore wis) {
+		super("sanity", parent, calculateStarting(wis.getValue()));
+		knowledgeSkill = new ValueProperty<Integer>("sanity.knowledge_skill", parent, 0);
 
-				@Override
-				public void compositionChanged(gamesystem.core.Property.PropertyEvent<Integer> event) {
-					firePropertyChanged(99 - event.getOldValue(), true);
-				}
-			});
-		}
+		maxSanity = new AbstractProperty<Integer>("sanity.maximum", parent) {
+			{
+				knowledgeSkill.addPropertyListener((source, type, oldValue, newValue) -> {
+					parent.fireEvent(maxSanity, PropertyEventType.VALUE_CHANGED, 99 - oldValue);
+				});
+			}
 
-		@Override
-		public Integer getBaseValue() {
-			return 99 - knowledgeSkill.getValue();
-		}
-	};
+			@Override
+			public Integer getBaseValue() {
+				return 99 - knowledgeSkill.getValue();
+			}
+		};
 
-	public Sanity(AbilityScore wis) {
-		super(calculateStarting(wis.getValue()));
-
-		startingSanity = new AbstractProperty<Integer>() {
+		startingSanity = new AbstractProperty<Integer>("sanity.starting", parent) {
 			{
 				wis.addPropertyChangeListener((e) -> {
 					Integer old = (Integer) e.getOldValue();
 					int oldValue = 0;
 					if (old != null) oldValue = calculateStarting(old);
-					firePropertyChanged(oldValue, false);
+					parent.fireEvent(startingSanity, PropertyEventType.VALUE_CHANGED, oldValue);
 				});
 			}
 
@@ -76,7 +70,7 @@ public class Sanity extends ValueProperty<Integer> {
 
 	public void startSession() {
 		sessionStart = getValue();
-		firePropertyChanged(getValue(), true);
+		parent.fireEvent(this, PropertyEventType.COMPOSITION_CHANGED, getValue());
 	}
 
 	// heal must be > 0. note this affects the base value so it will have no apparent effect if an override is applied

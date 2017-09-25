@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import gamesystem.core.Property.PropertyEvent;
-import gamesystem.core.Property.PropertyListener;
 import gamesystem.dice.HDDice;
 
 
@@ -89,16 +87,8 @@ public class HPs extends Statistic {
 		super("Hit Points");
 
 		hitdice = hd;
-		hitdice.addPropertyListener(new PropertyListener<List<HDDice>>() {
-			@Override
-			public void valueChanged(PropertyEvent<List<HDDice>> event) {
-				updateModifier(HDDice.getTotalConstant(event.getOldValue()));
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<List<HDDice>> event) {
-				updateModifier(HDDice.getTotalConstant(event.getOldValue()));
-			}
+		hitdice.addPropertyListener((source, type, oldValue, newValue) -> {
+			updateModifier(HDDice.getTotalConstant(oldValue));
 		});
 	}
 

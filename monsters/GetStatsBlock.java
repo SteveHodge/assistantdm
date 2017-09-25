@@ -1,16 +1,4 @@
 package monsters;
-import gamesystem.AbilityScore;
-import gamesystem.CharacterClass;
-import gamesystem.Creature;
-import gamesystem.Modifier;
-import gamesystem.MonsterType;
-import gamesystem.SaveProgression;
-import gamesystem.SavingThrow;
-import gamesystem.SizeCategory;
-import gamesystem.dice.CombinedDice;
-import gamesystem.dice.DiceList;
-import gamesystem.dice.HDDice;
-
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -23,6 +11,17 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import gamesystem.AbilityScore;
+import gamesystem.CharacterClass;
+import gamesystem.Creature;
+import gamesystem.Modifier;
+import gamesystem.MonsterType;
+import gamesystem.SaveProgression;
+import gamesystem.SavingThrow;
+import gamesystem.SizeCategory;
+import gamesystem.dice.CombinedDice;
+import gamesystem.dice.DiceList;
+import gamesystem.dice.HDDice;
 import monsters.Monster.MonsterAttackForm;
 import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine;
@@ -361,8 +360,8 @@ public class GetStatsBlock {
 			System.out.println("  Race: " + m.race + " " + m.race.getHitDiceCount());
 			System.out.println("  Classes: " + m.level);
 			System.out.println("  Feats: " + block.get(Field.FEATS));
-			System.out.println("  Special Attacks: " + m.getProperty(Field.SPECIAL_ATTACKS.name()));
-			System.out.println("  Special Qualities: " + m.getProperty(Field.SPECIAL_QUALITIES.name()));
+			System.out.println("  Special Attacks: " + m.getPropertyValue(Field.SPECIAL_ATTACKS.name()));
+			System.out.println("  Special Qualities: " + m.getPropertyValue(Field.SPECIAL_QUALITIES.name()));
 		}
 	}
 
@@ -1003,12 +1002,12 @@ public class GetStatsBlock {
 			if (cr.equals("¼")) cr = "1/4";
 
 			System.out.println("<Monster name=\""+block.getName()
-					+ "\" url=\"" + block.get(StatisticsBlock.Field.URL)
-					+"\" size=\""+size
-					+"\" type=\""+type
-					+ "\" environment=\"" + block.get(StatisticsBlock.Field.ENVIRONMENT)
-					+"\" cr=\""+cr
-					+"\"/>");
+			+ "\" url=\"" + block.get(StatisticsBlock.Field.URL)
+			+"\" size=\""+size
+			+"\" type=\""+type
+			+ "\" environment=\"" + block.get(StatisticsBlock.Field.ENVIRONMENT)
+			+"\" cr=\""+cr
+			+"\"/>");
 		}
 	}
 

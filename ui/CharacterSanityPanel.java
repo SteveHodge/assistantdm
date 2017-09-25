@@ -4,8 +4,6 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 
 import gamesystem.Sanity;
-import gamesystem.core.Property.PropertyEvent;
-import gamesystem.core.Property.PropertyListener;
 import gamesystem.core.ValueProperty;
 import party.Character;
 
@@ -23,32 +21,14 @@ class CharacterSanityPanel extends CharacterSubPanel {
 		summary = sanity.getValue().toString();
 
 		maxLabel = new JLabel("Maximum: " + sanity.getMaximumSanityProperty().getValue());
-		sanity.getMaximumSanityProperty().addPropertyListener(new PropertyListener<Integer>() {
-			@Override
-			public void valueChanged(PropertyEvent<Integer> event) {
-				maxLabel.setText("Maximum: " + sanity.getMaximumSanityProperty().getValue());
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<Integer> event) {
-				maxLabel.setText("Maximum: " + sanity.getMaximumSanityProperty().getValue());
-			}
-
+		sanity.getMaximumSanityProperty().addPropertyListener((source, type, oldValue, newValue) -> {
+			maxLabel.setText("Maximum: " + newValue);
 		});
 		add(maxLabel);
 
 		startingLabel = new JLabel("Starting: " + sanity.getStartingSanityProperty().getValue());
-		sanity.getStartingSanityProperty().addPropertyListener(new PropertyListener<Integer>() {
-			@Override
-			public void valueChanged(PropertyEvent<Integer> event) {
-				startingLabel.setText("Starting: " + sanity.getStartingSanityProperty().getValue());
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<Integer> event) {
-				startingLabel.setText("Starting: " + sanity.getStartingSanityProperty().getValue());
-			}
-
+		sanity.getStartingSanityProperty().addPropertyListener((source, type, oldValue, newValue) -> {
+			startingLabel.setText("Starting: " + newValue);
 		});
 		add(startingLabel);
 
@@ -60,16 +40,8 @@ class CharacterSanityPanel extends CharacterSubPanel {
 				sanity.setBaseValue((Integer) currentField.getValue());
 			}
 		});
-		sanity.addPropertyListener(new PropertyListener<Integer>() {
-			@Override
-			public void valueChanged(PropertyEvent<Integer> event) {
-				currentField.setValue(sanity.getValue());
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<Integer> event) {
-				currentField.setValue(sanity.getValue());
-			}
+		sanity.addPropertyListener((source, type, oldValue, newValue) -> {
+			currentField.setValue(newValue);
 		});
 		currentField.setColumns(3);
 		add(currentField);
@@ -83,16 +55,8 @@ class CharacterSanityPanel extends CharacterSubPanel {
 				knowledge.setBaseValue((Integer) knowledgeField.getValue());
 			}
 		});
-		knowledge.addPropertyListener(new PropertyListener<Integer>() {
-			@Override
-			public void valueChanged(PropertyEvent<Integer> event) {
-				knowledgeField.setValue(knowledge.getValue());
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<Integer> event) {
-				knowledgeField.setValue(knowledge.getValue());
-			}
+		knowledge.addPropertyListener((source, type, oldValue, newValue) -> {
+			knowledgeField.setValue(newValue);
 		});
 		knowledgeField.setColumns(3);
 		add(knowledgeField);

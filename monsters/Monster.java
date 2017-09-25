@@ -1,5 +1,12 @@
 package monsters;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
@@ -22,16 +29,6 @@ import gamesystem.SavingThrow;
 import gamesystem.Size;
 import gamesystem.Skills;
 import gamesystem.core.Property;
-import gamesystem.core.Property.PropertyEvent;
-import gamesystem.core.Property.PropertyListener;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import monsters.StatisticsBlock.Field;
 
 
@@ -108,20 +105,12 @@ public class Monster extends Creature {
 		initiative.setBaseValue(0);
 		initiative.addPropertyChangeListener(statListener);
 
-		race = new Race();
-		race.addPropertyListener(new PropertyListener<String>() {
-			@Override
-			public void valueChanged(PropertyEvent<String> event) {
-				hitDice.updateBonusHPs(Monster.this);
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<String> event) {
-				hitDice.updateBonusHPs(Monster.this);
-			}
+		race = new Race(this);
+		race.addPropertyListener((source, type, oldValue, newValue) -> {
+			hitDice.updateBonusHPs(Monster.this);
 		});
 		level = new Levels();
-		hitDice = new HitDiceProperty(race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
+		hitDice = new HitDiceProperty(this, race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
@@ -162,9 +151,9 @@ public class Monster extends Creature {
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
 		skills.addPropertyChangeListener(statListener);
 
-		bab = new BAB(race, level);
+		bab = new BAB(this, race, level);
 
-		grapple = new GrappleModifier(bab, size, abilities.get(AbilityScore.Type.STRENGTH));
+		grapple = new GrappleModifier(this, bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
 		attacks = new Attacks(this);
 		// TODO size modifier to attack needs to be setup correctly
@@ -352,9 +341,9 @@ public class Monster extends Creature {
 			if (ff.getName().equals(name)) return true;
 		}
 		// check other feats and properties
-		String feats = (String) getProperty(Field.FEATS.name());
+		String feats = (String) getPropertyValue(Field.FEATS.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
-		feats = (String) getProperty(Field.SPECIAL_QUALITIES.name());
+		feats = (String) getPropertyValue(Field.SPECIAL_QUALITIES.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		return false;
 	}
@@ -367,7 +356,7 @@ public class Monster extends Creature {
 	// returns the counts of regular feats and bonus feats parsed from the FEATS property. Does not consider the feats member.
 	public int[] countFeats() {
 		int[] counts = { 0, 0 };
-		String list = (String) getProperty(Field.FEATS.name());
+		String list = (String) getPropertyValue(Field.FEATS.name());
 		if (list == null || list.equals("—")) return counts;
 
 		String[] feats = list.split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
@@ -394,13 +383,13 @@ public class Monster extends Creature {
 	}
 
 	@Override
-	public Object getProperty(String prop) {
+	public Object getPropertyValue(String prop) {
 		if (prop.equals(PROPERTY_AC_FLATFOOTED))
 			return getFlatFootedAC();
 		else if (prop.equals(PROPERTY_AC_TOUCH))
 			return getTouchAC();
 		else
-			return super.getProperty(prop);
+			return super.getPropertyValue(prop);
 	}
 
 	@Override

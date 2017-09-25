@@ -4,6 +4,7 @@ package gamesystem;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,11 +16,14 @@ import javax.swing.DefaultListModel;
 
 import gamesystem.CharacterClass.ClassOption;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEventType;
+import gamesystem.core.PropertyListener;
 import swing.ListModelWithToolTips;
 
 // TODO the initiative property should either be the base value or the total - pick one
 // TODO should probably convert these constants to enums
-public abstract class Creature implements StatisticsCollection {
+public abstract class Creature implements StatisticsCollection, PropertyCollection {
 	// properties
 	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
 	public final static String PROPERTY_MAXHPS = "Hit Points";
@@ -165,6 +169,78 @@ public abstract class Creature implements StatisticsCollection {
 	protected static Creature getCreature(int id) {
 		return idMap.get(id);
 	}
+
+	//------------------------ PropertyCollection --------------------------
+	Map<String, Property<?>> properties = new HashMap<>();
+	Map<Property<?>, List<PropertyListener<?>>> listeners = new HashMap<>();	// TODO more efficient implementation
+
+	public void debugDumpStructure() {
+		List<String> keys = new ArrayList<>(properties.keySet());
+		Collections.sort(keys);
+		for (String s : keys) {
+			System.out.println(s);
+		}
+	}
+
+	@Override
+	public <T> void addProperty(Property<T> property) {
+		properties.put(property.getName(), property);
+	}
+
+	@Override
+	public <T> void fireEvent(Property<T> source, PropertyEventType type, T oldValue) {
+		List<PropertyListener<?>> list = listeners.get(source);
+		if (list == null) return;
+		for (PropertyListener<?> l : list) {
+			((PropertyListener<T>) l).propertyChanged(source, type, oldValue, source.getValue());
+		}
+	}
+
+	@Override
+	public void addPropertyListener(String propName, PropertyListener<?> l) {
+		// TODO argument checking: check l is not null
+		Property<?> property = getProperty(propName);
+		if (property == null) return;
+		List<PropertyListener<?>> list = listeners.get(property);
+		if (list == null) {
+			list = new ArrayList<>();
+			listeners.put(property, list);
+		}
+		list.add(l);
+	}
+
+	@Override
+	public <T> void addPropertyListener(Property<T> property, PropertyListener<T> l) {
+		// TODO argument checking: check property is in this object, l is not null
+		List<PropertyListener<?>> list = listeners.get(property);
+		if (list == null) {
+			list = new ArrayList<>();
+			listeners.put(property, list);
+		}
+		list.add(l);
+	}
+
+	@Override
+	public void removePropertyListener(String propName, PropertyListener<?> l) {
+		Property<?> property = getProperty(propName);
+		if (property == null) return;
+		List<PropertyListener<?>> list = listeners.get(property);
+		if (list == null) return;
+		list.remove(l);
+	}
+
+	@Override
+	public <T> void removePropertyListener(Property<T> property, PropertyListener<T> l) {
+		List<PropertyListener<?>> list = listeners.get(property);
+		if (list == null) return;
+		list.remove(l);
+	}
+
+	@Override
+	public Property<?> getProperty(String name) {
+		return properties.get(name);
+	}
+	//----------------------------------------------------------------------
 
 	abstract public void setName(String name);	// TODO shouldn't be abstract
 
@@ -391,7 +467,7 @@ public abstract class Creature implements StatisticsCollection {
 		}
 	}
 
-	public Object getProperty(String prop) {
+	public Object getPropertyValue(String prop) {
 		if (prop.equals(PROPERTY_NAME))
 			return name;
 		else if (prop.equals(PROPERTY_MAXHPS))

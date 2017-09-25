@@ -1,29 +1,24 @@
 package gamesystem;
 
 import gamesystem.core.AbstractProperty;
+import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEventType;
 
 public class BAB extends AbstractProperty<Integer> {
 	final Race race;
 	final Levels levels;
 	int bab;	// latest value, used for change notification
 
-	public BAB(Race r, Levels l) {
+	public BAB(PropertyCollection parent, Race r, Levels l) {
+		super("base_attack_bonus", parent);
 		race = r;
 		levels = l;
 		bab = getBAB();
 
 		levels.addPropertyChangeListener((e) -> recalculateBAB());
 
-		race.addPropertyListener(new PropertyListener<String>() {
-			@Override
-			public void valueChanged(gamesystem.core.Property.PropertyEvent<String> event) {
-				recalculateBAB();
-			}
-
-			@Override
-			public void compositionChanged(gamesystem.core.Property.PropertyEvent<String> event) {
-				recalculateBAB();
-			}
+		r.addPropertyListener((source, type, oldValue, newValue) -> {
+			recalculateBAB();
 		});
 	}
 
@@ -71,7 +66,7 @@ public class BAB extends AbstractProperty<Integer> {
 
 	private void recalculateBAB() {
 		if (getBAB() != bab) {
-			firePropertyChanged(bab, false);
+			parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, bab);
 			bab = getBAB();
 		}
 	}

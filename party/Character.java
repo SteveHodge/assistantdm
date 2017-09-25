@@ -48,8 +48,6 @@ import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChange;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
-import gamesystem.core.Property;
-import gamesystem.core.Property.PropertyEvent;
 
 /**
  * @author Steve
@@ -255,8 +253,8 @@ public class Character extends Creature {
 		}
 	};
 
-	public Character(String n) {
-		name = n;
+	public Character(String name) {
+		this.name = name;
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
 			final AbilityScore s = new AbilityScore(t);
 			s.addPropertyChangeListener(statListener);
@@ -267,10 +265,10 @@ public class Character extends Creature {
 		initiative = new InitiativeModifier(abilities.get(AbilityScore.Type.DEXTERITY));
 		initiative.addPropertyChangeListener(statListener);
 
-		race = new Race();
+		race = new Race(this);
 		level = new Levels();
 		level.setLevel(1);
-		hitDice = new HitDiceProperty(race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
+		hitDice = new HitDiceProperty(this, race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
@@ -287,9 +285,9 @@ public class Character extends Creature {
 		hps = new HPs(hitDice);
 		hps.addPropertyChangeListener(statListener);
 
-		bab = new BAB(race, level);
+		bab = new BAB(this, race, level);
 
-		grapple = new GrappleModifier(bab, size, abilities.get(AbilityScore.Type.STRENGTH));
+		grapple = new GrappleModifier(this, bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
 		size = new Size();
 		size.addPropertyChangeListener(statListener);
@@ -297,28 +295,12 @@ public class Character extends Creature {
 		attacks = new Attacks(this);
 		attacks.addPropertyChangeListener(statListener);
 
-		sanity = new Sanity(abilities.get(AbilityScore.Type.WISDOM));
-		sanity.addPropertyListener(new Property.PropertyListener<Integer>() {
-			@Override
-			public void valueChanged(PropertyEvent<Integer> event) {
-				firePropertyChange(PROPERTY_SANITY, event.getOldValue(), sanity.getValue());
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<Integer> event) {
-				firePropertyChange(PROPERTY_SANITY, event.getOldValue(), sanity.getValue());
-			}
+		sanity = new Sanity(this, abilities.get(AbilityScore.Type.WISDOM));
+		sanity.addPropertyListener((source, type, oldValue, newValue) -> {
+			firePropertyChange(PROPERTY_SANITY, oldValue, newValue);
 		});
-		sanity.getKnowledgeSkillProperty().addPropertyListener(new Property.PropertyListener<Integer>() {
-			@Override
-			public void valueChanged(PropertyEvent<Integer> event) {
-				firePropertyChange(PROPERTY_SANITY_KNOWLEDGE, event.getOldValue(), sanity.getKnowledgeSkillProperty().getValue());
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<Integer> event) {
-				firePropertyChange(PROPERTY_SANITY_KNOWLEDGE, event.getOldValue(), sanity.getKnowledgeSkillProperty().getValue());
-			}
+		sanity.getKnowledgeSkillProperty().addPropertyListener((source, type, oldValue, newValue) -> {
+			firePropertyChange(PROPERTY_SANITY_KNOWLEDGE, oldValue, newValue);
 		});
 	}
 
@@ -1102,7 +1084,7 @@ public class Character extends Creature {
 
 // TODO not sure this is right for ability scores. probably needs reimplementing now
 	@Override
-	public Object getProperty(String prop) {
+	public Object getPropertyValue(String prop) {
 		if (prop.equals(PROPERTY_INITIATIVE))
 			// TODO this is inconsistent with Monster. fix.
 			return initiative.getBaseValue();
@@ -1159,7 +1141,7 @@ public class Character extends Creature {
 			return 0;
 
 		} else {
-			return super.getProperty(prop);
+			return super.getPropertyValue(prop);
 		}
 
 		return null;
@@ -1225,7 +1207,7 @@ public class Character extends Creature {
 
 	// TODO remove these next three
 	private void setAttributeFromProperty(Element e, String name, String prop) {
-		String value = (String) getProperty(prop);
+		String value = (String) getPropertyValue(prop);
 		if (value != null && value.length() > 0) e.setAttribute(name, value);
 	}
 

@@ -1,15 +1,5 @@
 package monsters;
 
-import gamesystem.AbilityScore;
-import gamesystem.AbilityScore.Type;
-import gamesystem.CharacterClass;
-import gamesystem.ImmutableModifier;
-import gamesystem.Modifier;
-import gamesystem.MonsterType;
-import gamesystem.SavingThrow;
-import gamesystem.SizeCategory;
-import gamesystem.dice.HDDice;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -29,14 +19,22 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import monsters.StatisticsBlock.AttackRoutine.Attack;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import gamesystem.AbilityScore;
+import gamesystem.AbilityScore.Type;
+import gamesystem.CharacterClass;
+import gamesystem.ImmutableModifier;
+import gamesystem.Modifier;
+import gamesystem.MonsterType;
+import gamesystem.SavingThrow;
+import gamesystem.SizeCategory;
+import gamesystem.dice.HDDice;
+import monsters.StatisticsBlock.AttackRoutine.Attack;
 import util.LocalEntityResolver;
 
 /**
@@ -104,28 +102,28 @@ public class StatisticsBlock {
 		}
 
 		private static final Field[] standardOrder = {
-			SIZE_TYPE,
-			HITDICE,
-			INITIATIVE,
-			SPEED,
-			AC,
-			BASE_ATTACK_GRAPPLE,
-			ATTACK,
-			FULL_ATTACK,
-			SPACE_REACH,
-			SPECIAL_ATTACKS,
-			SPECIAL_QUALITIES,
-			SAVES,
-			ABILITIES,
-			SKILLS,
-			FEATS,
-			ENVIRONMENT,
-			ORGANIZATION,
-			CR,
-			TREASURE,
-			ALIGNMENT,
-			ADVANCEMENT,
-			LEVEL_ADJUSTMENT
+				SIZE_TYPE,
+				HITDICE,
+				INITIATIVE,
+				SPEED,
+				AC,
+				BASE_ATTACK_GRAPPLE,
+				ATTACK,
+				FULL_ATTACK,
+				SPACE_REACH,
+				SPECIAL_ATTACKS,
+				SPECIAL_QUALITIES,
+				SAVES,
+				ABILITIES,
+				SKILLS,
+				FEATS,
+				ENVIRONMENT,
+				ORGANIZATION,
+				CR,
+				TREASURE,
+				ALIGNMENT,
+				ADVANCEMENT,
+				LEVEL_ADJUSTMENT
 		};
 
 		private Field(String l) {
@@ -748,12 +746,12 @@ public class StatisticsBlock {
 
 		@Override
 		public String getFeats() {
-			return (String) creature.getProperty(Field.FEATS.name());
+			return (String) creature.getPropertyValue(Field.FEATS.name());
 		}
 
 		@Override
 		public String getSpecialQualities() {
-			return (String) creature.getProperty(Field.SPECIAL_QUALITIES.name());
+			return (String) creature.getPropertyValue(Field.SPECIAL_QUALITIES.name());
 		}
 
 		@Override

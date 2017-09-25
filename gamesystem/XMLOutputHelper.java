@@ -43,7 +43,7 @@ public class XMLOutputHelper {
 	}
 
 	protected void setAttributeFromProperty(Creature c, Element e, String name, String prop) {
-		String value = (String) c.getProperty(prop);
+		String value = c.getPropertyValue(prop).toString();
 		if (value != null && value.length() > 0) e.setAttribute(name, value);
 	}
 

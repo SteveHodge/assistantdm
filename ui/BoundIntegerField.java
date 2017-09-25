@@ -1,8 +1,8 @@
 package ui;
 
-import gamesystem.Creature;
-
 import javax.swing.JFormattedTextField;
+
+import gamesystem.Creature;
 
 
 // TODO this can be done with beans binding (JGoodies/JFace) - it's a more general solution
@@ -22,12 +22,12 @@ public class BoundIntegerField extends JFormattedTextField {
 			}
 		});
 		creature.addPropertyChangeListener(property,
-			//TODO some type checking should be done
-			//it's ok to do this even if this change event is due to an update from this control
-			//because setValue will not fire a change event if the property isn't actually changing
-		 	evt -> setValue(creature.getProperty(property)));
+				//TODO some type checking should be done
+				//it's ok to do this even if this change event is due to an update from this control
+				//because setValue will not fire a change event if the property isn't actually changing
+				evt -> setValue(creature.getPropertyValue(property)));
 		setColumns(columns);
 		//TODO some type checking should be done
-		setValue(creature.getProperty(property));
+		setValue(creature.getPropertyValue(property));
 	}
 }

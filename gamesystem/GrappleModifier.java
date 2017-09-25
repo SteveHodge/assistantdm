@@ -1,9 +1,6 @@
 package gamesystem;
 
-import gamesystem.core.Property.PropertyEvent;
-import gamesystem.core.Property.PropertyListener;
-
-
+import gamesystem.core.PropertyCollection;
 
 /*
  * It is debatable as to whether modifiers to attack should apply to grapple. Skip Williams wrote an article on grapple for wizards.com that implied that they do and
@@ -16,21 +13,13 @@ import gamesystem.core.Property.PropertyListener;
 public class GrappleModifier extends Statistic {
 	BAB bab;
 
-	public GrappleModifier(BAB bab, Size size, AbilityScore str) {
+	public GrappleModifier(PropertyCollection parent, BAB bab, Size size, AbilityScore str) {
 		super("Grapple");
 
 		if (bab != null) {
 			this.bab = bab;
-			bab.addPropertyListener(new PropertyListener<Integer>() {
-				@Override
-				public void valueChanged(PropertyEvent<Integer> event) {
-					firePropertyChange("value", null, getValue());
-				}
-
-				@Override
-				public void compositionChanged(PropertyEvent<Integer> event) {
-					firePropertyChange("value", null, getValue());
-				}
+			bab.addPropertyListener((source, type, oldValue, newValue) -> {
+				firePropertyChange("value", null, getValue());
 			});
 		}
 

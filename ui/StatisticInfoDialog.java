@@ -1,10 +1,5 @@
 package ui;
 
-import gamesystem.Buff;
-import gamesystem.BuffFactory;
-import gamesystem.Modifier;
-import gamesystem.Statistic;
-
 import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -22,6 +17,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import gamesystem.Buff;
+import gamesystem.BuffFactory;
+import gamesystem.Modifier;
+import gamesystem.Statistic;
 import party.Character;
 
 // TODO should probably convert to factory class

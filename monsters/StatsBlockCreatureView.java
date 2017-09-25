@@ -1,5 +1,15 @@
 package monsters;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.swing.SwingUtilities;
+
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
@@ -14,17 +24,6 @@ import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
 import gamesystem.dice.DiceList;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.swing.SwingUtilities;
-
 import monsters.Monster.MonsterAttackForm;
 import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine;
@@ -507,8 +506,8 @@ public class StatsBlockCreatureView {
 
 		StatisticsBlock stats = getStatsBlock();
 		if (s.length() == 0) {
-			if (creature.hasProperty(field.name()) && creature.getProperty(field.name()) != null) {
-				s.append(creature.getProperty(field.name()));
+			if (creature.hasProperty(field.name()) && creature.getPropertyValue(field.name()) != null) {
+				s.append(creature.getPropertyValue(field.name()));
 			} else if (stats != null && stats.get(field) != null) {
 				s.append(stats.get(field));
 			}
@@ -551,7 +550,7 @@ public class StatsBlockCreatureView {
 	}
 
 	private StatisticsBlock getStatsBlock() {
-		return (StatisticsBlock) creature.getProperty(PROPERTY_STATS_BLOCK);
+		return (StatisticsBlock) creature.getPropertyValue(PROPERTY_STATS_BLOCK);
 	}
 
 	private String getAttackHTML(List<MonsterAttackRoutine> attackRoutines) {

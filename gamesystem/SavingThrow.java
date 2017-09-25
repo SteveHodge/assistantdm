@@ -1,11 +1,5 @@
 package gamesystem;
 
-import gamesystem.core.Property.PropertyEvent;
-import gamesystem.core.Property.PropertyListener;
-import gamesystem.dice.HDDice;
-
-import java.util.List;
-
 public class SavingThrow extends Statistic {
 	public enum Type {
 		FORTITUDE("Fortitude", "Fort", AbilityScore.Type.CONSTITUTION),
@@ -54,16 +48,8 @@ public class SavingThrow extends Statistic {
 	public void setHitDice(HitDiceProperty hd) {
 		hitdice = hd;
 		if (hitdice != null) {
-			hitdice.addPropertyListener(new PropertyListener<List<HDDice>>() {
-				@Override
-				public void valueChanged(PropertyEvent<List<HDDice>> event) {
-					pcs.firePropertyChange("value", null, getValue());
-				}
-
-				@Override
-				public void compositionChanged(PropertyEvent<List<HDDice>> event) {
-					pcs.firePropertyChange("value", null, getValue());
-				}
+			hitdice.addPropertyListener((source, type, oldValue, newValue) -> {
+				pcs.firePropertyChange("value", null, getValue());
 			});
 		}
 	}

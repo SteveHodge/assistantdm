@@ -18,8 +18,6 @@ import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
 import gamesystem.Sanity;
 import gamesystem.Statistic;
-import gamesystem.core.Property.PropertyEvent;
-import gamesystem.core.Property.PropertyListener;
 import party.Character;
 import ui.CharacterDamageDialog;
 
@@ -183,21 +181,9 @@ public class CharacterCombatEntry extends CombatEntry {
 		if (apply != null) add(apply, c);
 		c.fill = GridBagConstraints.NONE;
 
-		sanity.addPropertyListener(new PropertyListener<Integer>() {
-			@Override
-			public void valueChanged(PropertyEvent<Integer> event) {
-				update();
-			}
-
-			@Override
-			public void compositionChanged(PropertyEvent<Integer> event) {
-				update();
-			}
-
-			private void update() {
-				sanityCurrent.setText(Integer.toString(creature.getSanity().getValue()));
-				sanitySession.setText(Integer.toString(creature.getSanity().getSessionStartingSanity() - creature.getSanity().getValue()));
-			}
+		sanity.addPropertyListener((source, type, oldValue, newValue) -> {
+			sanityCurrent.setText(newValue.toString());
+			sanitySession.setText(Integer.toString(sanity.getSessionStartingSanity() - newValue));
 		});
 	}
 
