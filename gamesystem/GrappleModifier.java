@@ -14,7 +14,7 @@ public class GrappleModifier extends Statistic {
 	BAB bab;
 
 	public GrappleModifier(PropertyCollection parent, BAB bab, Size size, AbilityScore str) {
-		super("Grapple");
+		super("Grapple", parent);
 
 		if (bab != null) {
 			this.bab = bab;
@@ -34,7 +34,7 @@ public class GrappleModifier extends Statistic {
 	}
 
 	@Override
-	public int getValue() {
+	public Integer getValue() {
 		int grapple = bab.getValue() + super.getValue();
 		return grapple;
 	}

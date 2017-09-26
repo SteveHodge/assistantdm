@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import gamesystem.core.PropertyCollection;
 import gamesystem.dice.HDDice;
 
 
@@ -83,8 +84,8 @@ public class HPs extends Statistic {
 	}
 
 	// TODO should probably move con monitoring to HitDiceProperty
-	public HPs(HitDiceProperty hd) {
-		super("Hit Points");
+	public HPs(HitDiceProperty hd, PropertyCollection parent) {
+		super("Hit Points", parent);
 
 		hitdice = hd;
 		hitdice.addPropertyListener((source, type, oldValue, newValue) -> {
@@ -290,7 +291,7 @@ public class HPs extends Statistic {
 	}
 
 	@Override
-	public int getValue() {
+	public Integer getValue() {
 		return getHPs();
 	}
 

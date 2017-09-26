@@ -256,40 +256,40 @@ public class Character extends Creature {
 	public Character(String name) {
 		this.name = name;
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
-			final AbilityScore s = new AbilityScore(t);
+			final AbilityScore s = new AbilityScore(t, this);
 			s.addPropertyChangeListener(statListener);
 			s.getModifier().addPropertyChangeListener(e -> firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue()));
 			abilities.put(t, s);
 		}
 
-		initiative = new InitiativeModifier(abilities.get(AbilityScore.Type.DEXTERITY));
+		initiative = new InitiativeModifier(abilities.get(AbilityScore.Type.DEXTERITY), this);
 		initiative.addPropertyChangeListener(statListener);
 
 		race = new Race(this);
-		level = new Levels();
+		level = new Levels(this);
 		level.setLevel(1);
 		hitDice = new HitDiceProperty(this, race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice, this);
 			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
 
-		ac = new AC(abilities.get(AbilityScore.Type.DEXTERITY));
+		ac = new AC(abilities.get(AbilityScore.Type.DEXTERITY), this);
 		ac.addPropertyChangeListener(statListener);
 
-		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
+		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty(), this);
 		skills.addPropertyChangeListener(statListener);
 
-		hps = new HPs(hitDice);
+		hps = new HPs(hitDice, this);
 		hps.addPropertyChangeListener(statListener);
 
 		bab = new BAB(this, race, level);
 
 		grapple = new GrappleModifier(this, bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
-		size = new Size();
+		size = new Size(this);
 		size.addPropertyChangeListener(statListener);
 
 		attacks = new Attacks(this);

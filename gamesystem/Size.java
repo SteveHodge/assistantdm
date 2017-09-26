@@ -1,5 +1,7 @@
 package gamesystem;
 
+import gamesystem.core.PropertyCollection;
+
 // TODO need to store certain size related characteristics of creatures: whether they are tall or long (for reach), and whether they count as quadrupeds for carrying capacity
 public class Size extends Statistic {
 	private SizeCategory category = SizeCategory.MEDIUM;
@@ -18,8 +20,8 @@ public class Size extends Statistic {
 		}
 	};
 
-	public Size() {
-		super("Size");
+	public Size(PropertyCollection parent) {
+		super("Size", parent);
 	}
 
 	public Modifier getSizeModifier() {

@@ -78,7 +78,7 @@ public class XMLOutputHelper {
 
 	protected Element getAttackFormElement(AttackForm a) {
 		Element e = doc.createElement("AttackForm");
-		e.setAttribute("name", a.name);
+		e.setAttribute("name", a.getName());
 		if (a.enhancement != null && !a.isMasterwork()) {
 			e.setAttribute("enhancement", "" + a.enhancement.getModifier());
 		} else {
@@ -325,7 +325,7 @@ public class XMLOutputHelper {
 		if (creatureEl == null) return null;
 
 		Element e = doc.createElement("AC");
-		Element armor = doc.createElement(ac.armor.name);
+		Element armor = doc.createElement(ac.armor.getName());
 		armor.setAttribute("description", ac.armor.description);
 		armor.setAttribute("bonus", "" + ac.armor.bonus);
 		if (ac.armor.enhancement != null) armor.setAttribute("enhancement", "" + ac.armor.enhancement.getModifier());
@@ -338,7 +338,7 @@ public class XMLOutputHelper {
 		if (ac.dexMod != null) armor.setAttribute("max_dex", "" + ac.dexMod.getLimit());
 		e.appendChild(armor);
 
-		Element shield = doc.createElement(ac.shield.name);
+		Element shield = doc.createElement(ac.shield.getName());
 		shield.setAttribute("description", ac.shield.description);
 		shield.setAttribute("bonus", "" + ac.shield.bonus);
 		if (ac.shield.enhancement != null) shield.setAttribute("enhancement", "" + ac.shield.enhancement.getModifier());

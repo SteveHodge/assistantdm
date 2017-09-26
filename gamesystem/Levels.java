@@ -1,11 +1,12 @@
 package gamesystem;
 
-import gamesystem.dice.HDDice;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import gamesystem.core.PropertyCollection;
+import gamesystem.dice.HDDice;
 
 //TODO this is statistic for the listener stuff but it doesn't really need modifiers so perhaps refactor
 
@@ -16,8 +17,8 @@ public class Levels extends Statistic {
 	int level = 0;
 	List<CharacterClass> classes = new ArrayList<>();	// this can have more entries than the current level (if classes have been removed they are remembered)
 
-	public Levels() {
-		super("Level");
+	public Levels(PropertyCollection parent) {
+		super("Level", parent);
 	}
 
 	public int getLevel() {

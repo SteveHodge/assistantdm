@@ -8,6 +8,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import gamesystem.core.AbstractProperty;
+import gamesystem.core.PropertyCollection;
+
 /*
  * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
  * In many cases there is a base value that the modifiers are applied to. But the base value may not be editable so its implementation
@@ -22,8 +25,7 @@ import java.util.Set;
 // to the property change for value (i.e. total). property change for changing modifiers even when the total is unchanged are also desirable
 // TODO if the value doesn't change the pcs.firePropertyChange won't actually send an event. So that changes to modifiers that don't affect the
 // total are reported we always report the old value as null. Probably best to change to a customer Event/Listener implementation
-public class Statistic {
-	protected String name;
+public class Statistic extends AbstractProperty<Integer> {
 	protected Set<Modifier> modifiers = new HashSet<>();
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -38,13 +40,27 @@ public class Statistic {
 		pcs.firePropertyChange(prop, oldVal, newVal);
 	}
 
-	public Statistic(String name) {
-		this.name = name;
+	public Statistic(String name, PropertyCollection parent) {
+		super(name, parent);
 	}
 
-	public String getName() {
-		return name;
+	//----------------------------- Property Interface -----------------------------
+	@Override
+	public Integer getBaseValue() {
+		return getValue();
 	}
+
+	@Override
+	public PropertyValue<Integer> addOverride(Integer overrideVal) {
+		// TODO implement
+		return null;
+	}
+
+	@Override
+	public void removeOverride(PropertyValue<Integer> key) {
+		// TODO implement
+	}
+	//------------------------------------------------------------------------------
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
@@ -85,7 +101,8 @@ public class Statistic {
 		firePropertyChange("value", null, newValue);
 	}
 
-	public int getValue() {
+	@Override
+	public Integer getValue() {
 		return getModifiersTotal();
 	}
 
@@ -272,35 +289,35 @@ public class Statistic {
 		return s;
 	}
 
-	public static void main(String[] args) {
-		Statistic mods = new Statistic("Test Statistic");
-		mods.addModifier(new ImmutableModifier(2,"dodge"));
-		mods.addModifier(new ImmutableModifier(1,"luck"));
-		mods.addModifier(new ImmutableModifier(1,"morale"));
-		System.out.println(mods + "\n");
-
-		mods.addModifier(new ImmutableModifier(2,"luck"));	// should replace luck +1
-		System.out.println(mods + "\n");
-
-		mods.addModifier(new ImmutableModifier(-1,"luck"));	// should be added
-		System.out.println(mods + "\n");
-
-		mods.addModifier(new ImmutableModifier(-2,"luck"));	// should replace luck -2
-		System.out.println(mods + "\n");
-
-		mods.addModifier(new ImmutableModifier(1,"dodge"));	// should be added
-		System.out.println(mods + "\n");
-
-		mods.addModifier(new ImmutableModifier(0,"morale"));	// should not be included
-		System.out.println(mods + "\n");
-
-		mods.addModifier(new ImmutableModifier(2,null,"spell"));	// should be added
-		System.out.println(mods + "\n");
-
-		mods.addModifier(new ImmutableModifier(1));			// should be added
-		System.out.println(mods + "\n");
-
-		mods.addModifier(new ImmutableModifier(3,null,"spell"));	// should replace previous "spell" bonus
-		System.out.println(mods + "\n");
-	}
+//	public static void main(String[] args) {
+//		Statistic mods = new Statistic("Test Statistic");
+//		mods.addModifier(new ImmutableModifier(2,"dodge"));
+//		mods.addModifier(new ImmutableModifier(1,"luck"));
+//		mods.addModifier(new ImmutableModifier(1,"morale"));
+//		System.out.println(mods + "\n");
+//
+//		mods.addModifier(new ImmutableModifier(2,"luck"));	// should replace luck +1
+//		System.out.println(mods + "\n");
+//
+//		mods.addModifier(new ImmutableModifier(-1,"luck"));	// should be added
+//		System.out.println(mods + "\n");
+//
+//		mods.addModifier(new ImmutableModifier(-2,"luck"));	// should replace luck -2
+//		System.out.println(mods + "\n");
+//
+//		mods.addModifier(new ImmutableModifier(1,"dodge"));	// should be added
+//		System.out.println(mods + "\n");
+//
+//		mods.addModifier(new ImmutableModifier(0,"morale"));	// should not be included
+//		System.out.println(mods + "\n");
+//
+//		mods.addModifier(new ImmutableModifier(2,null,"spell"));	// should be added
+//		System.out.println(mods + "\n");
+//
+//		mods.addModifier(new ImmutableModifier(1));			// should be added
+//		System.out.println(mods + "\n");
+//
+//		mods.addModifier(new ImmutableModifier(3,null,"spell"));	// should replace previous "spell" bonus
+//		System.out.println(mods + "\n");
+//	}
 }

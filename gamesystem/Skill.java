@@ -2,6 +2,8 @@ package gamesystem;
 
 import java.util.Map;
 
+import gamesystem.core.PropertyCollection;
+
 // TODO should this be inner class of Skills?
 // TODO reimplement misc as modifiers
 public class Skill extends Statistic {
@@ -13,8 +15,8 @@ public class Skill extends Statistic {
 //		this(type, ability.getModifier(), acp);
 //	}
 
-	protected Skill(SkillType type, Modifier abilityMod, Modifier acp) {
-		super(type.getName());
+	protected Skill(SkillType type, Modifier abilityMod, Modifier acp, PropertyCollection parent) {
+		super(type.getName(), parent);
 		skillType = type;
 		addModifier(abilityMod);
 		if (type.armorCheckPenaltyApplies) {
@@ -32,7 +34,7 @@ public class Skill extends Statistic {
 	}
 
 	@Override
-	public int getValue() {
+	public Integer getValue() {
 		int v = (int)ranks;
 		return v + super.getValue() + misc;
 	}

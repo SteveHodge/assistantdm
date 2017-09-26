@@ -11,7 +11,7 @@ public interface PropertyCollection {
 
 	public Property<?> getProperty(String name);
 
-	// TODO move this stuff to another interface as it should only be called by Property objects:
+	// XXX move this stuff to another interface as it should only be called by Property objects?
 
 	public <T> void addProperty(Property<T> property);
 

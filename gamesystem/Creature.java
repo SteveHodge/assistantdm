@@ -350,22 +350,22 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		targets.add(new StatisticDescription(SavingThrow.Type.FORTITUDE.toString(), STATISTIC_FORTITUDE_SAVE));
 		targets.add(new StatisticDescription(SavingThrow.Type.WILL.toString(), STATISTIC_WILL_SAVE));
 		targets.add(new StatisticDescription(SavingThrow.Type.REFLEX.toString(), STATISTIC_REFLEX_SAVE));
-		targets.add(new StatisticDescription(ac.name, STATISTIC_AC));
+		targets.add(new StatisticDescription(ac.getName(), STATISTIC_AC));
 		StatisticDescription[] tgts = ac.getStatistics();
 		for (StatisticDescription t : tgts) {
 			t.name = "... " + t.name;
 			targets.add(t);
 		}
-		targets.add(new StatisticDescription(initiative.name, STATISTIC_INITIATIVE));
-		targets.add(new StatisticDescription(hps.name, STATISTIC_HPS));
-		targets.add(new StatisticDescription(level.name, STATISTIC_LEVEL));
-		targets.add(new StatisticDescription(attacks.name, STATISTIC_ATTACKS));
+		targets.add(new StatisticDescription(initiative.getName(), STATISTIC_INITIATIVE));
+		targets.add(new StatisticDescription(hps.getName(), STATISTIC_HPS));
+		targets.add(new StatisticDescription(level.getName(), STATISTIC_LEVEL));
+		targets.add(new StatisticDescription(attacks.getName(), STATISTIC_ATTACKS));
 		// add attacks subtargets
-		targets.add(new StatisticDescription(attacks.getDamageStatistic().name, STATISTIC_DAMAGE));
+		targets.add(new StatisticDescription(attacks.getDamageStatistic().getName(), STATISTIC_DAMAGE));
 		// add attacks subtargets
-		targets.add(new StatisticDescription(size.name, STATISTIC_SIZE));
-		targets.add(new StatisticDescription(grapple.name, STATISTIC_GRAPPLE));
-		targets.add(new StatisticDescription(skills.name, STATISTIC_SKILLS));
+		targets.add(new StatisticDescription(size.getName(), STATISTIC_SIZE));
+		targets.add(new StatisticDescription(grapple.getName(), STATISTIC_GRAPPLE));
+		targets.add(new StatisticDescription(skills.getName(), STATISTIC_SKILLS));
 		tgts = skills.getStatistics();
 		for (StatisticDescription t : tgts) {
 			t.name = "... " + t.name;

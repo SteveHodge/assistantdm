@@ -1,21 +1,23 @@
 package gamesystem;
 
+import gamesystem.core.PropertyCollection;
 
 // TODO shouldn't be able to set the baseValue, instead use overrides
 public class InitiativeModifier extends Statistic {
 	protected int baseValue = 0;
 
-	public InitiativeModifier(AbilityScore dex) {
-		super("Initiative");
+	public InitiativeModifier(AbilityScore dex, PropertyCollection parent) {
+		super("Initiative", parent);
 		if (dex != null) addModifier(dex.getModifier());
 	}
 
 	@Override
-	public int getValue() {
+	public Integer getValue() {
 		return baseValue + super.getValue();
 	}
 
-	public int getBaseValue() {
+	@Override
+	public Integer getBaseValue() {
 		return baseValue;
 	}
 

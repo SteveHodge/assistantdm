@@ -91,7 +91,7 @@ public class Monster extends Creature {
 		int i = 0;
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
 			if (scores[i] >= 0) {
-				final AbilityScore s = new AbilityScore(t);
+				final AbilityScore s = new AbilityScore(t, this);
 				s.setBaseValue(scores[i]);
 				s.addPropertyChangeListener(statListener);
 				s.getModifier().addPropertyChangeListener(e -> pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX + s.getName(), e.getOldValue(), e.getNewValue()));
@@ -101,7 +101,7 @@ public class Monster extends Creature {
 		}
 
 		AbilityScore dex = abilities.get(AbilityScore.Type.DEXTERITY);
-		initiative = new InitiativeModifier(dex);
+		initiative = new InitiativeModifier(dex, this);
 		initiative.setBaseValue(0);
 		initiative.addPropertyChangeListener(statListener);
 
@@ -109,21 +109,21 @@ public class Monster extends Creature {
 		race.addPropertyListener((source, type, oldValue, newValue) -> {
 			hitDice.updateBonusHPs(Monster.this);
 		});
-		level = new Levels();
+		level = new Levels(this);
 		hitDice = new HitDiceProperty(this, race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
-			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice);
+			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice, this);
 			//s.setBaseOverride(0);
 			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
 
-		hps = new HPs(hitDice);
+		hps = new HPs(hitDice, this);
 		hps.setMaximumHitPoints(0);
 		hps.addPropertyChangeListener(statListener);
 
-		size = new Size();
+		size = new Size(this);
 		size.addPropertyChangeListener(statListener);
 
 		// Missing dex: The rules on nonabilities state that the modifier is 0, but the MM is inconsistent in this
@@ -140,15 +140,15 @@ public class Monster extends Creature {
 
 		if (dex == null && missingAsZero) {
 			// if there is no dex score then treat it as a score of 0
-			AbilityScore zeroDex = new AbilityScore(AbilityScore.Type.DEXTERITY);
+			AbilityScore zeroDex = new AbilityScore(AbilityScore.Type.DEXTERITY, this);
 			zeroDex.setBaseValue(0);
-			ac = new AC(zeroDex);
+			ac = new AC(zeroDex, this);
 		} else {
-			ac = new AC(dex);
+			ac = new AC(dex, this);
 		}
 		ac.addPropertyChangeListener(statListener);
 
-		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty());
+		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty(), this);
 		skills.addPropertyChangeListener(statListener);
 
 		bab = new BAB(this, race, level);

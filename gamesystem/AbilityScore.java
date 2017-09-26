@@ -1,5 +1,6 @@
 package gamesystem;
 
+import gamesystem.core.PropertyCollection;
 
 // XXX might have to manage ability scores together otherwise some of the other statistics that use ability
 // modifiers will need special case handling for non-abilities (e.g. should use dex modifier for all attack if
@@ -75,8 +76,8 @@ public class AbilityScore extends Statistic {
 		}
 	};
 
-	public AbilityScore(Type type) {
-		super(type.toString());
+	public AbilityScore(Type type, PropertyCollection parent) {
+		super(type.toString(), parent);
 		this.type = type;
 		modifier = new AbilityModifier();
 	}
@@ -86,7 +87,7 @@ public class AbilityScore extends Statistic {
 	}
 
 	@Override
-	public int getValue() {
+	public Integer getValue() {
 		if (override == -1) {
 			return baseValue + super.getValue();
 		} else {
@@ -94,7 +95,8 @@ public class AbilityScore extends Statistic {
 		}
 	}
 
-	public int getBaseValue() {
+	@Override
+	public Integer getBaseValue() {
 		return baseValue;
 	}
 

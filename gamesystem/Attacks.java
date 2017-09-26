@@ -13,6 +13,7 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 import gamesystem.core.Property;
+import gamesystem.core.PropertyCollection;
 import gamesystem.dice.CombinedDice;
 import party.Character;
 
@@ -48,6 +49,7 @@ public class Attacks extends Statistic {
 	boolean isFightingDefensively = false;
 	private Modifier fightingDefensively = new ImmutableModifier(-4, null, "Fighting defensively");
 	private Modifier fightingDefensivelyAC = new ImmutableModifier(2, "Dodge", "Fighting defensively");
+	Statistic damageStat;
 
 	final PropertyChangeListener listener = evt -> firePropertyChange("value", null, getValue());
 
@@ -71,7 +73,9 @@ public class Attacks extends Statistic {
 
 	// FIXME monsters have feats now so clean up feats handling
 	public Attacks(Creature c) {
-		super("Attacks");
+		super("Attacks", c);
+
+		damageStat = new Damage(parent);
 
 		creature = c;
 		if (creature instanceof Character) {
@@ -158,7 +162,7 @@ public class Attacks extends Statistic {
 
 	// returns the str-modified ("melee") statistic
 	@Override
-	public int getValue() {
+	public Integer getValue() {
 		return bab.getValue() + getModifiersTotal();
 	}
 
@@ -195,7 +199,7 @@ public class Attacks extends Statistic {
 	}
 
 	public AttackForm addAttackForm(String name) {
-		AttackForm a = new AttackForm(name);
+		AttackForm a = new AttackForm(name, getParent());
 		attackForms.add(a);
 		return a;
 	}
@@ -319,7 +323,11 @@ public class Attacks extends Statistic {
 	// this is really just an interface for adding modifiers.
 	// listener modifications are forwarded to the Attacks instance (which means the source of any events will be that instance)
 	// getValue() returns the total of the modifiers.
-	protected final Statistic damageStat = new Statistic("Damage") {
+	class Damage extends Statistic {
+		Damage(PropertyCollection parent) {
+			super("Damage", parent);
+		}
+
 		@Override
 		public void addPropertyChangeListener(PropertyChangeListener listener) {
 			Attacks.this.addPropertyChangeListener(listener);
@@ -416,6 +424,8 @@ public class Attacks extends Statistic {
 	// TODO some of the stuff in here is defining the weapon, some is defining the attack. eventually will want to separate
 	// TODO enhancement doesn't need to be handled this way, masterwork too - both should be dropped in favour of simple modifiers applied by the ui/CharacterAttackForm
 	public class AttackForm extends Statistic {
+		protected final Statistic dmgStat;
+
 		private Modifier twoWeaponPenalty = null;	// TODO rename as this includes natural secondary attacks
 		Modifier enhancement = null;
 		private boolean masterwork = false;		// if true then enhancement should not be added to damage (enhancement should be +1)
@@ -435,8 +445,9 @@ public class Attacks extends Statistic {
 		public int maxAttacks = 4;	// limit on number of attacks with due to high BAB (e.g. weapons that need to be reloaded)
 		public boolean weaponSpecApplies = false;	// TODO remove when we move to full embedded Statistic for damage
 
-		private AttackForm(String name) {
-			super(name);
+		private AttackForm(String name, PropertyCollection parent) {
+			super(name, parent);
+			dmgStat = new Damage(parent);
 		}
 
 		public void setName(String s) {
@@ -454,7 +465,7 @@ public class Attacks extends Statistic {
 		}
 
 		@Override
-		public int getValue() {
+		public Integer getValue() {
 			return getBAB() + getModifiersTotal();
 		}
 
@@ -513,7 +524,11 @@ public class Attacks extends Statistic {
 		// this is really just an interface for adding modifiers.
 		// listener modifications are forwarded to the Attacks instance (which means the source of any events will be that instance)
 		// getValue() returns the total of the modifiers.
-		protected final Statistic dmgStat = new Statistic("Damage") {
+		class Damage extends Statistic {
+			Damage(PropertyCollection parent) {
+				super("Damage", parent);
+			}
+
 			@Override
 			public void addPropertyChangeListener(PropertyChangeListener listener) {
 				Attacks.this.addPropertyChangeListener(listener);

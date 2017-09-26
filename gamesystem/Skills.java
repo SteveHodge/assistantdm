@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import gamesystem.core.PropertyCollection;
+
 /*
  * Skills is a compound Statistic - it represents all possible skills for a creature. Modifiers can be added to this class,
  * they will apply to all skills.
@@ -25,8 +27,8 @@ public class Skills extends Statistic implements StatisticsCollection {
 	// for ability modifier changes. sends event to indicate all skills need updating
 	pcs.firePropertyChange("value", null, null);
 
-	public Skills(Collection<AbilityScore> abilities, Modifier acp) {
-		super("Skills");
+	public Skills(Collection<AbilityScore> abilities, Modifier acp, PropertyCollection parent) {
+		super("Skills", parent);
 		for (AbilityScore a : abilities) {
 			abilityMods.put(a.type, a.getModifier());
 			a.getModifier().addPropertyChangeListener(modifierListener);
@@ -47,7 +49,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 	public Skill getSkill(SkillType s) {
 		Skill skill = skills.get(s);
 		if (skill == null) {
-			skill = new Skill(s,abilityMods.get(s.ability), acp);
+			skill = new Skill(s, abilityMods.get(s.ability), acp, getParent());
 			skills.put(s,skill);
 		}
 		return skill;
@@ -59,7 +61,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 			//int oldValue = getValue(s);
 			skill.ranks = r;
 			int newValue = getValue(s);
-			pcs.firePropertyChange(skill.name, null, newValue);
+			pcs.firePropertyChange(skill.getName(), null, newValue);
 		}
 	}
 
@@ -78,7 +80,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 			//int oldValue = getValue(s);
 			skill.misc = m;
 			int newValue = getValue(s);
-			pcs.firePropertyChange(skill.name, null, newValue);
+			pcs.firePropertyChange(skill.getName(), null, newValue);
 		}
 	}
 

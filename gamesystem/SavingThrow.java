@@ -1,5 +1,7 @@
 package gamesystem;
 
+import gamesystem.core.PropertyCollection;
+
 public class SavingThrow extends Statistic {
 	public enum Type {
 		FORTITUDE("Fortitude", "Fort", AbilityScore.Type.CONSTITUTION),
@@ -38,8 +40,8 @@ public class SavingThrow extends Statistic {
 	private int baseValue = -1;		// base value override (-1 means no override)
 
 	// TODO verify that the ability is the correct one. alternatively pass all ability scores (that would allow the rules for non-abilities to be applied)
-	public SavingThrow(Type type, AbilityScore ability, HitDiceProperty hd) {
-		super(type.toString());
+	public SavingThrow(Type type, AbilityScore ability, HitDiceProperty hd, PropertyCollection parent) {
+		super(type.toString(), parent);
 		this.type = type;
 		if (ability != null) addModifier(ability.getModifier());
 		setHitDice(hd);
@@ -65,12 +67,13 @@ public class SavingThrow extends Statistic {
 	}
 
 	@Override
-	public int getValue() {
+	public Integer getValue() {
 		return getBaseValue() + super.getValue();
 	}
 
 	// gets the current base value - either the level derived value or the override if any
-	public int getBaseValue() {
+	@Override
+	public Integer getBaseValue() {
 		if (hitdice != null && baseValue == -1) return hitdice.getBaseSave(type);
 		return baseValue;
 	}
