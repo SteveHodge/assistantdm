@@ -40,9 +40,9 @@ public interface Property<T> {
 
 	public void removePropertyListener(PropertyListener<T> l);
 
-	public T getValue();
+	public T getValue();	// the current (possibly overriden) value of the property
 
-	public T getBaseValue();
+	public T getBaseValue();	// the non-overriden value of the property
 
 	public PropertyValue<T> addOverride(T overrideVal);
 

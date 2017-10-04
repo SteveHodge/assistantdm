@@ -51,7 +51,7 @@ public class Attacks extends Statistic {
 	private Modifier fightingDefensivelyAC = new ImmutableModifier(2, "Dodge", "Fighting defensively");
 	Statistic damageStat;
 
-	final PropertyChangeListener listener = evt -> firePropertyChange("value", null, getValue());
+	final PropertyChangeListener listener = evt -> fireEvent();
 
 	final ListDataListener featsListener = new ListDataListener() {
 		@Override
@@ -67,13 +67,13 @@ public class Attacks extends Statistic {
 			for (AttackForm a : attackForms) {
 				a.updateModifiers();
 			}
-			firePropertyChange("value", null, getValue());	// may have been fired by the power attack or combate expertise, but maybe not
+			fireEvent();	// may have been fired by the power attack or combate expertise, but maybe not
 		}
 	};
 
 	// FIXME monsters have feats now so clean up feats handling
 	public Attacks(Creature c) {
-		super("Attacks", c);
+		super("attacks", "Attacks", c);
 
 		damageStat = new Damage(parent);
 
@@ -84,8 +84,8 @@ public class Attacks extends Statistic {
 		}
 		ac = creature.getACStatistic();
 		bab = creature.getBAB();
-		bab.addPropertyListener((source, type, oldValue, newValue) -> {
-			firePropertyChange("value", null, getValue());	// may have been fired by the power attack or combate expertise, but maybe not
+		bab.addPropertyListener((source, oldValue) -> {
+			fireEvent();	// may have been fired by the power attack or combate expertise, but maybe not
 		});
 
 		strMod = creature.getAbilityModifier(AbilityScore.Type.STRENGTH);
@@ -98,11 +98,20 @@ public class Attacks extends Statistic {
 	}
 
 	@Override
-	protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
-		super.firePropertyChange(prop, oldVal, newVal);
+	protected void fireEvent() {
+		super.fireEvent();
 		for (AttackForm a : attackForms) {
-			// TODO source will be wrong...
-			a.pcs.firePropertyChange("value", null, getValue());
+			// TODO get rid of this eventually
+			a.refireEvent();
+		}
+	}
+
+	@Override
+	protected void fireEvent(Integer oldVal) {
+		super.fireEvent(oldVal);
+		for (AttackForm a : attackForms) {
+			// TODO get rid of this eventually
+			a.refireEvent();
 		}
 	}
 
@@ -128,6 +137,7 @@ public class Attacks extends Statistic {
 	}
 
 	// "extra_attacks" - integer value - number of extra attacks at the highest base attack bonus
+	// FIXME "extra_attacks" should be a property
 	@Override
 	public void setProperty(String property, Object value, String source, Object key) {
 		if (property == null || !property.equals("extra_attacks")) return;
@@ -137,14 +147,13 @@ public class Attacks extends Statistic {
 		atk.source = source;
 		atk.attacks = (Integer)value;
 		extraAttacks.add(atk);
-		//firePropertyChange(property, old, getExtraAttacks());
-		firePropertyChange("value", null, getValue());
+		fireEvent();
 	}
 
 	@Override
 	public void resetProperty(String property, Object key) {
 		if (property == null || !property.equals("extra_attacks")) return;
-		int old = getExtraAttacks();
+//		int old = getExtraAttacks();
 		Iterator<ExtraAttacks> iter = extraAttacks.iterator();
 		while (iter.hasNext()) {
 			ExtraAttacks atk = iter.next();
@@ -152,7 +161,7 @@ public class Attacks extends Statistic {
 				iter.remove();
 			}
 		}
-		firePropertyChange(property, old, getExtraAttacks());
+		fireEvent();
 	}
 
 	// TODO remove acccess to BAB via attack - used only by CharacterSheetView
@@ -223,7 +232,7 @@ public class Attacks extends Statistic {
 		} else {
 			powerAttack = new ImmutableModifier(-value,null,"Power attack");
 		}
-		firePropertyChange("value", null, getValue());
+		fireEvent();
 	}
 
 	// returns the amount of power attack applied (0 to BAB inclusive)
@@ -288,7 +297,7 @@ public class Attacks extends Statistic {
 		} else {
 			ac.removeModifier(totalDefenseAC);
 		}
-		firePropertyChange("value", null, getValue());	// need to fire because no modifiers on this have changed
+		fireEvent();	// need to fire because no modifiers on this have changed
 	}
 
 	public boolean isTotalDefense() {
@@ -325,22 +334,7 @@ public class Attacks extends Statistic {
 	// getValue() returns the total of the modifiers.
 	class Damage extends Statistic {
 		Damage(PropertyCollection parent) {
-			super("Damage", parent);
-		}
-
-		@Override
-		public void addPropertyChangeListener(PropertyChangeListener listener) {
-			Attacks.this.addPropertyChangeListener(listener);
-		}
-
-		@Override
-		public void removePropertyChangeListener(PropertyChangeListener listener) {
-			Attacks.this.removePropertyChangeListener(listener);
-		}
-
-		@Override
-		protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
-			Attacks.this.firePropertyChange(prop, oldVal, newVal);
+			super("attacks.damage", "Damage", parent);
 		}
 
 		@Override
@@ -446,12 +440,16 @@ public class Attacks extends Statistic {
 		public boolean weaponSpecApplies = false;	// TODO remove when we move to full embedded Statistic for damage
 
 		private AttackForm(String name, PropertyCollection parent) {
-			super(name, parent);
-			dmgStat = new Damage(parent);
+			super("attacks." + name.toLowerCase(), name, parent);
+			dmgStat = new Damage(name, parent);
 		}
 
 		public void setName(String s) {
 			name = s;
+		}
+
+		public void refireEvent() {
+			fireEvent();
 		}
 
 		// convenient passthrough of Attacks method:
@@ -509,7 +507,7 @@ public class Attacks extends Statistic {
 		// expects format acceptable to CombinedDice.parse()
 		public void setBaseDamage(String s) {
 			damage = CombinedDice.parse(s);
-			pcs.firePropertyChange("damage", null, damage.toString());
+			fireEvent();
 		}
 
 		public String getDamage() {
@@ -525,23 +523,8 @@ public class Attacks extends Statistic {
 		// listener modifications are forwarded to the Attacks instance (which means the source of any events will be that instance)
 		// getValue() returns the total of the modifiers.
 		class Damage extends Statistic {
-			Damage(PropertyCollection parent) {
-				super("Damage", parent);
-			}
-
-			@Override
-			public void addPropertyChangeListener(PropertyChangeListener listener) {
-				Attacks.this.addPropertyChangeListener(listener);
-			}
-
-			@Override
-			public void removePropertyChangeListener(PropertyChangeListener listener) {
-				Attacks.this.removePropertyChangeListener(listener);
-			}
-
-			@Override
-			protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
-				Attacks.this.firePropertyChange(prop, oldVal, newVal);	// XXX should this be setting prop to "damage"?
+			Damage(String name, PropertyCollection parent) {
+				super("attacks." + name.toLowerCase() + ".damage", "Damage", parent);
 			}
 
 			@Override

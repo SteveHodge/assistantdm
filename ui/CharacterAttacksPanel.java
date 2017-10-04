@@ -1,13 +1,5 @@
 package ui;
 
-import gamesystem.AbilityScore;
-import gamesystem.Attacks;
-import gamesystem.BuffFactory;
-import gamesystem.Creature;
-import gamesystem.Feat;
-import gamesystem.Modifier;
-import gamesystem.core.Property;
-
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -35,13 +27,21 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import gamesystem.AbilityScore;
+import gamesystem.Attacks;
+import gamesystem.BuffFactory;
+import gamesystem.Creature;
+import gamesystem.Feat;
+import gamesystem.Modifier;
+import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import party.CharacterAttackForm;
 import swing.NullableIntegerFieldFactory;
 
 // TODO make power attack and combat expertise filtered/numeric fields or combos or cycles
 @SuppressWarnings("serial")
-class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeListener {
+class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListener<Integer> {
 	private JFormattedTextField BAB;
 	private JLabel babLabel = new JLabel();
 	private JLabel strLabel = new JLabel();
@@ -71,7 +71,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 
 		updateToolTip();
 		// update labels when character changes
-		attacks.addPropertyChangeListener(this);
+		attacks.addPropertyListener(this);
 
 		addMouseListener(rightClickListener);
 
@@ -513,7 +513,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyChangeL
 	// we rely on the attack to tell us about feat and ability changes indirectly
 	// TODO maybe better to directly listen?
 	@Override
-	public void propertyChange(PropertyChangeEvent e) {
+	public void propertyChanged(Property<Integer> source, Integer old) {
 		updateOptions();
 		updateLabels();
 		updateToolTip();

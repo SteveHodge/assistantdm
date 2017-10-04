@@ -1,18 +1,11 @@
 package ui;
 
-import gamesystem.AC;
-import gamesystem.Creature;
-import gamesystem.Modifier;
-import gamesystem.Statistic;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -32,6 +25,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.text.Document;
 
+import gamesystem.AC;
+import gamesystem.Modifier;
+import gamesystem.Statistic;
+import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.SpinnerCellEditor;
 
@@ -39,7 +37,7 @@ import swing.SpinnerCellEditor;
 // TODO integer fields should be validated or formatted
 // TODO armor and shield bonus should show tooltip in table and/or show current enhancement bonus
 @SuppressWarnings("serial")
-public class CharacterACPanel extends CharacterSubPanel implements PropertyChangeListener {
+public class CharacterACPanel extends CharacterSubPanel {
 	protected TableModel acModel;
 	protected JLabel totalLabel;
 	protected JLabel touchLabel;
@@ -70,10 +68,10 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 
 	boolean editing = false;	// flag used to prevent updates while a field's document is changing
 
-	PropertyChangeListener armorListener = new PropertyChangeListener() {
+	PropertyListener<Integer> armorListener = new PropertyListener<Integer>() {
 		// NOTE: we call this to initially populate the fields with null evt
 		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
 			if (editing) return;
 			nameField.setText(armor.description);
 			typeField.setText(armor.type);
@@ -92,10 +90,10 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		}
 	};
 
-	PropertyChangeListener shieldListener = new PropertyChangeListener() {
+	PropertyListener<Integer> shieldListener = new PropertyListener<Integer>() {
 		// NOTE: we call this to initially populate the fields with null evt
 		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
 			if (editing) return;
 			shieldNameField.setText(shield.description);
 			shieldBonusField.setText(""+shield.getBonus());
@@ -161,11 +159,17 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		a.gridx = 1; a.gridy = 0; a.gridheight = 4;
 		add(getArmorPanel(),a);
 
-		character.addPropertyChangeListener(this);
-		armor.addPropertyChangeListener(armorListener);
-		shield.addPropertyChangeListener(shieldListener);
-		armorListener.propertyChange(null);		// update the values of the fields - won't work if we ever use the event object
-		shieldListener.propertyChange(null);		// update the values of the fields - won't work if we ever use the event object
+		character.addPropertyListener("ac", (source, old) -> {
+			totalLabel.setText("Total AC: " + ac.getValue() + (ac.hasConditionalModifier() ? "*" : ""));
+			touchLabel.setText("Touch AC: " + ac.getTouchAC().getValue() + (ac.getTouchAC().hasConditionalModifier() ? "*" : ""));
+			flatLabel.setText("Flat-footed AC: " + ac.getFlatFootedAC().getValue() + (ac.getFlatFootedAC().hasConditionalModifier() ? "*" : ""));
+			updateToolTips();
+			updateSummaries(getSummary());
+		});
+		armor.addPropertyListener(armorListener);
+		shield.addPropertyListener(shieldListener);
+		armorListener.propertyChanged(null, null);		// update the values of the fields - won't work if we ever use the event object
+		shieldListener.propertyChanged(null, null);		// update the values of the fields - won't work if we ever use the event object
 	}
 
 	protected JPanel getArmorPanel() {
@@ -315,22 +319,11 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		}
 	};
 
-	@Override
-	public void propertyChange(PropertyChangeEvent arg0) {
-		if (arg0.getPropertyName().equals(Creature.PROPERTY_AC)) {
-			totalLabel.setText("Total AC: "+ac.getValue()+(ac.hasConditionalModifier()?"*":""));
-			touchLabel.setText("Touch AC: "+ac.getTouchAC().getValue()+(ac.getTouchAC().hasConditionalModifier()?"*":""));
-			flatLabel.setText("Flat-footed AC: "+ac.getFlatFootedAC().getValue()+(ac.getFlatFootedAC().hasConditionalModifier()?"*":""));
-			updateToolTips();
-			updateSummaries(getSummary());
-		}
-	}
-
 	protected String getSummary() {
 		StringBuilder s = new StringBuilder();
-		s.append("AC ").append(character.getAC());
-		s.append("   Touch ").append(character.getTouchAC());
-		s.append("   Flat-footed ").append(character.getFlatFootedAC());
+		s.append("AC ").append(character.getACStatistic().getValue());
+		s.append("   Touch ").append(character.getACStatistic().getTouchAC().getValue());
+		s.append("   Flat-footed ").append(character.getACStatistic().getFlatFootedAC().getValue());
 		return s.toString();
 	}
 
@@ -339,7 +332,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(character.getAC()).append(" total");
+		text.append(character.getACStatistic().getValue()).append(" total");
 		String conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
@@ -349,7 +342,7 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(character.getTouchAC()).append(" total");
+		text.append(character.getACStatistic().getTouchAC().getValue()).append(" total");
 		conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
@@ -359,20 +352,20 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(character.getFlatFootedAC()).append(" total");
+		text.append(character.getACStatistic().getFlatFootedAC().getValue()).append(" total");
 		conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
 		flatLabel.setToolTipText(text.toString());
 	}
 
-	protected class ACTableModel extends AbstractTableModel implements PropertyChangeListener {
+	protected class ACTableModel extends AbstractTableModel {
 		// need a row for each custom modifier plus a row for each other modifier on the AC
 		Modifier[] modifiers;
 		boolean[] active;
 
 		public ACTableModel() {
-			character.addPropertyChangeListener(Creature.PROPERTY_AC, this);
+			character.addPropertyListener("ac", (source, old) -> updateModifiers());
 			updateModifiers();
 		}
 
@@ -456,13 +449,6 @@ public class CharacterACPanel extends CharacterSubPanel implements PropertyChang
 				}
 				return modifiers[row].getModifier();
 			}
-		}
-
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			//if (evt.getPropertyName().equals(Character.PROPERTY_AC)) {	// assumed
-			updateModifiers();
-			//}
 		}
 	}
 }

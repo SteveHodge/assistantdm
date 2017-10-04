@@ -21,7 +21,7 @@ public class Size extends Statistic {
 	};
 
 	public Size(PropertyCollection parent) {
-		super("Size", parent);
+		super("size", "Size", parent);
 	}
 
 	public Modifier getSizeModifier() {
@@ -37,8 +37,7 @@ public class Size extends Statistic {
 	public void addModifier(Modifier m) {
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
-		SizeCategory newValue = getSize();
-		pcs.firePropertyChange("value", null, newValue);
+		fireEvent();
 	}
 
 	// TODO should probably replace the modifier with an ImmutableModifier of enhancement type
@@ -46,8 +45,7 @@ public class Size extends Statistic {
 	public void removeModifier(Modifier m) {
 		modifiers.remove(m);
 		m.removePropertyChangeListener(listener);
-		SizeCategory newValue = getSize();
-		pcs.firePropertyChange("value", null, newValue);
+		fireEvent();
 	}
 
 	public int getSpace() {
@@ -77,25 +75,24 @@ public class Size extends Statistic {
 	public void setBaseSize(SizeCategory size) {
 		if (size == null) throw new NullPointerException("Size cannot be set to null");
 		category = size;
-		pcs.firePropertyChange("value", null, category);
+		fireEvent();
 	}
 
 	public void setBaseSpace(int s) {
 		if (s < 0) throw new IllegalArgumentException("Space cannot be negative: " + s);
 		space = s;
-		pcs.firePropertyChange("space", null, space);
+		fireEvent();
 	}
 
 	public void setBaseReach(int r) {
 		if (r < 0) throw new IllegalArgumentException("Reach cannot be negative: " + r);
 		reach = r;
-		pcs.firePropertyChange("reach", null, reach);
+		fireEvent();
 	}
 
 	protected abstract class SizeModifier extends AbstractModifier {
 		public SizeModifier() {
-			Size.this.addPropertyChangeListener(evt ->
-			pcs.firePropertyChange("value", null, getModifier()));
+			Size.this.addPropertyListener((source, old) -> pcs.firePropertyChange("value", null, getModifier()));
 		}
 
 		@Override

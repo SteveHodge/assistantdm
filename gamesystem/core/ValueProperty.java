@@ -18,12 +18,12 @@ public class ValueProperty<T> extends AbstractProperty<T> {
 			// have override so the final value won't change but the composition will
 			T old = getValue();
 			value = newVal;
-			parent.fireEvent(this, PropertyEventType.COMPOSITION_CHANGED, old);
+			fireEvent(old);
 		} else {
 			// no override
 			T old = value;
 			value = newVal;
-			parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, old);
+			fireEvent(old);
 		}
 	}
 

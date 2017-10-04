@@ -1,40 +1,37 @@
 package ui;
 
-import gamesystem.AbilityScore;
-import gamesystem.Creature;
-import gamesystem.InitiativeModifier;
-
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import gamesystem.AbilityScore;
+import gamesystem.Creature;
+import gamesystem.InitiativeModifier;
 import party.Character;
 
 @SuppressWarnings("serial")
-class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChangeListener {
+class CharacterInitiativePanel extends CharacterSubPanel {
 	private JLabel dexLabel;
 	private BoundIntegerField baseInit;
 	private JLabel totLabel;
 
 	CharacterInitiativePanel(Character c) {
 		super(c);
-		summary = (character.getInitiativeModifier() >= 0 ? "+" : "") + character.getInitiativeModifier();
+		InitiativeModifier init = character.getInitiativeStatistic();
+		summary = (init.getValue() >= 0 ? "+" : "") + init.getValue();
 
 		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
 		add(dexLabel);
 
 		add(new JLabel("Base:"));
 
-		baseInit = new BoundIntegerField(character, Creature.PROPERTY_INITIATIVE, 3);
+		baseInit = new BoundIntegerField(init, 3);
 		add(baseInit);
 
-		InitiativeModifier stat = character.getInitiativeStatistic();
-		totLabel = new JLabel("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
+		totLabel = new JLabel("Total: " + init.getValue() + (init.hasConditionalModifier() ? "*" : ""));
 		add(totLabel);
 
 		addMouseListener(rightClickListener);
@@ -43,7 +40,14 @@ class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChan
 		updateToolTip();
 
 		// update labels when character changes
-		character.addPropertyChangeListener(this);
+		character.addPropertyListener(init, (source, old) -> {
+			totLabel.setText("Total: " + init.getValue() + (init.hasConditionalModifier() ? "*" : ""));
+			updateToolTip();
+			updateSummaries((init.getValue() >= 0 ? "+" : "") + init.getValue());
+		});
+		character.addPropertyListener(character.getAbilityStatistic(AbilityScore.Type.DEXTERITY), (source, old) -> {
+			dexLabel.setText("Dex Mod: " + character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
+		});
 	}
 
 	private MouseListener rightClickListener = new MouseAdapter() {
@@ -62,17 +66,5 @@ class CharacterInitiativePanel extends CharacterSubPanel implements PropertyChan
 		text.append(stat.getSummary());
 		text.append("</body></html>");
 		totLabel.setToolTipText(text.toString());
-	}
-
-	@Override
-	public void propertyChange(PropertyChangeEvent arg0) {
-		if (arg0.getPropertyName().equals(Creature.PROPERTY_ABILITY_PREFIX+AbilityScore.Type.DEXTERITY)) {
-			dexLabel.setText("Dex Mod: "+character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
-		} else if (arg0.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
-			InitiativeModifier stat = character.getInitiativeStatistic();
-			totLabel.setText("Total: "+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
-			updateToolTip();
-			updateSummaries((character.getInitiativeModifier() >= 0 ? "+" : "") + character.getInitiativeModifier());
-		}
 	}
 }

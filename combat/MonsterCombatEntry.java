@@ -31,13 +31,13 @@ import ui.BoundIntegerField;
 public class MonsterCombatEntry extends CombatEntry {
 	// creates a new MonsterCombatEntry backed by a new Monster
 	MonsterCombatEntry() {
-		creature = new Monster("");
+		super(new Monster(""));
 		createEntry();
 		setToolTipText(getToolTipText(null));
 	}
 
 	public MonsterCombatEntry(Creature m) {
-		creature = m;
+		super(m);
 		createEntry();
 		setToolTipText(getToolTipText(null));
 		initBlank();
@@ -58,11 +58,11 @@ public class MonsterCombatEntry extends CombatEntry {
 	}
 
 	void createEntry() {
-		acComp = new BoundIntegerField(creature, Creature.PROPERTY_AC, 4);
-		touchACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_TOUCH, 4);
-		flatFootedACComp = new BoundIntegerField(creature, Monster.PROPERTY_AC_FLATFOOTED, 4);
+		acComp = new BoundIntegerField(creature.getACStatistic(), 4);
+		touchACComp = new BoundIntegerField(creature.getACStatistic().getTouchAC(), 4);
+		flatFootedACComp = new BoundIntegerField(creature.getACStatistic().getFlatFootedAC(), 4);
 
-		modifierComp = new BoundIntegerField(creature, Creature.PROPERTY_INITIATIVE, 3);
+		modifierComp = new BoundIntegerField(creature.getInitiativeStatistic(), 3);
 
 		creature.addPropertyChangeListener(this);
 		createPanel();
@@ -155,13 +155,14 @@ public class MonsterCombatEntry extends CombatEntry {
 		c.nameField.setText(name);
 		c.rollField.setValue(Integer.parseInt(el.getAttribute("roll")));
 		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));
-		c.creature.setInitiativeModifier(Integer.parseInt(el.getAttribute("initMod")));
-		c.creature.setMaximumHitPoints(Integer.parseInt(el.getAttribute("maxHPs")));
-		c.creature.setWounds(Integer.parseInt(el.getAttribute("wounds")));
-		c.creature.setNonLethal(Integer.parseInt(el.getAttribute("nonLethal")));
-		c.creature.setAC(Integer.parseInt(el.getAttribute("fullAC")));
-		c.creature.setTouchAC(Integer.parseInt(el.getAttribute("touchAC")));
-		c.creature.setFlatFootedAC(Integer.parseInt(el.getAttribute("flatFootedAC")));
+		c.creature.getInitiativeStatistic().setBaseValue(Integer.parseInt(el.getAttribute("initMod")));
+		c.creature.getHPStatistic().setMaximumHitPoints(Integer.parseInt(el.getAttribute("maxHPs")));
+		c.creature.getHPStatistic().setWounds(Integer.parseInt(el.getAttribute("wounds")));
+		c.creature.getHPStatistic().setNonLethal(Integer.parseInt(el.getAttribute("nonLethal")));
+		// FIXME fix this somehow - overrides?
+//		c.creature.setAC(Integer.parseInt(el.getAttribute("fullAC")));
+//		c.creature.setTouchAC(Integer.parseInt(el.getAttribute("touchAC")));
+//		c.creature.setFlatFootedAC(Integer.parseInt(el.getAttribute("flatFootedAC")));
 		String idStr = el.getAttribute("creatureID");
 		if (idStr.length() > 0) c.creature.setID(Integer.parseInt(idStr));
 		return c;
@@ -174,13 +175,13 @@ public class MonsterCombatEntry extends CombatEntry {
 		e.setAttribute("name", creature.getName());
 		e.setAttribute("roll", Integer.toString(getRoll()));
 		e.setAttribute("tieBreak", Integer.toString(getTieBreak()));
-		e.setAttribute("initMod", Integer.toString(creature.getInitiativeModifier()));
-		e.setAttribute("maxHPs", Integer.toString(creature.getMaximumHitPoints()));
-		e.setAttribute("wounds", Integer.toString(creature.getWounds()));
-		e.setAttribute("nonLethal", Integer.toString(creature.getNonLethal()));
-		e.setAttribute("fullAC", Integer.toString(creature.getAC()));
-		e.setAttribute("touchAC", Integer.toString(creature.getTouchAC()));
-		e.setAttribute("flatFootedAC", Integer.toString(creature.getFlatFootedAC()));
+		e.setAttribute("initMod", Integer.toString(creature.getInitiativeStatistic().getBaseValue()));
+		e.setAttribute("maxHPs", Integer.toString(creature.getHPStatistic().getMaximumHitPoints()));
+		e.setAttribute("wounds", Integer.toString(creature.getHPStatistic().getWounds()));
+		e.setAttribute("nonLethal", Integer.toString(creature.getHPStatistic().getNonLethal()));
+		e.setAttribute("fullAC", Integer.toString(creature.getACStatistic().getValue()));
+		e.setAttribute("touchAC", Integer.toString(creature.getACStatistic().getTouchAC().getValue()));
+		e.setAttribute("flatFootedAC", Integer.toString(creature.getACStatistic().getFlatFootedAC().getValue()));
 		return e;
 	}
 }

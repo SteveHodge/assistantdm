@@ -25,10 +25,10 @@ public class Skills extends Statistic implements StatisticsCollection {
 
 	final protected PropertyChangeListener modifierListener = evt ->
 	// for ability modifier changes. sends event to indicate all skills need updating
-	pcs.firePropertyChange("value", null, null);
+	fireEvent();
 
 	public Skills(Collection<AbilityScore> abilities, Modifier acp, PropertyCollection parent) {
-		super("Skills", parent);
+		super("skills", "Skills", parent);
 		for (AbilityScore a : abilities) {
 			abilityMods.put(a.type, a.getModifier());
 			a.getModifier().addPropertyChangeListener(modifierListener);
@@ -60,8 +60,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		if (skill.ranks != r) {
 			//int oldValue = getValue(s);
 			skill.ranks = r;
-			int newValue = getValue(s);
-			pcs.firePropertyChange(skill.getName(), null, newValue);
+			parent.fireEvent(skill, null);
 		}
 	}
 
@@ -79,8 +78,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		if (skill.misc != m) {
 			//int oldValue = getValue(s);
 			skill.misc = m;
-			int newValue = getValue(s);
-			pcs.firePropertyChange(skill.getName(), null, newValue);
+			parent.fireEvent(skill, null);
 		}
 	}
 
@@ -146,8 +144,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		//int oldValue = getValue(s);
 		m.addPropertyChangeListener(listener);
 		skill.modifiers.add(m);
-		int newValue = getValue(s);
-		pcs.firePropertyChange(s.name, null, newValue);
+		parent.fireEvent(skill, null);
 	}
 
 	public void removeModifier(SkillType s, Modifier m) {
@@ -157,8 +154,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		//int oldValue = getValue(s);
 		skill.modifiers.remove(m);
 		m.removePropertyChangeListener(listener);
-		int newValue = getValue(s);
-		pcs.firePropertyChange(s.name, null, newValue);
+		parent.fireEvent(skill, null);
 	}
 
 	// returns all skills with ranks > 0

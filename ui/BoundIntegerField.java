@@ -2,32 +2,33 @@ package ui;
 
 import javax.swing.JFormattedTextField;
 
-import gamesystem.Creature;
+import gamesystem.core.Property;
 
-
-// TODO this can be done with beans binding (JGoodies/JFace) - it's a more general solution
+// Binds a formatted text field to an Property<Integer>. Setting the value will set an override on the property (removing any previous override).
 
 @SuppressWarnings("serial")
 public class BoundIntegerField extends JFormattedTextField {
-	protected Creature creature;
-	protected String property;
+	Property.PropertyValue<Integer> overrideKey = null;
 
-	public BoundIntegerField(Creature c, String prop, int columns) {
-		creature = c;
-		property = prop;
+	public BoundIntegerField(Property<Integer> property, int columns) {
 		addPropertyChangeListener("value", evt -> {
 			if (evt.getPropertyName().equals("value")) {
-				//TODO some type checking should be done
-				creature.setProperty(property, BoundIntegerField.this.getValue());
+				Integer val = (Integer) BoundIntegerField.this.getValue();
+				if (val != null && !val.equals(property.getValue())) {
+					if (overrideKey != null) property.removeOverride(overrideKey);
+					overrideKey = property.addOverride(val);
+//					System.out.println("Setting override on " + property.getName() + " to " + val);
+				}
 			}
 		});
-		creature.addPropertyChangeListener(property,
-				//TODO some type checking should be done
-				//it's ok to do this even if this change event is due to an update from this control
-				//because setValue will not fire a change event if the property isn't actually changing
-				evt -> setValue(creature.getPropertyValue(property)));
+		property.addPropertyListener((source, old) -> {
+			//it's ok to do this even if this change event is due to an update from this control
+			//because setValue will not fire a change event if the property isn't actually changing
+			setValue(property.getValue());
+//			System.out.println("Setting field from " + property.getName() + " to " + property.getValue() + " due to update");
+		});
 		setColumns(columns);
-		//TODO some type checking should be done
-		setValue(creature.getPropertyValue(property));
+		setValue(property.getValue());
+//		System.out.println("Setting field from " + property.getName() + " to " + property.getValue() + " - initialization");
 	}
 }

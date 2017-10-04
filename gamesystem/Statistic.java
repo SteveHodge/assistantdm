@@ -2,7 +2,6 @@ package gamesystem;
 
 
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,21 +26,11 @@ import gamesystem.core.PropertyCollection;
 // total are reported we always report the old value as null. Probably best to change to a customer Event/Listener implementation
 public class Statistic extends AbstractProperty<Integer> {
 	protected Set<Modifier> modifiers = new HashSet<>();
-	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	protected String description;
 
-	protected final PropertyChangeListener listener = evt ->
-	//System.out.println("Modifier to "+name+" changed");
-	// problem here is that we know what the old value of the modifier is (from the event),
-	// but we can't easily use that old value to calculate the old total
-	// TODO could store old values locally
-	firePropertyChange("value", null, getValue());
-
-	protected void firePropertyChange(String prop, Integer oldVal, Integer newVal) {
-		pcs.firePropertyChange(prop, oldVal, newVal);
-	}
-
-	public Statistic(String name, PropertyCollection parent) {
+	public Statistic(String name, String desc, PropertyCollection parent) {
 		super(name, parent);
+		description = desc;
 	}
 
 	//----------------------------- Property Interface -----------------------------
@@ -62,16 +51,27 @@ public class Statistic extends AbstractProperty<Integer> {
 	}
 	//------------------------------------------------------------------------------
 
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		pcs.addPropertyChangeListener(listener);
+	public String getDescription() {
+		return description;
 	}
 
-//	public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
-//		pcs.addPropertyChangeListener(property, listener);
-//	}
+	// problem here is that we know what the old value of the modifier is (from the event),
+	// but we can't easily use that old value to calculate the old total
+	// TODO could store old values locally
+	protected final PropertyChangeListener listener = evt -> fireEvent();
 
-	public void removePropertyChangeListener(PropertyChangeListener listener) {
-		pcs.removePropertyChangeListener(listener);
+	public void addModifier(Modifier m) {
+		//int oldValue = getValue();
+		m.addPropertyChangeListener(listener);
+		modifiers.add(m);
+		fireEvent();
+	}
+
+	public void removeModifier(Modifier m) {
+		//int oldValue = getValue();
+		modifiers.remove(m);
+		m.removePropertyChangeListener(listener);
+		fireEvent();
 	}
 
 	// set a specific property on the statistic. this default implementation doesn't implement any properties
@@ -83,22 +83,6 @@ public class Statistic extends AbstractProperty<Integer> {
 	}
 
 	public void resetProperty(String property, Object key) {
-	}
-
-	public void addModifier(Modifier m) {
-		//int oldValue = getValue();
-		m.addPropertyChangeListener(listener);
-		modifiers.add(m);
-		int newValue = getValue();
-		firePropertyChange("value", null, newValue);
-	}
-
-	public void removeModifier(Modifier m) {
-		//int oldValue = getValue();
-		modifiers.remove(m);
-		m.removePropertyChangeListener(listener);
-		int newValue = getValue();
-		firePropertyChange("value", null, newValue);
 	}
 
 	@Override
@@ -268,7 +252,7 @@ public class Statistic extends AbstractProperty<Integer> {
 		StringBuilder text = new StringBuilder();
 		Map<Modifier, Boolean> mods = getModifiers();
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(getValue()).append(" total ").append(getName()).append("<br/>");
+		text.append(getValue()).append(" total ").append(getDescription()).append("<br/>");
 		String conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/>").append(conds);
 		return text.toString();

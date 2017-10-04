@@ -761,7 +761,7 @@ public class StatisticsBlock {
 
 		@Override
 		public SizeCategory getSize() {
-			return creature.getSize();
+			return creature.getSizeStatistic().getSize();
 		}
 	};
 

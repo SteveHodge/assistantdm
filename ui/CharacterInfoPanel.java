@@ -1,11 +1,11 @@
 package ui;
 
-import gamesystem.Creature;
-
 import java.awt.GridLayout;
 
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 
+import gamesystem.Size;
 import party.Character;
 
 // TODO space should be double control showing value in feet (instead of integer showing value in 6-inch units)
@@ -39,10 +39,50 @@ public class CharacterInfoPanel extends CharacterSubPanel {
 		add(new BoundTextField(character, Character.PROPERTY_DEITY, 30));
 
 		add(new JLabel("Space: "));
-		add(new BoundIntegerField(character, Creature.PROPERTY_SPACE, 30));
+		Size size = character.getSizeStatistic();
+		// FIXME replace with BoundIntegerField once space is a property
+		add(new JFormattedTextField() {
+			{
+				addPropertyChangeListener("value", evt -> {
+					if (evt.getPropertyName().equals("value")) {
+						Integer val = (Integer) getValue();
+						if (val != null && !val.equals(size.getSpace())) {
+							size.setBaseSpace(val);
+							;
+						}
+					}
+				});
+				size.addPropertyListener((source, old) -> {
+					//it's ok to do this even if this change event is due to an update from this control
+					//because setValue will not fire a change event if the property isn't actually changing
+					setValue(size.getSpace());
+				});
+				setColumns(30);
+				setValue(size.getSpace());
+			}
+		}, c);
 
 		add(new JLabel("Reach: "));
-		add(new BoundIntegerField(character, Creature.PROPERTY_REACH, 30));
+		// FIXME replace with BoundIntegerField once space is a property
+		add(new JFormattedTextField() {
+			{
+				addPropertyChangeListener("value", evt -> {
+					if (evt.getPropertyName().equals("value")) {
+						Integer val = (Integer) getValue();
+						if (val != null && !val.equals(size.getReach())) {
+							size.setBaseReach(val);
+						}
+					}
+				});
+				size.addPropertyListener((source, old) -> {
+					//it's ok to do this even if this change event is due to an update from this control
+					//because setValue will not fire a change event if the property isn't actually changing
+					setValue(size.getReach());
+				});
+				setColumns(30);
+				setValue(size.getReach());
+			}
+		}, c);
 
 		add(new JLabel("Type: "));
 		add(new BoundTextField(character, Character.PROPERTY_TYPE, 30));

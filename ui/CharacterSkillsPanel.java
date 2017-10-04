@@ -1,12 +1,5 @@
 package ui;
 
-import gamesystem.AbilityScore;
-import gamesystem.Creature;
-import gamesystem.Skill;
-import gamesystem.SkillType;
-import gamesystem.Skills;
-import gamesystem.Statistic;
-
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -26,6 +19,12 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
+import gamesystem.AbilityScore;
+import gamesystem.Creature;
+import gamesystem.Skill;
+import gamesystem.SkillType;
+import gamesystem.Skills;
+import gamesystem.Statistic;
 import party.Character;
 import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
@@ -74,7 +73,7 @@ class CharacterSkillsPanel extends JPanel {
 			skillsAdhocPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier for all skills"));
 
 			Statistic allSkills = chr.getStatistic(Creature.STATISTIC_SKILLS);
-			allSkills.addPropertyChangeListener(e -> updateSummary());
+			allSkills.addPropertyListener((source, old) -> updateSummary());
 
 			addPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier for " + title));
 

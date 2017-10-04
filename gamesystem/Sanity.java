@@ -3,7 +3,6 @@ package gamesystem;
 import gamesystem.core.AbstractProperty;
 import gamesystem.core.Property;
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.PropertyEventType;
 import gamesystem.core.ValueProperty;
 
 public class Sanity extends ValueProperty<Integer> {
@@ -18,8 +17,8 @@ public class Sanity extends ValueProperty<Integer> {
 
 		maxSanity = new AbstractProperty<Integer>("sanity.maximum", parent) {
 			{
-				knowledgeSkill.addPropertyListener((source, type, oldValue, newValue) -> {
-					parent.fireEvent(maxSanity, PropertyEventType.VALUE_CHANGED, 99 - oldValue);
+				knowledgeSkill.addPropertyListener((source, oldValue) -> {
+					fireEvent(99 - oldValue);
 				});
 			}
 
@@ -31,11 +30,10 @@ public class Sanity extends ValueProperty<Integer> {
 
 		startingSanity = new AbstractProperty<Integer>("sanity.starting", parent) {
 			{
-				wis.addPropertyChangeListener((e) -> {
-					Integer old = (Integer) e.getOldValue();
+				wis.addPropertyListener((source, old) -> {
 					int oldValue = 0;
 					if (old != null) oldValue = calculateStarting(old);
-					parent.fireEvent(startingSanity, PropertyEventType.VALUE_CHANGED, oldValue);
+					fireEvent(oldValue);
 				});
 			}
 
@@ -70,7 +68,7 @@ public class Sanity extends ValueProperty<Integer> {
 
 	public void startSession() {
 		sessionStart = getValue();
-		parent.fireEvent(this, PropertyEventType.COMPOSITION_CHANGED, getValue());
+		fireEvent(getValue());
 	}
 
 	// heal must be > 0. note this affects the base value so it will have no apparent effect if an override is applied

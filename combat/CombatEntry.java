@@ -27,6 +27,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import gamesystem.Creature;
+import gamesystem.HPs;
 import ui.Status;
 
 @SuppressWarnings("serial")
@@ -49,10 +50,16 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	private JPanel statusPanel = new JPanel();
 
 	Creature creature;
+	HPs hps;
 
 	EventListenerList listenerList = new EventListenerList();
 	private ChangeEvent changeEvent = null;
 	ActionEvent actionEvent = null;
+
+	CombatEntry(Creature c) {
+		creature = c;
+		hps = c.getHPStatistic();
+	}
 
 	public Creature getSource() {
 		return creature;
@@ -77,16 +84,16 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	void applyDamage(int delta, boolean nonLethal) {
 		// apply current damage
 		if (nonLethal) {
-			creature.setNonLethal(creature.getNonLethal() + delta);
+			hps.setNonLethal(hps.getNonLethal() + delta);
 		} else {
-			creature.setWounds(creature.getWounds() + delta);
+			hps.setWounds(hps.getWounds() + delta);
 		}
 	}
 
 	void healAll() {
 		// remove all damage
-		creature.setWounds(0);
-		creature.setNonLethal(0);
+		hps.setWounds(0);
+		hps.setNonLethal(0);
 	}
 
 	// Note: marks the entry as having been changed if it was blank, and if it has the roll is 0, randomly rolls
@@ -164,7 +171,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		add(new JLabel("Max: "), c);
 		c.weightx = 1.0;
 		maxHPsField = new JFormattedTextField();
-		maxHPsField.setValue(new Integer(creature.getMaximumHitPoints()));
+		maxHPsField.setValue(new Integer(hps.getMaximumHitPoints()));
 		maxHPsField.setColumns(4);
 		maxHPsField.addPropertyChangeListener("value", this);
 		add(maxHPsField, c);
@@ -258,7 +265,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		if (evt.getSource() == creature) {
 			// update the relevant fields
 			if (evt.getPropertyName().equals(Creature.PROPERTY_MAXHPS)) {
-				maxHPsField.setValue(new Integer(creature.getMaximumHitPoints()));
+				if (maxHPsField != null) maxHPsField.setValue(new Integer(hps.getMaximumHitPoints()));
 				updateHPs();
 			} else if (evt.getPropertyName().equals(Creature.PROPERTY_WOUNDS)
 					|| evt.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)) {
@@ -270,7 +277,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 		} else if (evt.getPropertyName().equals("value")) {
 			if (evt.getSource() == maxHPsField) {
-				creature.setMaximumHitPoints((Integer)maxHPsField.getValue());
+				hps.setMaximumHitPoints((Integer) maxHPsField.getValue());
 				if (initBlank()) fireChange();
 			} else if (evt.getSource() == rollField
 					|| evt.getSource() == modifierComp) {
@@ -288,7 +295,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	}
 
 	private void updateStatus() {
-		Status status = Status.getStatus(creature.getMaximumHitPoints(), creature.getMaximumHitPoints()-creature.getWounds()-creature.getNonLethal());
+		Status status = Status.getStatus(hps.getMaximumHitPoints(), hps.getMaximumHitPoints() - hps.getWounds() - hps.getNonLethal());
 		//System.out.println("Status = "+Status.descriptions[status]);
 		statusPanel.setBackground(status.getColor());
 		statusPanel.setToolTipText(status.toString());
@@ -296,12 +303,12 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 	int getTotal() {
 		int tot = (Integer)rollField.getValue();
-		tot += creature.getInitiativeModifier();
+		tot += creature.getInitiativeStatistic().getValue();
 		return tot;
 	}
 
 	int getModifier() {
-		return creature.getInitiativeModifier();
+		return creature.getInitiativeStatistic().getValue();
 	}
 
 	int getTieBreak() {

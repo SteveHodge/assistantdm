@@ -1,6 +1,5 @@
 package gamesystem;
 
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,9 +30,9 @@ public class AC extends Statistic implements StatisticsCollection {
 	LimitModifier dexMod = null;
 
 	public AC(AbilityScore dex, PropertyCollection parent) {
-		super("AC", parent);
+		super("ac", "AC", parent);
 
-		naturalArmor = new Statistic("Natural Armor", parent);
+		naturalArmor = new Statistic("ac.natural_armor", "Natural Armor", parent);
 		armor = new Armor(parent);
 		shield = new Shield(parent);
 		touchAC = new TouchAC(parent);
@@ -44,16 +43,16 @@ public class AC extends Statistic implements StatisticsCollection {
 			addModifier(dexMod);
 		}
 
-		naturalArmor.addPropertyChangeListener(e -> firePropertyChange("value", null, getValue()));
+		naturalArmor.addPropertyListener((source, oldValue) -> fireEvent());	// FIXME hierarchy might mean events are forwarded though this AC instance anyway
 	}
 
 	// touch ac and flat-footed ac are also statistics, but they are not targettable (they are entirely based on the main AC stat with certain modifiers ignored)
 	@Override
 	public StatisticDescription[] getStatistics() {
 		StatisticDescription[] targets = {
-				new StatisticDescription(armor.getName(), Creature.STATISTIC_ARMOR),
-				new StatisticDescription(shield.getName(), Creature.STATISTIC_SHIELD),
-				new StatisticDescription(naturalArmor.getName(), Creature.STATISTIC_NATURAL_ARMOR)
+				new StatisticDescription(armor.getDescription(), Creature.STATISTIC_ARMOR),
+				new StatisticDescription(shield.getDescription(), Creature.STATISTIC_SHIELD),
+				new StatisticDescription(naturalArmor.getDescription(), Creature.STATISTIC_NATURAL_ARMOR)
 		};
 		return targets;
 	}
@@ -124,21 +123,10 @@ public class AC extends Statistic implements StatisticsCollection {
 		return armorCheckPenalty;
 	}
 
-	// note that listener requests are forwarded to the outer AC instance. this means the source of events will be the AC instance,
-	// not the touchAC instance
+	// note that any modifiers added are added to the parent AC instance, not the touchAC instance
 	class TouchAC extends Statistic {
 		TouchAC(PropertyCollection parent) {
-			super("Touch AC", parent);
-		}
-
-		@Override
-		public void addPropertyChangeListener(PropertyChangeListener listener) {
-			AC.this.addPropertyChangeListener(listener);
-		}
-
-		@Override
-		public void removePropertyChangeListener(PropertyChangeListener listener) {
-			AC.this.removePropertyChangeListener(listener);
+			super("ac.touch_ac", "Touch AC", parent);
 		}
 
 		@Override
@@ -183,21 +171,10 @@ public class AC extends Statistic implements StatisticsCollection {
 		}
 	};
 
-	// note that listener requests are forwarded to the outer AC instance. this means the source of events will be the AC instance,
-	// not the flatFootedAC instance
+	// note that any modifiers added are added to the parent AC instance, not the flatFootedAC instance
 	class FlatFootedAC extends Statistic {
 		FlatFootedAC(PropertyCollection parent) {
-			super("Flat-footed AC", parent);
-		}
-
-		@Override
-		public void addPropertyChangeListener(PropertyChangeListener listener) {
-			AC.this.addPropertyChangeListener(listener);
-		}
-
-		@Override
-		public void removePropertyChangeListener(PropertyChangeListener listener) {
-			AC.this.removePropertyChangeListener(listener);
+			super("ac.flat-footed", "Flat-footed AC", parent);
 		}
 
 		@Override
@@ -250,11 +227,11 @@ public class AC extends Statistic implements StatisticsCollection {
 		protected Modifier enhancement = null;	// enhancement modifier applied to this item
 
 		protected Shield(PropertyCollection parent) {
-			super("Shield", parent);
+			super("ac.shield", "Shield", parent);
 		}
 
-		protected Shield(String n, PropertyCollection parent) {
-			super(n, parent);
+		protected Shield(String n, String d, PropertyCollection parent) {
+			super(n, d, parent);
 		}
 
 		@Override
@@ -281,7 +258,7 @@ public class AC extends Statistic implements StatisticsCollection {
 				modifier = null;
 			}
 			if (getValue() != 0) {
-				modifier = new ImmutableModifier(getValue(), getName());
+				modifier = new ImmutableModifier(getValue(), getDescription());
 				AC.this.addModifier(modifier);
 			}
 		}
@@ -346,7 +323,7 @@ public class AC extends Statistic implements StatisticsCollection {
 		public int speed;
 
 		protected Armor(PropertyCollection parent) {
-			super("Armor", parent);
+			super("ac.armor", "Armor", parent);
 		}
 
 		public int getMaxDex() {

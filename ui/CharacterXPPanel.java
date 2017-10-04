@@ -1,8 +1,5 @@
 package ui;
 
-import gamesystem.Creature;
-import gamesystem.XP;
-
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -23,6 +20,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import gamesystem.Creature;
+import gamesystem.XP;
 import party.Character;
 
 // TODO better history dialog
@@ -69,7 +68,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyChang
 		c.gridx = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0;
-		BoundIntegerField f = new BoundIntegerField(character, Character.PROPERTY_LEVEL, 2);
+		BoundIntegerField f = new BoundIntegerField(character.getStatistic(Character.STATISTIC_LEVEL), 2);
 		f.setMinimumSize(new Dimension(40,f.getMinimumSize().height));
 		add(f,c);
 

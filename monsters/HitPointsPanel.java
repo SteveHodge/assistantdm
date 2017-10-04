@@ -1,10 +1,5 @@
 package monsters;
 
-import gamesystem.Creature;
-import gamesystem.HPs;
-import gamesystem.dice.DiceList;
-import gamesystem.dice.HDDice;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -13,8 +8,6 @@ import java.awt.GridBagLayout;
 import java.awt.Polygon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -25,6 +18,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+
+import gamesystem.Creature;
+import gamesystem.HPs;
+import gamesystem.core.PropertyListener;
+import gamesystem.dice.DiceList;
+import gamesystem.dice.HDDice;
 
 
 // TODO hitdice should show con bonus as read-only and auto-adjust with change to con
@@ -149,7 +148,7 @@ class HitPointsPanel extends DetailPanel {
 				public void mousePressed(MouseEvent e) {
 					int len = hitdice.getMaximum() - hitdice.getMinimum() + 1;
 					int hps = e.getX() * len / getSize().width + hitdice.getMinimum();
-					creature.setMaximumHitPoints(hps);
+					creature.getHPStatistic().setMaximumHitPoints(hps);
 				}
 			});
 		}
@@ -200,7 +199,7 @@ class HitPointsPanel extends DetailPanel {
 			g.setColor(Color.RED);
 			g.drawPolygon(p);
 
-			int hps = creature.getMaximumHitPoints() - hitdice.getModifier();
+			int hps = creature.getHPStatistic().getMaximumHitPoints() - hitdice.getModifier();
 			int minx = ((hps - first) * d.width) / possTotals;
 			int maxx = ((hps - first + 1) * d.width) / possTotals;
 			g.setColor(new Color(0f, 0f, 1f, 0.5f));
@@ -213,14 +212,14 @@ class HitPointsPanel extends DetailPanel {
 		if (creature == m) return;
 
 		if (creature != null) {
-			hps.removePropertyChangeListener(hpListener);
+			hps.removePropertyListener(hpListener);
 		}
 
 		creature = m;
 
 		if (creature != null) {
 			hps = creature.getHPStatistic();
-			hps.addPropertyChangeListener(hpListener);
+			hps.addPropertyListener(hpListener);
 			hitdice = DiceList.fromList(creature.getHitDice().getValue());
 		} else {
 			hps = null;
@@ -229,12 +228,7 @@ class HitPointsPanel extends DetailPanel {
 		update();
 	}
 
-	private PropertyChangeListener hpListener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent e) {
-			update();
-		}
-	};
+	private PropertyListener<Integer> hpListener = (source, oldValue) -> update();
 
 	private void update() {
 		if (creature != null) {

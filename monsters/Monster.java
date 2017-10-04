@@ -1,7 +1,5 @@
 package monsters;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -43,41 +41,6 @@ public class Monster extends Creature {
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
 	public List<Feat> feats = new ArrayList<Feat>();			// applied feats	// TODO should not be public. should be notified
 
-	// this listener forwards events from Statstics as property changes
-	private PropertyChangeListener statListener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			if (evt.getSource() == hps) {
-				pcs.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
-			} else if (evt.getSource() == size) {
-				if (evt.getPropertyName().equals("value")) {
-					hitDice.updateBonusHPs(Monster.this);
-					pcs.firePropertyChange(PROPERTY_SIZE, evt.getOldValue(), evt.getNewValue());
-				} else if (evt.getPropertyName().equals("space")) {
-					pcs.firePropertyChange(PROPERTY_SPACE, evt.getOldValue(), evt.getNewValue());
-				} else if (evt.getPropertyName().equals("reach")) {
-					pcs.firePropertyChange(PROPERTY_REACH, evt.getOldValue(), evt.getNewValue());
-				}
-			} else if (evt.getSource() instanceof AbilityScore) {
-				AbilityScore score = (AbilityScore) evt.getSource();
-				pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX + score.getName(), evt.getOldValue(), evt.getNewValue());
-			} else if (evt.getSource() == initiative) {
-				pcs.firePropertyChange(PROPERTY_INITIATIVE, evt.getOldValue(), evt.getNewValue());
-			} else if (evt.getSource() instanceof SavingThrow) {
-				SavingThrow save = (SavingThrow) evt.getSource();
-				pcs.firePropertyChange(PROPERTY_SAVE_PREFIX + save.getName(), evt.getOldValue(), evt.getNewValue());
-			} else if (evt.getSource() == ac) {
-				pcs.firePropertyChange(PROPERTY_AC, evt.getOldValue(), evt.getNewValue());
-				pcs.firePropertyChange(PROPERTY_AC_TOUCH, 0, getTouchAC());
-				pcs.firePropertyChange(PROPERTY_AC_FLATFOOTED, 0, getFlatFootedAC());
-			} else if (evt.getSource() == attacks) {
-				pcs.firePropertyChange(PROPERTY_BAB, evt.getOldValue(), evt.getNewValue());
-			} else {
-				System.out.println("Unknown property change event: " + evt);
-			}
-		}
-	};
-
 	// Creatures a "blank" monster
 	public Monster(String name) {
 		this(name, new int[] { 10, 10, 10, 10, 10, 10 });
@@ -93,8 +56,6 @@ public class Monster extends Creature {
 			if (scores[i] >= 0) {
 				final AbilityScore s = new AbilityScore(t, this);
 				s.setBaseValue(scores[i]);
-				s.addPropertyChangeListener(statListener);
-				s.getModifier().addPropertyChangeListener(e -> pcs.firePropertyChange(PROPERTY_ABILITY_PREFIX + s.getName(), e.getOldValue(), e.getNewValue()));
 				abilities.put(t, s);
 			}
 			i++;
@@ -103,11 +64,10 @@ public class Monster extends Creature {
 		AbilityScore dex = abilities.get(AbilityScore.Type.DEXTERITY);
 		initiative = new InitiativeModifier(dex, this);
 		initiative.setBaseValue(0);
-		initiative.addPropertyChangeListener(statListener);
 
 		race = new Race(this);
-		race.addPropertyListener((source, type, oldValue, newValue) -> {
-			hitDice.updateBonusHPs(Monster.this);
+		race.addPropertyListener((source, oldValue) -> {
+			hitDice.updateBonusHPs(Monster.this);	// TODO could override fireEvent rather than adding a listener
 		});
 		level = new Levels(this);
 		hitDice = new HitDiceProperty(this, race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
@@ -115,16 +75,18 @@ public class Monster extends Creature {
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice, this);
 			//s.setBaseOverride(0);
-			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
 
 		hps = new HPs(hitDice, this);
 		hps.setMaximumHitPoints(0);
-		hps.addPropertyChangeListener(statListener);
 
 		size = new Size(this);
-		size.addPropertyChangeListener(statListener);
+		size.addPropertyListener((source, old) -> {
+			firePropertyChange(PROPERTY_SIZE, null, source.getValue());
+			firePropertyChange(PROPERTY_SPACE, null, size.getSpace());
+			firePropertyChange(PROPERTY_REACH, null, size.getReach());
+		});
 
 		// Missing dex: The rules on nonabilities state that the modifier is 0, but the MM is inconsistent in this
 		// regard. Formian Queens are listed as not having a dex modifier to AC (following the rules as written) but
@@ -146,10 +108,8 @@ public class Monster extends Creature {
 		} else {
 			ac = new AC(dex, this);
 		}
-		ac.addPropertyChangeListener(statListener);
 
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty(), this);
-		skills.addPropertyChangeListener(statListener);
 
 		bab = new BAB(this, race, level);
 
@@ -161,7 +121,6 @@ public class Monster extends Creature {
 //		if (sizeMod != 0) attacks.addModifier(new ImmutableModifier(sizeMod, "Size"));
 		attackList = new ArrayList<>();
 		fullAttackList = new ArrayList<>();
-		attacks.addPropertyChangeListener(statListener);
 	}
 
 	public HitDiceProperty getHitDice() {
@@ -325,12 +284,6 @@ public class Monster extends Creature {
 		firePropertyChange(PROPERTY_NAME, old, name);
 	}
 
-// XXX this sets the total value but the Character version sets the base value
-	@Override
-	public void setInitiativeModifier(int i) {
-		initiative.setBaseValue(i - initiative.getValue());
-	}
-
 	// we check both feats and special qualities
 	@Override
 	public boolean hasFeat(String feat) {
@@ -380,26 +333,6 @@ public class Monster extends Creature {
 			counts[bonus ? 1 : 0] += count;
 		}
 		return counts;
-	}
-
-	@Override
-	public Object getPropertyValue(String prop) {
-		if (prop.equals(PROPERTY_AC_FLATFOOTED))
-			return getFlatFootedAC();
-		else if (prop.equals(PROPERTY_AC_TOUCH))
-			return getTouchAC();
-		else
-			return super.getPropertyValue(prop);
-	}
-
-	@Override
-	public void setProperty(String prop, Object value) {
-		if (prop.equals(PROPERTY_AC_FLATFOOTED))
-			setFlatFootedAC((Integer) value);
-		else if (prop.equals(PROPERTY_AC_TOUCH))
-			setTouchAC((Integer) value);
-		else
-			super.setProperty(prop, value);
 	}
 
 	// TODO this is reimplementation of Creature version. should fold into that

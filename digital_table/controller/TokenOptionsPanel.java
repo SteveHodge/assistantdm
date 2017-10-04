@@ -40,7 +40,11 @@ import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 import gamesystem.Creature;
+import gamesystem.HPs;
+import gamesystem.Size;
 import gamesystem.SizeCategory;
+import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import util.ModuleRegistry;
 
 @SuppressWarnings("serial")
@@ -321,7 +325,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	void setCreature(Creature c) {
 		if (creature == c) return;
 		if (creature != null) {
-			creature.removePropertyChangeListener(propListener);
+			creature.removePropertyListener("hps", hpListener);
+			creature.removePropertyListener("size", sizeListener);
 		}
 		creature = c;
 		if (creature == null) {
@@ -333,14 +338,16 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			labelField.setText("");
 			remoteLabelField.setText("");
 		} else {
-			creature.addPropertyChangeListener(propListener);
+			creature.addPropertyListener("hps", hpListener);
+			creature.addPropertyListener("size", sizeListener);
 			updateHPs();
 
-			spaceField.setText("" + ((float) creature.getSpace()) / 2);
-			reachField.setText("" + creature.getReach());
-			sizeCombo.setSelectedItem(CreatureSize.getSize(creature.getSize(), creature.getReach()));
-			display.setProperty(element, Token.PROPERTY_SPACE, creature.getSpace());
-			display.setProperty(element, Token.PROPERTY_REACH, creature.getReach());
+			Size size = creature.getSizeStatistic();
+			spaceField.setText("" + ((float) size.getSpace()) / 2);
+			reachField.setText("" + size.getReach());
+			sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach()));
+			display.setProperty(element, Token.PROPERTY_SPACE, size.getSpace());
+			display.setProperty(element, Token.PROPERTY_REACH, size.getReach());
 
 			labelField.setText(creature.getName());
 			remoteLabelField.setText(creature.getName());
@@ -356,26 +363,22 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 	}
 
-	private PropertyChangeListener propListener = new PropertyChangeListener() {
+	private PropertyListener<Integer> hpListener = new PropertyListener<Integer>() {
 		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			if (evt.getPropertyName().equals(Creature.PROPERTY_MAXHPS)) {
-				updateHPs();
-			} else if (evt.getPropertyName().equals(Creature.PROPERTY_WOUNDS)
-					|| evt.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)) {
-				updateHPs();
-			} else {
-				if (evt.getPropertyName().equals(Creature.PROPERTY_SIZE)) {
-					sizeCombo.setSelectedItem(CreatureSize.getSize(creature.getSize(), creature.getReach()));
-				}
-				if (evt.getPropertyName().equals(Creature.PROPERTY_SPACE) || evt.getPropertyName().equals(Creature.PROPERTY_SIZE)) {
-					spaceField.setText("" + ((float) creature.getSpace()) / 2);
-					display.setProperty(element, Token.PROPERTY_SPACE, creature.getSpace());
-				} else if (evt.getPropertyName().equals(Creature.PROPERTY_REACH) || evt.getPropertyName().equals(Creature.PROPERTY_SIZE)) {
-					reachField.setText("" + creature.getReach());
-					display.setProperty(element, Token.PROPERTY_REACH, creature.getReach());
-				}
-			}
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+			updateHPs();
+		}
+	};
+
+	private PropertyListener<Integer> sizeListener = new PropertyListener<Integer>() {
+		@Override
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+			Size size = creature.getSizeStatistic();
+			sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach()));
+			spaceField.setText("" + ((float) size.getSpace()) / 2);
+			display.setProperty(element, Token.PROPERTY_SPACE, size.getSpace());
+			reachField.setText("" + size.getReach());
+			display.setProperty(element, Token.PROPERTY_REACH, size.getReach());
 		}
 	};
 
@@ -390,8 +393,9 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	// TODO needs to account for temporary hitpoints
 	private void updateHPs() {
 		if (creature == null) return;
-		int max = creature.getMaximumHitPoints();
-		int curr = max - creature.getWounds() - creature.getNonLethal();
+		HPs hps = creature.getHPStatistic();
+		int max = hps.getMaximumHitPoints();
+		int curr = max - hps.getWounds() - hps.getNonLethal();
 		display.setProperty(element, Token.PROPERTY_MAX_HPS, max);
 		display.setProperty(element, Token.PROPERTY_CURRENT_HPS, curr);
 		maxHPsField.setText("" + max);

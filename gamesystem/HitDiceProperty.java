@@ -6,7 +6,6 @@ import java.util.List;
 import gamesystem.SavingThrow.Type;
 import gamesystem.core.AbstractProperty;
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.PropertyEventType;
 import gamesystem.dice.HDDice;
 import gamesystem.dice.SimpleDice;
 import monsters.Monster;
@@ -36,13 +35,9 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			});
 		}
 
-		race.addPropertyListener((source, type, oldValue, newValue) -> {
-			updateHitDice();
-		});
+		race.addPropertyListener((source, oldValue) -> updateHitDice());
 
-		levels.addPropertyChangeListener((e) -> {
-			updateHitDice();
-		});
+		levels.addPropertyListener((source, oldValue) -> updateHitDice());
 
 		updateHitDice();
 	}
@@ -75,7 +70,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		}
 
 		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
-			parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, old);
+			fireEvent(old);
 		}
 	}
 

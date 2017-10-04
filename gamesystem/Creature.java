@@ -17,7 +17,6 @@ import javax.swing.DefaultListModel;
 import gamesystem.CharacterClass.ClassOption;
 import gamesystem.core.Property;
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.PropertyEventType;
 import gamesystem.core.PropertyListener;
 import swing.ListModelWithToolTips;
 
@@ -53,27 +52,27 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	// statistics
 	// TODO should be combined with properties
-	public final static String STATISTIC_STRENGTH = "abilities.strength";
-	public final static String STATISTIC_INTELLIGENCE = "abilities.intelligence";
-	public final static String STATISTIC_WISDOM = "abilities.wisdom";
-	public final static String STATISTIC_DEXTERITY = "abilities.dexterity";
-	public final static String STATISTIC_CONSTITUTION = "abilities.constitution";
-	public final static String STATISTIC_CHARISMA = "abilities.charisma";
+	public final static String STATISTIC_STRENGTH = "ability_scores.strength";
+	public final static String STATISTIC_INTELLIGENCE = "ability_scores.intelligence";
+	public final static String STATISTIC_WISDOM = "ability_scores.wisdom";
+	public final static String STATISTIC_DEXTERITY = "ability_scores.dexterity";
+	public final static String STATISTIC_CONSTITUTION = "ability_scores.constitution";
+	public final static String STATISTIC_CHARISMA = "ability_scores.charisma";
 	//public final static String STATISTIC_ABILITY_CHECKS = "ability_check";
-	public final static String STATISTIC_SAVING_THROWS = "saves";
-	public final static String STATISTIC_FORTITUDE_SAVE = "saves.fortitude";
-	public final static String STATISTIC_WILL_SAVE = "saves.will";
-	public final static String STATISTIC_REFLEX_SAVE = "saves.reflex";
+	public final static String STATISTIC_SAVING_THROWS = "saving_throws";
+	public final static String STATISTIC_FORTITUDE_SAVE = "saving_throws.fortitude";
+	public final static String STATISTIC_WILL_SAVE = "saving_throws.will";
+	public final static String STATISTIC_REFLEX_SAVE = "saving_throws.reflex";
 	public final static String STATISTIC_SKILLS = "skills";
 	public final static String STATISTIC_AC = "ac";
 	public final static String STATISTIC_ARMOR = "ac.armor";
 	public final static String STATISTIC_SHIELD = "ac.shield";
 	public final static String STATISTIC_NATURAL_ARMOR = "ac.natural_armor";
 	public final static String STATISTIC_INITIATIVE = "initiative";
-	public final static String STATISTIC_HPS = "hps";
+	public final static String STATISTIC_HPS = "hit_points";
 	public final static String STATISTIC_LEVEL = "level";
 	public final static String STATISTIC_ATTACKS = "attacks";
-	public final static String STATISTIC_DAMAGE = "damage";
+	public final static String STATISTIC_DAMAGE = "attacks.damage";
 	public final static String STATISTIC_SIZE = "size";
 	public final static String STATISTIC_GRAPPLE = "grapple";
 
@@ -93,13 +92,9 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	protected EnumMap<AbilityScore.Type, AbilityScore> abilities = new EnumMap<>(AbilityScore.Type.class);
 
 	protected AC ac;
-	protected int tempAC, tempTouch, tempFF;	// ac overrides
-	protected boolean hasTempAC, hasTempTouch, hasTempFF;	// flags for overrides
-
 	protected Attacks attacks;
 	public BAB bab;	// TODO shouldn't be public - change where StatBlockCreatureView doesn't need to manipulate bab when adding levels
 	protected GrappleModifier grapple;
-
 	public Race race;		// TODO shouldn't be public
 	public Levels level;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 	public Map<String, ClassOption> classOptions = new HashMap<>();
@@ -128,6 +123,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	public Skills skills;		// TODO shouldn't be public
 
+	// This is here to support name and other extra properties
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -172,7 +168,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	//------------------------ PropertyCollection --------------------------
 	Map<String, Property<?>> properties = new HashMap<>();
-	Map<Property<?>, List<PropertyListener<?>>> listeners = new HashMap<>();	// TODO more efficient implementation
+	Map<String, List<PropertyListener<?>>> listeners = new HashMap<>();
 
 	public void debugDumpStructure() {
 		List<String> keys = new ArrayList<>(properties.keySet());
@@ -188,23 +184,31 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void fireEvent(Property<T> source, PropertyEventType type, T oldValue) {
-		List<PropertyListener<?>> list = listeners.get(source);
-		if (list == null) return;
-		for (PropertyListener<?> l : list) {
-			((PropertyListener<T>) l).propertyChanged(source, type, oldValue, source.getValue());
+	public <T> void fireEvent(Property<T> source, T oldValue) {
+		String propName = source.getName();
+		while (true) {
+			List<PropertyListener<?>> list = listeners.get(propName);
+			if (list != null) {
+				for (PropertyListener<?> l : list) {
+					((PropertyListener<T>) l).propertyChanged(source, oldValue);
+				}
+			}
+			if (propName.equals("")) break;
+			int idx = propName.lastIndexOf('.');
+			if (idx >= 0)
+				propName = propName.substring(0, idx);
+			else
+				propName = "";
 		}
 	}
 
 	@Override
 	public void addPropertyListener(String propName, PropertyListener<?> l) {
 		// TODO argument checking: check l is not null
-		Property<?> property = getProperty(propName);
-		if (property == null) return;
-		List<PropertyListener<?>> list = listeners.get(property);
+		List<PropertyListener<?>> list = listeners.get(propName);
 		if (list == null) {
 			list = new ArrayList<>();
-			listeners.put(property, list);
+			listeners.put(propName, list);
 		}
 		list.add(l);
 	}
@@ -212,10 +216,10 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	@Override
 	public <T> void addPropertyListener(Property<T> property, PropertyListener<T> l) {
 		// TODO argument checking: check property is in this object, l is not null
-		List<PropertyListener<?>> list = listeners.get(property);
+		List<PropertyListener<?>> list = listeners.get(property.getName());
 		if (list == null) {
 			list = new ArrayList<>();
-			listeners.put(property, list);
+			listeners.put(property.getName(), list);
 		}
 		list.add(l);
 	}
@@ -350,22 +354,22 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		targets.add(new StatisticDescription(SavingThrow.Type.FORTITUDE.toString(), STATISTIC_FORTITUDE_SAVE));
 		targets.add(new StatisticDescription(SavingThrow.Type.WILL.toString(), STATISTIC_WILL_SAVE));
 		targets.add(new StatisticDescription(SavingThrow.Type.REFLEX.toString(), STATISTIC_REFLEX_SAVE));
-		targets.add(new StatisticDescription(ac.getName(), STATISTIC_AC));
+		targets.add(new StatisticDescription(ac.getDescription(), STATISTIC_AC));
 		StatisticDescription[] tgts = ac.getStatistics();
 		for (StatisticDescription t : tgts) {
 			t.name = "... " + t.name;
 			targets.add(t);
 		}
-		targets.add(new StatisticDescription(initiative.getName(), STATISTIC_INITIATIVE));
-		targets.add(new StatisticDescription(hps.getName(), STATISTIC_HPS));
-		targets.add(new StatisticDescription(level.getName(), STATISTIC_LEVEL));
-		targets.add(new StatisticDescription(attacks.getName(), STATISTIC_ATTACKS));
+		targets.add(new StatisticDescription(initiative.getDescription(), STATISTIC_INITIATIVE));
+		targets.add(new StatisticDescription(hps.getDescription(), STATISTIC_HPS));
+		targets.add(new StatisticDescription(level.getDescription(), STATISTIC_LEVEL));
+		targets.add(new StatisticDescription(attacks.getDescription(), STATISTIC_ATTACKS));
 		// add attacks subtargets
-		targets.add(new StatisticDescription(attacks.getDamageStatistic().getName(), STATISTIC_DAMAGE));
+		targets.add(new StatisticDescription(attacks.getDamageStatistic().getDescription(), STATISTIC_DAMAGE));
 		// add attacks subtargets
-		targets.add(new StatisticDescription(size.getName(), STATISTIC_SIZE));
-		targets.add(new StatisticDescription(grapple.getName(), STATISTIC_GRAPPLE));
-		targets.add(new StatisticDescription(skills.getName(), STATISTIC_SKILLS));
+		targets.add(new StatisticDescription(size.getDescription(), STATISTIC_SIZE));
+		targets.add(new StatisticDescription(grapple.getDescription(), STATISTIC_GRAPPLE));
+		targets.add(new StatisticDescription(skills.getDescription(), STATISTIC_SKILLS));
 		tgts = skills.getStatistics();
 		for (StatisticDescription t : tgts) {
 			t.name = "... " + t.name;
@@ -447,13 +451,13 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	public void addBuff(Buff b) {
+		buffs.addElement(b);	// we add the buff to the buffs list first because b.apply will trigger change events and we want buffs to be up to date for those events
 		b.apply(this);
-		buffs.addElement(b);
 	}
 
 	public void removeBuff(Buff b) {
+		buffs.removeElement(b);	// we add the buff to the buffs list first because b.apply will trigger change events and we want buffs to be up to date for those events
 		b.remove(this);
-		buffs.removeElement(b);
 	}
 
 // remove a buff by id
@@ -461,8 +465,8 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		for (int i = 0; i < buffs.getSize(); i++) {
 			Buff b = buffs.get(i);
 			if (b.id == id) {
+				buffs.removeElement(b);	// we add the buff to the buffs list first because b.apply will trigger change events and we want buffs to be up to date for those events
 				b.remove(this);
-				buffs.removeElement(b);
 			}
 		}
 	}
@@ -470,53 +474,18 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	public Object getPropertyValue(String prop) {
 		if (prop.equals(PROPERTY_NAME))
 			return name;
-		else if (prop.equals(PROPERTY_MAXHPS))
-			return getMaximumHitPoints();
-		else if (prop.equals(PROPERTY_WOUNDS))
-			return getWounds();
-		else if (prop.equals(PROPERTY_NONLETHAL))
-			return getNonLethal();
-		else if (prop.equals(PROPERTY_INITIATIVE))
-			return getInitiativeModifier();
-		else if (prop.equals(PROPERTY_AC))
-			return getAC();
-		else if (prop.equals(PROPERTY_SPACE))
-			return getSpace();
-		else if (prop.equals(PROPERTY_REACH))
-			return getReach();
-		else if (prop.equals(PROPERTY_BAB))
-			return bab.getValue();
 		else if (extraProperties.containsKey(prop)) {
 //			System.out.println("extra property '"+prop+"': "+extraProperties.get(prop));
 			return extraProperties.get(prop);
 		} else {
-//			System.out.println("Attempt to get unknown property: " + prop);
+			System.err.println("Attempt to get unknown property: " + prop);
 			return null;
 		}
 	}
 
 	public void setProperty(String prop, Object value) {
-		if (prop.equals(PROPERTY_NAME))
+		if (prop.equals(PROPERTY_NAME)) {
 			setName((String) value);
-		else if (prop.equals(PROPERTY_MAXHPS))
-			setMaximumHitPoints((Integer) value);
-		else if (prop.equals(PROPERTY_WOUNDS))
-			setWounds((Integer) value);
-		else if (prop.equals(PROPERTY_NONLETHAL))
-			setNonLethal((Integer) value);
-		else if (prop.equals(PROPERTY_INITIATIVE))
-			setInitiativeModifier((Integer) value);
-		else if (prop.equals(PROPERTY_AC))
-			setAC((Integer) value);
-		else if (prop.equals(PROPERTY_SIZE))
-			size.setBaseSize((SizeCategory) value);
-		else if (prop.equals(PROPERTY_SPACE))
-			setSpace((Integer) value);
-		else if (prop.equals(PROPERTY_REACH))
-			setReach((Integer) value);
-		else if (prop.equals(PROPERTY_BAB)) {
-			System.err.println("Setting BAB");
-			bab.addOverride((Integer) value);		// TODO is this what we want to do?
 		} else {
 			//System.out.println("Attempt to set unknown property: " + prop + " to " + value);
 			Object old = extraProperties.get(prop);
@@ -544,185 +513,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	public Modifier getAbilityModifier(AbilityScore.Type ability) {
 		if (abilities.get(ability) == null) return null;
 		return abilities.get(ability).getModifier();
-	}
-
-	public int getInitiativeModifier() {
-		return initiative.getValue();
-	}
-
-	public void setInitiativeModifier(int i) {
-		initiative.setBaseValue(i - initiative.getValue());
-	}
-
-//------------------- Hit Points -------------------
-// Hit points have a maximum value, wounds taken, non-lethal taken and a calculated
-// current value
-
-	public int getMaximumHitPoints() {
-		return hps.getMaximumHitPoints();
-	}
-
-	public void setMaximumHitPoints(int hp) {
-		hps.setMaximumHitPoints(hp);
-	}
-
-	public int getWounds() {
-		return hps.getWounds();
-	}
-
-	public void setWounds(int i) {
-		hps.setWounds(i);
-	}
-
-	public int getNonLethal() {
-		return hps.getNonLethal();
-	}
-
-	public void setNonLethal(int i) {
-		hps.setNonLethal(i);
-	}
-
-	public int getHPs() {
-		return hps.getHPs();
-	}
-
-//------------- Size --------------
-	public SizeCategory getSize() {
-		return size.getSize();
-	}
-
-	public void setSize(SizeCategory s) {
-		size.setBaseSize(s);
-	}
-
-	public int getSpace() {
-		return size.getSpace();
-	}
-
-	public void setSpace(int s) {
-		size.setBaseSpace(s);
-	}
-
-	public int getReach() {
-		return size.getReach();
-	}
-
-	public void setReach(int r) {
-		size.setBaseReach(r);
-	}
-
-//------------------- Armor Class -------------------
-	/**
-	 * Returns the temporary ac if there is one, otherwise calculates the total ac
-	 * from the ac components
-	 *
-	 * @return current total ac
-	 */
-	public int getAC() {
-		return getAC(true);
-	}
-
-	private int getAC(boolean allowTemp) {
-		if (allowTemp && hasTempAC) return tempAC;
-		return ac.getValue();
-	}
-
-	/**
-	 * Returns the temporary flat-footed ac if there is one, otherwise calculates the
-	 * flat-footed ac from the ac components with any positive dexterity modifier
-	 * ignored.
-	 *
-	 * @return current flat-footed ac
-	 */
-	public int getFlatFootedAC() {
-		return getFlatFootedAC(true);
-	}
-
-	private int getFlatFootedAC(boolean allowTemp) {
-		if (allowTemp && hasTempFF) return tempFF;
-		return ac.getFlatFootedAC().getValue();
-	}
-
-	/**
-	 * Returns the temporary touch ac if there is one, otherwise calculates the touch
-	 * ac from the ac components with all armor, shield and natural armor bonuses
-	 * ignored.
-	 *
-	 * @return current touch ac
-	 */
-	public int getTouchAC() {
-		return getTouchAC(true);
-	}
-
-	private int getTouchAC(boolean allowTemp) {
-		if (allowTemp && hasTempTouch) return tempTouch;
-		return ac.getTouchAC().getValue();
-	}
-
-	/**
-	 * Sets a temporary full ac score. Setting this to the normal value will remove
-	 * the temporary score (as will <code>clearTemporaryAC()</code>)
-	 *
-	 * @param ac
-	 *            the score to set the full ac to
-	 */
-	public void setAC(int tempac) {
-		if (hasTempTouch) {
-			int totAC = getAC(false);
-			if (totAC == tempac) {
-				hasTempAC = false;
-				firePropertyChange(PROPERTY_AC, tempAC, totAC);
-				return;
-			}
-		}
-		int old = getAC();
-		tempAC = tempac;
-		hasTempAC = true;
-		firePropertyChange(PROPERTY_AC, old, ac);
-	}
-
-	/**
-	 * Sets a temporary touch ac score. Setting this to the normal value will remove
-	 * the temporary score (as will <code>clearTemporaryTouchAC()</code>
-	 *
-	 * @param ac
-	 *            the score to set the touch ac to
-	 */
-	public void setTouchAC(int tempac) {
-		if (hasTempTouch) {
-			int totAC = getTouchAC(false);
-			if (totAC == tempac) {
-				hasTempTouch = false;
-				firePropertyChange(PROPERTY_AC, tempTouch, totAC);
-				return;
-			}
-		}
-		int old = getTouchAC();
-		tempTouch = tempac;
-		hasTempTouch = true;
-		firePropertyChange(PROPERTY_AC, old, ac);
-	}
-
-	/**
-	 * Sets a temporary flat-footed ac score. Setting this to the normal value will
-	 * remove the temporary score (as will <code>clearTemporaryFlatFootedAC()</code>
-	 *
-	 * @param ac
-	 *            the score to set the flat-footed ac to
-	 */
-	public void setFlatFootedAC(int tempac) {
-		if (hasTempFF) {
-			int totAC = getFlatFootedAC(false);
-			if (totAC == tempac) {
-				hasTempFF = false;
-				firePropertyChange(PROPERTY_AC, tempFF, totAC);
-				return;
-			}
-		}
-		int old = getFlatFootedAC();
-		tempFF = tempac;
-		hasTempFF = true;
-		firePropertyChange(PROPERTY_AC, old, ac);
 	}
 
 //------------- Others --------------

@@ -15,5 +15,5 @@ public interface PropertyCollection {
 
 	public <T> void addProperty(Property<T> property);
 
-	public <T> void fireEvent(Property<T> source, PropertyEventType type, T oldValue);
+	public <T> void fireEvent(Property<T> source, T oldValue);
 }

@@ -1,4 +1,5 @@
 package party;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -39,7 +40,6 @@ import gamesystem.Race;
 import gamesystem.Sanity;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
-import gamesystem.Skill;
 import gamesystem.SkillType;
 import gamesystem.Skills;
 import gamesystem.Statistic;
@@ -182,88 +182,14 @@ public class Character extends Creature {
 		}
 	}
 
-	private PropertyChangeListener statListener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			if (evt.getSource() == hps) {
-				firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
-				return;
-
-			} else if (evt.getSource() == size) {
-				if (evt.getPropertyName().equals("value")) {
-					firePropertyChange(PROPERTY_SIZE, evt.getOldValue(), evt.getNewValue());
-				} else if (evt.getPropertyName().equals("space")) {
-					firePropertyChange(PROPERTY_SPACE, evt.getOldValue(), evt.getNewValue());
-				} else if (evt.getPropertyName().equals("reach")) {
-					firePropertyChange(PROPERTY_REACH, evt.getOldValue(), evt.getNewValue());
-				}
-				return;
-
-			} else if (evt.getSource() instanceof CharacterAttackForm) {
-				firePropertyChange(PROPERTY_ATTACKS, null, 1);
-				return;
-			}
-
-			//System.out.println("Change to " + evt.getSource() + ", property = " + evt.getPropertyName());
-			// only care about "value" updates from other statistics except skills
-			// TODO not sure this is what we want to do
-			// TODO need to handle extra_attacks at least
-			if (!evt.getPropertyName().equals("value")) {
-				if (!(evt.getSource() instanceof Skills)) {
-					System.out.println("Ignoring update to "+evt.getPropertyName()+" on "+((Statistic)evt.getSource()).getName());
-					return;
-				}
-			}
-
-			if (evt.getSource() == initiative) {
-				//System.out.println("Inititative change event: "+getName()+" old = "+evt.getOldValue()+", new = "+evt.getNewValue());
-				firePropertyChange(PROPERTY_INITIATIVE, evt.getOldValue(), evt.getNewValue());
-
-			} else if (evt.getSource() instanceof AbilityScore) {
-				AbilityScore score = (AbilityScore)evt.getSource();
-				firePropertyChange(PROPERTY_ABILITY_PREFIX+score.getName(), evt.getOldValue(), evt.getNewValue());
-
-			} else if (evt.getSource() instanceof Skill) {
-				Skill s = (Skill)evt.getSource();
-				firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), evt.getOldValue(), evt.getNewValue());
-
-			} else if (evt.getSource() instanceof Skills) {
-				if (evt.getPropertyName().equals("value")) {
-					// change to global modifiers or ability modifiers - update all skills
-					for (SkillType s : getSkills()) {
-						firePropertyChange(PROPERTY_SKILL_PREFIX+s.getName(), null, null);
-					}
-				} else {
-					firePropertyChange(PROPERTY_SKILL_PREFIX+evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
-				}
-
-			} else if (evt.getSource() instanceof SavingThrow) {
-				SavingThrow save = (SavingThrow)evt.getSource();
-				firePropertyChange(PROPERTY_SAVE_PREFIX+save.getName(), evt.getOldValue(), evt.getNewValue());
-
-			} else if (evt.getSource() == ac) {
-				firePropertyChange(PROPERTY_AC, evt.getOldValue(), evt.getNewValue());
-
-			} else if (evt.getSource() == attacks) {
-				firePropertyChange(PROPERTY_BAB, evt.getOldValue(), evt.getNewValue());
-
-			} else {
-				System.out.println("Unknown property change event: " + evt + " on source type " + evt.getSource().getClass().toString());
-			}
-		}
-	};
-
 	public Character(String name) {
 		this.name = name;
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
 			final AbilityScore s = new AbilityScore(t, this);
-			s.addPropertyChangeListener(statListener);
-			s.getModifier().addPropertyChangeListener(e -> firePropertyChange(PROPERTY_ABILITY_PREFIX+s.getName(), e.getOldValue(), e.getNewValue()));
 			abilities.put(t, s);
 		}
 
 		initiative = new InitiativeModifier(abilities.get(AbilityScore.Type.DEXTERITY), this);
-		initiative.addPropertyChangeListener(statListener);
 
 		race = new Race(this);
 		level = new Levels(this);
@@ -272,36 +198,24 @@ public class Character extends Creature {
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice, this);
-			s.addPropertyChangeListener(statListener);
 			saves.put(t, s);
 		}
 
 		ac = new AC(abilities.get(AbilityScore.Type.DEXTERITY), this);
-		ac.addPropertyChangeListener(statListener);
 
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty(), this);
-		skills.addPropertyChangeListener(statListener);
 
 		hps = new HPs(hitDice, this);
-		hps.addPropertyChangeListener(statListener);
 
 		bab = new BAB(this, race, level);
 
 		grapple = new GrappleModifier(this, bab, size, abilities.get(AbilityScore.Type.STRENGTH));
 
 		size = new Size(this);
-		size.addPropertyChangeListener(statListener);
 
 		attacks = new Attacks(this);
-		attacks.addPropertyChangeListener(statListener);
 
 		sanity = new Sanity(this, abilities.get(AbilityScore.Type.WISDOM));
-		sanity.addPropertyListener((source, type, oldValue, newValue) -> {
-			firePropertyChange(PROPERTY_SANITY, oldValue, newValue);
-		});
-		sanity.getKnowledgeSkillProperty().addPropertyListener((source, type, oldValue, newValue) -> {
-			firePropertyChange(PROPERTY_SANITY_KNOWLEDGE, oldValue, newValue);
-		});
 	}
 
 	@Override
@@ -425,64 +339,20 @@ public class Character extends Creature {
 		skills.setMisc(s, misc);
 	}
 
-//------------------- Initiative -------------------
-// Initiative has a total value, a base value and is modified by dexterity
-
-	@Override
-	public void setInitiativeModifier(int i) {
-		initiative.setBaseValue(i);
-	}
-
-//------------------- Saving Throws -------------------
-// Saves have a total, a base values and are modified by ability scores
-// XXX Note that the property change sets old and new to the base scores for setSavingThrowBase and the total scores for setSavingThrow
-
-	public int getSavingThrow(SavingThrow.Type save) {
-		return saves.get(save).getValue();
-	}
-
-	public int getSavingThrowBase(SavingThrow.Type save) {
-		return saves.get(save).getBaseValue();
-	}
-
+	//------------------- Saving Throws -------------------
 	public int getSavingThrowMisc(SavingThrow.Type save) {
 		if (saveMisc.containsKey(save)) return saveMisc.get(save).getModifier();
 		else return 0;
 	}
 
-	public void setSavingThrowBase(SavingThrow.Type save, int v) {
-		int old = saves.get(save).getValue();
-		saves.get(save).setBaseOverride(v);
-		firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, saves.get(save).getValue());
-	}
-
 // TODO currently this works by removing the old modifier and adding a new one. could make the modifiers mutable instead
 	public void setSavingThrowMisc(SavingThrow.Type save, int misc) {
-		int old = getSavingThrow(save);
 		if (saveMisc.containsKey(save)) saves.get(save).removeModifier(saveMisc.get(save));
 		saveMisc.put(save, new ImmutableModifier(misc));
 		saves.get(save).addModifier(saveMisc.get(save));
-		int now = getSavingThrow(save);
-		if (old != now) {
-			firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
-		}
 	}
 
-	/**
-	 * Sets the saving throw total by modifying the base value.
-	 *
-	 * @param save   the saving throw to set
-	 * @param total  the total required
-	 */
-// TODO this is used by RollsPanel. it should probably be removed
-	public void setSavingThrow(SavingThrow.Type save, int total) {
-		int old = getSavingThrow(save);
-		saves.get(save).setBaseOverride(total-saves.get(save).getModifiersTotal());
-		int now = getSavingThrow(save);
-		firePropertyChange(PROPERTY_SAVE_PREFIX+save.toString(), old, now);
-	}
-
-//------------------- Armor Class -------------------
+	//------------------- Armor Class -------------------
 // AC has a total value, a touch value and a flat footed value
 // it is made up of a number of different components
 // TODO dex modifier should be filtered by armor/sheild max dex bonus
@@ -503,122 +373,6 @@ public class Character extends Creature {
 		if (acMods.containsKey(type)) return acMods.get(type).getModifier();
 		return 0;
 	}
-//
-//	/**
-//	 * Returns the temporary ac if there is one, otherwise calculates the total ac
-//	 * from the ac components
-//	 *
-//	 * @return current total ac
-//	 */
-//	@Override
-//	public int getAC() {
-//		return getAC(true);
-//	}
-//
-//	private int getAC(boolean allowTemp) {
-//		if (allowTemp && hasTempAC) return tempAC;
-//		return ac.getValue();
-//	}
-//
-//	/**
-//	 * Returns the temporary flat-footed ac if there is one, otherwise calculates the
-//	 * flat-footed ac from the ac components with any positive dexterity modifier
-//	 * ignored.
-//	 *
-//	 * @return current flat-footed ac
-//	 */
-//	@Override
-//	public int getFlatFootedAC() {
-//		return getFlatFootedAC(true);
-//	}
-//
-//	private int getFlatFootedAC(boolean allowTemp) {
-//		if (allowTemp && hasTempFF) return tempFF;
-//		return ac.getFlatFootedAC().getValue();
-//	}
-//
-//	/**
-//	 * Returns the temporary touch ac if there is one, otherwise calculates the touch
-//	 * ac from the ac components with all armor, shield and natural armor bonuses
-//	 * ignored.
-//	 *
-//	 * @return current touch ac
-//	 */
-//	@Override
-//	public int getTouchAC() {
-//		return getTouchAC(true);
-//	}
-//
-//	private int getTouchAC(boolean allowTemp) {
-//		if (allowTemp && hasTempTouch) return tempTouch;
-//		return ac.getTouchAC().getValue();
-//	}
-//
-//	/**
-//	 * Sets a temporary full ac score. Setting this to the normal value will remove
-//	 * the temporary score (as will <code>clearTemporaryAC()</code>)
-//	 *
-//	 * @param ac the score to set the full ac to
-//	 */
-//	@Override
-//	public void setAC(int tempac) {
-//		if (hasTempTouch) {
-//			int totAC = getAC(false);
-//			if (totAC == tempac) {
-//				hasTempAC = false;
-//				firePropertyChange(PROPERTY_AC, tempAC, totAC);
-//				return;
-//			}
-//		}
-//		int old = getAC();
-//		tempAC = tempac;
-//		hasTempAC = true;
-//		firePropertyChange(PROPERTY_AC, old, ac);
-//	}
-//
-//	/**
-//	 * Sets a temporary touch ac score. Setting this to the normal value will remove
-//	 * the temporary score (as will <code>clearTemporaryTouchAC()</code>
-//	 *
-//	 * @param ac the score to set the touch ac to
-//	 */
-//	@Override
-//	public void setTouchAC(int tempac) {
-//		if (hasTempTouch) {
-//			int totAC = getTouchAC(false);
-//			if (totAC == tempac) {
-//				hasTempTouch = false;
-//				firePropertyChange(PROPERTY_AC, tempTouch, totAC);
-//				return;
-//			}
-//		}
-//		int old = getTouchAC();
-//		tempTouch = tempac;
-//		hasTempTouch = true;
-//		firePropertyChange(PROPERTY_AC, old, ac);
-//	}
-//
-//	/**
-//	 * Sets a temporary flat-footed ac score. Setting this to the normal value will
-//	 * remove the temporary score (as will <code>clearTemporaryFlatFootedAC()</code>
-//	 *
-//	 * @param ac the score to set the flat-footed ac to
-//	 */
-//	@Override
-//	public void setFlatFootedAC(int tempac) {
-//		if (hasTempFF) {
-//			int totAC = getFlatFootedAC(false);
-//			if (totAC == tempac) {
-//				hasTempFF = false;
-//				firePropertyChange(PROPERTY_AC, tempFF, totAC);
-//				return;
-//			}
-//		}
-//		int old = getFlatFootedAC();
-//		tempFF = tempac;
-//		hasTempFF = true;
-//		firePropertyChange(PROPERTY_AC, old, ac);
-//	}
 
 //------------------- XP and level -------------------
 	public int getXP() {
@@ -809,27 +563,6 @@ public class Character extends Creature {
 		feats.addElement(f);
 	}
 
-//------------ Buffs -------------
-// XXX this is a hack to enable autosave on buff changes
-
-	@Override
-	public void addBuff(Buff b) {
-		super.addBuff(b);
-		firePropertyChange(PROPERTY_BUFFS, null, 1);
-	}
-
-	@Override
-	public void removeBuff(Buff b) {
-		super.removeBuff(b);
-		firePropertyChange(PROPERTY_BUFFS, null, 1);
-	}
-
-	@Override
-	public void removeBuff(int id) {
-		super.removeBuff(id);
-		firePropertyChange(PROPERTY_BUFFS, null, 1);
-	}
-
 	// TODO handling of AttackForm selection should probably be done by the Attacks statistic
 	@Override
 	public Set<Statistic> getStatistics(String selector) {
@@ -878,7 +611,7 @@ public class Character extends Creature {
 	public CharacterAttackForm addAttackForm(AttackForm attack, int id) {
 		if (id >= nextAttackId) nextAttackId = id + 1;
 		CharacterAttackForm a = new CharacterAttackForm(this, attack, id);
-		a.addPropertyChangeListener(statListener);
+		a.addPropertyChangeListener(attackListener);
 		attackForms.add(a);
 		firePropertyChange(PROPERTY_ATTACKS, null, 1);
 		return a;
@@ -887,12 +620,18 @@ public class Character extends Creature {
 	public void removeAttackForm(CharacterAttackForm a) {
 		int i = attackForms.indexOf(a);
 		if (i > -1) {
-			a.removePropertyChangeListener(statListener);
+			a.removePropertyChangeListener(attackListener);
 			attackForms.remove(a);
 			firePropertyChange(PROPERTY_ATTACKS, null, 1);
 		}
 	}
 
+	private PropertyChangeListener attackListener = new PropertyChangeListener() {
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			firePropertyChange(PROPERTY_ATTACKS, null, 1);
+		}
+	};
 //------------------- Import/Export and other methods -------------------
 	public static Character parseDOM(Element el) {
 		XMLCharacterParser parser = new XMLCharacterParser();
@@ -1082,126 +821,13 @@ public class Character extends Creature {
 		return diffs;
 	}
 
-// TODO not sure this is right for ability scores. probably needs reimplementing now
 	@Override
 	public Object getPropertyValue(String prop) {
-		if (prop.equals(PROPERTY_INITIATIVE))
-			// TODO this is inconsistent with Monster. fix.
-			return initiative.getBaseValue();
-
-		else if (prop.equals(PROPERTY_LEVEL))
-			return level.getLevel();
-
-		else if (prop.equals(PROPERTY_XP))
+		if (prop.equals(PROPERTY_XP)) {
 			return xp;
-
-		else if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
-			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
-			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
-			if (type != null) return abilities.get(type).getValue();
-		}
-
-		else if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
-			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
-			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
-			if (type != null) return abilities.get(type).getOverride();
-		}
-
-		else if (prop.startsWith(PROPERTY_SAVE_PREFIX)) {
-			String save = prop.substring(PROPERTY_SAVE_PREFIX.length());
-			SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(save);
-			if (type != null) return saves.get(type);
-		}
-
-		else if (prop.startsWith(PROPERTY_SAVE_MISC_PREFIX)) {
-			String save = prop.substring(PROPERTY_SAVE_MISC_PREFIX.length());
-			SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(save);
-			if (type != null) return saveMisc.get(type);
-		}
-
-		else if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
-			// TODO meaning of this has changed (from total of component type to user set value for component type)
-			String comp = prop.substring(PROPERTY_AC_COMPONENT_PREFIX.length());
-			for (ACComponentType t: ACComponentType.values()) {
-				if (comp.equals(t.toString())) return getACComponent(t);
-			}
-		}
-
-		else if (prop.startsWith(PROPERTY_SKILL_PREFIX)) {
-			String skill = prop.substring(PROPERTY_SKILL_PREFIX.length());
-			SkillType s = SkillType.getSkill(skill);
-			if (s != null) return skills.getRanks(s);
-			return 0f;
-		}
-
-		else if (prop.startsWith(PROPERTY_SKILL_MISC_PREFIX)) {
-			String skill = prop.substring(PROPERTY_SKILL_MISC_PREFIX.length());
-			SkillType s = SkillType.getSkill(skill);
-			if (s != null) return skills.getMisc(s);
-			return 0;
 
 		} else {
 			return super.getPropertyValue(prop);
-		}
-
-		return null;
-	}
-
-	@Override
-	public void setProperty(String prop, Object value) {
-		if (prop.equals(PROPERTY_LEVEL))
-			setLevel((Integer) value, null, null);
-		//else if (prop.equals(PROPERTY_XP)) setXP((Integer)value);	// TODO should this be permitted as an adhoc change?
-
-		else if (prop.startsWith(PROPERTY_ABILITY_PREFIX)) {
-			String ability = prop.substring(PROPERTY_ABILITY_PREFIX.length());
-			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
-			if (type != null) setAbilityScore(type, (Integer)value);
-		}
-
-		else if (prop.startsWith(PROPERTY_ABILITY_OVERRIDE_PREFIX)) {
-			String ability = prop.substring(PROPERTY_ABILITY_OVERRIDE_PREFIX.length());
-			AbilityScore.Type type = AbilityScore.Type.getAbilityType(ability);
-			if (type != null) setTemporaryAbility(type, (Integer)value);
-		}
-
-		else if (prop.startsWith(PROPERTY_SAVE_PREFIX)) {
-			String save = prop.substring(PROPERTY_SAVE_PREFIX.length());
-			SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(save);
-			if (type != null) setSavingThrowBase(type, (Integer)value);
-		}
-
-		else if (prop.startsWith(PROPERTY_SAVE_MISC_PREFIX)) {
-			String save = prop.substring(PROPERTY_SAVE_MISC_PREFIX.length());
-			SavingThrow.Type type = SavingThrow.Type.getSavingThrowType(save);
-			if (type != null) setSavingThrowMisc(type, (Integer)value);
-		}
-
-		else if (prop.startsWith(PROPERTY_AC_COMPONENT_PREFIX)) {
-			String comp = prop.substring(PROPERTY_AC_COMPONENT_PREFIX.length());
-			for (ACComponentType t: ACComponentType.values()) {
-				if (comp.equals(t.toString())) setACComponent(t, (Integer)value);
-			}
-		}
-
-		else if (prop.startsWith(PROPERTY_SKILL_PREFIX)) {
-			String skillName = prop.substring(PROPERTY_SKILL_PREFIX.length());
-			SkillType skill = SkillType.getSkill(skillName);
-			if (value == null) {
-				setSkillRanks(skill, 0);
-			} else {
-				setSkillRanks(skill, (Float)value);
-			}
-		}
-
-		else if (prop.startsWith(PROPERTY_SKILL_MISC_PREFIX)) {
-			String skillName = prop.substring(PROPERTY_SKILL_MISC_PREFIX.length());
-			SkillType skill = SkillType.getSkill(skillName);
-			setSkillMisc(skill, (Integer)value);
-		}
-
-		else {
-			super.setProperty(prop, value);
 		}
 	}
 

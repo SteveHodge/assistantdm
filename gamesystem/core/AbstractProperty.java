@@ -44,8 +44,7 @@ abstract public class AbstractProperty<T> implements Property<T> {
 		PropertyValue<T> v = new PropertyValue<>(overrideVal);
 		if (overrides == null) overrides = new ArrayList<>();
 		overrides.add(v);
-		parent.fireEvent(this, PropertyEventType.COMPOSITION_CHANGED, old);
-		parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, old);
+		fireEvent(old);
 		return v;
 	}
 
@@ -53,8 +52,7 @@ abstract public class AbstractProperty<T> implements Property<T> {
 	public void removeOverride(PropertyValue<T> key) {
 		T old = getValue();
 		if (overrides.remove(key)) {
-			parent.fireEvent(this, PropertyEventType.COMPOSITION_CHANGED, old);
-			parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, old);
+			fireEvent(old);
 		} else {
 			throw new NoSuchElementException();
 		}
@@ -88,7 +86,16 @@ abstract public class AbstractProperty<T> implements Property<T> {
 		parent.removePropertyListener(this, l);
 	}
 
-// 	public static int listenerCount = 0;
+	protected void fireEvent() {
+		// XXX perhaps shouldn't allow update events with no old value
+		parent.fireEvent(this, null);
+	}
+
+	protected void fireEvent(T old) {
+		parent.fireEvent(this, old);
+	}
+
+//	public static int listenerCount = 0;
 //
 //	public static int listenerLists = 0;
 //	public static int propertyCount = 0;

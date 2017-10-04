@@ -1,15 +1,10 @@
 package ui;
 
-import gamesystem.AbilityScore;
-import gamesystem.Creature;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -17,6 +12,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
+import gamesystem.AbilityScore;
+import gamesystem.Creature;
+import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
@@ -34,12 +33,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		super(c);
 		summary = getSummary();
 
-		character.addPropertyChangeListener(evt -> {
-			String abilityName = evt.getPropertyName();
-			if (abilityName.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
-				updateSummaries(getSummary());
-			}
-		});
+		character.addPropertyListener("ability_scores", (source, old) -> updateSummaries(getSummary()));
 
 		abilityModel = new AbilityTableModel();
 
@@ -87,9 +81,20 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		return s.toString();
 	}
 
-	private class AbilityTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelWithToolTips {
+	private class AbilityTableModel extends AbstractTableModel implements TableModelWithToolTips {
 		public AbilityTableModel() {
-			character.addPropertyChangeListener(this);
+			character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
+				@Override
+				public void propertyChanged(Property<Integer> source, Integer oldValue) {
+					if (source instanceof AbilityScore) {
+						for (int i = 0; i < 6; i++) {
+							if (AbilityScore.Type.values()[i].toString().equals(((AbilityScore) source).getDescription())) {
+								fireTableRowsUpdated(i, i);
+							}
+						}
+					}
+				}
+			});
 		}
 
 		@Override
@@ -154,19 +159,6 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 			}
 			if (column == 4) return character.getAbilityModifierValue(AbilityScore.Type.values()[row]);
 			return null;
-		}
-
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			String abilityName = evt.getPropertyName();
-			if (abilityName.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
-				abilityName = abilityName.substring(Creature.PROPERTY_ABILITY_PREFIX.length());
-				for (int i = 0; i < 6; i++) {
-					if (AbilityScore.Type.values()[i].toString().equals(abilityName)) {
-						this.fireTableRowsUpdated(i, i);
-					}
-				}
-			}
 		}
 
 		@Override

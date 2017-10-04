@@ -1,8 +1,5 @@
 package ui;
 
-import gamesystem.CharacterClass;
-import gamesystem.Levels;
-
 import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,6 +12,8 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
+import gamesystem.CharacterClass;
+import gamesystem.Levels;
 import party.Character;
 
 @SuppressWarnings("serial")
@@ -88,7 +87,7 @@ public class CharacterClassesPanel extends CharacterSubPanel {
 		public ClassListTableModel() {
 			currentLevel = level.getLevel();
 
-			level.addPropertyChangeListener((e) -> {
+			level.addPropertyListener((source, oldValue) -> {
 				int old = currentLevel;
 				currentLevel = character.getLevel();
 				if (currentLevel > old) {

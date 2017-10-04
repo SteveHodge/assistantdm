@@ -1,11 +1,5 @@
 package ui;
-import gamesystem.Creature;
-import gamesystem.SavingThrow;
-import gamesystem.SkillType;
-
 import java.awt.BorderLayout;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
@@ -18,6 +12,11 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
+import gamesystem.SavingThrow;
+import gamesystem.Skill;
+import gamesystem.SkillType;
+import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import party.Party;
 import party.PartyListener;
@@ -31,7 +30,7 @@ import swing.SpinnerCellEditor;
 // of ranks. Setting the skill to 0 sets the ranks to 0.
 
 @SuppressWarnings("serial")
-public class RollsPanel extends JPanel implements PartyListener, PropertyChangeListener {
+public class RollsPanel extends JPanel implements PartyListener {
 	static final int LAST_SAVE_ROW = 2;
 	static final int FIRST_SKILL_ROW = 4;
 
@@ -42,7 +41,8 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 		party = p;
 		party.addPartyListener(this);
 		for (Character c : party) {
-			c.addPropertyChangeListener(this);
+			c.addPropertyListener("skills", skillListener);
+			c.addPropertyListener("saving_throws", saveListener);
 		}
 		reset();
 	}
@@ -89,31 +89,41 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 
 	@Override
 	public void characterAdded(Character c) {
-		c.addPropertyChangeListener(this);
+		c.addPropertyListener("skills", skillListener);
+		c.addPropertyListener("saving_throws", saveListener);
 		reset();
 	}
 
 	@Override
 	public void characterRemoved(Character c) {
-		c.removePropertyChangeListener(this);
+		c.removePropertyListener("skills", skillListener);
+		c.removePropertyListener("saving_throws", saveListener);
 		reset();
 	}
 
-	@Override
-	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().startsWith(Creature.PROPERTY_SKILL_PREFIX)) {
-			String skill = e.getPropertyName().substring(Creature.PROPERTY_SKILL_PREFIX.length());
-			SkillType s = SkillType.getSkill(skill);
-			if (!model.skillChange(s)) reset();
-		} else if (e.getPropertyName().startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
-			String save = e.getPropertyName().substring(Creature.PROPERTY_SAVE_PREFIX.length());
-			for (int i = 0; i < 3; i++) {
-				if (save.equals(SavingThrow.Type.values()[i].toString())) {
-					model.saveChange(i);
+	PropertyListener<Integer> skillListener = new PropertyListener<Integer>() {
+		@Override
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+			if (source instanceof Skill) {
+				Skill skill = (Skill) source;
+				if (!model.skillChange(skill.getSkillType())) reset();
+			}
+		}
+	};
+
+	PropertyListener<Integer> saveListener = new PropertyListener<Integer>() {
+		@Override
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+			if (source instanceof SavingThrow) {
+				SavingThrow save = (SavingThrow) source;
+				for (int i = 0; i < 3; i++) {
+					if (save.getType() == SavingThrow.Type.values()[i]) {
+						model.saveChange(i);
+					}
 				}
 			}
 		}
-	}
+	};
 
 	class RollsTableModel extends AbstractTableModel {
 		SkillType[] skills;
@@ -161,7 +171,8 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (rowIndex >= 0 && rowIndex <= LAST_SAVE_ROW) {
 				if (value == null) value = new Integer(0);
-				party.get(columnIndex-1).setSavingThrow(SavingThrow.Type.values()[rowIndex], (Integer)value);
+				SavingThrow save = party.get(columnIndex - 1).getSavingThrowStatistic(SavingThrow.Type.values()[rowIndex]);
+				save.setBaseOverride((Integer) value - save.getModifiersTotal());
 			} else if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
 				if (value == null) party.get(columnIndex-1).setSkillRanks(skills[rowIndex-FIRST_SKILL_ROW], 0);
 				else party.get(columnIndex-1).setSkillTotal(skills[rowIndex-FIRST_SKILL_ROW], (Integer)value);
@@ -173,14 +184,14 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 			// fire changes: the edited cell and the total rows
 			fireTableCellUpdated(rowIndex, columnIndex);
 			// +2 is the row after the gap row, i.e. the roll row, +3 is the total row
-			fireTableRowsUpdated(getLastSkillRowIndex()+2, getLastSkillRowIndex()+3); 
+			fireTableRowsUpdated(getLastSkillRowIndex()+2, getLastSkillRowIndex()+3);
 		}
 
 		public void roll(int rowIndex) {
-			if (rowIndex < 0 
+			if (rowIndex < 0
 					|| (rowIndex > LAST_SAVE_ROW && rowIndex < FIRST_SKILL_ROW)
 					|| (rowIndex > getLastSkillRowIndex())
-				) {
+					) {
 				clear();
 				return;
 			}
@@ -197,7 +208,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 				}
 			}
 			// +2 is the row after the gap row, i.e. the roll row, +3 is the total row
-			fireTableRowsUpdated(getLastSkillRowIndex()+2, getLastSkillRowIndex()+3); 
+			fireTableRowsUpdated(getLastSkillRowIndex()+2, getLastSkillRowIndex()+3);
 		}
 
 		public void clear() {
@@ -207,7 +218,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 				currentRoll[i] = 0;
 			}
 			// +2 is the row after the gap row, i.e. the roll row, +3 is the total row
-			fireTableRowsUpdated(getLastSkillRowIndex()+2, getLastSkillRowIndex()+3); 
+			fireTableRowsUpdated(getLastSkillRowIndex()+2, getLastSkillRowIndex()+3);
 		}
 
 		@Override
@@ -245,7 +256,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 			if (columnIndex == 0) return getRowName(rowIndex);
 
 			if (rowIndex <= LAST_SAVE_ROW) {
-				return party.get(columnIndex-1).getSavingThrow(SavingThrow.Type.values()[rowIndex]);
+				return party.get(columnIndex - 1).getSavingThrowStatistic(SavingThrow.Type.values()[rowIndex]).getValue();
 			}
 			if (rowIndex > LAST_SAVE_ROW && rowIndex < FIRST_SKILL_ROW) return null;
 			if (rowIndex >= FIRST_SKILL_ROW && rowIndex <= getLastSkillRowIndex()) {
@@ -278,7 +289,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 			return party.get(column-1).getName();
 		}
 
-		// returns a ListSelectionModel that allow single selection of skills and saves only 
+		// returns a ListSelectionModel that allow single selection of skills and saves only
 		public ListSelectionModel getSelectionModel() {
 			return new DefaultListSelectionModel() {
 				{
@@ -296,7 +307,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 				public void setSelectionInterval(int index0, int index1) {
 					if ((index1 > LAST_SAVE_ROW && index1 < FIRST_SKILL_ROW)
 							|| (index1 > getLastSkillRowIndex())
-						) {
+							) {
 						super.clearSelection();
 					} else {
 						super.setSelectionInterval(index0, index1);
@@ -307,7 +318,7 @@ public class RollsPanel extends JPanel implements PartyListener, PropertyChangeL
 				@Override
 				public void setSelectionMode(int selectionMode) {
 				}
-				
+
 			};
 		}
 	}

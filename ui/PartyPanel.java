@@ -19,7 +19,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
-import gamesystem.StatisticsCollection.StatisticDescription;
 import party.Character;
 import party.CharacterSheetView;
 import party.Party;
@@ -203,14 +202,15 @@ public class PartyPanel extends JPanel implements PartyListener {
 		//rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
 
 		debug.addActionListener(e -> {
-			System.out.println("Left PreferredSize = "+leftPanel.getPreferredSize());
-			System.out.println("Right PreferredSize = "+rightPanel.getPreferredSize());
-			System.out.println("PreferredSize = "+panel.getPreferredSize());
-			System.out.println("Size = "+panel.getSize());
-			StatisticDescription[] targets = c.getStatistics();
-			for (StatisticDescription t : targets) {
-				System.out.println(t.target + ": " + t.name);
-			}
+//			System.out.println("Left PreferredSize = "+leftPanel.getPreferredSize());
+//			System.out.println("Right PreferredSize = "+rightPanel.getPreferredSize());
+//			System.out.println("PreferredSize = "+panel.getPreferredSize());
+//			System.out.println("Size = "+panel.getSize());
+//			StatisticDescription[] targets = c.getStatistics();
+//			for (StatisticDescription t : targets) {
+//				System.out.println(t.target + ": " + t.name);
+//			}
+			c.debugDumpStructure();
 		});
 
 		return scroller;

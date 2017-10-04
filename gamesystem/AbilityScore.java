@@ -8,6 +8,7 @@ import gamesystem.core.PropertyCollection;
 // abilities to those statistics which will almost never be used)
 
 // TODO overrides are a bit unintuituve - they ignore modifiers, which is fine, but the modifiers are reapplied once the override is removed (which at the moment happens if the override is set to the baseValue in the ui)
+// FIXME base value and overrides should not be reimplemented here
 public class AbilityScore extends Statistic {
 	public enum Type {
 		STRENGTH("Strength"),
@@ -50,7 +51,7 @@ public class AbilityScore extends Statistic {
 
 	protected class AbilityModifier extends AbstractModifier {
 		public AbilityModifier() {
-			AbilityScore.this.addPropertyChangeListener(evt ->
+			AbilityScore.this.addPropertyListener((source, old) ->
 			//int oldValue = ((Integer)evt.getOldValue())/2-5;
 			//int newValue = ((Integer)evt.getNewValue())/2-5;
 			//modpcs.firePropertyChange("value", null, newValue);
@@ -64,7 +65,7 @@ public class AbilityScore extends Statistic {
 
 		@Override
 		public String getType() {
-			return name;
+			return type.toString();
 		}
 
 		@Override
@@ -77,7 +78,7 @@ public class AbilityScore extends Statistic {
 	};
 
 	public AbilityScore(Type type, PropertyCollection parent) {
-		super(type.toString(), parent);
+		super("ability_scores." + type.toString().toLowerCase(), type.toString(), parent);
 		this.type = type;
 		modifier = new AbilityModifier();
 	}
@@ -109,15 +110,14 @@ public class AbilityScore extends Statistic {
 	public void setBaseValue(int v) {
 		//int oldValue = getValue();
 		baseValue = v;
-		int newValue = getValue();
 		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
-		pcs.firePropertyChange("value", null, newValue);	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
+		fireEvent();
 	}
 
 	public void setOverride(int v) {
 		if (override != v) {
 			override = v;
-			pcs.firePropertyChange("value", null, override);
+			fireEvent();
 		}
 	}
 
@@ -128,7 +128,7 @@ public class AbilityScore extends Statistic {
 	public void clearOverride() {
 		if (override != -1) {
 			override = -1;
-			pcs.firePropertyChange("value", null, getValue());
+			fireEvent();
 		}
 	}
 
@@ -148,12 +148,12 @@ public class AbilityScore extends Statistic {
 		text.append(super.getSummary());
 
 		if (getOverride() > 0) {
-			text.append("</s><br/>").append(getOverride()).append(" current ").append(getName()).append(" (override)");
+			text.append("</s><br/>").append(getOverride()).append(" current ").append(getDescription()).append(" (override)");
 		}
 
 		text.append("<br/>");
 		if (getModifierValue() >= 0) text.append("+");
-		text.append(getModifierValue()).append(" ").append(getName()).append(" modifier");
+		text.append(getModifierValue()).append(" ").append(getDescription()).append(" modifier");
 		return text.toString();
 	}
 }

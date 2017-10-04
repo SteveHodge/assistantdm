@@ -65,8 +65,8 @@ temporary hit points at caster level 10th).</span>
    </description>
    <modifiers>
       	<modifier statistic="attacks" type="Morale" value="1"/>
-      	<modifier statistic="hps" value="1d8" levelsPerExtra="1" maxExtra="10"/>
-      	<modifier statistic="saves.will"
+      	<modifier statistic="hit_points" value="1d8" levelsPerExtra="1" maxExtra="10"/>
+      	<modifier statistic="saving_throws.will"
                 type="Morale"
                 value="1"
                 condition="vs fear"/>
@@ -1357,7 +1357,7 @@ and dispels <i>bless</i>.</span>
    </description>
    <modifiers>
       	<modifier statistic="attacks" value="-1"/>
-      	<modifier statistic="saves" value="-1" condition="vs fear"/>
+      	<modifier statistic="saving_throws" value="-1" condition="vs fear"/>
      	</modifiers>
 </spell>
 <spell name="Banishment">
@@ -1455,7 +1455,7 @@ They are not lost first as temporary hit points are.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="abilities.constitution" type="Enhancement" value="4"/>
+	     <modifier statistic="ability_scores.constitution" type="Enhancement" value="4"/>
    </modifiers>
 </spell>
 <spell name="Bear’s Endurance, Mass">
@@ -2109,7 +2109,7 @@ and dispels <i>bane</i>.</span>
    </description>
    <modifiers>
 	     <modifier statistic="attacks" type="Morale" value="1"/>
-	     <modifier statistic="saves" type="Morale" value="1" condition="vs fear"/>
+	     <modifier statistic="saving_throws" type="Morale" value="1" condition="vs fear"/>
    </modifiers>
 </spell>
 <spell name="Bless Water">
@@ -2378,7 +2378,7 @@ uses of the Strength modifier.</span>
    </description>
    <material type="Arcane">A few hairs, or a pinch of dung, from a bull.</material>
    <modifiers>
-	     <modifier statistic="abilities.strength" type="Enhancement" value="4"/>
+	     <modifier statistic="ability_scores.strength" type="Enhancement" value="4"/>
    </modifiers>
 </spell>
 <spell name="Bull’s Strength, Mass">
@@ -2549,7 +2549,7 @@ Reflex saves, and other uses of the Dexterity modifier.</span>
    </description>
    <material>A pinch of cat fur.</material>
    <modifiers>
-	     <modifier statistic="abilities.dexterity" type="Enhancement" value="4"/>
+	     <modifier statistic="ability_scores.dexterity" type="Enhancement" value="4"/>
    </modifiers>
 </spell>
 <spell name="Cat’s Grace, Mass">
@@ -3117,7 +3117,7 @@ the <i>confusion </i>spell, but against the save DC of <i>cloak of chaos</i>).</
    <focus>A tiny reliquary containing some sacred relic, such as a scrap of parchment from a chaotic text. The reliquary costs at least 500 gp.</focus>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="4"/>
-	     <modifier statistic="saves" type="Resistence" value="4"/>
+	     <modifier statistic="saving_throws" type="Resistence" value="4"/>
    </modifiers>
 </spell>
 <spell name="Clone">
@@ -5416,18 +5416,16 @@ skill checks, and weapon damage rolls.</span>
       </p>
       <p>
          <i>
-            <span>Crushing
-despair </span>
+            <span>Crushing despair </span>
          </i>
-         <span>counters
-and dispels <i>good hope</i>.</span>
+         <span>counters and dispels <i>good hope</i>.</span>
       </p>
    </description>
    <material>A vial of tears.</material>
    <modifiers>
-	     <modifier statistic="saves" value="-2"/>
+	     <modifier statistic="saving_throws" value="-2"/>
 	     <modifier statistic="attacks" value="-2"/>
-	     <modifier statistic="damage" value="-2"/>
+	     <modifier statistic="attacks.damage" value="-2"/>
 	     <modifier statistic="skills" value="-2"/>
    </modifiers>
 </spell>
@@ -5784,8 +5782,8 @@ creature.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="abilities.strength" value="2"/>
-	     <modifier statistic="hps" value="1d8"/>
+	     <modifier statistic="ability_scores.strength" value="2"/>
+	     <modifier statistic="hit_points" value="1d8"/>
    </modifiers>
 </spell>
 <spell name="Death Ward">
@@ -8388,7 +8386,7 @@ maximum +6). The bonus doesn’t apply to spell damage.</span>
                 value="0"
                 levelsPerExtra="3"
                 maxExtra="3"/>
-	     <modifier statistic="damage"
+	     <modifier statistic="attacks.damage"
                 type="Luck"
                 value="0"
                 levelsPerExtra="3"
@@ -8413,8 +8411,8 @@ Strength, and you gain 1 temporary hit point per caster level.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="abilities.strength" type="Enhancement" value="6"/>
-	     <modifier statistic="hps" value="0" levelsPerExtra="1" maxExtra="20"/>
+	     <modifier statistic="ability_scores.strength" type="Enhancement" value="6"/>
+	     <modifier statistic="hit_points" value="0" levelsPerExtra="1" maxExtra="20"/>
    </modifiers>
 </spell>
 <spell name="Dominate Animal">
@@ -8671,7 +8669,7 @@ increase.</span>
    </description>
    <material type="Arcane">A few feathers or a pinch of droppings from an eagle.</material>
    <modifiers>
-	     <modifier statistic="abilities.charisma" type="Enhancement" value="4"/>
+	     <modifier statistic="ability_scores.charisma" type="Enhancement" value="4"/>
    </modifiers>
 </spell>
 <spell name="Eagle’s Splendor, Mass">
@@ -8985,8 +8983,8 @@ be made permanent with a <i>permanency </i>spell.</span>
    <material>A pinch of powdered iron.</material>
    <modifiers>
 	     <modifier statistic="size" type="Enhancement" value="1"/>
-	     <modifier statistic="abilities.strength" type="Size" value="2"/>
-	     <modifier statistic="abilities.dexterity" type="Size" value="-2"/>
+	     <modifier statistic="ability_scores.strength" type="Size" value="2"/>
+	     <modifier statistic="ability_scores.dexterity" type="Size" value="-2"/>
 	     <modifier statistic="ac" type="Size" value="-1"/>
 	     <modifier statistic="attacks" type="Size" value="-1"/>
    </modifiers>
@@ -9525,7 +9523,7 @@ per caster level (maximum +10).</span>
    </description>
    <material>A small amount of alcohol or distilled spirits, which you use to trace certain sigils on your body during casting. These sigils cannot be seen once the alcohol or spirits evaporate.</material>
    <modifiers>
-	     <modifier statistic="hps" value="1d10" levelsPerExtra="1" maxExtra="10"/>
+	     <modifier statistic="hit_points" value="1d10" levelsPerExtra="1" maxExtra="10"/>
    </modifiers>
 </spell>
 <spell name="False Vision">
@@ -10360,7 +10358,7 @@ saves.</span>
    <material type="Arcane">A hummingbird’s feather.</material>
    <modifiers>
 	     <modifier statistic="ac" type="Insight" value="2"/>
-	     <modifier statistic="saves.reflex" type="Insight" value="2"/>
+	     <modifier statistic="saving_throws.reflex" type="Insight" value="2"/>
    </modifiers>
 </spell>
 <spell name="Fox’s Cunning">
@@ -10387,7 +10385,7 @@ skill points.</span>
    </description>
    <material type="Arcane">A few hairs, or a pinch of dung, from a fox.</material>
    <modifiers>
-	     <modifier statistic="abilities.intelligence" type="Enhancement" value="4"/>
+	     <modifier statistic="ability_scores.intelligence" type="Enhancement" value="4"/>
    </modifiers>
 </spell>
 <spell name="Fox’s Cunning, Mass">
@@ -11215,9 +11213,9 @@ and dispels <i>crushing despair</i>.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="saves" type="Morale" value="2"/>
+	     <modifier statistic="saving_throws" type="Morale" value="2"/>
 	     <modifier statistic="attacks" type="Morale" value="2"/>
-	     <modifier statistic="damage" type="Morale" value="2"/>
+	     <modifier statistic="attacks.damage" type="Morale" value="2"/>
 	     <modifier statistic="skills" type="Morale" value="2"/>
    </modifiers>
 </spell>
@@ -11653,7 +11651,7 @@ increased speed.</span>
                 value="1"
                 description="one extra attack at highest bonus"/>
 	     <modifier statistic="ac" type="Dodge" value="1"/>
-	     <modifier statistic="saves.reflex" type="Dodge" value="1"/>
+	     <modifier statistic="saving_throws.reflex" type="Dodge" value="1"/>
    </modifiers>
 </spell>
 <spell name="Heal">
@@ -12218,8 +12216,8 @@ the spell are negated.</span>
    </description>
    <modifiers>
 	     <modifier statistic="attacks" type="Morale" value="1"/>
-	     <modifier statistic="hps" value="1d8" levelsPerExtra="2" maxExtra="10"/>
-	     <modifier statistic="saves.will" type="Morale" value="1"/>
+	     <modifier statistic="hit_points" value="1d8" levelsPerExtra="2" maxExtra="10"/>
+	     <modifier statistic="saving_throws.will" type="Morale" value="1"/>
    </modifiers>
 </spell>
 <spell name="Heroism">
@@ -12241,7 +12239,7 @@ target gains a +2 morale bonus on attack rolls, saves, and skill checks.</span>
    </description>
    <modifiers>
 	     <modifier statistic="attacks" type="Morale" value="2"/>
-	     <modifier statistic="saves" type="Morale" value="2"/>
+	     <modifier statistic="saving_throws" type="Morale" value="2"/>
 	     <modifier statistic="skills" type="Morale" value="2"/>
    </modifiers>
 </spell>
@@ -12259,9 +12257,9 @@ temporary hit points equal to your caster level (maximum 20).</span>
    </description>
    <modifiers>
 	     <modifier statistic="attacks" type="Morale" value="4"/>
-	     <modifier statistic="saves" type="Morale" value="4"/>
+	     <modifier statistic="saving_throws" type="Morale" value="4"/>
 	     <modifier statistic="skills" type="Morale" value="4"/>
-	     <modifier statistic="hps" value="0" levelsPerExtra="1" maxExtra="20"/>
+	     <modifier statistic="hit_points" value="0" levelsPerExtra="1" maxExtra="20"/>
    </modifiers>
 </spell>
 <spell name="Hide from Animals">
@@ -12462,7 +12460,7 @@ but against <i>holy aura’s </i>save DC).</span>
    <focus>A tiny reliquary containing some sacred relic. The reliquary costs at least 500 gp.</focus>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="4"/>
-	     <modifier statistic="saves" type="Resistence" value="4"/>
+	     <modifier statistic="saving_throws" type="Resistence" value="4"/>
    </modifiers>
 </spell>
 <spell name="Holy Smite">
@@ -13506,8 +13504,8 @@ of the ocean—at least until the spell duration expires.</span>
    </description>
    <material type="Arcane">A small piece of iron that was once part of either an iron golem, a hero’s armor, or a war machine.</material>
    <modifiers>
-	     <modifier statistic="abilities.strength" type="Enhancement" value="6"/>
-	     <modifier statistic="abilities.dexterity" value="-6"/>
+	     <modifier statistic="ability_scores.strength" type="Enhancement" value="6"/>
+	     <modifier statistic="ability_scores.dexterity" value="-6"/>
    </modifiers>
 </spell>
 <spell name="Ironwood">
@@ -14196,7 +14194,7 @@ and it can imprison a nonlawful called creature.</span>
                 type="Deflection"
                 value="2"
                 condition="vs chaotic"/>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="2"
                 condition="vs chaotic"/>
@@ -14286,7 +14284,7 @@ spell is not cumulative with <i>protection from evil </i>and vice versa.</span>
    <material type="Arcane">A little powdered silver with which you trace a 3-footdiameter circle on the floor (or ground) around the creature to be warded.</material>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="2" condition="vs evil"/>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="2"
                 condition="vs evil"/>
@@ -14305,7 +14303,7 @@ and it can imprison a nonevil called creature.</span>
    </description>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="2" condition="vs good"/>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="2"
                 condition="vs good"/>
@@ -14327,7 +14325,7 @@ and it can imprison a nonchaotic called creature.</span>
                 type="Deflection"
                 value="2"
                 condition="vs lawful"/>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="2"
                 condition="vs lawful"/>
@@ -15197,7 +15195,7 @@ fog is thin and does not significantly hamper vision.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="saves.will" type="Competence" value="-10"/>
+	     <modifier statistic="saving_throws.will" type="Competence" value="-10"/>
    </modifiers>
 </spell>
 <spell name="Minor Creation">
@@ -16501,7 +16499,7 @@ attacks of opportunity each round on its turn.</span>
    </description>
    <modifiers>
 	     <modifier statistic="ac" value="-4"/>
-	     <modifier statistic="saves.reflex" value="-10"/>
+	     <modifier statistic="saving_throws.reflex" value="-10"/>
    </modifiers>
 </spell>
 <spell name="Overland Flight">
@@ -16546,7 +16544,7 @@ but the save DCs for their spells increase.</span>
    </description>
    <material type="Arcane">A few feathers, or a pinch of droppings, from an owl.</material>
    <modifiers>
-	     <modifier statistic="abilities.wisdom" type="Enhancement" value="4"/>
+	     <modifier statistic="ability_scores.wisdom" type="Enhancement" value="4"/>
    </modifiers>
 </spell>
 <spell name="Owl’s Wisdom, Mass">
@@ -19296,14 +19294,14 @@ takes a −1 penalty on such rolls.</span>
    </description>
    <modifiers variant="from foe">
 	     <modifier statistic="attacks" value="-1"/>
-	     <modifier statistic="damage" value="-1"/>
-	     <modifier statistic="saves" value="-1"/>
+	     <modifier statistic="attacks.damage" value="-1"/>
+	     <modifier statistic="saving_throws" value="-1"/>
 	     <modifier statistic="skills" value="-1"/>
    </modifiers>
    <modifiers variant="from friend">
 	     <modifier statistic="attacks" type="Luck" value="1"/>
-	     <modifier statistic="damage" type="Luck" value="1"/>
-	     <modifier statistic="saves" type="Luck" value="1"/>
+	     <modifier statistic="attacks.damage" type="Luck" value="1"/>
+	     <modifier statistic="saving_throws" type="Luck" value="1"/>
 	     <modifier statistic="skills" type="Luck" value="1"/>
    </modifiers>
 </spell>
@@ -20204,7 +20202,7 @@ summoned creatures cannot touch the subject.</span>
                 type="Deflection"
                 value="2"
                 condition="vs chaotic"/>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="2"
                 condition="vs chaotic"/>
@@ -20297,7 +20295,7 @@ overcome this protection and touch the warded creature.</span>
    <material type="Arcane">A little powdered silver with which you trace a 3-foot -diameter circle on the floor (or ground) around the creature to be warded.</material>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="2" condition="vs evil"/>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="2"
                 condition="vs evil"/>
@@ -20316,7 +20314,7 @@ creatures cannot touch the subject.</span>
    </description>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="2" condition="vs good"/>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="2"
                 condition="vs good"/>
@@ -20338,7 +20336,7 @@ summoned creatures cannot touch the subject.</span>
                 type="Deflection"
                 value="2"
                 condition="vs lawful"/>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="2"
                 condition="vs lawful"/>
@@ -20364,7 +20362,7 @@ abilities (but not against supernatural and extraordinary abilities).</span>
    <material>A diamond of at least 500 gp value, which must be crushed and sprinkled over the targets.</material>
    <focus>One 1,000 gp diamond per creature to be granted the protection. Each subject must carry one such gem for the duration of the spell. If a subject loses the gem, the spell ceases to affect him.</focus>
    <modifiers>
-	     <modifier statistic="saves"
+	     <modifier statistic="saving_throws"
                 type="Resistance"
                 value="8"
                 condition="vs spells and spell-like effects"/>
@@ -20581,9 +20579,9 @@ rage.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="abilities.strength" type="Morale" value="2"/>
-	     <modifier statistic="abilities.constitution" type="Morale" value="2"/>
-	     <modifier statistic="saves.will" type="Morale" value="1"/>
+	     <modifier statistic="ability_scores.strength" type="Morale" value="2"/>
+	     <modifier statistic="ability_scores.constitution" type="Morale" value="2"/>
+	     <modifier statistic="saving_throws.will" type="Morale" value="1"/>
 	     <modifier statistic="ac" value="-2"/>
    </modifiers>
 </spell>
@@ -20786,7 +20784,7 @@ cannot drop below 1.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="abilities.strength"
+	     <modifier statistic="ability_scores.strength"
                 value="1d6"
                 levelsPerExtra="2"
                 maxExtra="5"
@@ -20962,8 +20960,8 @@ be made permanent with a <i>permanency </i>spell.</span>
    <material>A pinch of powdered iron.</material>
    <modifiers>
 	     <modifier statistic="size" type="Enhancement" value="-1"/>
-	     <modifier statistic="abilities.strength" type="Size" value="-2"/>
-	     <modifier statistic="abilities.dexterity" type="Size" value="2"/>
+	     <modifier statistic="ability_scores.strength" type="Size" value="-2"/>
+	     <modifier statistic="ability_scores.dexterity" type="Size" value="2"/>
 	     <modifier statistic="ac" type="Size" value="1"/>
 	     <modifier statistic="attacks" type="Size" value="1"/>
    </modifiers>
@@ -21934,7 +21932,7 @@ and dispels <i>cause fear</i>.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="saves" type="Morale" value="4" condition="vs fear"/>
+	     <modifier statistic="saving_throws" type="Morale" value="4" condition="vs fear"/>
    </modifiers>
 </spell>
 <spell name="Remove Paralysis">
@@ -22124,7 +22122,7 @@ made permanent with a <i>permanency </i>spell.</span>
    </description>
    <material type="Arcane">A miniature cloak.</material>
    <modifiers>
-	     <modifier statistic="saves" type="Resistence" value="1"/>
+	     <modifier statistic="saving_throws" type="Resistence" value="1"/>
    </modifiers>
 </spell>
 <spell name="Resist Energy">
@@ -22375,9 +22373,9 @@ magical effects that increase size do not stack.</span>
    </description>
    <modifiers>
 	     <modifier statistic="size" type="Enhancement" value="1"/>
-	     <modifier statistic="abilities.strength" type="Size" value="4"/>
-	     <modifier statistic="abilities.constitution" type="Size" value="2"/>
-	     <modifier statistic="ac.natural_armor" type="Enhancement" value="2"/>
+	     <modifier statistic="ability_scores.strength" type="Size" value="4"/>
+	     <modifier statistic="ability_scores.constitution" type="Size" value="2"/>
+	     <modifier statistic="ac.natural_armor" type="Enhancement" value="4"/>
 	     <modifier statistic="ac" type="Size" value="-1"/>
 	     <modifier statistic="attacks" type="Size" value="-1"/>
    </modifiers>
@@ -23582,7 +23580,7 @@ against <i>shield of law</i>’s save DC).</span>
    <focus>A tiny reliquary containing some sacred relic, such as a scrap of parchment from a lawful text. The reliquary costs at least 500 gp.</focus>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="4"/>
-	     <modifier statistic="saves" type="Resistence" value="4"/>
+	     <modifier statistic="saving_throws" type="Resistence" value="4"/>
    </modifiers>
 </spell>
 <spell name="Shield Other">
@@ -23621,7 +23619,7 @@ ends.</span>
    <focus>A pair of platinum rings (worth at least 50 gp each) worn by both you and the warded creature.</focus>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="1"/>
-	     <modifier statistic="saves" type="Resistence" value="1"/>
+	     <modifier statistic="saving_throws" type="Resistence" value="1"/>
    </modifiers>
 </spell>
 <spell name="Shillelagh">
@@ -23954,7 +23952,7 @@ creature’s jumping distance as normal for decreased speed.</span>
    <modifiers>
 	     <modifier statistic="attacks" value="-1"/>
 	     <modifier statistic="ac" value="-1"/>
-	     <modifier statistic="saves.reflex" value="-1"/>
+	     <modifier statistic="saving_throws.reflex" value="-1"/>
    </modifiers>
 </spell>
 <spell name="Snare">
@@ -30334,10 +30332,10 @@ class list.</span>
    </description>
    <material>A <i>potion of bull’s strength</i>, which you drink (and whose effects are subsumed by the spell effects).</material>
    <modifiers>
-	     <modifier statistic="abilities.strength" type="Enhancement" value="4"/>
-	     <modifier statistic="abilities.constitution" type="Enhancement" value="4"/>
-	     <modifier statistic="abilities.dexterity" type="Enhancement" value="4"/>
-	     <modifier statistic="saves.fortitude" type="Competence" value="5"/>
+	     <modifier statistic="ability_scores.strength" type="Enhancement" value="4"/>
+	     <modifier statistic="ability_scores.constitution" type="Enhancement" value="4"/>
+	     <modifier statistic="ability_scores.dexterity" type="Enhancement" value="4"/>
+	     <modifier statistic="saving_throws.fortitude" type="Competence" value="5"/>
 	     <modifier statistic="ac" type="Natural Armor" value="4"/>
    </modifiers>
 </spell>
@@ -30461,9 +30459,9 @@ spells of that level.</span>
       </p>
    </description>
    <modifiers>
-	     <modifier statistic="abilities.intelligence" value="1d6" penalty="true"/>
-	     <modifier statistic="abilities.wisdom" value="1d6" penalty="true"/>
-	     <modifier statistic="abilities.charisma" value="1d6" penalty="true"/>
+	     <modifier statistic="ability_scores.intelligence" value="1d6" penalty="true"/>
+	     <modifier statistic="ability_scores.wisdom" value="1d6" penalty="true"/>
+	     <modifier statistic="ability_scores.charisma" value="1d6" penalty="true"/>
    </modifiers>
 </spell>
 <spell name="Transmute Metal to Wood">
@@ -31117,7 +31115,7 @@ negates).</span>
    <focus>A tiny reliquary containing some sacred relic, such as a piece of parchment from an unholy text. The reliquary costs at least 500 gp.</focus>
    <modifiers>
 	     <modifier statistic="ac" type="Deflection" value="4"/>
-	     <modifier statistic="saves" type="Resistence" value="4"/>
+	     <modifier statistic="saving_throws" type="Resistence" value="4"/>
    </modifiers>
 </spell>
 <spell name="Unholy Blight">

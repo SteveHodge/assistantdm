@@ -1,8 +1,5 @@
 package ui;
 
-import gamesystem.Creature;
-import gamesystem.SavingThrow;
-
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -15,6 +12,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import gamesystem.AbilityScore;
+import gamesystem.Creature;
+import gamesystem.SavingThrow;
+import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.NullableIntegerFieldFactory;
 
@@ -22,7 +24,7 @@ import swing.NullableIntegerFieldFactory;
 //TODO change to listen to the SavingThrow itself instead of the character
 //TODO cleanup stuff surround change to enum for save types
 @SuppressWarnings("serial")
-class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeListener {
+class CharacterSavesPanel extends CharacterSubPanel {
 	private SavingThrow[] stats = new SavingThrow[3];
 	private JLabel[] modLabels = new JLabel[3];
 	private JLabel[] totalLabels = new JLabel[3];
@@ -67,7 +69,7 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 			hGroups[i].addComponent(titleLabels[i]);
 		}
 		for (int type=0; type<3; type++) {
-			saveLabels[type] = new JLabel(stats[type].getName());
+			saveLabels[type] = new JLabel(stats[type].getDescription());
 			baseLabels[type] = new JLabel(Integer.toString(stats[type].getCalculatedBase()));
 			overrideFields[type] = NullableIntegerFieldFactory.createNullableIntegerField();
 			if (stats[type].getBaseOverride() != -1) {
@@ -114,7 +116,7 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 				for (int i = 0; i < 3; i++) {
 					Rectangle bounds = overrideFields[i].getBounds();
 					if (y >= bounds.y && y <= bounds.y + bounds.height) {
-						String title = stats[i].getName();
+						String title = stats[i].getDescription();
 						String statName = Creature.STATISTIC_SAVING_THROW[i];
 						StatisticInfoDialog dialog = new StatisticInfoDialog(CharacterSavesPanel.this, title, character, statName);
 						dialog.setVisible(true);
@@ -124,7 +126,40 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 			}
 		});
 
-		character.addPropertyChangeListener(this);
+		character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
+			@Override
+			public void propertyChanged(Property<Integer> source, Integer oldValue) {
+				if (source instanceof AbilityScore) {
+					AbilityScore.Type type = ((AbilityScore) source).getType();
+					for (int i = 0; i < 3; i++) {
+						if (type.equals(SavingThrow.Type.values()[i].getAbilityType())) {
+							//System.out.println("Ability "+prop+" modified for save "+SavingThrow.Type.values()[i].getAbilityType().toString());
+							modLabels[i].setText("" + character.getAbilityModifierValue(SavingThrow.Type.values()[i].getAbilityType()));
+						}
+					}
+				}
+			}
+		});
+
+		character.addPropertyListener("saving_throws", new PropertyListener<Integer>() {
+			@Override
+			public void propertyChanged(Property<Integer> source, Integer oldValue) {
+				for (int i = 0; i < 3; i++) {
+					if (stats[i] == source) {
+						baseLabels[i].setText(Integer.toString(stats[i].getCalculatedBase()));
+						if (stats[i].getBaseOverride() == -1) {
+							overrideFields[i].setText("");
+						} else {
+							overrideFields[i].setValue(stats[i].getBaseOverride());
+						}
+						totalLabels[i].setText(""+stats[i].getValue()+(stats[i].hasConditionalModifier()?"*":""));
+					}
+				}
+				updateToolTips();
+				updateSummaries(getSummary());
+			}
+		});
+
 		updateToolTips();
 
 		add(inner);
@@ -145,41 +180,14 @@ class CharacterSavesPanel extends CharacterSubPanel implements PropertyChangeLis
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < 3; i++) {
 			if (i > 0) s.append("   ");
-			s.append(SavingThrow.Type.values()[i]).append(" ");
-			if (character.getSavingThrow(SavingThrow.Type.values()[i]) >= 0) s.append("+");
-			s.append(character.getSavingThrow(SavingThrow.Type.values()[i]));
+			SavingThrow.Type type = SavingThrow.Type.values()[i];
+			s.append(type).append(" ");
+			if (character.getSavingThrowStatistic(type).getValue() >= 0) s.append("+");
+			s.append(character.getSavingThrowStatistic(type).getValue());
 		}
 		return s.toString();
 	}
 
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		String prop = evt.getPropertyName();
-		if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
-			prop = prop.substring(Creature.PROPERTY_ABILITY_PREFIX.length());
-			for (int i = 0; i < 3; i++) {
-				if (prop.equals(SavingThrow.Type.values()[i].getAbilityType().toString())) {
-					//System.out.println("Ability "+prop+" modified for save "+SavingThrow.Type.values()[i].getAbilityType().toString());
-					modLabels[i].setText(""+character.getAbilityModifierValue(SavingThrow.Type.values()[i].getAbilityType()));
-				}
-			}
-		} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
-			prop = prop.substring(Creature.PROPERTY_SAVE_PREFIX.length());
-			for (int i = 0; i < 3; i++) {
-				if (prop.equals(stats[i].getName())) {
-					baseLabels[i].setText(Integer.toString(stats[i].getCalculatedBase()));
-					if (stats[i].getBaseOverride() == -1) {
-						overrideFields[i].setText("");
-					} else {
-						overrideFields[i].setValue(stats[i].getBaseOverride());
-					}
-					totalLabels[i].setText(""+stats[i].getValue()+(stats[i].hasConditionalModifier()?"*":""));
-				}
-			}
-			updateToolTips();
-			updateSummaries(getSummary());
-		}
-	}
 
 	private class OverrideFieldPropertyListener implements PropertyChangeListener {
 		int type;

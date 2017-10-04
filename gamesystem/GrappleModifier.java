@@ -14,12 +14,12 @@ public class GrappleModifier extends Statistic {
 	BAB bab;
 
 	public GrappleModifier(PropertyCollection parent, BAB bab, Size size, AbilityScore str) {
-		super("Grapple", parent);
+		super("grapple", "Grapple", parent);
 
 		if (bab != null) {
 			this.bab = bab;
-			bab.addPropertyListener((source, type, oldValue, newValue) -> {
-				firePropertyChange("value", null, getValue());
+			bab.addPropertyListener((source, oldValue) -> {
+				fireEvent();
 			});
 		}
 

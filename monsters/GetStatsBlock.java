@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.CharacterClass;
 import gamesystem.Creature;
@@ -681,20 +682,22 @@ public class GetStatsBlock {
 		for (StatisticsBlock block : blocks) {
 			try {
 				Creature m = StatsBlockCreatureView.createMonster(block);
+				AC ac = m.getACStatistic();
 				int[] acs = block.getACs();
-				if (acs[0] != m.getAC()) {
-					System.out.println(getNameURL(block) + "\n calculated ac (" + m.getAC() + ") does not match supplied ac (" + acs[0] + ")");
+				if (acs[0] != ac.getValue()) {
+					System.out.println(getNameURL(block) + "\n calculated ac (" + ac.getValue() + ") does not match supplied ac (" + acs[0] + ")");
 				}
-				if (acs[1] != m.getTouchAC()) {
-					System.out.println(getNameURL(block) + "\n calculated touch ac (" + m.getTouchAC() + ") does not match supplied touch ac (" + acs[1] + ")");
+				if (acs[1] != ac.getTouchAC().getValue()) {
+					System.out.println(getNameURL(block) + "\n calculated touch ac (" + ac.getTouchAC().getValue() + ") does not match supplied touch ac (" + acs[1] + ")");
 				}
-				if (acs[2] != m.getFlatFootedAC()) {
-					if (!block.get(StatisticsBlock.Field.SPECIAL_QUALITIES).contains("uncanny dodge") || acs[2] != m.getAC()) {
-						System.out.println(getNameURL(block) + "\n calculated flat-footed ac (" + m.getFlatFootedAC() + ") does not match supplied flat-footed ac (" + acs[2] + ")");
+				if (acs[2] != ac.getTouchAC().getValue()) {
+					if (!block.get(StatisticsBlock.Field.SPECIAL_QUALITIES).contains("uncanny dodge") || acs[2] != ac.getValue()) {
+						System.out.println(getNameURL(block) + "\n calculated flat-footed ac (" + ac.getFlatFootedAC().getValue() + ") does not match supplied flat-footed ac (" + acs[2] + ")");
 					}
 				} else {
-					if (block.get(StatisticsBlock.Field.SPECIAL_QUALITIES).contains("uncanny dodge") && m.getAC() != m.getFlatFootedAC()) {
-						System.out.println(getNameURL(block) + "\n calculated flat-footed ac (" + m.getFlatFootedAC() + ") does not match supplied ac with uncanny dodge (" + m.getAC() + ")");
+					if (block.get(StatisticsBlock.Field.SPECIAL_QUALITIES).contains("uncanny dodge") && ac.getValue() != ac.getFlatFootedAC().getValue()) {
+						System.out.println(
+								getNameURL(block) + "\n calculated flat-footed ac (" + ac.getFlatFootedAC().getValue() + ") does not match supplied ac with uncanny dodge (" + ac.getValue() + ")");
 					}
 				}
 //				System.out.println(m.getName() + " ok");

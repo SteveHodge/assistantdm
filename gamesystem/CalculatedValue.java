@@ -1,9 +1,9 @@
 package gamesystem;
 
-import gamesystem.AbilityScore.Type;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+
+import gamesystem.AbilityScore.Type;
 
 /*
  * CalculatedValue represents an expression that is calculated dynamically, usually using values from a Creature (which the CalculatedValue is bound to). Provide change notification to Listeners.
@@ -139,7 +139,7 @@ public class CalculatedValue {
 		@Override
 		Term bind(CalculatedValue calc, Creature c) {
 			Levels lvl = (Levels) c.getStatistic(Creature.STATISTIC_LEVEL);
-			if (lvl != null) lvl.addPropertyChangeListener(e -> calc.updateValue());
+			if (lvl != null) lvl.addPropertyListener((source, oldValue) -> calc.updateValue());
 			return new Term() {
 				@Override
 				int value() {
@@ -160,7 +160,7 @@ public class CalculatedValue {
 		@Override
 		Term bind(CalculatedValue calc, Creature c) {
 			Levels lvl = (Levels) c.getStatistic(Creature.STATISTIC_LEVEL);
-			if (lvl != null) lvl.addPropertyChangeListener(e -> calc.updateValue());
+			if (lvl != null) lvl.addPropertyListener((source, oldValue) -> calc.updateValue());
 			return new Term() {
 				@Override
 				int value() {

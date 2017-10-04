@@ -41,7 +41,7 @@ public class SavingThrow extends Statistic {
 
 	// TODO verify that the ability is the correct one. alternatively pass all ability scores (that would allow the rules for non-abilities to be applied)
 	public SavingThrow(Type type, AbilityScore ability, HitDiceProperty hd, PropertyCollection parent) {
-		super(type.toString(), parent);
+		super("saving_throws." + type.toString().toLowerCase(), type.toString(), parent);
 		this.type = type;
 		if (ability != null) addModifier(ability.getModifier());
 		setHitDice(hd);
@@ -50,8 +50,8 @@ public class SavingThrow extends Statistic {
 	public void setHitDice(HitDiceProperty hd) {
 		hitdice = hd;
 		if (hitdice != null) {
-			hitdice.addPropertyListener((source, type, oldValue, newValue) -> {
-				pcs.firePropertyChange("value", null, getValue());
+			hitdice.addPropertyListener((source, oldValue) -> {
+				fireEvent();
 			});
 		}
 	}
@@ -87,7 +87,7 @@ public class SavingThrow extends Statistic {
 	public void setBaseOverride(int v) {
 		if (baseValue != v) {
 			baseValue = v;
-			pcs.firePropertyChange("value", null, getValue());	// total maybe unchanged, but some listeners will be interested in any change to the modifiers
+			fireEvent();
 		}
 	}
 

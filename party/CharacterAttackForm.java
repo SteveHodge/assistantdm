@@ -1,11 +1,11 @@
 package party;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 import gamesystem.Attacks.AttackForm;
 import gamesystem.Buff;
 import gamesystem.Feat;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 
 public class CharacterAttackForm {
 	// TODO the Kind enum value are really shorthand for a bunch of different properties. will need to split the properties out
@@ -69,13 +69,11 @@ public class CharacterAttackForm {
 
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-	private final PropertyChangeListener propertyListener = e -> pcs.firePropertyChange(e.getPropertyName(), e.getOldValue(), e.getNewValue());
-
 	public CharacterAttackForm(Character c, AttackForm a, int id) {
 		character = c;
 		attack = a;
 		attack.natural = false;	// character attacks are currently always manufactured
-		attack.addPropertyChangeListener(propertyListener);
+		attack.addPropertyListener((source, old) -> pcs.firePropertyChange(source.getName(), old, source.getValue()));
 		this.id = id;
 	}
 
@@ -89,7 +87,7 @@ public class CharacterAttackForm {
 
 	@Override
 	public String toString() {
-		return attack.toString();
+		return getName();
 	}
 
 	// rules adopted here:
@@ -192,11 +190,11 @@ public class CharacterAttackForm {
 	}
 
 	public String getName() {
-		return attack.getName();
+		return attack.getDescription();
 	}
 
 	public void setName(String text) {
-		String old = attack.getName();
+		String old = attack.getDescription();
 		if (text == null && old == null || text != null && text.equals(old)) return;
 		System.out.println("Resetting name from " + old + " to " + text);
 		attack.setName(text);

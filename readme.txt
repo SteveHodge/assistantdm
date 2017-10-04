@@ -1,3 +1,14 @@
+---=== IN PROGRESS ===---
+* BoundIntegerField and BoundTextField need to be fixed.
+* Split HPs into HPs and MaxHPs. Make wounds and non-lethal into properties.
+* Make space and reach into properties.
+* Sort out hierarchy - consider if sub-properties should be registered with their parent or with the Creature.
+* Consider a PropertyParent interface.
+* Statistic - need to handle overrides correctly (only modifier since the last override count).
+* Modifiers event/listener stuff should perhaps be similar to property in style
+* DONE:
+* Reworked Statistic to use the Property event system.
+
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
  combat - combat panel ui and functionality

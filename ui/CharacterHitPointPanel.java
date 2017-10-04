@@ -7,8 +7,6 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -29,7 +27,7 @@ import party.Character;
 // TODO probably don't want both damage and healing to be applied when user hits the apply button. either clear the other value when one value is changed or clear both fields after apply
 
 @SuppressWarnings("serial")
-class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChangeListener {
+class CharacterHitPointPanel extends CharacterSubPanel {
 	private HPs hps;
 	private JFormattedTextField currHP;
 	private JFormattedTextField dmgField = new JFormattedTextField(0);
@@ -42,16 +40,16 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 
 		setLayout(new GridBagLayout());
 
-		summary = ""+character.getHPs()+" / "+character.getMaximumHitPoints();
+		summary = "" + hps.getHPs() + " / " + hps.getMaximumHitPoints();
 
 		currHP = new JFormattedTextField();
-		currHP.setValue(new Integer(character.getHPs()));
+		currHP.setValue(new Integer(hps.getHPs()));
 		currHP.setColumns(3);
 		currHP.addPropertyChangeListener("value", evt -> {
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)currHP.getValue();
-				if (total != character.getHPs()) {
-					character.setWounds(character.getMaximumHitPoints()-character.getNonLethal()-total);
+				if (total != hps.getHPs()) {
+					hps.setWounds(hps.getMaximumHitPoints() - hps.getNonLethal() - total);
 				}
 			}
 		});
@@ -88,9 +86,68 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 
 		c.gridx = 1;
 		c.gridy = 0; add(currHP,c);
-		c.gridy++; add(new BoundIntegerField(character, Creature.PROPERTY_MAXHPS, 3), c);
-		c.gridy++; add(new BoundIntegerField(character, Creature.PROPERTY_WOUNDS, 3), c);
-		c.gridy++; add(new BoundIntegerField(character, Creature.PROPERTY_NONLETHAL, 3), c);
+		c.gridy++;
+		// FIXME replace with BoundIntegerField once Max HPs are a statistic
+		add(new JFormattedTextField() {
+			{
+				addPropertyChangeListener("value", evt -> {
+					if (evt.getPropertyName().equals("value")) {
+						Integer val = (Integer) getValue();
+						if (val != null && !val.equals(hps.getMaximumHitPoints())) {
+							hps.setMaximumHitPoints(val);
+						}
+					}
+				});
+				hps.addPropertyListener((source, old) -> {
+					//it's ok to do this even if this change event is due to an update from this control
+					//because setValue will not fire a change event if the property isn't actually changing
+					setValue(hps.getMaximumHitPoints());
+				});
+				setColumns(3);
+				setValue(hps.getMaximumHitPoints());
+			}
+		}, c);
+		c.gridy++;
+		// FIXME replace with BoundIntegerField once Max HPs are a statistic
+		add(new JFormattedTextField() {
+			{
+				addPropertyChangeListener("value", evt -> {
+					if (evt.getPropertyName().equals("value")) {
+						Integer val = (Integer) getValue();
+						if (val != null && !val.equals(hps.getWounds())) {
+							hps.setWounds(val);
+						}
+					}
+				});
+				hps.addPropertyListener((source, old) -> {
+					//it's ok to do this even if this change event is due to an update from this control
+					//because setValue will not fire a change event if the property isn't actually changing
+					setValue(hps.getWounds());
+				});
+				setColumns(3);
+				setValue(hps.getWounds());
+			}
+		}, c);
+		c.gridy++;
+		add(new JFormattedTextField() {
+			{
+				addPropertyChangeListener("value", evt -> {
+					if (evt.getPropertyName().equals("value")) {
+						Integer val = (Integer) getValue();
+						if (val != null && !val.equals(hps.getNonLethal())) {
+							hps.setNonLethal(val);
+						}
+					}
+				});
+				hps.addPropertyListener((source, old) -> {
+					//it's ok to do this even if this change event is due to an update from this control
+					//because setValue will not fire a change event if the property isn't actually changing
+					setValue(hps.getNonLethal());
+				});
+				setColumns(3);
+				setValue(hps.getNonLethal());
+			}
+		}, c);
 
 		c.gridx = 2;
 		c.gridy = 0;
@@ -107,7 +164,10 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 		tempTable.addMouseListener(rightClickListener);
 
 		// update fields when character changes
-		character.addPropertyChangeListener(this);
+		character.addPropertyListener("hit_points", (source, old) -> {
+			currHP.setValue(new Integer(hps.getHPs()));
+			updateSummaries("" + hps.getHPs() + " / " + hps.getMaximumHitPoints());
+		});
 	}
 
 	private MouseListener rightClickListener = new MouseAdapter() {
@@ -119,17 +179,6 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 		}
 	};
 
-	@Override
-	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().equals(Creature.PROPERTY_MAXHPS)
-				|| e.getPropertyName().equals(Creature.PROPERTY_WOUNDS)
-				|| e.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)
-				|| e.getPropertyName().equals(Creature.PROPERTY_HPS)) {
-			currHP.setValue(new Integer(character.getHPs()));
-			updateSummaries(""+character.getHPs()+" / "+character.getMaximumHitPoints());
-		}
-	}
-
 	// this implementation uses a read-only list of modifiers supplied by the HPs statistic. it doesn't do any
 	// work to figure out what has changed when the HPs sends an event, it just rebuilds the whole model.
 	// TODO consider tracking changes more closely
@@ -138,7 +187,7 @@ class CharacterHitPointPanel extends CharacterSubPanel implements PropertyChange
 		List<Modifier> tempHPs;
 
 		private TempHPModel() {
-			hps.addPropertyChangeListener(e -> updateModel());
+			hps.addPropertyListener((source, oldValue) -> updateModel());
 			updateModel();
 		}
 

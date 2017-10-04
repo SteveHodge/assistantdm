@@ -149,7 +149,7 @@ public class StatsBlockCreatureView {
 			}
 		}
 
-		m.setInitiativeModifier(blk.getInitiativeModifier());
+		m.getInitiativeStatistic().setBaseValue(blk.getInitiativeModifier());	// XXX is this right? should it be setting the total?
 
 //		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 //			SavingThrow s = m.getSavingThrowStatistic(t);
@@ -400,7 +400,7 @@ public class StatsBlockCreatureView {
 
 		} else if (field == Field.INITIATIVE) {
 			int init = StatisticsBlock.parseInitiativeModifier(value);
-			creature.setInitiativeModifier(init);
+			creature.getInitiativeStatistic().setBaseValue(init);	// XXX is this right? should it be setting the total?
 
 		} else if (field == Field.SAVES) {
 			for (SavingThrow.Type t : SavingThrow.Type.values()) {
@@ -429,10 +429,10 @@ public class StatsBlockCreatureView {
 	public String getField(Field field) {
 		StringBuilder s = new StringBuilder();
 		if (field == Field.INITIATIVE) {
-			if (creature.getInitiativeModifier() >= 0) s.append("+");
-			s.append(creature.getInitiativeModifier());
+			if (creature.getInitiativeStatistic().getValue() >= 0) s.append("+");
+			s.append(creature.getInitiativeStatistic().getValue());
 		} else if (field == Field.AC) {
-			s.append(creature.getAC());
+			s.append(creature.getACStatistic().getValue());
 			Map<Modifier, Boolean> map = creature.getACStatistic().getModifiers();
 			if (map.size() > 0) {
 				s.append(" (");
@@ -449,7 +449,7 @@ public class StatsBlockCreatureView {
 				}
 				s.append(")");
 			}
-			s.append(", touch ").append(creature.getTouchAC()).append(", flat-footed ").append(creature.getFlatFootedAC());
+			s.append(", touch ").append(creature.getACStatistic().getTouchAC().getValue()).append(", flat-footed ").append(creature.getACStatistic().getFlatFootedAC());
 		} else if (field == Field.ABILITIES) {
 			for (AbilityScore.Type t : AbilityScore.Type.values()) {
 				s.append(t.toString().substring(0, 3)).append(" ");

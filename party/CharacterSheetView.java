@@ -45,6 +45,8 @@ import gamesystem.core.Property;
 import party.Character.ACComponentType;
 import util.Updater;
 
+// TODO many changes trigger several updates which causes the document to be rebuilt several times. maybe better to have the updater call back to get the document when it's ready to output the character? (though then threading issues?)
+
 public class CharacterSheetView {
 	private Character character;
 	private boolean autosave = false;
@@ -53,9 +55,9 @@ public class CharacterSheetView {
 		character = c;
 		autosave = auto;
 
-		character.addPropertyChangeListener(e -> {
+		character.addPropertyListener("", (source, old) -> {
 			if (autosave) {
-				System.out.println("Autosave trigger by change to " + e.getPropertyName());
+				System.out.println("Autosave trigger by change to " + source.getName());
 				saveCharacterSheet();
 			}
 		});
@@ -372,7 +374,7 @@ public class CharacterSheetView {
 		@Override
 		public void processSavingThrow(SavingThrow s) {
 			Element saveEl = getSavingThrowElement(s);
-			saveEl.setAttribute("type", s.getName());
+			saveEl.setAttribute("type", s.getDescription());
 			saveEl.setAttribute("base", getModifierString(s.getBaseValue()));
 			saveEl.setAttribute("total", getModifierString(s.getValue()));
 			saveEl.setAttribute("info", s.getSummary());

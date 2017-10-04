@@ -1,7 +1,6 @@
 package combat;
 
 import java.awt.GridBagConstraints;
-import java.beans.PropertyChangeEvent;
 import java.util.Map;
 
 import javax.swing.JButton;
@@ -18,6 +17,8 @@ import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
 import gamesystem.Sanity;
 import gamesystem.Statistic;
+import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import ui.CharacterDamageDialog;
 
@@ -28,7 +29,7 @@ public class CharacterCombatEntry extends CombatEntry {
 	Sanity sanity;
 
 	CharacterCombatEntry(Character character) {
-		this.creature = character;
+		super(character);
 		sanity = character.getSanity();
 
 		blank = false;
@@ -38,7 +39,25 @@ public class CharacterCombatEntry extends CombatEntry {
 		touchACComp = new JLabel(""+ac.getTouchAC().getValue()+(ac.getTouchAC().hasConditionalModifier()?"*":""));
 		flatFootedACComp = new JLabel(""+ac.getFlatFootedAC().getValue()+(ac.getFlatFootedAC().hasConditionalModifier()?"*":""));
 
-		character.addPropertyChangeListener(this);
+		character.addPropertyListener("ac", new PropertyListener<Integer>() {
+			@Override
+			public void propertyChanged(Property<Integer> source, Integer oldValue) {
+				AC ac = (AC) getCharacter().getStatistic(Creature.STATISTIC_AC);
+				((JLabel) acComp).setText("" + ac.getValue() + (ac.hasConditionalModifier() ? "*" : ""));
+				((JLabel) touchACComp).setText("" + ac.getTouchAC().getValue() + (ac.getTouchAC().hasConditionalModifier() ? "*" : ""));
+				((JLabel) flatFootedACComp).setText("" + ac.getFlatFootedAC().getValue() + (ac.getFlatFootedAC().hasConditionalModifier() ? "*" : ""));
+				updateACToolTips();
+			}
+		});
+		character.addPropertyListener("initiative", new PropertyListener<Integer>() {
+			@Override
+			public void propertyChanged(Property<Integer> source, Integer oldValue) {
+				InitiativeModifier stat = (InitiativeModifier) getCharacter().getStatistic(Creature.STATISTIC_INITIATIVE);
+				((JLabel) modifierComp).setText("" + stat.getValue() + (stat.hasConditionalModifier() ? "*" : ""));
+				updateInitToolTip();
+			}
+		});
+
 		createPanel();
 
 		InitiativeModifier stat = (InitiativeModifier) character.getStatistic(Creature.STATISTIC_INITIATIVE);
@@ -113,7 +132,7 @@ public class CharacterCombatEntry extends CombatEntry {
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(getCharacter().getAC()).append(" total");
+		text.append(getCharacter().getACStatistic().getValue()).append(" total");
 		String conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
@@ -124,7 +143,7 @@ public class CharacterCombatEntry extends CombatEntry {
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(getCharacter().getTouchAC()).append(" total");
+		text.append(getCharacter().getACStatistic().getTouchAC().getValue()).append(" total");
 		conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
@@ -135,7 +154,7 @@ public class CharacterCombatEntry extends CombatEntry {
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(getCharacter().getFlatFootedAC()).append(" total");
+		text.append(getCharacter().getACStatistic().getFlatFootedAC().getValue()).append(" total");
 		conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
@@ -181,38 +200,19 @@ public class CharacterCombatEntry extends CombatEntry {
 		if (apply != null) add(apply, c);
 		c.fill = GridBagConstraints.NONE;
 
-		sanity.addPropertyListener((source, type, oldValue, newValue) -> {
-			sanityCurrent.setText(newValue.toString());
-			sanitySession.setText(Integer.toString(sanity.getSessionStartingSanity() - newValue));
+		sanity.addPropertyListener((source, oldValue) -> {
+			sanityCurrent.setText(sanity.getValue().toString());
+			sanitySession.setText(Integer.toString(sanity.getSessionStartingSanity() - sanity.getValue()));
 		});
 	}
 
 	@Override
 	JComponent createNameSection() {
 		onlyDM.setSelected(true); // we assume an non-editable source is a character that should be visible
-		int mod = getCharacter().getInitiativeModifier();
+		int mod = getCharacter().getInitiativeStatistic().getValue();
 		modifierComp = new JLabel(""+mod);
 		total.setText("= "+mod);
 		return new JLabel(getCharacter().getName());
-	}
-
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		super.propertyChange(evt);
-		if (evt.getSource() == creature) {
-			// update the relevant fields
-			if (evt.getPropertyName().equals(Creature.PROPERTY_AC)) {
-				AC ac = (AC) getCharacter().getStatistic(Creature.STATISTIC_AC);
-				((JLabel)acComp).setText(""+ac.getValue()+(ac.hasConditionalModifier()?"*":""));
-				((JLabel)touchACComp).setText(""+ac.getTouchAC().getValue()+(ac.getTouchAC().hasConditionalModifier()?"*":""));
-				((JLabel)flatFootedACComp).setText(""+ac.getFlatFootedAC().getValue()+(ac.getFlatFootedAC().hasConditionalModifier()?"*":""));
-				updateACToolTips();
-			} else if (evt.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
-				InitiativeModifier stat = (InitiativeModifier) getCharacter().getStatistic(Creature.STATISTIC_INITIATIVE);
-				((JLabel)modifierComp).setText(""+stat.getValue()+(stat.hasConditionalModifier()?"*":""));
-				updateInitToolTip();
-			}
-		}
 	}
 
 	@Override

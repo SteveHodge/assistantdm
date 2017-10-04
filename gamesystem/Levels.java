@@ -8,7 +8,7 @@ import java.util.Map;
 import gamesystem.core.PropertyCollection;
 import gamesystem.dice.HDDice;
 
-//TODO this is statistic for the listener stuff but it doesn't really need modifiers so perhaps refactor
+//FIXME this is statistic for the listener stuff but it doesn't really need modifiers so perhaps refactor
 
 // TODO should XP be here too or separate?
 // TODO support monsters?
@@ -18,10 +18,15 @@ public class Levels extends Statistic {
 	List<CharacterClass> classes = new ArrayList<>();	// this can have more entries than the current level (if classes have been removed they are remembered)
 
 	public Levels(PropertyCollection parent) {
-		super("Level", parent);
+		super("level", "Level", parent);
 	}
 
 	public int getLevel() {
+		return level;
+	}
+
+	@Override
+	public Integer getValue() {
 		return level;
 	}
 
@@ -30,9 +35,10 @@ public class Levels extends Statistic {
 	}
 
 	public void setLevel(int l) {
+		System.out.println("Set level to " + l);
 		int old = level;
 		level = l;
-		pcs.firePropertyChange("value", old, level);
+		fireEvent(old);
 	}
 
 	public CharacterClass getClass(int level) {
@@ -61,7 +67,7 @@ public class Levels extends Statistic {
 		// get the levelup actions for the class in question
 //		Set<?> actions = cls.getActions(lvl);
 
-		pcs.firePropertyChange("value", null, level);	// TODO fire more appropriate event
+		fireEvent();	// TODO oldvalue
 	}
 
 	public int getClassLevel(CharacterClass cls) {

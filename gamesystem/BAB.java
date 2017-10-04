@@ -2,7 +2,6 @@ package gamesystem;
 
 import gamesystem.core.AbstractProperty;
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.PropertyEventType;
 
 public class BAB extends AbstractProperty<Integer> {
 	final Race race;
@@ -15,11 +14,9 @@ public class BAB extends AbstractProperty<Integer> {
 		levels = l;
 		bab = getBAB();
 
-		levels.addPropertyChangeListener((e) -> recalculateBAB());
+		levels.addPropertyListener((source, oldValue) -> recalculateBAB());
 
-		r.addPropertyListener((source, type, oldValue, newValue) -> {
-			recalculateBAB();
-		});
+		r.addPropertyListener((source, oldValue) -> recalculateBAB());
 	}
 
 	private int getBAB() {
@@ -66,7 +63,7 @@ public class BAB extends AbstractProperty<Integer> {
 
 	private void recalculateBAB() {
 		if (getBAB() != bab) {
-			parent.fireEvent(this, PropertyEventType.VALUE_CHANGED, bab);
+			fireEvent(bab);
 			bab = getBAB();
 		}
 	}

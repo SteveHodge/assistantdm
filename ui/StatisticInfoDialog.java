@@ -69,7 +69,7 @@ public class StatisticInfoDialog extends JDialog {
 		character = chr;
 		statistic = chr.getStatistic(statName);
 
-		statistic.addPropertyChangeListener(e -> updateSummary());
+		statistic.addPropertyListener((source, oldValue) -> updateSummary());
 
 		summary = new JLabel();
 		updateSummary();

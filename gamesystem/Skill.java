@@ -16,7 +16,7 @@ public class Skill extends Statistic {
 //	}
 
 	protected Skill(SkillType type, Modifier abilityMod, Modifier acp, PropertyCollection parent) {
-		super(type.getName(), parent);
+		super("skills." + type.getName().toLowerCase(), type.getName(), parent);
 		skillType = type;
 		addModifier(abilityMod);
 		if (type.armorCheckPenaltyApplies) {
@@ -42,15 +42,12 @@ public class Skill extends Statistic {
 	public void setRanks(float r) {
 		//int oldValue = getValue();
 		ranks = r;
-		int newValue = getValue();
-		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
-		pcs.firePropertyChange("value", null, newValue);	// total might not change, but listeners might still want to know
+		fireEvent();
 	}
 
 	public void setMisc(int m) {
 		misc = m;
-		int newValue = getValue();
-		pcs.firePropertyChange("value", null, newValue);	// total might not change, but listeners might still want to know
+		fireEvent();
 	}
 
 	public int getMisc() {
@@ -63,7 +60,7 @@ public class Skill extends Statistic {
 		text.append(getRanks()).append(" base<br/>");
 		Map<Modifier, Boolean> mods = getModifiers();
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(getValue()).append(" total ").append(getName()).append("<br/>");
+		text.append(getValue()).append(" total ").append(getDescription()).append("<br/>");
 		String conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/>").append(conds);
 		return text.toString();

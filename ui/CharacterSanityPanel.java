@@ -21,14 +21,14 @@ class CharacterSanityPanel extends CharacterSubPanel {
 		summary = sanity.getValue().toString();
 
 		maxLabel = new JLabel("Maximum: " + sanity.getMaximumSanityProperty().getValue());
-		sanity.getMaximumSanityProperty().addPropertyListener((source, type, oldValue, newValue) -> {
-			maxLabel.setText("Maximum: " + newValue);
+		sanity.getMaximumSanityProperty().addPropertyListener((source, oldValue) -> {
+			maxLabel.setText("Maximum: " + source.getValue());
 		});
 		add(maxLabel);
 
 		startingLabel = new JLabel("Starting: " + sanity.getStartingSanityProperty().getValue());
-		sanity.getStartingSanityProperty().addPropertyListener((source, type, oldValue, newValue) -> {
-			startingLabel.setText("Starting: " + newValue);
+		sanity.getStartingSanityProperty().addPropertyListener((source, oldValue) -> {
+			startingLabel.setText("Starting: " + source.getValue());
 		});
 		add(startingLabel);
 
@@ -40,8 +40,8 @@ class CharacterSanityPanel extends CharacterSubPanel {
 				sanity.setBaseValue((Integer) currentField.getValue());
 			}
 		});
-		sanity.addPropertyListener((source, type, oldValue, newValue) -> {
-			currentField.setValue(newValue);
+		sanity.addPropertyListener((source, oldValue) -> {
+			currentField.setValue(source.getValue());
 		});
 		currentField.setColumns(3);
 		add(currentField);
@@ -55,8 +55,8 @@ class CharacterSanityPanel extends CharacterSubPanel {
 				knowledge.setBaseValue((Integer) knowledgeField.getValue());
 			}
 		});
-		knowledge.addPropertyListener((source, type, oldValue, newValue) -> {
-			knowledgeField.setValue(newValue);
+		knowledge.addPropertyListener((source, oldValue) -> {
+			knowledgeField.setValue(source.getValue());
 		});
 		knowledgeField.setColumns(3);
 		add(knowledgeField);

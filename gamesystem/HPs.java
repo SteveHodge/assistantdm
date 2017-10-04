@@ -85,10 +85,10 @@ public class HPs extends Statistic {
 
 	// TODO should probably move con monitoring to HitDiceProperty
 	public HPs(HitDiceProperty hd, PropertyCollection parent) {
-		super("Hit Points", parent);
+		super("hit_points", "Hit Points", parent);
 
 		hitdice = hd;
-		hitdice.addPropertyListener((source, type, oldValue, newValue) -> {
+		hitdice.addPropertyListener((source, oldValue) -> {
 			updateModifier(HDDice.getTotalConstant(oldValue));
 		});
 	}
@@ -110,7 +110,7 @@ public class HPs extends Statistic {
 	public void setMaximumHitPoints(int hp) {
 		int old = hps;
 		hps = hp;
-		firePropertyChange(Creature.PROPERTY_MAXHPS, old, hp);
+		fireEvent(old);
 	}
 
 	public List<Modifier> getTemporaryHPsModifiers() {
@@ -124,8 +124,8 @@ public class HPs extends Statistic {
 
 	public void applyHealing(int heal) {
 		int oldHPs = getHPs();
-		int oldWounds = wounds;
-		int oldNL = nonLethal;
+//		int oldWounds = wounds;
+//		int oldNL = nonLethal;
 
 		if (nonLethal > heal) {
 			nonLethal -= heal;
@@ -139,10 +139,9 @@ public class HPs extends Statistic {
 			wounds = 0;
 		}
 
-		// TODO clean this up. Shouldn't be firing so many events
-		firePropertyChange(Creature.PROPERTY_WOUNDS, oldWounds, wounds);
-		firePropertyChange(Creature.PROPERTY_NONLETHAL, oldNL, nonLethal);
-		firePropertyChange(Creature.PROPERTY_HPS, oldHPs, getHPs());
+//		firePropertyChange(Creature.PROPERTY_WOUNDS, oldWounds, wounds);	// FIXME if wounds are to behave like a property then they should be a property
+//		firePropertyChange(Creature.PROPERTY_NONLETHAL, oldNL, nonLethal);	// FIXME if wounds are to behave like a property then they should be a property
+		fireEvent(oldHPs);
 	}
 
 	// dmg should be > 0
@@ -186,7 +185,7 @@ public class HPs extends Statistic {
 
 		}
 		// notify of change to temphps
-		firePropertyChange(Creature.PROPERTY_HPS, oldHPs, getHPs());
+		fireEvent(oldHPs);
 
 		// apply any remaining damage as wounds
 		if (dmg > 0) setWounds(wounds+dmg);
@@ -194,16 +193,18 @@ public class HPs extends Statistic {
 
 	// apply non-lethal damage
 	public void applyNonLethal(int d) {
-		int old = nonLethal;
+//		int old = nonLethal;
 		nonLethal += d;
-		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, nonLethal);
+//		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, nonLethal);	// FIXME non-lethal needs to be a property
+		fireEvent();
 	}
 
 	// this directly sets the number of wounds (it bypasses temporary hitpoints)
 	public void setWounds(int i) {
-		int old = wounds;
+//		int old = wounds;
 		wounds = i;
-		firePropertyChange(Creature.PROPERTY_WOUNDS, old, i);
+//		firePropertyChange(Creature.PROPERTY_WOUNDS, old, i);	// FIXME wounds needs to be a property
+		fireEvent();
 	}
 
 	public int getNonLethal() {
@@ -211,9 +212,10 @@ public class HPs extends Statistic {
 	}
 
 	public void setNonLethal(int i) {
-		int old = nonLethal;
+//		int old = nonLethal;
 		nonLethal = i;
-		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, i);
+//		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, i);
+		fireEvent();
 	}
 
 	Modifier addTemporaryHPs(TempHPs temps) {
@@ -233,7 +235,7 @@ public class HPs extends Statistic {
 		best.active = true;
 
 		tempHPs.add(temps);
-		firePropertyChange(Creature.PROPERTY_HPS, old, getHPs());
+		fireEvent(old);
 		return temps;
 	}
 
@@ -253,7 +255,7 @@ public class HPs extends Statistic {
 					}
 				}
 				if (best != null) best.active = true;
-				firePropertyChange(Creature.PROPERTY_HPS, old, getHPs());
+				fireEvent(old);
 			}
 		}
 	}

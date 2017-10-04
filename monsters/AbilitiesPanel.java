@@ -1,19 +1,18 @@
 package monsters;
 
-import gamesystem.AbilityScore;
-import gamesystem.Creature;
-
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import gamesystem.AbilityScore;
+import gamesystem.Creature;
+import gamesystem.core.PropertyListener;
 
 
 @SuppressWarnings("serial")
@@ -64,7 +63,7 @@ class AbilitiesPanel extends DetailPanel {
 			for (AbilityScore.Type t : AbilityScore.Type.values()) {
 				AbilityScore s = monster.getAbilityStatistic(t);
 				if (s != null) {
-					s.removePropertyChangeListener(listener);
+					s.removePropertyListener(listener);
 				}
 			}
 		}
@@ -75,7 +74,7 @@ class AbilitiesPanel extends DetailPanel {
 			for (AbilityScore.Type t : AbilityScore.Type.values()) {
 				AbilityScore s = monster.getAbilityStatistic(t);
 				if (s != null) {
-					s.addPropertyChangeListener(listener);
+					s.addPropertyListener(listener);
 				}
 			}
 		}
@@ -117,13 +116,7 @@ class AbilitiesPanel extends DetailPanel {
 		}
 	}
 
-	final private PropertyChangeListener listener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			// just refresh everything
-			update();
-		}
-	};
+	final private PropertyListener<Integer> listener = (source, old) -> update();
 
 	final private ChangeListener spinnerListener = new ChangeListener() {
 		@Override
