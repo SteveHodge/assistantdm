@@ -180,9 +180,8 @@ public class EncounterDialog extends JFrame {
 		detailsButton = new JButton("Details");
 		detailsButton.addActionListener(e -> {
 			if (selected == null) return;
-			StatisticsBlock blk = (StatisticsBlock) selected.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
-			if (blk == null) return;
-			JFrame frame = new MonsterFrame(blk);
+			if (selected.statisticsBlock == null) return;
+			JFrame frame = new MonsterFrame(selected.statisticsBlock);
 			frame.setVisible(true);
 		});
 
@@ -269,7 +268,7 @@ public class EncounterDialog extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO this should duplicate the monster directly rather than using the stats block (which may not be present once adhoc monsters can be bought into this dialog)
-			StatisticsBlock blk = (StatisticsBlock) selected.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+			StatisticsBlock blk = selected.statisticsBlock;
 			if (blk == null) return;
 
 			int ordinal = 1;
@@ -309,10 +308,10 @@ public class EncounterDialog extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			for (int i = 0; i < monsterListModel.getSize(); i++) {
-				Creature m = monsterListModel.getElementAt(i);
+				Monster m = monsterListModel.getElementAt(i);
 				Integer imgIndex = imageIndexes.get(m);
 				File f = null;
-				List<URL> urls = imageURLs.get(m.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK));
+				List<URL> urls = imageURLs.get(m.statisticsBlock);
 				if (urls != null && imgIndex != null && imgIndex.intValue() >= 0) {
 					URL url = urls.get(imgIndex.intValue());
 					// TODO fix this. probably addMonster should take a URL for the image
@@ -457,7 +456,7 @@ public class EncounterDialog extends JFrame {
 
 	public void addMonster(Monster m) {
 		monsterListModel.addMonster(m);
-		StatisticsBlock s = (StatisticsBlock) m.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
+		StatisticsBlock s = m.statisticsBlock;
 		if (!imageURLs.containsKey(s)) {
 			List<URL> urls = new ArrayList<>();
 			if (s != null) Collections.addAll(urls, s.getImageURLs());
@@ -484,8 +483,7 @@ public class EncounterDialog extends JFrame {
 			} else {
 				addButton.setEnabled(true);
 				deleteButton.setEnabled(true);
-				StatisticsBlock blk = (StatisticsBlock) selected.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
-				detailsButton.setEnabled(blk != null);
+				detailsButton.setEnabled(selected.statisticsBlock != null);
 			}
 		}
 

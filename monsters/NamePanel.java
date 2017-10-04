@@ -102,11 +102,10 @@ class NamePanel extends DetailPanel {
 				if (chooser.showOpenDialog(NamePanel.this) == JFileChooser.APPROVE_OPTION) {
 					try {
 						File imageFile = chooser.getSelectedFile();
-						StatisticsBlock blk = (StatisticsBlock) monster.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK);
-						List<URL> urls = imageURLs.get(blk);
+						List<URL> urls = imageURLs.get(monster.statisticsBlock);
 						if (urls == null) {
 							urls = new ArrayList<>();
-							imageURLs.put(blk, urls);
+							imageURLs.put(monster.statisticsBlock, urls);
 						}
 						urls.add(imageFile.toURI().toURL());
 						setSelectedImage(imageURLs.size() - 1);
@@ -193,7 +192,7 @@ class NamePanel extends DetailPanel {
 	// handles out of range indexes
 	void setSelectedImage(int index) {
 		if (monster == null) return;
-		List<URL> urls = imageURLs.get(monster.getPropertyValue(StatsBlockCreatureView.PROPERTY_STATS_BLOCK));
+		List<URL> urls = imageURLs.get(monster.statisticsBlock);
 		if (index < 0) index = 0;
 		if (index >= urls.size()) index = urls.size() - 1;
 		imageIndexes.put(monster, index);

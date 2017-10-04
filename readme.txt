@@ -6,8 +6,6 @@
 * Consider a PropertyParent interface.
 * Statistic - need to handle overrides correctly (only modifier since the last override count).
 * Modifiers event/listener stuff should perhaps be similar to property in style
-* DONE:
-* Reworked Statistic to use the Property event system.
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality

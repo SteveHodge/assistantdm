@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import gamesystem.AC;
@@ -48,6 +47,7 @@ import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChange;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
+import gamesystem.core.SimpleValueProperty;
 
 /**
  * @author Steve
@@ -103,7 +103,7 @@ public class Character extends Creature {
 
 	//	private Set<Feat> feats = new HashSet<>();
 
-	public int xp = 0;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
+	public SimpleValueProperty<Integer> xp;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
 	public EnumMap<ACComponentType, Modifier> acMods = new EnumMap<>(ACComponentType.class); // TODO should move to AC panel
 
@@ -183,7 +183,10 @@ public class Character extends Creature {
 	}
 
 	public Character(String name) {
-		this.name = name;
+		this.name = new SimpleValueProperty<>("name", this, name);
+
+		xp = new SimpleValueProperty<>("xp", this, 0);
+
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
 			final AbilityScore s = new AbilityScore(t, this);
 			abilities.put(t, s);
@@ -218,81 +221,7 @@ public class Character extends Creature {
 		sanity = new Sanity(this, abilities.get(AbilityScore.Type.WISDOM));
 	}
 
-	@Override
-	public void setName(String name) {
-		System.out.println("Setting Name");
-		throw new UnsupportedOperationException();
-	}
-
-//------------------- Ability Scores -------------------
-// Ability scores have a base value and can have an override value
-
-	/**
-	 * Returns the current score of the specified ability. The current score
-	 * is the temporary score if one has been set by setTemporaryAbility,
-	 * otherwise it is base ability score
-	 *
-	 * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
-	 * @return      the current score of the specified ability
-	 */
-	public int getAbilityScore(AbilityScore.Type type) {
-		return abilities.get(type).getValue();
-	}
-
-	/**
-	 * Returns the base score of the specified ability.
-	 *
-	 * @param type  the ability score to get: one of the ABILITY constants from {@link Creature}
-	 * @return      the base score of the specified ability
-	 */
-	public int getBaseAbilityScore(AbilityScore.Type type) {
-		return abilities.get(type).getBaseValue();
-	}
-
-	/**
-	 * Returns the modifier calculated from the specified ability's current score.
-	 *
-	 * @param type  the ability score to get the modifier of: one of the ABILITY constants from {@link Creature}
-	 * @return      the modifier calculated from the current score of the specified ability
-	 */
-	public int getAbilityModifierValue(AbilityScore.Type type) {
-		return abilities.get(type).getModifierValue();
-	}
-
-	/**
-	 * Sets the base score of the specified ability
-	 *
-	 * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
-	 * @param value the value to set the score to
-	 */
-	public void setAbilityScore(AbilityScore.Type type, int value) {
-		abilities.get(type).setBaseValue(value);
-	}
-
-	/**
-	 * Sets the temporary score of the specified ability. When a temporary score is set,
-	 * <code>getAbilityScore</code> will return it rather than the base score and
-	 * <code>getAbilityModifier</code> will calculate the modifier using the temporary
-	 * score rather than the base score.
-	 * <p>
-	 * The temporary score can be removed by setting it to -1 or to the base score of
-	 * the specified ability.
-	 *
-	 * @param type  the ability score to set: one of the ABILITY constants from {@link Creature}
-	 * @param value the value to set as the temporary score
-	 */
-	public void setTemporaryAbility(AbilityScore.Type type, int value) {
-		if (value != abilities.get(type).getBaseValue() && value >= 0) {
-			abilities.get(type).setOverride(value);
-		} else {
-			abilities.get(type).clearOverride();
-		}
-	}
-
-	public int getTemporaryAbility(AbilityScore.Type type) {
-		return abilities.get(type).getOverride();
-	}
-//------------------- Skills -------------------
+	//------------------- Skills -------------------
 // Skills have a total value, ranks, misc bonus, and are modified by ability scores
 
 	/**
@@ -376,7 +305,7 @@ public class Character extends Creature {
 
 //------------------- XP and level -------------------
 	public int getXP() {
-		return xp;
+		return xp.getValue();
 	}
 
 	public int getRequiredXP() {
@@ -407,16 +336,12 @@ public class Character extends Creature {
 		change.xp = XP.getXP(level.getLevel(), count, penalty, challenges);
 		change.challenges.addAll(challenges);
 		addXPChange(change);
-		int old = xp;
-		xp += change.xp;
-		firePropertyChange(PROPERTY_XP, old, xp);
+		xp.setValue(xp.getValue() + change.xp);
 	}
 
 	public void addXPAdhocChange(int delta, String comment, Date d) {
 		addXPChange(new XP.XPChangeAdhoc(delta, comment, d));
-		int old = xp;
-		xp += delta;
-		firePropertyChange(PROPERTY_XP, old, xp);
+		xp.setValue(xp.getValue() + delta);
 	}
 
 	public int getLevel() {
@@ -524,13 +449,11 @@ public class Character extends Creature {
 			item.total -= removed.xpChange.getXP();
 			item.index--;
 		}
-		int old = xp;
 		if (xpChanges.size() > 0) {
-			xp = xpChanges.get(xpChanges.size()-1).total;
+			xp.setValue(xpChanges.get(xpChanges.size() - 1).total);
 		} else {
-			xp = 0;
+			xp.setValue(0);
 		}
-		firePropertyChange(PROPERTY_XP, old, xp);
 	}
 
 	public void moveXPHistory(int from, int to) {
@@ -821,45 +744,6 @@ public class Character extends Creature {
 		return diffs;
 	}
 
-	@Override
-	public Object getPropertyValue(String prop) {
-		if (prop.equals(PROPERTY_XP)) {
-			return xp;
-
-		} else {
-			return super.getPropertyValue(prop);
-		}
-	}
-
-	// TODO remove these next three
-	private void setAttributeFromProperty(Element e, String name, String prop) {
-		String value = (String) getPropertyValue(prop);
-		if (value != null && value.length() > 0) e.setAttribute(name, value);
-	}
-
-	Element XgetCharacterElement(Document doc) {
-		Element e = doc.createElement("Character");
-		e.setAttribute("name", getName());
-		setAttributeFromProperty(e, "player", Character.PROPERTY_PLAYER);
-		setAttributeFromProperty(e, "region", Character.PROPERTY_REGION);
-		setAttributeFromProperty(e, "race", Character.PROPERTY_RACE);
-		setAttributeFromProperty(e, "gender", Character.PROPERTY_GENDER);
-		setAttributeFromProperty(e, "alignment", Character.PROPERTY_ALIGNMENT);
-		setAttributeFromProperty(e, "deity", Character.PROPERTY_DEITY);
-		setAttributeFromProperty(e, "type", Character.PROPERTY_TYPE);
-		setAttributeFromProperty(e, "age", Character.PROPERTY_AGE);
-		setAttributeFromProperty(e, "height", Character.PROPERTY_HEIGHT);
-		setAttributeFromProperty(e, "weight", Character.PROPERTY_WEIGHT);
-		setAttributeFromProperty(e, "eye-colour", Character.PROPERTY_EYE_COLOUR);
-		setAttributeFromProperty(e, "hair-colour", Character.PROPERTY_HAIR_COLOUR);
-		setAttributeFromProperty(e, "speed", Character.PROPERTY_SPEED);
-		setAttributeFromProperty(e, "damage-reduction", Character.PROPERTY_DAMAGE_REDUCTION);
-		setAttributeFromProperty(e, "spell-resistance", Character.PROPERTY_SPELL_RESISTANCE);
-		setAttributeFromProperty(e, "arcane-spell-failure", Character.PROPERTY_ARCANE_SPELL_FAILURE);
-		setAttributeFromProperty(e, "action-points", Character.PROPERTY_ACTION_POINTS);
-		return e;
-	}
-
 	// XXX this is a reimplementation of the Creature method in order to produce identical output to the orginal version - if exact order is not required we can revert to using the base version
 	@Override
 	public void executeProcess(CreatureProcessor processor) {
@@ -902,8 +786,10 @@ public class Character extends Creature {
 			processor.processBuff(b);
 		}
 
-		for (String prop : extraProperties.keySet()) {
-			processor.processProperty(prop, extraProperties.get(prop));
+		for (String prop : properties.keySet()) {
+			if (prop.startsWith("extra")) {
+				processor.processProperty(prop, properties.get(prop).getValue());
+			}
 		}
 	}
 }

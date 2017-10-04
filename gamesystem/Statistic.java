@@ -20,10 +20,8 @@ import gamesystem.core.PropertyCollection;
  * Subclasses may implement additional properties, e.g. Attacks implements an extra_attacks property. Generally properties
  * are values that are changeable but are not subject to typed modifiers.
  */
-// TODO might need more comprehensive reporting. specifically subclasses may wish to issue a property change for baseValue separately
-// to the property change for value (i.e. total). property change for changing modifiers even when the total is unchanged are also desirable
-// TODO if the value doesn't change the pcs.firePropertyChange won't actually send an event. So that changes to modifiers that don't affect the
-// total are reported we always report the old value as null. Probably best to change to a customer Event/Listener implementation
+// TODO need to implement overrides.
+// overrides should apply to the total, but need to handle modifiers added after the override
 public class Statistic extends AbstractProperty<Integer> {
 	protected Set<Modifier> modifiers = new HashSet<>();
 	protected String description;

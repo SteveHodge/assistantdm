@@ -1,5 +1,10 @@
 package monsters;
 
+import java.net.MalformedURLException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import gamesystem.AC;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
@@ -8,13 +13,7 @@ import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
-
-import java.net.MalformedURLException;
-
 import monsters.Monster.MonsterAttackRoutine;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 public class XMLOutputMonsterProcessor extends XMLOutputHelper implements CreatureProcessor {
 //	private Monster monster;
@@ -40,22 +39,20 @@ public class XMLOutputMonsterProcessor extends XMLOutputHelper implements Creatu
 		if (value == null) return;
 
 		// TODO ignore values that match the statsblock (if there is one) default?
+		Element propEl = doc.createElement("Property");
+		propEl.setAttribute("name", property);
+		propEl.setAttribute("value", value.toString());
+		creatureEl.appendChild(propEl);
+	}
 
-		if (property.equals(StatsBlockCreatureView.PROPERTY_STATS_BLOCK)) {
-			StatisticsBlock blk = (StatisticsBlock) value;
-			try {
-				Element propEl = doc.createElement("StatisticsBlock");
-				propEl.setAttribute("url", blk.getURL().toString());
-				propEl.setAttribute("name", blk.getName());
-				creatureEl.appendChild(propEl);
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}
-		} else {
-			Element propEl = doc.createElement("Property");
-			propEl.setAttribute("name", property);
-			propEl.setAttribute("value", value.toString());
+	public void processStatisticsBlock(StatisticsBlock blk) {
+		try {
+			Element propEl = doc.createElement("StatisticsBlock");
+			propEl.setAttribute("url", blk.getURL().toString());
+			propEl.setAttribute("name", blk.getName());
 			creatureEl.appendChild(propEl);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
 	}
 

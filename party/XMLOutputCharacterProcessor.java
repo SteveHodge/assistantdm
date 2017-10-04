@@ -1,5 +1,9 @@
 package party;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import gamesystem.AC;
 import gamesystem.CharacterClass.ClassOption;
 import gamesystem.Creature;
@@ -11,10 +15,7 @@ import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
 import monsters.Monster.MonsterAttackRoutine;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import monsters.StatisticsBlock;
 
 
 public class XMLOutputCharacterProcessor extends XMLOutputHelper implements CreatureProcessor {
@@ -123,5 +124,9 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 
 	@Override
 	public void processHitdice(HitDiceProperty hitDice) {
+	}
+
+	@Override
+	public void processStatisticsBlock(StatisticsBlock blk) {
 	}
 }

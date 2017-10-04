@@ -4,6 +4,7 @@ import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import monsters.Monster.MonsterAttackRoutine;
+import monsters.StatisticsBlock;
 import party.CharacterAttackForm;
 
 // the visitor definition
@@ -49,4 +50,6 @@ public interface CreatureProcessor {
 	public void processMonsterFullAttackForm(MonsterAttackRoutine a);
 
 	public void processHitdice(HitDiceProperty hitDice);
+
+	public void processStatisticsBlock(StatisticsBlock blk);
 }

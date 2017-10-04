@@ -18,6 +18,8 @@ import gamesystem.CharacterClass.ClassOption;
 import gamesystem.core.Property;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
+import gamesystem.core.SimpleValueProperty;
 import swing.ListModelWithToolTips;
 
 // TODO the initiative property should either be the base value or the total - pick one
@@ -38,7 +40,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	public final static String PROPERTY_AC_COMPONENT_PREFIX = "AC: ";	// not currently sent to listeners
 	public final static String PROPERTY_SKILL_PREFIX = "Skill: ";
 	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";	// not currently sent to listeners
-	public final static String PROPERTY_XP = "XP";
+	public final static String XPROPERTY_XP = "XP";
 	public final static String PROPERTY_BAB = "BAB";
 	public final static String PROPERTY_SIZE = "Size";
 	public final static String PROPERTY_TYPE = "Type";	// not currently sent to listeners
@@ -83,7 +85,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	// ************************* Non static members and methods **************************
 
-	protected String name;
+	protected SimpleValueProperty<String> name;
 
 	protected HPs hps;
 	public Size size;	// TODO shouldn't be public
@@ -103,6 +105,9 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	protected Sanity sanity;
 
+	protected Map<String, SimpleProperty<?>> properties = new HashMap<>();
+	protected Map<String, List<PropertyListener<?>>> listeners = new HashMap<>();
+
 	@SuppressWarnings("serial")
 	public class BuffListModel<T> extends DefaultListModel<T> implements ListModelWithToolTips<T> {
 		@Override
@@ -119,7 +124,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	public BuffListModel<Buff> buffs = new BuffListModel<>();		// TODO should be protected
-	protected Map<String, Object> extraProperties = new HashMap<>();
 
 	public Skills skills;		// TODO shouldn't be public
 
@@ -167,9 +171,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	//------------------------ PropertyCollection --------------------------
-	Map<String, Property<?>> properties = new HashMap<>();
-	Map<String, List<PropertyListener<?>>> listeners = new HashMap<>();
-
 	public void debugDumpStructure() {
 		List<String> keys = new ArrayList<>(properties.keySet());
 		Collections.sort(keys);
@@ -179,12 +180,12 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void addProperty(Property<T> property) {
+	public <T> void addProperty(SimpleProperty<T> property) {
 		properties.put(property.getName(), property);
 	}
 
 	@Override
-	public <T> void fireEvent(Property<T> source, T oldValue) {
+	public <T> void fireEvent(SimpleProperty<T> source, T oldValue) {
 		String propName = source.getName();
 		while (true) {
 			List<PropertyListener<?>> list = listeners.get(propName);
@@ -214,7 +215,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void addPropertyListener(Property<T> property, PropertyListener<T> l) {
+	public <T> void addPropertyListener(SimpleProperty<T> property, PropertyListener<T> l) {
 		// TODO argument checking: check property is in this object, l is not null
 		List<PropertyListener<?>> list = listeners.get(property.getName());
 		if (list == null) {
@@ -226,7 +227,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	@Override
 	public void removePropertyListener(String propName, PropertyListener<?> l) {
-		Property<?> property = getProperty(propName);
+		SimpleProperty<?> property = getProperty(propName);
 		if (property == null) return;
 		List<PropertyListener<?>> list = listeners.get(property);
 		if (list == null) return;
@@ -234,19 +235,21 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void removePropertyListener(Property<T> property, PropertyListener<T> l) {
+	public <T> void removePropertyListener(SimpleProperty<T> property, PropertyListener<T> l) {
 		List<PropertyListener<?>> list = listeners.get(property);
 		if (list == null) return;
 		list.remove(l);
 	}
 
 	@Override
-	public Property<?> getProperty(String name) {
+	public SimpleProperty<?> getProperty(String name) {
 		return properties.get(name);
 	}
 	//----------------------------------------------------------------------
 
-	abstract public void setName(String name);	// TODO shouldn't be abstract
+	public void setName(String n) {
+		name.setValue(n);
+	}
 
 	public HPs getHPStatistic() {
 		return hps;
@@ -472,25 +475,29 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	public Object getPropertyValue(String prop) {
-		if (prop.equals(PROPERTY_NAME))
-			return name;
-		else if (extraProperties.containsKey(prop)) {
-//			System.out.println("extra property '"+prop+"': "+extraProperties.get(prop));
-			return extraProperties.get(prop);
-		} else {
+		SimpleProperty<?> property = getProperty(prop);
+		if (property == null && !prop.startsWith("extra.")) {
+			property = getProperty("extra." + prop);
+		}
+		if (property == null) {
 			System.err.println("Attempt to get unknown property: " + prop);
 			return null;
 		}
+		return property.getValue();
 	}
 
-	public void setProperty(String prop, Object value) {
-		if (prop.equals(PROPERTY_NAME)) {
-			setName((String) value);
+	public void setProperty(String prop, String value) {
+		if (!prop.startsWith("extra.")) prop = "extra." + prop;
+		SimpleProperty<?> property = getProperty(prop);
+		if (property == null) {
+//			System.out.println("Adding adhoc property " + prop + " with value '" + value + "'");
+			property = new SimpleValueProperty<String>(prop, this, value);
+		}
+		if (property instanceof SimpleValueProperty) {
+//			System.out.println("Setting adhoc property " + prop + " to '" + value + "'");
+			((SimpleValueProperty)property).setValue(value);
 		} else {
-			//System.out.println("Attempt to set unknown property: " + prop + " to " + value);
-			Object old = extraProperties.get(prop);
-			extraProperties.put(prop, value);
-			pcs.firePropertyChange(prop, old, value);
+			System.err.println("Can't set value on " + property);
 		}
 	}
 
@@ -498,13 +505,17 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		pcs.firePropertyChange(property, oldValue, newValue);
 	}
 
+	public boolean hasProperty(String name) {
+		return properties.containsKey(name);
+	}
+
 	@Override
 	public String toString() {
-		return name;
+		return name.getValue();
 	}
 
 	public String getName() {
-		return name;
+		return name.getValue();
 	}
 
 //------------------- property level get/set methods -------------------
@@ -517,10 +528,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 //------------- Others --------------
 	abstract public boolean hasFeat(String feat);
-
-	public boolean hasProperty(String name) {
-		return extraProperties.containsKey(name);
-	}
 
 // ----- visitor pattern for processing -----
 	public void executeProcess(CreatureProcessor processor) {
@@ -548,8 +555,10 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 			processor.processBuff(b);
 		}
 
-		for (String prop : extraProperties.keySet()) {
-			processor.processProperty(prop, extraProperties.get(prop));
+		for (String prop : properties.keySet()) {
+			if (prop.startsWith("extra")) {
+				processor.processProperty(prop, properties.get(prop).getValue());
+			}
 		}
 	}
 }

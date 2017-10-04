@@ -22,7 +22,7 @@ import java.util.List;
  * will probably just add a proxy listener to the Property.
  */
 
-public interface Property<T> {
+public interface Property<T> extends SimpleProperty<T> {
 	// ProeprtyValue is used as a key for overrides. it could expose a method to return the associated value
 	class PropertyValue<U> {
 		final U value;
@@ -31,16 +31,6 @@ public interface Property<T> {
 			value = val;
 		}
 	}
-
-	public String getName();
-
-	public PropertyCollection getParent();
-
-	public void addPropertyListener(PropertyListener<T> l);
-
-	public void removePropertyListener(PropertyListener<T> l);
-
-	public T getValue();	// the current (possibly overriden) value of the property
 
 	public T getBaseValue();	// the non-overriden value of the property
 

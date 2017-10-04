@@ -58,7 +58,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 
 			} else if (tag.equals("Level")) {
 				parseLevel(e, c.level, c);
-				c.xp = Integer.parseInt(e.getAttribute("xp"));
+				c.xp.setValue(Integer.parseInt(e.getAttribute("xp")));
 				NodeList awards = e.getChildNodes();
 				for (int j = 0; j < awards.getLength(); j++) {
 					XP.XPChange change = null;

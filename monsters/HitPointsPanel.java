@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.core.PropertyListener;
 import gamesystem.dice.DiceList;
@@ -74,7 +73,7 @@ class HitPointsPanel extends DetailPanel {
 					int value = (Integer) hitPointsField.getValue();
 					if (value < hitdice.getMinimum()) value = hitdice.getMinimum();
 					if (value > hitdice.getMaximum()) value = hitdice.getMaximum();
-					creature.setProperty(Creature.PROPERTY_MAXHPS, value);
+					hps.setMaximumHitPoints(value);
 				}
 			}
 		});

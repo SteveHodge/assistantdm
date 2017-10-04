@@ -41,8 +41,6 @@ import monsters.StatisticsBlock.MonsterDetails;
 // be changed).
 
 public class StatsBlockCreatureView {
-	public final static String PROPERTY_STATS_BLOCK = "statsblock";
-
 	private static Map<Monster, StatsBlockCreatureView> views = new HashMap<>();
 
 	private Monster creature;
@@ -111,9 +109,8 @@ public class StatsBlockCreatureView {
 	}
 
 	public String getMonsterName() {
-		StatisticsBlock stats = getStatsBlock();
-		if (stats == null) return null;
-		return stats.getName();
+		if (creature.statisticsBlock == null) return null;
+		return creature.statisticsBlock.getName();
 	}
 
 	public static Monster createMonster(StatisticsBlock blk) {
@@ -202,7 +199,7 @@ public class StatsBlockCreatureView {
 			}
 		}
 
-		m.setProperty(PROPERTY_STATS_BLOCK, blk);
+		m.statisticsBlock = blk;
 		// need feats/special qualities before setting up attacks
 		m.setProperty(Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));
 		m.setProperty(Field.FEATS.name(), blk.get(Field.FEATS));
@@ -504,7 +501,7 @@ public class StatsBlockCreatureView {
 			}
 		}
 
-		StatisticsBlock stats = getStatsBlock();
+		StatisticsBlock stats = creature.statisticsBlock;
 		if (s.length() == 0) {
 			if (creature.hasProperty(field.name()) && creature.getPropertyValue(field.name()) != null) {
 				s.append(creature.getPropertyValue(field.name()));
@@ -524,7 +521,7 @@ public class StatsBlockCreatureView {
 	// several common alternate characters are treated as equal (e.g. various dashes and minus, commas
 	// and semicolons, etc). Special cases are included for certain fields.
 	private boolean isEquivalent(Field field, String calculated) {
-		StatisticsBlock stats = getStatsBlock();
+		StatisticsBlock stats = creature.statisticsBlock;
 
 		if (calculated == null) calculated = "";
 		if (stats.get(field) == null && !calculated.equals("")) return false;
@@ -549,10 +546,6 @@ public class StatsBlockCreatureView {
 		return cleanValue.equals(cleanBuilt);
 	}
 
-	private StatisticsBlock getStatsBlock() {
-		return (StatisticsBlock) creature.getPropertyValue(PROPERTY_STATS_BLOCK);
-	}
-
 	private String getAttackHTML(List<MonsterAttackRoutine> attackRoutines) {
 		StringBuilder b = new StringBuilder();
 		for (int i = 0; i < attackRoutines.size(); i++) {
@@ -571,7 +564,7 @@ public class StatsBlockCreatureView {
 		for (Field p : Field.getStandardOrder()) {
 			s.append("<tr><td>").append(p).append("</td><td>");
 			s.append(getField(p));
-			StatisticsBlock stats = getStatsBlock();
+			StatisticsBlock stats = creature.statisticsBlock;
 			if (stats != null) s.append("</td><td>").append(stats.get(p));
 			s.append("</td></tr>");
 		}

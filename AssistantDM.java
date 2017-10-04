@@ -61,9 +61,7 @@ import swing.JTableWithToolTips;
 import ui.PartyPanel;
 import ui.RestDialog;
 import ui.RollsPanel;
-import ui.SelectDiffsDialog;
 import ui.SelectPartyDialog;
-import ui.UpdateCharacterDialog;
 import ui.XPEntryDialog;
 import util.ModuleRegistry;
 import util.Updater;
@@ -312,46 +310,48 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	}
 
 	public void updateParty() {
-		// Get file
-		JFileChooser fc = new JFileChooser();
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
-		fc.setCurrentDirectory(file);
-		int returnVal = fc.showOpenDialog(this);
-		if (returnVal != JFileChooser.APPROVE_OPTION) return;
+		System.err.println("Implementation needs fixing");
 
-		File newfile = fc.getSelectedFile();
-		System.out.println("Updating party from "+newfile.getAbsolutePath());
-
-		// Load file into new party
-		Party newparty = Party.parseXML(newfile,true);
-
-		// Match characters
-		UpdateCharacterDialog dialog = new UpdateCharacterDialog(this,party,newparty);
-		dialog.setVisible(true);
-		if (dialog.isCancelled()) return;
-
-		// Shows diffs and accept
-		for (Character inChar : newparty) {
-			Character oldChar = dialog.getSelectedCharacter(inChar);
-			if (oldChar == null) {
-				//System.out.println("No character selected for "+inChar.getName());
-				int n = JOptionPane.showConfirmDialog(this,"Do you want to add "+inChar.getName()+"?","Add New Character",JOptionPane.YES_NO_OPTION);
-				if (n == JOptionPane.YES_OPTION) {
-					CharacterLibrary.add(inChar);
-					party.add(inChar);	// by default we add the new character to the party
-				}
-			} else {
-				//System.out.println("Selected character for "+inChar.getName()+" = "+oldChar.getName());
-				SelectDiffsDialog diffsDialog = new SelectDiffsDialog(this,oldChar,inChar);
-				diffsDialog.setVisible(true);
-				if (!diffsDialog.isCancelled()) {
-					List<String> updates = diffsDialog.getSelectedDiffs();
-					for (String prop : updates) {
-						oldChar.setProperty(prop, inChar.getPropertyValue(prop));
-					}
-				}
-			}
-		}
+//		// Get file
+//		JFileChooser fc = new JFileChooser();
+//		fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
+//		fc.setCurrentDirectory(file);
+//		int returnVal = fc.showOpenDialog(this);
+//		if (returnVal != JFileChooser.APPROVE_OPTION) return;
+//
+//		File newfile = fc.getSelectedFile();
+//		System.out.println("Updating party from "+newfile.getAbsolutePath());
+//
+//		// Load file into new party
+//		Party newparty = Party.parseXML(newfile,true);
+//
+//		// Match characters
+//		UpdateCharacterDialog dialog = new UpdateCharacterDialog(this,party,newparty);
+//		dialog.setVisible(true);
+//		if (dialog.isCancelled()) return;
+//
+//		// Shows diffs and accept
+//		for (Character inChar : newparty) {
+//			Character oldChar = dialog.getSelectedCharacter(inChar);
+//			if (oldChar == null) {
+//				//System.out.println("No character selected for "+inChar.getName());
+//				int n = JOptionPane.showConfirmDialog(this,"Do you want to add "+inChar.getName()+"?","Add New Character",JOptionPane.YES_NO_OPTION);
+//				if (n == JOptionPane.YES_OPTION) {
+//					CharacterLibrary.add(inChar);
+//					party.add(inChar);	// by default we add the new character to the party
+//				}
+//			} else {
+//				//System.out.println("Selected character for "+inChar.getName()+" = "+oldChar.getName());
+//				SelectDiffsDialog diffsDialog = new SelectDiffsDialog(this,oldChar,inChar);
+//				diffsDialog.setVisible(true);
+//				if (!diffsDialog.isCancelled()) {
+//					List<String> updates = diffsDialog.getSelectedDiffs();
+//					for (String prop : updates) {
+//						oldChar.setProperty(prop, inChar.getPropertyValue(prop));
+//					}
+//				}
+//			}
+//		}
 	}
 
 	// TODO open should ask to save modified parties

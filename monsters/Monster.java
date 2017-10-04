@@ -26,7 +26,7 @@ import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
 import gamesystem.Skills;
-import gamesystem.core.Property;
+import gamesystem.core.SimpleValueProperty;
 import monsters.StatisticsBlock.Field;
 
 
@@ -41,6 +41,8 @@ public class Monster extends Creature {
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
 	public List<Feat> feats = new ArrayList<Feat>();			// applied feats	// TODO should not be public. should be notified
 
+	StatisticsBlock statisticsBlock;
+
 	// Creatures a "blank" monster
 	public Monster(String name) {
 		this(name, new int[] { 10, 10, 10, 10, 10, 10 });
@@ -49,7 +51,7 @@ public class Monster extends Creature {
 	// array of ability score values (str,dex,con,int,wis,cha: same order as AbilityScore.Type). Scores of -1 indicate
 	// non-abilities
 	public Monster(String name, int[] scores) {
-		this.name = name;
+		this.name = new SimpleValueProperty<>("name", this, name);
 
 		int i = 0;
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
@@ -125,11 +127,6 @@ public class Monster extends Creature {
 
 	public HitDiceProperty getHitDice() {
 		return hitDice;
-	}
-
-	@Override
-	public Property<Integer> getBAB() {
-		return bab;
 	}
 
 	// TODO will want store progression for some monsters eventually
@@ -271,19 +268,6 @@ public class Monster extends Creature {
 		return true;
 	}
 
-	@Override
-	public String toString() {
-		return name;
-	}
-
-	@Override
-	public void setName(String name) {
-//		System.out.println("setName('" + name + "')");
-		String old = this.name;
-		this.name = name;
-		firePropertyChange(PROPERTY_NAME, old, name);
-	}
-
 	// we check both feats and special qualities
 	@Override
 	public boolean hasFeat(String feat) {
@@ -374,8 +358,12 @@ public class Monster extends Creature {
 			processor.processBuff(b);
 		}
 
-		for (String prop : extraProperties.keySet()) {
-			processor.processProperty(prop, extraProperties.get(prop));
+		if (statisticsBlock != null) processor.processStatisticsBlock(statisticsBlock);
+
+		for (String prop : properties.keySet()) {
+			if (prop.startsWith("extra")) {
+				processor.processProperty(prop, properties.get(prop).getValue());
+			}
 		}
 	}
 }
