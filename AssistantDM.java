@@ -49,6 +49,8 @@ import combat.InitiativeListModel;
 import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 import gamesystem.RuleSet;
+import led_control.HitPointLEDController;
+import led_control.LEDControllerFrame;
 import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
 import magicitems.ShoppingPanel;
@@ -80,6 +82,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	JTabbedPane tabbedPane;
 	static String tableServer;
 	DigitalTableController controller;
+	HitPointLEDController ledControl = new HitPointLEDController();
 
 	Party party;
 	File file;
@@ -172,6 +175,13 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			dialog.setVisible(true);
 		});
 		partyMenu.add(restItem);
+
+		JMenuItem ledItem = new JMenuItem("LED Controller...");
+		ledItem.addActionListener(e -> {
+			LEDControllerFrame f = new LEDControllerFrame(ledControl, party);
+			f.setVisible(true);
+		});
+		partyMenu.add(ledItem);
 
 		setJMenuBar(menuBar);
 
