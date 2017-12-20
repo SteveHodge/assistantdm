@@ -14,8 +14,8 @@ import javax.swing.table.AbstractTableModel;
 
 import gamesystem.AbilityScore;
 import gamesystem.Creature;
-import gamesystem.core.Property;
 import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import party.Character;
 import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
@@ -45,7 +45,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 			public Component getTableCellEditorComponent(JTable table,
 					Object value, boolean isSelected, int row, int column) {
 				if (value == null) {
-					value = character.getAbilityScore(AbilityScore.Type.values()[row]);
+					value = abilityModel.getAbility(row).getValue();
 				}
 				return super.getTableCellEditorComponent(table, value, isSelected, row, column);
 			}
@@ -75,8 +75,9 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 			if (s.length() > 0) s.append("   ");
 			s.append(t.getAbbreviation());
 			s.append(" ");
-			if (character.getAbilityModifierValue(t) >= 0) s.append("+");
-			s.append(character.getAbilityModifierValue(t));
+			int mod = character.getAbilityStatistic(t).getModifierValue();
+			if (mod >= 0) s.append("+");
+			s.append(mod);
 		}
 		return s.toString();
 	}
@@ -85,7 +86,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		public AbilityTableModel() {
 			character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
 				@Override
-				public void propertyChanged(Property<Integer> source, Integer oldValue) {
+				public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
 					if (source instanceof AbilityScore) {
 						for (int i = 0; i < 6; i++) {
 							if (AbilityScore.Type.values()[i].toString().equals(((AbilityScore) source).getDescription())) {
@@ -113,8 +114,17 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
 			if (columnIndex != 1 && columnIndex != 2) return;
 			if (value == null) value = new Integer(0);
-			if (columnIndex == 1) character.setAbilityScore(AbilityScore.Type.values()[rowIndex], (Integer)value);
-			else if (columnIndex == 2) character.setTemporaryAbility(AbilityScore.Type.values()[rowIndex], (Integer)value);
+			if (columnIndex == 1)
+				getAbility(rowIndex).setBaseValue((Integer) value);
+			else if (columnIndex == 2) {
+				AbilityScore s = getAbility(rowIndex);
+				int val = (Integer) value;
+				if (val != s.getBaseValue() && val >= 0) {
+					s.setOverride(val);
+				} else {
+					s.clearOverride();
+				}
+			}
 		}
 
 		@Override
@@ -145,27 +155,30 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 			return Creature.STATISTIC_ABILITY[row];
 		}
 
+		public AbilityScore getAbility(int row) {
+			return character.getAbilityStatistic(AbilityScore.Type.values()[row]);
+		}
+
 		@Override
 		public Object getValueAt(int row, int column) {
 			if (column == 0) return getAbilityName(row);
-			if (column == 1) return character.getBaseAbilityScore(AbilityScore.Type.values()[row]);
+			if (column == 1) return getAbility(row).getBaseValue();
 			if (column == 2) {
-				if (character.getTemporaryAbility(AbilityScore.Type.values()[row]) == -1) return null;
-				return character.getAbilityScore(AbilityScore.Type.values()[row]);
+				if (getAbility(row).getOverride() == -1) return null;
+				return getAbility(row).getValue();
 			}
 			if (column == 3) {
-				AbilityScore s = (AbilityScore) character.getStatistic(Creature.STATISTIC_ABILITY[row]);
+				AbilityScore s = getAbility(row);
 				return s.getValue()+((s.hasConditionalModifier() && s.getOverride() == 0)?"*":"");
 			}
-			if (column == 4) return character.getAbilityModifierValue(AbilityScore.Type.values()[row]);
+			if (column == 4) return getAbility(row).getModifierValue();
 			return null;
 		}
 
 		@Override
 		public String getToolTipAt(int row, int col) {
-			AbilityScore s = (AbilityScore) character.getStatistic(Creature.STATISTIC_ABILITY[row]);
 			StringBuilder text = new StringBuilder();
-			text.append("<html><body>").append(s.getSummary()).append("</body></html>");
+			text.append("<html><body>").append(getAbility(row).getSummary()).append("</body></html>");
 			return text.toString();
 		}
 	}

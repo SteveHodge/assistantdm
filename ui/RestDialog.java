@@ -20,7 +20,6 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-import gamesystem.Creature;
 import gamesystem.HPs;
 import party.Character;
 import party.Party;
@@ -182,7 +181,7 @@ public class RestDialog extends JDialog {
 				hpLabel.setText(c.getHPStatistic().getShortSummary());
 			});
 
-			c.addPropertyChangeListener(Creature.PROPERTY_NAME, e -> {
+			c.addPropertyListener("name", (source, old) -> {
 				nameLabel.setText(c.getName());
 			});
 		}

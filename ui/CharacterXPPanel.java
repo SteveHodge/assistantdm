@@ -7,8 +7,6 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -20,14 +18,15 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import gamesystem.Creature;
 import gamesystem.XP;
+import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import party.Character;
 
 // TODO better history dialog
 // FIXME: changing the level directly doesn't apply the comments or date
 @SuppressWarnings("serial")
-public class CharacterXPPanel extends CharacterSubPanel implements PropertyChangeListener, ActionListener {
+public class CharacterXPPanel extends CharacterSubPanel implements PropertyListener<Integer>, ActionListener {
 	JLabel xpLabel;
 	JLabel percentage;
 	JButton adhocButton, historyButton, levelButton;
@@ -133,19 +132,17 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyChang
 		add(commentsField,c);
 
 		// update fields when character changes
-		character.addPropertyChangeListener(this);
+		character.addPropertyListener("xp", this);
+		character.addPropertyListener("level", this);
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().equals(Character.PROPERTY_LEVEL)
-				|| e.getPropertyName().equals(Creature.PROPERTY_XP)) {
-			xpLabel.setText(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
-			float perc = ((float)character.getXP()-XP.getXPRequired(character.getLevel()))/(character.getLevel()*10);
-			percentage.setText(String.format("%.2f%%", perc));
-			levelButton.setEnabled(character.getXP() >= character.getRequiredXP());
-			updateSummaries(String.format("%d (%.2f%%)", character.getLevel(), perc));
-		}
+	public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+		xpLabel.setText(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
+		float perc = ((float) character.getXP() - XP.getXPRequired(character.getLevel())) / (character.getLevel() * 10);
+		percentage.setText(String.format("%.2f%%", perc));
+		levelButton.setEnabled(character.getXP() >= character.getRequiredXP());
+		updateSummaries(String.format("%d (%.2f%%)", character.getLevel(), perc));
 	}
 
 	@Override

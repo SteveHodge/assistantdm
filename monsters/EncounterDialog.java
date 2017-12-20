@@ -11,8 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -50,6 +48,8 @@ import combat.EncounterModule;
 import combat.MonsterCombatEntry;
 import digital_table.controller.ControllerFrame;
 import gamesystem.Creature;
+import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import monsters.StatisticsBlock.Field;
 import util.ModuleRegistry;
 import util.XMLUtils;
@@ -508,12 +508,12 @@ public class EncounterDialog extends JFrame {
 
 		public void removeElementAt(int i) {
 			Creature m = monsters.remove(i);
-			m.removePropertyChangeListener(listener);
+			m.removePropertyListener("name", listener);
 			fireIntervalRemoved(this, i, i);
 		}
 
 		public void addMonster(Monster m) {
-			m.addPropertyChangeListener(listener);
+			m.addPropertyListener("name", listener);
 			monsters.add(m);
 			fireIntervalAdded(this, monsters.size() - 1, monsters.size() - 1);
 		}
@@ -523,14 +523,12 @@ public class EncounterDialog extends JFrame {
 			return monsters.size();
 		}
 
-		private PropertyChangeListener listener = new PropertyChangeListener() {
+		private PropertyListener<Object> listener = new PropertyListener<Object>() {
 			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals(Creature.PROPERTY_NAME)) {
-					int idx = monsters.indexOf(evt.getSource());
-					if (idx != -1) {
-						fireContentsChanged(this, idx, idx);
-					}
+			public void propertyChanged(SimpleProperty<Object> source, Object oldValue) {
+				int idx = monsters.indexOf(source.getParent());
+				if (idx != -1) {
+					fireContentsChanged(this, idx, idx);
 				}
 			}
 		};

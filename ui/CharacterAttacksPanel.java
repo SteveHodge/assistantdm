@@ -35,6 +35,7 @@ import gamesystem.Feat;
 import gamesystem.Modifier;
 import gamesystem.core.Property;
 import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import party.Character;
 import party.CharacterAttackForm;
 import swing.NullableIntegerFieldFactory;
@@ -473,13 +474,13 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 
 	private void updateLabels() {
 		babLabel.setText(Integer.toString(character.getBAB().getBaseValue()));
-		strLabel.setText(""+character.getAbilityModifierValue(AbilityScore.Type.STRENGTH));
+		strLabel.setText("" + character.getAbilityStatistic(AbilityScore.Type.STRENGTH).getModifierValue());
 		String melee = attacks.getAttacksDescription(attacks.getValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {
 			melee = "<html><body><s>"+melee+"</s></body></html>";
 		}
 		meleeLabel.setText(melee);
-		dexLabel.setText(""+character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
+		dexLabel.setText("" + character.getAbilityStatistic(AbilityScore.Type.DEXTERITY).getModifierValue());
 		String ranged = attacks.getAttacksDescription(attacks.getRangedValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {
 			ranged = "<html><body><s>"+ranged+"</s></body></html>";
@@ -513,7 +514,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 	// we rely on the attack to tell us about feat and ability changes indirectly
 	// TODO maybe better to directly listen?
 	@Override
-	public void propertyChanged(Property<Integer> source, Integer old) {
+	public void propertyChanged(SimpleProperty<Integer> source, Integer old) {
 		updateOptions();
 		updateLabels();
 		updateToolTip();

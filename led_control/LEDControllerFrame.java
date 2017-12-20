@@ -119,7 +119,7 @@ public class LEDControllerFrame extends JFrame {
 				break;
 			}
 			fireTableRowsUpdated(row, row);
-			controller.updateCharacter(chr);
+			controller.updateCharacter(chr, true);
 		}
 	}
 

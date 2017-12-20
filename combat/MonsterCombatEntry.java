@@ -64,7 +64,8 @@ public class MonsterCombatEntry extends CombatEntry {
 
 		modifierComp = new BoundIntegerField(creature.getInitiativeStatistic(), 3);
 
-		creature.addPropertyChangeListener(this);
+		creature.addPropertyListener(hps, this);
+		creature.addPropertyListener(creature.getInitiativeStatistic(), this);
 		createPanel();
 	}
 
@@ -156,7 +157,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		c.rollField.setValue(Integer.parseInt(el.getAttribute("roll")));
 		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));
 		c.creature.getInitiativeStatistic().setBaseValue(Integer.parseInt(el.getAttribute("initMod")));
-		c.creature.getHPStatistic().setMaximumHitPoints(Integer.parseInt(el.getAttribute("maxHPs")));
+		c.creature.getHPStatistic().getMaxHPStat().setMaximumHitPoints(Integer.parseInt(el.getAttribute("maxHPs")));
 		c.creature.getHPStatistic().setWounds(Integer.parseInt(el.getAttribute("wounds")));
 		c.creature.getHPStatistic().setNonLethal(Integer.parseInt(el.getAttribute("nonLethal")));
 		// FIXME fix this somehow - overrides?
@@ -176,7 +177,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		e.setAttribute("roll", Integer.toString(getRoll()));
 		e.setAttribute("tieBreak", Integer.toString(getTieBreak()));
 		e.setAttribute("initMod", Integer.toString(creature.getInitiativeStatistic().getBaseValue()));
-		e.setAttribute("maxHPs", Integer.toString(creature.getHPStatistic().getMaximumHitPoints()));
+		e.setAttribute("maxHPs", Integer.toString(creature.getHPStatistic().getMaxHPStat().getValue()));
 		e.setAttribute("wounds", Integer.toString(creature.getHPStatistic().getWounds()));
 		e.setAttribute("nonLethal", Integer.toString(creature.getHPStatistic().getNonLethal()));
 		e.setAttribute("fullAC", Integer.toString(creature.getACStatistic().getValue()));

@@ -34,7 +34,7 @@ public class Statistic extends AbstractProperty<Integer> {
 	//----------------------------- Property Interface -----------------------------
 	@Override
 	public Integer getBaseValue() {
-		return getValue();
+		return 0;
 	}
 
 	@Override
@@ -85,7 +85,7 @@ public class Statistic extends AbstractProperty<Integer> {
 
 	@Override
 	public Integer getValue() {
-		return getModifiersTotal();
+		return getBaseValue() + getModifiersTotal();
 	}
 
 	// returns true if this has an active conditional modifier

@@ -1,5 +1,14 @@
 package monsters;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import gamesystem.AbilityScore;
 import gamesystem.Buff;
 import gamesystem.ImmutableModifier;
@@ -7,18 +16,8 @@ import gamesystem.Modifier;
 import gamesystem.XMLParserHelper;
 import gamesystem.dice.DiceList;
 import gamesystem.dice.HDDice;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
 import monsters.StatisticsBlock.AttackRoutine;
 import monsters.StatisticsBlock.MonsterDetails;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class XMLMonsterParser extends XMLParserHelper {
 	public Monster parseDOM(Element el) {
@@ -69,7 +68,7 @@ public class XMLMonsterParser extends XMLParserHelper {
 				String hdstr = e.getAttribute("dice");
 				List<HDDice> dice = HDDice.parseList(hdstr);
 				m.hitDice.setHitDice(dice);
-				m.getHPStatistic().setMaximumHitPoints((int) DiceList.fromList(m.hitDice.getValue()).getMeanRoll());
+				m.getHPStatistic().getMaxHPStat().setMaximumHitPoints((int) DiceList.fromList(m.hitDice.getValue()).getMeanRoll());
 
 			} else if (tag.equals("Initiative")) {
 				parseInitiativeModifier(e, m);

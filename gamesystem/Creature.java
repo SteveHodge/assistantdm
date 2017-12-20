@@ -1,8 +1,6 @@
 package gamesystem;
 
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -36,21 +34,21 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	public final static String PROPERTY_ABILITY_OVERRIDE_PREFIX = "Temporary Ability: ";	// not currently sent to listeners
 	public final static String PROPERTY_SAVE_PREFIX = "Save: ";
 	public final static String PROPERTY_SAVE_MISC_PREFIX = "Save (misc mod): ";	// not currently sent to listeners
-	public final static String PROPERTY_AC = "AC";
+//	public final static String PROPERTY_AC = "AC";
 	public final static String PROPERTY_AC_COMPONENT_PREFIX = "AC: ";	// not currently sent to listeners
 	public final static String PROPERTY_SKILL_PREFIX = "Skill: ";
 	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";	// not currently sent to listeners
-	public final static String XPROPERTY_XP = "XP";
-	public final static String PROPERTY_BAB = "BAB";
-	public final static String PROPERTY_SIZE = "Size";
-	public final static String PROPERTY_TYPE = "Type";	// not currently sent to listeners
-	public final static String PROPERTY_SANITY = "Sanity";
+//	public final static String PROPERTY_XP = "XP";
+//	public final static String PROPERTY_BAB = "BAB";
+//	public final static String PROPERTY_SIZE = "Size";
+//	public final static String PROPERTY_TYPE = "Type";	// not currently sent to listeners
+//	public final static String PROPERTY_SANITY = "Sanity";
 //	public final static String PROPERTY_STARTING_SANITY = "Starting Sanity";
 //	public final static String PROPERTY_MAX_SANITY = "Maximum Sanity";
-	public final static String PROPERTY_SANITY_KNOWLEDGE = "Sanity-related Knowledge";
+//	public final static String PROPERTY_SANITY_KNOWLEDGE = "Sanity-related Knowledge";
 
-	public final static String PROPERTY_SPACE = "Space";	// currently only a property on Monster
-	public final static String PROPERTY_REACH = "Reach";	// currently only a property on Monster
+//	public final static String PROPERTY_SPACE = "Space";	// currently only a property on Monster
+//	public final static String PROPERTY_REACH = "Reach";	// currently only a property on Monster
 
 	// statistics
 	// TODO should be combined with properties
@@ -126,21 +124,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	public BuffListModel<Buff> buffs = new BuffListModel<>();		// TODO should be protected
 
 	public Skills skills;		// TODO shouldn't be public
-
-	// This is here to support name and other extra properties
-	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		pcs.addPropertyChangeListener(listener);
-	}
-
-	public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
-		pcs.addPropertyChangeListener(property, listener);
-	}
-
-	public void removePropertyChangeListener(PropertyChangeListener listener) {
-		pcs.removePropertyChangeListener(listener);
-	}
 
 	// TODO this id stuff might be better off in CombatPanel for now
 	private static int nextID = 1;
@@ -499,10 +482,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		} else {
 			System.err.println("Can't set value on " + property);
 		}
-	}
-
-	protected void firePropertyChange(String property, Object oldValue, Object newValue) {
-		pcs.firePropertyChange(property, oldValue, newValue);
 	}
 
 	public boolean hasProperty(String name) {

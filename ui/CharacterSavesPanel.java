@@ -15,8 +15,8 @@ import javax.swing.SwingUtilities;
 import gamesystem.AbilityScore;
 import gamesystem.Creature;
 import gamesystem.SavingThrow;
-import gamesystem.core.Property;
 import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import party.Character;
 import swing.NullableIntegerFieldFactory;
 
@@ -83,7 +83,7 @@ class CharacterSavesPanel extends CharacterSubPanel {
 			miscSaveFields[type].setValue(character.getSavingThrowMisc(SavingThrow.Type.values()[type]));
 			miscSaveFields[type].setColumns(3);
 			miscSaveFields[type].addPropertyChangeListener("value", new MiscFieldPropertyListener(type));
-			modLabels[type] = new JLabel(""+character.getAbilityModifierValue(SavingThrow.Type.values()[type].getAbilityType()));
+			modLabels[type] = new JLabel("" + character.getAbilityStatistic(SavingThrow.Type.values()[type].getAbilityType()).getModifierValue());
 			totalLabels[type] = new JLabel(""+stats[type].getValue()+(stats[type].hasConditionalModifier()?"*":""));
 			vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 					.addComponent(saveLabels[type])
@@ -128,13 +128,13 @@ class CharacterSavesPanel extends CharacterSubPanel {
 
 		character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
 			@Override
-			public void propertyChanged(Property<Integer> source, Integer oldValue) {
+			public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
 				if (source instanceof AbilityScore) {
 					AbilityScore.Type type = ((AbilityScore) source).getType();
 					for (int i = 0; i < 3; i++) {
 						if (type.equals(SavingThrow.Type.values()[i].getAbilityType())) {
 							//System.out.println("Ability "+prop+" modified for save "+SavingThrow.Type.values()[i].getAbilityType().toString());
-							modLabels[i].setText("" + character.getAbilityModifierValue(SavingThrow.Type.values()[i].getAbilityType()));
+							modLabels[i].setText("" + character.getAbilityStatistic(SavingThrow.Type.values()[i].getAbilityType()).getModifierValue());
 						}
 					}
 				}
@@ -143,7 +143,7 @@ class CharacterSavesPanel extends CharacterSubPanel {
 
 		character.addPropertyListener("saving_throws", new PropertyListener<Integer>() {
 			@Override
-			public void propertyChanged(Property<Integer> source, Integer oldValue) {
+			public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
 				for (int i = 0; i < 3; i++) {
 					if (stats[i] == source) {
 						baseLabels[i].setText(Integer.toString(stats[i].getCalculatedBase()));

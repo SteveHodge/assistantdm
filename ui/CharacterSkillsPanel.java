@@ -6,8 +6,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 
 import javax.swing.BorderFactory;
@@ -110,13 +108,31 @@ class CharacterSkillsPanel extends JPanel {
 		}
 	}
 
-	private class SkillsTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelWithToolTips {
+	private class SkillsTableModel extends AbstractTableModel implements TableModelWithToolTips {
 		private SkillType[] skills;
 
 		SkillsTableModel() {
 			skills = new SkillType[character.getSkills().size()];
 			character.getSkills().toArray(this.skills);
-			character.addPropertyChangeListener(this);
+			character.getSkillsStatistic().addPropertyListener((source, old) -> {
+				if (source instanceof Skill) {
+					Skill skill = (Skill) source;
+					boolean found = false;
+					for (int i = 0; i < skills.length; i++) {
+						if (skills[i].equals(skill.getSkillType())) {
+							fireTableRowsUpdated(i, i);
+							found = true;
+						}
+					}
+					if (!found) {
+						SkillType[] newList = Arrays.copyOf(skills, skills.length + 1);
+						newList[skills.length] = skill.getSkillType();
+						skills = newList;
+						Arrays.sort(skills);
+						this.fireTableDataChanged();
+					}
+				}
+			});
 			Arrays.sort(skills);
 		}
 
@@ -146,7 +162,7 @@ class CharacterSkillsPanel extends JPanel {
 			if (col == 3) {
 				AbilityScore.Type ability = skills[row].getAbility();
 				if (ability == null) return null;
-				return character.getAbilityModifierValue(ability);
+				return character.getAbilityStatistic(ability).getModifierValue();
 			}
 			if (col == 4) return character.getSkillMisc(skills[row]);
 			if (col == 5) {
@@ -190,28 +206,6 @@ class CharacterSkillsPanel extends JPanel {
 				return;
 			}
 			super.setValueAt(arg0, row, col);
-		}
-
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			if (evt.getPropertyName().startsWith(Creature.PROPERTY_SKILL_PREFIX)) {
-				String skill = evt.getPropertyName().substring(Creature.PROPERTY_SKILL_PREFIX.length());
-				// XXX this search is inefficient - we know that skills is sorted so could use a binary search
-				boolean found = false;
-				for (int i = 0; i < skills.length; i++) {
-					if (skills[i].getName().equals(skill)) {
-						fireTableRowsUpdated(i, i);
-						found = true;
-					}
-				}
-				if (!found) {
-					SkillType[] newList = Arrays.copyOf(skills, skills.length+1);
-					newList[skills.length] = SkillType.getSkill(skill);
-					skills = newList;
-					Arrays.sort(skills);
-					this.fireTableDataChanged();
-				}
-			}
 		}
 
 		@Override

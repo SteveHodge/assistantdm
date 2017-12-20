@@ -40,7 +40,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 
 		setLayout(new GridBagLayout());
 
-		summary = "" + hps.getHPs() + " / " + hps.getMaximumHitPoints();
+		summary = "" + hps.getHPs() + " / " + hps.getMaxHPStat().getValue();
 
 		currHP = new JFormattedTextField();
 		currHP.setValue(new Integer(hps.getHPs()));
@@ -49,7 +49,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)currHP.getValue();
 				if (total != hps.getHPs()) {
-					hps.setWounds(hps.getMaximumHitPoints() - hps.getNonLethal() - total);
+					hps.setWounds(hps.getMaxHPStat().getValue() - hps.getNonLethal() - total);
 				}
 			}
 		});
@@ -93,22 +93,22 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 				addPropertyChangeListener("value", evt -> {
 					if (evt.getPropertyName().equals("value")) {
 						Integer val = (Integer) getValue();
-						if (val != null && !val.equals(hps.getMaximumHitPoints())) {
-							hps.setMaximumHitPoints(val);
+						if (val != null && !val.equals(hps.getMaxHPStat().getValue())) {
+							hps.getMaxHPStat().setMaximumHitPoints(val);
 						}
 					}
 				});
 				hps.addPropertyListener((source, old) -> {
 					//it's ok to do this even if this change event is due to an update from this control
 					//because setValue will not fire a change event if the property isn't actually changing
-					setValue(hps.getMaximumHitPoints());
+					setValue(hps.getMaxHPStat().getValue());
 				});
 				setColumns(3);
-				setValue(hps.getMaximumHitPoints());
+				setValue(hps.getMaxHPStat().getValue());
 			}
 		}, c);
 		c.gridy++;
-		// FIXME replace with BoundIntegerField once Max HPs are a statistic
+		// TODO replace with BoundIntegerField once wounds are a statistic
 		add(new JFormattedTextField() {
 			{
 				addPropertyChangeListener("value", evt -> {
@@ -166,7 +166,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 		// update fields when character changes
 		character.addPropertyListener("hit_points", (source, old) -> {
 			currHP.setValue(new Integer(hps.getHPs()));
-			updateSummaries("" + hps.getHPs() + " / " + hps.getMaximumHitPoints());
+			updateSummaries("" + hps.getHPs() + " / " + hps.getMaxHPStat().getValue());
 		});
 	}
 

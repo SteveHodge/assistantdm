@@ -28,8 +28,8 @@ import javax.swing.text.Document;
 import gamesystem.AC;
 import gamesystem.Modifier;
 import gamesystem.Statistic;
-import gamesystem.core.Property;
 import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import party.Character;
 import swing.SpinnerCellEditor;
 
@@ -71,7 +71,7 @@ public class CharacterACPanel extends CharacterSubPanel {
 	PropertyListener<Integer> armorListener = new PropertyListener<Integer>() {
 		// NOTE: we call this to initially populate the fields with null evt
 		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+		public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
 			if (editing) return;
 			nameField.setText(armor.description);
 			typeField.setText(armor.type);
@@ -93,7 +93,7 @@ public class CharacterACPanel extends CharacterSubPanel {
 	PropertyListener<Integer> shieldListener = new PropertyListener<Integer>() {
 		// NOTE: we call this to initially populate the fields with null evt
 		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+		public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
 			if (editing) return;
 			shieldNameField.setText(shield.description);
 			shieldBonusField.setText(""+shield.getBonus());

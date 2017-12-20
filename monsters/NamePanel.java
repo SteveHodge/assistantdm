@@ -6,8 +6,6 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -30,7 +28,8 @@ import javax.swing.event.DocumentListener;
 import digital_table.controller.TokenOptionsPanel;
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
-import gamesystem.Creature;
+import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import swing.ImagePanel;
 
 @SuppressWarnings("serial")
@@ -167,13 +166,13 @@ class NamePanel extends DetailPanel {
 		if (monster == m) return;
 		if (monster != null) {
 			//monster.setName(nameField.getText());	// should be unnecessary
-			monster.removePropertyChangeListener(listener);
+			monster.removePropertyListener("name", listener);
 		}
 		monster = m;
 		if (m != null) {
 			nameField.setEnabled(true);
 			nameField.setText(m.getName());
-			monster.addPropertyChangeListener(listener);
+			monster.addPropertyListener("name", listener);
 			if (!imageIndexes.containsKey(m)) {
 				setSelectedImage(0);
 			} else {
@@ -217,13 +216,11 @@ class NamePanel extends DetailPanel {
 		}
 	}
 
-	final private PropertyChangeListener listener = new PropertyChangeListener() {
+	final private PropertyListener<Object> listener = new PropertyListener<Object>() {
 		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			if (evt.getPropertyName().equals(Creature.PROPERTY_NAME)) {
-				if (!nameField.getText().equals(evt.getNewValue())) {
-					nameField.setText((String) evt.getNewValue());
-				}
+		public void propertyChanged(SimpleProperty<Object> source, Object oldValue) {
+			if (!nameField.getText().equals(source.getValue().toString())) {
+				nameField.setText(source.getValue().toString());
 			}
 		}
 	};

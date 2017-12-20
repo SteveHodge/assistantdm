@@ -154,7 +154,7 @@ public class CharacterDamageDialog extends JDialog {
 				messageLabel.setText("Permanent insanity triggered");
 			} else if (session > sanity.getMaximumSanityProperty().getValue() / 5) {
 				messageLabel.setText("Indefinite insanity triggered");
-			} else if (dmg >= character.getAbilityScore(AbilityScore.Type.WISDOM) / 2) {
+			} else if (dmg >= character.getAbilityStatistic(AbilityScore.Type.WISDOM).getValue() / 2) {
 				messageLabel.setText("Pass sanity check or temporary insanity");
 			} else {
 				messageLabel.setText(" ");
@@ -270,7 +270,7 @@ public class CharacterDamageDialog extends JDialog {
 			StringBuilder text = new StringBuilder();
 			text.append("<html><body>").append(current);
 			if (newNL > 0) text.append(" (").append(newNL).append(" NL)");
-			text.append(" / ").append(hps.getMaximumHitPoints()).append("</body></html>");
+			text.append(" / ").append(hps.getMaxHPStat().getValue()).append("</body></html>");
 			summary.setText(text.toString());
 			pack();
 		}

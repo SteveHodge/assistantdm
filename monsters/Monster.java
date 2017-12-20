@@ -34,8 +34,8 @@ import monsters.StatisticsBlock.Field;
 // TODO fixup flatfooted/touch ac - currently setProperty() is setting these to override values which don't get updated by the AC stat
 
 public class Monster extends Creature {
-	public final static String PROPERTY_AC_TOUCH = "AC: Touch";
-	public final static String PROPERTY_AC_FLATFOOTED = "AC: Flat Footed";
+	public final static String xPROPERTY_AC_TOUCH = "AC: Touch";
+	public final static String xPROPERTY_AC_FLATFOOTED = "AC: Flat Footed";
 
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
@@ -81,14 +81,9 @@ public class Monster extends Creature {
 		}
 
 		hps = new HPs(hitDice, this);
-		hps.setMaximumHitPoints(0);
+		hps.getMaxHPStat().setMaximumHitPoints(0);
 
 		size = new Size(this);
-		size.addPropertyListener((source, old) -> {
-			firePropertyChange(PROPERTY_SIZE, null, source.getValue());
-			firePropertyChange(PROPERTY_SPACE, null, size.getSpace());
-			firePropertyChange(PROPERTY_REACH, null, size.getReach());
-		});
 
 		// Missing dex: The rules on nonabilities state that the modifier is 0, but the MM is inconsistent in this
 		// regard. Formian Queens are listed as not having a dex modifier to AC (following the rules as written) but

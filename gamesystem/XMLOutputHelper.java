@@ -117,7 +117,7 @@ public class XMLOutputHelper {
 		if (creatureEl == null) return null;
 
 		Element e = doc.createElement("HitPoints");
-		e.setAttribute("maximum", "" + hps.getMaximumHitPoints());
+		e.setAttribute("maximum", "" + hps.getMaxHPStat().getValue());
 		if (hps.getWounds() != 0) e.setAttribute("wounds", "" + hps.getWounds());
 		if (hps.getNonLethal() != 0) e.setAttribute("non-lethal", "" + hps.getNonLethal());
 
@@ -227,8 +227,8 @@ public class XMLOutputHelper {
 
 		Element e = doc.createElement("Size");
 		e.setAttribute("category", "" + size.getBaseSize());
-		e.setAttribute("space", "" + size.getSpace());
-		e.setAttribute("reach", "" + size.getReach());
+		e.setAttribute("space", "" + size.getSpace().getBaseValue());
+		e.setAttribute("reach", "" + size.getReach().getBaseValue());
 
 		creatureEl.appendChild(e);
 	}

@@ -28,10 +28,12 @@ import org.w3c.dom.Element;
 
 import gamesystem.Creature;
 import gamesystem.HPs;
+import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import ui.Status;
 
 @SuppressWarnings("serial")
-abstract public class CombatEntry extends JPanel implements PropertyChangeListener {
+abstract public class CombatEntry extends JPanel implements PropertyChangeListener, PropertyListener<Integer> {
 	JFormattedTextField rollField;
 	JComponent modifierComp;
 	JFormattedTextField tiebreakField;
@@ -59,6 +61,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	CombatEntry(Creature c) {
 		creature = c;
 		hps = c.getHPStatistic();
+		c.addPropertyListener(hps, this);
 	}
 
 	public Creature getSource() {
@@ -171,7 +174,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		add(new JLabel("Max: "), c);
 		c.weightx = 1.0;
 		maxHPsField = new JFormattedTextField();
-		maxHPsField.setValue(new Integer(hps.getMaximumHitPoints()));
+		maxHPsField.setValue(new Integer(hps.getMaxHPStat().getValue()));
 		maxHPsField.setColumns(4);
 		maxHPsField.addPropertyChangeListener("value", this);
 		add(maxHPsField, c);
@@ -262,22 +265,9 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getSource() == creature) {
-			// update the relevant fields
-			if (evt.getPropertyName().equals(Creature.PROPERTY_MAXHPS)) {
-				if (maxHPsField != null) maxHPsField.setValue(new Integer(hps.getMaximumHitPoints()));
-				updateHPs();
-			} else if (evt.getPropertyName().equals(Creature.PROPERTY_WOUNDS)
-					|| evt.getPropertyName().equals(Creature.PROPERTY_NONLETHAL)) {
-				updateHPs();
-			} else if (evt.getPropertyName().equals(Creature.PROPERTY_INITIATIVE)) {
-				total.setText("= "+getTotal());
-				fireChange();
-			}
-
-		} else if (evt.getPropertyName().equals("value")) {
+		if (evt.getPropertyName().equals("value")) {
 			if (evt.getSource() == maxHPsField) {
-				hps.setMaximumHitPoints((Integer) maxHPsField.getValue());
+				hps.getMaxHPStat().setMaximumHitPoints((Integer) maxHPsField.getValue());
 				if (initBlank()) fireChange();
 			} else if (evt.getSource() == rollField
 					|| evt.getSource() == modifierComp) {
@@ -288,14 +278,28 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		}
 	}
 
+	@Override
+	public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+		// update the relevant fields
+		if (source == hps) {
+			updateHPs();
+		} else if (source == hps.getMaxHPStat()) {
+			if (maxHPsField != null) maxHPsField.setValue(hps.getMaxHPStat().getValue());
+			updateHPs();
+		} else if (source == creature.getInitiativeStatistic()) {
+			total.setText("= "+getTotal());
+			fireChange();
+		}
+	}
 
 	private void updateHPs() {
-		currentHPs.setText(creature.getHPStatistic().getShortSummary());
+		currentHPs.setText(hps.getShortSummary());
 		updateStatus();
 	}
 
+	// FIXME think the status should be based on hps.getHPs() rather than calculating current hps below
 	private void updateStatus() {
-		Status status = Status.getStatus(hps.getMaximumHitPoints(), hps.getMaximumHitPoints() - hps.getWounds() - hps.getNonLethal());
+		Status status = Status.getStatus(hps.getMaxHPStat().getValue(), hps.getMaxHPStat().getValue() - hps.getWounds() - hps.getNonLethal());
 		//System.out.println("Status = "+Status.descriptions[status]);
 		statusPanel.setBackground(status.getColor());
 		statusPanel.setToolTipText(status.toString());

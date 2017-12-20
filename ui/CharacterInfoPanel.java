@@ -2,7 +2,6 @@ package ui;
 
 import java.awt.GridLayout;
 
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 
 import gamesystem.Size;
@@ -40,49 +39,11 @@ public class CharacterInfoPanel extends CharacterSubPanel {
 
 		add(new JLabel("Space: "));
 		Size size = character.getSizeStatistic();
-		// FIXME replace with BoundIntegerField once space is a property
-		add(new JFormattedTextField() {
-			{
-				addPropertyChangeListener("value", evt -> {
-					if (evt.getPropertyName().equals("value")) {
-						Integer val = (Integer) getValue();
-						if (val != null && !val.equals(size.getSpace())) {
-							size.setBaseSpace(val);
-							;
-						}
-					}
-				});
-				size.addPropertyListener((source, old) -> {
-					//it's ok to do this even if this change event is due to an update from this control
-					//because setValue will not fire a change event if the property isn't actually changing
-					setValue(size.getSpace());
-				});
-				setColumns(30);
-				setValue(size.getSpace());
-			}
-		}, c);
+		add(new BoundIntegerField(size.getSpace(), 30), c);
 
 		add(new JLabel("Reach: "));
 		// FIXME replace with BoundIntegerField once space is a property
-		add(new JFormattedTextField() {
-			{
-				addPropertyChangeListener("value", evt -> {
-					if (evt.getPropertyName().equals("value")) {
-						Integer val = (Integer) getValue();
-						if (val != null && !val.equals(size.getReach())) {
-							size.setBaseReach(val);
-						}
-					}
-				});
-				size.addPropertyListener((source, old) -> {
-					//it's ok to do this even if this change event is due to an update from this control
-					//because setValue will not fire a change event if the property isn't actually changing
-					setValue(size.getReach());
-				});
-				setColumns(30);
-				setValue(size.getReach());
-			}
-		}, c);
+		add(new BoundIntegerField(size.getReach(), 30), c);
 
 		add(new JLabel("Type: "));
 		add(new BoundTextField(character, Character.PROPERTY_TYPE, 30));

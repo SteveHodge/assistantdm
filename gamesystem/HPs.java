@@ -46,9 +46,10 @@ import gamesystem.dice.HDDice;
 // TODO fix up encapsulation since parsing has moved to XMLCreatureParser
 public class HPs extends Statistic {
 	HitDiceProperty hitdice;
-	int hps, wounds, nonLethal;
+	int wounds, nonLethal;
 	List<TempHPs> tempHPs = new ArrayList<>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
 	Map<Modifier, TempHPs> modMap = new HashMap<>();
+	MaxHPs maxHPs;
 
 	// interested parties can register listeners as with other Modifier subclasses. if damage reduces a hps to 0, the TempHPs will be removed from the HPs instance
 	class TempHPs extends AbstractModifier {
@@ -83,6 +84,26 @@ public class HPs extends Statistic {
 		}
 	}
 
+	// FIXME the max hps field in the ui should set a override on the total of this (so that modifiers are preserved), currently it effectively sets the base value
+	public class MaxHPs extends Statistic {
+		int max;
+
+		public MaxHPs(PropertyCollection parent) {
+			super("hit_points.max_hps", "Max Hit Points", parent);
+		}
+
+		@Override
+		public Integer getBaseValue() {
+			return max;
+		}
+
+		public void setMaximumHitPoints(int hp) {
+			int old = max;
+			max = hp;
+			fireEvent(old);
+		}
+	}
+
 	// TODO should probably move con monitoring to HitDiceProperty
 	public HPs(HitDiceProperty hd, PropertyCollection parent) {
 		super("hit_points", "Hit Points", parent);
@@ -91,26 +112,22 @@ public class HPs extends Statistic {
 		hitdice.addPropertyListener((source, oldValue) -> {
 			updateModifier(HDDice.getTotalConstant(oldValue));
 		});
+
+		maxHPs = new MaxHPs(parent);
 	}
 
-	// apply any modifier change to maximum hitpoints
+	// apply any HD modifier change to maximum hitpoints
 	private void updateModifier(int oldMod) {
-		int oldhps = getMaximumHitPoints();
+		int oldhps = maxHPs.getValue();
 		int newhps = oldhps + HDDice.getTotalConstant(hitdice.getValue()) - oldMod;
 		if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// TODO if we need to use this then it won't be reversable. probably need a max hp override
 		if (newhps == oldhps) return;
 		//System.out.println("changing max hps from " + oldhps + " to " + newhps);
-		setMaximumHitPoints(newhps);
+		maxHPs.setMaximumHitPoints(newhps);
 	}
 
-	public int getMaximumHitPoints() {
-		return hps;
-	}
-
-	public void setMaximumHitPoints(int hp) {
-		int old = hps;
-		hps = hp;
-		fireEvent(old);
+	public MaxHPs getMaxHPStat() {
+		return maxHPs;
 	}
 
 	public List<Modifier> getTemporaryHPsModifiers() {
@@ -271,7 +288,7 @@ public class HPs extends Statistic {
 
 	// returns the current hitpoints (not including any non-lethal damage)
 	public int getHPs() {
-		return hps + getTemporaryHPs() - wounds;
+		return maxHPs.getValue() + getTemporaryHPs() - wounds;
 	}
 
 	// Statistics methods
@@ -324,7 +341,7 @@ public class HPs extends Statistic {
 	@Override
 	public String getSummary() {
 		StringBuilder text = new StringBuilder();
-		text.append(getMaximumHitPoints()).append(" maximum<br/>");
+		text.append(maxHPs.getValue()).append(" maximum<br/>");
 		if (getWounds() != 0) text.append(-getWounds()).append(" wounds<br/>");
 
 		Map<Modifier, Boolean> mods = getModifiers();
@@ -348,7 +365,7 @@ public class HPs extends Statistic {
 		StringBuilder text = new StringBuilder();
 		text.append(getHPs());
 		if (getNonLethal() != 0) text.append(" (" + getNonLethal()).append(" NL)");
-		text.append(" / ").append(getMaximumHitPoints());
+		text.append(" / ").append(maxHPs.getValue());
 		return text.toString();
 	}
 

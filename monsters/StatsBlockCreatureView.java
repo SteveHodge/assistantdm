@@ -15,7 +15,6 @@ import gamesystem.AbilityScore;
 import gamesystem.Attacks;
 import gamesystem.CharacterClass;
 import gamesystem.CharacterClass.LevelUpAction;
-import gamesystem.Creature;
 import gamesystem.Feat;
 import gamesystem.Feat.FeatDefinition;
 import gamesystem.HPs;
@@ -49,41 +48,34 @@ public class StatsBlockCreatureView {
 
 	private StatsBlockCreatureView(Monster c) {
 		creature = c;
-		creature.addPropertyChangeListener(e -> SwingUtilities.invokeLater(() -> {
+		creature.addPropertyListener("", (source, old) -> SwingUtilities.invokeLater(() -> {
+			// FIXME test this is right
 			// XXX seem to need to invokeLater() but I don't think it should be necessary
 			// TODO recheck without invokeLater - perhaps the issue was caused by multiple view instances
-			String prop = e.getPropertyName();
-			pcs.firePropertyChange(e.getPropertyName(), e.getOldValue(), e.getNewValue());
+			pcs.firePropertyChange(source.getName(), old, source.getValue());
 
 			// need to generate events for the fields that are built from statistics
 			// TODO need to handle attacks somehow
-			if (prop.equals(Creature.PROPERTY_INITIATIVE)) {
+			if (source.equals(c.getInitiativeStatistic())) {
 				pcs.firePropertyChange(Field.INITIATIVE.name(), null, getField(Field.INITIATIVE));
-			} else if (prop.equals(Creature.PROPERTY_AC)
-					|| prop.equals(Monster.PROPERTY_AC_FLATFOOTED)
-					|| prop.equals(Monster.PROPERTY_AC_TOUCH)
-					|| prop.startsWith(Creature.PROPERTY_AC_COMPONENT_PREFIX)) {
+			} else if (source.getName().startsWith("ac")) {
 				pcs.firePropertyChange(Field.AC.name(), null, getField(Field.AC));
-			} else if (prop.startsWith(Creature.PROPERTY_ABILITY_PREFIX)) {
+			} else if (source.getName().startsWith("ability_score")) {
 				pcs.firePropertyChange(Field.ABILITIES.name(), null, getField(Field.ABILITIES));
-			} else if (prop.startsWith(Creature.PROPERTY_SAVE_PREFIX)) {
+			} else if (source.getName().startsWith("saving_throw")) {
 				pcs.firePropertyChange(Field.SAVES.name(), null, getField(Field.SAVES));
-			} else if (prop.equals(Creature.PROPERTY_SIZE)) {
+			} else if (source.equals(creature.getSizeStatistic())) {
 				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
-			} else if (prop.equals(Creature.PROPERTY_REACH)
-					|| prop.equals(Creature.PROPERTY_SPACE)) {
-				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
-			} else if (prop.equals(Creature.PROPERTY_HPS)
-					|| prop.equals(Creature.PROPERTY_MAXHPS)) {
+			} else if (source.equals(creature.getHPStatistic())) {
 				pcs.firePropertyChange(Field.HITDICE.name(), null, getField(Field.HITDICE));
-			} else if (prop.equals(Creature.PROPERTY_BAB)) {
+			} else if (source.equals(creature.getBAB())) {
 				pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
 				pcs.firePropertyChange(Field.ATTACK.name(), null, getField(Field.ATTACK));
 				pcs.firePropertyChange(Field.FULL_ATTACK.name(), null, getField(Field.FULL_ATTACK));
-			} else if (prop.equals(Creature.PROPERTY_NAME)) {
+			} else if (source.getName().equals("name")) {
 				pcs.firePropertyChange(Field.NAME.name(), null, getField(Field.NAME));
 			} else {
-				System.out.println("Unused update to " + prop);
+				System.out.println("Unused update to " + source);
 			}
 		}));
 	}
@@ -159,7 +151,7 @@ public class StatsBlockCreatureView {
 		m.hitDice.setHitDice(blk.getHitDice());
 
 		HPs hps = m.getHPStatistic();
-		hps.setMaximumHitPoints(blk.getDefaultHPs());
+		hps.getMaxHPStat().setMaximumHitPoints(blk.getDefaultHPs());
 
 		Size size = m.getSizeStatistic();
 		size.setBaseSize(blk.getSize());
@@ -472,18 +464,18 @@ public class StatsBlockCreatureView {
 			}
 		} else if (field == Field.HITDICE) {
 			s.append(DiceList.toString(creature.hitDice.getValue())).append(" (");
-			if (creature.getHPStatistic().getValue() != creature.getHPStatistic().getMaximumHitPoints()) {
+			if (creature.getHPStatistic().getValue() != creature.getHPStatistic().getMaxHPStat().getValue()) {
 				s.append(creature.getHPStatistic().getValue()).append("/");
 			}
-			s.append(creature.getHPStatistic().getMaximumHitPoints()).append(" hp)");
+			s.append(creature.getHPStatistic().getMaxHPStat().getValue()).append(" hp)");
 		} else if (field == Field.SIZE_TYPE) {
 			s.append(creature.getSizeStatistic().getSize());
 			s.append(" ");
 			s.append(creature.race.getType());
 		} else if (field == Field.SPACE_REACH) {
-			s.append(creature.getSizeStatistic().getSpace() / 2);
-			if (creature.getSizeStatistic().getSpace() % 2 == 1) s.append("½");
-			s.append(" ft./").append(creature.getSizeStatistic().getReach()).append(" ft.");
+			s.append(creature.getSizeStatistic().getSpace().getValue() / 2);
+			if (creature.getSizeStatistic().getSpace().getValue() % 2 == 1) s.append("½");
+			s.append(" ft./").append(creature.getSizeStatistic().getReach().getValue()).append(" ft.");
 		} else if (field == Field.ATTACK) {
 			s.append(getAttackHTML(creature.attackList));
 		} else if (field == Field.FULL_ATTACK) {

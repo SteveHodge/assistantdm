@@ -73,7 +73,7 @@ class HitPointsPanel extends DetailPanel {
 					int value = (Integer) hitPointsField.getValue();
 					if (value < hitdice.getMinimum()) value = hitdice.getMinimum();
 					if (value > hitdice.getMaximum()) value = hitdice.getMaximum();
-					hps.setMaximumHitPoints(value);
+					hps.getMaxHPStat().setMaximumHitPoints(value);
 				}
 			}
 		});
@@ -147,7 +147,7 @@ class HitPointsPanel extends DetailPanel {
 				public void mousePressed(MouseEvent e) {
 					int len = hitdice.getMaximum() - hitdice.getMinimum() + 1;
 					int hps = e.getX() * len / getSize().width + hitdice.getMinimum();
-					creature.getHPStatistic().setMaximumHitPoints(hps);
+					creature.getHPStatistic().getMaxHPStat().setMaximumHitPoints(hps);
 				}
 			});
 		}
@@ -198,7 +198,7 @@ class HitPointsPanel extends DetailPanel {
 			g.setColor(Color.RED);
 			g.drawPolygon(p);
 
-			int hps = creature.getHPStatistic().getMaximumHitPoints() - hitdice.getModifier();
+			int hps = creature.getHPStatistic().getMaxHPStat().getValue() - hitdice.getModifier();
 			int minx = ((hps - first) * d.width) / possTotals;
 			int maxx = ((hps - first + 1) * d.width) / possTotals;
 			g.setColor(new Color(0f, 0f, 1f, 0.5f));
@@ -231,7 +231,7 @@ class HitPointsPanel extends DetailPanel {
 
 	private void update() {
 		if (creature != null) {
-			int maxHPs = hps.getMaximumHitPoints();
+			int maxHPs = hps.getMaxHPStat().getValue();
 			hitDiceField.setText(hitdice.toString());
 			hitPointsField.setValue(new Integer(maxHPs));
 			hpRangeLabel.setText("(" + hitdice.getMinimum() + " - " + hitdice.getMaximum() + ")");
@@ -281,6 +281,6 @@ class HitPointsPanel extends DetailPanel {
 		} else if (minHalfHPsButton.isSelected()) {
 			newVal = hitdice.rollMinHalf();
 		}
-		hps.setMaximumHitPoints(newVal);
+		hps.getMaxHPStat().setMaximumHitPoints(newVal);
 	}
 }

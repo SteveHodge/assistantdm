@@ -1,7 +1,5 @@
 package party;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,10 +52,10 @@ import gamesystem.core.SimpleValueProperty;
  *
  */
 public class Character extends Creature {
-	public final static String PROPERTY_LEVEL = "Level";
+	public final static String xPROPERTY_LEVEL = "Level";
 
-	public final static String PROPERTY_BUFFS = "Buffs";		// this is sent to listeners, it's not gettable or settable
-	public final static String PROPERTY_ATTACKS = "Attacks";	// this is sent to listeners, it's not gettable or settable
+	public final static String xPROPERTY_BUFFS = "Buffs";		// this is sent to listeners, it's not gettable or settable
+	public final static String xPROPERTY_ATTACKS = "Attacks";	// this is sent to listeners, it's not gettable or settable
 
 	// informational string properties (these are simple values that can be set/retrieved)
 	public static final String PROPERTY_PLAYER = "Player";
@@ -268,6 +266,10 @@ public class Character extends Creature {
 		skills.setMisc(s, misc);
 	}
 
+	public Skills getSkillsStatistic() {
+		return skills;
+	}
+
 	//------------------- Saving Throws -------------------
 	public int getSavingThrowMisc(SavingThrow.Type save) {
 		if (saveMisc.containsKey(save)) return saveMisc.get(save).getModifier();
@@ -351,9 +353,7 @@ public class Character extends Creature {
 	public void setLevel(int l, String comment, Date d) {
 		if (level.getLevel() == l) return;
 		addXPChange(new XP.XPChangeLevel(level.getLevel(), l, comment, d));
-		int old = level.getLevel();
 		level.setLevel(l);
-		firePropertyChange(PROPERTY_LEVEL, old, level.getLevel());
 	}
 
 	// TODO this functionality should move to the Levels object
@@ -375,7 +375,7 @@ public class Character extends Creature {
 			}
 		}
 
-		firePropertyChange(PROPERTY_LEVEL, null, level.getLevel());
+		fireEvent(level, null);
 	}
 
 	private void rebuildClassFeatures() {
@@ -419,7 +419,7 @@ public class Character extends Creature {
 		}
 		opt.selection = selection;
 		rebuildClassFeatures();
-		firePropertyChange(PROPERTY_LEVEL, null, level.getLevel());
+		fireEvent(level, null);
 	}
 
 //------------------- XP History ------------------
@@ -534,27 +534,19 @@ public class Character extends Creature {
 	public CharacterAttackForm addAttackForm(AttackForm attack, int id) {
 		if (id >= nextAttackId) nextAttackId = id + 1;
 		CharacterAttackForm a = new CharacterAttackForm(this, attack, id);
-		a.addPropertyChangeListener(attackListener);
 		attackForms.add(a);
-		firePropertyChange(PROPERTY_ATTACKS, null, 1);
+		fireEvent(attacks, null);
 		return a;
 	}
 
 	public void removeAttackForm(CharacterAttackForm a) {
 		int i = attackForms.indexOf(a);
 		if (i > -1) {
-			a.removePropertyChangeListener(attackListener);
 			attackForms.remove(a);
-			firePropertyChange(PROPERTY_ATTACKS, null, 1);
+			fireEvent(attacks, null);
 		}
 	}
 
-	private PropertyChangeListener attackListener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			firePropertyChange(PROPERTY_ATTACKS, null, 1);
-		}
-	};
 //------------------- Import/Export and other methods -------------------
 	public static Character parseDOM(Element el) {
 		XMLCharacterParser parser = new XMLCharacterParser();
@@ -651,7 +643,7 @@ public class Character extends Creature {
 			// new attribute
 			System.out.println(PROPERTY_NAME+"|"+name+"|"+inChar.name);
 		}
-		if (hps.getMaximumHitPoints() != inChar.hps.getMaximumHitPoints()) {
+		if (hps.getMaxHPStat().getValue() != inChar.hps.getMaxHPStat().getValue()) {
 			System.out.println(PROPERTY_MAXHPS+"|"+hps+"|"+inChar.hps);
 		}
 		if (hps.getWounds() != inChar.hps.getWounds()) {
@@ -700,7 +692,7 @@ public class Character extends Creature {
 		List<String> diffs = new ArrayList<>();
 
 		if (!name.equals(inChar.name)) diffs.add(PROPERTY_NAME);
-		if (hps.getMaximumHitPoints() != inChar.hps.getMaximumHitPoints()) diffs.add(PROPERTY_MAXHPS);
+		if (hps.getMaxHPStat().getValue() != inChar.hps.getMaxHPStat().getValue()) diffs.add(PROPERTY_MAXHPS);
 		if (hps.getWounds() != inChar.hps.getWounds()) diffs.add(PROPERTY_WOUNDS);
 		if (hps.getNonLethal() != inChar.hps.getNonLethal()) diffs.add(PROPERTY_NONLETHAL);
 		if (initiative.getBaseValue() != inChar.initiative.getBaseValue()) diffs.add(PROPERTY_INITIATIVE);

@@ -1,12 +1,14 @@
 package gamesystem;
 
+import gamesystem.core.AbstractProperty;
+import gamesystem.core.Property;
 import gamesystem.core.PropertyCollection;
 
 // TODO need to store certain size related characteristics of creatures: whether they are tall or long (for reach), and whether they count as quadrupeds for carrying capacity
 public class Size extends Statistic {
 	private SizeCategory category = SizeCategory.MEDIUM;
-	private int space = SizeCategory.MEDIUM.getSpace();
-	private int reach = SizeCategory.MEDIUM.getReachTall();
+	private int spaceValue = SizeCategory.MEDIUM.getSpace();
+	private int reachValue = SizeCategory.MEDIUM.getReachTall();
 	private final Modifier grappleMod = new SizeModifier() {
 		@Override
 		public int getModifier() {
@@ -20,8 +22,32 @@ public class Size extends Statistic {
 		}
 	};
 
+	private AbstractProperty<Integer> space;
+	private AbstractProperty<Integer> reach;
+
 	public Size(PropertyCollection parent) {
 		super("size", "Size", parent);
+
+		space = new AbstractProperty<Integer>("size.space", parent) {
+			@Override
+			public Integer getBaseValue() {
+				if (getModifiersTotal() == 0) return spaceValue;
+				if (spaceValue == category.getSpace()) return getSize().getSpace();	// standard space so use standard for changed size
+				// TODO adjust space based on change in size
+				return spaceValue;
+			}
+		};
+
+		reach = new AbstractProperty<Integer>("size.reach", parent) {
+			@Override
+			public Integer getBaseValue() {
+				if (getModifiersTotal() == 0) return reachValue;
+				if (reachValue == category.getReachTall()) return getSize().getReachTall();	// standard reach
+				if (reachValue == category.getReachLong()) return getSize().getReachLong();	// standard reach
+				// TODO adjust reach based on change in size
+				return reachValue;
+			}
+		};
 	}
 
 	public Modifier getSizeModifier() {
@@ -48,21 +74,6 @@ public class Size extends Statistic {
 		fireEvent();
 	}
 
-	public int getSpace() {
-		if (getModifiersTotal() == 0) return space;
-		if (space == category.getSpace()) return getSize().getSpace();	// standard space so use standard for changed size
-		// TODO adjust space based on change in size
-		return space;
-	}
-
-	public int getReach() {
-		if (getModifiersTotal() == 0) return reach;
-		if (reach == category.getReachTall()) return getSize().getReachTall();	// standard reach
-		if (reach == category.getReachLong()) return getSize().getReachLong();	// standard reach
-		// TODO adjust reach based on change in size
-		return reach;
-	}
-
 	public SizeCategory getBaseSize() {
 		return category;
 	}
@@ -78,16 +89,26 @@ public class Size extends Statistic {
 		fireEvent();
 	}
 
+	public Property<Integer> getSpace() {
+		return space;
+	}
+
+	public Property<Integer> getReach() {
+		return reach;
+	}
+
 	public void setBaseSpace(int s) {
 		if (s < 0) throw new IllegalArgumentException("Space cannot be negative: " + s);
-		space = s;
-		fireEvent();
+		int old = space.getValue();
+		spaceValue = s;
+		parent.fireEvent(space, old);
 	}
 
 	public void setBaseReach(int r) {
 		if (r < 0) throw new IllegalArgumentException("Reach cannot be negative: " + r);
-		reach = r;
-		fireEvent();
+		int old = reach.getValue();
+		reachValue = r;
+		parent.fireEvent(reach, old);
 	}
 
 	protected abstract class SizeModifier extends AbstractModifier {

@@ -23,7 +23,7 @@ class CharacterInitiativePanel extends CharacterSubPanel {
 		InitiativeModifier init = character.getInitiativeStatistic();
 		summary = (init.getValue() >= 0 ? "+" : "") + init.getValue();
 
-		dexLabel = new JLabel("Dex Mod: "+character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
+		dexLabel = new JLabel("Dex Mod: " + character.getAbilityStatistic(AbilityScore.Type.DEXTERITY).getModifierValue());
 		add(dexLabel);
 
 		add(new JLabel("Base:"));
@@ -46,7 +46,7 @@ class CharacterInitiativePanel extends CharacterSubPanel {
 			updateSummaries((init.getValue() >= 0 ? "+" : "") + init.getValue());
 		});
 		character.addPropertyListener(character.getAbilityStatistic(AbilityScore.Type.DEXTERITY), (source, old) -> {
-			dexLabel.setText("Dex Mod: " + character.getAbilityModifierValue(AbilityScore.Type.DEXTERITY));
+			dexLabel.setText("Dex Mod: " + character.getAbilityStatistic(AbilityScore.Type.DEXTERITY).getModifierValue());
 		});
 	}
 

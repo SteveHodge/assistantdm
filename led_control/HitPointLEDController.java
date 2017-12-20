@@ -12,14 +12,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import gamesystem.HPs;
 import gamesystem.core.PropertyListener;
 import gamesystem.core.SimpleProperty;
 import party.Character;
 
-// TODO Wemos code needs to register it's address with the webserver and this class needs to query for that address
+// TODO Wemos code needs to register its address with the webserver and this class needs to query for that address
 
 public class HitPointLEDController {
 	String address = "192.168.1.132";
@@ -34,20 +33,25 @@ public class HitPointLEDController {
 		c.addPropertyListener(c.getHPStatistic(), new PropertyListener<Integer>() {
 			@Override
 			public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
-				updateCharacter(c);
+				updateCharacter(c, false);
 			}
 		});
 		return r;
 	}
 
-	void updateCharacter(Character c) {
+	void updateCharacter(Character c, boolean force) {
 		HPs hps = c.getHPStatistic();
 		Color color = HitPointLEDController.getColor(hps);
 		Region r = regionMap.get(c);
 		SolidRGBPattern p = (SolidRGBPattern) r.pattern;
+		if (!force && (Integer) p.red == color.getRed() && (Integer) p.blue == color.getBlue() && (Integer) p.green == color.getGreen()) {
+			System.out.println("Ignoring update for " + c.getName() + ", no change in color");
+			return;
+		}
 		p.red = color.getRed();
 		p.blue = color.getBlue();
 		p.green = color.getGreen();
+		System.out.println("Sending for " + c.getName() + " on " + hps.getHPs() + " hps at " + System.currentTimeMillis() + " ms");
 		sendConfig();	// TODO maybe make this an updater type thing where it only sends every X seconds
 	}
 
@@ -57,18 +61,20 @@ public class HitPointLEDController {
 		// color for -10 is black
 		int curr = hps.getHPs();
 		if (curr >= 0) {
-			int value = hps.getMaximumHitPoints() > 0 ? curr * 510 / hps.getMaximumHitPoints() : 1;
+			int value = hps.getMaxHPStat().getValue() > 0 ? curr * 510 / hps.getMaxHPStat().getValue() : 1;
 			if (value > 510) value = 510;
 
 			int red;
 			int green;
 			if (value <= 255) {
 				red= 255;
-				green = (int) Math.round(Math.sqrt(value) * 16);
+				//green = (int) Math.round(Math.sqrt(value) * 16);
+				green = value;
 			} else {
 				green = 255;
-				value = value - 255;
-				red = Math.round(256 - (value * value / 255));
+				//value = value - 255;
+				//red = Math.round(256 - (value * value / 255));
+				red = 510 - value;
 			}
 			return new Color(red, green, 0);
 		} else {
@@ -97,9 +103,9 @@ public class HitPointLEDController {
 
 			int status = http.getResponseCode();
 			System.out.println("Response: " + status);
-			for (Entry<String, List<String>> header : http.getHeaderFields().entrySet()) {
-				System.out.println(header.getKey() + " = " + header.getValue());
-			}
+//			for (Entry<String, List<String>> header : http.getHeaderFields().entrySet()) {
+//				System.out.println(header.getKey() + " = " + header.getValue());
+//			}
 
 //			String contentType = http.getHeaderField("Content-Type");
 //			String charset = null;

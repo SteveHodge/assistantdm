@@ -1,10 +1,9 @@
 ---=== IN PROGRESS ===---
-* BoundIntegerField and BoundTextField need to be fixed.
-* Split HPs into HPs and MaxHPs. Make wounds and non-lethal into properties.
-* Make space and reach into properties.
+* Make wounds and non-lethal into properties. - consider if MaxHPs should be merged or replaced with hitdice as their functionality seem to overlap
+* Remove remaining PROPERTY constants? At least check where they are used
 * Sort out hierarchy - consider if sub-properties should be registered with their parent or with the Creature.
 * Consider a PropertyParent interface.
-* Statistic - need to handle overrides correctly (only modifier since the last override count).
+* Statistic - need to handle overrides correctly (only modifiers since the last override count).
 * Modifiers event/listener stuff should perhaps be similar to property in style
 
 ---=== CODE STRUCTURE ===---
