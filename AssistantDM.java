@@ -41,6 +41,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import camera.Camera;
 import camera.CameraPanel;
@@ -188,7 +189,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		tabbedPane = new JTabbedPane();
 
 		RuleSet.parseXML(new File("rulesets/ptolus.xml"));
-		party = Party.parseXML(file);
+		Document dom = Party.parseXML(file);
+		party = Party.parseDOM(dom);
+		ledControl.parseDOM(party, dom);
 
 		JComponent panel;
 		combatPanel = new CombatPanel(party);
@@ -378,7 +381,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		System.out.println("Opening "+file.getAbsolutePath());
 
 		CharacterLibrary.characters.clear();
-		party = Party.parseXML(file);
+		Document dom = Party.parseXML(file);
+		party = Party.parseDOM(dom);
+		ledControl.parseDOM(party, dom);
 
 		int selected = tabbedPane.getSelectedIndex();
 
@@ -437,7 +442,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-			doc.appendChild(party.getElement(doc));
+			Element partyEl = party.getElement(doc);
+			partyEl.appendChild(ledControl.getElement(doc));
+			doc.appendChild(partyEl);
 			XMLUtils.writeDOM(doc, f);
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();

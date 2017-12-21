@@ -26,4 +26,15 @@ class Region extends JSONOutput {
 		json.append("}");
 		return json.toString();
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder("Region(");
+		s.append("id = ").append(id);
+		s.append(", enabled = ").append(enabled);
+		s.append(", start = ").append(start);
+		s.append(", count = ").append(count);
+		s.append(")");
+		return s.toString();
+	}
 }

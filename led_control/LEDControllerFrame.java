@@ -9,9 +9,9 @@ import javax.swing.table.AbstractTableModel;
 import party.Character;
 import party.Party;
 
+// TODO this frame won't get updated if the party or the led controller change independently
 // TODO need to handle adding/removing characters
 // TODO switch between character hp display and other effects
-// TODO save config
 
 @SuppressWarnings("serial")
 public class LEDControllerFrame extends JFrame {

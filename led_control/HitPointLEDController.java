@@ -13,17 +13,46 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import gamesystem.HPs;
 import gamesystem.core.PropertyListener;
 import gamesystem.core.SimpleProperty;
 import party.Character;
+import party.Party;
+import util.XMLUtils;
 
 // TODO Wemos code needs to register its address with the webserver and this class needs to query for that address
 
 public class HitPointLEDController {
-	String address = "192.168.1.132";
+	final static String url = "http://192.168.1.9/assistantdm/leds";	// address of website page that reports the address of the controller
+	String address = "192.168.1.132";	// default controller address
 	List<Region> regions = new ArrayList<>();
 	Map<Character, Region> regionMap = new HashMap<>();
+
+	// TODO should rerun the attempt to get controller address if we can't contact the controller at any point
+	public HitPointLEDController() {
+		// try to get the correct address from armitage
+		try {
+			HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+			con.setRequestMethod("GET");
+			con.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+			if (con.getResponseCode() == 200) {
+				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+				String inputLine = in.readLine();
+				in.close();
+				if (inputLine != null && inputLine.length() > 0) {
+					System.out.println("Got LED Controller address: " + inputLine);
+					address = inputLine;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	Region addCharacter(Character c) {
 		Pattern p = new SolidRGBPattern(0, 0, 0);
@@ -40,19 +69,22 @@ public class HitPointLEDController {
 	}
 
 	void updateCharacter(Character c, boolean force) {
+		boolean changed = updateCharacter(c);
+		if (changed || force) {
+			sendConfig();	// TODO maybe make this an updater type thing where it only sends every X seconds
+		}
+	}
+
+	boolean updateCharacter(Character c) {
 		HPs hps = c.getHPStatistic();
 		Color color = HitPointLEDController.getColor(hps);
 		Region r = regionMap.get(c);
 		SolidRGBPattern p = (SolidRGBPattern) r.pattern;
-		if (!force && (Integer) p.red == color.getRed() && (Integer) p.blue == color.getBlue() && (Integer) p.green == color.getGreen()) {
-			System.out.println("Ignoring update for " + c.getName() + ", no change in color");
-			return;
-		}
+		boolean changed = (Integer) p.red == color.getRed() && (Integer) p.blue == color.getBlue() && (Integer) p.green == color.getGreen();
 		p.red = color.getRed();
 		p.blue = color.getBlue();
 		p.green = color.getGreen();
-		System.out.println("Sending for " + c.getName() + " on " + hps.getHPs() + " hps at " + System.currentTimeMillis() + " ms");
-		sendConfig();	// TODO maybe make this an updater type thing where it only sends every X seconds
+		return changed;
 	}
 
 	static Color getColor(HPs hps) {
@@ -131,6 +163,45 @@ public class HitPointLEDController {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("LEDControl");
+		for (Character c : regionMap.keySet()) {
+			Region r = regionMap.get(c);
+			if (r != null) {
+				Element m = doc.createElement("Region");
+				m.setAttribute("name", c.getName());
+				m.setAttribute("id", Integer.toString(r.id));
+				m.setAttribute("start", Integer.toString(r.start));
+				m.setAttribute("count", Integer.toString(r.count));
+				m.setAttribute("enabled", Boolean.toString(r.enabled));
+				e.appendChild(m);
+			}
+		}
+		return e;
+	}
+
+	public void parseDOM(Party p, Document dom) {
+		Element node = XMLUtils.findNode(dom.getDocumentElement(), "LEDControl");
+		if (node != null) {
+			NodeList children = node.getChildNodes();
+			for (int i=0; i<children.getLength(); i++) {
+				if (children.item(i).getNodeName().equals("Region")) {
+					Element m = (Element)children.item(i);
+					Character c = p.get(m.getAttribute("name"));
+					if (c != null) {
+						Region r = addCharacter(c);
+						r.id = Integer.parseInt(m.getAttribute("id"));
+						r.start = Integer.parseInt(m.getAttribute("start"));
+						r.count = Integer.parseInt(m.getAttribute("count"));
+						r.enabled = Boolean.parseBoolean(m.getAttribute("enabled"));
+						updateCharacter(c);
+					}
+				}
+			}
+			sendConfig();
 		}
 	}
 }

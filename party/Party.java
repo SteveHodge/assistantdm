@@ -2,6 +2,7 @@ package party;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 
@@ -19,6 +21,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import util.XMLUtils;
 
@@ -76,71 +79,78 @@ public class Party implements Iterable<Character> {
 		return characters.iterator();
 	}
 
-	public static Party parseXML(File xmlFile) {
-		return parseXML(xmlFile, false);
+	public static Document parseXML(File xmlFile) {
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			InputStream is = (new Party()).getClass().getClassLoader().getResourceAsStream("party.xsd");
+			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
+			Document dom = factory.newDocumentBuilder().parse(xmlFile);
+			//XMLUtils.printNode(dom, "");
+			return dom;
+		} catch (SAXException | IOException | ParserConfigurationException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static Party parseDOM(Document dom) {
+		return parseDOM(dom, false);
 	}
 
 	/**
-	 * Reads the supplied xml file are builds a party of characters from it. All
+	 * Reads the supplied Document are builds a party of characters from it. All
 	 * characters in the file are added to the <code>CharacterLibrary</code> unless
 	 * <code>update</code> is true. If the file has a &lt;Party&gt; block then the
 	 * new <code>Party</code> is set up to conatin just those characters, otherwise
 	 * it is set up with all the characters from the file.
 	 *
-	 * @param xmlFile  the File to parse
-	 * @param update   if true then the incomming characters are not added to the CharacterLibrary
-	 * @return         the new Party
+	 * @param xmlFile
+	 *            the File to parse
+	 * @param update
+	 *            if true then the incomming characters are not added to the CharacterLibrary
+	 * @return the new Party
 	 */
-	public static Party parseXML(File xmlFile, boolean update) {
+	public static Party parseDOM(Document dom, boolean update) {
 		Party p = new Party();
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			InputStream is = p.getClass().getClassLoader().getResourceAsStream("party.xsd");
-			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
-			Document dom = factory.newDocumentBuilder().parse(xmlFile);
-			//XMLUtils.printNode(dom, "");
 
-			Map<String, Character> charMap = new HashMap<>();
-			Node node = XMLUtils.findNode(dom,"Characters");
-			if (node != null) {
-				NodeList children = node.getChildNodes();
-				for (int i=0; i<children.getLength(); i++) {
-					if (children.item(i).getNodeName().equals("Character")) {
-						Character c = Character.parseDOM((Element)children.item(i));
-						if (c != null) {
-							if (!update) CharacterLibrary.add(c);
-							charMap.put(c.getName(),c);
-						}
+		Map<String, Character> charMap = new HashMap<>();
+		Node node = XMLUtils.findNode(dom,"Characters");
+		if (node != null) {
+			NodeList children = node.getChildNodes();
+			for (int i=0; i<children.getLength(); i++) {
+				if (children.item(i).getNodeName().equals("Character")) {
+					Character c = Character.parseDOM((Element)children.item(i));
+					if (c != null) {
+						if (!update) CharacterLibrary.add(c);
+						charMap.put(c.getName(),c);
 					}
 				}
 			}
-
-			node = XMLUtils.findNode(node, "Party");
-			if (node != null) {
-				NodeList children = node.getChildNodes();
-				for (int i=0; i<children.getLength(); i++) {
-					if (children.item(i).getNodeName().equals("Member")) {
-						Element m = (Element)children.item(i);
-						Character c = charMap.get(m.getAttribute("name"));
-						if (c != null) {
-							if ("true".equals(m.getAttribute("autosave")) || "1".equals(m.getAttribute("autosave"))) {
-								c.setAutoSave(true);
-							}
-							p.add(c);
-						}
-					}
-				}
-
-			} else {
-				System.out.println("Party not found");
-				for (Character c: charMap.values()) {
-					p.add(c);
-				}
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+
+		node = XMLUtils.findNode(node, "Party");
+		if (node != null) {
+			NodeList children = node.getChildNodes();
+			for (int i=0; i<children.getLength(); i++) {
+				if (children.item(i).getNodeName().equals("Member")) {
+					Element m = (Element)children.item(i);
+					Character c = charMap.get(m.getAttribute("name"));
+					if (c != null) {
+						if ("true".equals(m.getAttribute("autosave")) || "1".equals(m.getAttribute("autosave"))) {
+							c.setAutoSave(true);
+						}
+						p.add(c);
+					}
+				}
+			}
+
+		} else {
+			System.out.println("Party not found");
+			for (Character c: charMap.values()) {
+				p.add(c);
+			}
+		}
+
 		return p;
 	}
 
