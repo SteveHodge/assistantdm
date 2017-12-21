@@ -20,6 +20,8 @@ connection to download images. perhaps cancelling keep-alive would fix this issu
 
 web structure:
 / - webcam (GET)
+/leds (GET) - retrieve ip address of led controller
+/leds/<ip> (GET) - set ip address of led controller
 /<player> - configurable page with character, spells, and/or webcam (GET+POST config)
 /<character> - full character page (character sheet + spells) (GET+PUT character sheet updates)
 /<character>/xml - static character sheet (GET)
@@ -61,6 +63,8 @@ var sub_tracking = {};
 var sheet_template = fs.readFileSync(__dirname+'/templates/charactersheet.mustache', 'binary');
 var main_template = fs.readFileSync(__dirname+'/templates/main.mustache', 'binary');
 
+var leds_ip = '';
+
 var app = express();
 app.enable('trust proxy');
 
@@ -81,6 +85,19 @@ app.use('/static', express.static(__dirname+'/static'));
 app.get('/', function(req, res, next) {
 	res.sendfile('static/webcam.html');
 });
+
+app.get('/leds/:ip', function(req, res, next) {
+	console.log('LED Controller Registered at '+req.params.ip);
+	leds_ip = req.params.ip;	// should test first
+	res.send(200);
+});
+
+app.get('/leds', function(req, res, next) {
+	console.log('LED Controller address requested');
+	res.type('text/plain');
+	res.send(leds_ip);	
+});
+
 
 // updates
 // CORS functionality
@@ -436,6 +453,9 @@ function saveFile(file, req, res, next) {
 function subscribeFile(req, res, next) {
 	if (req.query.token) {
 		var file = req.params.name;
+
+		console.log('subscribeFile '+req.ip+' ('+file+')'); //+':' +util.inspect(req.headers));
+
 		if (file.indexOf('static') == -1) file += '.xml';
 		if (!sub_tracking[req.query.token]) sub_tracking[req.query.token] = {};
 		if (!sub_tracking[req.query.token][file]) sub_tracking[req.query.token][file] = {};
@@ -448,9 +468,10 @@ function subscribeFile(req, res, next) {
 function subscribe(file, req, res, next) {
 	'use strict';
 
+	console.log('subscribing '+req.ip+' ('+file+')'); //+':' +util.inspect(req.headers));
+
 	req.socket.setTimeout(Infinity);
 
-	console.log('subscribed '+req.ip+' ('+file+')'); //+':' +util.inspect(req.headers));
 	//console.log('token = '+req.query.token);
 
 	res.writeHead(200, {
