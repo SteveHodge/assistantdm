@@ -21,11 +21,11 @@ const char* password = "his teeth a webwork of East European steel and brown dec
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 #define NUM_LEDS    60
+#define DEFAULT_BRIGHTNESS  32
+#define FRAMES_PER_SECOND  60
 
 CRGB leds[NUM_LEDS];
-
-#define BRIGHTNESS          32
-#define FRAMES_PER_SECOND  60
+uint8_t brightness = DEFAULT_BRIGHTNESS;
 
 ESP8266WebServer server(80);
 
@@ -240,7 +240,10 @@ class Region {
 
     static Region *parseJSON(JsonObject& json) {
       int start = json["start"].as<int>();
+      if (start < 0 || start >= NUM_LEDS) start = 0;
       int count = json["count"].as<int>();
+      if (count < 0) count = 0;
+      if (start + count >= NUM_LEDS) count = NUM_LEDS - start;
       bool enabled = json["enabled"].as<bool>();
       Pattern *p = Pattern::parseJSON(json["pattern"].as<JsonObject&>());
       return new Region(start, count, enabled, p);
@@ -288,21 +291,28 @@ void handleConfig() {
   }
 
   DynamicJsonBuffer json(2000);
-  JsonArray& root = json.parseArray(server.arg("plain"));
+  JsonObject& root = json.parseObject(server.arg("plain"));
   if (!root.success()) {
     server.send(200, "text/plain", "Failed to parse JSON:\n"+server.arg("plain"));
     return;
   }
   String message;
+  // TODO would be nice to reserialise the regions and send them back. this would allow the client to see if any limits were hit
 //  root.prettyPrintTo(message);
 //  message = "Body:\n" + message;
 //  message += "\n";
 
+  if (root.containsKey("brightness")) {
+    brightness = root.get<uint8_t>("brightness");
+    FastLED.setBrightness(brightness);
+  }
+
+  JsonArray& regs = root.get<JsonVariant>("regions").as<JsonArray&>();
   for (int i = 0; i < 8; i++) {
-    if (i >= root.size()) {
+    if (i >= regs.size()) {
       regions[i] = 0;
     } else {
-      regions[i] = Region::parseJSON(root[i].as<JsonObject&>());
+      regions[i] = Region::parseJSON(regs[i].as<JsonObject&>());
         message += "Region ";
         message += i;
         if (regions[i] && regions[i]->pattern) {
@@ -323,6 +333,24 @@ void handleRoot() {
   message += (millis() / 1000);
   message += " s";
   server.send(200, "text/plain", message);
+}
+
+void handleInfo() {
+  debug("OK");
+  String message = "{  \"led_controller\":\"1.0\",\n";
+  message += "  \"status\":\"ok\",\n";
+  message += "  \"up_seconds\":";
+  message += (millis() / 1000);
+  message += ",\n  \"max_regions\":";
+  message += MAX_REGIONS;
+  message += ",\n  \"max_dynamics\":";
+  message += MAX_DYNAMICS;
+  message += ",\n  \"num_leds\":";
+  message += NUM_LEDS;
+  message += ",\n  \"brightness\":";
+  message += brightness;
+  message += "\n}";
+  server.send(200, "application/json", message);
 }
 
 void handleNotFound(){
@@ -366,9 +394,7 @@ void setup(void){
   
   server.on("/", handleRoot);
 
-  server.on("/inline", [](){
-    server.send(200, "text/plain", "this works as well");
-  });
+  server.on("/info", handleInfo);
 
   server.on("/config", HTTP_POST, handleConfig);
 
@@ -393,7 +419,7 @@ void setup(void){
 //  FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR, DATA_RATE_MHZ(24)>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
  
   // set master brightness control
-  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setBrightness(brightness);
 
   for (int i = 0; i < MAX_DYNAMICS; i++)
     dynamics[i] = 0;

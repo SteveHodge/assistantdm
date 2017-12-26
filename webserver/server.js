@@ -56,6 +56,7 @@ var fs = require('fs');
 var spells = require('./spells');
 var util = require('util');
 var path = require('path');
+var request = require('request');
 
 var subscribers = [];
 var sub_tracking = {};
@@ -88,7 +89,24 @@ app.get('/', function(req, res, next) {
 
 app.get('/leds/:ip', function(req, res, next) {
 	console.log('LED Controller Registered at '+req.params.ip);
-	leds_ip = req.params.ip;	// should test first
+
+	request.get({'url': 'http://'+req.params.ip+'/info'}, function(err, conRes, body) {
+		console.log('  LED Controller response status: ' + conRes.statusCode);
+
+		if (err) return res.send('  LED Controller error: '+err);
+		if (conRes.statusCode !== 200) return;
+
+		var info = JSON.parse(body);
+		if (info['led_controller']) {
+			console.log('  version: '+info.led_controller);
+			console.log('  status: '+info.status);
+			console.log('  max_regions: '+info.max_regions);
+			console.log('  max_dynamics: '+info.max_dynamics);
+			console.log('  num_leds: '+info.num_leds);
+			leds_ip = req.params.ip;
+		}
+	});
+
 	res.send(200);
 });
 

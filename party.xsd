@@ -413,6 +413,7 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
+		<xs:attribute name="brightness" type="xs:int"/>
 	</xs:complexType>
 </xs:element>
 

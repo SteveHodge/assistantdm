@@ -16,8 +16,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.BevelBorder;
@@ -59,8 +61,47 @@ public class LEDControllerPanel extends JPanel {
 
 		JPanel overridePanel = createOverridePanel();
 
-		add(regionsScrollpane);
-		add(overridePanel);
+		JSlider brightnessSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, controller.getBrightness());
+		brightnessSlider.setMajorTickSpacing(32);
+		brightnessSlider.setMinorTickSpacing(8);
+		brightnessSlider.setPaintTicks(true);
+		Dimension d = brightnessSlider.getPreferredSize();
+		d.width = 400;
+		brightnessSlider.setMinimumSize(d);
+		brightnessSlider.setPreferredSize(d);
+		brightnessSlider.addChangeListener(e -> {
+			if (!brightnessSlider.getValueIsAdjusting()) {
+				controller.setBrightness(brightnessSlider.getValue());
+			}
+		});
+
+		JPanel brightnessPanel = new JPanel();
+		brightnessPanel.add(new JLabel("Brightness: "));
+		brightnessPanel.add(brightnessSlider);
+
+		GridBagConstraints c = new GridBagConstraints();
+		setLayout(new GridBagLayout());
+
+		c.gridx = 0;
+		c.gridy = 0;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridwidth = 2;
+		c.weightx = 1.0d;
+		c.weighty = 0.0d;
+		add(brightnessPanel, c);
+
+		c.gridy++;
+		c.gridwidth = 1;
+		c.weighty = 1.0d;
+		c.weightx = 1.0d;
+		c.fill = GridBagConstraints.BOTH;
+		add(regionsScrollpane, c);
+
+		c.gridx++;
+		c.weightx = 0.0d;
+		c.fill = GridBagConstraints.VERTICAL;
+		add(overridePanel, c);
+
 		sendConfig();
 	}
 
@@ -92,7 +133,7 @@ public class LEDControllerPanel extends JPanel {
 		colorPanel.setMinimumSize(new Dimension(50, 20));
 		colorPanel.setPreferredSize(new Dimension(200, 50));
 
-		colorChooser = new JColorChooser();
+		colorChooser = new JColorChooser(Color.BLACK);
 		colorChooser.setPreviewPanel(colorPanel);
 
 		colorChooser.getSelectionModel().addChangeListener(e -> {
@@ -107,17 +148,15 @@ public class LEDControllerPanel extends JPanel {
 			Color newColour = colorChooser.getColor();
 			for (int i = 0; i < recentColours.size(); i++) {
 				if (recentColours.get(i).equals(newColour)) {
-					newColour = null;	// indicate we've already got this colour
+					recentColours.remove(i);
 					break;
 				}
 			}
-			if (newColour != null) {
-				recentColours.add(0, newColour);
-				while (recentColours.size() > 20) {
-					recentColours.remove(20);
-				}
-				recentsPanel.repaint();
+			recentColours.add(0, newColour);
+			while (recentColours.size() > 20) {
+				recentColours.remove(20);
 			}
+			recentsPanel.repaint();
 			if (overrideCheckBox.isSelected()) sendConfig();
 		});
 
@@ -144,6 +183,7 @@ public class LEDControllerPanel extends JPanel {
 
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("LEDControl");
+		e.setAttribute("brightness", Integer.toString(controller.getBrightness()));
 		Element e2 = controller.getElement(doc);
 		e.appendChild(e2);
 		e2 = doc.createElement("RecentColours");
@@ -159,8 +199,10 @@ public class LEDControllerPanel extends JPanel {
 	}
 
 	public void parseDOM(Party p, Document dom) {
-		System.out.println("parsing DOM for LEDController");
 		Element node = XMLUtils.findNode(dom.getDocumentElement(), "LEDControl");
+		if (node.hasAttribute("brightness")) {
+			controller.setBrightness(Integer.parseInt(node.getAttribute("brightness")));
+		}
 		controller.parseDOM(p, node);
 
 		Element recent = XMLUtils.findNode(node, "RecentColours");
@@ -177,6 +219,9 @@ public class LEDControllerPanel extends JPanel {
 				}
 			}
 			sendConfig();
+		}
+		if (recentColours.size() > 0) {
+			colorChooser.setColor(recentColours.get(0));
 		}
 	}
 

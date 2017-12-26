@@ -31,10 +31,19 @@ public class HitPointLEDController {
 	List<Region> regions = new ArrayList<>();
 	Map<Character, Region> regionMap = new HashMap<>();
 	boolean enabled = false;
+	int brightness = 32;
 
 	// TODO should rerun the attempt to get controller address if we can't contact the controller at any point
 	public HitPointLEDController() {
 		fetchControllerAddress();
+	}
+
+	void setBrightness(int b) {
+		brightness = b;
+	}
+
+	int getBrightness() {
+		return brightness;
 	}
 
 	void fetchControllerAddress() {
@@ -133,7 +142,8 @@ public class HitPointLEDController {
 			HttpURLConnection http = (HttpURLConnection) url.openConnection();
 			http.setRequestMethod("POST");
 			http.setDoOutput(true);
-			String json = "[" + String.join(",", regions.stream().map(e -> e.getJSON()).toArray(String[]::new)) + "]";
+			String json = "{\"brightness\": " + brightness + ", \"regions\": ";
+			json += "[" + String.join(",", regions.stream().map(e -> e.getJSON()).toArray(String[]::new)) + "]}";
 //			System.out.println(json);
 			byte[] body = json.getBytes(StandardCharsets.UTF_8);
 			http.setFixedLengthStreamingMode(body.length);
