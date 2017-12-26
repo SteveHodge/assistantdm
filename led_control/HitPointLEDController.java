@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import gamesystem.HPs;
@@ -24,16 +25,19 @@ import party.Character;
 import party.Party;
 import util.XMLUtils;
 
-// TODO Wemos code needs to register its address with the webserver and this class needs to query for that address
-
 public class HitPointLEDController {
 	final static String url = "http://192.168.1.9/assistantdm/leds";	// address of website page that reports the address of the controller
 	String address = "192.168.1.132";	// default controller address
 	List<Region> regions = new ArrayList<>();
 	Map<Character, Region> regionMap = new HashMap<>();
+	boolean enabled = false;
 
 	// TODO should rerun the attempt to get controller address if we can't contact the controller at any point
 	public HitPointLEDController() {
+		fetchControllerAddress();
+	}
+
+	void fetchControllerAddress() {
 		// try to get the correct address from armitage
 		try {
 			HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
@@ -80,7 +84,8 @@ public class HitPointLEDController {
 		Color color = HitPointLEDController.getColor(hps);
 		Region r = regionMap.get(c);
 		SolidRGBPattern p = (SolidRGBPattern) r.pattern;
-		boolean changed = (Integer) p.red == color.getRed() && (Integer) p.blue == color.getBlue() && (Integer) p.green == color.getGreen();
+		boolean changed = (Integer) p.red != color.getRed() || (Integer) p.blue != color.getBlue() || (Integer) p.green != color.getGreen();
+//		System.out.println(hps.getShortSummary() + " -> " + color + " changed? " + changed);
 		p.red = color.getRed();
 		p.blue = color.getBlue();
 		p.green = color.getGreen();
@@ -118,6 +123,10 @@ public class HitPointLEDController {
 	}
 
 	void sendConfig() {
+		if (enabled) sendConfig(regions);
+	}
+
+	void sendConfig(List<Region> regions) {
 		URL url;
 		try {
 			url = new URL("http://" + address + "/config");
@@ -134,7 +143,7 @@ public class HitPointLEDController {
 			os.write(body);
 
 			int status = http.getResponseCode();
-			System.out.println("Response: " + status);
+			if (status != 200) System.out.println("LED Controller Response: " + status);
 //			for (Entry<String, List<String>> header : http.getHeaderFields().entrySet()) {
 //				System.out.println(header.getKey() + " = " + header.getValue());
 //			}
@@ -157,7 +166,7 @@ public class HitPointLEDController {
 				result.append(line).append("\n");
 			}
 			rd.close();
-			System.out.println(result);
+			if (status != 200) System.out.println(result);
 //			}
 
 		} catch (IOException e) {
@@ -167,7 +176,7 @@ public class HitPointLEDController {
 	}
 
 	public Element getElement(Document doc) {
-		Element e = doc.createElement("LEDControl");
+		Element e = doc.createElement("Regions");
 		for (Character c : regionMap.keySet()) {
 			Region r = regionMap.get(c);
 			if (r != null) {
@@ -183,8 +192,8 @@ public class HitPointLEDController {
 		return e;
 	}
 
-	public void parseDOM(Party p, Document dom) {
-		Element node = XMLUtils.findNode(dom.getDocumentElement(), "LEDControl");
+	public void parseDOM(Party p, Node parent) {
+		Element node = XMLUtils.findNode(parent, "Regions");
 		if (node != null) {
 			NodeList children = node.getChildNodes();
 			for (int i=0; i<children.getLength(); i++) {

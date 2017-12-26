@@ -50,8 +50,7 @@ import combat.InitiativeListModel;
 import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 import gamesystem.RuleSet;
-import led_control.HitPointLEDController;
-import led_control.LEDControllerFrame;
+import led_control.LEDControllerPanel;
 import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
 import magicitems.ShoppingPanel;
@@ -83,7 +82,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	JTabbedPane tabbedPane;
 	static String tableServer;
 	DigitalTableController controller;
-	HitPointLEDController ledControl = new HitPointLEDController();
+	LEDControllerPanel ledPanel;
 
 	Party party;
 	File file;
@@ -177,13 +176,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		});
 		partyMenu.add(restItem);
 
-		JMenuItem ledItem = new JMenuItem("LED Controller...");
-		ledItem.addActionListener(e -> {
-			LEDControllerFrame f = new LEDControllerFrame(ledControl, party);
-			f.setVisible(true);
-		});
-		partyMenu.add(ledItem);
-
 		setJMenuBar(menuBar);
 
 		tabbedPane = new JTabbedPane();
@@ -191,7 +183,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		RuleSet.parseXML(new File("rulesets/ptolus.xml"));
 		Document dom = Party.parseXML(file);
 		party = Party.parseDOM(dom);
-		ledControl.parseDOM(party, dom);
 
 		JComponent panel;
 		combatPanel = new CombatPanel(party);
@@ -232,6 +223,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		} catch (NoClassDefFoundError e) {
 			System.out.println("Caught error: " + e);
 		}
+
+		ledPanel = new LEDControllerPanel(party);
+		ledPanel.parseDOM(party, dom);
+		tabbedPane.addTab("LED Control", null, ledPanel, "LED Control");
 
 		controller = new DigitalTableController(AssistantDM.tableServer) {
 			@Override
@@ -383,7 +378,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		CharacterLibrary.characters.clear();
 		Document dom = Party.parseXML(file);
 		party = Party.parseDOM(dom);
-		ledControl.parseDOM(party, dom);
+		ledPanel.parseDOM(party, dom);
 
 		int selected = tabbedPane.getSelectedIndex();
 
@@ -443,7 +438,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			Element partyEl = party.getElement(doc);
-			partyEl.appendChild(ledControl.getElement(doc));
+			partyEl.appendChild(ledPanel.getElement(doc));
 			doc.appendChild(partyEl);
 			XMLUtils.writeDOM(doc, f);
 		} catch (ParserConfigurationException e) {

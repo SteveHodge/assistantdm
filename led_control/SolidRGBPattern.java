@@ -1,5 +1,7 @@
 package led_control;
 
+import java.awt.Color;
+
 class SolidRGBPattern extends Pattern {
 	@Override
 	PatternType getType() {
@@ -17,6 +19,34 @@ class SolidRGBPattern extends Pattern {
 		red = r;
 		green = g;
 		blue = b;
+	}
+
+	// note this will replace any dynamics
+	void setColor(Color c) {
+		red = c.getRed();
+		green = c.getGreen();
+		blue = c.getBlue();
+	}
+
+	Color getColor() {
+		int r = 0, g = 0, b = 0;
+
+		if (red instanceof Dynamic)
+			r = ((Dynamic) red).value;
+		else if (red instanceof Integer)
+			r = (Integer) red;
+
+		if (green instanceof Dynamic)
+			r = ((Dynamic) green).value;
+		else if (green instanceof Integer)
+			r = (Integer) green;
+
+		if (blue instanceof Dynamic)
+			r = ((Dynamic) blue).value;
+		else if (blue instanceof Integer)
+			r = (Integer) blue;
+
+		return new Color(r, g, b);
 	}
 
 	@Override

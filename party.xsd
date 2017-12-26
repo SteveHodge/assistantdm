@@ -377,16 +377,39 @@
 </xs:element>
 
 <!-- =========== LEDControl structure =========== -->
+<xs:element name="Region">
+	<xs:complexType>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="id" type="xs:int" use="required"/>
+		<xs:attribute name="count" type="xs:int" use="required"/>
+		<xs:attribute name="start" type="xs:int" use="required"/>
+		<xs:attribute name="enabled" type="xs:boolean"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Colour">
+	<xs:complexType>
+		<xs:attribute name="red" type="xs:int" use="required"/>
+		<xs:attribute name="green" type="xs:int" use="required"/>
+		<xs:attribute name="blue" type="xs:int" use="required"/>
+	</xs:complexType>
+</xs:element>
+
 <xs:element name="LEDControl">
 	<xs:complexType>
 		<xs:sequence>
-			<xs:element name="Region" maxOccurs="unbounded">
+			<xs:element name="Regions" minOccurs="0" maxOccurs="1">
 				<xs:complexType>
-					<xs:attribute name="name" type="xs:string" use="required"/>
-					<xs:attribute name="id" type="xs:int" use="required"/>
-					<xs:attribute name="count" type="xs:int" use="required"/>
-					<xs:attribute name="start" type="xs:int" use="required"/>
-					<xs:attribute name="enabled" type="xs:boolean"/>
+					<xs:sequence>
+						<xs:element ref="Region" maxOccurs="unbounded"/>		
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RecentColours" minOccurs="0" maxOccurs="1">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element ref="Colour" maxOccurs="unbounded"/>		
+					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
