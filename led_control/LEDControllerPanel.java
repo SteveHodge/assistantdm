@@ -200,6 +200,7 @@ public class LEDControllerPanel extends JPanel {
 
 	public void parseDOM(Party p, Document dom) {
 		Element node = XMLUtils.findNode(dom.getDocumentElement(), "LEDControl");
+		if (node == null) return;
 		if (node.hasAttribute("brightness")) {
 			controller.setBrightness(Integer.parseInt(node.getAttribute("brightness")));
 		}

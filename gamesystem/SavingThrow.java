@@ -66,11 +66,6 @@ public class SavingThrow extends Statistic {
 		return type;
 	}
 
-	@Override
-	public Integer getValue() {
-		return getBaseValue() + super.getValue();
-	}
-
 	// gets the current base value - either the level derived value or the override if any
 	@Override
 	public Integer getBaseValue() {

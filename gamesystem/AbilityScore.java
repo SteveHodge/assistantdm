@@ -90,7 +90,7 @@ public class AbilityScore extends Statistic {
 	@Override
 	public Integer getValue() {
 		if (override == -1) {
-			return baseValue + super.getValue();
+			return super.getValue();
 		} else {
 			return override;
 		}
@@ -108,9 +108,9 @@ public class AbilityScore extends Statistic {
 	}
 
 	public void setBaseValue(int v) {
-		//int oldValue = getValue();
+//		int oldValue = getValue();
 		baseValue = v;
-		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
+//		System.out.println(name + ".setBaseValue(" + v + "). Old = " + oldValue + ", new = " + getValue() + ", getBaseValue = " + getBaseValue());
 		fireEvent();
 	}
 
