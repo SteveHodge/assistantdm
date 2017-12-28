@@ -401,14 +401,14 @@
 			<xs:element name="Regions" minOccurs="0" maxOccurs="1">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element ref="Region" maxOccurs="unbounded"/>		
+						<xs:element ref="Region" minOccurs="0" maxOccurs="unbounded"/>		
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="RecentColours" minOccurs="0" maxOccurs="1">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element ref="Colour" maxOccurs="unbounded"/>		
+						<xs:element ref="Colour" minOccurs="0" maxOccurs="unbounded"/>		
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>

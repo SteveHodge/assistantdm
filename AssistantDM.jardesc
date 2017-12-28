@@ -11,43 +11,44 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem"/>
         <file path="/AssistantDM/shops.xsd"/>
-        <file path="/AssistantDM/combat.xsd"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;org.json.zip"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;camera"/>
+        <file path="/AssistantDM/party.xsd"/>
         <javaElement handleIdentifier="=Library/&lt;swing"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;org.json"/>
+        <file path="/AssistantDM/combat.xsd"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;ui"/>
+        <file path="/CanonCDSDK/psCamDat.dll"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem.core"/>
         <file path="/AssistantDM/monsters.xsd"/>
         <file path="/CanonCDSDK/CDPROC.exe"/>
         <file path="/CanonCDSDK/EWatch.exe"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;org.json.zip"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.server"/>
         <file path="/CanonCDSDK/IWrap.dll"/>
         <file path="/CanonCDSDK/CDRAPCLS.dll"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;party"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;org.json"/>
-        <file path="/CanonCDSDK/CDPTPCLT.dll"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.controller"/>
-        <javaElement handleIdentifier="=CanonCDSDK/&lt;canon.cdsdk"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem.core"/>
-        <file path="/CanonCDSDK/cdDvlp.dll"/>
-        <file path="/CanonCDSDK/CDPTPCLS.dll"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;swing"/>
-        <file path="/AssistantDM/party.xsd"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;ui"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.server"/>
-        <file path="/CanonCDSDK/psCamDat.dll"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem.dice"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;combat"/>
-        <javaElement handleIdentifier="=CanonCDSDK/&lt;capture"/>
         <file path="/AssistantDM/animation.xsd"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem.dice"/>
+        <javaElement handleIdentifier="=CanonCDSDK/&lt;canon.cdsdk"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;camera"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;magicgenerator"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;monsters"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;util"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;monsters"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.controller"/>
+        <javaElement handleIdentifier="=CanonCDSDK/&lt;capture"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;magicitems"/>
         <file path="/CanonCDSDK/cdParse.dll"/>
         <file path="/CanonCDSDK/cdDcd.dll"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;swing"/>
+        <file path="/CanonCDSDK/CDPTPCLT.dll"/>
         <file path="/CanonCDSDK/CDPROCMN.exe"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;led_control"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;combat"/>
         <file path="/CanonCDSDK/CDSDK.dll"/>
-        <javaElement handleIdentifier="=AssistantDM/&lt;magicitems"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;party"/>
+        <file path="/CanonCDSDK/cdDvlp.dll"/>
+        <file path="/CanonCDSDK/CDPTPCLS.dll"/>
     </selectedElements>
 </jardesc>
