@@ -7,6 +7,7 @@ import gamesystem.Attacks.AttackForm;
 import gamesystem.Buff;
 import gamesystem.Feat;
 
+// TODO would like to use property/statistic style change notification for this. Perhaps CharacterAttackForm should extend AttackForm
 public class CharacterAttackForm {
 	// TODO the Kind enum value are really shorthand for a bunch of different properties. will need to split the properties out
 	// properties include permitted use (1h,2h,thrown,ranged), stat for damage adjustment, flag if weapon finesse can be applied, etc
@@ -196,7 +197,6 @@ public class CharacterAttackForm {
 	public void setName(String text) {
 		String old = attack.getDescription();
 		if (text == null && old == null || text != null && text.equals(old)) return;
-		System.out.println("Resetting name from " + old + " to " + text);
 		attack.setName(text);
 		pcs.firePropertyChange("name", old, text);
 	}

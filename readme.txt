@@ -5,6 +5,7 @@
 * Consider a PropertyParent interface.
 * Statistic - need to handle overrides correctly (only modifiers since the last override count).
 * Modifiers event/listener stuff should perhaps be similar to property in style
+* Overrides on statistics should be on the total. If a base value override is required then the base value should be a property.
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality

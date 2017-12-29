@@ -522,7 +522,13 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 	}
 
 	// ------------ Attack forms / weapons list related ------------
-	protected class AttackFormListModel extends AbstractListModel<CharacterAttackForm> {
+	protected class AttackFormListModel extends AbstractListModel<CharacterAttackForm> implements PropertyChangeListener {
+		public AttackFormListModel() {
+			for (CharacterAttackForm a : character.attackForms) {
+				a.addPropertyChangeListener(this);
+			}
+		}
+
 		public CharacterAttackForm get(int i) {
 			return character.attackForms.get(i);
 		}
@@ -538,19 +544,16 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 		}
 
 		public void addElement(final CharacterAttackForm a) {
-			a.addPropertyChangeListener(new PropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent evt) {
-					int i = character.attackForms.indexOf(a);
-					if (i > -1) fireContentsChanged(this, i, i);
-				}
-			});
+			a.addPropertyChangeListener(this);
 			fireIntervalAdded(this, character.attackForms.size() - 1, character.attackForms.size() - 1);
 		}
 
 		public void removeElement(CharacterAttackForm a) {
 			int i = character.attackForms.indexOf(a);
-			if (i > -1) fireIntervalRemoved(this, i, i);
+			if (i > -1) {
+				a.removePropertyChangeListener(this);
+				fireIntervalRemoved(this, i, i);
+			}
 		}
 
 		public void move(int fromIndex, int toIndex) {
@@ -563,6 +566,13 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 			fireIntervalRemoved(this, fromIndex, fromIndex);
 			character.attackForms.add(toIndex, a);
 			fireIntervalAdded(this, toIndex, toIndex);
+		}
+
+		@Override
+		public void propertyChange(PropertyChangeEvent e) {
+			int i = character.attackForms.indexOf(e.getSource());
+			if (i > -1) fireContentsChanged(AttackFormListModel.this, i, i);
+			else throw new IllegalArgumentException("Unrecognised source for change event: " + e.getSource());
 		}
 	}
 }

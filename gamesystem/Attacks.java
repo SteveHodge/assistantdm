@@ -445,7 +445,7 @@ public class Attacks extends Statistic {
 		}
 
 		public void setName(String s) {
-			name = s;
+			description = s;
 		}
 
 		public void refireEvent() {
