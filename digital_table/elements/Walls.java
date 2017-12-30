@@ -3,9 +3,11 @@ package digital_table.elements;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -173,7 +175,6 @@ public class Walls extends MapElement {
 		Composite c = g.getComposite();
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
-		System.out.println("Painting walls, visibility = " + getVisibility());
 //			long startTime = System.nanoTime();
 		for (Line2D.Double l : wallLayout.walls) {
 			Point p1 = canvas.convertCanvasCoordsToDisplay(l.getP1());
@@ -183,6 +184,16 @@ public class Walls extends MapElement {
 //			double millis = (System.nanoTime() - startTime) / 1000000d;
 //			//logger.info("Painting complete for " + this + " in " + micros + "ms");
 //			System.out.printf("Wall painting took %.3fms\n", millis);
+
+
+		// highlight border for selected element
+		if (selected) {
+			Point offset = canvas.convertGridCoordsToDisplay(new Point2D.Double(x.getValue(), y.getValue()));
+			Dimension size = canvas.getDisplayDimension(width.getValue(), height.getValue());
+			g.setColor(Color.BLUE);
+			g.drawRect(offset.x, offset.y, size.width, size.height);
+			g.drawRect(offset.x + 1, offset.y + 1, size.width - 2, size.height - 2);
+		}
 
 		g.setComposite(c);
 	}

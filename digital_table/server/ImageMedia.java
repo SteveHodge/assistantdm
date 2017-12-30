@@ -52,7 +52,8 @@ public abstract class ImageMedia {
 
 	AffineTransform transform = null;
 	BufferedImage[] transformed;
-	double tWidth, tHeight, tx, ty;		// TODO replace these with a Rectangle2D.Double
+	//Point2D[] tOffsets;	// offset for each transformed image. entries will be null for images that haven't been trimmed
+	Rectangle2D.Double tBounds = new Rectangle2D.Double();	// global bounds of the transformed images
 
 	private ImageMedia() {
 	}
@@ -126,20 +127,21 @@ public abstract class ImageMedia {
 		if (xform == null) {
 			transform = null;
 			Arrays.fill(transformed, null);
-			tx = 0;
-			ty = 0;
-			tWidth = frames[index].getWidth();
-			tHeight = frames[index].getHeight();
+			//Arrays.fill(tOffsets, null);
+			tBounds.x = 0;
+			tBounds.y = 0;
+			tBounds.width = frames[index].getWidth();
+			tBounds.height = frames[index].getHeight();
 
 		} else if (!xform.equals(transform)) {
 			transform = xform;
 			Arrays.fill(transformed, null);
 
 			Rectangle2D bounds = getBounds(xform, frames[index].getWidth(), frames[index].getHeight());
-			tx = bounds.getX();
-			ty = bounds.getY();
-			tWidth = bounds.getWidth();
-			tHeight = bounds.getHeight();
+			tBounds.x = bounds.getX();
+			tBounds.y = bounds.getY();
+			tBounds.width = bounds.getWidth();
+			tBounds.height = bounds.getHeight();
 
 //			// determine the bounds of the transformed image
 //			Point2D[] points = new Point2D[4];
@@ -192,8 +194,8 @@ public abstract class ImageMedia {
 
 	public BufferedImage getImage() {
 		if (transform == null) return getSourceImage();
-		if (Math.ceil(tWidth) == 0.0 || Math.ceil(tHeight) == 0.0) {
-			System.err.println("Image has invalid width (" + tWidth + ") or height (" + tHeight + ")");
+		if (Math.ceil(tBounds.width) == 0.0 || Math.ceil(tBounds.height) == 0.0) {
+			System.err.println("Image has invalid width (" + tBounds.width + ") or height (" + tBounds.height + ")");
 			Thread.dumpStack();
 			return getSourceImage();
 		}
@@ -208,11 +210,12 @@ public abstract class ImageMedia {
 //			System.out.println(String.format("Transforming image... used mem = %.3f MB ", usedMB));
 
 			AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
-			transformed[index] = new BufferedImage((int) Math.ceil(tWidth), (int) Math.ceil(tHeight), BufferedImage.TYPE_INT_ARGB);
+			transformed[index] = new BufferedImage((int) Math.ceil(tBounds.width), (int) Math.ceil(tBounds.height), BufferedImage.TYPE_INT_ARGB);
 			//System.out.println("New image size: " + transformed[index].getWidth() + "x" + transformed[index].getHeight());
 			Graphics2D g = (Graphics2D) transformed[index].getGraphics();
-			g.drawImage(frames[index], op, (int) -tx, (int) -ty);
+			g.drawImage(frames[index], op, (int) -tBounds.x, (int) -tBounds.y);
 			g.dispose();
+			//trimTransformed();
 
 //			rt.gc();
 //			rt.gc();
@@ -229,11 +232,11 @@ public abstract class ImageMedia {
 	}
 
 	public double getTransformedXOffset() {
-		return tx;
+		return tBounds.x;
 	}
 
 	public double getTransformedYOffset() {
-		return ty;
+		return tBounds.y;
 	}
 
 	BufferedImage getSourceImage() {
@@ -320,6 +323,32 @@ public abstract class ImageMedia {
 		return source;
 	}
 
+/*	void trimTransformed() {
+		WritableRaster raster = transformed[index].getRaster();
+		int[] row = null;
+		int minX = raster.getWidth() * 4;
+		int maxX = -1;
+		int minY = raster.getHeight();
+		int maxY = -1;
+		for (int y = 0; y < raster.getHeight(); y++) {
+			row = raster.getPixels(raster.getMinX(), y + raster.getMinY(), raster.getWidth(), 1, row);
+			int rowMinX = raster.getWidth() * 4;
+			int rowMaxX = -1;
+			for (int x = 0; x < row.length; x += 4) {
+				int val = row[x] << 24 | row[x + 1] << 16 | row[x + 2] << 8 | row[x + 3];
+				if (val != 0xffffff00) {
+					if (rowMaxX == -1) rowMinX = x;
+					if (x > rowMaxX) rowMaxX = x;
+					if (maxY == -1) minY = y;
+					if (y > maxY) maxY = y;
+				}
+			}
+			if (rowMinX < minX) minX = rowMinX;
+			if (rowMaxX > maxX) maxX = rowMaxX;
+		}
+		System.out.printf("Trimmed to (%d, %d) + (%d x %d)\n", minX, minY, (maxX - minX) / 4 + 1, maxY - minY + 1);
+	}*/
+
 	abstract void readImages();
 
 	private static class StaticImageMdia extends ImageMedia {
@@ -333,6 +362,7 @@ public abstract class ImageMedia {
 		void readImages() {
 			frames = new BufferedImage[1];
 			transformed = new BufferedImage[1];
+			//tOffsets = new Point2D.Double[1];
 			index = 0;
 
 			try {
@@ -430,6 +460,7 @@ public abstract class ImageMedia {
 			if (animationNode != null) {
 				frames = new BufferedImage[getFrameCount()];
 				transformed = new BufferedImage[getFrameCount()];
+				//tOffsets = new Point2D.Double[getFrameCount()];
 				if (animationNode.hasAttribute("loopframe")) {
 					loopFrame = Integer.parseInt(animationNode.getAttribute("loopframe"));
 				}
@@ -617,6 +648,7 @@ public abstract class ImageMedia {
 
 			this.frames = frames.toArray(new BufferedImage[frames.size()]);
 			transformed = new BufferedImage[frames.size()];
+			//tOffsets = new Point2D.Double[frames.size()];
 			this.delays = new int[delays.size()];
 			for (int i = 0; i < delays.size(); i++) {
 				this.delays[i] = delays.get(i);

@@ -43,8 +43,8 @@ import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.Size;
 import gamesystem.SizeCategory;
-import gamesystem.core.Property;
 import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import util.ModuleRegistry;
 
 @SuppressWarnings("serial")
@@ -343,11 +343,11 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			updateHPs();
 
 			Size size = creature.getSizeStatistic();
-			spaceField.setText("" + ((float) size.getSpace()) / 2);
-			reachField.setText("" + size.getReach());
-			sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach()));
-			display.setProperty(element, Token.PROPERTY_SPACE, size.getSpace());
-			display.setProperty(element, Token.PROPERTY_REACH, size.getReach());
+			spaceField.setText("" + ((float) size.getSpace().getValue()) / 2);
+			reachField.setText("" + size.getReach().getValue());
+			sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach().getValue()));
+			display.setProperty(element, Token.PROPERTY_SPACE, size.getSpace().getValue());
+			display.setProperty(element, Token.PROPERTY_REACH, size.getReach().getValue());
 
 			labelField.setText(creature.getName());
 			remoteLabelField.setText(creature.getName());
@@ -365,20 +365,20 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 	private PropertyListener<Integer> hpListener = new PropertyListener<Integer>() {
 		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+		public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
 			updateHPs();
 		}
 	};
 
 	private PropertyListener<Integer> sizeListener = new PropertyListener<Integer>() {
 		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+		public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
 			Size size = creature.getSizeStatistic();
-			sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach()));
-			spaceField.setText("" + ((float) size.getSpace()) / 2);
-			display.setProperty(element, Token.PROPERTY_SPACE, size.getSpace());
-			reachField.setText("" + size.getReach());
-			display.setProperty(element, Token.PROPERTY_REACH, size.getReach());
+			sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach().getValue()));
+			spaceField.setText("" + ((float) size.getSpace().getValue()) / 2);
+			display.setProperty(element, Token.PROPERTY_SPACE, size.getSpace().getValue());
+			reachField.setText("" + size.getReach().getValue());
+			display.setProperty(element, Token.PROPERTY_REACH, size.getReach().getValue());
 		}
 	};
 
@@ -394,7 +394,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	private void updateHPs() {
 		if (creature == null) return;
 		HPs hps = creature.getHPStatistic();
-		int max = hps.getMaximumHitPoints();
+		int max = hps.getMaxHPStat().getValue();
 		int curr = max - hps.getWounds() - hps.getNonLethal();
 		display.setProperty(element, Token.PROPERTY_MAX_HPS, max);
 		display.setProperty(element, Token.PROPERTY_CURRENT_HPS, curr);

@@ -128,7 +128,7 @@ public enum MediaManager {
 			in.read(bytes);
 			return bytes;
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("MediaManager couldn't load file: " + e.toString());
 		}
 		return null;
 	}
