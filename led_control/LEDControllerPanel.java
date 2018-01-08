@@ -10,7 +10,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,29 +29,39 @@ import javax.swing.table.AbstractTableModel;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import gamesystem.HPs;
+import gamesystem.core.PropertyListener;
+import gamesystem.core.SimpleProperty;
 import party.Character;
 import party.Party;
 import util.XMLUtils;
 
-// TODO this panel won't get updated if the party or the led controller change independently
-// TODO need to handle adding/removing characters
+// This panel provides the ui to configure the leds for either per-character hitpoint status display or a global colour override.
+
+// TODO this panel won't get updated if the party membership changes - needs to handle that
 // TODO custom effects
-// TODO add "apply" button and recent colours (which will be saved)
 
 @SuppressWarnings("serial")
 public class LEDControllerPanel extends JPanel {
-	HitPointLEDController controller;
+	LEDController controller;
 	Party party;
+
+	int brightness = 32;	// global brightness
+
 	SolidRGBPattern overridePattern = new SolidRGBPattern(0, 0, 0);
 	List<Region> overrideRegion = Collections.singletonList(new Region(255, true, 0, 1000, overridePattern));	// TODO should get the number of leds from the controller
 	private JCheckBox overrideCheckBox;
 	JColorChooser colorChooser;
 	List<Color> recentColours = new ArrayList<>();
 
-	public LEDControllerPanel(Party party) {
-		controller = new HitPointLEDController();
+	List<Region> regions = new ArrayList<>();	// character regions
+	Map<Character, Region> regionMap = new HashMap<>();
+
+	public LEDControllerPanel(LEDController con, Party party) {
+		controller = con;
 		this.party = party;
 
 		final PlayerRegionTableModel regionsModel = new PlayerRegionTableModel();
@@ -61,7 +73,7 @@ public class LEDControllerPanel extends JPanel {
 
 		JPanel overridePanel = createOverridePanel();
 
-		JSlider brightnessSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, controller.getBrightness());
+		JSlider brightnessSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, brightness);
 		brightnessSlider.setMajorTickSpacing(32);
 		brightnessSlider.setMinorTickSpacing(8);
 		brightnessSlider.setPaintTicks(true);
@@ -71,7 +83,7 @@ public class LEDControllerPanel extends JPanel {
 		brightnessSlider.setPreferredSize(d);
 		brightnessSlider.addChangeListener(e -> {
 			if (!brightnessSlider.getValueIsAdjusting()) {
-				controller.setBrightness(brightnessSlider.getValue());
+				brightness = brightnessSlider.getValue();
 			}
 		});
 
@@ -107,9 +119,9 @@ public class LEDControllerPanel extends JPanel {
 
 	void sendConfig() {
 		if (overrideCheckBox.isSelected()) {
-			controller.sendConfig(overrideRegion);
+			controller.sendConfig(brightness, overrideRegion);
 		} else {
-			controller.sendConfig();
+			controller.sendConfig(brightness, regions);
 		}
 	}
 
@@ -122,7 +134,6 @@ public class LEDControllerPanel extends JPanel {
 
 		overrideCheckBox = new JCheckBox("Enabled");
 		overrideCheckBox.addActionListener(e -> {
-			controller.enabled = !overrideCheckBox.isSelected();
 			sendConfig();
 		});
 		overrideCheckBox.setSelected(true);
@@ -181,10 +192,49 @@ public class LEDControllerPanel extends JPanel {
 		return p;
 	}
 
+	public Element charactersGetElement(Document doc) {
+		Element e = doc.createElement("Regions");
+		for (Character c : regionMap.keySet()) {
+			Region r = regionMap.get(c);
+			if (r != null) {
+				Element m = doc.createElement("Region");
+				m.setAttribute("name", c.getName());
+				m.setAttribute("id", Integer.toString(r.id));
+				m.setAttribute("start", Integer.toString(r.start));
+				m.setAttribute("count", Integer.toString(r.count));
+				m.setAttribute("enabled", Boolean.toString(r.enabled));
+				e.appendChild(m);
+			}
+		}
+		return e;
+	}
+
+	public void charactersParseDOM(Party p, Node parent) {
+		Element node = XMLUtils.findNode(parent, "Regions");
+		if (node != null) {
+			NodeList children = node.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++) {
+				if (children.item(i).getNodeName().equals("Region")) {
+					Element m = (Element) children.item(i);
+					Character c = p.get(m.getAttribute("name"));
+					if (c != null) {
+						Region r = addCharacter(c);
+						r.id = Integer.parseInt(m.getAttribute("id"));
+						r.start = Integer.parseInt(m.getAttribute("start"));
+						r.count = Integer.parseInt(m.getAttribute("count"));
+						r.enabled = Boolean.parseBoolean(m.getAttribute("enabled"));
+						updateCharacter(c);
+					}
+				}
+			}
+			sendConfig();
+		}
+	}
+
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("LEDControl");
-		e.setAttribute("brightness", Integer.toString(controller.getBrightness()));
-		Element e2 = controller.getElement(doc);
+		e.setAttribute("brightness", Integer.toString(brightness));
+		Element e2 = charactersGetElement(doc);
 		e.appendChild(e2);
 		e2 = doc.createElement("RecentColours");
 		for (Color c : recentColours) {
@@ -202,9 +252,11 @@ public class LEDControllerPanel extends JPanel {
 		Element node = XMLUtils.findNode(dom.getDocumentElement(), "LEDControl");
 		if (node == null) return;
 		if (node.hasAttribute("brightness")) {
-			controller.setBrightness(Integer.parseInt(node.getAttribute("brightness")));
+			brightness = Integer.parseInt(node.getAttribute("brightness"));
+			if (brightness < 0) brightness = 0;
+			if (brightness > 255) brightness = 255;
 		}
-		controller.parseDOM(p, node);
+		charactersParseDOM(p, node);
 
 		Element recent = XMLUtils.findNode(node, "RecentColours");
 		if (recent != null) {
@@ -223,6 +275,70 @@ public class LEDControllerPanel extends JPanel {
 		}
 		if (recentColours.size() > 0) {
 			colorChooser.setColor(recentColours.get(0));
+		}
+	}
+
+	Region addCharacter(Character c) {
+		Pattern p = new SolidRGBPattern(0, 0, 0);
+		Region r = new Region(regions.size(), true, 0, 0, p);
+		regions.add(r);
+		regionMap.put(c, r);
+		c.addPropertyListener(c.getHPStatistic(), new PropertyListener<Integer>() {
+			@Override
+			public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+				updateCharacter(c, false);
+			}
+		});
+		return r;
+	}
+
+	void updateCharacter(Character c, boolean force) {
+		boolean changed = updateCharacter(c);
+		if (changed || force) {
+			sendConfig();	// TODO maybe make this an updater type thing where it only sends every X seconds
+		}
+	}
+
+	boolean updateCharacter(Character c) {
+		HPs hps = c.getHPStatistic();
+		Color color = LEDControllerPanel.getColor(hps);
+		Region r = regionMap.get(c);
+		SolidRGBPattern p = (SolidRGBPattern) r.pattern;
+		boolean changed = (Integer) p.red != color.getRed() || (Integer) p.blue != color.getBlue() || (Integer) p.green != color.getGreen();
+//		System.out.println(hps.getShortSummary() + " -> " + color + " changed? " + changed);
+		p.red = color.getRed();
+		p.blue = color.getBlue();
+		p.green = color.getGreen();
+		return changed;
+	}
+
+	static Color getColor(HPs hps) {
+		// color for MaxHPs is green, full brightness
+		// color for 0 is red, full brightness
+		// color for -10 is black
+		int curr = hps.getHPs();
+		if (curr >= 0) {
+			int value = hps.getMaxHPStat().getValue() > 0 ? curr * 510 / hps.getMaxHPStat().getValue() : 1;
+			if (value > 510) value = 510;
+
+			int red;
+			int green;
+			if (value <= 255) {
+				red = 255;
+				//green = (int) Math.round(Math.sqrt(value) * 16);
+				green = value;
+			} else {
+				green = 255;
+				//value = value - 255;
+				//red = Math.round(256 - (value * value / 255));
+				red = 510 - value;
+			}
+			return new Color(red, green, 0);
+		} else {
+			curr = curr + 10;
+			if (curr < 0) curr = 0;
+			int red = Math.round(255 * curr / 10);
+			return new Color(red, 0, 0);
 		}
 	}
 
@@ -307,7 +423,7 @@ public class LEDControllerPanel extends JPanel {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Character chr = party.get(row);
-			Region r = controller.regionMap.get(chr);
+			Region r = regionMap.get(chr);
 			if (col > 0 && r == null) return null;
 			switch (col) {
 			case 0:
@@ -357,9 +473,9 @@ public class LEDControllerPanel extends JPanel {
 		@Override
 		public void setValueAt(Object aValue, int row, int col) {
 			Character chr = party.get(row);
-			Region r = controller.regionMap.get(chr);
+			Region r = regionMap.get(chr);
 			if (r == null) {
-				r = controller.addCharacter(chr);
+				r = addCharacter(chr);
 			}
 			switch (col) {
 			case 1:
@@ -376,7 +492,7 @@ public class LEDControllerPanel extends JPanel {
 				break;
 			}
 			fireTableRowsUpdated(row, row);
-			controller.updateCharacter(chr, true);
+			updateCharacter(chr, true);
 		}
 	}
 

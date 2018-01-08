@@ -50,6 +50,7 @@ import combat.InitiativeListModel;
 import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
 import gamesystem.RuleSet;
+import led_control.LEDController;
 import led_control.LEDControllerPanel;
 import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
@@ -82,6 +83,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	JTabbedPane tabbedPane;
 	static String tableServer;
 	DigitalTableController controller;
+	LEDController ledController;
 	LEDControllerPanel ledPanel;
 
 	Party party;
@@ -224,7 +226,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			System.out.println("Caught error: " + e);
 		}
 
-		ledPanel = new LEDControllerPanel(party);
+		ledController = new LEDController();
+		ledPanel = new LEDControllerPanel(ledController, party);
 		ledPanel.parseDOM(party, dom);
 		tabbedPane.addTab("LED Control", null, ledPanel, "LED Control");
 

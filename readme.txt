@@ -1,4 +1,5 @@
 ---=== IN PROGRESS ===---
+* Implement the new high level app structure detailed below   
 * Make wounds and non-lethal into properties. - consider if MaxHPs should be merged or replaced with hitdice as their functionality seem to overlap
 * Remove remaining PROPERTY constants? At least check where they are used
 * Sort out hierarchy - consider if sub-properties should be registered with their parent or with the Creature.
@@ -25,6 +26,9 @@
  ui - ui for party and rolls panel and dialogs. should contain only common ui and dialogs
  util - util classes for external communication (XML handling, file uploading, logging)
 
+---=== NEW HIGH LEVEL APP ARCHITECTURE ===---
+The Module system will be used for coordinating parts of the system, and loading/saving app and installation specific settings (server addresses, hardware related settings, directory defaults etc).
+Party (which may need a rename) will coordinate campaign related stuff including ruleset preferences, characters, and current encounter state. 
 
 ---=== NEW NOTIFICATION IMPLEMENTATION ===---
 Plan is for there to be a single listener list (per character). Listeners will provide a string template for the sources they are interested in. Events will then be sent to interested listeners.
@@ -35,7 +39,7 @@ The same naming hierarchy will be used for effect targets.
 ---=== ARCHITECTURE ===---
 
 Property - a value that can be overridden. can be a non-numeric value e.g. race. notifies changes.
-Statistic - a numeric value that can receive Modifiers. notifies changes. can also represent a collection of statistics (e.g. all skills, or attacks collectively).
+Statistic - a numeric Property that can receive Modifiers. notifies changes. can also represent a collection of statistics (e.g. all skills, or attacks collectively).
 Modifier - an adjustment to a Statistic. Modifiers have a type and Statistics follow the 3.5 rules of stacking.
 
 FeatureDefinition - base class for templates that generate Features. Allows simple fixed effects to be defined.
