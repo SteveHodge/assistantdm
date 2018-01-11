@@ -19,14 +19,14 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 
 public class Updater {
-	// TODO these standard locations should be moved to global settings class
-	public static final String MAP_IMAGE = "http://armitage/assistantdm/static/camera.jpg";
-	public static final String INITIATIVE_FILE = "http://armitage/assistantdm/static/initiative.json";
-	public static final String DOCUMENT_DIR = "http://armitage/assistantdm/";
-	public static final String TOKEN_BASE_URL = "http://armitage/assistantdm/static/tokens";
+	public static String MAP_IMAGE = "http://armitage/assistantdm/static/camera.jpg";
+	public static String INITIATIVE_FILE = "http://armitage/assistantdm/static/initiative.json";
+	public static String DOCUMENT_DIR = "http://armitage/assistantdm/";
+	public static String TOKEN_BASE_URL = "http://armitage/assistantdm/static/tokens";
 
 	protected static class Update {
 		String url;
@@ -89,7 +89,30 @@ public class Updater {
 
 	public static UpdaterThread updaterThread = new UpdaterThread();
 
+	private static class UpdaterModule implements Module {
+		UpdaterModule() {
+			ModuleRegistry.register(UpdaterModule.class, this);
+			Element config = ModuleRegistry.getConfig(this);
+			if (config.hasAttribute("map_url")) MAP_IMAGE = config.getAttribute("map_url");
+			if (config.hasAttribute("initiative_url")) INITIATIVE_FILE = config.getAttribute("initiative_url");
+			if (config.hasAttribute("document_url")) DOCUMENT_DIR = config.getAttribute("document_url");
+			if (config.hasAttribute("token_url")) TOKEN_BASE_URL = config.getAttribute("token_url");
+//			System.out.println("Updater config: ");
+//			System.out.println("  map_url = " + MAP_IMAGE);
+//			System.out.println("  initiative_url = " + INITIATIVE_FILE);
+//			System.out.println("  document_url = " + DOCUMENT_DIR);
+//			System.out.println("  token_url = " + TOKEN_BASE_URL);
+		}
+
+		@Override
+		public void moduleExit() {
+		}
+	}
+
+	static UpdaterModule module;
+
 	static {
+		module = new UpdaterModule();
 		updaterThread.start();
 	}
 

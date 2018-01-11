@@ -9,11 +9,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import digital_table.server.TableDisplay;
 import util.ModuleRegistry;
 import util.XMLUtils;
-import digital_table.server.TableDisplay;
 
 /*
  * LTM190EX-L31 has pixel pitch of 0.294mm. 1280x1024 pixels in 376.32 x 301.056 mm display.
@@ -23,23 +24,28 @@ import digital_table.server.TableDisplay;
 public class DigitalTableController implements DigitalTableModule {
 	TableDisplay display;
 	ControllerFrame controller = null;
+	private String remote_address = "corto";
 
 	public DigitalTableController() {
-		openRemote("corto");
-		//		this("wintermute");
-		ModuleRegistry.register(DigitalTableModule.class, this);
-	}
+		boolean enabled = true;
 
-	public DigitalTableController(String server) {
-		openRemote(server);
 		ModuleRegistry.register(DigitalTableModule.class, this);
+
+		Element config = ModuleRegistry.getConfig(this);
+		if (config.hasAttribute("display_address")) remote_address = config.getAttribute("display_address");
+		if (config.hasAttribute("enable")) enabled = config.getAttribute("enable").equals("true");
+//		System.out.println("DigitalTableControllerController config: ");
+//		System.out.println("  disaply_address = " + remote_address);
+//		System.out.println("  enabled = " + enabled);
+
+		if (enabled) openRemote();
 	}
 
 	public boolean isOpen() {
 		return controller != null;
 	}
 
-	public void openRemote(String server) {
+	public void openRemote() {
 		controller = new ControllerFrame();
 		controller.addWindowListener(new WindowAdapter() {
 			@Override
@@ -48,7 +54,7 @@ public class DigitalTableController implements DigitalTableModule {
 			}
 		});
 
-		RemoteConnection.attemptConnection(server, controller::setRemote);
+		RemoteConnection.attemptConnection(remote_address, controller::setRemote);
 	}
 
 	public void close() {

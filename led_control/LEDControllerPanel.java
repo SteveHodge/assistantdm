@@ -29,7 +29,6 @@ import javax.swing.table.AbstractTableModel;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import gamesystem.HPs;
@@ -192,8 +191,11 @@ public class LEDControllerPanel extends JPanel {
 		return p;
 	}
 
-	public Element charactersGetElement(Document doc) {
-		Element e = doc.createElement("Regions");
+	public Element getElement(Document doc) {
+		Element e = doc.createElement("LEDControl");
+		e.setAttribute("brightness", Integer.toString(brightness));
+
+		Element e2 = doc.createElement("Regions");
 		for (Character c : regionMap.keySet()) {
 			Region r = regionMap.get(c);
 			if (r != null) {
@@ -206,13 +208,34 @@ public class LEDControllerPanel extends JPanel {
 				e.appendChild(m);
 			}
 		}
+		e.appendChild(e2);
+
+		e2 = doc.createElement("RecentColours");
+		for (Color c : recentColours) {
+			Element cEl = doc.createElement("Colour");
+			cEl.setAttribute("red", Integer.toString(c.getRed()));
+			cEl.setAttribute("green", Integer.toString(c.getGreen()));
+			cEl.setAttribute("blue", Integer.toString(c.getBlue()));
+			e2.appendChild(cEl);
+		}
+		e.appendChild(e2);
 		return e;
 	}
 
-	public void charactersParseDOM(Party p, Node parent) {
-		Element node = XMLUtils.findNode(parent, "Regions");
-		if (node != null) {
-			NodeList children = node.getChildNodes();
+	public void parseDOM(Party p, Document dom) {
+		boolean gotConfig = false;
+
+		Element node = XMLUtils.findNode(dom.getDocumentElement(), "LEDControl");
+		if (node == null) return;
+		if (node.hasAttribute("brightness")) {
+			brightness = Integer.parseInt(node.getAttribute("brightness"));
+			if (brightness < 0) brightness = 0;
+			if (brightness > 255) brightness = 255;
+		}
+
+		Element regionsEl = XMLUtils.findNode(node, "Regions");
+		if (regionsEl != null) {
+			NodeList children = regionsEl.getChildNodes();
 			for (int i = 0; i < children.getLength(); i++) {
 				if (children.item(i).getNodeName().equals("Region")) {
 					Element m = (Element) children.item(i);
@@ -227,52 +250,27 @@ public class LEDControllerPanel extends JPanel {
 					}
 				}
 			}
-			sendConfig();
+			gotConfig = true;
 		}
-	}
-
-	public Element getElement(Document doc) {
-		Element e = doc.createElement("LEDControl");
-		e.setAttribute("brightness", Integer.toString(brightness));
-		Element e2 = charactersGetElement(doc);
-		e.appendChild(e2);
-		e2 = doc.createElement("RecentColours");
-		for (Color c : recentColours) {
-			Element cEl = doc.createElement("Colour");
-			cEl.setAttribute("red", Integer.toString(c.getRed()));
-			cEl.setAttribute("green", Integer.toString(c.getGreen()));
-			cEl.setAttribute("blue", Integer.toString(c.getBlue()));
-			e2.appendChild(cEl);
-		}
-		e.appendChild(e2);
-		return e;
-	}
-
-	public void parseDOM(Party p, Document dom) {
-		Element node = XMLUtils.findNode(dom.getDocumentElement(), "LEDControl");
-		if (node == null) return;
-		if (node.hasAttribute("brightness")) {
-			brightness = Integer.parseInt(node.getAttribute("brightness"));
-			if (brightness < 0) brightness = 0;
-			if (brightness > 255) brightness = 255;
-		}
-		charactersParseDOM(p, node);
 
 		Element recent = XMLUtils.findNode(node, "RecentColours");
 		if (recent != null) {
 			NodeList children = recent.getChildNodes();
 			for (int i = children.getLength() - 1; i >= 0; i--) {
 				if (children.item(i).getNodeName().equals("Colour")) {
-					Element e = (Element) children.item(i);
-					int red = Integer.parseInt(e.getAttribute("red"));
-					int green = Integer.parseInt(e.getAttribute("green"));
-					int blue = Integer.parseInt(e.getAttribute("blue"));
+					Element colourEl = (Element) children.item(i);
+					int red = Integer.parseInt(colourEl.getAttribute("red"));
+					int green = Integer.parseInt(colourEl.getAttribute("green"));
+					int blue = Integer.parseInt(colourEl.getAttribute("blue"));
 					Color c = new Color(red, green, blue);
 					recentColours.add(0, c);
 				}
 			}
-			sendConfig();
+			gotConfig = true;
 		}
+
+		if (gotConfig) sendConfig();
+
 		if (recentColours.size() > 0) {
 			colorChooser.setColor(recentColours.get(0));
 		}

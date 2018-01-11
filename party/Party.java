@@ -23,13 +23,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import util.Module;
+import util.ModuleRegistry;
 import util.XMLUtils;
 
-public class Party implements Iterable<Character> {
+public class Party implements Iterable<Character>, Module {
 	protected List<Character> characters;
 	protected List<PartyListener> listeners = new ArrayList<>();
 
 	public Party() {
+		ModuleRegistry.register(Party.class, this);
 		characters = new ArrayList<>();
 	}
 
@@ -203,5 +206,9 @@ public class Party implements Iterable<Character> {
 		}
 		e.appendChild(p);
 		return e;
+	}
+
+	@Override
+	public void moduleExit() {
 	}
 }

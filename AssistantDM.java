@@ -81,7 +81,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	CombatPanel combatPanel;
 	CameraPanel cameraPanel;
 	JTabbedPane tabbedPane;
-	static String tableServer;
 	DigitalTableController controller;
 	LEDController ledController;
 	LEDControllerPanel ledPanel;
@@ -100,10 +99,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			System.setSecurityManager(new SecurityManager());
 		}
 
-		if (args.length > 0) {
-			tableServer = args[0];
-		}
-
 		SwingUtilities.invokeLater(() -> {
 			AssistantDM inst = new AssistantDM();
 			inst.setLocationRelativeTo(null);
@@ -113,6 +108,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 	public AssistantDM() {
 		file = new File("party.xml");
+
+		ModuleRegistry.parseConfigFile(new File("config.xml"));
 
 		setTitle("Assistant DM - "+file.getName());
 		addWindowListener(new WindowAdapter() {
@@ -231,7 +228,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		ledPanel.parseDOM(party, dom);
 		tabbedPane.addTab("LED Control", null, ledPanel, "LED Control");
 
-		controller = new DigitalTableController(AssistantDM.tableServer) {
+		controller = new DigitalTableController() {
 			@Override
 			protected void quit() {
 				close();
@@ -511,7 +508,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		} else if (e.getSource() == tableItem) {
 			if (!controller.isOpen())
-				controller.openRemote(AssistantDM.tableServer);
+				controller.openRemote();
 
 		} else if (e.getSource() == xpItem) {
 			calculateXP();
