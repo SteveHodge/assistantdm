@@ -27,9 +27,12 @@ import util.Module;
 import util.ModuleRegistry;
 import util.XMLUtils;
 
+// XXX not sure if Party or CharacterCollection or both should be the module
+
 public class Party implements Iterable<Character>, Module {
 	protected List<Character> characters;
 	protected List<PartyListener> listeners = new ArrayList<>();
+	protected Map<PartyXMLPlugin, String> plugins = new HashMap<>();
 
 	public Party() {
 		ModuleRegistry.register(Party.class, this);
@@ -42,6 +45,14 @@ public class Party implements Iterable<Character>, Module {
 
 	public void removePartyListener(PartyListener l) {
 		listeners.remove(l);
+	}
+
+	public void addXMLPlugin(PartyXMLPlugin plugin, String tagName) {
+		plugins.put(plugin, tagName);
+	}
+
+	public void removeXMLPlugin(PartyXMLPlugin plugin) {
+		plugins.remove(plugin);
 	}
 
 	public void add(Character c) {
@@ -96,96 +107,80 @@ public class Party implements Iterable<Character>, Module {
 		}
 	}
 
-	public static Party parseDOM(Document dom) {
-		return parseDOM(dom, false);
-	}
-
 	/**
-	 * Reads the supplied Document are builds a party of characters from it. All
-	 * characters in the file are added to the <code>CharacterLibrary</code> unless
-	 * <code>update</code> is true. If the file has a &lt;Party&gt; block then the
-	 * new <code>Party</code> is set up to conatin just those characters, otherwise
-	 * it is set up with all the characters from the file.
+	 * The <code>Party</code> is emptied and then characters from the supplied Document
+	 * are added to it. All characters in the file are added to the <code>CharacterLibrary</code>.
+	 * If the file has a &lt;Party&gt; block then the <code>Party</code> is set up to contain
+	 * just those characters, otherwise it is set up with all the characters from the file.
+	 * Any registered XML plug-ins are called to handle the elements they are registerd for.
 	 *
 	 * @param xmlFile
 	 *            the File to parse
-	 * @param update
-	 *            if true then the incomming characters are not added to the CharacterLibrary
-	 * @return the new Party
 	 */
-	public static Party parseDOM(Document dom, boolean update) {
-		Party p = new Party();
-
+	public void parseDOM(Document dom) {
 		Map<String, Character> charMap = new HashMap<>();
-		Node node = XMLUtils.findNode(dom,"Characters");
-		if (node != null) {
-			NodeList children = node.getChildNodes();
-			for (int i=0; i<children.getLength(); i++) {
-				if (children.item(i).getNodeName().equals("Character")) {
-					Character c = Character.parseDOM((Element)children.item(i));
+		boolean hasParty = false;
+		Map<String, PartyXMLPlugin> pluginMap = new HashMap<>();
+
+		// build a map of tags to the plugins that handle them. could maintain this all the time but parsing is rare so just build it when we need it
+		for (PartyXMLPlugin p : plugins.keySet()) {
+			pluginMap.put(plugins.get(p), p);
+		}
+
+		while (characters.size() > 0) {
+			Character c = characters.get(0);
+			remove(c);
+		}
+
+		Node root = XMLUtils.findNode(dom, "Characters");	// root node
+		if (root != null) {
+			NodeList children = root.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++) {
+				if (children.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+				Element child = (Element) children.item(i);
+				String name = child.getNodeName();
+				if (name.equals("Character")) {
+					Character c = Character.parseDOM(child);
 					if (c != null) {
-						if (!update) CharacterLibrary.add(c);
+						CharacterLibrary.add(c);
 						charMap.put(c.getName(),c);
 					}
+				} else if (name.equals("Party")) {
+					hasParty = true;
+
+					NodeList partyChildren = child.getChildNodes();
+					for (int j = 0; j < partyChildren.getLength(); j++) {
+						if (partyChildren.item(j).getNodeName().equals("Member")) {
+							Element m = (Element) partyChildren.item(j);
+							Character c = charMap.get(m.getAttribute("name"));
+							if (c != null) {
+								if ("true".equals(m.getAttribute("autosave")) || "1".equals(m.getAttribute("autosave"))) {
+									c.setAutoSave(true);
+								}
+								add(c);
+							}
+						}
+					}
+
+				} else if (pluginMap.containsKey(name)) {
+					// we have a plugin to manage this element
+					PartyXMLPlugin plugin = pluginMap.get(name);
+					plugin.parseElement(child);
+
+				} else {
+					System.err.println("Unknown element found while parsing Party: " + name);
 				}
 			}
 		}
 
-		node = XMLUtils.findNode(node, "Party");
-		if (node != null) {
-			NodeList children = node.getChildNodes();
-			for (int i=0; i<children.getLength(); i++) {
-				if (children.item(i).getNodeName().equals("Member")) {
-					Element m = (Element)children.item(i);
-					Character c = charMap.get(m.getAttribute("name"));
-					if (c != null) {
-						if ("true".equals(m.getAttribute("autosave")) || "1".equals(m.getAttribute("autosave"))) {
-							c.setAutoSave(true);
-						}
-						p.add(c);
-					}
-				}
-			}
-
-		} else {
+		if (!hasParty) {
 			System.out.println("Party not found");
 			for (Character c: charMap.values()) {
-				p.add(c);
+				add(c);
 			}
 		}
-
-		return p;
 	}
 
-	public String getXML() {
-		return getXML("", "    ");
-	}
-
-	// TODO move to CharacterLibrary (except Party block)?
-	public String getXML(String indent, String nextIndent) {
-		StringBuilder b = new StringBuilder();
-		String nl = System.getProperty("line.separator");
-		b.append(indent);
-		//b.append("<Characters xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"party.xsd\">");
-		b.append("<Characters>");
-		b.append(nl);
-
-		Character[] allCharacters = new Character[CharacterLibrary.characters.size()];
-		allCharacters = CharacterLibrary.characters.toArray(allCharacters);
-		Arrays.sort(allCharacters, (a, bb) -> a.getName().compareTo(bb.getName()));
-//		for (Character c : allCharacters) {
-//			b.append(c.getXML(indent+nextIndent,nextIndent));
-//		}
-		b.append(indent+nextIndent+"<Party>"+nl);
-		for (Character c : characters) {
-			b.append(indent + nextIndent + nextIndent + "<Member name=\"" + c.getName() + "\"");
-			if (c.isAutoSaving()) b.append(" autosave=\"true\"");
-			b.append("/>" + nl);
-		}
-		b.append(indent+nextIndent+"</Party>"+nl);
-		b.append(indent).append("</Characters>").append(nl);
-		return b.toString();
-	}
 
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("Characters");
@@ -205,6 +200,12 @@ public class Party implements Iterable<Character>, Module {
 			p.appendChild(m);
 		}
 		e.appendChild(p);
+
+		for (PartyXMLPlugin plugin : plugins.keySet()) {
+			Element el = plugin.getElement(doc);
+			if (el != null) e.appendChild(el);
+		}
+
 		return e;
 	}
 

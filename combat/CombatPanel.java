@@ -1,13 +1,9 @@
 package combat;
 
-import gamesystem.Creature;
-
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,29 +24,25 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.table.TableColumn;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.SchemaFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import gamesystem.Creature;
 import party.Character;
 import party.Party;
+import party.PartyXMLPlugin;
 import swing.ReorderableList;
 import swing.SpinnerCellEditor;
 import util.ModuleRegistry;
 import util.Updater;
-import util.XMLUtils;
 
 // TODO consider removing ability to edit max hitpoints. Maybe have modifications on this tab be temporary
 // TODO provide events when the combat state changes (round or initiative list), then file updater can just register as listener
 
 @SuppressWarnings("serial")
-public class CombatPanel extends JPanel implements EncounterModule {
+public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlugin {
 	private Party party;
 	private InitiativeListModel initiativeListModel;
 	private EffectTableModel effectsTableModel;
@@ -65,6 +57,7 @@ public class CombatPanel extends JPanel implements EncounterModule {
 
 	public CombatPanel(Party p) {
 		party = p;
+		party.addXMLPlugin(this, "Combat");
 
 		initiativeListModel = new InitiativeListModel(party);
 		initiativeListModel.addListDataListener(new ListDataListener() {
@@ -210,28 +203,10 @@ public class CombatPanel extends JPanel implements EncounterModule {
 		listeners.remove(l);
 	}
 
-//	private String getCharacterName(int index) {
-//		return party.get(index).getName();
-//	}
+	@Override
+	public void parseElement(Element e) {
+		if (!e.getTagName().equals("Combat")) return;
 
-	public void parseXML(File xmlFile) {
-		System.out.println("Parsing " + xmlFile);
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			InputStream is = getClass().getClassLoader().getResourceAsStream("combat.xsd");
-			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
-			Document dom = factory.newDocumentBuilder().parse(xmlFile);
-			//XMLUtils.printNode(dom, "");
-
-			Node node = XMLUtils.findNode(dom,"Combat");
-			if (node != null) parseDOM((Element) node);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void parseDOM(Element e) {
 		if (e.hasAttribute("round")) {
 			round = Integer.parseInt(e.getAttribute("round"));
 			roundsLabel.setText("Round " + round);
@@ -247,6 +222,7 @@ public class CombatPanel extends JPanel implements EncounterModule {
 		}
 	}
 
+	@Override
 	public Element getElement(Document doc) {
 		Element el = doc.createElement("Combat");
 		el.setAttribute("round", Integer.toString(round));
@@ -280,7 +256,5 @@ public class CombatPanel extends JPanel implements EncounterModule {
 
 	@Override
 	public void moduleExit() {
-		// TODO Auto-generated method stub
-
 	}
 }

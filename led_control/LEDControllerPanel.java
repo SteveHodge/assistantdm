@@ -36,6 +36,7 @@ import gamesystem.core.PropertyListener;
 import gamesystem.core.SimpleProperty;
 import party.Character;
 import party.Party;
+import party.PartyXMLPlugin;
 import util.XMLUtils;
 
 // This panel provides the ui to configure the leds for either per-character hitpoint status display or a global colour override.
@@ -44,7 +45,7 @@ import util.XMLUtils;
 // TODO custom effects
 
 @SuppressWarnings("serial")
-public class LEDControllerPanel extends JPanel {
+public class LEDControllerPanel extends JPanel implements PartyXMLPlugin {
 	LEDController controller;
 	Party party;
 
@@ -62,6 +63,7 @@ public class LEDControllerPanel extends JPanel {
 	public LEDControllerPanel(LEDController con, Party party) {
 		controller = con;
 		this.party = party;
+		party.addXMLPlugin(this, "LEDControl");
 
 		final PlayerRegionTableModel regionsModel = new PlayerRegionTableModel();
 		final JTable regionsTable = new JTable(regionsModel);
@@ -191,6 +193,7 @@ public class LEDControllerPanel extends JPanel {
 		return p;
 	}
 
+	@Override
 	public Element getElement(Document doc) {
 		Element e = doc.createElement("LEDControl");
 		e.setAttribute("brightness", Integer.toString(brightness));
@@ -205,7 +208,7 @@ public class LEDControllerPanel extends JPanel {
 				m.setAttribute("start", Integer.toString(r.start));
 				m.setAttribute("count", Integer.toString(r.count));
 				m.setAttribute("enabled", Boolean.toString(r.enabled));
-				e.appendChild(m);
+				e2.appendChild(m);
 			}
 		}
 		e.appendChild(e2);
@@ -222,11 +225,12 @@ public class LEDControllerPanel extends JPanel {
 		return e;
 	}
 
-	public void parseDOM(Party p, Document dom) {
+	@Override
+	public void parseElement(Element node) {
+		if (!node.getTagName().equals("LEDControl")) return;
+
 		boolean gotConfig = false;
 
-		Element node = XMLUtils.findNode(dom.getDocumentElement(), "LEDControl");
-		if (node == null) return;
 		if (node.hasAttribute("brightness")) {
 			brightness = Integer.parseInt(node.getAttribute("brightness"));
 			if (brightness < 0) brightness = 0;
@@ -239,7 +243,7 @@ public class LEDControllerPanel extends JPanel {
 			for (int i = 0; i < children.getLength(); i++) {
 				if (children.item(i).getNodeName().equals("Region")) {
 					Element m = (Element) children.item(i);
-					Character c = p.get(m.getAttribute("name"));
+					Character c = party.get(m.getAttribute("name"));
 					if (c != null) {
 						Region r = addCharacter(c);
 						r.id = Integer.parseInt(m.getAttribute("id"));

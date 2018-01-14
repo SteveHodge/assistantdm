@@ -1,5 +1,4 @@
 ---=== IN PROGRESS ===---
-* Implement the new high level app structure detailed below   
 * Make wounds and non-lethal into properties. - consider if MaxHPs should be merged or replaced with hitdice as their functionality seem to overlap
 * Remove remaining PROPERTY constants? At least check where they are used
 * Sort out hierarchy - consider if sub-properties should be registered with their parent or with the Creature.
@@ -28,7 +27,8 @@
 
 ---=== NEW HIGH LEVEL APP ARCHITECTURE ===---
 The Module system will be used for coordinating parts of the system, and loading/saving app and installation specific settings (server addresses, hardware related settings, directory defaults etc).
-Party (which may need a rename) will coordinate campaign related stuff including ruleset preferences, characters, and current encounter state. 
+Party (which may need a rename) will coordinate campaign related stuff including ruleset preferences, characters, and current encounter state.
+Might want to make CharacterLibrary to be the core "campaign" object that does the loading/saving and handles rulesets and other campaign level stuff. Party would still handle the Party element.  
 
 ---=== NEW NOTIFICATION IMPLEMENTATION ===---
 Plan is for there to be a single listener list (per character). Listeners will provide a string template for the sources they are interested in. Events will then be sent to interested listeners.

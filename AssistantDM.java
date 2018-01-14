@@ -41,7 +41,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import camera.Camera;
 import camera.CameraPanel;
@@ -107,9 +106,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	}
 
 	public AssistantDM() {
-		file = new File("party.xml");
-
 		ModuleRegistry.parseConfigFile(new File("config.xml"));
+
+		file = new File("party.xml");
 
 		setTitle("Assistant DM - "+file.getName());
 		addWindowListener(new WindowAdapter() {
@@ -118,6 +117,34 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 				exit();
 			}
 		});
+
+		// create modules
+		RuleSet.parseXML(new File("rulesets/ptolus.xml"));
+		party = new Party();
+
+		combatPanel = new CombatPanel(party);
+
+		ledController = new LEDController();
+		ledPanel = new LEDControllerPanel(ledController, party);
+
+		Document dom = Party.parseXML(file);
+		party.parseDOM(dom);
+
+		try {
+			Camera camera = new Camera();
+			cameraPanel = new CameraPanel(camera);
+		} catch (UnsatisfiedLinkError e) {
+			System.out.println("Caught error: "+e);
+		} catch (NoClassDefFoundError e) {
+			System.out.println("Caught error: " + e);
+		}
+
+		controller = new DigitalTableController() {
+			@Override
+			protected void quit() {
+				close();
+			}
+		};
 
 		// TODO convert to Actions where sensible
 		menuBar = new JMenuBar();
@@ -179,15 +206,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		tabbedPane = new JTabbedPane();
 
-		RuleSet.parseXML(new File("rulesets/ptolus.xml"));
-		Document dom = Party.parseXML(file);
-		party = Party.parseDOM(dom);
-
 		JComponent panel;
-		combatPanel = new CombatPanel(party);
 
-		File f = new File("combat.xml");
-		if (f.exists()) combatPanel.parseXML(f);
 		tabbedPane.addTab("Combat", null, combatPanel, "Initiative and Combat");
 
 		panel = new PartyPanel(party);
@@ -213,27 +233,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		panel = new MagicGeneratorPanel();
 		tabbedPane.addTab("Random Magic", null, panel, "Generate Random Magic Items");
 
-		try {
-			Camera camera = new Camera();
-			cameraPanel = new CameraPanel(camera);
-			tabbedPane.addTab("Camera", null, cameraPanel, "Camera Remote Image Capture");
-		} catch (UnsatisfiedLinkError e) {
-			System.out.println("Caught error: "+e);
-		} catch (NoClassDefFoundError e) {
-			System.out.println("Caught error: " + e);
-		}
+		if (cameraPanel != null) tabbedPane.addTab("Camera", null, cameraPanel, "Camera Remote Image Capture");
 
-		ledController = new LEDController();
-		ledPanel = new LEDControllerPanel(ledController, party);
-		ledPanel.parseDOM(party, dom);
-		tabbedPane.addTab("LED Control", null, ledPanel, "LED Control");
-
-		controller = new DigitalTableController() {
-			@Override
-			protected void quit() {
-				close();
-			}
-		};
+		if (ledPanel != null) tabbedPane.addTab("LED Control", null, ledPanel, "LED Control");
 
 		getContentPane().add(tabbedPane);
 
@@ -377,8 +379,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		CharacterLibrary.characters.clear();
 		Document dom = Party.parseXML(file);
-		party = Party.parseDOM(dom);
-		ledPanel.parseDOM(party, dom);
+		party.parseDOM(dom);
 
 		int selected = tabbedPane.getSelectedIndex();
 
@@ -437,9 +438,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-			Element partyEl = party.getElement(doc);
-			partyEl.appendChild(ledPanel.getElement(doc));
-			doc.appendChild(partyEl);
+			doc.appendChild(party.getElement(doc));
 			XMLUtils.writeDOM(doc, f);
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
@@ -464,16 +463,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			panel = null;
 		}
 		return panel;
-	}
-
-	public void saveCombat() {
-		try {
-			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-			doc.appendChild(combatPanel.getElement(doc));
-			XMLUtils.writeDOM(doc, new File("combat.xml"));
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		}
 	}
 
 	public void saveShops() {
@@ -553,7 +542,6 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		System.out.println("Exiting");
 		saveParty(file);
 		shopPanel.writeShopsXML("shops.xml");
-		saveCombat();
 		Updater.updaterThread.quit();
 		ModuleRegistry.exit();
 		System.exit(0);

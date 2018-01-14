@@ -17,7 +17,6 @@ import org.w3c.dom.Element;
 import util.Module;
 import util.ModuleRegistry;
 
-//XXX should this be moved to util?
 // config: 		<Module name="LEDController" default_address="192.168.1.132" discovery_url="http://192.168.1.9/assistantdm/leds"/>
 
 public class LEDController implements Module {
