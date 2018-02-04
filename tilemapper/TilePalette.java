@@ -12,6 +12,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.Scrollable;
 import javax.swing.border.BevelBorder;
 
@@ -44,7 +45,9 @@ public class TilePalette extends JPanel implements MouseListener, Scrollable {
 		add(line);
 
 		mainPalette = new PalettePanel();
-		add(mainPalette);
+		JScrollPane scroller = new JScrollPane(mainPalette, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scroller.getVerticalScrollBar().setUnitIncrement(40);
+		add(scroller);
 		tilesChanged();
 	}
 

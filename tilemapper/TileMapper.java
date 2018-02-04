@@ -36,6 +36,7 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -56,15 +57,19 @@ import org.w3c.dom.NodeList;
 
 /*
  * TODO
+ * Option to snap to 3x3 or 6x6 grid.
+ * Style menu filter needs include/exclude/default options. Perhaps a dialog. Set filter should work same way.
  * Scale tiles, particularly for ADM save
  * Disappearing tile bug still happens
  * Smooth dragging when it should be snapping still happens
  * Save to layout overlay image in ADM save file
+ * Should save/load dialogs all default to common last used dir?
  * Wider than normal tiles don't drag properly (get cropped)
  * Performance is bad
  * Set management - better UI
  * Allow map panel to be used as palette as well (selected tile populates top palette, tiles can be used as drag source)
  * Keep recently used tiles in top palette
+ * Have separate default directories for tilemap, image, ADM files?
  */
 @SuppressWarnings("serial")
 public class TileMapper extends JPanel implements ActionListener, KeyListener {
@@ -80,7 +85,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	JSplitPane splitPane;
 	ComponentDragger dragger;
 
-	File defaultDir = new File("d:/programming/git/assistantdm/tilemapper");
+	File defaultDir = new File("C:\\Users\\Steve\\Documents");
 	File mediaDir = new File("media");
 
 	public TileMapper() {
@@ -137,18 +142,24 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 			}
 		};
 
-		Action saveLayoutImageAction = new MapperAction("Save Layout Image...", new ImageIcon("tilemapper/Icons/SaveImage.png"), "Save layout image to file", KeyEvent.VK_I) {
+		Action saveLayoutImageAction = new MapperAction("Save Layout Image...", new ImageIcon("tilemapper/Icons/SaveImage.png"), "Save layout image to file", KeyEvent.VK_L) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				saveLayoutImage();
 			}
 		};
 
-		Action listTilesAction = new MapperAction("List Tiles", new ImageIcon("tilemapper/Icons/ListTiles.png"), "List tiles in map", KeyEvent.VK_L) {
-
+		Action listTilesAction = new MapperAction("List Tiles", new ImageIcon("tilemapper/Icons/ListTiles.png"), "List tiles in map", KeyEvent.VK_T) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				mapPanel.listTiles();
+			}
+		};
+
+		Action debugAction = new AbstractAction("Debug") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mapPanel.debug();
 			}
 		};
 
@@ -206,6 +217,9 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 
 		toolBar = new JToolBar("Still draggable");
 		toolBar.add(new JButton(newAction));
+		toolBar.add(new JButton(openAction));
+		toolBar.add(new JButton(saveAction));
+		toolBar.add(new JButton(debugAction));
 		add(toolBar, BorderLayout.NORTH);
 
 		dragger = new ComponentDragger(frame) {
@@ -219,8 +233,6 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		};
 
 		tilePanel = new TilePalette(dragger);
-		JScrollPane tileScroll = new JScrollPane(tilePanel,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		tileScroll.getVerticalScrollBar().setUnitIncrement(40);
 		mapPanel = new MapPanel(dragger);
 		JScrollPane mapScroll = new JScrollPane(mapPanel,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		mapScroll.getViewport().addChangeListener(new ChangeListener() {
@@ -237,7 +249,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 			}
 		});
 
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tileScroll, mapScroll);
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tilePanel, mapScroll);
 		splitPane.setDividerLocation(460);
 		splitPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 		setPreferredSize(new Dimension(1800, 1000));
@@ -257,18 +269,47 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		tilePanel.revalidate();	// this is necessary here to ensure that the palette is correctly sized
 	}
 
+	File getSaveFile(String fileTypeDesc, String defaultExt) {
+		return getFile(fileTypeDesc, defaultExt, true);
+	}
+
+	File getOpenFile(String fileTypeDesc, String defaultExt) {
+		return getFile(fileTypeDesc, defaultExt, false);
+	}
+
+	File getFile(String fileTypeDesc, String defaultExt, boolean save) {
+		JFileChooser fc = new JFileChooser();
+		FileFilter filter = new FileNameExtensionFilter(fileTypeDesc, defaultExt);
+		fc.addChoosableFileFilter(filter);
+		fc.setFileFilter(filter);
+		fc.setCurrentDirectory(defaultDir);
+//		fc.setCurrentDirectory(file);
+		if (defaultExt.equals("tilemap")) {
+			fc.setSelectedFile(file);
+		}
+		int returnVal;
+		if (save) {
+			returnVal = fc.showSaveDialog(this);
+		} else {
+			returnVal = fc.showOpenDialog(this);
+		}
+		if (returnVal != JFileChooser.APPROVE_OPTION) return null;
+		File f = fc.getSelectedFile();
+		if (fc.getFileFilter() == filter && !f.getName().contains(".")) {
+			// add default extension
+			String n = f.getName() + "." + defaultExt;
+			f = new File(f.getParent(), n);
+		}
+		defaultDir = f.getParentFile();
+		return f;
+	}
+
 	// TODO should ask to save modified map first
 	// TODO use fixed location for schema file
 	public void open() {
-		JFileChooser fc = new JFileChooser();
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("Map Files", "map"));
-		fc.setCurrentDirectory(defaultDir);
-		//fc.setCurrentDirectory(file);
-		fc.setSelectedFile(file);
-		int returnVal = fc.showOpenDialog(this);
-		if (returnVal != JFileChooser.APPROVE_OPTION) return;
-
-		file = fc.getSelectedFile();
+		File f = getOpenFile("Map Files", "tilemap");
+		if (f == null) return;
+		file = f;
 		frame.setTitle("Tile Mapper - "+file.getName());
 		System.out.println("Opening "+file.getAbsolutePath());
 
@@ -351,14 +392,9 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	}
 
 	public void saveAs() {
-		JFileChooser fc = new JFileChooser();
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("Map Files", "map"));
-		fc.setCurrentDirectory(defaultDir);
-//		fc.setCurrentDirectory(file);
-		fc.setSelectedFile(file);
-		int returnVal = fc.showSaveDialog(this);
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			file = fc.getSelectedFile();
+		File f = getSaveFile("Map Files", "tilemap");
+		if (f != null) {
+			file = f;
 			frame.setTitle("TileMapper - "+file.getName());
 			System.out.println("Saving to "+file.getAbsolutePath());
 			save(file);
@@ -366,17 +402,12 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	}
 
 	public void saveImage() {
-		JFileChooser fc = new JFileChooser();
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("Jpeg Files", "jpg"));
-		fc.setCurrentDirectory(defaultDir);
-		//fc.setSelectedFile(file);
-		int returnVal = fc.showSaveDialog(this);
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
+		File f = getSaveFile("Jpeg Files", "jpg");
+		if (f != null) {
 			RenderedImage img = mapPanel.getImage();
-			File file = fc.getSelectedFile();
-			System.out.println("Saving image to " + file.getAbsolutePath());
+			System.out.println("Saving image to " + f.getAbsolutePath());
 			try {
-				ImageIO.write(img, "jpeg", file);
+				ImageIO.write(img, "jpeg", f);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -385,17 +416,12 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	}
 
 	public void saveLayoutImage() {
-		JFileChooser fc = new JFileChooser();
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("Jpeg Files", "jpg"));
-		fc.setCurrentDirectory(defaultDir);
-		//fc.setSelectedFile(file);
-		int returnVal = fc.showSaveDialog(this);
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
+		File f = getSaveFile("Jpeg Files", "jpg");
+		if (f != null) {
 			RenderedImage img = mapPanel.getLayoutImage();
-			File file = fc.getSelectedFile();
 			System.out.println("Saving image to "+file.getAbsolutePath());
 			try {
-				ImageIO.write(img, "png", file);
+				ImageIO.write(img, "png", f);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -404,13 +430,8 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	}
 
 	public void saveADMMap() {
-		JFileChooser fc = new JFileChooser();
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("ADM Map Files", "xml"));
-		fc.setCurrentDirectory(defaultDir);
-		int returnVal = fc.showSaveDialog(this);
-		if (returnVal != JFileChooser.APPROVE_OPTION) return;
-
-		File file = fc.getSelectedFile();
+		File file = getSaveFile("ADM Map Files", "xml");
+		if (file == null) return;
 		System.out.println("Saving ADM map file to " + file.getAbsolutePath());
 		FileOutputStream outputStream = null;
 		try {

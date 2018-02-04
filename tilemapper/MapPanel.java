@@ -86,6 +86,11 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		public int getIndex() {
 			return tiles.indexOf(this);
 		}
+
+		@Override
+		public String toString() {
+			return tile.file.getName() + " @ (" + x + ", " + y + "), orientation = " + orientation;
+		}
 	}
 
 	public MapPanel(ComponentDragger dragger) {
@@ -101,8 +106,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		addMouseMotionListener(mapMouseListener);
 	}
 
-	MouseInputAdapter mapMouseListener =
-			new MouseInputAdapter() {
+	MouseInputAdapter mapMouseListener = new MouseInputAdapter() {
 		// mouseClicked is used to detect tiles being selected
 		@Override
 		public void mouseClicked(MouseEvent e) {
@@ -200,6 +204,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 						if (cancelled) {
 							// drag was cancelled, put the tile back
 							// TODO implement
+							System.err.println("Drag cancelled - need to implement");
 						}
 						MapPanel.this.remove(dragTile);
 						dragger.unregisterSource(dragTile);
@@ -503,5 +508,16 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	@Override
 	public int getScrollableUnitIncrement(Rectangle arg0, int arg1, int arg2) {
 		return gridSize;
+	}
+
+	public void debug() {
+		System.out.println("Selected = " + selected + ", tile #" + tiles.indexOf(selected));
+		System.out.println("Drag Tile = " + dragTile);
+		System.out.println("MapPanel tiles:");
+		for (PlacedTile t : tiles) {
+			if (selected == t)
+				System.out.print("* ");
+			System.out.println(t);
+		}
 	}
 }

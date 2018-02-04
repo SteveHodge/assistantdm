@@ -55,7 +55,7 @@ public class Tile {
 	@Override
 	public String toString() {
 		String s = "tile "+file+" from "+tileSet+". ";
-		s += "image: "+image.getWidth() +"x" + image.getHeight()+"\n";
+		s += "image: " + image.getWidth() + "x" + image.getHeight();
 		return s;
 	}
 

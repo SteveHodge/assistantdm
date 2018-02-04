@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="Tile">
+	<xs:complexType>
+		<xs:attribute name="file" type="xs:string" use="required"/>
+		<xs:attribute name="width" type="xs:int"/>
+		<xs:attribute name="height" type="xs:int"/>
+		<xs:attribute name="style" type="xs:string"/>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="TileSet">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="Tile" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="product-code" type="xs:string"/>
+		<xs:attribute name="style" type="xs:string"/>
+		<xs:attribute name="width" type="xs:int"/>
+		<xs:attribute name="height" type="xs:int"/>
+	</xs:complexType>
+</xs:element>
+
+<!-- =========== Top-Level Structure =========== -->
+
+<xs:element name="Tiles">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="TileSet" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+</xs:schema>

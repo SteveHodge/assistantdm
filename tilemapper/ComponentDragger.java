@@ -52,19 +52,11 @@ public class ComponentDragger implements MouseMotionListener, MouseListener {
 		Component c = e.getComponent();
 		if (c instanceof DragSource) {
 			//System.out.println("Click at " + e.getX() + "," + e.getY());
-			// TODO this needs to be delayed until dragging starts because getDragComponent may remove an existing component before the drag starts and the drag component is added
 			source = (DragSource)c;
 			over = null;
-			sourceComponent = source.getDragComponent();
-			registerSource(sourceComponent);
-			if (sourceComponent != null) {
-				startx = e.getX();
-				starty = e.getY();
-				origin = SwingUtilities.convertPoint(c, e.getX(), e.getY(), pane);
-				e.consume();
-			} else {
-				source = null;
-			}
+			startx = e.getX();
+			starty = e.getY();
+			origin = SwingUtilities.convertPoint(c, e.getX(), e.getY(), pane);
 		}
 	}
 
@@ -131,6 +123,14 @@ public class ComponentDragger implements MouseMotionListener, MouseListener {
 		} else if (source != null) {
 			if (loc.distance(origin) > DRAG_START_DISTANCE) {
 				// We've moved 3 pixels, set up drag
+				sourceComponent = source.getDragComponent();
+				if (sourceComponent != null) {
+					registerSource(sourceComponent);
+				} else {
+					source = null;
+					return;
+				}
+
 				dragComponent = sourceComponent;
 				dragComponent.setLocation(x,y);
 				pane.add(dragComponent,new Integer(JLayeredPane.DRAG_LAYER));
