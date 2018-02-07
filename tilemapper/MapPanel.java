@@ -48,6 +48,7 @@ import org.w3c.dom.NodeList;
 public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	int gridSize = 16;	// size of grid to snap to
 	int minCol = 0, maxCol = 9, minRow = 0, maxRow = 9;
+	int gridSnap = 1;	// tiles are aligned to multiples of this number of cells
 
 	ArrayList<PlacedTile> tiles = new ArrayList<PlacedTile>();
 	PlacedTile selected = null;
@@ -167,6 +168,10 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		}
 	};
 
+	public void setGridSnap(int snap) {
+		gridSnap = snap;
+	}
+
 	public void reset() {
 		tiles = new ArrayList<PlacedTile>();
 		repaint();
@@ -192,7 +197,6 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 
 					@Override
 					public Component getDragComponent() {
-						// TODO this actually happens when the mouse is pressed instead of when the drag starts
 						tiles.remove(selected);
 						selected = null;
 						MapPanel.this.repaint();
@@ -203,7 +207,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 					public void dragFinished(boolean cancelled) {
 						if (cancelled) {
 							// drag was cancelled, put the tile back
-							// TODO implement
+							// FIXME implement either returning tile to where it started or removing the tile
 							System.err.println("Drag cancelled - need to implement");
 						}
 						MapPanel.this.remove(dragTile);
@@ -245,13 +249,6 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 			tiles.remove(selected);
 			setSelected(null);
 		}
-	}
-
-	// x, y in pixels
-	public void addTile(Tile t, int x, int y, int o) {
-		x = x / gridSize + minCol;
-		y = y / gridSize + minRow;
-		addTileGrid(t, x, y, o);
 	}
 
 	public void addTileGrid(Tile t, int x, int y, int o) {
@@ -412,8 +409,8 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 				@Override
 				public void setLocation(int x, int y) {
 					Point cLoc = SwingUtilities.convertPoint(getParent(),x,y,MapPanel.this);
-					cLoc.x -= cLoc.x % gridSize +1;	// the +1 is to account for the border
-					cLoc.y -= cLoc.y % gridSize +1;	// the +1 is to account for the border
+					cLoc.x -= cLoc.x % (gridSize * gridSnap) + 1;	// the +1 is to account for the border
+					cLoc.y -= cLoc.y % (gridSize * gridSnap) + 1;	// the +1 is to account for the border
 					cLoc = SwingUtilities.convertPoint(MapPanel.this,cLoc.x,cLoc.y,getParent());
 					super.setLocation(cLoc.x, cLoc.y);
 				}
@@ -437,7 +434,11 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	public void dragCompleted(Point p) {
 		if (draggedTile == null) return;
 		// doesn't account for differences in scale - but drag should probably always be in destination scale anyway
-		addTile(draggedTile.tile, p.x, p.y, draggedTile.orientation);
+		int x = p.x / gridSize;
+		x = x - (x % gridSnap) + minCol;
+		int y = p.y / gridSize;
+		y = y - (y % gridSnap) + minRow;
+		addTileGrid(draggedTile.tile, x, y, draggedTile.orientation);
 		draggedTile = null;
 	}
 

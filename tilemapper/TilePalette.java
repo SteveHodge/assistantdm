@@ -29,6 +29,10 @@ public class TilePalette extends JPanel implements MouseListener, Scrollable {
 	Map<Tile,DraggableTile> tileCache = new HashMap<Tile,DraggableTile>();
 
 	public TilePalette(ComponentDragger dragger) {
+		TileManager.addPropertyChangeListener(e -> {
+			tilesChanged();
+		});
+
 		this.dragger = dragger;
 		setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
 
@@ -48,10 +52,11 @@ public class TilePalette extends JPanel implements MouseListener, Scrollable {
 		JScrollPane scroller = new JScrollPane(mainPalette, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.getVerticalScrollBar().setUnitIncrement(40);
 		add(scroller);
+		topPalette.setMaximumSize(new Dimension(Integer.MAX_VALUE, 5));	// default to avoid it taking half the area
 		tilesChanged();
 	}
 
-	public void tilesChanged() {
+	private void tilesChanged() {
 		mainPalette.removeAll();
 		for (Tile t : TileManager.getTiles()) {
 			DraggableTile tile = tileCache.get(t);
@@ -97,6 +102,7 @@ public class TilePalette extends JPanel implements MouseListener, Scrollable {
 	// MouseListener interface:
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		topPalette.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));	// reset this to allow correct sizing
 		topPalette.removeAll();
 		DraggableTile tile = (DraggableTile)e.getSource();
 		System.out.println("Selected " + tile.tile.file);

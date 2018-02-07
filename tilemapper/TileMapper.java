@@ -2,6 +2,8 @@ package tilemapper;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -12,27 +14,28 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -57,19 +60,18 @@ import org.w3c.dom.NodeList;
 
 /*
  * TODO
- * Option to snap to 3x3 or 6x6 grid.
- * Style menu filter needs include/exclude/default options. Perhaps a dialog. Set filter should work same way.
+ * BUG - still problem with dragging tiles on the map. Because the selected tile is a separate component, while the drag is still over the tile's original location it doesn't snap to grid.
  * Scale tiles, particularly for ADM save
- * Disappearing tile bug still happens
- * Smooth dragging when it should be snapping still happens
+ * Disappearing tile bug still happens - confirm
+ * Smooth dragging when it should be snapping still happens - confirm
  * Save to layout overlay image in ADM save file
+ * Option to save hi-res (ADM native res) image
  * Should save/load dialogs all default to common last used dir?
- * Wider than normal tiles don't drag properly (get cropped)
- * Performance is bad
- * Set management - better UI
- * Allow map panel to be used as palette as well (selected tile populates top palette, tiles can be used as drag source)
- * Keep recently used tiles in top palette
  * Have separate default directories for tilemap, image, ADM files?
+ * Wider than normal tiles don't drag properly (get cropped) - happens if a rotated wilderness tile is dragged, for example. Note rotating mid-drag works so the issue is with the top palette
+ * Performance is bad
+ * Allow map panel to be used as palette as well (selected tile populates top palette, tiles can be used as drag source)
+ * Keep recently used tiles in top palette?
  */
 @SuppressWarnings("serial")
 public class TileMapper extends JPanel implements ActionListener, KeyListener {
@@ -159,7 +161,12 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		Action debugAction = new AbstractAction("Debug") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mapPanel.debug();
+				//mapPanel.debug();
+				JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(TileMapper.this), "Styles");
+//				dialog.add(TileManager.getStylesPanel());
+				dialog.add(TileManager.getSetsPanel());
+				dialog.pack();
+				dialog.setVisible(true);
 			}
 		};
 
@@ -176,43 +183,31 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
 			public void actionPerformed(ActionEvent arg0) {System.exit(0);}}));
 
-		// TODO there are too many sets. need a better UI
-		JMenu setMenu = new JMenu("Sets");
-		ArrayList<String> sets = new ArrayList<String>(TileManager.getSets());
-		Collections.sort(sets);
-		for (String s : sets) {
-			JCheckBoxMenuItem item = new JCheckBoxMenuItem(s,true);
-			item.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					JCheckBoxMenuItem item = (JCheckBoxMenuItem)e.getSource();
-					TileManager.setSetVisible(item.getText(), item.getState());
-					tilePanel.tilesChanged();
-				}
-			});
-			setMenu.add(item);
-		}
-
-		JMenu styleMenu = new JMenu("Styles");
-		ArrayList<String> styles = new ArrayList<String>(TileManager.getStyles());
-		Collections.sort(styles);
-		for (String s : styles) {
-			JCheckBoxMenuItem item = new JCheckBoxMenuItem(s, false);
-			item.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					JCheckBoxMenuItem item = (JCheckBoxMenuItem)e.getSource();
-					TileManager.setStyleVisible(item.getText(), item.getState());
-					tilePanel.tilesChanged();
-				}
-			});
-			styleMenu.add(item);
-		}
+		JMenu snapMenu = new JMenu("Snap to Grid");
+		snapMenu.setMnemonic(KeyEvent.VK_G);
+		JRadioButtonMenuItem snap1 = new JRadioButtonMenuItem("1x1", true);
+		snap1.addActionListener(e -> {
+			mapPanel.setGridSnap(1);
+		});
+		JRadioButtonMenuItem snap3 = new JRadioButtonMenuItem("3x3");
+		snap3.addActionListener(e -> {
+			mapPanel.setGridSnap(3);
+		});
+		JRadioButtonMenuItem snap6 = new JRadioButtonMenuItem("6x6");
+		snap6.addActionListener(e -> {
+			mapPanel.setGridSnap(6);
+		});
+		ButtonGroup snapGroup = new ButtonGroup();
+		snapGroup.add(snap1);
+		snapGroup.add(snap3);
+		snapGroup.add(snap6);
+		snapMenu.add(snap1);
+		snapMenu.add(snap3);
+		snapMenu.add(snap6);
 
 		menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
-		menuBar.add(setMenu);
-		menuBar.add(styleMenu);
+		menuBar.add(snapMenu);
 		frame.setJMenuBar(menuBar);
 
 		toolBar = new JToolBar("Still draggable");
@@ -231,6 +226,21 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 				}
 			}
 		};
+
+		JPanel filterPanel = new JPanel();
+		filterPanel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.anchor = GridBagConstraints.WEST;
+		c.gridx = 0;
+		JPanel p = TileManager.getStylesPanel();
+		filterPanel.add(p, c);
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0f;
+		c.weightx = 1.0f;
+		p = TileManager.getSetsPanel();
+		JScrollPane setsScroll = new JScrollPane(p, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		filterPanel.add(setsScroll, c);
+		add(filterPanel, BorderLayout.WEST);
 
 		tilePanel = new TilePalette(dragger);
 		mapPanel = new MapPanel(dragger);
