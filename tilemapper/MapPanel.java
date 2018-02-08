@@ -177,7 +177,9 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		repaint();
 	}
 
-	// XXX [is this true?] size of DraggableTile isn't quite right because it includes a border we're not painting
+	// TODO size of DraggableTile isn't quite right because it includes a border we're not painting
+	// TODO this blocks drag onto the selected tile
+	// TODO would be nice if rotation on selected tile also worked
 	protected void setSelected(PlacedTile newselected) {
 		if (newselected != selected) {
 			if (selected != null) {
@@ -203,6 +205,11 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 
 					@Override
 					public void dragFinished(boolean cancelled) {
+						if (cancelled) {
+							// drag was cancelled, put the tile back
+							// FIXME implement either returning tile to where it started or removing the tile
+							System.err.println("Drag cancelled - need to implement");
+						}
 						MapPanel.this.remove(dragTile);
 						dragger.unregisterSource(dragTile);
 						super.dragFinished(cancelled);
