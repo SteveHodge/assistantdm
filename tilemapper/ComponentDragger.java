@@ -87,7 +87,8 @@ public class ComponentDragger implements MouseMotionListener, MouseListener {
 		// look for an ancestor that is DragTarget - if there is then we'll use that, if not then we'll use the deepest component
 		Component c = deepest;
 		while (c != frame.getContentPane() && c != null) {
-			if (c instanceof DragTarget && c.contains(p)) {
+			Point pp = SwingUtilities.convertPoint(pane, p, c);	// need to translate p to be relative to the component in question as that's what c.contains expects
+			if (c instanceof DragTarget && c.contains(pp)) {
 				return c;
 			}
 			c = c.getParent();
@@ -100,6 +101,19 @@ public class ComponentDragger implements MouseMotionListener, MouseListener {
 		Point loc = SwingUtilities.convertPoint(e.getComponent(), e.getX(), e.getY(), pane);
 		int x = loc.x - startx;
 		int y = loc.y - starty;
+		if (source != null && loc.distance(origin) > DRAG_START_DISTANCE && dragComponent == null) {
+			// We've moved 3 pixels, set up drag
+			sourceComponent = source.getDragComponent();
+			if (sourceComponent != null) {
+				registerSource(sourceComponent);
+			} else {
+				source = null;
+				return;
+			}
+
+			dragComponent = sourceComponent;
+			pane.add(dragComponent, new Integer(JLayeredPane.DRAG_LAYER));
+		}
 		if (dragComponent != null) {
 			Component c = getComponentUnderDrag(loc);
 			if (c != over) {
@@ -120,21 +134,6 @@ public class ComponentDragger implements MouseMotionListener, MouseListener {
 				}
 			}
 			dragComponent.setLocation(x, y);
-		} else if (source != null) {
-			if (loc.distance(origin) > DRAG_START_DISTANCE) {
-				// We've moved 3 pixels, set up drag
-				sourceComponent = source.getDragComponent();
-				if (sourceComponent != null) {
-					registerSource(sourceComponent);
-				} else {
-					source = null;
-					return;
-				}
-
-				dragComponent = sourceComponent;
-				dragComponent.setLocation(x,y);
-				pane.add(dragComponent,new Integer(JLayeredPane.DRAG_LAYER));
-			}
 		}
 	}
 
