@@ -13,11 +13,11 @@
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
         <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem"/>
         <file path="/AssistantDM/shops.xsd"/>
+        <file path="/AssistantDM/config.xsd"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;camera"/>
         <file path="/AssistantDM/party.xsd"/>
         <javaElement handleIdentifier="=Library/&lt;swing"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;org.json"/>
-        <file path="/AssistantDM/combat.xsd"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;ui"/>
         <file path="/CanonCDSDK/psCamDat.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;gamesystem.core"/>

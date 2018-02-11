@@ -104,7 +104,7 @@ public class AbilityScore extends Statistic {
 	// returns the "normal" value of the ability score (the base value + any modifiers that apply)
 	// if no override is set then this will be equal to getValue()
 	public int getRegularValue() {
-		return baseValue + super.getValue();
+		return baseValue + getModifiersTotal();
 	}
 
 	public void setBaseValue(int v) {
