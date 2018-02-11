@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -19,8 +20,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import gamesystem.XP;
-import gamesystem.core.PropertyListener;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 
 // TODO better history dialog
@@ -67,7 +68,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyListe
 		c.gridx = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0;
-		BoundIntegerField f = new BoundIntegerField(character.getStatistic(Character.STATISTIC_LEVEL), 2);
+		JComponent f = PropertyFields.createOverrideIntegerField(character.getStatistic(Character.STATISTIC_LEVEL), 2);
 		f.setMinimumSize(new Dimension(40,f.getMinimumSize().height));
 		add(f,c);
 

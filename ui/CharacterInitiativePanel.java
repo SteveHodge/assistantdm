@@ -4,6 +4,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
@@ -15,7 +16,7 @@ import party.Character;
 @SuppressWarnings("serial")
 class CharacterInitiativePanel extends CharacterSubPanel {
 	private JLabel dexLabel;
-	private BoundIntegerField baseInit;
+	private JComponent baseInit;
 	private JLabel totLabel;
 
 	CharacterInitiativePanel(Character c) {
@@ -28,7 +29,7 @@ class CharacterInitiativePanel extends CharacterSubPanel {
 
 		add(new JLabel("Base:"));
 
-		baseInit = new BoundIntegerField(init, 3);
+		baseInit = PropertyFields.createOverrideIntegerField(init, 3);
 		add(baseInit);
 
 		totLabel = new JLabel("Total: " + init.getValue() + (init.hasConditionalModifier() ? "*" : ""));

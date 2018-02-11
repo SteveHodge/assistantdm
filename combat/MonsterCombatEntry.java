@@ -21,7 +21,7 @@ import org.w3c.dom.Element;
 import gamesystem.Creature;
 import monsters.Monster;
 import monsters.StatsBlockCreatureView;
-import ui.BoundIntegerField;
+import ui.PropertyFields;
 
 //TODO tooltips get lost on reload - the connection to the stat block is not stored in the xml file
 //TODO finish tooltip implementation
@@ -58,11 +58,11 @@ public class MonsterCombatEntry extends CombatEntry {
 	}
 
 	void createEntry() {
-		acComp = new BoundIntegerField(creature.getACStatistic(), 4);
-		touchACComp = new BoundIntegerField(creature.getACStatistic().getTouchAC(), 4);
-		flatFootedACComp = new BoundIntegerField(creature.getACStatistic().getFlatFootedAC(), 4);
+		acComp = PropertyFields.createOverrideIntegerField(creature.getACStatistic(), 4);
+		touchACComp = PropertyFields.createOverrideIntegerField(creature.getACStatistic().getTouchAC(), 4);
+		flatFootedACComp = PropertyFields.createOverrideIntegerField(creature.getACStatistic().getFlatFootedAC(), 4);
 
-		modifierComp = new BoundIntegerField(creature.getInitiativeStatistic(), 3);
+		modifierComp = PropertyFields.createOverrideIntegerField(creature.getInitiativeStatistic(), 3);
 
 		creature.addPropertyListener(hps, this);
 		creature.addPropertyListener(creature.getInitiativeStatistic(), this);
