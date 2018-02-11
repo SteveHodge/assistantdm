@@ -43,8 +43,8 @@ import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.Size;
 import gamesystem.SizeCategory;
-import gamesystem.core.PropertyListener;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import util.ModuleRegistry;
 
 @SuppressWarnings("serial")

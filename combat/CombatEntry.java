@@ -28,8 +28,8 @@ import org.w3c.dom.Element;
 
 import gamesystem.Creature;
 import gamesystem.HPs;
-import gamesystem.core.PropertyListener;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import ui.Status;
 
 @SuppressWarnings("serial")
@@ -87,16 +87,16 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	void applyDamage(int delta, boolean nonLethal) {
 		// apply current damage
 		if (nonLethal) {
-			hps.setNonLethal(hps.getNonLethal() + delta);
+			hps.getNonLethalProperty().setValue(hps.getNonLethal() + delta);
 		} else {
-			hps.setWounds(hps.getWounds() + delta);
+			hps.getWoundsProperty().setValue(hps.getWounds() + delta);
 		}
 	}
 
 	void healAll() {
 		// remove all damage
-		hps.setWounds(0);
-		hps.setNonLethal(0);
+		hps.getWoundsProperty().setValue(0);
+		hps.getNonLethalProperty().setValue(0);
 	}
 
 	// Note: marks the entry as having been changed if it was blank, and if it has the roll is 0, randomly rolls

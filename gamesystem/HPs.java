@@ -8,6 +8,8 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.SettableProperty;
+import gamesystem.core.SimpleValueProperty;
 import gamesystem.dice.HDDice;
 
 
@@ -61,9 +63,8 @@ public class HPs extends Statistic {
 	List<TempHPs> tempHPs = new ArrayList<>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
 	Map<Modifier, TempHPs> modMap = new HashMap<>();
 	MaxHPs maxHPs;
-//	SimpleProperty<Integer> wounds;
-//	SimpleProperty<Integer> nonLethal;
-	int wounds, nonLethal;
+	SimpleValueProperty<Integer> wounds;
+	SimpleValueProperty<Integer> nonLethal;
 
 	// interested parties can register listeners as with other Modifier subclasses. if damage reduces a hps to 0, the TempHPs will be removed from the HPs instance
 	class TempHPs extends AbstractModifier {
@@ -129,13 +130,9 @@ public class HPs extends Statistic {
 
 		maxHPs = new MaxHPs(parent);
 
-//		wounds = new SimpleValueProperty<Integer() {
-//
-//		};
-//
-//		nonLethal = new SimpleValueProperty<Integer() {
-//
-//		};
+		wounds = new SimpleValueProperty<Integer>("hit_points.wounds", parent, 0);
+
+		nonLethal = new SimpleValueProperty<Integer>("hit_points.non-lethal", parent, 0);
 	}
 
 	// apply any HD modifier change to maximum hitpoints
@@ -152,13 +149,25 @@ public class HPs extends Statistic {
 		return maxHPs;
 	}
 
-	public List<Modifier> getTemporaryHPsModifiers() {
-		List<Modifier> m = Collections.<Modifier>unmodifiableList(tempHPs);
-		return m;
+	public SettableProperty<Integer> getWoundsProperty() {
+		return wounds;
+	}
+
+	public SettableProperty<Integer> getNonLethalProperty() {
+		return nonLethal;
 	}
 
 	public int getWounds() {
-		return wounds;
+		return wounds.getValue();
+	}
+
+	public int getNonLethal() {
+		return nonLethal.getValue();
+	}
+
+	public List<Modifier> getTemporaryHPsModifiers() {
+		List<Modifier> m = Collections.<Modifier>unmodifiableList(tempHPs);
+		return m;
 	}
 
 	public void applyHealing(int heal) {
@@ -166,16 +175,16 @@ public class HPs extends Statistic {
 //		int oldWounds = wounds;
 //		int oldNL = nonLethal;
 
-		if (nonLethal > heal) {
-			nonLethal -= heal;
+		if (nonLethal.getValue() > heal) {
+			nonLethal.setValue(nonLethal.getValue() - heal);
 		} else {
-			nonLethal = 0;
+			nonLethal.setValue(0);
 		}
 
-		if (wounds > heal) {
-			wounds -= heal;
+		if (wounds.getValue() > heal) {
+			wounds.setValue(wounds.getValue() - heal);
 		} else {
-			wounds = 0;
+			wounds.setValue(0);
 		}
 
 //		firePropertyChange(Creature.PROPERTY_WOUNDS, oldWounds, wounds);	// FIXME if wounds are to behave like a property then they should be a property
@@ -227,34 +236,12 @@ public class HPs extends Statistic {
 		fireEvent(oldHPs);
 
 		// apply any remaining damage as wounds
-		if (dmg > 0) setWounds(wounds+dmg);
+		if (dmg > 0) wounds.setValue(wounds.getValue() + dmg);
 	}
 
 	// apply non-lethal damage
 	public void applyNonLethal(int d) {
-//		int old = nonLethal;
-		nonLethal += d;
-//		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, nonLethal);	// FIXME non-lethal needs to be a property
-		fireEvent();
-	}
-
-	// this directly sets the number of wounds (it bypasses temporary hitpoints)
-	public void setWounds(int i) {
-//		int old = wounds;
-		wounds = i;
-//		firePropertyChange(Creature.PROPERTY_WOUNDS, old, i);	// FIXME wounds needs to be a property
-		fireEvent();
-	}
-
-	public int getNonLethal() {
-		return nonLethal;
-	}
-
-	public void setNonLethal(int i) {
-//		int old = nonLethal;
-		nonLethal = i;
-//		firePropertyChange(Creature.PROPERTY_NONLETHAL, old, i);
-		fireEvent();
+		nonLethal.setValue(nonLethal.getValue() + d);
 	}
 
 	Modifier addTemporaryHPs(TempHPs temps) {
@@ -310,7 +297,7 @@ public class HPs extends Statistic {
 
 	// returns the current hitpoints (not including any non-lethal damage)
 	public int getHPs() {
-		return maxHPs.getValue() + getTemporaryHPs() - wounds;
+		return maxHPs.getValue() + getTemporaryHPs() - wounds.getValue();
 	}
 
 	// Statistics methods
@@ -364,7 +351,7 @@ public class HPs extends Statistic {
 	public String getSummary() {
 		StringBuilder text = new StringBuilder();
 		text.append(maxHPs.getValue()).append(" maximum<br/>");
-		if (getWounds() != 0) text.append(-getWounds()).append(" wounds<br/>");
+		if (wounds.getValue() != 0) text.append(-wounds.getValue()).append(" wounds<br/>");
 
 		Map<Modifier, Boolean> mods = getModifiers();
 		for (Modifier m : mods.keySet()) {
@@ -379,14 +366,14 @@ public class HPs extends Statistic {
 		}
 
 		text.append("=").append(getHPs()).append(" current total<br/><br/>");
-		if (getNonLethal() != 0) text.append("Non-lethal damage taken: " + getNonLethal()).append("<br/><br/>");
+		if (nonLethal.getValue() != 0) text.append("Non-lethal damage taken: " + nonLethal.getValue()).append("<br/><br/>");
 		return text.toString();
 	}
 
 	public String getShortSummary() {
 		StringBuilder text = new StringBuilder();
 		text.append(getHPs());
-		if (getNonLethal() != 0) text.append(" (" + getNonLethal()).append(" NL)");
+		if (nonLethal.getValue() != 0) text.append(" (" + nonLethal.getValue()).append(" NL)");
 		text.append(" / ").append(maxHPs.getValue());
 		return text.toString();
 	}

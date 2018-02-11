@@ -49,7 +49,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 			if (evt.getPropertyName().equals("value")) {
 				int total = (Integer)currHP.getValue();
 				if (total != hps.getHPs()) {
-					hps.setWounds(hps.getMaxHPStat().getValue() - hps.getNonLethal() - total);
+					hps.getWoundsProperty().setValue(hps.getMaxHPStat().getValue() - hps.getNonLethal() - total);
 				}
 			}
 		});
@@ -87,7 +87,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 		c.gridx = 1;
 		c.gridy = 0; add(currHP,c);
 		c.gridy++;
-		// FIXME replace with BoundIntegerField once Max HPs are a statistic
+		// FIXME *!* replace with BoundIntegerField once Max HPs are a statistic
 		add(new JFormattedTextField() {
 			{
 				addPropertyChangeListener("value", evt -> {
@@ -108,14 +108,14 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 			}
 		}, c);
 		c.gridy++;
-		// TODO replace with BoundIntegerField once wounds are a statistic
+		// FIXME *!* replace with BoundIntegerField once wounds are a statistic
 		add(new JFormattedTextField() {
 			{
 				addPropertyChangeListener("value", evt -> {
 					if (evt.getPropertyName().equals("value")) {
 						Integer val = (Integer) getValue();
 						if (val != null && !val.equals(hps.getWounds())) {
-							hps.setWounds(val);
+							hps.getWoundsProperty().setValue(val);
 						}
 					}
 				});
@@ -135,7 +135,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 					if (evt.getPropertyName().equals("value")) {
 						Integer val = (Integer) getValue();
 						if (val != null && !val.equals(hps.getNonLethal())) {
-							hps.setNonLethal(val);
+							hps.getNonLethalProperty().setValue(val);
 						}
 					}
 				});

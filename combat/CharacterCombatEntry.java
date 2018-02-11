@@ -17,8 +17,8 @@ import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
 import gamesystem.Sanity;
 import gamesystem.Statistic;
-import gamesystem.core.PropertyListener;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import ui.CharacterDamageDialog;
 

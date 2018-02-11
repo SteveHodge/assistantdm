@@ -158,8 +158,8 @@ public class MonsterCombatEntry extends CombatEntry {
 		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));
 		c.creature.getInitiativeStatistic().setBaseValue(Integer.parseInt(el.getAttribute("initMod")));
 		c.creature.getHPStatistic().getMaxHPStat().setMaximumHitPoints(Integer.parseInt(el.getAttribute("maxHPs")));
-		c.creature.getHPStatistic().setWounds(Integer.parseInt(el.getAttribute("wounds")));
-		c.creature.getHPStatistic().setNonLethal(Integer.parseInt(el.getAttribute("nonLethal")));
+		c.creature.getHPStatistic().getWoundsProperty().setValue(Integer.parseInt(el.getAttribute("wounds")));
+		c.creature.getHPStatistic().getNonLethalProperty().setValue((Integer.parseInt(el.getAttribute("nonLethal"))));
 		// FIXME fix this somehow - overrides?
 //		c.creature.setAC(Integer.parseInt(el.getAttribute("fullAC")));
 //		c.creature.setTouchAC(Integer.parseInt(el.getAttribute("touchAC")));

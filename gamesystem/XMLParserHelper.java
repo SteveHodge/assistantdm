@@ -148,12 +148,11 @@ public class XMLParserHelper {
 		c.size.setBaseReach(Integer.parseInt(e.getAttribute("reach")));
 	}
 
-	// TODO this configures HP fields directly - should use methods that inform listeners
 	protected void parseHPs(Element e, Creature c) {
 		if (!e.getTagName().equals("HitPoints")) return;
-		c.hps.maxHPs.max = Integer.parseInt(e.getAttribute("maximum"));
-		if (e.hasAttribute("wounds")) c.hps.wounds = Integer.parseInt(e.getAttribute("wounds"));
-		if (e.hasAttribute("non-lethal")) c.hps.nonLethal = Integer.parseInt(e.getAttribute("non-lethal"));
+		c.hps.getMaxHPStat().setMaximumHitPoints(Integer.parseInt(e.getAttribute("maximum")));
+		if (e.hasAttribute("wounds")) c.hps.getWoundsProperty().setValue(Integer.parseInt(e.getAttribute("wounds")));
+		if (e.hasAttribute("non-lethal")) c.hps.getNonLethalProperty().setValue(Integer.parseInt(e.getAttribute("non-lethal")));
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event
 
 //		System.out.println("Before parse:");
