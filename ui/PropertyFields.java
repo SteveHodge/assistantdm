@@ -17,7 +17,10 @@ import party.Character;
 // SettableProperty -> editable field, sets value
 // SettableBaseValueProperty -> editable field, sets base value
 
+// TODO better naming of methods
 public class PropertyFields {
+	// FIXME check if users of this should be using createSettableIntegerField instead
+	// TODO move BoundIntegerField inline
 	public static JComponent createOverrideIntegerField(OverridableProperty<Integer> property, int columns) {
 		return new BoundIntegerField(property, columns);
 	}
@@ -39,7 +42,30 @@ public class PropertyFields {
 		}
 	}
 
-	// Binds a formatted text field to an Property<Integer>. Setting the value will set an override on the property (removing any previous override).
+	public static JComponent createSettableIntegerField(SettableProperty<Integer> property, int columns) {
+		JFormattedTextField field = new JFormattedTextField();
+		field.addPropertyChangeListener("value", evt -> {
+			if (evt.getPropertyName().equals("value")) {
+				Integer val = (Integer) field.getValue();
+				if (val != null && !val.equals(property.getValue())) {
+					property.setValue(val);
+//							System.out.println("Setting value of " + property.getName() + " to " + val);
+				}
+			}
+		});
+		property.addPropertyListener((source, old) -> {
+			//it's ok to do this even if this change event is due to an update from this control
+			//because setValue will not fire a change event if the property isn't actually changing
+			field.setValue(property.getValue());
+//					System.out.println("Setting field from " + property.getName() + " to " + property.getValue() + " due to update");
+		});
+		field.setColumns(columns);
+		field.setValue(property.getValue());
+//				System.out.println("Setting field from " + property.getName() + " to " + property.getValue() + " - initialization");
+		return field;
+	}
+
+// Binds a formatted text field to an Property<Integer>. Setting the value will set an override on the property (removing any previous override).
 	@SuppressWarnings("serial")
 	private static class BoundIntegerField extends JFormattedTextField {
 		OverridableProperty.PropertyValue<Integer> overrideKey = null;

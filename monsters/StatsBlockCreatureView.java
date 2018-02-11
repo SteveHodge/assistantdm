@@ -151,7 +151,7 @@ public class StatsBlockCreatureView {
 		m.hitDice.setHitDice(blk.getHitDice());
 
 		HPs hps = m.getHPStatistic();
-		hps.getMaxHPStat().setMaximumHitPoints(blk.getDefaultHPs());
+		hps.getMaxHPStat().setValue(blk.getDefaultHPs());
 
 		Size size = m.getSizeStatistic();
 		size.setBaseSize(blk.getSize());

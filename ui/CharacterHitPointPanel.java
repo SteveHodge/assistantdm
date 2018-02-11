@@ -87,67 +87,11 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 		c.gridx = 1;
 		c.gridy = 0; add(currHP,c);
 		c.gridy++;
-		// FIXME *!* replace with BoundIntegerField once Max HPs are a statistic
-		add(new JFormattedTextField() {
-			{
-				addPropertyChangeListener("value", evt -> {
-					if (evt.getPropertyName().equals("value")) {
-						Integer val = (Integer) getValue();
-						if (val != null && !val.equals(hps.getMaxHPStat().getValue())) {
-							hps.getMaxHPStat().setMaximumHitPoints(val);
-						}
-					}
-				});
-				hps.addPropertyListener((source, old) -> {
-					//it's ok to do this even if this change event is due to an update from this control
-					//because setValue will not fire a change event if the property isn't actually changing
-					setValue(hps.getMaxHPStat().getValue());
-				});
-				setColumns(3);
-				setValue(hps.getMaxHPStat().getValue());
-			}
-		}, c);
+		add(PropertyFields.createSettableIntegerField(hps.getMaxHPStat(), 3), c);
 		c.gridy++;
-		// FIXME *!* replace with BoundIntegerField once wounds are a statistic
-		add(new JFormattedTextField() {
-			{
-				addPropertyChangeListener("value", evt -> {
-					if (evt.getPropertyName().equals("value")) {
-						Integer val = (Integer) getValue();
-						if (val != null && !val.equals(hps.getWounds())) {
-							hps.getWoundsProperty().setValue(val);
-						}
-					}
-				});
-				hps.addPropertyListener((source, old) -> {
-					//it's ok to do this even if this change event is due to an update from this control
-					//because setValue will not fire a change event if the property isn't actually changing
-					setValue(hps.getWounds());
-				});
-				setColumns(3);
-				setValue(hps.getWounds());
-			}
-		}, c);
+		add(PropertyFields.createSettableIntegerField(hps.getWoundsProperty(), 3), c);
 		c.gridy++;
-		add(new JFormattedTextField() {
-			{
-				addPropertyChangeListener("value", evt -> {
-					if (evt.getPropertyName().equals("value")) {
-						Integer val = (Integer) getValue();
-						if (val != null && !val.equals(hps.getNonLethal())) {
-							hps.getNonLethalProperty().setValue(val);
-						}
-					}
-				});
-				hps.addPropertyListener((source, old) -> {
-					//it's ok to do this even if this change event is due to an update from this control
-					//because setValue will not fire a change event if the property isn't actually changing
-					setValue(hps.getNonLethal());
-				});
-				setColumns(3);
-				setValue(hps.getNonLethal());
-			}
-		}, c);
+		add(PropertyFields.createSettableIntegerField(hps.getNonLethalProperty(), 3), c);
 
 		c.gridx = 2;
 		c.gridy = 0;

@@ -13,9 +13,9 @@ import gamesystem.core.SimpleValueProperty;
 import gamesystem.dice.HDDice;
 
 
-// TODO change temp hitpoints to a property
+// XXX change temp hitpoints to a property
 // TODO there are difference in how damage and healing are handled (particularly with temporary hitpoints). going to need undo
-// TODO i think hps should be a property rather than a statistic
+// XXX i think hps should be a property rather than a statistic
 
 /* Architecture:
  * HPs is a statistic representing current hitpoints. Modifiers on HPs apply temporary hitpoints. Not sure overrides make sense though there are effects that set current hps to a particular value. Perhaps could be a property.
@@ -100,7 +100,7 @@ public class HPs extends Statistic {
 	}
 
 	// FIXME the max hps field in the ui should set a override on the total of this (so that modifiers are preserved), currently it effectively sets the base value
-	public class MaxHPs extends Statistic {
+	public class MaxHPs extends Statistic implements SettableProperty<Integer> {
 		int max;
 
 		public MaxHPs(PropertyCollection parent) {
@@ -112,7 +112,8 @@ public class HPs extends Statistic {
 			return max;
 		}
 
-		public void setMaximumHitPoints(int hp) {
+		@Override
+		public void setValue(Integer hp) {
 			int old = max;
 			max = hp;
 			fireEvent(old);
@@ -142,7 +143,7 @@ public class HPs extends Statistic {
 		if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// TODO if we need to use this then it won't be reversable. probably need a max hp override
 		if (newhps == oldhps) return;
 		//System.out.println("changing max hps from " + oldhps + " to " + newhps);
-		maxHPs.setMaximumHitPoints(newhps);
+		maxHPs.setValue(newhps);
 	}
 
 	public MaxHPs getMaxHPStat() {
