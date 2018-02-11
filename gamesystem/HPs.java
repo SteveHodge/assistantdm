@@ -15,6 +15,18 @@ import gamesystem.dice.HDDice;
 // TODO there are difference in how damage and healing are handled (particularly with temporary hitpoints). going to need undo
 // TODO i think hps should be a property rather than a statistic
 
+/* Architecture:
+ * HPs is a statistic representing current hitpoints. Modifiers on HPs apply temporary hitpoints. Not sure overrides make sense though there are effects that set current hps to a particular value. Perhaps could be a property.
+ * MaxHPs is a statistic representing maximum hitpoints. Modifiers affect the maximum, e.g. from feats, negative levels. Maybe should be merged with HitDice.
+ * Wounds will be a SimpleProperty as I don't think overrides make sense. Note the value is dependent on HPs and MaxHPs.
+ * Non-lethal will be a SimplePoperty as I don't think overrides make sense.
+ *
+ * Rules for changes:
+ * If MaxHPs changes then HPs changes as well. Wounds remains constant.
+ * If HPs changes then Wounds changes as well. MaxHPs remains constant.
+ * If Wounds changes then HPs changes as well. MaxHPs remains constant.
+ */
+
 /* Temporary hit points rules
  * 1. If temporary hit points are granted more than once then only the best one applies (FAQ)
  * 2. If temporary hit points are granted from different sources then they stack (FAQ)
@@ -46,10 +58,12 @@ import gamesystem.dice.HDDice;
 // TODO fix up encapsulation since parsing has moved to XMLCreatureParser
 public class HPs extends Statistic {
 	HitDiceProperty hitdice;
-	int wounds, nonLethal;
 	List<TempHPs> tempHPs = new ArrayList<>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
 	Map<Modifier, TempHPs> modMap = new HashMap<>();
 	MaxHPs maxHPs;
+//	SimpleProperty<Integer> wounds;
+//	SimpleProperty<Integer> nonLethal;
+	int wounds, nonLethal;
 
 	// interested parties can register listeners as with other Modifier subclasses. if damage reduces a hps to 0, the TempHPs will be removed from the HPs instance
 	class TempHPs extends AbstractModifier {
@@ -114,6 +128,14 @@ public class HPs extends Statistic {
 		});
 
 		maxHPs = new MaxHPs(parent);
+
+//		wounds = new SimpleValueProperty<Integer() {
+//
+//		};
+//
+//		nonLethal = new SimpleValueProperty<Integer() {
+//
+//		};
 	}
 
 	// apply any HD modifier change to maximum hitpoints
@@ -157,7 +179,7 @@ public class HPs extends Statistic {
 		}
 
 //		firePropertyChange(Creature.PROPERTY_WOUNDS, oldWounds, wounds);	// FIXME if wounds are to behave like a property then they should be a property
-//		firePropertyChange(Creature.PROPERTY_NONLETHAL, oldNL, nonLethal);	// FIXME if wounds are to behave like a property then they should be a property
+//		firePropertyChange(Creature.PROPERTY_NONLETHAL, oldNL, nonLethal);	// FIXME if non-lethal are to behave like a property then they should be a property
 		fireEvent(oldHPs);
 	}
 

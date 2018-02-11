@@ -12,7 +12,7 @@ import java.util.Set;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import gamesystem.core.Property;
+import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
 import gamesystem.dice.CombinedDice;
 import party.Character;
@@ -35,7 +35,7 @@ import party.Character;
  */
 
 public class Attacks extends Statistic {
-	private Property<Integer> bab;
+	private OverridableProperty<Integer> bab;
 	private Modifier strMod;	// may be null (if the creature has no strength score)
 	private Modifier dexMod;	// may be null (if the creature has no dex score)
 	private Creature creature;
@@ -165,7 +165,7 @@ public class Attacks extends Statistic {
 	}
 
 	// TODO remove acccess to BAB via attack - used only by CharacterSheetView
-	public Property<Integer> getBAB() {
+	public OverridableProperty<Integer> getBAB() {
 		return bab;
 	}
 

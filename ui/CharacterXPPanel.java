@@ -20,7 +20,7 @@ import javax.swing.WindowConstants;
 
 import gamesystem.XP;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import party.Character;
 
 // TODO better history dialog
@@ -137,7 +137,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyListe
 	}
 
 	@Override
-	public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+	public void propertyChanged(Property<Integer> source, Integer oldValue) {
 		xpLabel.setText(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
 		float perc = ((float) character.getXP() - XP.getXPRequired(character.getLevel())) / (character.getLevel() * 10);
 		percentage.setText(String.format("%.2f%%", perc));

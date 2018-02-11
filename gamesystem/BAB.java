@@ -1,9 +1,9 @@
 package gamesystem;
 
-import gamesystem.core.AbstractProperty;
+import gamesystem.core.AbstractOverridableProperty;
 import gamesystem.core.PropertyCollection;
 
-public class BAB extends AbstractProperty<Integer> {
+public class BAB extends AbstractOverridableProperty<Integer> {
 	final Race race;
 	final Levels levels;
 	int bab;	// latest value, used for change notification

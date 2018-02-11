@@ -4,7 +4,7 @@ package gamesystem.core;
  * A concrete property implementation that uses a user-set value as the base
  */
 
-public class ValueProperty<T> extends AbstractProperty<T> {
+public class ValueProperty<T> extends AbstractOverridableProperty<T> implements SettableBaseValueProperty<T> {
 	T value;
 
 	public ValueProperty(String name, PropertyCollection parent, T initialVal) {
@@ -12,6 +12,7 @@ public class ValueProperty<T> extends AbstractProperty<T> {
 		value = initialVal;
 	}
 
+	@Override
 	public void setBaseValue(T newVal) {
 		if (value == newVal) return;	// no change
 		if (overrides != null && overrides.size() > 0) {

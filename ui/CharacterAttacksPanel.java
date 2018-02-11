@@ -33,9 +33,9 @@ import gamesystem.BuffFactory;
 import gamesystem.Creature;
 import gamesystem.Feat;
 import gamesystem.Modifier;
-import gamesystem.core.Property;
+import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import party.Character;
 import party.CharacterAttackForm;
 import swing.NullableIntegerFieldFactory;
@@ -303,7 +303,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 
 		BAB = NullableIntegerFieldFactory.createNullableIntegerField();
 		BAB.setColumns(3);
-		Property<Integer> babProp = character.getBAB();
+		OverridableProperty<Integer> babProp = character.getBAB();
 		if (babProp.hasOverride()) BAB.setValue(babProp.getValue());
 		BAB.addPropertyChangeListener((e) -> {
 			if (BAB.getValue() == null || "".equals(BAB.getText())) {
@@ -514,7 +514,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 	// we rely on the attack to tell us about feat and ability changes indirectly
 	// TODO maybe better to directly listen?
 	@Override
-	public void propertyChanged(SimpleProperty<Integer> source, Integer old) {
+	public void propertyChanged(Property<Integer> source, Integer old) {
 		updateOptions();
 		updateLabels();
 		updateToolTip();

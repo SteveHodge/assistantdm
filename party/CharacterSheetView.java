@@ -41,7 +41,7 @@ import gamesystem.XP;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
-import gamesystem.core.Property;
+import gamesystem.core.OverridableProperty;
 import party.Character.ACComponentType;
 import util.Updater;
 
@@ -320,7 +320,7 @@ public class CharacterSheetView {
 		@Override
 		public void processAttacks(Attacks attacks, GrappleModifier grapple) {
 			Element e = getAttacksElement(attacks);
-			Property<Integer> bab = attacks.getBAB();
+			OverridableProperty<Integer> bab = attacks.getBAB();
 			if (bab.hasOverride()) {
 				e.setAttribute("temp", getModifierString(bab.getValue()));
 			} else {

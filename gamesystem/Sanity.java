@@ -1,21 +1,21 @@
 package gamesystem;
 
-import gamesystem.core.AbstractProperty;
-import gamesystem.core.Property;
+import gamesystem.core.AbstractOverridableProperty;
+import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.ValueProperty;
 
 public class Sanity extends ValueProperty<Integer> {
 	ValueProperty<Integer> knowledgeSkill;
-	AbstractProperty<Integer> startingSanity;
-	AbstractProperty<Integer> maxSanity;
+	AbstractOverridableProperty<Integer> startingSanity;
+	AbstractOverridableProperty<Integer> maxSanity;
 	int sessionStart;
 
 	public Sanity(PropertyCollection parent, AbilityScore wis) {
 		super("sanity", parent, calculateStarting(wis.getValue()));
 		knowledgeSkill = new ValueProperty<Integer>("sanity.knowledge_skill", parent, 0);
 
-		maxSanity = new AbstractProperty<Integer>("sanity.maximum", parent) {
+		maxSanity = new AbstractOverridableProperty<Integer>("sanity.maximum", parent) {
 			{
 				knowledgeSkill.addPropertyListener((source, oldValue) -> {
 					fireEvent(99 - oldValue);
@@ -28,7 +28,7 @@ public class Sanity extends ValueProperty<Integer> {
 			}
 		};
 
-		startingSanity = new AbstractProperty<Integer>("sanity.starting", parent) {
+		startingSanity = new AbstractOverridableProperty<Integer>("sanity.starting", parent) {
 			{
 				wis.addPropertyListener((source, old) -> {
 					int oldValue = 0;
@@ -54,11 +54,11 @@ public class Sanity extends ValueProperty<Integer> {
 		return knowledgeSkill;
 	}
 
-	public Property<Integer> getStartingSanityProperty() {
+	public OverridableProperty<Integer> getStartingSanityProperty() {
 		return startingSanity;
 	}
 
-	public Property<Integer> getMaximumSanityProperty() {
+	public OverridableProperty<Integer> getMaximumSanityProperty() {
 		return maxSanity;
 	}
 

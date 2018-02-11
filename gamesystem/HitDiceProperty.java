@@ -115,7 +115,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	}
 
 	@Override
-	public List<HDDice> getBaseValue() {
+	public List<HDDice> getValue() {
 		return hitDice;
 	}
 

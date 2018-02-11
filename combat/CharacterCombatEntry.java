@@ -18,7 +18,7 @@ import gamesystem.Modifier;
 import gamesystem.Sanity;
 import gamesystem.Statistic;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import party.Character;
 import ui.CharacterDamageDialog;
 
@@ -41,7 +41,7 @@ public class CharacterCombatEntry extends CombatEntry {
 
 		character.addPropertyListener("ac", new PropertyListener<Integer>() {
 			@Override
-			public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+			public void propertyChanged(Property<Integer> source, Integer oldValue) {
 				AC ac = (AC) getCharacter().getStatistic(Creature.STATISTIC_AC);
 				((JLabel) acComp).setText("" + ac.getValue() + (ac.hasConditionalModifier() ? "*" : ""));
 				((JLabel) touchACComp).setText("" + ac.getTouchAC().getValue() + (ac.getTouchAC().hasConditionalModifier() ? "*" : ""));
@@ -51,7 +51,7 @@ public class CharacterCombatEntry extends CombatEntry {
 		});
 		character.addPropertyListener("initiative", new PropertyListener<Integer>() {
 			@Override
-			public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+			public void propertyChanged(Property<Integer> source, Integer oldValue) {
 				InitiativeModifier stat = (InitiativeModifier) getCharacter().getStatistic(Creature.STATISTIC_INITIATIVE);
 				((JLabel) modifierComp).setText("" + stat.getValue() + (stat.hasConditionalModifier() ? "*" : ""));
 				updateInitToolTip();

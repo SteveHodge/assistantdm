@@ -1,64 +1,44 @@
 package gamesystem.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-/*
- * Abstract property implementation
- */
-
-abstract public class AbstractProperty<T> extends AbstractSimpleProperty<T> implements Property<T> {
-	protected List<PropertyValue<T>> overrides;
+abstract public class AbstractProperty<T> implements Property<T> {
+	protected String name;
+	protected PropertyCollection parent;
 
 	public AbstractProperty(String name, PropertyCollection parent) {
-		super(name, parent);
+		this.name = name;
+		this.parent = parent;
+		parent.addProperty(this);
 	}
 
 	@Override
-	abstract public T getBaseValue();
+	abstract public T getValue();
 
 	@Override
-	public T getValue() {
-		if (hasOverride()) return overrides.get(overrides.size() - 1).value;
-		return getBaseValue();
+	public String getName() {
+		return name;
 	}
 
 	@Override
-	public PropertyValue<T> addOverride(T overrideVal) {
-		T old = getValue();
-		PropertyValue<T> v = new PropertyValue<>(overrideVal);
-		if (overrides == null) overrides = new ArrayList<>();
-		overrides.add(v);
-		fireEvent(old);
-		return v;
+	public PropertyCollection getParent() {
+		return parent;
 	}
 
 	@Override
-	public void removeOverride(PropertyValue<T> key) {
-		T old = getValue();
-		if (overrides.remove(key)) {
-			fireEvent(old);
-		} else {
-			throw new NoSuchElementException();
-		}
+	public void addPropertyListener(PropertyListener<T> l) {
+		parent.addPropertyListener(this, l);
 	}
 
 	@Override
-	public boolean hasOverride() {
-		return overrides != null && overrides.size() > 0;
+	public void removePropertyListener(PropertyListener<T> l) {
+		parent.removePropertyListener(this, l);
 	}
 
-	// returns all values in order (base value then each override in the order they were added)
-	@Override
-	public List<T> getValues() {
-		List<T> values = new ArrayList<>();
-		values.add(getBaseValue());
-		if (overrides != null) {
-			for (PropertyValue<T> v : overrides) {
-				values.add(v.value);
-			}
-		}
-		return values;
+	protected void fireEvent() {
+		// XXX perhaps shouldn't allow update events with no old value
+		parent.fireEvent(this, null);
+	}
+
+	protected void fireEvent(T old) {
+		parent.fireEvent(this, old);
 	}
 }

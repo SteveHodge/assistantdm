@@ -13,10 +13,10 @@ import java.util.Set;
 import javax.swing.DefaultListModel;
 
 import gamesystem.CharacterClass.ClassOption;
-import gamesystem.core.Property;
+import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import gamesystem.core.SimpleValueProperty;
 import swing.ListModelWithToolTips;
 
@@ -103,7 +103,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	protected Sanity sanity;
 
-	protected Map<String, SimpleProperty<?>> properties = new HashMap<>();
+	protected Map<String, Property<?>> properties = new HashMap<>();
 	protected Map<String, List<PropertyListener<?>>> listeners = new HashMap<>();
 
 	@SuppressWarnings("serial")
@@ -163,12 +163,12 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void addProperty(SimpleProperty<T> property) {
+	public <T> void addProperty(Property<T> property) {
 		properties.put(property.getName(), property);
 	}
 
 	@Override
-	public <T> void fireEvent(SimpleProperty<T> source, T oldValue) {
+	public <T> void fireEvent(Property<T> source, T oldValue) {
 		String propName = source.getName();
 		while (true) {
 			List<PropertyListener<?>> list = listeners.get(propName);
@@ -198,7 +198,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void addPropertyListener(SimpleProperty<T> property, PropertyListener<T> l) {
+	public <T> void addPropertyListener(Property<T> property, PropertyListener<T> l) {
 		// TODO argument checking: check property is in this object, l is not null
 		List<PropertyListener<?>> list = listeners.get(property.getName());
 		if (list == null) {
@@ -210,7 +210,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	@Override
 	public void removePropertyListener(String propName, PropertyListener<?> l) {
-		SimpleProperty<?> property = getProperty(propName);
+		Property<?> property = getProperty(propName);
 		if (property == null) return;
 		List<PropertyListener<?>> list = listeners.get(property);
 		if (list == null) return;
@@ -218,14 +218,14 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void removePropertyListener(SimpleProperty<T> property, PropertyListener<T> l) {
+	public <T> void removePropertyListener(Property<T> property, PropertyListener<T> l) {
 		List<PropertyListener<?>> list = listeners.get(property);
 		if (list == null) return;
 		list.remove(l);
 	}
 
 	@Override
-	public SimpleProperty<?> getProperty(String name) {
+	public Property<?> getProperty(String name) {
 		return properties.get(name);
 	}
 	//----------------------------------------------------------------------
@@ -262,7 +262,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		return attacks;
 	}
 
-	public Property<Integer> getBAB() {
+	public OverridableProperty<Integer> getBAB() {
 		return bab;
 	}
 
@@ -312,7 +312,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		}*/
 
 	//------------------- BAB -------------------
-	private Property.PropertyValue<Integer> babOverride;
+	private OverridableProperty.PropertyValue<Integer> babOverride;
 
 	public void setBABOverride(int val) {
 		clearBABOverride();
@@ -458,7 +458,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	public Object getPropertyValue(String prop) {
-		SimpleProperty<?> property = getProperty(prop);
+		Property<?> property = getProperty(prop);
 		if (property == null && !prop.startsWith("extra.")) {
 			property = getProperty("extra." + prop);
 		}
@@ -471,7 +471,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	public void setProperty(String prop, String value) {
 		if (!prop.startsWith("extra.")) prop = "extra." + prop;
-		SimpleProperty<?> property = getProperty(prop);
+		Property<?> property = getProperty(prop);
 		if (property == null) {
 //			System.out.println("Adding adhoc property " + prop + " with value '" + value + "'");
 			property = new SimpleValueProperty<String>(prop, this, value);

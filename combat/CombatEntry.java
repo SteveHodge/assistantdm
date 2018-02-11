@@ -29,7 +29,7 @@ import org.w3c.dom.Element;
 import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import ui.Status;
 
 @SuppressWarnings("serial")
@@ -279,7 +279,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	}
 
 	@Override
-	public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+	public void propertyChanged(Property<Integer> source, Integer oldValue) {
 		// update the relevant fields
 		if (source == hps) {
 			updateHPs();

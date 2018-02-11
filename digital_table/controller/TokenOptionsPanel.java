@@ -44,7 +44,7 @@ import gamesystem.HPs;
 import gamesystem.Size;
 import gamesystem.SizeCategory;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import util.ModuleRegistry;
 
 @SuppressWarnings("serial")
@@ -365,14 +365,14 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 	private PropertyListener<Integer> hpListener = new PropertyListener<Integer>() {
 		@Override
-		public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
 			updateHPs();
 		}
 	};
 
 	private PropertyListener<Integer> sizeListener = new PropertyListener<Integer>() {
 		@Override
-		public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
 			Size size = creature.getSizeStatistic();
 			sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach().getValue()));
 			spaceField.setText("" + ((float) size.getSpace().getValue()) / 2);

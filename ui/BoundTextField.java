@@ -5,7 +5,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import gamesystem.core.SimpleValueProperty;
 import party.Character;
 
@@ -16,7 +16,7 @@ public class BoundTextField extends JTextField {
 
 	@SuppressWarnings("unchecked")
 	public BoundTextField(Character character, String propName, int columns) {
-		SimpleProperty<?> property = character.getProperty(propName);
+		Property<?> property = character.getProperty(propName);
 		if (property == null && !propName.startsWith("extra.")) {
 			property = character.getProperty("extra." + propName);
 		}

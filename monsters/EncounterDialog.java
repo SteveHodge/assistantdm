@@ -49,7 +49,7 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.ControllerFrame;
 import gamesystem.Creature;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import monsters.StatisticsBlock.Field;
 import util.ModuleRegistry;
 import util.XMLUtils;
@@ -525,7 +525,7 @@ public class EncounterDialog extends JFrame {
 
 		private PropertyListener<Object> listener = new PropertyListener<Object>() {
 			@Override
-			public void propertyChanged(SimpleProperty<Object> source, Object oldValue) {
+			public void propertyChanged(Property<Object> source, Object oldValue) {
 				int idx = monsters.indexOf(source.getParent());
 				if (idx != -1) {
 					fireContentsChanged(this, idx, idx);

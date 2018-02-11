@@ -1,6 +1,6 @@
 package gamesystem.core;
 
-public class SimpleValueProperty<T> extends AbstractSimpleProperty<T> {
+public class SimpleValueProperty<T> extends AbstractProperty<T> implements SettableProperty<T> {
 	T value;
 
 	public SimpleValueProperty(String name, PropertyCollection parent, T initial) {
@@ -13,6 +13,7 @@ public class SimpleValueProperty<T> extends AbstractSimpleProperty<T> {
 		return value;
 	}
 
+	@Override
 	public void setValue(T val) {
 		T old = value;
 		value = val;

@@ -23,8 +23,8 @@ public class Race extends AbstractProperty<String> {
 	}
 
 	@Override
-	public String getBaseValue() {
-		return null;
+	public String getValue() {
+		return toString();
 	}
 
 	public MonsterType getType() {

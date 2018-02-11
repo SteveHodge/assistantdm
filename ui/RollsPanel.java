@@ -16,7 +16,7 @@ import gamesystem.SavingThrow;
 import gamesystem.Skill;
 import gamesystem.SkillType;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import party.Character;
 import party.Party;
 import party.PartyListener;
@@ -103,7 +103,7 @@ public class RollsPanel extends JPanel implements PartyListener {
 
 	PropertyListener<Integer> skillListener = new PropertyListener<Integer>() {
 		@Override
-		public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
 			if (source instanceof Skill) {
 				Skill skill = (Skill) source;
 				if (!model.skillChange(skill.getSkillType())) reset();
@@ -113,7 +113,7 @@ public class RollsPanel extends JPanel implements PartyListener {
 
 	PropertyListener<Integer> saveListener = new PropertyListener<Integer>() {
 		@Override
-		public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+		public void propertyChanged(Property<Integer> source, Integer oldValue) {
 			if (source instanceof SavingThrow) {
 				SavingThrow save = (SavingThrow) source;
 				for (int i = 0; i < 3; i++) {

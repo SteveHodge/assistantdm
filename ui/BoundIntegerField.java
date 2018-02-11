@@ -2,15 +2,15 @@ package ui;
 
 import javax.swing.JFormattedTextField;
 
-import gamesystem.core.Property;
+import gamesystem.core.OverridableProperty;
 
 // Binds a formatted text field to an Property<Integer>. Setting the value will set an override on the property (removing any previous override).
 
 @SuppressWarnings("serial")
 public class BoundIntegerField extends JFormattedTextField {
-	Property.PropertyValue<Integer> overrideKey = null;
+	OverridableProperty.PropertyValue<Integer> overrideKey = null;
 
-	public BoundIntegerField(Property<Integer> property, int columns) {
+	public BoundIntegerField(OverridableProperty<Integer> property, int columns) {
 		addPropertyChangeListener("value", evt -> {
 			if (evt.getPropertyName().equals("value")) {
 				Integer val = (Integer) BoundIntegerField.this.getValue();

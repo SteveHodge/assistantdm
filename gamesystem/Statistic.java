@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import gamesystem.core.AbstractProperty;
+import gamesystem.core.AbstractOverridableProperty;
 import gamesystem.core.PropertyCollection;
 
 /*
@@ -22,7 +22,7 @@ import gamesystem.core.PropertyCollection;
  */
 // TODO need to implement overrides.
 // overrides should apply to the total, but need to handle modifiers added after the override
-public class Statistic extends AbstractProperty<Integer> {
+public class Statistic extends AbstractOverridableProperty<Integer> {
 	protected Set<Modifier> modifiers = new HashSet<>();
 	protected String description;
 

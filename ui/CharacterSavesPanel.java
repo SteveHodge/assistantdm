@@ -16,7 +16,7 @@ import gamesystem.AbilityScore;
 import gamesystem.Creature;
 import gamesystem.SavingThrow;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import party.Character;
 import swing.NullableIntegerFieldFactory;
 
@@ -128,7 +128,7 @@ class CharacterSavesPanel extends CharacterSubPanel {
 
 		character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
 			@Override
-			public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+			public void propertyChanged(Property<Integer> source, Integer oldValue) {
 				if (source instanceof AbilityScore) {
 					AbilityScore.Type type = ((AbilityScore) source).getType();
 					for (int i = 0; i < 3; i++) {
@@ -143,7 +143,7 @@ class CharacterSavesPanel extends CharacterSubPanel {
 
 		character.addPropertyListener("saving_throws", new PropertyListener<Integer>() {
 			@Override
-			public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+			public void propertyChanged(Property<Integer> source, Integer oldValue) {
 				for (int i = 0; i < 3; i++) {
 					if (stats[i] == source) {
 						baseLabels[i].setText(Integer.toString(stats[i].getCalculatedBase()));

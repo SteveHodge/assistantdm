@@ -15,7 +15,7 @@ import javax.swing.table.AbstractTableModel;
 import gamesystem.AbilityScore;
 import gamesystem.Creature;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.SimpleProperty;
+import gamesystem.core.Property;
 import party.Character;
 import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
@@ -86,7 +86,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		public AbilityTableModel() {
 			character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
 				@Override
-				public void propertyChanged(SimpleProperty<Integer> source, Integer oldValue) {
+				public void propertyChanged(Property<Integer> source, Integer oldValue) {
 					if (source instanceof AbilityScore) {
 						for (int i = 0; i < 6; i++) {
 							if (AbilityScore.Type.values()[i].toString().equals(((AbilityScore) source).getDescription())) {

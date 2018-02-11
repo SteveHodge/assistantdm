@@ -1,7 +1,7 @@
 package gamesystem;
 
-import gamesystem.core.AbstractProperty;
-import gamesystem.core.Property;
+import gamesystem.core.AbstractOverridableProperty;
+import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
 
 // TODO need to store certain size related characteristics of creatures: whether they are tall or long (for reach), and whether they count as quadrupeds for carrying capacity
@@ -22,13 +22,13 @@ public class Size extends Statistic {
 		}
 	};
 
-	private AbstractProperty<Integer> space;
-	private AbstractProperty<Integer> reach;
+	private AbstractOverridableProperty<Integer> space;
+	private AbstractOverridableProperty<Integer> reach;
 
 	public Size(PropertyCollection parent) {
 		super("size", "Size", parent);
 
-		space = new AbstractProperty<Integer>("size.space", parent) {
+		space = new AbstractOverridableProperty<Integer>("size.space", parent) {
 			@Override
 			public Integer getBaseValue() {
 				if (getModifiersTotal() == 0) return spaceValue;
@@ -38,7 +38,7 @@ public class Size extends Statistic {
 			}
 		};
 
-		reach = new AbstractProperty<Integer>("size.reach", parent) {
+		reach = new AbstractOverridableProperty<Integer>("size.reach", parent) {
 			@Override
 			public Integer getBaseValue() {
 				if (getModifiersTotal() == 0) return reachValue;
@@ -89,11 +89,11 @@ public class Size extends Statistic {
 		fireEvent();
 	}
 
-	public Property<Integer> getSpace() {
+	public OverridableProperty<Integer> getSpace() {
 		return space;
 	}
 
-	public Property<Integer> getReach() {
+	public OverridableProperty<Integer> getReach() {
 		return reach;
 	}
 
