@@ -20,7 +20,6 @@ import party.Character;
 // TODO better naming of methods
 public class PropertyFields {
 	// FIXME check if users of this should be using createSettableIntegerField instead
-	// TODO move BoundIntegerField inline
 	public static JComponent createOverrideIntegerField(OverridableProperty<Integer> property, int columns) {
 		return new BoundIntegerField(property, columns);
 	}

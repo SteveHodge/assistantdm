@@ -188,8 +188,6 @@ public class HPs extends Statistic {
 			wounds.setValue(0);
 		}
 
-//		firePropertyChange(Creature.PROPERTY_WOUNDS, oldWounds, wounds);	// FIXME if wounds are to behave like a property then they should be a property
-//		firePropertyChange(Creature.PROPERTY_NONLETHAL, oldNL, nonLethal);	// FIXME if non-lethal are to behave like a property then they should be a property
 		fireEvent(oldHPs);
 	}
 

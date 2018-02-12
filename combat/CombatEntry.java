@@ -297,10 +297,9 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		updateStatus();
 	}
 
-	// FIXME think the status should be based on hps.getHPs() rather than calculating current hps below
 	private void updateStatus() {
-		Status status = Status.getStatus(hps.getMaxHPStat().getValue(), hps.getMaxHPStat().getValue() - hps.getWounds() - hps.getNonLethal());
-		//System.out.println("Status = "+Status.descriptions[status]);
+		Status status = Status.getStatus(hps.getMaxHPStat().getValue(), hps.getHPs());
+//		System.out.println("Status = " + status);
 		statusPanel.setBackground(status.getColor());
 		statusPanel.setToolTipText(status.toString());
 	}
