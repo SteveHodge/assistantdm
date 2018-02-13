@@ -1,6 +1,7 @@
 package ui;
 
-import javax.swing.JComponent;
+import java.awt.Dimension;
+
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -17,15 +18,17 @@ import party.Character;
 // SettableProperty -> editable field, sets value
 // SettableBaseValueProperty -> editable field, sets base value
 
+// Note that components returned by methods in this class have their minimum size set to be the same as their preferred size.
+
 // TODO better naming of methods
 public class PropertyFields {
 	// FIXME check if users of this should be using createSettableIntegerField instead
-	public static JComponent createOverrideIntegerField(OverridableProperty<Integer> property, int columns) {
+	public static JTextField createOverrideIntegerField(OverridableProperty<Integer> property, int columns) {
 		return new BoundIntegerField(property, columns);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static JComponent createSettableTextField(Character character, String propName, int columns) {
+	public static JTextField createSettableTextField(Character character, String propName, int columns) {
 		Property<?> property = character.getProperty(propName);
 		if (property == null && !propName.startsWith("extra.")) {
 			property = character.getProperty("extra." + propName);
@@ -41,8 +44,14 @@ public class PropertyFields {
 		}
 	}
 
-	public static JComponent createSettableIntegerField(SettableProperty<Integer> property, int columns) {
-		JFormattedTextField field = new JFormattedTextField();
+	public static JTextField createSettableIntegerField(SettableProperty<Integer> property, int columns) {
+		@SuppressWarnings("serial")
+		JFormattedTextField field = new JFormattedTextField() {
+			@Override
+			public Dimension getMinimumSize() {
+				return getPreferredSize();
+			}
+		};
 		field.addPropertyChangeListener("value", evt -> {
 			if (evt.getPropertyName().equals("value")) {
 				Integer val = (Integer) field.getValue();
@@ -89,6 +98,11 @@ public class PropertyFields {
 			setColumns(columns);
 			setValue(property.getValue());
 //			System.out.println("Setting field from " + property.getName() + " to " + property.getValue() + " - initialization");
+		}
+
+		@Override
+		public Dimension getMinimumSize() {
+			return getPreferredSize();
 		}
 	}
 
@@ -144,5 +158,11 @@ public class PropertyFields {
 				setText(property.getValue());
 			}
 		}
+
+		@Override
+		public Dimension getMinimumSize() {
+			return getPreferredSize();
+		}
+
 	}
 }

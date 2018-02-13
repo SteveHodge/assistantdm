@@ -11,7 +11,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Paint;
 import java.awt.RenderingHints;
-import java.awt.event.ItemEvent;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -20,7 +19,7 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 /*
- * JSubSection is a panel consisting of a coloured title bar and a collapsable detail section.
+ * JSubSection is a panel consisting of a coloured title bar and a collapsible detail section.
  * The right-hand end of the title bar can be set to display test when the detail area is collapsed.
  * Maximum height is set to the preferred height of the content.
  */
@@ -38,31 +37,37 @@ public class JSubSection extends JPanel {
 	JPanel contentPanel;
 	String infoText = null;
 
+	private static final int BORDER_WIDTH = 16;
+
+//	void debug() {
+//		System.out.println("Section " + titleLabel.getText());
+//		System.out.println("  Required height = " + getRequiredHeight());
+//		System.out.println("  Title min height = " + titleLabel.getMinimumSize().height);
+//		System.out.println("  Title pref height = " + titleLabel.getPreferredSize().height);
+//		System.out.println("  Title max height = " + titleLabel.getMaximumSize().height);
+//		System.out.println("  Title height = " + titleLabel.getHeight());
+//	}
+
 	public JSubSection (String t, JPanel content) {
 		super(new GridBagLayout());
 		contentPanel = content;
-		setMaximumSize(new Dimension(Integer.MAX_VALUE, contentPanel.getPreferredSize().height));
 
 		toggle = new JCheckBox(UIManager.getIcon("Tree.expandedIcon"));
 		toggle.setSelectedIcon(UIManager.getIcon("Tree.collapsedIcon"));
 		toggle.setOpaque(true);
 		toggle.addItemListener(e -> {
 			if (e.getSource() != toggle) return;
-			if (e.getStateChange() == ItemEvent.SELECTED) {
+			boolean selected = toggle.isSelected();
+			if (selected) {
 				if (infoText != null) infoLabel.setText(infoText);
-				leftPanel.setVisible(false);
-				contentPanel.setVisible(false);
-				firePropertyChange("collapsed",false,true);	// oldvalue assumes the state has really changed
-				JSubSection.this.setMaximumSize(new Dimension(Integer.MAX_VALUE, titleLabel.getHeight()));
-				revalidate();
-			} else if (e.getStateChange() == ItemEvent.DESELECTED) {
+			} else {
 				infoLabel.setText("");
-				leftPanel.setVisible(true);
-				contentPanel.setVisible(true);
-				firePropertyChange("collapsed",true,false);	// oldvalue assumes the state has really changed
-				JSubSection.this.setMaximumSize(new Dimension(Integer.MAX_VALUE, contentPanel.getPreferredSize().height));
-				revalidate();
 			}
+			leftPanel.setVisible(!selected);
+			contentPanel.setVisible(!selected);
+			firePropertyChange("collapsed", !selected, selected);	// oldvalue assumes the state has really changed
+			revalidate();
+//			debug();
 		});
 		toggle.setBackground(titleColor);
 		GridBagConstraints c = new GridBagConstraints();
@@ -110,12 +115,23 @@ public class JSubSection extends JPanel {
 				g2.setPaint(gradient);
 				g.fillRect(0, 0, d.width, d.height);
 				g2.setPaint(oldPaint);
+			}
 
+			@Override
+			public Dimension getMaximumSize() {
+				return new Dimension(BORDER_WIDTH, Integer.MAX_VALUE);
+			}
+
+			@Override
+			public Dimension getPreferredSize() {
+				return new Dimension(BORDER_WIDTH, 0);	// XXX should this be contentPanel preferred height?
+			}
+
+			@Override
+			public Dimension getMinimumSize() {
+				return new Dimension(BORDER_WIDTH, 0);	// XXX should this be contentPanel preferred height?
 			}
 		};
-		leftPanel.setMinimumSize(new Dimension(16, 0));
-		leftPanel.setMaximumSize(new Dimension(16, Integer.MAX_VALUE));
-		leftPanel.setPreferredSize(new Dimension(16, 0));
 		c.gridx = 0; c.gridy = 1;
 		c.weightx = 0; c.weighty = 1.0;
 		c.anchor = GridBagConstraints.LINE_START;
@@ -128,6 +144,29 @@ public class JSubSection extends JPanel {
 		c.anchor = GridBagConstraints.CENTER;
 		c.insets = new Insets(1,1,1,1);
 		add(contentPanel, c);
+	}
+
+	private int getRequiredHeight() {
+		int height = titleLabel.getMinimumSize().height + 2;		// layout ipad is 2
+		if (!toggle.isSelected()) height += contentPanel.getPreferredSize().height + 2;	// 2 for the content pane insets
+		return height;
+	}
+
+	@Override
+	public Dimension getMaximumSize() {
+		return new Dimension(Integer.MAX_VALUE, getRequiredHeight());
+	}
+
+	@Override
+	public Dimension getPreferredSize() {
+		return new Dimension(contentPanel.getPreferredSize().width + BORDER_WIDTH, getRequiredHeight());
+	}
+
+	@Override
+	public Dimension getMinimumSize() {
+		int width = titleLabel.getMinimumSize().width;
+		if (width < contentPanel.getMinimumSize().width) width = contentPanel.getMinimumSize().width;
+		return new Dimension(width + BORDER_WIDTH, getRequiredHeight());
 	}
 
 	public void setTitle(String t) {

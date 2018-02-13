@@ -66,6 +66,14 @@ public class PartyPanel extends JPanel implements PartyListener {
 		}
 	}
 
+	/* Ideally want to have a split pane with each side containing a scroll pane containing the sections. The split pane should determine the width of the sections
+	 * and the scroll pane would accommodate the height. The problem is that the scroll panes allow the subsections to have their preferred width which is too wide.
+	 * The current alternative is to have the split pane inside a scroll pane. This means the split pane dictates the sections' width, as desired. The height is
+	 * unconstrained, which is fine as the scroll pane can accommodate that but unfortunately the split pane does not adjust its height when one of the children
+	 * changes height. This can result in the bottom sections not fitting in the fixed height of the split pane.
+	 * Either need to have a scroll pane subclass that restricts it's child to it's own width, or need a split pane that expands it's height to match it's children.
+	 * For now we're nesting the split pane inside a scroll pane and padding the split pane with extra height.
+	 */
 	public JComponent createCharacterPanel(final Character c) {
 		Dimension padding = new Dimension(0, 1);
 
@@ -194,12 +202,12 @@ public class PartyPanel extends JPanel implements PartyListener {
 		panel.setLeftComponent(leftPanel);
 		panel.setRightComponent(rightPanel);
 		panel.setDividerLocation(500);
-		panel.setPreferredSize(new Dimension(1000, panel.getPreferredSize().height));
+		panel.setPreferredSize(new Dimension(1000, panel.getPreferredSize().height + 600));
 
 		scroller.setPreferredSize(new Dimension(1000, 600));
 
-		//leftPanel.setBorder(BorderFactory.createLineBorder(Color.RED));
-		//rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+//		leftPanel.setBorder(BorderFactory.createLineBorder(Color.RED));
+//		rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
 
 		debug.addActionListener(e -> {
 //			System.out.println("Left PreferredSize = "+leftPanel.getPreferredSize());
