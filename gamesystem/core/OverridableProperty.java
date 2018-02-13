@@ -19,9 +19,9 @@ import java.util.List;
 public interface OverridableProperty<T> extends Property<T> {
 	// ProeprtyValue is used as a key for overrides. it could expose a method to return the associated value
 	class PropertyValue<U> {
-		final U value;
+		public final U value;
 
-		PropertyValue(U val) {
+		public PropertyValue(U val) {
 			value = val;
 		}
 	}

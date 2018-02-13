@@ -87,7 +87,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 		c.gridx = 1;
 		c.gridy = 0; add(currHP,c);
 		c.gridy++;
-		add(PropertyFields.createSettableIntegerField(hps.getMaxHPStat(), 3), c);
+		add(PropertyFields.createOverrideIntegerField(hps.getMaxHPStat(), 3), c);
 		c.gridy++;
 		add(PropertyFields.createSettableIntegerField(hps.getWoundsProperty(), 3), c);
 		c.gridy++;

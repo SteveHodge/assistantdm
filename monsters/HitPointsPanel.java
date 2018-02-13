@@ -73,7 +73,7 @@ class HitPointsPanel extends DetailPanel {
 					int value = (Integer) hitPointsField.getValue();
 					if (value < hitdice.getMinimum()) value = hitdice.getMinimum();
 					if (value > hitdice.getMaximum()) value = hitdice.getMaximum();
-					hps.getMaxHPStat().setValue(value);
+					hps.getMaxHPStat().addOverride(value);
 				}
 			}
 		});
@@ -147,7 +147,7 @@ class HitPointsPanel extends DetailPanel {
 				public void mousePressed(MouseEvent e) {
 					int len = hitdice.getMaximum() - hitdice.getMinimum() + 1;
 					int hps = e.getX() * len / getSize().width + hitdice.getMinimum();
-					creature.getHPStatistic().getMaxHPStat().setValue(hps);
+					creature.getHPStatistic().getMaxHPStat().addOverride(hps);	// TODO this should set the per-level/race rolls
 				}
 			});
 		}
@@ -281,6 +281,6 @@ class HitPointsPanel extends DetailPanel {
 		} else if (minHalfHPsButton.isSelected()) {
 			newVal = hitdice.rollMinHalf();
 		}
-		hps.getMaxHPStat().setValue(newVal);
+		hps.getMaxHPStat().addOverride(newVal);	//TODO this should set the pre-level/race rolls
 	}
 }

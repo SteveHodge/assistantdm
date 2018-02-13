@@ -81,7 +81,6 @@ public class Monster extends Creature {
 		}
 
 		hps = new HPs(hitDice, this);
-		hps.getMaxHPStat().setValue(0);
 
 		size = new Size(this);
 

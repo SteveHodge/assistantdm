@@ -103,6 +103,7 @@ public class CharacterClassesPanel extends CharacterSubPanel {
 		public Class<?> getColumnClass(int col) {
 			if (col == 0) return Integer.class;
 			if (col == 1) return CharacterClass.class;
+			if (col == 2) return Integer.class;
 			return super.getColumnClass(col);
 		}
 
@@ -110,24 +111,28 @@ public class CharacterClassesPanel extends CharacterSubPanel {
 		public String getColumnName(int col) {
 			if (col == 0) return "Level";
 			if (col == 1) return "Class";
+			if (col == 2) return "HP Roll";
 			return super.getColumnName(col);
 		}
 
 		@Override
 		public boolean isCellEditable(int row, int col) {
-			if (col == 1) return true;
-			return false;
+			return col == 1 || col == 2;
 		}
 
 		@Override
 		public void setValueAt(Object value, int row, int col) {
-			if (col != 1 || row < 0 || row > currentLevel - 1) return;	// TODO throw exception?
-			character.setClass(row + 1, (CharacterClass) value);
+			if (col < 1 || col > 2 || row < 0 || row > currentLevel - 1) return;	// TODO throw exception?
+			if (col == 1) {
+				character.setClass(row + 1, (CharacterClass) value);
+			} else if (col == 2) {
+				level.setHPRoll(row + 1, (Integer) value);
+			}
 		}
 
 		@Override
 		public int getColumnCount() {
-			return 2;	// level, class
+			return 3;	// level, class, hp roll
 		}
 
 		@Override
@@ -139,6 +144,7 @@ public class CharacterClassesPanel extends CharacterSubPanel {
 		public Object getValueAt(int row, int col) {
 			if (col == 0) return row + 1;
 			if (col == 1) return level.getClass(row + 1);
+			if (col == 2) return level.getHPRoll(row + 1);
 			return null;
 		}
 

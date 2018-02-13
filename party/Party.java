@@ -33,6 +33,7 @@ public class Party implements Iterable<Character>, Module {
 	protected List<Character> characters;
 	protected List<PartyListener> listeners = new ArrayList<>();
 	protected Map<PartyXMLPlugin, String> plugins = new HashMap<>();
+	protected List<PartyXMLPlugin> pluginList = new ArrayList<>();	// we keep a list of plugins because the xsd requires the tags to be in a specific order 
 
 	public Party() {
 		ModuleRegistry.register(Party.class, this);
@@ -49,10 +50,12 @@ public class Party implements Iterable<Character>, Module {
 
 	public void addXMLPlugin(PartyXMLPlugin plugin, String tagName) {
 		plugins.put(plugin, tagName);
+		pluginList.add(plugin);
 	}
 
 	public void removeXMLPlugin(PartyXMLPlugin plugin) {
 		plugins.remove(plugin);
+		pluginList.remove(plugin);
 	}
 
 	public void add(Character c) {
@@ -201,7 +204,7 @@ public class Party implements Iterable<Character>, Module {
 		}
 		e.appendChild(p);
 
-		for (PartyXMLPlugin plugin : plugins.keySet()) {
+		for (PartyXMLPlugin plugin : pluginList) {
 			Element el = plugin.getElement(doc);
 			if (el != null) e.appendChild(el);
 		}

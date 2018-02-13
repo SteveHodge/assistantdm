@@ -267,7 +267,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals("value")) {
 			if (evt.getSource() == maxHPsField) {
-				hps.getMaxHPStat().setValue((Integer) maxHPsField.getValue());
+				hps.getMaxHPStat().addOverride((Integer) maxHPsField.getValue());
 				if (initBlank()) fireChange();
 			} else if (evt.getSource() == rollField
 					|| evt.getSource() == modifierComp) {

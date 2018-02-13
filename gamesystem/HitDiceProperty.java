@@ -42,8 +42,24 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		updateHitDice();
 	}
 
+	// TODO add race hps once we have them stored
+	public int getMaxHPs() {
+		int mod = 0;
+		if (conMod != null) mod = conMod.getModifier();
+		int hps = 0;
+		for (int i = 1; i <= levels.getLevel(); i++) {
+			Integer roll = levels.getHPRoll(i);
+			if (roll != null) {
+				int r = roll.intValue() + mod;
+				if (r < 1) r = 1;
+				hps += r;
+			}
+		}
+		return hps + bonusHPs;
+	}
+
 	private void updateHitDice() {
-		List<HDDice> old = hitDice;
+//		List<HDDice> old = hitDice;
 		int mod = 0;
 		if (conMod != null) mod = conMod.getModifier();
 		hitDice = new ArrayList<>();
@@ -69,9 +85,10 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			hitDice.add(new HDDice(s.getNumber(), s.getType(), constant));
 		}
 
-		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
-			fireEvent(old);
-		}
+		// FIXME for now we always send an update because we don't know if MaxHPs has changed
+//		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
+		fireEvent();
+//		}
 	}
 
 	private List<HDDice> getLevelsHD() {

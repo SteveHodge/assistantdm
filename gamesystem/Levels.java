@@ -16,6 +16,7 @@ import gamesystem.dice.HDDice;
 public class Levels extends Statistic {
 	int level = 0;
 	List<CharacterClass> classes = new ArrayList<>();	// this can have more entries than the current level (if classes have been removed they are remembered)
+	List<Integer> hpRolls = new ArrayList<>();	// hps rolled at each level
 
 	public Levels(PropertyCollection parent) {
 		super("level", "Level", parent);
@@ -66,6 +67,26 @@ public class Levels extends Statistic {
 		classes.set(lvl - 1, cls);
 		// get the levelup actions for the class in question
 //		Set<?> actions = cls.getActions(lvl);
+
+		fireEvent();	// TODO oldvalue
+	}
+
+	public Integer getHPRoll(int level) {
+		if (level < 1 || level > this.level) throw new IllegalArgumentException("Level " + level + " does not exist [1.." + this.level + "] is valid");
+		if (level > hpRolls.size()) return null;
+		return hpRolls.get(level - 1);
+	}
+
+	public void setHPRoll(int lvl, Integer hp) {
+		if (lvl < 1 || lvl > level) throw new IllegalArgumentException("Level " + level + " does not exist [1.." + this.level + "] is valid");	// TODO better exception
+
+		// add extra levels to class list
+		if (lvl > hpRolls.size()) {
+			for (int i = hpRolls.size(); i < lvl; i++) {
+				hpRolls.add(null);
+			}
+		}
+		hpRolls.set(lvl - 1, hp);
 
 		fireEvent();	// TODO oldvalue
 	}

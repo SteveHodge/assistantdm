@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.SettableProperty;
 import gamesystem.core.SimpleValueProperty;
-import gamesystem.dice.HDDice;
 
 
 // XXX change temp hitpoints to a property
@@ -59,7 +59,6 @@ import gamesystem.dice.HDDice;
 
 // TODO fix up encapsulation since parsing has moved to XMLCreatureParser
 public class HPs extends Statistic {
-	HitDiceProperty hitdice;
 	List<TempHPs> tempHPs = new ArrayList<>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
 	Map<Modifier, TempHPs> modMap = new HashMap<>();
 	MaxHPs maxHPs;
@@ -100,23 +99,42 @@ public class HPs extends Statistic {
 	}
 
 	// FIXME the max hps field in the ui should set a override on the total of this (so that modifiers are preserved), currently it effectively sets the base value
-	public class MaxHPs extends Statistic implements SettableProperty<Integer> {
-		int max;
+	// TODO should probably move this to HitDiceProperty
+	// FIXME temporarily only supports a single override value
+	public class MaxHPs extends Statistic implements OverridableProperty<Integer> {
+		HitDiceProperty hitdice;
+		Integer override = null;
 
-		public MaxHPs(PropertyCollection parent) {
+		public MaxHPs(HitDiceProperty hd, PropertyCollection parent) {
 			super("hit_points.max_hps", "Max Hit Points", parent);
+
+			hitdice = hd;
+			hitdice.addPropertyListener((source, oldValue) -> {
+				this.fireEvent();
+			});
+		}
+
+		@Override
+		public OverridableProperty.PropertyValue<Integer> addOverride(Integer val) {
+			Integer old = getValue();
+			if (val == null || val.equals(getBaseValue())) {
+				override = null;	// TODO removing override should be done through removeOverride method - remove this hack when overrides are properly suported in the ui and implemented in statistic
+			} else {
+				override = val;
+			}
+			fireEvent(old);
+			return new PropertyValue<Integer>(val);
 		}
 
 		@Override
 		public Integer getBaseValue() {
-			return max;
+			return hitdice.getMaxHPs();
 		}
 
 		@Override
-		public void setValue(Integer hp) {
-			int old = max;
-			max = hp;
-			fireEvent(old);
+		public Integer getValue() {
+			if (override == null) return super.getValue();
+			return override;
 		}
 	}
 
@@ -124,26 +142,11 @@ public class HPs extends Statistic {
 	public HPs(HitDiceProperty hd, PropertyCollection parent) {
 		super("hit_points", "Hit Points", parent);
 
-		hitdice = hd;
-		hitdice.addPropertyListener((source, oldValue) -> {
-			updateModifier(HDDice.getTotalConstant(oldValue));
-		});
-
-		maxHPs = new MaxHPs(parent);
+		maxHPs = new MaxHPs(hd, parent);
 
 		wounds = new SimpleValueProperty<Integer>("hit_points.wounds", parent, 0);
 
 		nonLethal = new SimpleValueProperty<Integer>("hit_points.non-lethal", parent, 0);
-	}
-
-	// apply any HD modifier change to maximum hitpoints
-	private void updateModifier(int oldMod) {
-		int oldhps = maxHPs.getValue();
-		int newhps = oldhps + HDDice.getTotalConstant(hitdice.getValue()) - oldMod;
-		if (newhps < hitdice.getHitDiceCount()) newhps = hitdice.getHitDiceCount();	// TODO if we need to use this then it won't be reversable. probably need a max hp override
-		if (newhps == oldhps) return;
-		//System.out.println("changing max hps from " + oldhps + " to " + newhps);
-		maxHPs.setValue(newhps);
 	}
 
 	public MaxHPs getMaxHPStat() {

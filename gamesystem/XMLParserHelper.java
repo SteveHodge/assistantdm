@@ -48,18 +48,23 @@ public class XMLParserHelper {
 		NodeList classes = e.getChildNodes();
 		int i = 1;
 		for (int j = 0; j < classes.getLength(); j++) {
-			if (classes.item(j).getNodeName().equals("Class")) {
-				CharacterClass cls = CharacterClass.getCharacterClass(((Element) classes.item(j)).getAttribute("class"));
+			if (classes.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element node = (Element) classes.item(j);
+			if (node.getNodeName().equals("Class")) {
+				CharacterClass cls = CharacterClass.getCharacterClass(node.getAttribute("class"));
 				if (c != null) {
-					c.setClass(i++, cls);
+					c.setClass(i, cls);
 				} else {
-					lvl.setClass(i++, cls);
+					lvl.setClass(i, cls);
 				}
+				if (node.hasAttribute("hp-roll")) {
+					lvl.setHPRoll(i, Integer.parseInt(node.getAttribute("hp-roll")));
+				}
+				i++;
 
-			} else if (classes.item(j).getNodeName().equals("ClassOption")) {
-				Element el = (Element) classes.item(j);
+			} else if (node.getNodeName().equals("ClassOption")) {
 				if (c != null) {
-					c.setClassOption(el.getAttribute("id"), el.getAttribute("selection"));
+					c.setClassOption(node.getAttribute("id"), node.getAttribute("selection"));
 				}
 			}
 		}
@@ -150,7 +155,7 @@ public class XMLParserHelper {
 
 	protected void parseHPs(Element e, Creature c) {
 		if (!e.getTagName().equals("HitPoints")) return;
-		c.hps.getMaxHPStat().setValue(Integer.parseInt(e.getAttribute("maximum")));
+		if (e.hasAttribute("maximum")) c.hps.getMaxHPStat().addOverride(Integer.parseInt(e.getAttribute("maximum")));
 		if (e.hasAttribute("wounds")) c.hps.getWoundsProperty().setValue(Integer.parseInt(e.getAttribute("wounds")));
 		if (e.hasAttribute("non-lethal")) c.hps.getNonLethalProperty().setValue(Integer.parseInt(e.getAttribute("non-lethal")));
 		// TODO this means that HPs must be parsed after ability scores. we really need accurate reporting of old con mod in the event

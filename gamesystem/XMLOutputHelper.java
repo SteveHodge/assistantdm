@@ -139,10 +139,13 @@ public class XMLOutputHelper {
 		Element e = doc.createElement("Level");
 		e.setAttribute("level", "" + lvl.level);
 
-		for (CharacterClass c : lvl.classes) {
-			if (c != null) {
+		for (int i = 1; i <= lvl.level; i++) {
+			CharacterClass c = lvl.getClass(i);
+			Integer hp = lvl.getHPRoll(i);
+			if (c != null || hp != null) {
 				Element ce = doc.createElement("Class");
-				ce.setAttribute("class", c.toString());
+				if (c != null) ce.setAttribute("class", c.toString());
+				if (hp != null) ce.setAttribute("hp-roll", hp.toString());
 				e.appendChild(ce);
 			}
 		}

@@ -196,6 +196,7 @@
 				<xs:element name="Class">
 					<xs:complexType>
 						<xs:attribute name="class" type="xs:string" use="required"/>
+						<xs:attribute name="hp-roll" type="xs:int"/>
 					</xs:complexType>
 				</xs:element>
 				<xs:element ref="XPAward"/>
@@ -258,7 +259,7 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
-		<xs:attribute name="maximum" type="xs:int" use="required"/>
+		<xs:attribute name="maximum" type="xs:int"/>
 		<xs:attribute name="wounds" type="xs:int"/>
 		<xs:attribute name="non-lethal" type="xs:int"/>
 	</xs:complexType>
@@ -495,8 +496,8 @@
 		<xs:sequence>
 			<xs:element ref="Character" maxOccurs="unbounded"/>
 			<xs:element ref="Party" minOccurs="0" maxOccurs="1"/>
-			<xs:element ref="LEDControl" minOccurs="0" maxOccurs="1"/>
 			<xs:element ref="Combat" minOccurs="0" maxOccurs="1"/>
+			<xs:element ref="LEDControl" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
 </xs:element>
