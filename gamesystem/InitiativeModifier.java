@@ -1,9 +1,10 @@
 package gamesystem;
 
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.SettableProperty;
 
-// FIXME implement overrides so the monster combat entry works properly
-public class InitiativeModifier extends Statistic {
+// TODO will probably want to switch to overrides rather than this being a SettableProperty once overrides on statistics are implemented
+public class InitiativeModifier extends Statistic implements SettableProperty<Integer> {
 	protected int baseValue = 0;
 
 	public InitiativeModifier(AbilityScore dex, PropertyCollection parent) {
@@ -13,18 +14,11 @@ public class InitiativeModifier extends Statistic {
 
 	@Override
 	public Integer getRegularValue() {
-		return baseValue + super.getValue();
+		return baseValue + getModifiersTotal();
 	}
 
 	public Integer getBaseValue() {
 		return baseValue;
-	}
-
-	public void setBaseValue(int v) {
-		//int oldValue = getValue();
-		baseValue = v;
-		//System.out.println(name+".setBaseValue("+v+"). Old = "+oldValue+", new = "+newValue);
-		fireEvent();	// TODO oldvalue
 	}
 
 	@Override
@@ -33,5 +27,13 @@ public class InitiativeModifier extends Statistic {
 		text.append(getBaseValue()).append(" base<br/>");
 		text.append(super.getSummary());
 		return text.toString();
+	}
+
+	@Override
+	public void setValue(Integer val) {
+		if (baseValue == val.intValue()) return;
+		int old = baseValue;
+		baseValue = val;
+		fireEvent(old);
 	}
 }

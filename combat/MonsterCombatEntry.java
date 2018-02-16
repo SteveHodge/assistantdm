@@ -62,7 +62,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		touchACComp = PropertyFields.createOverrideIntegerField(creature.getACStatistic().getTouchAC(), 4);
 		flatFootedACComp = PropertyFields.createOverrideIntegerField(creature.getACStatistic().getFlatFootedAC(), 4);
 
-		modifierComp = PropertyFields.createOverrideIntegerField(creature.getInitiativeStatistic(), 3);
+		modifierComp = PropertyFields.createSettableIntegerField(creature.getInitiativeStatistic(), 3);
 
 		creature.addPropertyListener(hps, this);
 		creature.addPropertyListener(creature.getInitiativeStatistic(), this);
@@ -156,7 +156,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		c.nameField.setText(name);
 		c.rollField.setValue(Integer.parseInt(el.getAttribute("roll")));
 		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));
-		c.creature.getInitiativeStatistic().setBaseValue(Integer.parseInt(el.getAttribute("initMod")));
+		c.creature.getInitiativeStatistic().setValue(Integer.parseInt(el.getAttribute("initMod")));
 		c.creature.getHPStatistic().getMaxHPStat().addOverride(Integer.parseInt(el.getAttribute("maxHPs")));
 		c.creature.getHPStatistic().getWoundsProperty().setValue(Integer.parseInt(el.getAttribute("wounds")));
 		c.creature.getHPStatistic().getNonLethalProperty().setValue((Integer.parseInt(el.getAttribute("nonLethal"))));

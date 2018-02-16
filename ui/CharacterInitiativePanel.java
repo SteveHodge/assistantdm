@@ -29,7 +29,7 @@ class CharacterInitiativePanel extends CharacterSubPanel {
 
 		add(new JLabel("Base:"));
 
-		baseInit = PropertyFields.createOverrideIntegerField(init, 3);
+		baseInit = PropertyFields.createSettableIntegerField(init, 3);
 		add(baseInit);
 
 		totLabel = new JLabel("Total: " + init.getValue() + (init.hasConditionalModifier() ? "*" : ""));

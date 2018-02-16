@@ -65,7 +65,7 @@ public class Monster extends Creature {
 
 		AbilityScore dex = abilities.get(AbilityScore.Type.DEXTERITY);
 		initiative = new InitiativeModifier(dex, this);
-		initiative.setBaseValue(0);
+		initiative.setValue(0);
 
 		race = new Race(this);
 		race.addPropertyListener((source, oldValue) -> {

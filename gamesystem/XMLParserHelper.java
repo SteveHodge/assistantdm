@@ -25,7 +25,7 @@ public class XMLParserHelper {
 
 	protected void parseInitiativeModifier(Element e, Creature c) {
 		if (!e.getTagName().equals("Initiative")) return;
-		c.initiative.setBaseValue(Integer.parseInt(e.getAttribute("value")));
+		c.initiative.setValue(Integer.parseInt(e.getAttribute("value")));
 	}
 
 	protected void parseSanity(Element e, Creature c) {

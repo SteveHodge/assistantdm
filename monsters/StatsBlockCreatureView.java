@@ -138,7 +138,7 @@ public class StatsBlockCreatureView {
 			}
 		}
 
-		m.getInitiativeStatistic().setBaseValue(blk.getInitiativeModifier());	// XXX is this right? should it be setting the total?
+		m.getInitiativeStatistic().setValue(blk.getInitiativeModifier());	// XXX is this right? should it be setting the total?
 
 //		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 //			SavingThrow s = m.getSavingThrowStatistic(t);
@@ -389,7 +389,7 @@ public class StatsBlockCreatureView {
 
 		} else if (field == Field.INITIATIVE) {
 			int init = StatisticsBlock.parseInitiativeModifier(value);
-			creature.getInitiativeStatistic().setBaseValue(init);	// XXX is this right? should it be setting the total?
+			creature.getInitiativeStatistic().setValue(init);	// XXX is this right? should it be setting the total?
 
 		} else if (field == Field.SAVES) {
 			for (SavingThrow.Type t : SavingThrow.Type.values()) {
