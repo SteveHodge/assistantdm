@@ -77,14 +77,14 @@ public class Sanity extends ValueProperty<Integer> {
 		if (heal <= 0) throw new IllegalArgumentException("Cannot heal <= 0 sanity");
 		int newVal = getValue() + heal;
 		if (newVal > startingSanity.getValue()) newVal = startingSanity.getValue();
-		setRegularValue(newVal);
+		setValue(newVal);
 	}
 
 	// dmg must be > 0. note this affects the base value so it will have no apparent effect if an override is applied
 	// TODO handle overrides somehow
 	public void applyDamage(int dmg) {
 		if (dmg <= 0) throw new IllegalArgumentException("Cannot do <= 0 sanity damage");
-		setRegularValue(getValue() - dmg);
+		setValue(getValue() - dmg);
 	}
 
 }
