@@ -310,7 +310,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 				character.clearBABOverride();
 			} else {
 				int total = (Integer) BAB.getValue();
-				if (total == babProp.getBaseValue()) {
+				if (total == babProp.getRegularValue()) {
 					character.clearBABOverride();
 					BAB.setText("");
 				} else {
@@ -473,7 +473,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 	}
 
 	private void updateLabels() {
-		babLabel.setText(Integer.toString(character.getBAB().getBaseValue()));
+		babLabel.setText(Integer.toString(character.getBAB().getRegularValue()));
 		strLabel.setText("" + character.getAbilityStatistic(AbilityScore.Type.STRENGTH).getModifierValue());
 		String melee = attacks.getAttacksDescription(attacks.getValue())+(attacks.hasConditionalModifier()?"*":"");
 		if (attacks.isTotalDefense()) {

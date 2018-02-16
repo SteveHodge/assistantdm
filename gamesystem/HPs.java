@@ -110,6 +110,9 @@ public class HPs extends Statistic {
 
 			hitdice = hd;
 			hitdice.addPropertyListener((source, oldValue) -> {
+				if (override != null && override.equals(getRegularValue())) {
+					override = null;	// XXX not sure if it's best to remove override if it now matches the correct value
+				}
 				this.fireEvent();
 			});
 		}
@@ -117,7 +120,7 @@ public class HPs extends Statistic {
 		@Override
 		public OverridableProperty.PropertyValue<Integer> addOverride(Integer val) {
 			Integer old = getValue();
-			if (val == null || val.equals(getBaseValue())) {
+			if (val == null || val.equals(getRegularValue())) {
 				override = null;	// TODO removing override should be done through removeOverride method - remove this hack when overrides are properly suported in the ui and implemented in statistic
 			} else {
 				override = val;
@@ -127,7 +130,7 @@ public class HPs extends Statistic {
 		}
 
 		@Override
-		public Integer getBaseValue() {
+		public Integer getRegularValue() {
 			return hitdice.getMaxHPs();
 		}
 
@@ -135,6 +138,11 @@ public class HPs extends Statistic {
 		public Integer getValue() {
 			if (override == null) return super.getValue();
 			return override;
+		}
+
+		@Override
+		public boolean hasOverride() {
+			return override != null;
 		}
 	}
 

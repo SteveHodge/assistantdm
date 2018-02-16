@@ -117,7 +117,7 @@ public class XMLOutputHelper {
 		if (creatureEl == null) return null;
 
 		Element e = doc.createElement("HitPoints");
-		e.setAttribute("maximum", "" + hps.getMaxHPStat().getValue());
+		if (hps.getMaxHPStat().hasOverride()) e.setAttribute("maximum", "" + hps.getMaxHPStat().getValue());
 		if (hps.getWounds() != 0) e.setAttribute("wounds", "" + hps.getWounds());
 		if (hps.getNonLethal() != 0) e.setAttribute("non-lethal", "" + hps.getNonLethal());
 
@@ -207,7 +207,7 @@ public class XMLOutputHelper {
 		if (creatureEl == null) return null;
 
 		Element e = doc.createElement("Initiative");
-		e.setAttribute("value", "" + initiative.getBaseValue());
+		e.setAttribute("value", "" + initiative.getRegularValue());
 
 		creatureEl.appendChild(e);
 		return e;
@@ -217,8 +217,8 @@ public class XMLOutputHelper {
 		if (creatureEl == null) return null;
 
 		Element e = doc.createElement("Sanity");
-		e.setAttribute("current", "" + sanity.getBaseValue());
-		e.setAttribute("knowledge", "" + sanity.getKnowledgeSkillProperty().getBaseValue());
+		e.setAttribute("current", "" + sanity.getRegularValue());
+		e.setAttribute("knowledge", "" + sanity.getKnowledgeSkillProperty().getRegularValue());
 		e.setAttribute("session", "" + sanity.getSessionStartingSanity());
 
 		creatureEl.appendChild(e);
@@ -230,8 +230,8 @@ public class XMLOutputHelper {
 
 		Element e = doc.createElement("Size");
 		e.setAttribute("category", "" + size.getBaseSize());
-		e.setAttribute("space", "" + size.getSpace().getBaseValue());
-		e.setAttribute("reach", "" + size.getReach().getBaseValue());
+		e.setAttribute("space", "" + size.getSpace().getRegularValue());
+		e.setAttribute("reach", "" + size.getReach().getRegularValue());
 
 		creatureEl.appendChild(e);
 	}

@@ -16,12 +16,12 @@ abstract public class AbstractOverridableProperty<T> extends AbstractProperty<T>
 	}
 
 	@Override
-	abstract public T getBaseValue();
+	abstract public T getRegularValue();
 
 	@Override
 	public T getValue() {
 		if (hasOverride()) return overrides.get(overrides.size() - 1).value;
-		return getBaseValue();
+		return getRegularValue();
 	}
 
 	@Override
@@ -53,7 +53,7 @@ abstract public class AbstractOverridableProperty<T> extends AbstractProperty<T>
 	@Override
 	public List<T> getValues() {
 		List<T> values = new ArrayList<>();
-		values.add(getBaseValue());
+		values.add(getRegularValue());
 		if (overrides != null) {
 			for (PropertyValue<T> v : overrides) {
 				values.add(v.value);

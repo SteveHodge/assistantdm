@@ -88,7 +88,7 @@ class AbilitiesPanel extends DetailPanel {
 				AbilityScore s = monster.getAbilityStatistic(AbilityScore.Type.values()[i]);
 				if (s != null) {
 					spinners[i].setEnabled(true);
-					spinners[i].setValue(s.getBaseValue());
+					spinners[i].setValue(s.getRegularValue());
 
 					int modifiers = s.getModifiersTotal();
 					String t = "";
@@ -128,7 +128,7 @@ class AbilitiesPanel extends DetailPanel {
 					if (s != null) {
 						// should never be null
 						int newVal = (Integer) spinners[i].getValue();
-						if (s.getBaseValue() != newVal) s.setBaseValue(newVal);
+						if (s.getRegularValue() != newVal) s.setBaseValue(newVal);
 					}
 					return;
 				}

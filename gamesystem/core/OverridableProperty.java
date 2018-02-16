@@ -26,7 +26,7 @@ public interface OverridableProperty<T> extends Property<T> {
 		}
 	}
 
-	public T getBaseValue();	// the non-overriden value of the property
+	public T getRegularValue();	// the non-overriden value of the property
 
 	public PropertyValue<T> addOverride(T overrideVal);
 

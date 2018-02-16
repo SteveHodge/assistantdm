@@ -37,7 +37,7 @@ class CharacterSanityPanel extends CharacterSubPanel {
 		currentField = new JFormattedTextField(sanity.getValue());
 		currentField.addPropertyChangeListener("value", evt -> {
 			if (evt.getPropertyName().equals("value")) {
-				sanity.setBaseValue((Integer) currentField.getValue());
+				sanity.setRegularValue((Integer) currentField.getValue());
 			}
 		});
 		sanity.addPropertyListener((source, oldValue) -> {
@@ -52,7 +52,7 @@ class CharacterSanityPanel extends CharacterSubPanel {
 		knowledgeField = new JFormattedTextField(knowledge.getValue());
 		knowledgeField.addPropertyChangeListener("value", evt -> {
 			if (evt.getPropertyName().equals("value")) {
-				knowledge.setBaseValue((Integer) knowledgeField.getValue());
+				knowledge.setRegularValue((Integer) knowledgeField.getValue());
 			}
 		});
 		knowledge.addPropertyListener((source, oldValue) -> {

@@ -1,5 +1,6 @@
 package ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 
 import javax.swing.JFormattedTextField;
@@ -73,10 +74,12 @@ public class PropertyFields {
 		return field;
 	}
 
-// Binds a formatted text field to an Property<Integer>. Setting the value will set an override on the property (removing any previous override).
+// Binds a formatted text field to an Property<Integer>. Setting the value will set an override on the property (removing any previous override). When an override is set on the property, the background of the field will be blue.
+// TODO typically we'd want all fields attached to a particular property to share the same override but that's not how it's presently implemented - perhaps a static override collection (then we could inline the class too)
 	@SuppressWarnings("serial")
 	private static class BoundIntegerField extends JFormattedTextField {
 		OverridableProperty.PropertyValue<Integer> overrideKey = null;
+		static public final Color overrideColor = new Color(104, 179, 255);
 
 		public BoundIntegerField(OverridableProperty<Integer> property, int columns) {
 			addPropertyChangeListener("value", evt -> {
@@ -93,10 +96,12 @@ public class PropertyFields {
 				//it's ok to do this even if this change event is due to an update from this control
 				//because setValue will not fire a change event if the property isn't actually changing
 				setValue(property.getValue());
+				setBackground(property.hasOverride() ? overrideColor : Color.WHITE);
 //				System.out.println("Setting field from " + property.getName() + " to " + property.getValue() + " due to update");
 			});
 			setColumns(columns);
 			setValue(property.getValue());
+			setBackground(property.hasOverride() ? overrideColor : Color.WHITE);
 //			System.out.println("Setting field from " + property.getName() + " to " + property.getValue() + " - initialization");
 		}
 

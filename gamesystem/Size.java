@@ -30,7 +30,7 @@ public class Size extends Statistic {
 
 		space = new AbstractOverridableProperty<Integer>("size.space", parent) {
 			@Override
-			public Integer getBaseValue() {
+			public Integer getRegularValue() {
 				if (getModifiersTotal() == 0) return spaceValue;
 				if (spaceValue == category.getSpace()) return getSize().getSpace();	// standard space so use standard for changed size
 				// TODO adjust space based on change in size
@@ -40,7 +40,7 @@ public class Size extends Statistic {
 
 		reach = new AbstractOverridableProperty<Integer>("size.reach", parent) {
 			@Override
-			public Integer getBaseValue() {
+			public Integer getRegularValue() {
 				if (getModifiersTotal() == 0) return reachValue;
 				if (reachValue == category.getReachTall()) return getSize().getReachTall();	// standard reach
 				if (reachValue == category.getReachLong()) return getSize().getReachLong();	// standard reach

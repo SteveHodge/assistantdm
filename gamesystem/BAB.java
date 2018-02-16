@@ -55,7 +55,7 @@ public class BAB extends AbstractOverridableProperty<Integer> {
 	}
 
 	@Override
-	public Integer getBaseValue() {
+	public Integer getRegularValue() {
 		// we don't use cached value just incase it's stale
 		assert (bab == getBAB());
 		return getBAB();

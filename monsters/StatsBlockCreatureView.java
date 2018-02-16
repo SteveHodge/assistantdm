@@ -396,7 +396,7 @@ public class StatsBlockCreatureView {
 				SavingThrow s = creature.getSavingThrowStatistic(t);
 				int save = StatisticsBlock.parseSavingThrow(value, t);
 				if (save > Integer.MIN_VALUE) {
-					s.setBaseOverride(s.getBaseValue() + save - s.getValue());
+					s.setBaseOverride(s.getRegularValue() + save - s.getValue());
 				}
 			}
 		} else if (field == Field.ATTACK) {

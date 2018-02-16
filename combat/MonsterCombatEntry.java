@@ -176,7 +176,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		e.setAttribute("name", creature.getName());
 		e.setAttribute("roll", Integer.toString(getRoll()));
 		e.setAttribute("tieBreak", Integer.toString(getTieBreak()));
-		e.setAttribute("initMod", Integer.toString(creature.getInitiativeStatistic().getBaseValue()));
+		e.setAttribute("initMod", Integer.toString(creature.getInitiativeStatistic().getValue()));
 		e.setAttribute("maxHPs", Integer.toString(creature.getHPStatistic().getMaxHPStat().getValue()));
 		e.setAttribute("wounds", Integer.toString(creature.getHPStatistic().getWounds()));
 		e.setAttribute("nonLethal", Integer.toString(creature.getHPStatistic().getNonLethal()));

@@ -328,7 +328,7 @@ public class CharacterSheetView {
 			}
 			e.setAttribute("base", getModifierString(bab.getValue()));
 			e.setAttribute("size-modifier", "+0");			// TODO implement
-			e.setAttribute("normal-attacks", attacks.getAttacksDescription(bab.getBaseValue(), bab.getBaseValue()));		// attack description for non-overridden BAB
+			e.setAttribute("normal-attacks", attacks.getAttacksDescription(bab.getRegularValue(), bab.getRegularValue()));		// attack description for non-overridden BAB
 			e.setAttribute("attacks", attacks.getAttacksDescription(bab.getValue()));		// attack description based on current BAB
 
 			Element e1 = doc.createElement("Attack");
@@ -375,13 +375,13 @@ public class CharacterSheetView {
 		public void processSavingThrow(SavingThrow s) {
 			Element saveEl = getSavingThrowElement(s);
 			saveEl.setAttribute("type", s.getDescription());
-			saveEl.setAttribute("base", getModifierString(s.getBaseValue()));
+			saveEl.setAttribute("base", getModifierString(s.getRegularValue()));
 			saveEl.setAttribute("total", getModifierString(s.getValue()));
 			saveEl.setAttribute("info", s.getSummary());
 			int temp = 0;
 			if (character.saveMisc.get(s.getType()) != null) temp = character.saveMisc.get(s.getType()).getModifier();
 			if (temp != 0) saveEl.setAttribute("misc", getModifierString(temp));	// the misc/temp modifier applied through the ui
-			int misc = s.getValue() - s.getBaseValue() - character.getAbilityStatistic(s.getType().getAbilityType()).getModifierValue() - temp;
+			int misc = s.getValue() - s.getRegularValue() - character.getAbilityStatistic(s.getType().getAbilityType()).getModifierValue() - temp;
 			if (misc != 0) saveEl.setAttribute("mods", getModifierString(misc));	// mods is the total combined modifiers other than the misc/temp modifier and the ability modifier
 		}
 

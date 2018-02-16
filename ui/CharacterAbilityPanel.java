@@ -119,7 +119,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 			else if (columnIndex == 2) {
 				AbilityScore s = getAbility(rowIndex);
 				int val = (Integer) value;
-				if (val != s.getBaseValue() && val >= 0) {
+				if (val != s.getRegularValue() && val >= 0) {
 					s.setOverride(val);
 				} else {
 					s.clearOverride();
@@ -162,7 +162,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		@Override
 		public Object getValueAt(int row, int column) {
 			if (column == 0) return getAbilityName(row);
-			if (column == 1) return getAbility(row).getBaseValue();
+			if (column == 1) return getAbility(row).getRegularValue();
 			if (column == 2) {
 				if (getAbility(row).getOverride() == -1) return null;
 				return getAbility(row).getValue();

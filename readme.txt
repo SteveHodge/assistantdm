@@ -1,11 +1,12 @@
 ---=== IN PROGRESS ===---
-* Make wounds and non-lethal into properties. - consider if MaxHPs should be merged or replaced with hitdice as their functionality seem to overlap
+* Audit use of createOverrideIntegerField and look at moving other override controls to standard field (probably a new field type which only displays the override, not the total)
+* Enhance standard fields with tool tip?
+* Statistic - need to handle overrides correctly (only modifiers since the last override count).
+* Overrides on statistics should be on the total. If a base value override is required then the base value should be a property. - implement this, plus handling of overrides for statistics including xml serialization
 * Remove remaining PROPERTY constants? At least check where they are used
 * Sort out hierarchy - consider if sub-properties should be registered with their parent or with the Creature.
 * Consider a PropertyParent interface.
-* Statistic - need to handle overrides correctly (only modifiers since the last override count).
 * Modifiers event/listener stuff should perhaps be similar to property in style
-* Overrides on statistics should be on the total. If a base value override is required then the base value should be a property.
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality

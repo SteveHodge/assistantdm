@@ -96,14 +96,14 @@ public class AbilityScore extends Statistic {
 		}
 	}
 
-	@Override
 	public Integer getBaseValue() {
 		return baseValue;
 	}
 
 	// returns the "normal" value of the ability score (the base value + any modifiers that apply)
 	// if no override is set then this will be equal to getValue()
-	public int getRegularValue() {
+	@Override
+	public Integer getRegularValue() {
 		return baseValue + getModifiersTotal();
 	}
 

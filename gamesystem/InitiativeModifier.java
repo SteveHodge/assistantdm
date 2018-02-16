@@ -2,7 +2,7 @@ package gamesystem;
 
 import gamesystem.core.PropertyCollection;
 
-// TODO shouldn't be able to set the baseValue, instead use overrides
+// FIXME implement overrides so the monster combat entry works properly
 public class InitiativeModifier extends Statistic {
 	protected int baseValue = 0;
 
@@ -12,11 +12,10 @@ public class InitiativeModifier extends Statistic {
 	}
 
 	@Override
-	public Integer getValue() {
+	public Integer getRegularValue() {
 		return baseValue + super.getValue();
 	}
 
-	@Override
 	public Integer getBaseValue() {
 		return baseValue;
 	}

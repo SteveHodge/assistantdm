@@ -31,8 +31,8 @@ public class XMLParserHelper {
 	protected void parseSanity(Element e, Creature c) {
 		if (!e.getTagName().equals("Sanity")) return;
 		int val = Integer.parseInt(e.getAttribute("current"));
-		c.sanity.setBaseValue(val);
-		c.sanity.getKnowledgeSkillProperty().setBaseValue(Integer.parseInt(e.getAttribute("knowledge")));
+		c.sanity.setRegularValue(val);
+		c.sanity.getKnowledgeSkillProperty().setRegularValue(Integer.parseInt(e.getAttribute("knowledge")));
 		if (e.hasAttribute("session")) {
 			c.sanity.sessionStart = Integer.parseInt(e.getAttribute("session"));
 		} else {

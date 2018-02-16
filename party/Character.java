@@ -652,8 +652,8 @@ public class Character extends Creature {
 		if (hps.getNonLethal() != inChar.hps.getNonLethal()) {
 			System.out.println(PROPERTY_NONLETHAL+"|"+hps.getNonLethal()+"|"+inChar.hps.getNonLethal());
 		}
-		if (initiative.getBaseValue() != inChar.initiative.getBaseValue()) {
-			System.out.println(PROPERTY_INITIATIVE+"|"+initiative.getBaseValue()+"|"+inChar.initiative.getBaseValue());
+		if (initiative.getRegularValue() != inChar.initiative.getRegularValue()) {
+			System.out.println(PROPERTY_INITIATIVE+"|"+initiative.getRegularValue()+"|"+inChar.initiative.getRegularValue());
 		}
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {
 			if (abilities.get(t) != inChar.abilities.get(t)) {
@@ -695,7 +695,7 @@ public class Character extends Creature {
 		if (hps.getMaxHPStat().getValue() != inChar.hps.getMaxHPStat().getValue()) diffs.add(PROPERTY_MAXHPS);
 		if (hps.getWounds() != inChar.hps.getWounds()) diffs.add(PROPERTY_WOUNDS);
 		if (hps.getNonLethal() != inChar.hps.getNonLethal()) diffs.add(PROPERTY_NONLETHAL);
-		if (initiative.getBaseValue() != inChar.initiative.getBaseValue()) diffs.add(PROPERTY_INITIATIVE);
+		if (initiative.getRegularValue() != inChar.initiative.getRegularValue()) diffs.add(PROPERTY_INITIATIVE);
 		//if (xp != inChar.xp) diffs.add(PROPERTY_XP);	// TODO not sure we should include this
 		//if (level != inChar.level) diffs.add(PROPERTY_LEVEL);	// TODO not sure we should include this
 		for (AbilityScore.Type t : AbilityScore.Type.values()) {

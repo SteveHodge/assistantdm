@@ -33,7 +33,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 
 	//----------------------------- Property Interface -----------------------------
 	@Override
-	public Integer getBaseValue() {
+	public Integer getRegularValue() {
 		return 0;
 	}
 
@@ -83,9 +83,10 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	public void resetProperty(String property, Object key) {
 	}
 
+	// FIXME need to account for overrides
 	@Override
 	public Integer getValue() {
-		return getBaseValue() + getModifiersTotal();
+		return getRegularValue() + getModifiersTotal();
 	}
 
 	// returns true if this has an active conditional modifier
