@@ -1,7 +1,7 @@
 package ui;
 
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 import gamesystem.Sanity;
 import gamesystem.core.ValueProperty;
@@ -10,9 +10,9 @@ import party.Character;
 @SuppressWarnings("serial")
 class CharacterSanityPanel extends CharacterSubPanel {
 	private JLabel maxLabel;
-	private JFormattedTextField currentField;
+	private JTextField currentField;
 	private JLabel startingLabel;
-	private JFormattedTextField knowledgeField;
+	private JTextField knowledgeField;
 	private Sanity sanity;
 
 	CharacterSanityPanel(Character c) {
@@ -20,45 +20,21 @@ class CharacterSanityPanel extends CharacterSubPanel {
 		sanity = c.getSanity();
 		summary = sanity.getValue().toString();
 
-		maxLabel = new JLabel("Maximum: " + sanity.getMaximumSanityProperty().getValue());
-		sanity.getMaximumSanityProperty().addPropertyListener((source, oldValue) -> {
-			maxLabel.setText("Maximum: " + source.getValue());
-		});
+		maxLabel = PropertyFields.createIntegerPropertyLabel(sanity.getMaximumSanityProperty(), "Maximum: ");
 		add(maxLabel);
 
-		startingLabel = new JLabel("Starting: " + sanity.getStartingSanityProperty().getValue());
-		sanity.getStartingSanityProperty().addPropertyListener((source, oldValue) -> {
-			startingLabel.setText("Starting: " + source.getValue());
-		});
+		startingLabel = PropertyFields.createIntegerPropertyLabel(sanity.getStartingSanityProperty(), "Starting: ");
 		add(startingLabel);
 
 		add(new JLabel("Current:"));
 
-		currentField = new JFormattedTextField(sanity.getValue());
-		currentField.addPropertyChangeListener("value", evt -> {
-			if (evt.getPropertyName().equals("value")) {
-				sanity.setRegularValue((Integer) currentField.getValue());
-			}
-		});
-		sanity.addPropertyListener((source, oldValue) -> {
-			currentField.setValue(source.getValue());
-		});
-		currentField.setColumns(3);
+		currentField = PropertyFields.createSettableIntegerField(sanity, 3);
 		add(currentField);
 
 		add(new JLabel("Knowledge Skill:"));
 
 		ValueProperty<Integer> knowledge = sanity.getKnowledgeSkillProperty();
-		knowledgeField = new JFormattedTextField(knowledge.getValue());
-		knowledgeField.addPropertyChangeListener("value", evt -> {
-			if (evt.getPropertyName().equals("value")) {
-				knowledge.setRegularValue((Integer) knowledgeField.getValue());
-			}
-		});
-		knowledge.addPropertyListener((source, oldValue) -> {
-			knowledgeField.setValue(source.getValue());
-		});
-		knowledgeField.setColumns(3);
+		knowledgeField = PropertyFields.createSettableIntegerField(knowledge, 3);
 		add(knowledgeField);
 
 		updateToolTip();

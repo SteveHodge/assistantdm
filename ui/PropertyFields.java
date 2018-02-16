@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 
 import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -23,6 +24,14 @@ import party.Character;
 
 // TODO better naming of methods
 public class PropertyFields {
+	public static JLabel createIntegerPropertyLabel(Property<Integer> property, String prefix) {
+		JLabel label = new JLabel(prefix + property.getValue());
+		property.addPropertyListener((source, oldValue) -> {
+			label.setText(prefix + source.getValue());
+		});
+		return label;
+	}
+
 	// FIXME check if users of this should be using createSettableIntegerField instead
 	public static JTextField createOverrideIntegerField(OverridableProperty<Integer> property, int columns) {
 		return new BoundIntegerField(property, columns);
