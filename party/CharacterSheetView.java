@@ -367,6 +367,7 @@ public class CharacterSheetView {
 		@Override
 		public void processHPs(HPs hps) {
 			Element e = getHPsElement(hps);
+			if (!e.hasAttribute("maximum")) e.setAttribute("maximum", Integer.toString(hps.getMaxHPStat().getValue()));
 			e.setAttribute("info", hps.getSummary());
 			e.setAttribute("current", Integer.toString(hps.getHPs()));
 		}

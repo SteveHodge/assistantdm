@@ -29,10 +29,10 @@ class CharacterInitiativePanel extends CharacterSubPanel {
 
 		add(new JLabel("Base:"));
 
-		baseInit = PropertyFields.createSettableIntegerField(init, 3);
+		baseInit = PropertyFields.createBaseValueField(init, 3);
 		add(baseInit);
 
-		totLabel = new JLabel("Total: " + init.getValue() + (init.hasConditionalModifier() ? "*" : ""));
+		totLabel = PropertyFields.createStatisticLabel(init, "Total: ");
 		add(totLabel);
 
 		addMouseListener(rightClickListener);
@@ -42,7 +42,6 @@ class CharacterInitiativePanel extends CharacterSubPanel {
 
 		// update labels when character changes
 		character.addPropertyListener(init, (source, old) -> {
-			totLabel.setText("Total: " + init.getValue() + (init.hasConditionalModifier() ? "*" : ""));
 			updateToolTip();
 			updateSummaries((init.getValue() >= 0 ? "+" : "") + init.getValue());
 		});

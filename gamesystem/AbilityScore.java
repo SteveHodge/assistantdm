@@ -96,7 +96,8 @@ public class AbilityScore extends Statistic {
 		}
 	}
 
-	public Integer getBaseValue() {
+	@Override
+	public int getBaseValue() {
 		return baseValue;
 	}
 

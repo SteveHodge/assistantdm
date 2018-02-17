@@ -62,7 +62,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		touchACComp = PropertyFields.createOverrideIntegerField(creature.getACStatistic().getTouchAC(), 4);
 		flatFootedACComp = PropertyFields.createOverrideIntegerField(creature.getACStatistic().getFlatFootedAC(), 4);
 
-		modifierComp = PropertyFields.createSettableIntegerField(creature.getInitiativeStatistic(), 3);
+		modifierComp = PropertyFields.createBaseValueField(creature.getInitiativeStatistic(), 3);
 
 		creature.addPropertyListener(hps, this);
 		creature.addPropertyListener(creature.getInitiativeStatistic(), this);

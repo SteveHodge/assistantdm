@@ -10,6 +10,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
+import gamesystem.Statistic;
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.Property;
 import gamesystem.core.SettableProperty;
@@ -28,6 +29,14 @@ public class PropertyFields {
 		JLabel label = new JLabel(prefix + property.getValue());
 		property.addPropertyListener((source, oldValue) -> {
 			label.setText(prefix + source.getValue());
+		});
+		return label;
+	}
+
+	public static JLabel createStatisticLabel(Statistic stat, String prefix) {
+		JLabel label = new JLabel(prefix + stat.getValue() + (stat.hasConditionalModifier() ? "*" : ""));
+		stat.addPropertyListener((source, oldValue) -> {
+			label.setText(prefix + source.getValue() + (stat.hasConditionalModifier() ? "*" : ""));
 		});
 		return label;
 	}
@@ -52,6 +61,35 @@ public class PropertyFields {
 		} else {
 			throw new IllegalArgumentException("Property " + propName + " is already defined but not an editable string property: " + property.getClass());
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static JTextField createBaseValueField(Statistic stat, int columns) {
+		if (!(stat instanceof SettableProperty<?>)) throw new IllegalArgumentException("Statistic " + stat.getName() + " does not have a settable base value");
+
+		@SuppressWarnings("serial")
+		JFormattedTextField field = new JFormattedTextField() {
+			@Override
+			public Dimension getMinimumSize() {
+				return getPreferredSize();
+			}
+		};
+		field.addPropertyChangeListener("value", evt -> {
+			if (evt.getPropertyName().equals("value")) {
+				Integer val = (Integer) field.getValue();
+				if (val != null && !val.equals(stat.getBaseValue())) {
+					((SettableProperty<Integer>) stat).setValue(val);
+				}
+			}
+		});
+		stat.addPropertyListener((source, old) -> {
+			//it's ok to do this even if this change event is due to an update from this control
+			//because setValue will not fire a change event if the property isn't actually changing
+			field.setValue(stat.getBaseValue());
+		});
+		field.setColumns(columns);
+		field.setValue(stat.getBaseValue());
+		return field;
 	}
 
 	public static JTextField createSettableIntegerField(SettableProperty<Integer> property, int columns) {
@@ -98,6 +136,8 @@ public class PropertyFields {
 						if (overrideKey != null) property.removeOverride(overrideKey);
 						overrideKey = property.addOverride(val);
 //						System.out.println("Setting override on " + property.getName() + " to " + val);
+//					} else {
+//						System.out.println("Can't set override on " + property.getName() + " to " + val + ", current value is " + property.getValue());
 					}
 				}
 			});

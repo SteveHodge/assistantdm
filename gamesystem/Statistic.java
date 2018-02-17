@@ -13,15 +13,15 @@ import gamesystem.core.PropertyCollection;
 /*
  * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
  * In many cases there is a base value that the modifiers are applied to. But the base value may not be editable so its implementation
- * is left to the subclasses.
+ * is left to the subclasses (by overriding getBaseValue(), which returns 0 in this class).
  *
  * Reports a single property "value" which is the total of the base value and the applicable modifiers.
  *
  * Subclasses may implement additional properties, e.g. Attacks implements an extra_attacks property. Generally properties
  * are values that are changeable but are not subject to typed modifiers.
  */
-// TODO need to implement overrides.
-// overrides should apply to the total, but need to handle modifiers added after the override
+// TODO need to implement overrides. overrides should apply to the total, but need to handle modifiers added after the override
+// XXX perhaps have a subclass that contains the base value stuff
 public class Statistic extends AbstractOverridableProperty<Integer> {
 	protected Set<Modifier> modifiers = new HashSet<>();
 	protected String description;
@@ -34,7 +34,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	//----------------------------- Property Interface -----------------------------
 	@Override
 	public Integer getRegularValue() {
-		return 0;
+		return getBaseValue() + getModifiersTotal();
 	}
 
 	@Override
@@ -83,10 +83,14 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	public void resetProperty(String property, Object key) {
 	}
 
+	public int getBaseValue() {
+		return 0;
+	}
+
 	// FIXME need to account for overrides
 	@Override
 	public Integer getValue() {
-		return getRegularValue() + getModifiersTotal();
+		return getBaseValue() + getModifiersTotal();
 	}
 
 	// returns true if this has an active conditional modifier

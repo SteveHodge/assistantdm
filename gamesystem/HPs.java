@@ -130,13 +130,13 @@ public class HPs extends Statistic {
 		}
 
 		@Override
-		public Integer getRegularValue() {
+		public int getBaseValue() {
 			return hitdice.getMaxHPs();
 		}
 
 		@Override
 		public Integer getValue() {
-			if (override == null) return super.getValue();
+			if (override == null) return super.getRegularValue();
 			return override;
 		}
 

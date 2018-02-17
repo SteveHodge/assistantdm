@@ -67,7 +67,8 @@ public class SavingThrow extends Statistic {
 	}
 
 	// gets the current base value - either the level derived value or the override if any
-	public Integer getBaseValue() {
+	@Override
+	public int getBaseValue() {
 		if (hitdice != null && baseValue == -1) return hitdice.getBaseSave(type);
 		return baseValue;
 	}

@@ -207,7 +207,7 @@ public class XMLOutputHelper {
 		if (creatureEl == null) return null;
 
 		Element e = doc.createElement("Initiative");
-		e.setAttribute("value", "" + initiative.getRegularValue());
+		e.setAttribute("value", "" + initiative.getBaseValue());
 
 		creatureEl.appendChild(e);
 		return e;

@@ -17,7 +17,8 @@ public class InitiativeModifier extends Statistic implements SettableProperty<In
 		return baseValue + getModifiersTotal();
 	}
 
-	public Integer getBaseValue() {
+	@Override
+	public int getBaseValue() {
 		return baseValue;
 	}
 
@@ -32,7 +33,7 @@ public class InitiativeModifier extends Statistic implements SettableProperty<In
 	@Override
 	public void setValue(Integer val) {
 		if (baseValue == val.intValue()) return;
-		int old = baseValue;
+		int old = getValue();
 		baseValue = val;
 		fireEvent(old);
 	}
