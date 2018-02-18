@@ -73,12 +73,22 @@ public class MonsterCombatEntry extends CombatEntry {
 	void createButtons() {
 		apply = new JButton("Apply");
 		apply.addActionListener(e -> {
-			int delta = ((Integer) dmgField.getValue());
-			applyDamage(delta, nonLethal.isSelected());
+			int dmg = ((Integer) dmgField.getValue());
+			if (dmg > 0) {
+				if (nonLethal.isSelected()) {
+					hps.applyNonLethal(dmg);
+				} else {
+					hps.applyDamage(dmg);
+				}
+			} else if (dmg < 0) {
+				hps.applyHealing(-dmg);
+			}
 		});
 
 		healAll = new JButton("Heal All");
-		healAll.addActionListener(e -> healAll());
+		healAll.addActionListener(e -> {
+			hps.applyHealing(Math.max(hps.getWounds(), hps.getNonLethal()));
+		});
 	}
 
 	@Override

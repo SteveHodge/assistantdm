@@ -12,7 +12,6 @@ import org.w3c.dom.Element;
 
 import gamesystem.AC;
 import gamesystem.Creature;
-import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.Modifier;
 import gamesystem.Sanity;
@@ -42,7 +41,7 @@ public class CharacterCombatEntry extends CombatEntry {
 		character.addPropertyListener("ac", new PropertyListener<Integer>() {
 			@Override
 			public void propertyChanged(Property<Integer> source, Integer oldValue) {
-				AC ac = (AC) getCharacter().getStatistic(Creature.STATISTIC_AC);
+				AC ac = creature.getACStatistic();
 				((JLabel) acComp).setText("" + ac.getValue() + (ac.hasConditionalModifier() ? "*" : ""));
 				((JLabel) touchACComp).setText("" + ac.getTouchAC().getValue() + (ac.getTouchAC().hasConditionalModifier() ? "*" : ""));
 				((JLabel) flatFootedACComp).setText("" + ac.getFlatFootedAC().getValue() + (ac.getFlatFootedAC().hasConditionalModifier() ? "*" : ""));
@@ -52,7 +51,7 @@ public class CharacterCombatEntry extends CombatEntry {
 		character.addPropertyListener("initiative", new PropertyListener<Integer>() {
 			@Override
 			public void propertyChanged(Property<Integer> source, Integer oldValue) {
-				InitiativeModifier stat = (InitiativeModifier) getCharacter().getStatistic(Creature.STATISTIC_INITIATIVE);
+				InitiativeModifier stat = creature.getInitiativeStatistic();
 				((JLabel) modifierComp).setText("" + stat.getValue() + (stat.hasConditionalModifier() ? "*" : ""));
 				updateInitToolTip();
 			}
@@ -90,28 +89,8 @@ public class CharacterCombatEntry extends CombatEntry {
         return tip;
 	}*/
 
-	@Override
-	void applyDamage(int dmg, boolean nonLethal) {
-		HPs hps = (HPs) getCharacter().getStatistic(Creature.STATISTIC_HPS);
-		if (dmg > 0) {
-			if (nonLethal) {
-				hps.applyNonLethal(dmg);
-			} else {
-				hps.applyDamage(dmg);
-			}
-		} else if (dmg < 0) {
-			hps.applyHealing(-dmg);
-		}
-	}
-
-	@Override
-	void healAll() {
-		HPs hps = (HPs) getCharacter().getStatistic(Creature.STATISTIC_HPS);
-		hps.applyHealing(Math.max(hps.getWounds(), hps.getNonLethal()));
-	}
-
 	private void updateInitToolTip() {
-		InitiativeModifier stat = (InitiativeModifier) getCharacter().getStatistic(Creature.STATISTIC_INITIATIVE);
+		InitiativeModifier stat = creature.getInitiativeStatistic();
 
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>");
@@ -126,13 +105,13 @@ public class CharacterCombatEntry extends CombatEntry {
 	}
 
 	private void updateACToolTips() {
-		AC ac = (AC) getCharacter().getStatistic(Creature.STATISTIC_AC);
+		AC ac = creature.getACStatistic();
 
 		Map<Modifier, Boolean> mods = ac.getModifiers();
 		StringBuilder text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(getCharacter().getACStatistic().getValue()).append(" total");
+		text.append(ac.getValue()).append(" total");
 		String conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
@@ -143,7 +122,7 @@ public class CharacterCombatEntry extends CombatEntry {
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(getCharacter().getACStatistic().getTouchAC().getValue()).append(" total");
+		text.append(ac.getTouchAC().getValue()).append(" total");
 		conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
@@ -154,7 +133,7 @@ public class CharacterCombatEntry extends CombatEntry {
 		text = new StringBuilder();
 		text.append("<html><body>10 base<br/>");
 		text.append(Statistic.getModifiersHTML(mods));
-		text.append(getCharacter().getACStatistic().getFlatFootedAC().getValue()).append(" total");
+		text.append(ac.getFlatFootedAC().getValue()).append(" total");
 		conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/><br/>").append(conds);
 		text.append("</body></html>");
@@ -209,10 +188,10 @@ public class CharacterCombatEntry extends CombatEntry {
 	@Override
 	JComponent createNameSection() {
 		onlyDM.setSelected(true); // we assume an non-editable source is a character that should be visible
-		int mod = getCharacter().getInitiativeStatistic().getValue();
+		int mod = creature.getInitiativeStatistic().getValue();
 		modifierComp = new JLabel(""+mod);
 		total.setText("= "+mod);
-		return new JLabel(getCharacter().getName());
+		return new JLabel(creature.getName());
 	}
 
 	@Override
@@ -223,9 +202,5 @@ public class CharacterCombatEntry extends CombatEntry {
 		e.setAttribute("tieBreak", Integer.toString(getTieBreak()));
 		e.setAttribute("creatureID", Integer.toString(creature.getID()));
 		return e;
-	}
-
-	public Character getCharacter() {
-		return (Character) creature;
 	}
 }

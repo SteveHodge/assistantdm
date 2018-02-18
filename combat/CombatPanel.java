@@ -237,7 +237,7 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 		for (int i = 0; i < initiativeListModel.getSize(); i++) {
 			CombatEntry c = initiativeListModel.getElementAt(i);
 			if (c instanceof CharacterCombatEntry) {
-				Character chr = ((CharacterCombatEntry) c).getCharacter();
+				Character chr = (Character) c.creature;
 				idMap.put(chr.getID(), chr);
 			}
 		}

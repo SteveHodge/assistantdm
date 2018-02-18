@@ -62,6 +62,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		creature = c;
 		hps = c.getHPStatistic();
 		c.addPropertyListener(hps, this);
+		c.addPropertyListener(c.getInitiativeStatistic(), this);
 	}
 
 	public Creature getSource() {
@@ -82,21 +83,6 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 	void removeChangeListener(ChangeListener l) {
 		listenerList.remove(ChangeListener.class, l);
-	}
-
-	void applyDamage(int delta, boolean nonLethal) {
-		// apply current damage
-		if (nonLethal) {
-			hps.getNonLethalProperty().setValue(hps.getNonLethal() + delta);
-		} else {
-			hps.getWoundsProperty().setValue(hps.getWounds() + delta);
-		}
-	}
-
-	void healAll() {
-		// remove all damage
-		hps.getWoundsProperty().setValue(0);
-		hps.getNonLethalProperty().setValue(0);
 	}
 
 	// Note: marks the entry as having been changed if it was blank, and if it has the roll is 0, randomly rolls

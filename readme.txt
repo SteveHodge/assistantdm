@@ -7,6 +7,11 @@
 * Sort out hierarchy - consider if sub-properties should be registered with their parent or with the Creature.
 * Consider a PropertyParent interface.
 * Modifiers event/listener stuff should perhaps be similar to property in style
+* Remote token movement
+* Duplicate token function
+* Show website token ids
+* Combatpanel bottom right to become selected character/monster info - use this for damage
+* Ability damage and drain
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
