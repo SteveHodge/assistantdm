@@ -102,7 +102,7 @@ class CharacterSkillsPanel extends JPanel {
 
 		@Override
 		void updateSummary() {
-			Skills s = (Skills) character.getStatistic(Creature.STATISTIC_SKILLS);
+			Skills s = (Skills) creature.getStatistic(Creature.STATISTIC_SKILLS);
 			summary.setText("<html><body>" + s.getSummary(((Skill) statistic).getSkillType()) + "</body></html>");
 			pack();
 		}

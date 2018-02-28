@@ -1,6 +1,6 @@
 package combat;
 
-import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -11,6 +11,7 @@ import java.beans.PropertyChangeEvent;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeListener;
@@ -24,6 +25,8 @@ import gamesystem.Creature;
 import monsters.Monster;
 import monsters.StatsBlockCreatureView;
 import ui.CharacterDamagePanel;
+import ui.CharacterDamagePanel.AbilityDamagePanel;
+import ui.CharacterDamagePanel.HPPanel;
 import ui.PropertyFields;
 
 //TODO tooltips get lost on reload - the connection to the stat block is not stored in the xml file
@@ -153,12 +156,45 @@ public class MonsterCombatEntry extends CombatEntry {
 	}
 
 	@Override
-	void updateDetails(JPanel panel) {
-		super.updateDetails(panel);
-		panel.add(new CharacterDamagePanel.HPPanel(hps), BorderLayout.CENTER);
+	void updateDetails(JPanel panel, boolean selected) {
+		if (!selected) {
+			// TODO need to remove listeners
+			panel.removeAll();
+			return;
+		}
+		JLabel name = new JLabel(getCreatureName());
+		Font f = name.getFont();
+		name.setFont(f.deriveFont(Font.BOLD, f.getSize2D() * 1.5f));
+
+		HPPanel dmg = new CharacterDamagePanel.HPPanel(hps);
+		AbilityDamagePanel abs = new CharacterDamagePanel.AbilityDamagePanel(creature);
+
+		panel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.gridwidth = 2;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1.0;
+		panel.add(name, c);
+
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.NONE;
+		c.weightx = 0.0;
+		c.gridy = 1;
+		panel.add(dmg, c);
+
+		c.gridx = 1;
+		c.fill = GridBagConstraints.VERTICAL;
+		c.weighty = 1.0;
+		panel.add(abs, c);
+
 		panel.revalidate();
 		panel.repaint();
 	}
+
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {

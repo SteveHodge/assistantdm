@@ -1,8 +1,6 @@
 package combat;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -260,16 +258,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 	abstract JComponent createNameSection();
 
-	void updateDetails(JPanel panel) {
-		panel.removeAll();
-		JLabel name = new JLabel(getCreatureName());
-		Font f = name.getFont();
-		name.setFont(f.deriveFont(Font.BOLD, f.getSize2D() * 1.5f));
-		panel.setLayout(new BorderLayout());
-		panel.add(name, BorderLayout.NORTH);
-		panel.revalidate();
-		panel.repaint();
-	}
+	abstract void updateDetails(JPanel panel, boolean selected);	// if selected is true then details should be added to panel, if selected is false then anything previous added should be removed
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {

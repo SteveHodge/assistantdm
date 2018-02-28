@@ -313,13 +313,14 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 			public void mouseClicked(MouseEvent ev) {
 				if (selected != null) {
 					selected.setBorder(selectedBorder);
+					selected.updateDetails(detailPanel, false);
 				}
 				if (ev.getSource() instanceof CombatEntry) {
 					if (ev.getSource() != blankInit) {
 						selected = (CombatEntry) ev.getSource();
 						selectedBorder = selected.getBorder();
 						selected.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), selectedBorder));
-						selected.updateDetails(detailPanel);
+						selected.updateDetails(detailPanel, true);
 					}
 				}
 			}

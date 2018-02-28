@@ -1,11 +1,17 @@
 package ui;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+
 // TODO allow switching characters?
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -16,12 +22,22 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.table.AbstractTableModel;
 
 import gamesystem.AbilityScore;
+import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.Sanity;
+import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
+import swing.JTableWithToolTips;
+import swing.SpinnerCellEditor;
+import swing.TableModelWithToolTips;
 
 @SuppressWarnings("serial")
 public class CharacterDamagePanel extends JPanel {
@@ -168,6 +184,7 @@ public class CharacterDamagePanel extends JPanel {
 
 		public HPPanel(HPs hps) {
 			this.hps = hps;
+			hps.addPropertyListener((source, old) -> updateSummary());
 
 			setBorder(BorderFactory.createTitledBorder("Hit Points"));
 
@@ -270,6 +287,144 @@ public class CharacterDamagePanel extends JPanel {
 			text.append(" / ").append(hps.getMaxHPStat().getValue()).append("</body></html>");
 			summary.setText(text.toString());
 			revalidate();
+		}
+	}
+
+	public static class AbilityDamagePanel extends JPanel {
+		private AbilityTableModel abilityModel;
+		private Creature creature;
+
+		public AbilityDamagePanel(Creature c) {
+			creature = c;
+
+			abilityModel = new AbilityTableModel();
+
+			final JTable abilityTable = new JTableWithToolTips(abilityModel);
+			abilityTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			abilityTable.getColumnModel().getColumn(0).setPreferredWidth(80);
+			abilityTable.getColumnModel().getColumn(1).setPreferredWidth(20);
+			abilityTable.getColumnModel().getColumn(2).setPreferredWidth(20);
+			abilityTable.getColumnModel().getColumn(3).setPreferredWidth(20);
+			abilityTable.setDefaultEditor(Integer.class, new SpinnerCellEditor() {
+				@Override
+				public Component getTableCellEditorComponent(JTable table,
+						Object value, boolean isSelected, int row, int column) {
+					if (value == null) {
+						value = abilityModel.getAbility(row).getValue();
+					}
+					return super.getTableCellEditorComponent(table, value, isSelected, row, column);
+				}
+			});
+			abilityTable.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (!SwingUtilities.isRightMouseButton(e)) return;
+					int row = abilityTable.rowAtPoint(e.getPoint());
+					String title = abilityModel.getAbilityName(row);
+					String statName = abilityModel.getStatistic(row);
+					StatisticInfoDialog dialog = new StatisticInfoDialog(AbilityDamagePanel.this, title, creature, statName);
+					dialog.setVisible(true);
+				}
+			});
+			JScrollPane abilityScrollpane = new JScrollPane(abilityTable);
+
+			setLayout(new BorderLayout());
+			add(abilityScrollpane);
+
+			setPreferredSize(new Dimension(300, 75));
+			setBorder(BorderFactory.createTitledBorder("Ability Damage/Drain"));
+		}
+
+		private class AbilityTableModel extends AbstractTableModel implements TableModelWithToolTips {
+			public AbilityTableModel() {
+				creature.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
+					@Override
+					public void propertyChanged(Property<Integer> source, Integer oldValue) {
+						// this is a bit hackish as there is currently no good way to find the ability score or type from the drain and damage properties
+						for (int i = 0; i < 6; i++) {
+							AbilityScore a = getAbility(i);
+							if (a == source || a.getDamage() == source || a.getDrain() == source) {
+								fireTableRowsUpdated(i, i);
+							}
+						}
+					}
+				});
+			}
+
+			@Override
+			public boolean isCellEditable(int rowIndex, int columnIndex) {
+				return columnIndex >= 1 && columnIndex <= 2;
+			}
+
+			@Override
+			public Class<?> getColumnClass(int columnIndex) {
+				if (columnIndex == 0) return String.class;
+				return Integer.class;
+			}
+
+			@Override
+			public void setValueAt(Object value, int rowIndex, int columnIndex) {
+				if (columnIndex < 1 || columnIndex > 2) return;
+				if (value == null) value = new Integer(0);
+				AbilityScore a = getAbility(rowIndex);
+				if (columnIndex == 1) {
+					if ((Integer) value < 0) value = new Integer(0);
+					a.getDrain().setValue((Integer) value);
+				} else if (columnIndex == 2) {
+					if ((Integer) value < 0) value = new Integer(0);
+					a.getDamage().setValue((Integer) value);
+				}
+			}
+
+			@Override
+			public String getColumnName(int column) {
+				if (column == 0) return "Ability";
+				if (column == 1) return "Drain";
+				if (column == 2) return "Damage";
+				if (column == 3) return "Current";
+				return super.getColumnName(column);
+			}
+
+			@Override
+			public int getColumnCount() {
+				return 4;
+			}
+
+			@Override
+			public int getRowCount() {
+				return 6;
+			}
+
+			private String getAbilityName(int row) {
+				return AbilityScore.Type.values()[row].toString();
+			}
+
+			private String getStatistic(int row) {
+				return Creature.STATISTIC_ABILITY[row];
+			}
+
+			public AbilityScore getAbility(int row) {
+				return creature.getAbilityStatistic(AbilityScore.Type.values()[row]);
+			}
+
+			@Override
+			public Object getValueAt(int row, int column) {
+				if (column == 0) return getAbilityName(row);
+				AbilityScore a = getAbility(row);
+				if (column == 1) return a.getDrain().getValue();
+				if (column == 2) return a.getDamage().getValue();
+				if (column == 3) {
+					return a.getValue() + ((a.hasConditionalModifier() && a.getOverride() == 0) ? "*" : "");
+				}
+				return null;
+			}
+
+			@Override
+			public String getToolTipAt(int row, int col) {
+				StringBuilder text = new StringBuilder();
+				text.append("<html><body>").append(getAbility(row).getSummary()).append("</body></html>");
+				return text.toString();
+			}
 		}
 	}
 }

@@ -221,7 +221,7 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 				int mod = (Integer) modField.getValue();
 				if (attackMod.isSelected()) bf.addEffect(Creature.STATISTIC_ATTACKS, typeBox.getSelectedItem().toString(), mod);
 				if (damageMod.isSelected()) bf.addEffect(Creature.STATISTIC_DAMAGE, typeBox.getSelectedItem().toString(), mod);
-				character.addBuff(bf.getBuff());
+				creature.addBuff(bf.getBuff());
 			});
 
 			JPanel addPanel = new JPanel();

@@ -19,14 +19,14 @@ import javax.swing.SwingUtilities;
 
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
+import gamesystem.Creature;
 import gamesystem.Modifier;
 import gamesystem.Statistic;
-import party.Character;
 
 // TODO should probably convert to factory class
 @SuppressWarnings("serial")
 public class StatisticInfoDialog extends JDialog {
-	Character character;
+	Creature creature;
 	Statistic statistic;
 
 	JLabel summary;
@@ -38,7 +38,7 @@ public class StatisticInfoDialog extends JDialog {
 		super(SwingUtilities.getWindowAncestor(parent), title, Dialog.ModalityType.APPLICATION_MODAL);
 	}
 
-	StatisticInfoDialog(JComponent parent, String title, Character chr, final String statName) {
+	StatisticInfoDialog(JComponent parent, String title, Creature chr, final String statName) {
 		super(SwingUtilities.getWindowAncestor(parent), title);
 
 		initialize(chr, statName);
@@ -65,9 +65,9 @@ public class StatisticInfoDialog extends JDialog {
 		setLocationRelativeTo(SwingUtilities.getWindowAncestor(parent));
 	}
 
-	void initialize(Character chr, final String statName) {
-		character = chr;
-		statistic = chr.getStatistic(statName);
+	void initialize(Creature c, final String statName) {
+		creature = c;
+		statistic = c.getStatistic(statName);
 
 		statistic.addPropertyListener((source, oldValue) -> updateSummary());
 
@@ -100,7 +100,7 @@ public class StatisticInfoDialog extends JDialog {
 			int mod = (Integer) modField.getValue();
 			bf.addEffect(statName, typeBox.getSelectedItem().toString(), mod);
 			Buff buff = bf.getBuff();
-			character.addBuff(buff);
+			creature.addBuff(buff);
 		});
 
 		JPanel addPanel = new JPanel();

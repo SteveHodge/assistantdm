@@ -123,6 +123,7 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 
 		JSplitPane rightSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, effectsPanel, detailScroller);
 		rightSplit.setOneTouchExpandable(true);
+		rightSplit.setDividerLocation(300);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initiativePanel, rightSplit);
 		splitPane.setOneTouchExpandable(true);

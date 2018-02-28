@@ -10,8 +10,7 @@
 * Remote token movement
 * Duplicate token function
 * Show website token ids
-* Combatpanel bottom right to become selected character/monster info - use this for damage
-* Ability damage and drain
+* Add ability score damage and drain to detail panel on combat panel 
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
