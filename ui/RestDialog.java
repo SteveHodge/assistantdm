@@ -9,12 +9,15 @@ import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
@@ -118,7 +121,9 @@ public class RestDialog extends JDialog {
 			add(row.sanityCheck, c);
 		}
 
-		c.gridy++;
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
+
 		JButton healDmg = new JButton("Heal All Dmg");
 		healDmg.addActionListener(e -> {
 			for (CharacterRow r : rows) {
@@ -126,11 +131,22 @@ public class RestDialog extends JDialog {
 				hps.applyHealing(Math.max(hps.getWounds(), hps.getNonLethal()));
 			}
 		});
-		add(healDmg, c);
+		buttonPanel.add(healDmg);
 
-		c.gridwidth = 7;
-		c.anchor = GridBagConstraints.EAST;
-		c.fill = GridBagConstraints.NONE;
+		JButton healAbility = new JButton("Heal Abilites");
+		healAbility.addActionListener(e -> {
+			for (CharacterRow r : rows) {
+				for (AbilityScore.Type t : AbilityScore.Type.values()) {
+					AbilityScore s = r.character.getAbilityStatistic(t);
+					if (s.getDamage().getValue() > 0)
+						s.getDamage().setValue(0);
+				}
+			}
+		});
+		buttonPanel.add(healAbility);
+
+		buttonPanel.add(Box.createHorizontalGlue());
+
 		JButton apply = new JButton("Apply");
 		apply.addActionListener(e -> {
 			for (CharacterRow r : rows) {
@@ -150,7 +166,14 @@ public class RestDialog extends JDialog {
 				}
 			}
 		});
-		add(apply, c);
+		buttonPanel.add(apply);
+
+		c.gridy++;
+		c.gridwidth = 8;
+		c.anchor = GridBagConstraints.EAST;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1.0;
+		add(buttonPanel, c);
 
 		pack();
 		setLocationRelativeTo(SwingUtilities.getWindowAncestor(parent));
