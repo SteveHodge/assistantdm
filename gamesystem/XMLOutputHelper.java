@@ -57,6 +57,8 @@ public class XMLOutputHelper {
 		e.setAttribute("type", s.type.toString());
 		e.setAttribute("value", "" + s.baseValue);
 		if (s.override != -1) e.setAttribute("temp", "" + s.override);
+		if (s.drain.getValue() != 0) e.setAttribute("drain", s.drain.getValue().toString());
+		if (s.damage.getValue() != 0) e.setAttribute("damage", s.damage.getValue().toString());
 
 		abilityEl.appendChild(e);
 		return e;

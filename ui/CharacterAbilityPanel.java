@@ -14,8 +14,8 @@ import javax.swing.table.AbstractTableModel;
 
 import gamesystem.AbilityScore;
 import gamesystem.Creature;
-import gamesystem.core.PropertyListener;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
@@ -87,11 +87,11 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 			character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
 				@Override
 				public void propertyChanged(Property<Integer> source, Integer oldValue) {
-					if (source instanceof AbilityScore) {
-						for (int i = 0; i < 6; i++) {
-							if (AbilityScore.Type.values()[i].toString().equals(((AbilityScore) source).getDescription())) {
-								fireTableRowsUpdated(i, i);
-							}
+					// this is a bit hackish as there is currently no good way to find the ability score or type from the drain and damage properties
+					for (int i = 0; i < 6; i++) {
+						AbilityScore a = getAbility(i);
+						if (a == source || a.getDamage() == source || a.getDrain() == source) {
+							fireTableRowsUpdated(i, i);
 						}
 					}
 				}
@@ -100,8 +100,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 
 		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			if (columnIndex == 1 || columnIndex == 2) return true;
-			return false;
+			return columnIndex >= 1 && columnIndex <= 4;
 		}
 
 		@Override
@@ -112,17 +111,23 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 
 		@Override
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
-			if (columnIndex != 1 && columnIndex != 2) return;
+			if (columnIndex < 1 || columnIndex > 4) return;
 			if (value == null) value = new Integer(0);
-			if (columnIndex == 1)
-				getAbility(rowIndex).setBaseValue((Integer) value);
-			else if (columnIndex == 2) {
-				AbilityScore s = getAbility(rowIndex);
+			AbilityScore a = getAbility(rowIndex);
+			if (columnIndex == 1) {
+				a.setBaseValue((Integer) value);
+			} else if (columnIndex == 2) {
+				if ((Integer) value < 0) value = new Integer(0);
+				a.getDrain().setValue((Integer) value);
+			} else if (columnIndex == 3) {
+				if ((Integer) value < 0) value = new Integer(0);
+				a.getDamage().setValue((Integer) value);
+			} else if (columnIndex == 4) {
 				int val = (Integer) value;
-				if (val != s.getRegularValue() && val >= 0) {
-					s.setOverride(val);
+				if (val != a.getRegularValue() && val >= 0) {
+					a.setOverride(val);
 				} else {
-					s.clearOverride();
+					a.clearOverride();
 				}
 			}
 		}
@@ -131,15 +136,17 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		public String getColumnName(int column) {
 			if (column == 0) return "Ability";
 			if (column == 1) return "Score";
-			if (column == 2) return "Override";
-			if (column == 3) return "Current";
-			if (column == 4) return "Mod";
+			if (column == 2) return "Drain";
+			if (column == 3) return "Damage";
+			if (column == 4) return "Override";
+			if (column == 5) return "Current";
+			if (column == 6) return "Mod";
 			return super.getColumnName(column);
 		}
 
 		@Override
 		public int getColumnCount() {
-			return 5;
+			return 7;
 		}
 
 		@Override
@@ -162,16 +169,18 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		@Override
 		public Object getValueAt(int row, int column) {
 			if (column == 0) return getAbilityName(row);
-			if (column == 1) return getAbility(row).getRegularValue();
-			if (column == 2) {
-				if (getAbility(row).getOverride() == -1) return null;
-				return getAbility(row).getValue();
+			AbilityScore a = getAbility(row);
+			if (column == 1) return a.getBaseValue() + a.getModifiersTotal();
+			if (column == 2) return a.getDrain().getValue();
+			if (column == 3) return a.getDamage().getValue();
+			if (column == 4) {
+				if (a.getOverride() == -1) return null;
+				return a.getValue();
 			}
-			if (column == 3) {
-				AbilityScore s = getAbility(row);
-				return s.getValue()+((s.hasConditionalModifier() && s.getOverride() == 0)?"*":"");
+			if (column == 5) {
+				return a.getValue() + ((a.hasConditionalModifier() && a.getOverride() == 0) ? "*" : "");
 			}
-			if (column == 4) return getAbility(row).getModifierValue();
+			if (column == 6) return a.getModifierValue();
 			return null;
 		}
 

@@ -20,6 +20,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import gamesystem.AbilityScore;
 import gamesystem.HPs;
 import party.Character;
 import party.Party;
@@ -118,14 +119,14 @@ public class RestDialog extends JDialog {
 		}
 
 		c.gridy++;
-		JButton healAll = new JButton("Heal All");
-		healAll.addActionListener(e -> {
+		JButton healDmg = new JButton("Heal All Dmg");
+		healDmg.addActionListener(e -> {
 			for (CharacterRow r : rows) {
 				HPs hps = r.character.getHPStatistic();
 				hps.applyHealing(Math.max(hps.getWounds(), hps.getNonLethal()));
 			}
 		});
-		add(healAll, c);
+		add(healDmg, c);
 
 		c.gridwidth = 7;
 		c.anchor = GridBagConstraints.EAST;
@@ -133,17 +134,19 @@ public class RestDialog extends JDialog {
 		JButton apply = new JButton("Apply");
 		apply.addActionListener(e -> {
 			for (CharacterRow r : rows) {
+				int heal = 0;
+				if (r.oneButton.isSelected()) heal = 1;
+				if (r.twoButton.isSelected() || r.twoLTCButton.isSelected()) heal = 2;
+				if (r.fourLTCButton.isSelected()) heal = 4;
+
 				HPs hps = r.character.getHPStatistic();
 				int level = r.character.getLevel();
-				if (r.oneButton.isSelected()) {
-					hps.applyHealing(level);
-				} else if (r.twoButton.isSelected() || r.twoLTCButton.isSelected()) {
-					hps.applyHealing(level * 2);
-				} else if (r.fourLTCButton.isSelected()) {
-					hps.applyHealing(level * 4);
-				}
-				if (r.sanityCheck.isSelected()) {
+				hps.applyHealing(level * heal);
+				if (r.sanityCheck.isSelected())
 					r.character.getSanity().startSession();
+				for (AbilityScore.Type t : AbilityScore.Type.values()) {
+					AbilityScore s = r.character.getAbilityStatistic(t);
+					s.healDamage(heal);
 				}
 			}
 		});

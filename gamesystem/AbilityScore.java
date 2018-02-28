@@ -1,6 +1,7 @@
 package gamesystem;
 
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.SimpleValueProperty;
 
 // XXX might have to manage ability scores together otherwise some of the other statistics that use ability
 // modifiers will need special case handling for non-abilities (e.g. should use dex modifier for all attack if
@@ -44,6 +45,8 @@ public class AbilityScore extends Statistic {
 	protected Type type;
 	protected int baseValue = 0;
 	protected int override = -1;
+	SimpleValueProperty<Integer> damage;
+	SimpleValueProperty<Integer> drain;
 
 	public static int getModifier(int score) {
 		return score/2-5;
@@ -81,16 +84,19 @@ public class AbilityScore extends Statistic {
 		super("ability_scores." + type.toString().toLowerCase(), type.toString(), parent);
 		this.type = type;
 		modifier = new AbilityModifier();
+		damage = new SimpleValueProperty<Integer>(getName() + ".damage", parent, 0);
+		drain = new SimpleValueProperty<Integer>(getName() + ".drain", parent, 0);
 	}
 
 	public Type getType() {
 		return type;
 	}
 
+	// returns the regular value (see getRegularValue()) if no override is set or else the override value
 	@Override
 	public Integer getValue() {
 		if (override == -1) {
-			return super.getValue();
+			return getRegularValue();
 		} else {
 			return override;
 		}
@@ -101,11 +107,10 @@ public class AbilityScore extends Statistic {
 		return baseValue;
 	}
 
-	// returns the "normal" value of the ability score (the base value + any modifiers that apply)
-	// if no override is set then this will be equal to getValue()
+	// returns the "normal" value of the ability score (the base value + any modifiers that apply less any drain or damage)
 	@Override
 	public Integer getRegularValue() {
-		return baseValue + getModifiersTotal();
+		return baseValue + getModifiersTotal() - damage.getValue() - drain.getValue();
 	}
 
 	public void setBaseValue(int v) {
@@ -141,12 +146,30 @@ public class AbilityScore extends Statistic {
 		return modifier.getModifier();
 	}
 
+	public SimpleValueProperty<Integer> getDrain() {
+		return drain;
+	}
+
+	public SimpleValueProperty<Integer> getDamage() {
+		return damage;
+	}
+
+	public void healDamage(int h) {
+		if (h > damage.getValue()) h = damage.getValue();
+		if (h <= 0) return;
+		damage.setValue(damage.getValue() - h);
+	}
+
 	@Override
 	public String getSummary() {
 		StringBuilder text = new StringBuilder();
 		if (getOverride() > 0) text.append("<s>");
 		text.append(getBaseValue()).append(" base<br/>");
 		text.append(super.getSummary());
+		if (drain.getValue() != 0)
+			text.append(-drain.getValue()).append(" drained<br/>");
+		if (damage.getValue() != 0)
+			text.append(-damage.getValue()).append(" damage<br/>");
 
 		if (getOverride() > 0) {
 			text.append("</s><br/>").append(getOverride()).append(" current ").append(getDescription()).append(" (override)");

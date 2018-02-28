@@ -78,6 +78,8 @@ public class XMLParserHelper {
 
 		s.setBaseValue(Integer.parseInt(e.getAttribute("value")));
 		if (e.hasAttribute("temp")) s.setOverride(Integer.parseInt(e.getAttribute("temp")));
+		if (e.hasAttribute("drain")) s.drain.setValue(Integer.parseInt(e.getAttribute("drain")));
+		if (e.hasAttribute("damage")) s.damage.setValue(Integer.parseInt(e.getAttribute("damage")));
 	}
 
 	protected void parseSavingThrow(Element e, Creature c) {
