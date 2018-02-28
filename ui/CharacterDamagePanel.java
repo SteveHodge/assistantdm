@@ -24,39 +24,35 @@ import gamesystem.Sanity;
 import party.Character;
 
 @SuppressWarnings("serial")
-public class CharacterDamageDialog extends JDialog {
-	Character character;
+public class CharacterDamagePanel extends JPanel {
 	HPPanel hpPanel;
-	SanityPanel sanityPanel;
 
-	public CharacterDamageDialog(JComponent parent, String title, Character chr) {
-		super(SwingUtilities.getWindowAncestor(parent), title + " - " + chr.getName());
+	public CharacterDamagePanel(Character chr) {
+		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
-		character = chr;
-
-		setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
-
-		hpPanel = new HPPanel();
+		hpPanel = new HPPanel(chr.getHPStatistic());
 		add(hpPanel);
 
-		sanityPanel = new SanityPanel();
-		add(sanityPanel);
+		SanityPanel sanityPanel = new SanityPanel(chr.getSanity(), chr.getAbilityStatistic(AbilityScore.Type.WISDOM));
 		add(sanityPanel);
 
 		hpPanel.updateSummary();
 		sanityPanel.updateSummary();
-		pack();	// not needed as updateSummary packs
-		setLocationRelativeTo(SwingUtilities.getWindowAncestor(parent));
 	}
 
 	public static void openDialog(JComponent parent, String title, Character chr) {
-		CharacterDamageDialog dialog = new CharacterDamageDialog(parent, title, chr);
+		JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(parent), title + " - " + chr.getName());
+		CharacterDamagePanel panel = new CharacterDamagePanel(chr);
+		dialog.add(panel);
+		dialog.pack();
+		dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(parent));
 		dialog.setVisible(true);
-		dialog.hpPanel.dmgField.grabFocus();
+		panel.hpPanel.dmgField.grabFocus();
 	}
 
-	class SanityPanel extends JPanel {
+	static class SanityPanel extends JPanel {
 		Sanity sanity;
+		AbilityScore wisdom;
 		JFormattedTextField dmgField;
 		JFormattedTextField healField;
 		JLabel maxLabel = new JLabel();
@@ -65,8 +61,9 @@ public class CharacterDamageDialog extends JDialog {
 		JLabel recentLabel = new JLabel();
 		JLabel messageLabel = new JLabel();
 
-		public SanityPanel() {
-			sanity = character.getSanity();
+		public SanityPanel(Sanity s, AbilityScore wis) {
+			sanity = s;
+			wisdom = wis;
 			setBorder(BorderFactory.createTitledBorder("Sanity"));
 
 			setLayout(new GridBagLayout());
@@ -154,7 +151,7 @@ public class CharacterDamageDialog extends JDialog {
 				messageLabel.setText("Permanent insanity triggered");
 			} else if (session > sanity.getMaximumSanityProperty().getValue() / 5) {
 				messageLabel.setText("Indefinite insanity triggered");
-			} else if (dmg >= character.getAbilityStatistic(AbilityScore.Type.WISDOM).getValue() / 2) {
+			} else if (dmg >= wisdom.getValue() / 2) {
 				messageLabel.setText("Pass sanity check or temporary insanity");
 			} else {
 				messageLabel.setText(" ");
@@ -162,15 +159,15 @@ public class CharacterDamageDialog extends JDialog {
 		}
 	}
 
-	class HPPanel extends JPanel {
+	public static class HPPanel extends JPanel {
 		HPs hps;
 		JFormattedTextField dmgField;
 		JFormattedTextField healField;
 		JCheckBox nonLethal = new JCheckBox("Non-lethal");
 		JLabel summary;
 
-		public HPPanel() {
-			hps = character.getHPStatistic();
+		public HPPanel(HPs hps) {
+			this.hps = hps;
 
 			setBorder(BorderFactory.createTitledBorder("Hit Points"));
 
@@ -272,7 +269,7 @@ public class CharacterDamageDialog extends JDialog {
 			if (newNL > 0) text.append(" (").append(newNL).append(" NL)");
 			text.append(" / ").append(hps.getMaxHPStat().getValue()).append("</body></html>");
 			summary.setText(text.toString());
-			pack();
+			revalidate();
 		}
 	}
 }

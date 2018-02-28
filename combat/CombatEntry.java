@@ -1,6 +1,8 @@
 package combat;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -28,12 +30,10 @@ import org.w3c.dom.Element;
 
 import gamesystem.Creature;
 import gamesystem.HPs;
-import gamesystem.core.Property;
-import gamesystem.core.PropertyListener;
 import ui.Status;
 
 @SuppressWarnings("serial")
-abstract public class CombatEntry extends JPanel implements PropertyChangeListener, PropertyListener<Integer> {
+abstract public class CombatEntry extends JPanel implements PropertyChangeListener {
 	JFormattedTextField rollField;
 	JComponent modifierComp;
 	JFormattedTextField tiebreakField;
@@ -61,8 +61,16 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	CombatEntry(Creature c) {
 		creature = c;
 		hps = c.getHPStatistic();
-		c.addPropertyListener(hps, this);
-		c.addPropertyListener(c.getInitiativeStatistic(), this);
+		c.addPropertyListener(hps, (source, oldValue) -> {
+			if (source == hps.getMaxHPStat() && maxHPsField != null) {
+				maxHPsField.setValue(hps.getMaxHPStat().getValue());
+			}
+			updateHPs();
+		});
+		c.addPropertyListener(c.getInitiativeStatistic(), (source, oldValue) -> {
+			total.setText("= "+getTotal());
+			fireChange();
+		});
 	}
 
 	public Creature getSource() {
@@ -85,8 +93,8 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		listenerList.remove(ChangeListener.class, l);
 	}
 
-	// Note: marks the entry as having been changed if it was blank, and if it has the roll is 0, randomly rolls
-	// return true if it changed from blank to not-blank
+// Note: marks the entry as having been changed if it was blank, and if it has the roll is 0, randomly rolls
+// return true if it changed from blank to not-blank
 	boolean initBlank() {
 		if (blank) {
 			blank = false;
@@ -162,6 +170,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		maxHPsField = new JFormattedTextField();
 		maxHPsField.setValue(new Integer(hps.getMaxHPStat().getValue()));
 		maxHPsField.setColumns(4);
+		maxHPsField.setMinimumSize(maxHPsField.getPreferredSize());
 		maxHPsField.addPropertyChangeListener("value", this);
 		add(maxHPsField, c);
 		c.weightx = 0.0;
@@ -170,6 +179,7 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		dmgField = new JFormattedTextField();
 		dmgField.setValue(new Integer(0));
 		dmgField.setColumns(4);
+		dmgField.setMinimumSize(dmgField.getPreferredSize());
 		add(dmgField, c);
 		c.weightx = 0.0;
 		nonLethal = new JCheckBox("NL");
@@ -215,16 +225,17 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		rollField = new JFormattedTextField();
 		rollField.setValue(new Integer(0));
 		rollField.setColumns(3);
+		rollField.setMinimumSize(rollField.getPreferredSize());
 		rollField.addPropertyChangeListener("value", this);
 
 		tiebreakField = new JFormattedTextField();
 		tiebreakField.setValue(new Integer(0));
 		tiebreakField.setColumns(3);
+		tiebreakField.setMinimumSize(tiebreakField.getPreferredSize());
 		tiebreakField.addPropertyChangeListener("value", evt -> fireChange());
 
 		total = new JLabel("= XXX");
-		Dimension size = total.getPreferredSize();
-		total.setPreferredSize(size);
+		total.setPreferredSize(total.getPreferredSize());	// this prevents the label changing size when set to a number with fewer digits
 		total.setText("= 0");
 
 		JPanel section = new JPanel();
@@ -249,6 +260,17 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 
 	abstract JComponent createNameSection();
 
+	void updateDetails(JPanel panel) {
+		panel.removeAll();
+		JLabel name = new JLabel(getCreatureName());
+		Font f = name.getFont();
+		name.setFont(f.deriveFont(Font.BOLD, f.getSize2D() * 1.5f));
+		panel.setLayout(new BorderLayout());
+		panel.add(name, BorderLayout.NORTH);
+		panel.revalidate();
+		panel.repaint();
+	}
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals("value")) {
@@ -261,20 +283,6 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 				total.setText("= "+getTotal());
 				fireChange();
 			}
-		}
-	}
-
-	@Override
-	public void propertyChanged(Property<Integer> source, Integer oldValue) {
-		// update the relevant fields
-		if (source == hps) {
-			updateHPs();
-		} else if (source == hps.getMaxHPStat()) {
-			if (maxHPsField != null) maxHPsField.setValue(hps.getMaxHPStat().getValue());
-			updateHPs();
-		} else if (source == creature.getInitiativeStatistic()) {
-			total.setText("= "+getTotal());
-			fireChange();
 		}
 	}
 
@@ -338,8 +346,8 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		return blank;
 	}
 
-	// compares InitiativeEntrys for initiative order, i.e. highest total first, ties
-	// broken by modifier and then tiebreak
+// compares InitiativeEntrys for initiative order, i.e. highest total first, ties
+// broken by modifier and then tiebreak
 	static int compareInitiatives(int total1, int mod1, int tie1, int total2, int mod2, int tie2) {
 		if (total1 != total2) return total2 - total1;
 		// totals the same, next check is modifiers
@@ -348,8 +356,8 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 		return tie2 - tie1;
 	}
 
-	// compares InitiativeEntrys for initiative order, i.e. highest total first, ties
-	// broken by modifier and then tiebreak
+// compares InitiativeEntrys for initiative order, i.e. highest total first, ties
+// broken by modifier and then tiebreak
 	static int compareInitiatives(CombatEntry ie1, CombatEntry ie2) {
 		if (ie2.isBlank()) {
 			if (ie1.isBlank()) return 0;

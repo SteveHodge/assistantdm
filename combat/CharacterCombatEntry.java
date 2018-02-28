@@ -1,11 +1,12 @@
 package combat;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.util.Map;
 
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,7 +20,7 @@ import gamesystem.Statistic;
 import gamesystem.core.Property;
 import gamesystem.core.PropertyListener;
 import party.Character;
-import ui.CharacterDamageDialog;
+import ui.CharacterDamagePanel;
 
 @SuppressWarnings("serial")
 public class CharacterCombatEntry extends CombatEntry {
@@ -64,30 +65,7 @@ public class CharacterCombatEntry extends CombatEntry {
 
 		updateInitToolTip();
 		updateACToolTips();
-		//setToolTipText("AC breakdown"); // the text is irrelevant as we override the JToolTip (see below). this just forces the tip to appear
 	}
-
-/*	public JToolTip createToolTip() {
-		JToolTip tip = new JToolTip() {
-			public String getTipText() {
-				if (creature instanceof Character) {
-					Character c = (Character)creature;
-					// get the AC components
-					String components = "<html>Base AC: 10<br>";
-					for (int i = 0; i < AC.AC_MAX_INDEX; i++) {
-						int v = c.getACComponent(i);
-						if (v != 0) {
-							components += AC.getACComponentName(i) + ": " + v + "<br>";
-						}
-					}
-					return components+"</html>";
-				}
-				return null;
-			}
-		};
-        tip.setComponent(this);
-        return tip;
-	}*/
 
 	private void updateInitToolTip() {
 		InitiativeModifier stat = creature.getInitiativeStatistic();
@@ -143,11 +121,6 @@ public class CharacterCombatEntry extends CombatEntry {
 
 	@Override
 	void createButtons() {
-		apply = new JButton("Dmg/Heal");
-		apply.addActionListener(e -> {
-			CharacterDamageDialog.openDialog(this, "Damage and healing", (Character) creature);
-		});
-		healAll = null;
 	}
 
 	@Override
@@ -192,6 +165,14 @@ public class CharacterCombatEntry extends CombatEntry {
 		modifierComp = new JLabel(""+mod);
 		total.setText("= "+mod);
 		return new JLabel(creature.getName());
+	}
+
+	@Override
+	void updateDetails(JPanel panel) {
+		super.updateDetails(panel);
+		panel.add(new CharacterDamagePanel((Character) creature), BorderLayout.CENTER);
+		panel.revalidate();
+		panel.repaint();
 	}
 
 	@Override

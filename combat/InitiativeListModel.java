@@ -1,14 +1,20 @@
 package combat;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
@@ -28,6 +34,7 @@ import swing.ReorderableListModel;
 
 public class InitiativeListModel implements ReorderableListModel<CombatEntry>, ActionListener, ChangeListener, PartyListener {
 	private Party party;
+	@SuppressWarnings("serial")
 	private List<CombatEntry> list = new ArrayList<CombatEntry>() {
 		@Override
 		public void sort(Comparator<? super CombatEntry> arg0) {
@@ -38,11 +45,14 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 
 	private EventListenerList listenerList = new EventListenerList();
 
-	private CombatEntry blankInit = null;
+	private CombatEntry blankInit = null;	// there is always a blank entry at the end of the list. if this is edited then we'll add a new blank entry
+	private CombatEntry selected = null;	// the selected entry, if any
+	private Border selectedBorder = null;	// the original border of the selected entry
+	private JPanel detailPanel;
 
 	private boolean noSort = false;		// set to true to block sorting while we reorder entries
 
-	InitiativeListModel(Party p) {
+	InitiativeListModel(Party p, JPanel detailPanel) {
 		party = p;
 		p.addPartyListener(this);
 		if (party != null) {
@@ -50,6 +60,7 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 				addEntry(new CharacterCombatEntry(c));
 			}
 		}
+		this.detailPanel = detailPanel;
 		blankInit = new MonsterCombatEntry();
 		addEntry(blankInit);
 		sort();
@@ -297,6 +308,22 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 		list.add(e);
 		e.addChangeListener(this);
 		e.addActionListener(this);
+		e.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent ev) {
+				if (selected != null) {
+					selected.setBorder(selectedBorder);
+				}
+				if (ev.getSource() instanceof CombatEntry) {
+					if (ev.getSource() != blankInit) {
+						selected = (CombatEntry) ev.getSource();
+						selectedBorder = selected.getBorder();
+						selected.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), selectedBorder));
+						selected.updateDetails(detailPanel);
+					}
+				}
+			}
+		});
 		if (e.isBlank()) {
 			fireListDataEvent(ListDataEvent.INTERVAL_ADDED,list.size()-1,list.size()-1);
 		} else {

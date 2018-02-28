@@ -1,4 +1,6 @@
 package combat;
+
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -21,6 +23,7 @@ import org.w3c.dom.Element;
 import gamesystem.Creature;
 import monsters.Monster;
 import monsters.StatsBlockCreatureView;
+import ui.CharacterDamagePanel;
 import ui.PropertyFields;
 
 //TODO tooltips get lost on reload - the connection to the stat block is not stored in the xml file
@@ -63,9 +66,6 @@ public class MonsterCombatEntry extends CombatEntry {
 		flatFootedACComp = PropertyFields.createOverrideIntegerField(creature.getACStatistic().getFlatFootedAC(), 4);
 
 		modifierComp = PropertyFields.createBaseValueField(creature.getInitiativeStatistic(), 3);
-
-		creature.addPropertyListener(hps, this);
-		creature.addPropertyListener(creature.getInitiativeStatistic(), this);
 		createPanel();
 	}
 
@@ -118,6 +118,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		});
 		section.add(delete, c);
 		nameField = new JTextField(20);
+		nameField.setMinimumSize(nameField.getPreferredSize());
 		nameField.setText(creature.getName());
 		nameField.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
@@ -152,6 +153,14 @@ public class MonsterCombatEntry extends CombatEntry {
 	}
 
 	@Override
+	void updateDetails(JPanel panel) {
+		super.updateDetails(panel);
+		panel.add(new CharacterDamagePanel.HPPanel(hps), BorderLayout.CENTER);
+		panel.revalidate();
+		panel.repaint();
+	}
+
+	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		super.propertyChange(evt);
 		if (evt.getPropertyName().equals("value")) {
@@ -162,18 +171,19 @@ public class MonsterCombatEntry extends CombatEntry {
 	public static MonsterCombatEntry parseDOM(Element el) {
 		if (!el.getNodeName().equals("MonsterEntry")) return null;
 		String name = el.getAttribute("name");
-		MonsterCombatEntry c = new MonsterCombatEntry(new Monster(name));
-		c.nameField.setText(name);
-		c.rollField.setValue(Integer.parseInt(el.getAttribute("roll")));
-		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));
-		c.creature.getInitiativeStatistic().setValue(Integer.parseInt(el.getAttribute("initMod")));
-		c.creature.getHPStatistic().getMaxHPStat().addOverride(Integer.parseInt(el.getAttribute("maxHPs")));
-		c.creature.getHPStatistic().getWoundsProperty().setValue(Integer.parseInt(el.getAttribute("wounds")));
-		c.creature.getHPStatistic().getNonLethalProperty().setValue((Integer.parseInt(el.getAttribute("nonLethal"))));
+		Monster m = new Monster(name);
+		m.getInitiativeStatistic().setValue(Integer.parseInt(el.getAttribute("initMod")));
+		m.getHPStatistic().getMaxHPStat().addOverride(Integer.parseInt(el.getAttribute("maxHPs")));
+		m.getHPStatistic().getWoundsProperty().setValue(Integer.parseInt(el.getAttribute("wounds")));
+		m.getHPStatistic().getNonLethalProperty().setValue((Integer.parseInt(el.getAttribute("nonLethal"))));
 		// FIXME fix this somehow - overrides?
 //		c.creature.setAC(Integer.parseInt(el.getAttribute("fullAC")));
 //		c.creature.setTouchAC(Integer.parseInt(el.getAttribute("touchAC")));
 //		c.creature.setFlatFootedAC(Integer.parseInt(el.getAttribute("flatFootedAC")));
+		MonsterCombatEntry c = new MonsterCombatEntry(m);
+		c.nameField.setText(name);
+		c.rollField.setValue(Integer.parseInt(el.getAttribute("roll")));
+		c.tiebreakField.setValue(Integer.parseInt(el.getAttribute("tieBreak")));
 		String idStr = el.getAttribute("creatureID");
 		if (idStr.length() > 0) c.creature.setID(Integer.parseInt(idStr));
 		return c;

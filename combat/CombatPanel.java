@@ -49,6 +49,7 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 	private int round = 0;
 	private JLabel roundsLabel;
 	private List<InitiativeListener> listeners = new ArrayList<>();
+	private JPanel detailPanel = new JPanel();
 
 	@Override
 	public InitiativeListModel getInitiativeListModel() {
@@ -59,7 +60,7 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 		party = p;
 		party.addXMLPlugin(this, "Combat");
 
-		initiativeListModel = new InitiativeListModel(party);
+		initiativeListModel = new InitiativeListModel(party, detailPanel);
 		initiativeListModel.addListDataListener(new ListDataListener() {
 			@Override
 			public void contentsChanged(ListDataEvent arg0) {
@@ -118,7 +119,12 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 		c.fill = GridBagConstraints.BOTH;
 		effectsPanel.add(effectsScroller, c);
 
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initiativePanel, effectsPanel);
+		JScrollPane detailScroller = new JScrollPane(detailPanel);
+
+		JSplitPane rightSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, effectsPanel, detailScroller);
+		rightSplit.setOneTouchExpandable(true);
+
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initiativePanel, rightSplit);
 		splitPane.setOneTouchExpandable(true);
 
 		roundsLabel = new JLabel("Round " + round);

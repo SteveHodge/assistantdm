@@ -19,6 +19,11 @@ abstract public class AbstractProperty<T> implements Property<T> {
 	}
 
 	@Override
+	public String toString() {
+		return getName();
+	}
+
+	@Override
 	public PropertyCollection getParent() {
 		return parent;
 	}

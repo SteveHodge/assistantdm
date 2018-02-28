@@ -75,7 +75,7 @@ public class StatsBlockCreatureView {
 			} else if (source.getName().equals("name")) {
 				pcs.firePropertyChange(Field.NAME.name(), null, getField(Field.NAME));
 			} else {
-				System.out.println("Unused update to " + source);
+				System.out.println("StatsBlockCreatureview Unused update to " + source);
 			}
 		}));
 	}
