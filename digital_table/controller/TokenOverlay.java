@@ -142,6 +142,7 @@ class TokenOverlay {
 			Rectangle2D clipBounds = clip.getBounds2D();
 
 			if (webLabel != null && webLabel.length() > 0) {
+				// TODO scale down to fit two character labels with two characters
 				Font f = g.getFont();
 				float newSize = (float) clipBounds.getHeight();
 				if (newSize < 8.0f) newSize = 8.0f;
@@ -183,10 +184,14 @@ class TokenOverlay {
 			} else if (property.equals(PROPERTY_WEB_LABEL)) {
 				if (value != null && ((String) value).length() > 0) {
 					hasWebLabel = true;
-					webLabel = (String) value;
-					canvas.repaint();
+					if (!value.equals(webLabel)) {
+						webLabel = (String) value;
+						canvas.repaint();
+					}
 				} else {
 					hasWebLabel = false;
+					webLabel = null;
+					canvas.repaint();
 				}
 			} else if (property.equals(Token.PROPERTY_LABEL)
 					|| property.equals(MapElement.PROPERTY_VISIBLE)
@@ -240,25 +245,7 @@ class TokenOverlay {
 
 	void updateOverlay(int width, int height) {
 		SortedMap<String, String> descriptions = new TreeMap<>();
-		try {
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			ImageIO.write(getImage(width, height, descriptions), "png", stream);
-			StringBuilder json = new StringBuilder();
-			for (String k : descriptions.keySet()) {
-				if (json.length() > 0) json.append(",\n");
-				json.append("\t{\"token\": \"").append(k).append("\", \"name\": \"");
-				json.append(descriptions.get(k)).append("\"}");
-			}
-			json.append("\n]\n");
-			// order of these is important because of the workaround in the webpage for mobile safari:
-			// if the order is reversed then when the image file is updated the website will close the
-			// server-sent event connection and the update to the legend will get missed
-			Updater.update(Updater.TOKEN_BASE_URL + ".json", ("[\n" + json.toString()).getBytes());
-			Updater.update(Updater.TOKEN_BASE_URL + ".png", stream.toByteArray());
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		updateOverlay(getImage(width, height, descriptions), descriptions);
 	}
 
 	// this version used by the RemoteImageDisplay repaint thread
@@ -266,17 +253,23 @@ class TokenOverlay {
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			ImageIO.write(img, "png", stream);
-			StringBuilder json = new StringBuilder();
+			StringBuilder json = new StringBuilder("[\n");
+			boolean first = true;
 			for (String k : descriptions.keySet()) {
-				if (json.length() > 0) json.append(",\n");
+				if (first) {
+					first = false;
+				} else {
+					json.append(",\n");
+				}
 				json.append("\t{\"token\": \"").append(k).append("\", \"name\": \"");
 				json.append(descriptions.get(k)).append("\"}");
 			}
 			json.append("\n]\n");
-			// order of these is important because of the workaround in the webpage for mobile safari:
+
+			// order of the following is important because of the workaround in the webpage for mobile safari:
 			// if the order is reversed then when the image file is updated the website will close the
 			// server-sent event connection and the update to the legend will get missed
-			Updater.updateURL(Updater.TOKEN_BASE_URL + ".json", ("[\n" + json.toString()).getBytes());
+			Updater.updateURL(Updater.TOKEN_BASE_URL + ".json", json.toString().getBytes());
 			Updater.updateURL(Updater.TOKEN_BASE_URL + ".png", stream.toByteArray());
 
 		} catch (IOException e) {

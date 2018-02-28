@@ -11,11 +11,11 @@ import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 
-import util.Updater;
 import digital_table.elements.GridCoordinates;
 import digital_table.elements.Initiative;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
+import util.Updater;
 
 /**
  * Generates a image of the display intended to replace the the camera image.
@@ -114,7 +114,8 @@ class RemoteImageDisplay extends TokenOverlay {
 
 		repaintThread.start();
 
-		canvas.addRepaintListener(() -> {
+		// if the token overlay gets updated (e.g. for a label change) then we need to update too
+		tokens.canvas.addRepaintListener(() -> {
 			if (outputEnabled) repaintThread.repaint();
 		});
 	}

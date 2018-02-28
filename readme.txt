@@ -10,7 +10,6 @@
 * Remote token movement
 * Duplicate token function
 * Show website token ids
-* Add ability score damage and drain to detail panel on combat panel 
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
