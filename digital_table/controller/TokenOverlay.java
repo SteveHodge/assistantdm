@@ -91,6 +91,7 @@ class TokenOverlay {
 		private static final long serialVersionUID = 1L;
 
 		private Property<Integer> space = new Property<>(Token.PROPERTY_SPACE, 10, Integer.class);
+		private Property<Color> color = new Property<Color>(Token.PROPERTY_COLOR, Color.BLACK, Color.class);
 
 		private String webLabel = null;
 		private boolean hasWebLabel = false;
@@ -128,7 +129,7 @@ class TokenOverlay {
 			g.fill(s);
 
 			// paint border:
-			g.setColor(Color.BLACK);
+			g.setColor(color.getValue());
 			Stroke oldStroke = g.getStroke();
 			g.setStroke(getThickStroke());
 			g.draw(s);
@@ -142,13 +143,19 @@ class TokenOverlay {
 			Rectangle2D clipBounds = clip.getBounds2D();
 
 			if (webLabel != null && webLabel.length() > 0) {
-				// TODO scale down to fit two character labels with two characters
+				FontMetrics metrics = g.getFontMetrics();
+				g.setColor(Color.BLACK);
 				Font f = g.getFont();
 				float newSize = (float) clipBounds.getHeight();
+				Rectangle2D bounds = metrics.getStringBounds(webLabel, g);
+				if (bounds.getWidth() > clipBounds.getWidth()) {
+					// scale the font down to fit the label
+					newSize = (float) Math.floor((newSize * clipBounds.getWidth() / bounds.getWidth())) - 1;	// even with floor it seems we're usually too big	// TODO fix this -1 hack. probably need to iterate smaller sizes until the label fits
+				}
 				if (newSize < 8.0f) newSize = 8.0f;
 				g.setFont(f.deriveFont(newSize));
-				FontMetrics metrics = g.getFontMetrics();
-				Rectangle2D bounds = metrics.getStringBounds(webLabel, g);
+				metrics = g.getFontMetrics();
+				bounds = metrics.getStringBounds(webLabel, g);
 				double xPos = clipBounds.getCenterX() - bounds.getWidth() / 2;
 				if (xPos < clipBounds.getX()) xPos = clipBounds.getX();
 				double yPos = clipBounds.getMaxY() - metrics.getDescent() / 2;
@@ -193,6 +200,10 @@ class TokenOverlay {
 					webLabel = null;
 					canvas.repaint();
 				}
+			} else if (property.equals(Token.PROPERTY_COLOR)) {
+				// don't want to use white as that's the background colour...
+				if (Color.WHITE.equals(value)) value = Color.BLACK;
+				super.setProperty(property, value);
 			} else if (property.equals(Token.PROPERTY_LABEL)
 					|| property.equals(MapElement.PROPERTY_VISIBLE)
 					|| property.equals(Group.PROPERTY_LOCATION)
@@ -218,7 +229,7 @@ class TokenOverlay {
 				canvas.addRepaintListener(() -> repaintPanel());
 			}
 
-			SortedMap<String, String> descriptions = new TreeMap<>();
+			SortedMap<String, MapElement> descriptions = new TreeMap<>();
 
 			private void repaintPanel() {
 				repaint();
@@ -244,12 +255,12 @@ class TokenOverlay {
 	}
 
 	void updateOverlay(int width, int height) {
-		SortedMap<String, String> descriptions = new TreeMap<>();
+		SortedMap<String, MapElement> descriptions = new TreeMap<>();
 		updateOverlay(getImage(width, height, descriptions), descriptions);
 	}
 
 	// this version used by the RemoteImageDisplay repaint thread
-	void updateOverlay(BufferedImage img, SortedMap<String, String> descriptions) {
+	void updateOverlay(BufferedImage img, SortedMap<String, MapElement> descriptions) {
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			ImageIO.write(img, "png", stream);
@@ -261,8 +272,20 @@ class TokenOverlay {
 				} else {
 					json.append(",\n");
 				}
-				json.append("\t{\"token\": \"").append(k).append("\", \"name\": \"");
-				json.append(descriptions.get(k)).append("\"}");
+				json.append("\t{\"token\": \"").append(k).append("\", ");
+				MapElement t = descriptions.get(k);
+				json.append("\"name\": \"").append(t.getProperty(MaskToken.PROPERTY_LABEL)).append("\"");
+				Color c = (Color) t.getProperty(Token.PROPERTY_COLOR);
+				if (!Color.BLACK.equals(c)) {
+					String r = Integer.toHexString(c.getRed());
+					if (r.length() == 1) r = "0" + r;
+					String g = Integer.toHexString(c.getGreen());
+					if (g.length() == 1) g = "0" + g;
+					String b = Integer.toHexString(c.getBlue());
+					if (b.length() == 1) b = "0" + b;
+					json.append(", \"color\": \"#").append(r).append(g).append(b).append("\"");
+				}
+				json.append("}");
 			}
 			json.append("\n]\n");
 
@@ -277,7 +300,7 @@ class TokenOverlay {
 		}
 	}
 
-	BufferedImage getImage(int width, int height, SortedMap<String, String> descriptions) {
+	BufferedImage getImage(int width, int height, SortedMap<String, MapElement> descriptions) {
 		assignLabels(descriptions);
 		return getImage(width, height, BufferedImage.TYPE_INT_ARGB);
 	}
@@ -365,7 +388,7 @@ class TokenOverlay {
 	// Assigns labels to all visible tokens that don't have a web_label set either by the user or previously by the system.
 	// hidden tokens have system assigned labels removed. Also generates a key. If a web_label is used for more than one
 	// token then the description used in the key will be taken from one of the associated tokens randomly.
-	private SortedMap<String, String> assignLabels(SortedMap<String, String> descriptions) {
+	private SortedMap<String, MapElement> assignLabels(SortedMap<String, MapElement> descriptions) {
 		descriptions.clear();
 
 		// gather any used labels
@@ -374,7 +397,7 @@ class TokenOverlay {
 			if (e instanceof MaskToken) {
 				MaskToken t = (MaskToken) e;
 				if (t.hasWebLabel || (t.getProperty(MapElement.PROPERTY_VISIBLE) == Visibility.VISIBLE && t.webLabel != null)) {
-					descriptions.put(t.webLabel, (String) t.getProperty(Token.PROPERTY_LABEL));
+					descriptions.put(t.webLabel, t);
 				} else {
 					t.webLabel = null;
 				}
@@ -394,7 +417,7 @@ class TokenOverlay {
 					} while (descriptions.containsKey(Integer.toString(nextLabel)));
 
 					t.webLabel = Integer.toString(nextLabel);
-					descriptions.put(t.webLabel, (String) t.getProperty(Token.PROPERTY_LABEL));
+					descriptions.put(t.webLabel, t);
 				}
 			}
 		}

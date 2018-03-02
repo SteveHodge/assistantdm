@@ -70,7 +70,7 @@ class RemoteImageDisplay extends TokenOverlay {
 				// set repaint to false and start painting
 				BufferedImage image;
 				BufferedImage tokenImg;
-				SortedMap<String, String> descriptions = new TreeMap<>();
+				SortedMap<String, MapElement> descriptions = new TreeMap<>();
 				do {
 					repaint = false;
 					image = getImage(20 * rows, 20 * columns, BufferedImage.TYPE_INT_RGB);
