@@ -9,7 +9,6 @@
 * Modifiers event/listener stuff should perhaps be similar to property in style
 * Remote token movement
 * Duplicate token function
-* Show website token ids
 * BUG floating labels on tokens: website token key has no description, floating label checkbox is not restored on reload, if the label itself is deleted then changing the remote label will cause an exception
 * Support conditions (and change barbarian rage to a condition) 
 

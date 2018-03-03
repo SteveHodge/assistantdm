@@ -95,9 +95,11 @@ class TokenOverlay {
 
 		private String webLabel = null;
 		private boolean hasWebLabel = false;
+		Token realToken;
 
-		public MaskToken(int id) {
-			super(id);
+		public MaskToken(Token t) {
+			super(t.getID());
+			realToken = t;
 		}
 
 		@Override
@@ -322,7 +324,7 @@ class TokenOverlay {
 		if (parent != null) parent = elements.get(parent.getID());
 
 		if (e instanceof Token) {
-			MaskToken t = new MaskToken(e.getID());
+			MaskToken t = new MaskToken((Token) e);
 			canvas.addElement(t, parent);
 			elements.put(t.getID(), t);
 
@@ -398,8 +400,10 @@ class TokenOverlay {
 				MaskToken t = (MaskToken) e;
 				if (t.hasWebLabel || (t.getProperty(MapElement.PROPERTY_VISIBLE) == Visibility.VISIBLE && t.webLabel != null)) {
 					descriptions.put(t.webLabel, t);
+					t.realToken.setProperty(Token.PROPERTY_WEB_LABEL, "");	// user set label, we don't feed this back to the ui
 				} else {
 					t.webLabel = null;
+					t.realToken.setProperty(Token.PROPERTY_WEB_LABEL, "");
 				}
 			}
 		}
@@ -417,6 +421,7 @@ class TokenOverlay {
 					} while (descriptions.containsKey(Integer.toString(nextLabel)));
 
 					t.webLabel = Integer.toString(nextLabel);
+					t.realToken.setProperty(Token.PROPERTY_WEB_LABEL, t.webLabel);
 					descriptions.put(t.webLabel, t);
 				}
 			}

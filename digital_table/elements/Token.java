@@ -25,10 +25,10 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import digital_table.server.MapCanvas.Order;
 import ui.CreatureStatus;
 import ui.SimpleStatus;
 import ui.Status;
-import digital_table.server.MapCanvas.Order;
 
 public class Token extends Group {
 	private static final long serialVersionUID = 1L;
@@ -48,6 +48,7 @@ public class Token extends Group {
 	public final static String PROPERTY_CURRENT_HPS = "current_hps";	// int
 	public final static String PROPERTY_STATUS_TYPE = "status_type";	// StatusType
 	public final static String PROPERTY_STATUS_DISPLAY = "status_display";	// StatusDisplay
+	public final static String PROPERTY_WEB_LABEL = "web_label";	// this property does nothing on the real token, but TokenOverlay can set this to report changes back to the ui
 
 	public enum StatusDisplay {
 		NONE("Don't show"),
@@ -135,6 +136,7 @@ public class Token extends Group {
 	private Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
 	private Property<Integer> maxHPs = new Property<Integer>(PROPERTY_MAX_HPS, null, Integer.class);
 	private Property<Integer> currentHPs = new Property<Integer>(PROPERTY_CURRENT_HPS, null, Integer.class);
+	private Property<String> webLabel = new Property<String>(PROPERTY_WEB_LABEL, false, "", String.class);
 
 	private transient BufferedImage sourceImage = null;
 	private transient Image cachedImage = null;

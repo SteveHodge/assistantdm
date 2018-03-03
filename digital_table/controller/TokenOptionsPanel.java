@@ -3,6 +3,7 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -74,6 +75,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	private Creature creature = null;
 	private File imageFile = null;
 	private JButton deadButton = null;
+	private JLabel webLabel;
 
 	// TODO shouldn't be public - default directories should be moved to a global config class
 	public static File lastDir = new File(".");	// last selected image - used to keep the current directory
@@ -107,6 +109,9 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		webLabelField = new JTextField(30);
 		webLabelField.setText("");
 		webLabelField.addActionListener(e -> display.setProperty(element, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText(), Mode.OVERLAY));
+
+		webLabel = new JLabel("Auto: ");
+		webLabel.setBackground(Color.PINK);
 
 		sizeCombo = new JComboBox<>(CreatureSize.values());
 		sizeCombo.setSelectedItem(CreatureSize.MEDIUM);
@@ -233,8 +238,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.gridwidth = 2;
 		add(labelField, c);
 		c.gridy = GridBagConstraints.RELATIVE;
-		add(remoteLabelField, c);
 		c.gridwidth = 1;
+		add(remoteLabelField, c);
 		add(webLabelField, c);
 		c.gridwidth = 2;
 		if (enc != null) {
@@ -269,12 +274,17 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		add(new JPanel(), c);
 
 		c.gridx = 2;
-		c.gridy = 2;
+		c.gridy = 1;
 		c.gridwidth = 1;
 		c.fill = GridBagConstraints.NONE;
 		c.weightx = 0;
 		c.weighty = 0;
 		add(floatingLabelCheck, c);
+
+		c.gridy = 2;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.insets = new Insets(0, 4, 0, 4);
+		add(webLabel, c);
 	}
 
 	private JTextField createHPControl(final String property) {
@@ -461,6 +471,11 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 			} else if (e.getPropertyName().equals(Token.PROPERTY_STATUS_DISPLAY)) {
 				statusDisplayCombo.setSelectedItem(e.getNewValue());
+
+			} else if (e.getPropertyName().equals(Token.PROPERTY_WEB_LABEL)) {
+				webLabel.setText("Auto: " + e.getNewValue());
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
 
 			} else {
 				System.out.println(toString() + ": Unknown property: " + e.getPropertyName());
