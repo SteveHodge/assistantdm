@@ -10,7 +10,11 @@
 * Remote token movement
 * Duplicate token function
 * BUG floating labels on tokens: website token key has no description, floating label checkbox is not restored on reload, if the label itself is deleted then changing the remote label will cause an exception
-* Support conditions (and change barbarian rage to a condition) 
+* Support conditions (and change barbarian rage to a condition)
+* Make con changes affect overriden maxhps
+* BUG If floating label is deleted then changing the label causes an exception
+* BUG floating label checkbox not restored on load
+* BUG webcam token legend is missing the label if the token is set to have a floating label
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
@@ -202,24 +206,27 @@ Game system things to implement:
 
 
 ---=== DIGITAL TABLE PRIORITIES ===---
+* drawing element - freehand lines, eraser, map symbols
+* Swarm Token (editable token with replicated painting)
 * layers for painting order
 * Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
 DONE? * Allow setting of DarknessMask and Mask colours
 * standard visibility controls
-* supoprt linking wall layouts to map images - if Walls element has image as parent then concatenate location, rotation, and mirroring
+* supoprt linking wall layouts to map images - if Walls element has image as parent element then concatenate location, rotation, and mirroring
 * lightsources attached to tokens should behave as if there was one on each corner of the token
 * building wall layout from xml should be threaded for performance
 PART * tilemapper element - tilemapper editor added and maps supported as groups of images. a custom element would still have advantages
 * ENH: Reordering the elements resets the group expanded/collapsed state
-* free paint element
 * add caching of loaded files in MediaManager
 * performance improvements in animation code - bounding boxes for elements
 DONE? * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
 * BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
 * asynchronous loading of images
 * soft references for ImageMedia - at least for transformed images
+* ImageMedia could use a soft/weak/strong reference for transformed images
 * BUG: "Set Image" on token options panel doesn't always immediately repaint with the new image
 * Pre-guess the screen layout
+* Auto configure - set defaults according to OS screen layout
 * Threaded remote display communication
 * Recalibrate display - could be done using screen bounds element
 * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
@@ -227,15 +234,12 @@ DONE? * grouping - changing parent should modify children to maintain position -
 * BUG: LineTemplate: setting image after rotation draws the un-transformed image
 * REF: Factor clear cells code into support class
 * Hidden elements in table display should clear ImageMedia transforms
-* ImageMedia could use a soft/weak/strong reference for transformed images
 * Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
 * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
-* Add colour to the overlay tokens. either indicator of health or settable
+PART * Add colour to the overlay tokens. either indicator of health or settable -border now paints with the real token's background colour 
 * Consider expanding "selected" support. Would need hierarchy support as with visibility
 * Refactor common utility methods into MapElement (e.g. template creation)
 * Alternate button dragging (e.g. resize, non-snapped to grid)
-* Auto configure - set defaults according to OS screen layout
 * Make line and spread templates editable?
-* Swarm Token (editable token with replicated painting)
 * dice roller element?
 * thrown object scatter? compass rose?
