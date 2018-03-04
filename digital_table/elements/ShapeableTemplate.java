@@ -110,7 +110,7 @@ public class ShapeableTemplate extends MapElement {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return array of the points defining the centres of the cubes
 	 */
 	public Point[] getCubes() {

@@ -202,6 +202,7 @@ Game system things to implement:
 
 
 ---=== DIGITAL TABLE PRIORITIES ===---
+* Drawing element: freehand paint, eraser, map symbols
 * layers for painting order
 * Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
 DONE? * Allow setting of DarknessMask and Mask colours

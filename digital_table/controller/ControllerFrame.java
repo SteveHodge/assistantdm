@@ -170,6 +170,7 @@ public class ControllerFrame extends JFrame {
 				templateAction,
 				lineAction,
 				shapeableAction,
+				drawingAction,
 				personalEmanationAction,
 				labelAction,
 				darknessAction,
@@ -1167,10 +1168,16 @@ public class ControllerFrame extends JFrame {
 	};
 
 	private AddElementAction<ShapeableTemplateOptionsPanel> shapeableAction = new AddElementAction<ShapeableTemplateOptionsPanel>("Shapeable") {
-
 		@Override
 		protected ShapeableTemplateOptionsPanel createOptionsPanel(MapElement parent) {
 			return new ShapeableTemplateOptionsPanel(parent, display);
+		}
+	};
+
+	private AddElementAction<DrawingOptionsPanel> drawingAction = new AddElementAction<DrawingOptionsPanel>("Drawing") {
+		@Override
+		protected DrawingOptionsPanel createOptionsPanel(MapElement parent) {
+			return new DrawingOptionsPanel(parent, display);
 		}
 	};
 
@@ -1314,6 +1321,8 @@ public class ControllerFrame extends JFrame {
 			((TokenOptionsPanel) p).setIDMap(idMap);
 		} else if (tag.equals(ShapeableTemplateOptionsPanel.XML_TAG)) {
 			p = shapeableAction.addElement(parent);
+		} else if (tag.equals(DrawingOptionsPanel.XML_TAG)) {
+			p = drawingAction.addElement(parent);
 		} else if (tag.equals(BrowserOptionsPanel.XML_TAG)) {
 			p = browserAction.addElement(parent);
 		} else if (tag.equals(MaskOptionsPanel.XML_TAG)) {
