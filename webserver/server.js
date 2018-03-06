@@ -26,8 +26,10 @@ web structure:
 /<character> - full character page (character sheet + spells) (GET+PUT character sheet updates)
 /<character>/xml - static character sheet (GET)
 /<character>/spells - spell tracking page (GET+PUT spell updates)
+/<character>/movetoken - request token move (PUT)
 /<character>/sheet<num> - character sheet <num>, num must be 1 or 2 or ommitted (defaults to 1) (GET)
 /updates/all - SSE stream for all file updates (GET)
+/updates/dm - SSE stream for dm updates (GET)
 /updates/<character> - SSE stream for character updates (GET)
 /debug/subscribers - SSE subscriptions (GET)
 TODO /debug/<character> - json character all config (GET)
@@ -152,6 +154,8 @@ app.get('/updates/*', function(req, res, next) {
 
 app.get('/updates/all', function(req, res, next) { subscribe('*', req, res, next); });
 
+app.get('/updates/dm', function(req, res, next) { subscribe('DM', req, res, next); });
+
 app.get('/updates/:name.xml', function(req, res, next) { subscribe(req.params.name+'.xml', req, res, next); });
 
 // character spells
@@ -176,6 +180,14 @@ app.put('/:name/spells', function(req, res, next) {
 		if (err) { return next('Error saving spells for '+req.params.name+':\n'+err); }
 		res.send(200);
 	});
+});
+
+app.put('/:name/movetoken', function(req, res, next) {
+	'use strict';
+
+	req.body['name'] = req.params.name;
+	updateDM(req.body);
+	res.send(200);
 });
 
 // character sheet
@@ -464,6 +476,21 @@ function saveFile(file, req, res, next) {
 			}
 		});
 	});
+}
+
+function updateDM(obj) {
+	for (var i = 0; i < subscribers.length; i++) {
+		if (subscribers[i] && subscribers[i].file === 'DM') {
+			var now = new Date();
+			subscribers[i].res.write('data: '+JSON.stringify(obj)+'\n\n');
+			subscribers[i].last_messaged = now;
+			var token = subscribers[i].token;
+			if (token && sub_tracking[token] && sub_tracking[token]['DM']) {
+				sub_tracking[token]['DM'].updated = now;
+				sub_tracking[token]['DM'].latest = false;
+			}
+		}
+	}
 }
 
 // TODO should probably check the files exists

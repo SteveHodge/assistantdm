@@ -76,6 +76,7 @@ import javafx.application.Platform;
 import monsters.Monster;
 import monsters.XMLMonsterParser;
 import monsters.XMLOutputMonsterProcessor;
+import party.Character;
 import util.ModuleRegistry;
 import util.XMLUtils;
 
@@ -83,7 +84,7 @@ import util.XMLUtils;
 
 @SuppressWarnings("serial")
 public class ControllerFrame extends JFrame {
-	private static ControllerFrame instance = null;	// TODO remove
+	private static ControllerFrame instance = null;	// FIXME remove - use ModuleRegistry
 
 	private DisplayManager display;
 	private MiniMapCanvas miniMapCanvas = new MiniMapCanvas();
@@ -495,6 +496,27 @@ public class ControllerFrame extends JFrame {
 			panel.setImage(imageFile);
 			instance.elementTree.setSelectionPath(instance.miniMapCanvas.getTreePath(panel.getElement()));
 		}
+	}
+
+	// TODO keep map of character to token panel
+	public void moveToken(Character character, String newLoc) {
+		Point gridPoint = gridPanel.decode(newLoc);
+		if (gridPoint == null) {
+			System.out.println("String '" + newLoc + "' does not define a grid square");
+			return;
+		}
+		Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
+		while (panels.hasNext()) {
+			OptionsPanel<?> panel = panels.next();
+			if (panel instanceof TokenOptionsPanel) {
+				TokenOptionsPanel tokenPanel = (TokenOptionsPanel) panel;
+				if (character == tokenPanel.getCreature()) {
+					tokenPanel.moveTo(gridPoint);
+					return;
+				}
+			}
+		}
+		System.out.println("No token found for " + character.getName());
 	}
 
 	public void replaceToken(TokenOptionsPanel options, int x, int y, int width, int height, boolean visible) {

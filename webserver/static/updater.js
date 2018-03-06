@@ -6,6 +6,7 @@
 	var sheet2 = null;	// cached element for character sheet 1
 	var xsl1 = null;	// xslt transform for character sheet 1
 	var xsl2 = null;	// xslt transform for character sheet 1
+	var name = null;	// character name, if any
 
 	$(window).on('load', function(e) {
 		$('#webcam').css('min-height', $('#photo1').height()+'px');
@@ -13,13 +14,36 @@
 
 	$(document).ready(function () {
 		if (token == null) token = (new Date()).valueOf();
-		if (document.getElementById('webcam')) setupWebcam();
 		sheet1 = document.getElementById('tab_sheet1');
 		sheet2 = document.getElementById('tab_sheet2');
 		if (sheet1 || sheet2) setupCharacterSheet();
+		if (document.getElementById('webcam')) setupWebcam();
 		openConnection();
 		toggleTokens();
 	});
+
+	function moveToken(e) {
+		//$(e.target).attr('value', $(e.target).val());	// set the value attribute so the note text gets saved
+		var a = document.createElement('a');
+		a.href = new String(window.location);
+		a.pathname = '/assistantdm/'+name+'/movetoken';
+
+		var output = {
+			'moveto': $('#movetoken input').val()
+		};
+
+		var req = new XMLHttpRequest();
+		req.open('PUT', a.href, true);
+		req.setRequestHeader('Content-Type', 'application/json');
+		req.onreadystatechange = function() {
+			if (req.readyState === 4) {
+				if (req.status !== 200) {
+					alert("Error moving token: "+req.statusText);
+				}
+			}
+		};
+		req.send(JSON.stringify(output, null, '\t'));
+	}
 
 	function setupWebcam() {
 		$('#tokens1').click(openPhoto);
@@ -29,6 +53,14 @@
 		$('#photo1').on('load', function(e) {
 			$('#webcam').css('min-height', $('#photo1').height()+'px');
 		});
+
+		if (name) {
+			$('#movetoken')
+				.text('Move to: ')
+				.append($('<input type="text">').on('change', moveToken))
+				.append($('<button>Go</button>').on('click', moveToken))
+				.append($('<br>'));
+		}
 	
 		$.getJSON('/assistantdm/static/initiative.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 			updateInitiativeText(data);
@@ -64,7 +96,6 @@
 	}
 		
 	function setupCharacterSheet() {
-		var name;
 		if (sheet1) {
 			name = $(sheet1).attr('character');
 			WRAPPER = 'tab_sheet1';	// set element id for the dialog box to use
@@ -173,7 +204,11 @@
 	function updateTokensText(data) {
 		var html = '<table>';
 		$.each(data, function(i, entry) {
-			html += '<tr><td>'+entry.token+'</td><td>'+entry.name+'</td></tr>';
+			html += '<tr><td>'+entry.token+'</td><td';
+			if (entry.color) {
+				html += ' bgcolor="'+entry.color+'"';
+			}
+			html += '>&nbsp;</td><td>'+entry.name+'</td></tr>';
 		});
 		$('#tokenlist').html(html+'</table>');
 	}

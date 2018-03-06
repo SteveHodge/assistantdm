@@ -20,6 +20,16 @@
 	background-color: #c0c0c0;
 }
 
+#tokenlist td:first-of-type {
+	width: 30px;
+	border-right: none; 
+}
+
+#tokenlist td:nth-of-type(2) {
+	width: 30px;
+	border-left: none; 
+}
+
 #photo1 {
 	position:absolute;
 	z-index:1;

@@ -3,6 +3,7 @@ package digital_table.controller;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -124,6 +125,36 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		yOffsetField.setText(Integer.toString(y));
 	}
 
+	// FIXME doesn't handle rows before row 'A', or negative columns numbers
+	// TODO this is probably more appropriate in the GridCoordinatesOptionPanel but we need the offset here
+	// looking for one or more letters followed by one or more numbers. symbols are ignored, as are letters after the first number.
+	public Point decode(String newLoc) {
+		newLoc = newLoc.toUpperCase();
+		String chars = "";
+		String nums = "";
+		for (int i = 0; i < newLoc.length(); i++) {
+			if (Character.isAlphabetic(newLoc.charAt(i)) && nums.length() == 0) {
+				chars += newLoc.charAt(i);
+			} else if (Character.isDigit(newLoc.charAt(i)) && chars.length() > 0) {
+				nums += newLoc.charAt(i);
+			}
+		}
+
+		// decode row
+		int col = 0;
+		int mult = 1;
+		for (int i = chars.length() - 1; i >= 0; i--) {
+			col += mult * (chars.charAt(i) - 'A');
+			mult *= 26;
+		}
+
+		int row = Integer.parseInt(nums) - 1;
+
+		System.out.println("Decoded " + newLoc + " to (" + col + ", " + row + ")");
+		Point p = new Point(col, row);
+		return p;
+	}
+
 	private PropertyChangeListener listener = new PropertyChangeListener() {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
@@ -142,7 +173,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		}
 	};
 
-	// ---- XML serialisation methods ----
+// ---- XML serialisation methods ----
 	final static String XML_TAG = "Grid";
 	private final static String X_OFFSET_ATTRIBUTE = "xoffset";
 	private final static String Y_OFFSET_ATTRIBUTE = "yoffset";

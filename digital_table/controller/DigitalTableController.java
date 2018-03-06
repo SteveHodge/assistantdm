@@ -13,6 +13,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import digital_table.server.TableDisplay;
+import party.Character;
 import util.ModuleRegistry;
 import util.XMLUtils;
 
@@ -103,5 +104,9 @@ public class DigitalTableController implements DigitalTableModule {
 	@Override
 	public void setCalibrateDisplay(boolean show) {
 		if (controller != null) controller.setCalibrateDisplay(show);
+	}
+
+	public void moveToken(Character character, String newLoc) {
+		if (controller != null) controller.moveToken(character, newLoc);
 	}
 }

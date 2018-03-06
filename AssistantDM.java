@@ -65,6 +65,7 @@ import ui.RestDialog;
 import ui.RollsPanel;
 import ui.SelectPartyDialog;
 import ui.XPEntryDialog;
+import util.WebsiteMonitor;
 import util.ModuleRegistry;
 import util.Updater;
 import util.XMLUtils;
@@ -81,6 +82,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	CameraPanel cameraPanel;
 	JTabbedPane tabbedPane;
 	DigitalTableController controller;
+	WebsiteMonitor dmmon;
 	LEDController ledController;
 	LEDControllerPanel ledPanel;
 
@@ -145,6 +147,8 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 				close();
 			}
 		};
+
+		dmmon = new WebsiteMonitor(party, controller);
 
 		// TODO convert to Actions where sensible
 		menuBar = new JMenuBar();

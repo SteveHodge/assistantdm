@@ -84,8 +84,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		super(r);
 		element = new Token();
 		if (parent == null) {
-			element.setProperty(Group.PROPERTY_X, r.getXOffset());
-			element.setProperty(Group.PROPERTY_Y, r.getYOffset());
+			element.setProperty(Group.PROPERTY_X, (double) r.getXOffset());
+			element.setProperty(Group.PROPERTY_Y, (double) r.getYOffset());
 		}
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
@@ -373,6 +373,12 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 	}
 
+	void moveTo(Point p) {
+		// FIXME need to account for heirarchy of groups
+		display.setProperty(element, Group.PROPERTY_X, p.getX());
+		display.setProperty(element, Group.PROPERTY_Y, p.getY());
+	}
+
 	private PropertyListener<Integer> hpListener = new PropertyListener<Integer>() {
 		@Override
 		public void propertyChanged(Property<Integer> source, Integer oldValue) {
@@ -496,8 +502,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(element, Group.PROPERTY_X, (int) Math.round(p.getX()));
-			display.setProperty(element, Group.PROPERTY_Y, (int) Math.round(p.getY()));
+			display.setProperty(element, Group.PROPERTY_X, (double) Math.round(p.getX()));
+			display.setProperty(element, Group.PROPERTY_Y, (double) Math.round(p.getY()));
 		}
 
 		@Override
