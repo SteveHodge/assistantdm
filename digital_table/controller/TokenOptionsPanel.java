@@ -374,9 +374,9 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	}
 
 	void moveTo(Point p) {
-		// FIXME need to account for heirarchy of groups
-		display.setProperty(element, Group.PROPERTY_X, p.getX());
-		display.setProperty(element, Group.PROPERTY_Y, p.getY());
+		Point2D o = element.getElementOrigin();
+		display.setProperty(element, Group.PROPERTY_X, p.getX() - o.getX());
+		display.setProperty(element, Group.PROPERTY_Y, p.getY() - o.getY());
 	}
 
 	private PropertyListener<Integer> hpListener = new PropertyListener<Integer>() {

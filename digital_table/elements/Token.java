@@ -257,6 +257,11 @@ public class Token extends Group {
 		g.translate(-o.getX(), -o.getY());
 	}
 
+	// returns the absolute origin of this element's coordinate system. i.e. the absolute coordinates of this element if it's location were set to (0,0)
+	public Point2D getElementOrigin() {
+		return canvas.getElementOrigin(this);
+	}
+
 	private CreatureStatus getStatus() {
 		if (maxHPs.getValue() == null || currentHPs.getValue() == null) return null;
 		return statusType.getValue().getStatus(maxHPs.getValue(), currentHPs.getValue());

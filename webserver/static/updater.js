@@ -39,6 +39,8 @@
 			if (req.readyState === 4) {
 				if (req.status !== 200) {
 					alert("Error moving token: "+req.statusText);
+				} else {
+					$('#movetoken input').val('');
 				}
 			}
 		};
