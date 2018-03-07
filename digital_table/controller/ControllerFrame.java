@@ -81,6 +81,7 @@ import util.ModuleRegistry;
 import util.XMLUtils;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
+//TODO buttons that aren't applicable to the selected element should be disabled
 
 @SuppressWarnings("serial")
 public class ControllerFrame extends JFrame {
@@ -231,6 +232,18 @@ public class ControllerFrame extends JFrame {
 			}
 		});
 
+		JButton duplicateButton = new JButton("Duplicate");
+		duplicateButton.addActionListener(e -> {
+			MapElement element = getSelectedElement();
+			if (element != null && element instanceof Token) {
+				TokenOptionsPanel tokenPanel = tokenAction.addElement(null);
+				tokenPanel.duplciate((TokenOptionsPanel) optionPanels.get(element));
+				elementTree.setSelectionPath(miniMapCanvas.getTreePath(tokenPanel.getElement()));
+			} else {
+				System.err.println("Duplicate current only implemented for tokens");
+			}
+		});
+
 		JButton groupsButton = new JButton("Groups...");
 		groupsButton.addActionListener(e -> new GroupsDialog());
 
@@ -302,13 +315,10 @@ public class ControllerFrame extends JFrame {
 		rightPanel.add(resetButton, c);
 
 		c.gridy++;
-		c.gridx = 1;
+		rightPanel.add(duplicateButton, c);
 		rightPanel.add(debugButton, c);
-		c.gridx = 2;
 		rightPanel.add(loadButton, c);
-		c.gridx = 3;
 		rightPanel.add(saveButton, c);
-		//		buttonPanel.add(quitButton);
 
 		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridx = 0;
@@ -367,6 +377,7 @@ public class ControllerFrame extends JFrame {
 		return String.format("%.2f %s", mem, units);
 	}
 
+	// FIXME probably has same bug as below
 	private void resetAll() {
 		// TODO should traverse the element tree instead of scanning the optionpanels
 		Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();
@@ -388,6 +399,8 @@ public class ControllerFrame extends JFrame {
 		elementTree.setSelectionPath(miniMapCanvas.getTreePath(gridPanel.getElement()));
 	}
 
+	// FIXMWE bug in this - causes exception repainting image display
+	// TODO need confirm dialog on this
 	private void reset() {
 		// TODO should traverse the element tree instead of scanning the optionpanels
 		Iterator<OptionsPanel<?>> panels = optionPanels.values().iterator();

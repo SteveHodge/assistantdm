@@ -487,9 +487,17 @@ public class Token extends Group {
 		if (property.equals(PROPERTY_IMAGE)) {
 			setImage((byte[]) value);
 		} else if (property.equals(PROPERTY_X)) {
-			setX((Double) value);
+			if (value instanceof Integer) {
+				setX(((Integer) value).doubleValue());
+			} else {
+				setX((Double) value);
+			}
 		} else if (property.equals(PROPERTY_Y)) {
-			setY((Double) value);
+			if (value instanceof Integer) {
+				setY(((Integer) value).doubleValue());
+			} else {
+				setY((Double) value);
+			}
 		} else {
 			super.setProperty(property, value);
 		}

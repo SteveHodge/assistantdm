@@ -1,5 +1,4 @@
 ---=== IN PROGRESS ===---
-* Clean up coordinates before A0
 * Other feedback from website (spells cast etc)
 * Audit use of createOverrideIntegerField and look at moving other override controls to standard field (probably a new field type which only displays the override, not the total)
 * Enhance standard fields with tool tip?
@@ -9,9 +8,11 @@
 * Sort out hierarchy - consider if sub-properties should be registered with their parent or with the Creature.
 * Consider a PropertyParent interface.
 * Modifiers event/listener stuff should perhaps be similar to property in style
-* Duplicate token function
 * BUG floating labels on tokens: website token key has no description, floating label checkbox is not restored on reload, if the label itself is deleted then changing the remote label will cause an exception
 * Support conditions (and change barbarian rage to a condition) 
+* Clean up grid references before A0
+* Allow grid references to be entered for element x/y coordinates in ui
+* BUG "reset" button caused index out of bounds error in RemoteImageDisplay
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality

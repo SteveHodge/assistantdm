@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,8 @@ import digital_table.server.MapCanvas.Order;
 public class Drawing extends MapElement {
 	private static final long serialVersionUID = 1L;
 
-	public static class Fill {
+	public static class Fill implements Serializable {
+		private static final long serialVersionUID = 1L;
 		public int gridx;
 		public int gridy;
 		public Color color;
@@ -46,7 +48,8 @@ public class Drawing extends MapElement {
 		}
 	}
 
-	public static class Line {
+	public static class Line implements Serializable {
+		private static final long serialVersionUID = 1L;
 		public int x1, y1, x2, y2;
 		public Color color;
 

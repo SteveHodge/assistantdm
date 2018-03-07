@@ -187,9 +187,17 @@ class TokenOverlay {
 		@Override
 		public void setProperty(String property, Object value) {
 			if (property.equals(Group.PROPERTY_X)) {
-				setX((Double) value);
+				if (value instanceof Integer) {
+					setX(((Integer) value).doubleValue());
+				} else {
+					setX((Double) value);
+				}
 			} else if (property.equals(Group.PROPERTY_Y)) {
-				setY((Double) value);
+				if (value instanceof Integer) {
+					setY(((Integer) value).doubleValue());
+				} else {
+					setY((Double) value);
+				}
 			} else if (property.equals(PROPERTY_WEB_LABEL)) {
 				if (value != null && ((String) value).length() > 0) {
 					hasWebLabel = true;

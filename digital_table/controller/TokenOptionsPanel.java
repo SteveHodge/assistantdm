@@ -743,4 +743,33 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		parseVisibility(e, visibleCheck);
 	}
+
+	private void copyProperty(String prop, TokenOptionsPanel from, Mode mode) {
+		display.setProperty(element, prop, from.element.getProperty(prop), mode);
+	}
+
+	void duplciate(TokenOptionsPanel from) {
+		copyProperty(Token.PROPERTY_LABEL, from, Mode.LOCAL);
+		// TODO floating label
+		remoteLabelField.setText(from.remoteLabelField.getText());
+		display.setProperty(element, Token.PROPERTY_LABEL, remoteLabelField.getText(), Mode.REMOTE);
+		webLabelField.setText(from.webLabelField.getText());
+		display.setProperty(element, TokenOverlay.PROPERTY_WEB_LABEL, webLabelField.getText(), Mode.OVERLAY);
+		copyProperty(Token.PROPERTY_COLOR, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_ALPHA, from, Mode.ALL);
+		copyProperty(Group.PROPERTY_X, from, Mode.ALL);
+		copyProperty(Group.PROPERTY_Y, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_REACH, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_SPACE, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_ROTATIONS, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_REACHWEAPON, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_MAX_HPS, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_CURRENT_HPS, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_STATUS_TYPE, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_STATUS_DISPLAY, from, Mode.ALL);
+		copyProperty(Token.PROPERTY_SHOWREACH, from, Mode.LOCAL);
+		remoteReach.setSelected(from.remoteReach.isSelected());
+		// TODO size
+		if (from.imageFile != null) setImage(from.imageFile);
+	}
 }
