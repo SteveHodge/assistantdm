@@ -118,6 +118,10 @@ class RemoteImageDisplay extends TokenOverlay {
 		tokens.canvas.addRepaintListener(() -> {
 			if (outputEnabled) repaintThread.repaint();
 		});
+
+		canvas.addRepaintListener(() -> {
+			if (outputEnabled) repaintThread.repaint();
+		});
 	}
 
 	public void setOutputEnabled(boolean out) {
