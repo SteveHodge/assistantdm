@@ -194,13 +194,20 @@ public class Monster extends Creature {
 				// modifiers that apply to attack and damage
 				Set<Modifier> dmgMods = attack.getDamageStatistic().getModifierSet();
 				if (dmgMods != null && dmgMods.size() > 0) {
-					s.append("(");
+					boolean hasMod = false;
 					for (Modifier m : dmgMods) {
+						if (m.getSource().equals(AbilityScore.Type.STRENGTH.toString())) continue;
+						if (!hasMod) s.append(" (");
 						if (s.charAt(s.length() - 1) != '(') s.append(", ");
 						if (m.getModifier() > 0) s.append("+");
-						s.append(m.getModifier()).append(" ").append(m.getType());
+						s.append(m.getModifier()).append(" ");
+						if (m.getType() != null) {
+							s.append(m.getType());
+						} else {
+							s.append(m.getSource());
+						}
 					}
-					s.append(")");
+					if (hasMod) s.append(")");
 				}
 
 				s.append(" ");
@@ -212,7 +219,7 @@ public class Monster extends Creature {
 				Iterator<Modifier> iter = modifiers.iterator();
 				while (iter.hasNext()) {
 					Modifier m = iter.next();
-					if (m.getType() != null && (m.getType().equals("Size")
+					if (m.getType() != null && (m.getType().equals(size.getName())
 							|| m.getType().equals(AbilityScore.Type.STRENGTH.toString())
 							|| m.getType().equals(AbilityScore.Type.DEXTERITY.toString()))) {
 						iter.remove();
@@ -235,6 +242,7 @@ public class Monster extends Creature {
 							}
 							if (m.getModifier() > 0) s.append("+");
 							s.append(m.getModifier()).append(" ").append(m.getType());
+							System.out.println(m + " vs " + size.getDescription() + " (desc) or " + size.getName() + " (name)");
 						}
 					}
 					if (!first) s.append(")");

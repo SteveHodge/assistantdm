@@ -14,9 +14,9 @@ import javax.swing.DefaultListModel;
 
 import gamesystem.CharacterClass.ClassOption;
 import gamesystem.core.OverridableProperty;
+import gamesystem.core.Property;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.Property;
 import gamesystem.core.SimpleValueProperty;
 import swing.ListModelWithToolTips;
 
@@ -464,6 +464,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		}
 		if (property == null) {
 			System.err.println("Attempt to get unknown property: " + prop);
+//			Thread.dumpStack();
 			return null;
 		}
 		return property.getValue();

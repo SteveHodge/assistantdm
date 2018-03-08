@@ -66,7 +66,7 @@ public class StatsBlockCreatureView {
 				pcs.firePropertyChange(Field.SAVES.name(), null, getField(Field.SAVES));
 			} else if (source.equals(creature.getSizeStatistic())) {
 				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
-			} else if (source.equals(creature.getHPStatistic())) {
+			} else if (source.equals(creature.getHPStatistic()) || source.equals(creature.getHPStatistic().getMaxHPStat())) {
 				pcs.firePropertyChange(Field.HITDICE.name(), null, getField(Field.HITDICE));
 			} else if (source.equals(creature.getBAB())) {
 				pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
@@ -116,6 +116,10 @@ public class StatsBlockCreatureView {
 
 		Monster m = new Monster(name, abilities);
 
+		// need these for hitdice, which will want to update when race is set
+		m.setProperty(Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));
+		m.setProperty(Field.SPECIAL_ATTACKS.name(), blk.get(Field.SPECIAL_ATTACKS));
+
 		m.race.setType(blk.getType());
 		for (String s : blk.getSubtypes()) {
 			m.race.addSubtype(s);
@@ -137,8 +141,6 @@ public class StatsBlockCreatureView {
 				}
 			}
 		}
-
-		m.getInitiativeStatistic().setValue(blk.getInitiativeModifier());	// XXX is this right? should it be setting the total?
 
 //		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 //			SavingThrow s = m.getSavingThrowStatistic(t);
@@ -193,7 +195,6 @@ public class StatsBlockCreatureView {
 
 		m.statisticsBlock = blk;
 		// need feats/special qualities before setting up attacks
-		m.setProperty(Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));
 		m.setProperty(Field.FEATS.name(), blk.get(Field.FEATS));
 		// apply any feats we recognise:
 		if (blk.get(Field.FEATS) != null) {
@@ -233,6 +234,8 @@ public class StatsBlockCreatureView {
 			}
 		}
 
+		m.getInitiativeStatistic().setValue(blk.getInitiativeModifier() - m.getInitiativeStatistic().getValue());	// set the base value to whatever is unaccounted for
+
 		setAttackList(m, blk.getAttacks(false));
 		setFullAttackList(m, blk.getAttacks(true));
 
@@ -250,7 +253,6 @@ public class StatsBlockCreatureView {
 		// add fields we don't use as extra properties:
 		m.setProperty(Field.CLASS_LEVELS.name(), blk.get(Field.CLASS_LEVELS));
 		m.setProperty(Field.SPEED.name(), blk.get(Field.SPEED));
-		m.setProperty(Field.SPECIAL_ATTACKS.name(), blk.get(Field.SPECIAL_ATTACKS));
 		m.setProperty(Field.SKILLS.name(), blk.get(Field.SKILLS));
 		m.setProperty(Field.ENVIRONMENT.name(), blk.get(Field.ENVIRONMENT));
 		m.setProperty(Field.ORGANIZATION.name(), blk.get(Field.ORGANIZATION));
@@ -438,7 +440,7 @@ public class StatsBlockCreatureView {
 				}
 				s.append(")");
 			}
-			s.append(", touch ").append(creature.getACStatistic().getTouchAC().getValue()).append(", flat-footed ").append(creature.getACStatistic().getFlatFootedAC());
+			s.append(", touch ").append(creature.getACStatistic().getTouchAC().getValue()).append(", flat-footed ").append(creature.getACStatistic().getFlatFootedAC().getValue());
 		} else if (field == Field.ABILITIES) {
 			for (AbilityScore.Type t : AbilityScore.Type.values()) {
 				s.append(t.toString().substring(0, 3)).append(" ");
@@ -464,7 +466,7 @@ public class StatsBlockCreatureView {
 			}
 		} else if (field == Field.HITDICE) {
 			s.append(DiceList.toString(creature.hitDice.getValue())).append(" (");
-			if (creature.getHPStatistic().getValue() != creature.getHPStatistic().getMaxHPStat().getValue()) {
+			if (creature.getHPStatistic().getValue().intValue() != creature.getHPStatistic().getMaxHPStat().getValue().intValue()) {
 				s.append(creature.getHPStatistic().getValue()).append("/");
 			}
 			s.append(creature.getHPStatistic().getMaxHPStat().getValue()).append(" hp)");
