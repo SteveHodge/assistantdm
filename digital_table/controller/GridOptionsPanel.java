@@ -148,11 +148,16 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 			mult *= 26;
 		}
 
-		int row = Integer.parseInt(nums) - 1;
+		try {
+			int row = Integer.parseInt(nums) - 1;
 
-		System.out.println("Decoded " + newLoc + " to (" + col + ", " + row + ")");
-		Point p = new Point(col, row);
-		return p;
+			System.out.println("Decoded " + newLoc + " to (" + col + ", " + row + ")");
+			Point p = new Point(col, row);
+			return p;
+		} catch (NumberFormatException ex) {
+//			System.out.println("Invalid row number in '" + newLoc + "'");
+			return null;
+		}
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
