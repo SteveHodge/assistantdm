@@ -12,7 +12,7 @@ import java.util.Set;
 import gamesystem.StatisticsCollection.StatisticDescription;
 
 public class SkillType implements Comparable<SkillType> {
-	public static Map<String,SkillType> skills;
+	public static Map<String, SkillType> skills = new HashMap<>();
 
 	protected String name;
 	public AbilityScore.Type ability;
@@ -114,57 +114,5 @@ public class SkillType implements Comparable<SkillType> {
 			if (!s.trainedOnly) u.add(s);
 		}
 		return u;
-	}
-
-	static {
-		skills = new HashMap<>();
-/*		addSkill("Appraise",AbilityScore.Type.INTELLIGENCE,false);
-		addSkill("Balance",AbilityScore.Type.DEXTERITY,false,true);
-		addSkill("Bluff",AbilityScore.Type.CHARISMA,false);
-		addSkill("Climb",AbilityScore.Type.STRENGTH,false,true);
-		addSkill("Concentration",AbilityScore.Type.CONSTITUTION,false);
-		addSkill("Craft",AbilityScore.Type.INTELLIGENCE,false);
-		addSkill("Craft (Armorsmithing)",AbilityScore.Type.INTELLIGENCE,false);
-		addSkill("Craft (Weaponsmithing)",AbilityScore.Type.INTELLIGENCE,false);
-		addSkill("Decipher Script",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Diplomacy",AbilityScore.Type.CHARISMA,false);
-		addSkill("Disable Device",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Disguise",AbilityScore.Type.CHARISMA,false);
-		addSkill("Escape Artist",AbilityScore.Type.DEXTERITY,false,true);
-		addSkill("Forgery",AbilityScore.Type.INTELLIGENCE,false);
-		addSkill("Gather Information",AbilityScore.Type.CHARISMA,false);
-		addSkill("Handle Animal",AbilityScore.Type.CHARISMA,true);
-		addSkill("Heal",AbilityScore.Type.WISDOM,false);
-		addSkill("Hide",AbilityScore.Type.DEXTERITY,false,true);
-		addSkill("Intimidate",AbilityScore.Type.CHARISMA,false);
-		addSkill("Jump",AbilityScore.Type.STRENGTH,false,true);
-		addSkill("Knowledge (Arcana)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (Arch and Eng)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (Dungeoneering)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (Geography)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (History)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (Local)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (Nature)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (Nobility)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (Machinery)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (Religion)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Knowledge (The Planes)",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Listen",AbilityScore.Type.WISDOM,false);
-		addSkill("Move Silently",AbilityScore.Type.DEXTERITY,false,true);
-		addSkill("Open Lock",AbilityScore.Type.DEXTERITY,true);
-		addSkill("Perform",AbilityScore.Type.CHARISMA,false);
-		addSkill("Profession",AbilityScore.Type.WISDOM,true);
-		addSkill("Ride",AbilityScore.Type.DEXTERITY,false);
-		addSkill("Search",AbilityScore.Type.INTELLIGENCE,false);
-		addSkill("Sense Motive",AbilityScore.Type.WISDOM,false);
-		addSkill("Sleight of Hand",AbilityScore.Type.DEXTERITY,true,true);
-		addSkill("Spellcraft",AbilityScore.Type.INTELLIGENCE,true);
-		addSkill("Spot",AbilityScore.Type.WISDOM,false);
-		addSkill("Survival",AbilityScore.Type.WISDOM,false);
-		addSkill("Swim",AbilityScore.Type.STRENGTH,false, true, true);
-		addSkill("Tumble",AbilityScore.Type.DEXTERITY,true,true);
-		addSkill("Use Magic Device",AbilityScore.Type.CHARISMA,true);
-		addSkill("Use Rope",AbilityScore.Type.DEXTERITY,false);
- */
 	}
 }

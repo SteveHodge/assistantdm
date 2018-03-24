@@ -416,6 +416,8 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 			return level;
 		} else if (name.equals(STATISTIC_HPS)) {
 			return hps;
+		} else if (name.equals(STATISTIC_HPS + ".max_hps")) {
+			return hps.getMaxHPStat();
 		} else if (name.equals(STATISTIC_ATTACKS)) {
 			return attacks;
 		} else if (name.equals(STATISTIC_DAMAGE)) {

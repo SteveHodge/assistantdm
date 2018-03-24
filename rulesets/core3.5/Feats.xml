@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feats>
+	<feat name="Acrobatic" ref="PHB 89">+2 bonus on Jump and Tumble checks.<modifiers><modifier statistic="skills.Jump" value="2"/><modifier statistic="skills.Tumble" value="2"/></modifiers></feat>
+	<feat name="Agile" ref="PHB 89">+2 bonus on Balance and Escape Artist checks.<modifiers><modifier statistic="skills.Balance" value="2"/><modifier statistic="skills.Escape Artist" value="2"/></modifiers></feat>
+	<feat name="Alertness" ref="PHB 89">+2 bonus on Listen and Spot checks.<modifiers><modifier statistic="skills.Listen" value="2"/><modifier statistic="skills.Spot" value="2"/></modifiers></feat>
+	<feat name="Animal Affinity" ref="PHB 89">+2 bonus on Handle Animal and Ride checks.<modifiers><modifier statistic="skills.Handle Animal" value="2"/><modifier statistic="skills.Ride" value="2"/></modifiers></feat>
+	<feat name="Athletic" ref="PHB 89">+2 bonus on Climb and Swim checks.<modifiers><modifier statistic="skills.Climb" value="2"/><modifier statistic="skills.Swim" value="2"/></modifiers></feat>
+	<feat name="Deceitful" ref="PHB 93">+2 bonus on Disguise and Forgery checks.<modifiers><modifier statistic="skills.Disguise" value="2"/><modifier statistic="skills.Forgery" value="2"/></modifiers></feat>
+	<feat name="Deft Hands" ref="PHB 93">+2 bonus on Sleight of Hand and Use Rope checks.<modifiers><modifier statistic="skills.Slight of Hand" value="2"/><modifier statistic="skills.Use Rope" value="2"/></modifiers></feat>
+	<feat name="Diligent" ref="PHB 93">+2 bonus on Appraise and Decipher Script checks.<modifiers><modifier statistic="skills.Appraise" value="2"/><modifier statistic="skills.Decipher Script" value="2"/></modifiers></feat>
+	<feat name="Investigator" ref="PHB 96">+2 bonus on Gather Information and Search checks.<modifiers><modifier statistic="skills.Gather Information" value="2"/><modifier statistic="skills.Search" value="2"/></modifiers></feat>
+	<feat name="Magical Aptitude" ref="PHB 97">+2 bonus on Spellcraft and Use Magic Device checks.<modifiers><modifier statistic="skills.Spellcraft" value="2"/><modifier statistic="skills.Use Magic Device" value="2"/></modifiers></feat>
+	<feat name="Negotiator" ref="PHB 98">+2 bonus on Diplomacy and Sense Motive checks.<modifiers><modifier statistic="skills.Diplomacy" value="2"/><modifier statistic="skills.Sense Motive" value="2"/></modifiers></feat>
+	<feat name="Nimble Fingers" ref="PHB 98">+2 bonus on Disable Device and Open Lock checks.<modifiers><modifier statistic="skills.Disable Device" value="2"/><modifier statistic="skills.Open Lock" value="2"/></modifiers></feat>
+	<feat name="Persuasive" ref="PHB 98">+2 bonus on Bluff and Intimidate checks.<modifiers><modifier statistic="skills.Bluff" value="2"/><modifier statistic="skills.Intimidate" value="2"/></modifiers></feat>
+	<feat name="Self-Sufficient" ref="PHB 100">+2 bonus on Heal and Survival checks.<modifiers><modifier statistic="skills.Heal" value="2"/><modifier statistic="skills.Survival" value="2"/></modifiers></feat>
+	<feat name="Stealthy" ref="PHB 101">+2 bonus on Hide and Move Silently checks.<modifiers><modifier statistic="skills.Hide" value="2"/><modifier statistic="skills.Move Silently" value="2"/></modifiers></feat>
+	<feat name="Combat Casting" ref="PHB 92">+4 bonus on Concentration checks for defensive casting.<modifiers><modifier statistic="skills.Concentration" value="4" condition="when defensive casting"/></modifiers></feat>
+	<feat name="Great Fortitude" ref="PH 94">+2 bonus on Fortitude saves.<modifiers><modifier statistic="saving_throws.fortitude" value="2"/></modifiers></feat>
+	<feat name="Improved Initiative" ref="PH 96">+4 bonus on initiative checks.<modifiers><modifier statistic="initiative" value="4"/></modifiers></feat>
+	<feat name="Improved Grapple" ref="PH 95">+4 bonus on grapple checks; no attack of opportunity.<modifiers><modifier statistic="grapple" value="4"/></modifiers></feat>
+	<feat name="Iron Will" ref="PH 97">+2 bonus on Will saves.<modifiers><modifier statistic="saving_throws.will" value="2"/></modifiers></feat>
+	<feat name="Lightning Reflexes" ref="PH 97">+2 bonus on Reflex saves.<modifiers><modifier statistic="saving_throws.reflex" value="2"/></modifiers></feat>
+	<feat name="Skill Focus" ref="PH 100" target="skills">+3 bonus on checks with selected skill.<modifiers><modifier statistic="target" value="3"/></modifiers></feat>
+	<feat name="Toughness" repeatable="true" ref="PH 101">The character gains +3 hit points.<modifiers><modifier statistic="hit_points.max_hps" value="3"/></modifiers></feat>
+	<feat name="Run" ref="PH 99">Run at 5 times normal speed, +4 bonus on Jump checks made after running start.<modifiers><modifier statistic="skills.Jump" value="4" condition="with running start"/></modifiers><!--TODO also affects run speed multiplier--></feat>
+
+	<feat name="Armor Proficiency (light)" ref="PH 89">No armor check penalty on attack rolls.</feat>
+	<feat name="Armor Proficiency (medium)" ref="PH 89">No armor check penalty on attack rolls.</feat>
+	<feat name="Armor Proficiency (heavy)" ref="PH 89">No armor check penalty on attack rolls.</feat>
+	<feat name="Shield Proficiency" ref="PH 100">No armor check penalty on attack rolls.</feat>
+	<feat name="Tower Shield Proficiency" ref="PH 101">No armor check penalty on attack rolls.</feat>
+	<feat name="Simple Weapon Proficiency" ref="PH 100">No -4 penalty on attack rolls with simple weapons.</feat>
+	<feat name="Martial Weapon Proficiency" ref="PH 97" target="weapon[type=martial]">No penalty on attacks with specific martial weapon.</feat>
+	<feat name="Exotic Weapon Proficiency" ref="PH 94" target="weapon[type=exotic]">No penalty on attacks with specific exotic weapon.</feat>
+
+	<feat name="Combat Expertise" ref="PH 92">Trade attack bonus for AC (max 5 points).</feat>
+	<feat name="Rapid Shot" ref="PH 99">One extra ranged attack each round.</feat>
+	<feat name="Manyshot" ref="PH 97">Shoot two or more arrows simultaneously.</feat>
+	<feat name="Power Attack" ref="PH 98">Trade attack bonus for damage (up to base attack bonus).</feat>
+	<feat name="Two-Weapon Fighting" ref="PH 102">Reduce two-weapon fighting penalties by 2.</feat>
+	<feat name="Improved Two-Weapon Fighting" ref="PH 96">Gain second off-hand attack.</feat>
+	<feat name="Greater Two-Weapon Fighting" ref="PH 95">Gain third off-hand attack.</feat>
+	<feat name="Weapon Finesse" ref="PH 102">Use Dex modifier instead of Str modifier on attack rolls with light melee weapons.</feat>
+	<feat name="Weapon Focus" ref="PH 102" target="attack">+1 bonus on attack rolls with selected weapon.</feat>
+	<feat name="Greater Weapon Focus" ref="PH 95" target="attack">+1 bonus on attack rolls with selected weapon.</feat>
+
+	<feat name="Dodge" ref="PH 93">+1 dodge bonus to AC against selected target.</feat>
+	<feat name="Improved Shield Bash" ref="PH 96">Retain shield bonus to AC when shield bashing.</feat>
+	<feat name="Two-Weapon Defense" ref="PH 102">Off-hand weapon grants +1 shield bonus to AC.</feat>
+
+	<feat name="Improved Critical" ref="PH 95" target="attack">Double threat range of weapon.</feat>
+	<feat name="Weapon Specialization" ref="PH 102" target="attack">+2 bonus on damage rolls with selected weapon.</feat>
+	<feat name="Greater Weapon Specialization" ref="PH 95" target="attack">+2 bonus on damage rolls with selected weapon.</feat>
+
+	<feat name="Improved Unarmed Strike" ref="PH 96">Considered armed even when unarmed."</feat>
+
+	<feat name="Blind-Fight" ref="PH 89">Reroll miss chance for concealment</feat>
+	<feat name="Improved Disarm" ref="PH 95">+4 bonus on disarm attempts; no attack of opportunity.</feat>
+	<feat name="Improved Feint" ref="PH 95">Feint in combat as move action.</feat>
+	<feat name="Improved Trip" ref="PH 96">+4 bonus on trip attempts; no attack of opportunity.</feat>
+	<feat name="Whirlwind Attack" ref="PH 102">One melee attack against each opponent within reach.</feat>
+	<feat name="Combat Reflexes" ref="PH 92">Additional attacks of opportunity.</feat>
+	<feat name="Mobility" ref="PH 98">+4 dodge bonus to AC against some attacks of opportunity.</feat>
+	<feat name="Spring Attack" ref="PH 100">Move before and after melee attack.</feat>
+	<feat name="Deflect Arrows" ref="PH 93">Deflect one ranged attack per round.</feat>
+	<feat name="Snatch Arrows" ref="PH 100">Catch a deflected range attack.</feat>
+	<feat name="Stunning Fist" ref="PH 101">Stun opponent with unarmed strike.</feat>
+	<feat name="Mounted Combat" ref="PH 98">Negate hits on mount with Ride check.</feat>
+	<feat name="Mounted Archery" ref="PH 98">Half penalty for ranged attacks while mounted.</feat>
+	<feat name="Ride-By Attack" ref="PH 99">Move before and after a mounted charge.</feat>
+	<feat name="Trample" ref="PH 101">Target cannot avoid mounted overrun.</feat>
+	<feat name="Spirited Charge" ref="PH 100">Double damage with mounted charge.</feat>
+	<feat name="Point Blank Shot" ref="PH 98">+1 bonus on ranged attack and damage within 30 ft.</feat>
+	<feat name="Far Shot" ref="PH 94">Increase range increment by 50% or 100%.</feat>
+	<feat name="Precise Shot" ref="PH 98">You can shoot or throw at opponents engaged in melee without the 4 penalty.</feat>
+	<feat name="Improved Precise Shot" ref="PH 96">Ignore less than total cover/concealment on ranged attacks.</feat>
+	<feat name="Shot on the Run" ref="PH 100">Move before and after ranged attack.</feat>
+	<feat name="Cleave" ref="PH 92">Extra melee attack after dropping target.</feat>
+	<feat name="Great Cleave" ref="PH 94">No limit to cleave attacks each round.</feat>
+	<feat name="Improved Bull Rush" ref="PH 95">+4 bonus on bull rush attempts; no attack of opportunity.</feat>
+	<feat name="Improved Overrun" ref="PH 96">+4 bonus on overrun attempts</feat>
+	<feat name="Improved Sunder" ref="PH 96">+4 bonus on sunder attempts; no attack of opportunity.</feat>
+	<feat name="Rapid Reload" ref="PH 99">Reload crossbows more quickly.</feat>
+
+	<feat name="Augment Summoning" ref="PH 89">Summoned creatures gain +4 Str, +4 Con.</feat>
+	<feat name="Endurance" ref="PH 93">+4 bonus on checks or saves to resist nonlethal damage.</feat>
+	<feat name="Diehard" ref="PH 93">Remain conscious at -1 to -9 hp.</feat>
+	<feat name="Eschew Materials" ref="PH 94">Cast spells without material components.</feat>
+	<feat name="Extra Turning" ref="PH 94">Can turn or rebuke 4 more times per day.</feat>
+	<feat name="Improved Counterspell" ref="PH 95">Counterspell with spell of same school.</feat>
+	<feat name="Improved Familiar" ref="DMG 200">As long as you are able to acquire a new familiar, you may choose your new familiar from a nonstandard list.</feat>
+	<feat name="Improved Turning" ref="PH 96">+1 level for turning checks.</feat>
+	<feat name="Leadership" ref="PH 97">Attract cohort and followers.</feat>
+	<feat name="Natural Spell" ref="PH 98">Cast spells while in wild shape.</feat>
+	<feat name="Quick Draw" ref="PH 98">Draw weapon as free action.</feat>
+	<feat name="Spell Focus" ref="PH 100" target="school">+1 bonus on save DCs against specific school of magic.</feat>
+	<feat name="Greater Spell Focus" ref="PH 94" target="school">+2 bonus on save DCs against specific school of magic.</feat>
+	<feat name="Spell Mastery" ref="PH 100">Can prepare some spells without spellbook.</feat>
+	<feat name="Spell Penetration" ref="PH 100">+2 bonus on caster level checks to defeat spell resistance.</feat>
+	<feat name="Greater Spell Penetration" ref="PH 94">+4 bonus on caster level checks to defeat spell resistance.</feat>
+	<feat name="Track" ref="PH 101">Use Survival skill to track.</feat>
+
+	<feat name="Scribe Scroll" ref="PH 99">Create magic scrolls.</feat>
+	<feat name="Empower Spell" ref="PH 93">Increase spell's variable, numeric effects by 50%.</feat>
+	<feat name="Enlarge Spell" ref="PH 94">Double spell's range.</feat>
+	<feat name="Extend Spell" ref="PH 94">Double spell's duration.</feat>
+	<feat name="Heighten Spell" ref="PH 95">Cast spells as higher level.</feat>
+	<feat name="Maximize Spell" ref="PH 97">Maximize spell's variable, numeric effects.</feat>
+	<feat name="Quicken Spell" ref="PH 98">Cast spells as free action.</feat>
+	<feat name="Silent Spell" ref="PH 100">Cast spells without verbal components.</feat>
+	<feat name="Still Spell" ref="PH 101">Cast spells without somatic components.</feat>
+	<feat name="Widen Spell" ref="PH 102">Double spell's area.</feat>
+
+	<feat name="Brew Potion" ref="PH 89">Create magic potions.</feat>
+	<feat name="Craft Magic Arms and Armor" ref="PH 92">Create magic weapons, armor, and shields.</feat>
+	<feat name="Craft Rod" ref="PH 92">Create magic rods.</feat>
+	<feat name="Craft Staff" ref="PH 92">Create magic staves.</feat>
+	<feat name="Craft Wand" ref="PH 92">Create magic wands.</feat>
+	<feat name="Craft Wondrous Item" ref="PH 92">Create magic wondrous items.</feat>
+	<feat name="Forge Ring" ref="PH 94">Create magic rings.</feat>
+
+	<feat name="Ability Focus" ref="MM 303">+2 to DC of saves against selected attack.</feat>
+	<feat name="Awesome Blow" ref="MM 303"/>
+	<feat name="Craft Construct" ref="MM 303"/>
+	<feat name="Empower Spell-like Ability" ref="MM 303"/>
+	<feat name="Flyby Attack" ref="MM 303"/>
+	<feat name="Hover" ref="MM 304"/>
+	<feat name="Improved Natural Armor" ref="MM 303"/>
+	<feat name="Improved Natural Attack" ref="MM 303"/>
+	<feat name="Multiattack" ref="MM 303"/>
+	<feat name="Multiweapon Fighting" ref="MM 303"/>
+	<feat name="Quicken Spell-like Ability" ref="MM 303"/>
+	<feat name="Snatch" ref="MM 303"/>
+	<feat name="Wingover" ref="MM 303"/>
+	<feat name="Improved Toughness" ref="MM3 207"/>
+	<feat name="Powerful Charge" ref="MM3 207"/>
+</feats>

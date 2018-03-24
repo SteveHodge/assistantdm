@@ -2,8 +2,10 @@ package gamesystem;
 
 
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -121,8 +123,8 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 
 	// returns the total of all active modifiers excluding types in the specified set
 	// conditional modifiers are not included
-	public int getModifiersTotal(Set<String> excluding) {
-		return getModifiersTotalExcluding(getModifierSet(), excluding);
+	public int getModifiersTotal(String... excludeTypes) {
+		return getModifiersTotalExcluding(getModifierSet(), excludeTypes);
 	}
 
 	// returns the total active modifiers of the type specified. if type is null then the total of all modifiers is returned
@@ -144,11 +146,12 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	}
 
 	// conditional modifiers are not included
-	protected static int getModifiersTotalExcluding(Set<Modifier> mods, Set<String> excluding) {
+	protected static int getModifiersTotalExcluding(Set<Modifier> mods, String... excluding) {
 		int total = 0;
+		List<String> exTypes = Arrays.asList(excluding);
 		Map<Modifier, Boolean> map = getModifiers(mods);
 		for (Modifier m : map.keySet()) {
-			if (map.get(m) && !excluding.contains(m.getType()) && m.getCondition() == null) {
+			if (map.get(m) && !exTypes.contains(m.getType()) && m.getCondition() == null) {
 				total += m.getModifier();
 			}
 		}

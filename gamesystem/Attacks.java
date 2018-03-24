@@ -203,7 +203,7 @@ public class Attacks extends Statistic {
 		return getModifiers(getRangedMods());
 	}
 
-	public int getRangedModifiersTotal(Set<String> excluding) {
+	public int getRangedModifiersTotal(String... excluding) {
 		return getModifiersTotalExcluding(getRangedMods(), excluding);
 	}
 

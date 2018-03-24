@@ -6,9 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -314,9 +312,6 @@ public class CharacterSheetView {
 			creatureEl.appendChild(e);
 		}
 
-		private Set<String> meleeExcl = new HashSet<>(Arrays.asList(new String[] { AbilityScore.Type.STRENGTH.toString(), "Size" }));
-		private Set<String> rangedExcl = new HashSet<>(Arrays.asList(new String[] { AbilityScore.Type.DEXTERITY.toString(), "Size" }));
-
 		@Override
 		public void processAttacks(Attacks attacks, GrappleModifier grapple) {
 			Element e = getAttacksElement(attacks);
@@ -334,12 +329,12 @@ public class CharacterSheetView {
 			Element e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Grapple");
 			e1.setAttribute("total", getModifierString(grapple.getValue()));
-			e1.setAttribute("misc", "+0");				// TODO implement
+			e1.setAttribute("misc", getModifierString(grapple.getModifiersTotal(AbilityScore.Type.STRENGTH.toString(), "Size")));
 			e.appendChild(e1);
 			e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Melee");
 			e1.setAttribute("total", getModifierString(attacks.getValue()));
-			e1.setAttribute("misc", getModifierString(attacks.getModifiersTotal(meleeExcl)));
+			e1.setAttribute("misc", getModifierString(attacks.getModifiersTotal(AbilityScore.Type.STRENGTH.toString(), "Size")));
 			e1.setAttribute("temp-modifier", "");				// TODO implement
 			e1.setAttribute("attacks", attacks.getAttacksDescription(attacks.getValue()));
 			e1.setAttribute("info", attacks.getSummary());
@@ -347,7 +342,7 @@ public class CharacterSheetView {
 			e1 = doc.createElement("Attack");
 			e1.setAttribute("type", "Ranged");
 			e1.setAttribute("total", getModifierString(attacks.getRangedValue()));
-			e1.setAttribute("misc", getModifierString(attacks.getRangedModifiersTotal(rangedExcl)));
+			e1.setAttribute("misc", getModifierString(attacks.getRangedModifiersTotal(AbilityScore.Type.DEXTERITY.toString(), "Size")));
 			e1.setAttribute("temp-modifier", "");				// TODO implement
 			e1.setAttribute("attacks", attacks.getAttacksDescription(attacks.getRangedValue()));
 			e1.setAttribute("info", attacks.getRangedSummary());
@@ -376,7 +371,7 @@ public class CharacterSheetView {
 		public void processSavingThrow(SavingThrow s) {
 			Element saveEl = getSavingThrowElement(s);
 			saveEl.setAttribute("type", s.getDescription());
-			saveEl.setAttribute("base", getModifierString(s.getRegularValue()));
+			saveEl.setAttribute("base", getModifierString(s.getBaseValue()));
 			saveEl.setAttribute("total", getModifierString(s.getValue()));
 			saveEl.setAttribute("info", s.getSummary());
 			int temp = 0;
@@ -409,9 +404,7 @@ public class CharacterSheetView {
 				se.setAttribute("info", character.skills.getSummary(s));
 
 				int miscMod = character.skills.getMisc(s);
-				Set<String> excl = new HashSet<>();
-				excl.add(s.getAbility().toString());
-				miscMod += character.skills.getModifiersTotal(s, excl);
+				miscMod += character.skills.getModifiersTotal(s, s.getAbility().toString());
 
 				if (miscMod != 0) se.setAttribute("misc", Integer.toString(miscMod));
 

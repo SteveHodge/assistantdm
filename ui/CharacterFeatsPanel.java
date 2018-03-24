@@ -1,9 +1,5 @@
 package ui;
 
-import gamesystem.Buff;
-import gamesystem.Feat;
-import gamesystem.Feat.FeatDefinition;
-
 import java.awt.GridLayout;
 import java.util.Arrays;
 
@@ -16,6 +12,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import gamesystem.Buff;
+import gamesystem.Feat;
+import gamesystem.Feat.FeatDefinition;
 import party.Character;
 import swing.JListWithToolTips;
 import swing.ListModelWithToolTips;
@@ -26,7 +25,7 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		super(c);
 		setLayout(new GridLayout(0,2));
 
-		FeatDefinition[] availableFeats = Arrays.copyOf(Feat.FEATS, Feat.FEATS.length);
+		FeatDefinition[] availableFeats = Feat.feats.toArray(new FeatDefinition[0]);
 		Arrays.sort(availableFeats, (a, b) -> a.name.compareTo(b.name));
 		FeatListModel bfModel = new FeatListModel(availableFeats);
 		final JListWithToolTips<FeatDefinition> feats = new JListWithToolTips<>(bfModel);

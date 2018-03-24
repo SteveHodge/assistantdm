@@ -84,6 +84,9 @@ public class RuleSet {
 			} else if (tag.equals("skills")) {
 				parseSkills(e);
 
+			} else if (tag.equals("feats")) {
+				parseFeats(e);
+
 			} else if (tag.equals("items")) {
 				parseItems(e);
 
@@ -115,6 +118,61 @@ public class RuleSet {
 			}
 		}
 		System.out.println(SkillType.skills.size() + " found");
+	}
+
+	private void parseFeats(Element el) {
+		if (!el.getTagName().equals("feats")) return;
+		System.out.print("Parsing feats... ");
+
+		NodeList nodes = el.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element) nodes.item(i);
+			if (e.getTagName().equals("feat")) {
+				Feat.FeatDefinition f = new Feat.FeatDefinition(e.getAttribute("name"));
+				f.repeatable = e.hasAttribute("repeatable") && e.getAttribute("repeatable").equals("true");
+				f.ref = e.getAttribute("ref");
+				f.summary = e.getTextContent();
+
+				NodeList children = e.getChildNodes();
+				for (int j = 0; j < children.getLength(); j++) {
+					if (nodes.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
+					Element child = (Element) children.item(j);
+					if (child.getTagName().equals("modifiers")) {
+						String name = f.name;
+						BuffFactory buff = new BuffFactory(name);
+						buff.source = f;
+						NodeList mods = child.getChildNodes();
+						for (int k = 0; k < mods.getLength(); k++) {
+							if (mods.item(k).getNodeType() != Node.ELEMENT_NODE) continue;
+							Element m = (Element) mods.item(k);
+							String stat = m.getAttribute("statistic");
+							String value = m.getAttribute("value");
+							int val = 0;
+							try {
+								val = Integer.parseInt(value);
+							} catch (Exception ex) {
+								System.err.println("Error parsing value for modifier in feat " + f);
+							}
+							String condition = m.getAttribute("condition");
+							if (condition.length() == 0) condition = null;
+							f.addFixedEffect(stat, null, val, condition);
+						}
+
+					} else {
+						System.err.println("Ignoring unexpected node: " + e.getTagName());
+						continue;
+					}
+				}
+
+				Feat.feats.add(f);
+
+			} else {
+				System.err.println("Ignoring unexpected node: " + e.getTagName());
+				continue;
+			}
+		}
+		System.out.println(Feat.feats.size() + " found");
 	}
 
 	private void parseItems(Element el) {

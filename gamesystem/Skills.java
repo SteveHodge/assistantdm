@@ -120,7 +120,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		}
 	}
 
-	public int getModifiersTotal(SkillType s, Set<String> excl) {
+	public int getModifiersTotal(SkillType s, String... excl) {
 		return super.getModifiersTotalExcluding(getModifiersSet(s), excl);
 	}
 

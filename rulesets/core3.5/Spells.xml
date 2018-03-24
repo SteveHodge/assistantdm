@@ -1486,42 +1486,30 @@ multiple creatures.</span>
    <spellresistance> Yes</spellresistance>
    <description>
       <p>
-         <span>You
-place a curse on the subject. Choose one of the following three effects.</span>
+         <span>You place a curse on the subject. Choose one of the following three effects.</span>
       </p>
       <p>
          <span>· </span>
-         <span>−6 decrease to an ability
-score (minimum 1).</span>
+         <span>−6 decrease to an ability score (minimum 1).</span>
       </p>
       <p>
          <span>· </span>
-         <span>−4 penalty on attack
-rolls, saves, ability checks, and skill checks.</span>
+         <span>−4 penalty on attack rolls, saves, ability checks, and skill checks.</span>
       </p>
       <p>
          <span>· </span>
-         <span>Each turn, the target has
-a 50% chance to act normally; otherwise, it takes no action.</span>
-      </p>
-      <p>
-         <span>You
-may also invent your own curse, but it should be no more powerful than those
-described above.</span>
-      </p>
-      <p>
-         <span>The
-<i>curse </i>bestowed by this spell cannot be dispelled, but it can be removed
-with a <i>break enchantment</i>, <i>limited wish</i>, <i>miracle</i>, <i>remove
-curse</i>, or <i>wish </i>spell.</span>
+         <span>Each turn, the target has a 50% chance to act normally; otherwise, it takes no action.</span>
+      </p><p>
+         <span>You may also invent your own curse, but it should be no more powerful than those described above.</span>
+      </p><p>
+         <span>The <i>curse </i>bestowed by this spell cannot be dispelled, but it can be removed
+with a <i>break enchantment</i>, <i>limited wish</i>, <i>miracle</i>, <i>remove curse</i>, or <i>wish </i>spell.</span>
       </p>
       <p>
          <i>
-            <span>Bestow
-curse </span>
+            <span>Bestow curse </span>
          </i>
-         <span>counters
-<i>remove curse</i>.</span>
+         <span>counters <i>remove curse</i>.</span>
       </p>
    </description>
 </spell>

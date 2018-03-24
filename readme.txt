@@ -13,6 +13,7 @@
 * Clean up grid references before A0
 * Allow grid references to be entered for element x/y coordinates in ui
 * BUG "reset" button caused index out of bounds error in RemoteImageDisplay
+* Drawing lines should optionally add walls and/or allow editing of walls elements
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
@@ -24,13 +25,18 @@
  gamesystem - core code related to the 3.5 mechanics
  gamesystem.core - low level classes (statistic and property) not intimately tied to the ruleset
  gamesystem.dice - classes representing dice
+ led_control - remote control of LED strip
  magicgenerator - random magic item generator
  magicitems - shop panel ui and functionality
  monsters - monsters panel ui and functionality
- party - party panel functionality (should also contain ui for party and rolls panels)
+ party - party panel functionality (could also contain ui for party and rolls panels, but also Party itself is more of a "campaign" class now)
  swing - extended generic swing components
  ui - ui for party and rolls panel and dialogs. should contain only common ui and dialogs
  util - util classes for external communication (XML handling, file uploading, logging)
+ 
+ maptool - standalone tool for setting map scale and masks
+ tilemapper - standalone tool for creating tile-based maps
+ 
 
 ---=== NEW HIGH LEVEL APP ARCHITECTURE ===---
 The Module system will be used for coordinating parts of the system, and loading/saving app and installation specific settings (server addresses, hardware related settings, directory defaults etc).

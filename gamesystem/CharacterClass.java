@@ -1,13 +1,13 @@
 package gamesystem;
 
-import gamesystem.ClassFeature.ClassFeatureDefinition;
-import gamesystem.Feat.FeatDefinition;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import gamesystem.ClassFeature.ClassFeatureDefinition;
+import gamesystem.Feat.FeatDefinition;
 
 
 public enum CharacterClass {
@@ -183,7 +183,7 @@ public enum CharacterClass {
 				System.out.println("Selected feat = " + selection);
 				// find the Feat
 				FeatDefinition feat = null;
-				for (FeatDefinition f : Feat.FEATS) {
+				for (FeatDefinition f : Feat.feats) {
 					if (f.name.equals(selection)) {
 						feat = f;
 						break;
