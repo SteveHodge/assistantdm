@@ -37,7 +37,7 @@ public class Race extends AbstractProperty<String> {
 		b.append(type);
 		if (subtypes.size() > 0) {
 			b.append(" (");
-			b.append(String.join(",  ", subtypes));
+			b.append(String.join(", ", subtypes));
 			b.append(")");
 		}
 		return b.toString();

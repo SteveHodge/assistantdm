@@ -120,9 +120,9 @@ class StatsBlockPanel extends JPanel {
 //			updateFields();	//
 
 			try {
-				System.out.println("update to property " + e.getPropertyName());
+//				System.out.println("update to property " + e.getPropertyName());
 				Field f = Field.valueOf(e.getPropertyName());
-				System.out.println("  update to field " + f);
+//				System.out.println("  update to field " + f);
 				if (f != null) {
 					if (f == Field.NAME) {
 						fields[0].setText(creature.getName());
@@ -130,7 +130,7 @@ class StatsBlockPanel extends JPanel {
 						int i = 2;
 						for (Field p : Field.getStandardOrder()) {
 							if (p == f) {
-								System.out.println("  update to " + p);
+//								System.out.println("  update to " + p);
 								fields[i].setText("<html><body>" + creature.getField(p) + "</body></html>");
 
 								// determine the required size to fit the wrapped html text

@@ -242,7 +242,6 @@ public class Monster extends Creature {
 							}
 							if (m.getModifier() > 0) s.append("+");
 							s.append(m.getModifier()).append(" ").append(m.getType());
-							System.out.println(m + " vs " + size.getDescription() + " (desc) or " + size.getName() + " (name)");
 						}
 					}
 					if (!first) s.append(")");

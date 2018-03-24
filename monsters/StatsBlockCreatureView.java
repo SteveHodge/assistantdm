@@ -473,7 +473,7 @@ public class StatsBlockCreatureView {
 		} else if (field == Field.SIZE_TYPE) {
 			s.append(creature.getSizeStatistic().getSize());
 			s.append(" ");
-			s.append(creature.race.getType());
+			s.append(creature.race);
 		} else if (field == Field.SPACE_REACH) {
 			s.append(creature.getSizeStatistic().getSpace().getValue() / 2);
 			if (creature.getSizeStatistic().getSpace().getValue() % 2 == 1) s.append("½");
