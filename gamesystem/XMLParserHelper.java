@@ -242,8 +242,11 @@ public class XMLParserHelper {
 	protected Feat parseFeat(Element b) {
 		if (!b.getTagName().equals("Feat")) return null;
 		FeatDefinition featDef = Feat.getFeatDefinition(b.getAttribute("name"));
-		Feat feat = featDef.getFeat();
-		return feat;
+		if (featDef.hasTarget()) {
+			return featDef.getFeat(b.getAttribute("target"));
+		} else {
+			return featDef.getFeat();
+		}
 	}
 
 	protected Buff parseBuff(Element b) {

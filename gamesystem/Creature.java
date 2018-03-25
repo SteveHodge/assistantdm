@@ -511,6 +511,8 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 //------------- Others --------------
 	abstract public boolean hasFeat(String feat);
 
+	abstract public boolean hasFeat(String name, String target);
+
 // ----- visitor pattern for processing -----
 	public void executeProcess(CreatureProcessor processor) {
 		processor.processCreature(this);

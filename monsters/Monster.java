@@ -287,6 +287,22 @@ public class Monster extends Creature {
 	}
 
 	@Override
+	public boolean hasFeat(String feat, String target) {
+		if (feat == null) return false;
+		String f = feat.toLowerCase();
+		// check recognised feats
+		for (Feat ff : feats) {
+			if (ff.getName().equals(name) && ff.target.equals(target)) return true;
+		}
+		// check other feats and properties
+		String feats = (String) getPropertyValue(Field.FEATS.name());
+		if (feats != null && feats.toLowerCase().contains(f + " (" + target + ")")) return true;
+		feats = (String) getPropertyValue(Field.SPECIAL_QUALITIES.name());
+		if (feats != null && feats.toLowerCase().contains(f + " (" + target + ")")) return true;
+		return false;
+	}
+
+	@Override
 	public void addFeat(Feat f) {
 		feats.add(f);
 	}

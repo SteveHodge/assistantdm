@@ -10,6 +10,7 @@ import gamesystem.Feat.FeatDefinition;
 // Feat is an instance of a FeatDefinition that can be applied to a Creature
 public class Feat extends Feature<Feat, FeatDefinition> {
 	public boolean bonus = false;	// true if this feat was added due to a class feature. eventually will want to expand to list of sources
+	public String target;
 
 	public static List<FeatDefinition> feats = new ArrayList<>();
 
@@ -17,10 +18,28 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 		super(def);
 	}
 
+	@Override
+	public String toString() {
+		String s = super.toString();
+		if (definition.hasTarget() && target != null && target.length() > 0) s += " (" + target + ")";
+		return s;
+	}
+
+//	@Override
+//	public boolean equals(Object obj) {
+//		if (!(obj instanceof Feat)) return false;
+//		Feat f = (Feat) obj;
+//		if (f.definition != definition) return false;
+//		if (!definition.hasTarget()) return true;
+//		if (target != null && f.target != null && target.equals(f.target) || target == null && f.target == null) return true;
+//		return false;
+//	}
+
 	public static class FeatDefinition extends FeatureDefinition<FeatDefinition> {
 		public boolean repeatable = false;
 		public String summary;
 		public String ref;
+		public String target;
 
 		protected FeatDefinition(String name) {
 			super(name);
@@ -31,20 +50,23 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 			repeatable = repeat;
 		}
 
+		public boolean hasTarget() {
+			return target != null && target.length() > 0;
+		}
+
 		public Feat getFeat() {
+			return getFeat(null);
+		}
+
+		public Feat getFeat(String target) {
 			Feat b = new Feat(this);
+			b.target = target;
 
 			for (Effect e : effects) {
 				if (e instanceof FixedEffect)
 					b.modifiers.put(((FixedEffect) e).getModifier(name), e.target);
 			}
 			return b;
-		}
-
-		protected FeatDefinition addSkillBonuses(String skill1, String skill2) {
-			addFixedEffect(Creature.STATISTIC_SKILLS + "." + skill1, null, 2, null);
-			addFixedEffect(Creature.STATISTIC_SKILLS + "." + skill2, null, 2, null);
-			return this;
 		}
 
 		FeatDefinition summary(String summary) {
@@ -73,4 +95,8 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 	public static final String FEAT_GREATER_TWO_WEAPON_FIGHTING = "Greater Two-Weapon Fighting";
 	public static final String FEAT_IMPROVED_TWO_WEAPON_FIGHTING = "Improved Two-Weapon Fighting";
 	public static final String FEAT_TWO_WEAPON_FIGHTING = "Two-Weapon Fighting";
+	public static final String FEAT_WEAPON_FOCUS = "Weapon Focus";
+	public static final String FEAT_GREATER_WEAPON_FOCUS = "Greater Weapon Focus";
+	public static final String FEAT_WEAPON_SPECIALIZATION = "Weapon Specialization";
+	public static final String FEAT_GREATER_WEAPON_SPECIALIZATION = "Greater Weapon Specialization";
 }

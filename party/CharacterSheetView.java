@@ -138,7 +138,7 @@ public class CharacterSheetView {
 			}
 			Element el = doc.createElement("Ability");
 			el.setAttribute("type", "feat");
-			el.appendChild(doc.createTextNode(feat.getName()));
+			el.appendChild(doc.createTextNode(feat.toString()));
 			if (feat.bonus) {
 				Element sup = doc.createElement("sup");
 				sup.setTextContent("B");

@@ -420,6 +420,8 @@ public class Attacks extends Statistic {
 	public class AttackForm extends Statistic {
 		protected final Statistic dmgStat;
 
+		protected String attackFormName;	// used to check weapon focus and specialization feats
+
 		private Modifier twoWeaponPenalty = null;	// TODO rename as this includes natural secondary attacks
 		Modifier enhancement = null;
 		private boolean masterwork = false;		// if true then enhancement should not be added to damage (enhancement should be +1)
@@ -437,10 +439,11 @@ public class Attacks extends Statistic {
 		public int strLimit = Integer.MAX_VALUE;	// maximum str bonus to apply (generally only compound bows)
 		public boolean doublePADmg = false;	// true if the power attack damage bonus is double the penalty taken (ie. two handed melee weapon)
 		public int maxAttacks = 4;	// limit on number of attacks with due to high BAB (e.g. weapons that need to be reloaded)
-		public boolean weaponSpecApplies = false;	// TODO remove when we move to full embedded Statistic for damage
+		public boolean weaponSpecApplies = false;	// FIXME remove
 
 		private AttackForm(String name, PropertyCollection parent) {
 			super("attacks." + name.toLowerCase(), name, parent);
+			attackFormName = name;
 			dmgStat = new Damage(name, parent);
 		}
 
@@ -565,8 +568,15 @@ public class Attacks extends Statistic {
 				// enhancement modifier
 				if (enhancement != null && !masterwork) mods.add(enhancement);
 
+				if (creature.hasFeat(Feat.FEAT_WEAPON_SPECIALIZATION, attackFormName)) {
+					mods.add(new ImmutableModifier(2, null, Feat.FEAT_WEAPON_SPECIALIZATION));
+				}
+				if (creature.hasFeat(Feat.FEAT_GREATER_WEAPON_SPECIALIZATION, attackFormName)) {
+					mods.add(new ImmutableModifier(2, null, Feat.FEAT_GREATER_WEAPON_SPECIALIZATION));
+				}
+
 				// weapon specialization
-				// TODO should recheck this against feats rather than using a stored value. or have the client set it
+				// FIXME should no longer be necessary
 				if (weaponSpecApplies) mods.add(new ImmutableModifier(2, null, "Weapon specialization"));
 
 				mods.addAll(dmgStat.modifiers);
@@ -634,6 +644,14 @@ public class Attacks extends Statistic {
 					if (strMod != null) mods.add(strMod);
 				}
 			}
+
+			if (creature.hasFeat(Feat.FEAT_WEAPON_FOCUS, attackFormName)) {
+				mods.add(new ImmutableModifier(1, null, Feat.FEAT_WEAPON_FOCUS));
+			}
+			if (creature.hasFeat(Feat.FEAT_GREATER_WEAPON_FOCUS, attackFormName)) {
+				mods.add(new ImmutableModifier(1, null, Feat.FEAT_GREATER_WEAPON_FOCUS));
+			}
+
 			return mods;
 		}
 

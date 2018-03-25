@@ -482,6 +482,15 @@ public class Character extends Creature {
 	}
 
 	@Override
+	public boolean hasFeat(String name, String target) {
+		for (int i = 0; i < feats.size(); i++) {
+			Feat f = feats.get(i);
+			if (f.getName().equals(name) && f.target.equals(target)) return true;
+		}
+		return false;
+	}
+
+	@Override
 	public void addFeat(Feat f) {
 		feats.addElement(f);
 	}

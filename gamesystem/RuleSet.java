@@ -131,8 +131,8 @@ public class RuleSet {
 			if (e.getTagName().equals("feat")) {
 				Feat.FeatDefinition f = new Feat.FeatDefinition(e.getAttribute("name"));
 				f.repeatable = e.hasAttribute("repeatable") && e.getAttribute("repeatable").equals("true");
-				f.ref = e.getAttribute("ref");
-				f.summary = e.getTextContent();
+				f.ref(e.getAttribute("ref")).summary = e.getTextContent();
+				f.target = e.getAttribute("target");
 
 				NodeList children = e.getChildNodes();
 				for (int j = 0; j < children.getLength(); j++) {

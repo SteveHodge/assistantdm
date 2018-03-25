@@ -172,6 +172,7 @@ public class XMLOutputHelper {
 		}
 		Element e = doc.createElement("Feat");
 		e.setAttribute("name", feat.getName());
+		if (feat.target != null && feat.target.length() > 0) e.setAttribute("target", feat.target);
 		featEl.appendChild(e);
 	}
 

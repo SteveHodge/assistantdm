@@ -6,6 +6,7 @@ import java.util.Arrays;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
@@ -39,7 +40,15 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		JButton apply = new JButton("Take Feat");
 		apply.addActionListener(e -> SwingUtilities.invokeLater(() -> {
 			// need to invoke this code later since it involves a modal dialog
-			Feat feat = applyFeat(feats.getSelectedValue());
+			FeatDefinition def = feats.getSelectedValue();
+			Feat feat;
+			if (def.hasTarget()) {
+				String target = JOptionPane.showInputDialog("Feat " + def.name + ":\nPlease specify type of " + def.target);
+				feat = def.getFeat(target);
+			} else {
+				feat = def.getFeat();
+			}
+			feat.apply(character);
 			character.feats.addElement(feat);
 		}));
 
@@ -67,12 +76,6 @@ public class CharacterFeatsPanel extends CharacterSubPanel {
 		scroller.setBorder(new TitledBorder("Chosen Feats:"));
 		right.add(scroller);
 		add(right);
-	}
-
-	protected Feat applyFeat(FeatDefinition bf) {
-		Feat feat = bf.getFeat();
-		feat.apply(character);
-		return feat;
 	}
 
 	public static class FeatListModel extends DefaultListModel<FeatDefinition> implements ListModelWithToolTips<FeatDefinition> {
