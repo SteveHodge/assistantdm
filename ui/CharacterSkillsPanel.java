@@ -228,7 +228,8 @@ class CharacterSkillsPanel extends JPanel {
 		@Override
 		public void setValueAt(Object value, int row, int col) {
 			if (col == 2 && value instanceof Float) {
-				character.setSkillRanks(skills[row], (Float) value);
+				double v = Math.floor(((Float) value * 2)) / 2;	// round to nearest half a rank
+				character.setSkillRanks(skills[row], (float) v);
 				return;
 			}
 			super.setValueAt(value, row, col);

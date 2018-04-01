@@ -259,11 +259,13 @@ public class XMLOutputHelper {
 		ArrayList<SkillType> set = new ArrayList<>(skills.skills.keySet());
 		Collections.sort(set, (o1, o2) -> o1.getName().compareTo(o2.getName()));
 		for (SkillType s : set) {
-			Element se = doc.createElement("Skill");
-			se.setAttribute("type", s.name);
 			Skills.Skill skill = skills.skills.get(s);
-			se.setAttribute("ranks", "" + skill.ranks);
-			e.appendChild(se);
+			if (skill.ranks > 0) {
+				Element se = doc.createElement("Skill");
+				se.setAttribute("type", s.name);
+				se.setAttribute("ranks", "" + skill.ranks);
+				e.appendChild(se);
+			}
 		}
 
 		creatureEl.appendChild(e);
