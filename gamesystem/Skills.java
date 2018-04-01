@@ -163,24 +163,6 @@ public class Skills extends Statistic implements StatisticsCollection {
 		}
 	}
 
-	public void setMisc(SkillType s, int m) {
-		Skill skill = getSkill(s);
-		if (skill.misc != m) {
-			//int oldValue = getValue(s);
-			skill.misc = m;
-			parent.fireEvent(skill, null);
-		}
-	}
-
-	public int getMisc(SkillType s) {
-		Skill skill = skills.get(s);
-		if (skill == null) {
-			return 0;
-		} else {
-			return skill.misc;
-		}
-	}
-
 	protected Set<Modifier> getModifiersSet(SkillType s) {
 		Skill skill = skills.get(s);
 		Set<Modifier> mods = new HashSet<>(modifiers);
@@ -206,7 +188,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		if (skill == null) {
 			return super.getModifiersTotal(mods, null);
 		} else {
-			return (int)skill.ranks + getModifiersTotal(mods, null) + skill.misc;
+			return (int) skill.ranks + getModifiersTotal(mods, null);
 		}
 	}
 
@@ -272,7 +254,6 @@ public class Skills extends Statistic implements StatisticsCollection {
 	public class Skill extends Statistic {
 		private SkillType skillType;
 		float ranks = 0;
-		int misc;
 
 //		public Skill(SkillType type, AbilityScore ability, Modifier acp) {
 //			this(type, ability.getModifier(), acp);
@@ -299,22 +280,13 @@ public class Skills extends Statistic implements StatisticsCollection {
 		@Override
 		public Integer getValue() {
 			int v = (int) ranks;
-			return v + super.getValue() + misc;
+			return v + super.getValue();
 		}
 
 		public void setRanks(float r) {
 			ranks = r;
 			updateSynergies(this);
 			fireEvent();
-		}
-
-		public void setMisc(int m) {
-			misc = m;
-			fireEvent();
-		}
-
-		public int getMisc() {
-			return misc;
 		}
 
 		@Override

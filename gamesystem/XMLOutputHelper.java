@@ -263,7 +263,6 @@ public class XMLOutputHelper {
 			se.setAttribute("type", s.name);
 			Skills.Skill skill = skills.skills.get(s);
 			se.setAttribute("ranks", "" + skill.ranks);
-			if (skill.misc != 0) se.setAttribute("misc", "" + skill.misc);
 			e.appendChild(se);
 		}
 

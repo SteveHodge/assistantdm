@@ -37,7 +37,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 //	public final static String PROPERTY_AC = "AC";
 	public final static String PROPERTY_AC_COMPONENT_PREFIX = "AC: ";	// not currently sent to listeners
 	public final static String PROPERTY_SKILL_PREFIX = "Skill: ";
-	public final static String PROPERTY_SKILL_MISC_PREFIX = "Skill (misc mod): ";	// not currently sent to listeners
 //	public final static String PROPERTY_XP = "XP";
 //	public final static String PROPERTY_BAB = "BAB";
 //	public final static String PROPERTY_SIZE = "Size";

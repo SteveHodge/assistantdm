@@ -403,10 +403,10 @@ public class CharacterSheetView {
 				se.setAttribute("total", getModifierString(character.skills.getValue(s)));
 				se.setAttribute("info", character.skills.getSummary(s));
 
-				int miscMod = character.skills.getMisc(s);
-				miscMod += character.skills.getModifiersTotal(s, s.getAbility().toString());
+				int miscMod = character.skills.getModifiersTotal(s, s.getAbility().toString());
+				boolean condMod = character.skills.hasConditionalModifier(s);
+				if (miscMod != 0 || condMod) se.setAttribute("misc", Integer.toString(miscMod) + (condMod ? "*" : ""));
 
-				if (miscMod != 0) se.setAttribute("misc", Integer.toString(miscMod));
 
 				e.appendChild(se);
 			}

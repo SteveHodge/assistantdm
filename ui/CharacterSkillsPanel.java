@@ -191,10 +191,12 @@ class CharacterSkillsPanel extends JPanel {
 				if (ability == null) return null;
 				return character.getAbilityStatistic(ability).getModifierValue();
 			}
-			if (col == 4) return character.getSkillMisc(skills[row]);
+			if (col == 4) {
+				return character.skills.getModifiersTotal(skills[row], skills[row].getAbility().toString());
+			}
 			if (col == 5) {
 				Skills s = (Skills)character.getStatistic(Creature.STATISTIC_SKILLS);
-				return character.getSkillTotal(skills[row])+(s.hasConditionalModifier()?"*":"");
+				return character.getSkillTotal(skills[row]) + (s.hasConditionalModifier(skills[row]) ? "*" : "");	// XXX should we show the * if there is a conditional modifier on all skills?
 			}
 			return null;
 		}
@@ -219,7 +221,7 @@ class CharacterSkillsPanel extends JPanel {
 
 		@Override
 		public boolean isCellEditable(int row, int col) {
-			if (col == 2 || col == 4) return true;
+			if (col == 2) return true;
 			return false;
 		}
 
@@ -227,9 +229,6 @@ class CharacterSkillsPanel extends JPanel {
 		public void setValueAt(Object value, int row, int col) {
 			if (col == 2 && value instanceof Float) {
 				character.setSkillRanks(skills[row], (Float) value);
-				return;
-			} else if (col ==4 && value instanceof Integer) {
-				character.setSkillMisc(skills[row], (Integer) value);
 				return;
 			}
 			super.setValueAt(value, row, col);

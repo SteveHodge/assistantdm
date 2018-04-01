@@ -254,16 +254,8 @@ public class Character extends Creature {
 		return skills.getRanks(s);
 	}
 
-	public int getSkillMisc(SkillType s) {
-		return skills.getMisc(s);
-	}
-
 	public void setSkillRanks(SkillType s, float ranks) {
 		skills.setRanks(s, ranks);
-	}
-
-	public void setSkillMisc(SkillType s, int misc) {
-		skills.setMisc(s, misc);
 	}
 
 	public Skills getSkillsStatistic() {
@@ -737,9 +729,6 @@ public class Character extends Creature {
 		for (SkillType skill : skillList) {
 			if (getSkillRanks(skill) != inChar.getSkillRanks(skill)) {
 				diffs.add(PROPERTY_SKILL_PREFIX+skill);
-			}
-			if (getSkillMisc(skill) != inChar.getSkillMisc(skill)) {
-				diffs.add(PROPERTY_SKILL_MISC_PREFIX+skill);
 			}
 		}
 		return diffs;

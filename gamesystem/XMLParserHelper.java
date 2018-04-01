@@ -103,8 +103,6 @@ public class XMLParserHelper {
 			String type = s.getAttribute("type");
 			SkillType skill = SkillType.getSkill(type);
 			stat.setRanks(skill, Float.parseFloat(ranks));
-			String misc = s.getAttribute("misc");
-			if (misc != "") stat.setMisc(skill, Integer.parseInt(misc));
 		}
 	}
 
