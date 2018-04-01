@@ -2,7 +2,12 @@
 <skills>
 	<skill name="Appraise" ability="Intelligence" trained="false"/>
 	<skill name="Balance" ability="Dexterity" trained="false" acp="true"/>
-	<skill name="Bluff" ability="Charisma" trained="false"/>
+	<skill name="Bluff" ability="Charisma" trained="false">
+		<synergy for="Diplomacy"/>
+		<synergy for="Intimidate"/>
+		<synergy for="Sleight of Hand"/>
+		<synergy for="Disguise" condition="when acting in character"/>
+	</skill>
 	<skill name="Climb" ability="Strength" trained="false" acp="true"/>
 	<skill name="Concentration" ability="Constitution" trained="false"/>
 	<skill name="Craft" ability="Intelligence" trained="false"/>
@@ -11,42 +16,82 @@
 	<skill name="Craft (Bowmaking)" ability="Intelligence" trained="false"/>
 	<skill name="Craft (Trapmaking)" ability="Intelligence" trained="false"/>
 	<skill name="Craft (Weaponsmithing)" ability="Intelligence" trained="false"/>
-	<skill name="Decipher Script" ability="Intelligence" trained="true"/>
+	<skill name="Decipher Script" ability="Intelligence" trained="true">
+		<synergy for="Use Magic Device" condition="involving scrolls"/>
+	</skill>
 	<skill name="Diplomacy" ability="Charisma" trained="false"/>
 	<skill name="Disable Device" ability="Intelligence" trained="true"/>
 	<skill name="Disguise" ability="Charisma" trained="false"/>
-	<skill name="Escape Artist" ability="Dexterity" trained="false" acp="true"/>
+	<skill name="Escape Artist" ability="Dexterity" trained="false" acp="true">
+		<synergy for="Use Rope" condition="involving bindings"/>
+	</skill>
 	<skill name="Forgery" ability="Intelligence" trained="false"/>
 	<skill name="Gather Information" ability="Charisma" trained="false"/>
-	<skill name="Handle Animal" ability="Charisma" trained="true"/>
+	<skill name="Handle Animal" ability="Charisma" trained="true">
+		<synergy for="Ride"/>
+	</skill>
 	<skill name="Heal" ability="Wisdom" trained="false"/>
 	<skill name="Hide" ability="Dexterity" trained="false" acp="true"/>
 	<skill name="Intimidate" ability="Charisma" trained="false"/>
-	<skill name="Jump" ability="Strength" trained="false" acp="true"/>
-	<skill name="Knowledge (Arcana)" ability="Intelligence" trained="true"/>
-	<skill name="Knowledge (Arch and Eng)" ability="Intelligence" trained="true"/>
-	<skill name="Knowledge (Dungeoneering)" ability="Intelligence" trained="true"/>
-	<skill name="Knowledge (Geography)" ability="Intelligence" trained="true"/>
+	<skill name="Jump" ability="Strength" trained="false" acp="true">
+		<synergy for="Tumble"/>
+	</skill>
+	<skill name="Knowledge (Arcana)" ability="Intelligence" trained="true">
+		<synergy for="Spellcraft"/>
+	</skill>
+	<skill name="Knowledge (Arch and Eng)" ability="Intelligence" trained="true">
+		<synergy for="Search" condition="involving secret doors and similar compartments"/>
+	</skill>
+	<skill name="Knowledge (Dungeoneering)" ability="Intelligence" trained="true">
+		<synergy for="Survival" condition="when underground"/>
+	</skill>
+	<skill name="Knowledge (Geography)" ability="Intelligence" trained="true">
+		<synergy for="Survival" condition="to keep from getting lost or for avoiding hazards"/>
+	</skill>
 	<skill name="Knowledge (History)" ability="Intelligence" trained="true"/>
-	<skill name="Knowledge (Local)" ability="Intelligence" trained="true"/>
-	<skill name="Knowledge (Nature)" ability="Intelligence" trained="true"/>
-	<skill name="Knowledge (Nobility)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (Local)" ability="Intelligence" trained="true">
+		<synergy for="Gather Information"/>
+	</skill>
+	<skill name="Knowledge (Nature)" ability="Intelligence" trained="true">
+		<synergy for="Survival" condition="in above-ground natual environments"/>
+	</skill>
+	<skill name="Knowledge (Nobility)" ability="Intelligence" trained="true">
+		<synergy for="Diplomacy"/>
+	</skill>
 	<skill name="Knowledge (Religion)" ability="Intelligence" trained="true"/>
-	<skill name="Knowledge (The Planes)" ability="Intelligence" trained="true"/>
+	<skill name="Knowledge (The Planes)" ability="Intelligence" trained="true">
+		<synergy for="Survival" condition="when on other planes"/>
+	</skill>
 	<skill name="Listen" ability="Wisdom" trained="false"/>
 	<skill name="Move Silently" ability="Dexterity" trained="false" acp="true"/>
 	<skill name="Open Lock" ability="Dexterity" trained="true"/>
 	<skill name="Perform" ability="Charisma" trained="false"/>
 	<skill name="Profession" ability="Wisdom" trained="true"/>
 	<skill name="Ride" ability="Dexterity" trained="false"/>
-	<skill name="Search" ability="Intelligence" trained="false"/>
-	<skill name="Sense Motive" ability="Wisdom" trained="false"/>
+	<skill name="Search" ability="Intelligence" trained="false">
+		<synergy for="Survival" condition="when following tracks"/>
+	</skill>
+	<skill name="Sense Motive" ability="Wisdom" trained="false">
+		<synergy for="Diplomacy"/>
+	</skill>
 	<skill name="Sleight of Hand" ability="Dexterity" acp="true" trained="true"/>
-	<skill name="Spellcraft" ability="Intelligence" acp="true"/>
+	<skill name="Spellcraft" ability="Intelligence" acp="true">
+		<synergy for="Use Magic Device" condition="involving scrolls"/>
+	</skill>
 	<skill name="Spot" ability="Wisdom" trained="false"/>
-	<skill name="Survival" ability="Wisdom" trained="false"/>
+	<skill name="Survival" ability="Wisdom" trained="false">
+		<synergy for="Knowledge (Nature)"/>
+	</skill>
 	<skill name="Swim" ability="Strength" trained="false" acp="true" double-acp="true"/>
-	<skill name="Tumble" ability="Dexterity" acp="true" trained="true"/>
-	<skill name="Use Magic Device" ability="Charisma" trained="true"/>
-	<skill name="Use Rope" ability="Dexterity" trained="false"/>
+	<skill name="Tumble" ability="Dexterity" acp="true" trained="true">
+		<synergy for="Balance"/>
+		<synergy for="Jump"/>
+	</skill>
+	<skill name="Use Magic Device" ability="Charisma" trained="true">
+		<synergy for="Spellcraft" condition="to decipher spells on scrolls"/>
+	</skill>
+	<skill name="Use Rope" ability="Dexterity" trained="false">
+		<synergy for="Climb" condition="involving climbing ropes"/>
+		<synergy for="Escape Artist" condition="involving ropes"/>
+	</skill>
 </skills>

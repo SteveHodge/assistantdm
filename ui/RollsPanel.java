@@ -13,10 +13,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
 import gamesystem.SavingThrow;
-import gamesystem.Skill;
 import gamesystem.SkillType;
-import gamesystem.core.PropertyListener;
+import gamesystem.Skills.Skill;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import party.Party;
 import party.PartyListener;

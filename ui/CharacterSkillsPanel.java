@@ -1,15 +1,20 @@
 package ui;
 
-import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -19,9 +24,9 @@ import javax.swing.table.AbstractTableModel;
 
 import gamesystem.AbilityScore;
 import gamesystem.Creature;
-import gamesystem.Skill;
 import gamesystem.SkillType;
 import gamesystem.Skills;
+import gamesystem.Skills.Skill;
 import gamesystem.Statistic;
 import party.Character;
 import swing.JTableWithToolTips;
@@ -36,8 +41,8 @@ import swing.TableModelWithToolTips;
 class CharacterSkillsPanel extends JPanel {
 	private Character character;
 
-	CharacterSkillsPanel(Character c) {
-		character = c;
+	CharacterSkillsPanel(Character chr) {
+		character = chr;
 
 		final SkillsTableModel model = new SkillsTableModel();
 		final JTable table = new JTableWithToolTips(model);
@@ -57,8 +62,30 @@ class CharacterSkillsPanel extends JPanel {
 			}
 		});
 
-		setLayout(new BorderLayout());
-		add(skillsScrollpane);
+		JButton addButton = new JButton("+");
+		addButton.addActionListener(e -> addSkill());
+
+		setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+
+		c.anchor = GridBagConstraints.WEST;
+		add(addButton, c);
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 1.0;
+		c.weighty = 1.0;
+		c.gridx = 0;
+		add(skillsScrollpane, c);
+	}
+
+	void addSkill() {
+		List<SkillType> available = new ArrayList<>();
+		Set<SkillType> existing = character.getSkills();
+		for (SkillType t : SkillType.skills.values()) {
+			if (!existing.contains(t)) available.add(t);
+		}
+		Collections.sort(available);
+		SkillType s = (SkillType) JOptionPane.showInputDialog(this, "Selected skill to add:", "Add Skill", JOptionPane.PLAIN_MESSAGE, null, available.toArray(), null);
+		character.setSkillRanks(s, 1);
 	}
 
 	private class SkillsInfoDialog extends StatisticInfoDialog {
@@ -197,15 +224,15 @@ class CharacterSkillsPanel extends JPanel {
 		}
 
 		@Override
-		public void setValueAt(Object arg0, int row, int col) {
-			if (col == 2 && arg0 instanceof Float) {
-				character.setSkillRanks(skills[row], ((Float)arg0).intValue());
+		public void setValueAt(Object value, int row, int col) {
+			if (col == 2 && value instanceof Float) {
+				character.setSkillRanks(skills[row], (Float) value);
 				return;
-			} else if (col ==4 && arg0 instanceof Integer) {
-				character.setSkillMisc(skills[row], ((Integer)arg0).intValue());
+			} else if (col ==4 && value instanceof Integer) {
+				character.setSkillMisc(skills[row], (Integer) value);
 				return;
 			}
-			super.setValueAt(arg0, row, col);
+			super.setValueAt(value, row, col);
 		}
 
 		@Override

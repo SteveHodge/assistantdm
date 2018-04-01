@@ -106,18 +106,30 @@ public class RuleSet {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
 			Element e = (Element) nodes.item(i);
 			if (e.getTagName().equals("skill")) {
-				SkillType t = new SkillType(e.getAttribute("name"));
-				if (e.hasAttribute("ability"))
-					t.ability = AbilityScore.Type.getAbilityType(e.getAttribute("ability"));
-				t.trainedOnly = e.hasAttribute("trained") && e.getAttribute("trained").equals("true");
-				t.armorCheckPenaltyApplies = e.hasAttribute("acp") && e.getAttribute("acp").equals("true");
-				t.doubleACP = e.hasAttribute("double_acp") && e.getAttribute("double_acp").equals("true");
+				parseSkill(e);
 			} else {
 				System.err.println("Ignoring unexpected node: " + e.getTagName());
 				continue;
 			}
 		}
 		System.out.println(SkillType.skills.size() + " found");
+	}
+
+	private void parseSkill(Element e) {
+		SkillType t = new SkillType(e.getAttribute("name"));
+		if (e.hasAttribute("ability"))
+			t.ability = AbilityScore.Type.getAbilityType(e.getAttribute("ability"));
+		t.trainedOnly = e.hasAttribute("trained") && e.getAttribute("trained").equals("true");
+		t.armorCheckPenaltyApplies = e.hasAttribute("acp") && e.getAttribute("acp").equals("true");
+		t.doubleACP = e.hasAttribute("double_acp") && e.getAttribute("double_acp").equals("true");
+		NodeList nodes = e.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element s = (Element) nodes.item(i);
+			if (s.getTagName().equals("synergy")) {
+				t.addSynergy(s.getAttribute("for"), s.getAttribute("condition"));
+			}
+		}
 	}
 
 	private void parseFeats(Element el) {

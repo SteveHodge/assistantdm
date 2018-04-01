@@ -20,6 +20,22 @@ public class SkillType implements Comparable<SkillType> {
 	protected boolean armorCheckPenaltyApplies;
 	protected boolean doubleACP;
 
+	List<Synergy> synergies;
+
+	class Synergy {
+		String target;
+		String condition;
+
+		@Override
+		public String toString() {
+			String s = "Synergy target = " + target;
+			if (condition != null && condition.length() > 0) {
+				s += ", condition = " + condition;
+			}
+			return s;
+		}
+	}
+
 	SkillType(String name) {
 		this.name = name;
 		skills.put(name.toLowerCase(), this);
@@ -31,6 +47,19 @@ public class SkillType implements Comparable<SkillType> {
 		trainedOnly = trained;
 		armorCheckPenaltyApplies = acp;
 		this.doubleACP = doubleACP;
+	}
+
+	void addSynergy(String forSkill, String cond) {
+		if (forSkill == null || forSkill.length() == 0) throw new IllegalArgumentException("Target skill name must be specified");
+		if (synergies == null) synergies = new ArrayList<>();
+		Synergy s = new Synergy();
+		s.target = forSkill.toLowerCase();
+		if (cond != null && cond.length() > 0) s.condition = cond;
+		synergies.add(s);
+	}
+
+	boolean hasSynergies() {
+		return synergies != null && synergies.size() > 0;
 	}
 
 	@Override

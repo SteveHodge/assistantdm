@@ -81,8 +81,7 @@ public class ImmutableModifier implements Modifier {
 
 	@Override
 	public int hashCode() {
-		// TODO Auto-generated method stub
-		return super.hashCode();
+		return toString().hashCode();
 	}
 
 	// ImmutableModifiers never change so we can ignore listeners

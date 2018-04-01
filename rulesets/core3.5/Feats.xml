@@ -42,16 +42,16 @@
 	<feat name="Improved Two-Weapon Fighting" ref="PH 96">Gain second off-hand attack.</feat>
 	<feat name="Greater Two-Weapon Fighting" ref="PH 95">Gain third off-hand attack.</feat>
 	<feat name="Weapon Finesse" ref="PH 102">Use Dex modifier instead of Str modifier on attack rolls with light melee weapons.</feat>
-	<feat name="Weapon Focus" ref="PH 102" target="attack">+1 bonus on attack rolls with selected weapon.</feat>
-	<feat name="Greater Weapon Focus" ref="PH 95" target="attack">+1 bonus on attack rolls with selected weapon.</feat>
+	<feat name="Weapon Focus" ref="PH 102" target="weapon">+1 bonus on attack rolls with selected weapon.</feat>
+	<feat name="Greater Weapon Focus" ref="PH 95" target="weapon">+1 bonus on attack rolls with selected weapon.</feat>
 
 	<feat name="Dodge" ref="PH 93">+1 dodge bonus to AC against selected target.</feat>
 	<feat name="Improved Shield Bash" ref="PH 96">Retain shield bonus to AC when shield bashing.</feat>
 	<feat name="Two-Weapon Defense" ref="PH 102">Off-hand weapon grants +1 shield bonus to AC.</feat>
 
-	<feat name="Improved Critical" ref="PH 95" target="attack">Double threat range of weapon.</feat>
-	<feat name="Weapon Specialization" ref="PH 102" target="attack">+2 bonus on damage rolls with selected weapon.</feat>
-	<feat name="Greater Weapon Specialization" ref="PH 95" target="attack">+2 bonus on damage rolls with selected weapon.</feat>
+	<feat name="Improved Critical" ref="PH 95" target="weapon">Double threat range of weapon.</feat>
+	<feat name="Weapon Specialization" ref="PH 102" target="weapon">+2 bonus on damage rolls with selected weapon.</feat>
+	<feat name="Greater Weapon Specialization" ref="PH 95" target="weapon">+2 bonus on damage rolls with selected weapon.</feat>
 
 	<feat name="Improved Unarmed Strike" ref="PH 96">Considered armed even when unarmed."</feat>
 

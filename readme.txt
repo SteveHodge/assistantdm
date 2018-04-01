@@ -90,7 +90,7 @@ even perhaps as a racial feature.
 Game system things to implement:
   (in progress) Size
   (in progress) Race
-  (in progress) Feats
+  (in progress) Feats - better UI support for targetted feats, implement weapon and armor proficiencies
   (in progress) Grapple modifier
   Ability score checks
   (in progress) Class levels - negative levels
@@ -99,7 +99,6 @@ Game system things to implement:
   Spell resistance
   Magic items slots
   Weight/encumberance/ACP
-  Skill synergies
   Skill named versions (Crafting, Profession etc)
   Speed
   (in progress) Items

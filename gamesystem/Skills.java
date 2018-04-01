@@ -1,10 +1,12 @@
 package gamesystem;
 
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,9 +25,38 @@ public class Skills extends Statistic implements StatisticsCollection {
 	final protected EnumMap<AbilityScore.Type, Modifier> abilityMods = new EnumMap<>(AbilityScore.Type.class);
 	final protected Modifier acp;
 
-	final protected PropertyChangeListener modifierListener = evt ->
-	// for ability modifier changes. sends event to indicate all skills need updating
-	fireEvent();
+	static class SynergyModifier extends ImmutableModifier {
+		SkillType from;
+		SkillType target;
+
+		// doesn't check that the synergy actually applies to fromSkill and targetSkill
+		public SynergyModifier(SkillType from, SkillType target, SkillType.Synergy synergy) {
+			super(2, null, from.getName(), synergy.condition);
+			this.from = from;
+			this.target = target;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = super.hashCode();
+			result ^= from.getName().hashCode();
+			result ^= target.getName().hashCode();
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (!super.equals(obj)) return false;
+			if (getClass() != obj.getClass()) return false;
+			SynergyModifier other = (SynergyModifier) obj;
+			return from == other.from && target == other.target;
+		}
+	}
+
+	Set<SynergyModifier> synergyMods = new HashSet<>();	// the synergy modifiers that have been applied
+
+	final protected PropertyChangeListener modifierListener = evt -> fireEvent();	// for ability modifier changes. sends event to indicate all skills need updating
 
 	public Skills(Collection<AbilityScore> abilities, Modifier acp, PropertyCollection parent) {
 		super("skills", "Skills", parent);
@@ -60,7 +91,66 @@ public class Skills extends Statistic implements StatisticsCollection {
 		if (skill.ranks != r) {
 			//int oldValue = getValue(s);
 			skill.ranks = r;
+			updateSynergies(skill);
 			parent.fireEvent(skill, null);
+		}
+	}
+
+	void updateSynergies(Skill changed) {
+		// check synergies from this skill
+		if (changed.ranks >= 5 && changed.skillType.hasSynergies()) {
+			// add any synergies that should be applied if they aren't already applied
+			applySynergies(changed.skillType);
+
+		} else if (changed.skillType.hasSynergies()) {
+			// less than 5 ranks. remove any applied synergies
+			for (SkillType.Synergy synergy : changed.skillType.synergies) {
+				SkillType toType = SkillType.getSkill(synergy.target);
+				Skill toSkill = skills.get(toType);
+				SynergyModifier m = new SynergyModifier(changed.skillType, toType, synergy);
+				if (synergyMods.contains(m)) {
+					toSkill.removeModifier(m);
+					synergyMods.remove(m);
+				}
+			}
+
+		}
+
+		// if this is a trained skill with 0 ranks then remove any synergies that have been applied
+		if (changed.skillType.isTrainedOnly() && changed.ranks == 0) {
+			List<Modifier> toRemove = new ArrayList<>();
+			for (Modifier m : changed.getModifierSet()) {
+				if (m instanceof SynergyModifier) toRemove.add(m);
+			}
+			for (Modifier m : toRemove) {
+				changed.removeModifier(m);
+				synergyMods.remove(m);
+			}
+		}
+
+		else if (changed.skillType.isTrainedOnly() && changed.ranks > 0) {
+			// trained skill with at least one rank: check all synergies that should apply have been applied
+			for (SkillType t : skills.keySet()) {
+				if (t.hasSynergies() && skills.get(t).ranks >= 5) {
+					applySynergies(t);	// this will apply synergies even for other skills but that should be ok
+				}
+			}
+		}
+	}
+
+	private void applySynergies(SkillType from) {
+		for (SkillType.Synergy synergy : from.synergies) {
+			SkillType toType = SkillType.getSkill(synergy.target);
+			Skill toSkill = skills.get(toType);
+			if (!toType.isTrainedOnly() || (toSkill != null && toSkill.ranks > 0)) {
+				// target is untrained or there is a rank so add the modifier if it doesn't already exist
+				SynergyModifier m = new SynergyModifier(from, toType, synergy);
+				if (!synergyMods.contains(m)) {
+					Skill s = getSkill(toType);	// we use getSkill in case the target is an untrained skill we don't have ranks in
+					s.addModifier(m);
+					synergyMods.add(m);
+				}
+			}
 		}
 	}
 
@@ -176,5 +266,67 @@ public class Skills extends Statistic implements StatisticsCollection {
 		String conds = Statistic.getModifiersHTML(mods, true);
 		if (conds.length() > 0) text.append("<br/>").append(conds);
 		return text.toString();
+	}
+
+	// TODO reimplement misc as modifiers
+	public class Skill extends Statistic {
+		private SkillType skillType;
+		float ranks = 0;
+		int misc;
+
+//		public Skill(SkillType type, AbilityScore ability, Modifier acp) {
+//			this(type, ability.getModifier(), acp);
+//		}
+
+		protected Skill(SkillType type, Modifier abilityMod, Modifier acp, PropertyCollection parent) {
+			super("skills." + type.getName().toLowerCase(), type.getName(), parent);
+			skillType = type;
+			addModifier(abilityMod);
+			if (type.armorCheckPenaltyApplies) {
+				if (type.doubleACP) acp = new DoubleModifier(acp);
+				addModifier(acp);
+			}
+		}
+
+		public SkillType getSkillType() {
+			return skillType;
+		}
+
+		public float getRanks() {
+			return ranks;
+		}
+
+		@Override
+		public Integer getValue() {
+			int v = (int) ranks;
+			return v + super.getValue() + misc;
+		}
+
+		public void setRanks(float r) {
+			ranks = r;
+			updateSynergies(this);
+			fireEvent();
+		}
+
+		public void setMisc(int m) {
+			misc = m;
+			fireEvent();
+		}
+
+		public int getMisc() {
+			return misc;
+		}
+
+		@Override
+		public String getSummary() {
+			StringBuffer text = new StringBuffer();
+			text.append(getRanks()).append(" base<br/>");
+			Map<Modifier, Boolean> mods = getModifiers();
+			text.append(Statistic.getModifiersHTML(mods));
+			text.append(getValue()).append(" total ").append(getDescription()).append("<br/>");
+			String conds = Statistic.getModifiersHTML(mods, true);
+			if (conds.length() > 0) text.append("<br/>").append(conds);
+			return text.toString();
+		}
 	}
 }

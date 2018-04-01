@@ -261,7 +261,7 @@ public class XMLOutputHelper {
 		for (SkillType s : set) {
 			Element se = doc.createElement("Skill");
 			se.setAttribute("type", s.name);
-			Skill skill = skills.skills.get(s);
+			Skills.Skill skill = skills.skills.get(s);
 			se.setAttribute("ranks", "" + skill.ranks);
 			if (skill.misc != 0) se.setAttribute("misc", "" + skill.misc);
 			e.appendChild(se);
