@@ -116,6 +116,8 @@
 		<xs:attribute name="properties" type="xs:string"/>
 		<xs:attribute name="spell_failure" type="xs:int"/>
 		<xs:attribute name="weight" type="xs:int"/>
+		<xs:attribute name="proficient" type="xs:boolean"/>
+		<xs:attribute name="base_item" type="xs:string"/>
 	</xs:complexType>
 </xs:element>
 
@@ -131,6 +133,8 @@
 		<xs:attribute name="max_dex" type="xs:int"/>
 		<xs:attribute name="speed" type="xs:int"/>
 		<xs:attribute name="type" type="xs:string"/>
+		<xs:attribute name="proficient" type="xs:boolean"/>
+		<xs:attribute name="base_item" type="xs:string"/>
 	</xs:complexType>
 </xs:element>
 

@@ -197,14 +197,15 @@ public class RuleSet {
 			Element e = (Element) nodes.item(i);
 			if (e.getTagName().equals("item")) {
 				ItemDefinition item = new ItemDefinition();
+				item.name = e.getAttribute("name");
 				if (e.hasAttribute("slot")) item.slot = e.getAttribute("slot");
 				if (e.hasAttribute("cost")) item.cost = e.getAttribute("cost");
 				if (e.hasAttribute("weight")) item.weight = e.getAttribute("weight");
 
 				NodeList children = e.getChildNodes();
 				for (int j = 0; j < children.getLength(); j++) {
-					if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-					Element c = (Element) nodes.item(i);
+					if (children.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
+					Element c = (Element) children.item(j);
 					parseAttack(c, item);	// does nothing if the node tag is incorrect
 					parseArmor(c, item);	// does nothing if the node tag is incorrect
 					parseShield(c, item);	// does nothing if the node tag is incorrect
@@ -241,7 +242,7 @@ public class RuleSet {
 	}
 
 	private void parseShield(Element el, ItemDefinition item) {
-		if (!el.getTagName().equals("armor")) return;
+		if (!el.getTagName().equals("shield")) return;
 		ItemDefinition.Shield a = item.new Shield();
 		if (el.hasAttribute("bonus")) a.bonus = el.getAttribute("bonus");
 		if (el.hasAttribute("max-dex")) a.maxDex = el.getAttribute("max-dex");

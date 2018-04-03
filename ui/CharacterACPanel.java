@@ -8,10 +8,14 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -26,10 +30,11 @@ import javax.swing.table.TableModel;
 import javax.swing.text.Document;
 
 import gamesystem.AC;
+import gamesystem.ItemDefinition;
 import gamesystem.Modifier;
 import gamesystem.Statistic;
-import gamesystem.core.PropertyListener;
 import gamesystem.core.Property;
+import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.SpinnerCellEditor;
 
@@ -62,6 +67,15 @@ public class CharacterACPanel extends CharacterSubPanel {
 	JTextField shieldWeightField = new JTextField(20);
 	JTextField shieldPropertiesField = new JTextField(20);
 
+	JCheckBox proficientCheck = new JCheckBox();
+	JCheckBox shieldProficientCheck = new JCheckBox();
+
+	ItemDefinition armorItem;
+	ItemDefinition shieldItem;
+
+	JLabel armorItemLabel = new JLabel();
+	JLabel shieldItemLabel = new JLabel();
+
 	AC ac;
 	AC.Armor armor;
 	AC.Shield shield;
@@ -87,6 +101,9 @@ public class CharacterACPanel extends CharacterSubPanel {
 			speedField.setText(""+armor.speed);
 			weightField.setText(""+armor.weight);
 			propertiesField.setText(armor.properties);
+			proficientCheck.setSelected(armor.proficient);
+			armorItem = armor.item;
+			armorItemLabel.setText(armor.item != null ? armor.item.getName() : "");
 		}
 	};
 
@@ -102,6 +119,9 @@ public class CharacterACPanel extends CharacterSubPanel {
 			shieldSpellFailureField.setText(""+shield.spellFailure);
 			shieldWeightField.setText(""+shield.weight);
 			shieldPropertiesField.setText(shield.properties);
+			shieldProficientCheck.setSelected(shield.proficient);
+			shieldItem = shield.item;
+			shieldItemLabel.setText(shield.item != null ? shield.item.getName() : "");
 		}
 	};
 
@@ -187,6 +207,9 @@ public class CharacterACPanel extends CharacterSubPanel {
 		speedField.getDocument().addDocumentListener(docListener);
 		weightField.getDocument().addDocumentListener(docListener);
 		propertiesField.getDocument().addDocumentListener(docListener);
+		proficientCheck.addActionListener(e -> {
+			armor.proficient = proficientCheck.isSelected();
+		});
 
 		shieldNameField.getDocument().addDocumentListener(docListener);
 		shieldBonusField.getDocument().addDocumentListener(docListener);
@@ -195,41 +218,77 @@ public class CharacterACPanel extends CharacterSubPanel {
 		shieldSpellFailureField.getDocument().addDocumentListener(docListener);
 		shieldWeightField.getDocument().addDocumentListener(docListener);
 		shieldPropertiesField.getDocument().addDocumentListener(docListener);
+		shieldProficientCheck.addActionListener(e -> {
+			shield.proficient = shieldProficientCheck.isSelected();
+		});
+
+		JButton armorItemButton = new JButton("...");
+		armorItemButton.setMargin(new Insets(2, 4, 2, 2));
+		armorItemButton.addActionListener(e -> openArmorChooser());
+		JButton shieldItemButton = new JButton("...");
+		shieldItemButton.setMargin(new Insets(2, 4, 2, 2));
+		shieldItemButton.addActionListener(e -> openShieldChooser());
+//		shieldItemLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
+//		armorItemLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.insets = new Insets(1,2,1,2);
 		c.fill = GridBagConstraints.HORIZONTAL;
 
-		c.gridx = 0; c.gridy = 0;
+		c.gridx = 0;
 		c.weightx = 0.5;
-		c.gridy++; panel.add(new JLabel("Description:"),c);
-		c.gridy++; panel.add(new JLabel("Type:"),c);
-		c.gridy++; panel.add(new JLabel("Bonus:"),c);
-		c.gridy++; panel.add(new JLabel("Enhancement:"),c);
-		c.gridy++; panel.add(new JLabel("Max Dex:"),c);
-		c.gridy++; panel.add(new JLabel("ACP:"),c);
-		c.gridy++; panel.add(new JLabel("Spell Failure:"),c);
-		c.gridy++; panel.add(new JLabel("Speed:"),c);
-		c.gridy++; panel.add(new JLabel("Weight (lbs):"),c);
-		c.gridy++; panel.add(new JLabel("Properties:"),c);
+		c.gridy = 1;
+		panel.add(new JLabel("Description:"), c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		panel.add(new JLabel("Base Item:"), c);
+		panel.add(new JLabel("Type:"), c);
+		panel.add(new JLabel("Bonus:"), c);
+		panel.add(new JLabel("Enhancement:"), c);
+		panel.add(new JLabel("Max Dex:"), c);
+		panel.add(new JLabel("ACP:"), c);
+		panel.add(new JLabel("Spell Failure:"), c);
+		panel.add(new JLabel("Speed:"), c);
+		panel.add(new JLabel("Weight (lbs):"), c);
+		panel.add(new JLabel("Properties:"), c);
+		panel.add(new JLabel("Proficient:"), c);
 
-		c.gridx = 1; c.gridy = 0;
+		c.gridx = 1;
 		c.weightx = 1.0;
+		c.gridwidth = 2;
 		panel.add(new JLabel("Armor", SwingConstants.CENTER),c);
-		c.gridy++; panel.add(nameField,c);
-		c.gridy++; panel.add(typeField,c);
-		c.gridy++; panel.add(bonusField,c);
-		c.gridy++; panel.add(enhancementField,c);
-		c.gridy++; panel.add(maxDexField,c);
-		c.gridy++; panel.add(checkPenaltyField,c);
-		c.gridy++; panel.add(spellFailureField,c);
-		c.gridy++; panel.add(speedField,c);
-		c.gridy++; panel.add(weightField,c);
-		c.gridy++; panel.add(propertiesField,c);
+		panel.add(nameField, c);
+		c.gridwidth = 1;
+		panel.add(armorItemLabel, c);
+		c.gridwidth = 2;
+		panel.add(typeField, c);
+		panel.add(bonusField, c);
+		panel.add(enhancementField, c);
+		panel.add(maxDexField, c);
+		panel.add(checkPenaltyField, c);
+		panel.add(spellFailureField, c);
+		panel.add(speedField, c);
+		panel.add(weightField, c);
+		panel.add(propertiesField, c);
+		panel.add(proficientCheck, c);
 
-		c.gridx = 2; c.gridy = 0;
-		panel.add(new JLabel("Shield", SwingConstants.CENTER),c);
+		c.gridx = 2;
+		c.gridy = 2;
+		c.weightx = 0;
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.NONE;
+		panel.add(armorItemButton, c);
+
+		c.gridx = 3;
+		c.gridy = 0;
+		c.weightx = 1.0;
+		c.gridwidth = 2;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(new JLabel("Shield", SwingConstants.CENTER), c);
 		c.gridy++; panel.add(shieldNameField,c);
+		c.gridwidth = 1;
+		c.gridy++;
+		panel.add(shieldItemLabel, c);
+		c.gridwidth = 2;
 		c.gridy++;
 		c.gridy++; panel.add(shieldBonusField,c);
 		c.gridy++; panel.add(shieldEnhancementField,c);
@@ -239,8 +298,93 @@ public class CharacterACPanel extends CharacterSubPanel {
 		c.gridy++;
 		c.gridy++; panel.add(shieldWeightField,c);
 		c.gridy++; panel.add(shieldPropertiesField,c);
+		c.gridy++;
+		panel.add(shieldProficientCheck, c);
+
+		c.gridx = 4;
+		c.gridy = 2;
+		c.weightx = 0;
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.NONE;
+		panel.add(shieldItemButton, c);
 
 		return panel;
+	}
+
+	void openArmorChooser() {
+		List<ItemDefinition> armors = new ArrayList<>(ItemDefinition.getArmor());
+		armors.sort((a, b) -> {
+			if (!(a instanceof ItemDefinition || !(b instanceof ItemDefinition))) return 0;
+			return a.getName().compareToIgnoreCase(b.getName());
+		});
+		Object[] options = new Object[armors.size() + 1];
+		options[0] = new String("none");
+		for (int i = 1; i < options.length; i++) {
+			options[i] = armors.get(i - 1);
+		}
+		Object s = JOptionPane.showInputDialog(this, "Select armor:", "Select armor", JOptionPane.QUESTION_MESSAGE, null, options, null);
+		if (s != null) {
+			if (s instanceof ItemDefinition) {
+				armor.item = (ItemDefinition) s;
+				armorItemLabel.setText(armor.item.getName());
+				nameField.setText(armor.item.getName());
+				typeField.setText(armor.item.getArmorType());
+				bonusField.setText(armor.item.getArmorBonus());
+				maxDexField.setText(armor.item.getArmorMaxDex());
+				checkPenaltyField.setText(armor.item.getArmorACP());
+				spellFailureField.setText(armor.item.getSpellFailure());
+				speedField.setText(armor.item.getArmorSpeed());
+				weightField.setText(armor.item.getWeight());
+				proficientCheck.setSelected(true);
+			} else {
+				armor.item = null;
+				armorItemLabel.setText("");
+				nameField.setText("");
+				typeField.setText("");
+				bonusField.setText("");
+				maxDexField.setText("");
+				checkPenaltyField.setText("");
+				spellFailureField.setText("");
+				speedField.setText("");
+				weightField.setText("");
+				proficientCheck.setSelected(true);
+			}
+		}
+	}
+
+	void openShieldChooser() {
+		List<ItemDefinition> shields = new ArrayList<>(ItemDefinition.getShields());
+		shields.sort((a,b) -> {
+			if (!(a instanceof ItemDefinition || !(b instanceof ItemDefinition))) return 0;
+			return a.getName().compareToIgnoreCase(b.getName());
+		});
+		Object[] options = new Object[shields.size() + 1];
+		options[0] = new String("none");
+		for (int i = 1; i < options.length; i++) {
+			options[i] = shields.get(i - 1);
+		}
+		Object s = JOptionPane.showInputDialog(this, "Select a shield:", "Select a shield", JOptionPane.QUESTION_MESSAGE, null, options, null);
+		if (s != null) {
+			if (s instanceof ItemDefinition) {
+				shield.item = (ItemDefinition) s;
+				shieldItemLabel.setText(shield.item.getName());
+				shieldNameField.setText(shield.item.getName());
+				shieldBonusField.setText(shield.item.getShieldBonus());
+				shieldCheckPenaltyField.setText(shield.item.getShieldACP());
+				shieldSpellFailureField.setText(shield.item.getShieldSpellFailure());
+				shieldWeightField.setText(shield.item.getWeight());
+				shieldProficientCheck.setSelected(true);
+			} else {
+				shield.item = null;
+				shieldItemLabel.setText("");
+				shieldNameField.setText("");
+				shieldBonusField.setText("");
+				shieldCheckPenaltyField.setText("");
+				shieldSpellFailureField.setText("");
+				shieldWeightField.setText("");
+				shieldProficientCheck.setSelected(true);
+			}
+		}
 	}
 
 	DocumentListener docListener = new DocumentListener() {

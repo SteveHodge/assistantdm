@@ -343,6 +343,8 @@ public class XMLOutputHelper {
 		armor.setAttribute("type", ac.armor.type);
 		armor.setAttribute("speed", "" + ac.armor.speed);
 		if (ac.dexMod != null) armor.setAttribute("max_dex", "" + ac.dexMod.getLimit());
+		if (ac.armor.item != null) armor.setAttribute("base_item", ac.armor.item.getName());
+		armor.setAttribute("proficient", Boolean.toString(ac.armor.proficient));
 		e.appendChild(armor);
 
 		Element shield = doc.createElement(ac.shield.getDescription());
@@ -353,6 +355,8 @@ public class XMLOutputHelper {
 		shield.setAttribute("acp", "" + ac.shield.acp);
 		shield.setAttribute("spell_failure", "" + ac.shield.spellFailure);
 		if (ac.shield.properties != null) shield.setAttribute("properties", ac.shield.properties);
+		if (ac.shield.item != null) shield.setAttribute("base_item", ac.shield.item.getName());
+		shield.setAttribute("proficient", Boolean.toString(ac.shield.proficient));
 		e.appendChild(shield);
 
 		return e;

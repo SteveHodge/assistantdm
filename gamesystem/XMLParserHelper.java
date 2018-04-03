@@ -129,6 +129,8 @@ public class XMLParserHelper {
 		if (e.hasAttribute("weight")) shield.weight = Integer.parseInt(e.getAttribute("weight"));
 		if (e.hasAttribute("acp")) shield.setACP(Integer.parseInt(e.getAttribute("acp")));
 		if (e.hasAttribute("spell_failure")) shield.spellFailure = Integer.parseInt(e.getAttribute("spell_failure"));
+		shield.proficient = !e.hasAttribute("proficient") || Boolean.parseBoolean(e.getAttribute("proficient"));
+		if (e.hasAttribute("base_item")) shield.item = ItemDefinition.getItem(e.getAttribute("base_item"));
 	}
 
 	protected void parseArmor(Element e, AC.Armor armor) {
@@ -144,6 +146,8 @@ public class XMLParserHelper {
 		if (e.hasAttribute("type")) armor.type = e.getAttribute("type");
 		if (e.hasAttribute("speed")) armor.speed = Integer.parseInt(e.getAttribute("speed"));
 		if (e.hasAttribute("max_dex")) armor.setMaxDex(Integer.parseInt(e.getAttribute("max_dex")));
+		armor.proficient = !e.hasAttribute("proficient") || Boolean.parseBoolean(e.getAttribute("proficient"));
+		if (e.hasAttribute("base_item")) armor.item = ItemDefinition.getItem(e.getAttribute("base_item"));
 	}
 
 	protected void parseSize(Element e, Creature c) {
