@@ -302,9 +302,9 @@ public class XMLParserHelper {
 		f.setKind(CharacterAttackForm.Kind.getKind(e.getAttribute("kind")));
 		if (e.hasAttribute("usage")) f.setUsage(CharacterAttackForm.Usage.values()[Integer.parseInt(e.getAttribute("usage"))]);
 		String s = e.getAttribute("properties");
-		if (s != null && !s.equals(f.usage)) {
-			f.properties = s;
-		}
+		if (s != null && !s.equals(f.usage)) f.properties = s;
+		f.setProficient(!e.hasAttribute("proficient") || Boolean.parseBoolean(e.getAttribute("proficient")));
+		if (e.hasAttribute("base_item")) f.item = ItemDefinition.getItem(e.getAttribute("base_item"));
 	}
 
 	protected void parseAttackForm(Element e, Attacks.AttackForm f) {

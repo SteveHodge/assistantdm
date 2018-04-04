@@ -1,11 +1,5 @@
 package ui;
 
-import gamesystem.BuffFactory;
-import gamesystem.Creature;
-import gamesystem.Modifier.StandardType;
-import gamesystem.SizeCategory;
-import gamesystem.dice.CombinedDice;
-
 import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -15,6 +9,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.InputVerifier;
@@ -33,6 +29,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import gamesystem.BuffFactory;
+import gamesystem.Creature;
+import gamesystem.ItemDefinition;
+import gamesystem.Modifier.StandardType;
+import gamesystem.SizeCategory;
+import gamesystem.dice.CombinedDice;
 import party.CharacterAttackForm;
 
 // TODO only attack and damage labels are updated on changes from the attack, other changes will be ignored (needs fixing if something other than this panel makes changes to the attack)
@@ -54,6 +56,9 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	private JTextField ammunitionField = new JTextField(20);
 	private JComboBox<CharacterAttackForm.Kind> kindCombo;
 	private JComboBox<CharacterAttackForm.Usage> usageCombo;
+	private JCheckBox proficientCheck = new JCheckBox();
+	private JLabel itemLabel = new JLabel();
+	private JButton itemButton = new JButton("...");
 
 	private JLabel totalAttackLabel = new JLabel();
 	private JLabel totalDamageLabel = new JLabel();
@@ -69,30 +74,35 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 		kindCombo = new JComboBox<>(CharacterAttackForm.Kind.values());
 		usageCombo = new JComboBox<>(CharacterAttackForm.Usage.values());
+		itemButton.setMargin(new Insets(2, 4, 2, 2));
+		itemButton.addActionListener(e -> openWeaponChooser());
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.insets = new Insets(1,2,1,2);
 		c.fill = GridBagConstraints.HORIZONTAL;
 
-		c.gridx = 0; c.gridy = 0;
+		c.gridx = 0;
 		c.weightx = 0.5;
 		add(new JLabel("Name:"), c);
-		c.gridy++; add(new JLabel("Attack Bonus:"),c);
-		c.gridy++; add(new JLabel("Damage:"),c);
-		c.gridy++; add(new JLabel("Critical:"),c);
-		c.gridy++; add(new JLabel("Kind:"),c);
-		c.gridy++; add(new JLabel("Usage:"),c);
-		c.gridy++; add(new JLabel("Damage Type:"),c);
-		c.gridy++; add(new JLabel("Size:"),c);
-		c.gridy++; add(new JLabel("Range (ft):"),c);
-		c.gridy++; add(new JLabel("Weight (lbs):"),c);
-		c.gridy++; add(new JLabel("Properties:"),c);
-		c.gridy++; add(new JLabel("Ammunition:"),c);
+		add(new JLabel("Base Item:"), c);
+		add(new JLabel("Attack Bonus:"),c);
+		add(new JLabel("Damage:"),c);
+		add(new JLabel("Critical:"),c);
+		add(new JLabel("Kind:"),c);
+		add(new JLabel("Usage:"),c);
+		add(new JLabel("Damage Type:"),c);
+		add(new JLabel("Size:"),c);
+		add(new JLabel("Range (ft):"),c);
+		add(new JLabel("Weight (lbs):"),c);
+		add(new JLabel("Properties:"),c);
+		add(new JLabel("Ammunition:"),c);
+		add(new JLabel("Proficient:"),c);
 
 		c.gridx = 1; c.gridy = 0;
 		c.weightx = 1.0;
 		c.gridwidth = 2;
 		add(nameField,c);
+		c.gridy++;	// add item field later
 		c.gridy++;	// add attackBonus field later
 		c.gridy++;	// add damage field later
 		c.gridy++; add(criticalField,c);
@@ -104,18 +114,27 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		c.gridy++; add(weightField,c);
 		c.gridy++; add(propertiesField,c);
 		c.gridy++; add(ammunitionField,c);
+		c.gridy++;
+		add(proficientCheck, c);
 
 		c.gridy = 1;
 		c.weightx = 0.5;
 		c.gridwidth = 1;
-		add(attackBonusField,c);
-		c.gridy++; add(damageField,c);
+		add(itemLabel, c);
+		c.gridy++;
+		add(attackBonusField, c);
+		c.gridy++;
+		add(damageField, c);
 
 		c.gridy = 1;
 		c.gridx = 2;
-		add(totalAttackLabel,c);
-		c.gridy++; add(totalDamageLabel,c);
-
+		c.fill = GridBagConstraints.NONE;
+		add(itemButton, c);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridy++;
+		add(totalAttackLabel, c);
+		c.gridy++;
+		add(totalDamageLabel, c);
 
 		setAttackForm(atk);
 
@@ -127,7 +146,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		damageField.setInputVerifier(damageVerifier);
 		damageField.addActionListener(e -> damageVerifier.shouldYieldFocus(damageField));
 
-		// the other field do dynamic updating
+		// the other fields do dynamic updating
 		nameField.getDocument().addDocumentListener(docListener);
 		attackBonusField.getDocument().addDocumentListener(docListener);
 		criticalField.getDocument().addDocumentListener(docListener);
@@ -136,6 +155,10 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		typeField.getDocument().addDocumentListener(docListener);
 		propertiesField.getDocument().addDocumentListener(docListener);
 		ammunitionField.getDocument().addDocumentListener(docListener);
+
+		proficientCheck.addActionListener(e -> {
+			attack.setProficient(proficientCheck.isSelected());
+		});
 
 		kindCombo.addActionListener(e -> {
 			if (attack != null) {
@@ -152,6 +175,49 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 				attack.setUsage((CharacterAttackForm.Usage) usageCombo.getSelectedItem());
 			}
 		});
+	}
+
+	void openWeaponChooser() {
+		List<ItemDefinition> weapons = new ArrayList<>(ItemDefinition.getAttacks());
+		weapons.sort((a, b) -> {
+			if (!(a instanceof ItemDefinition || !(b instanceof ItemDefinition))) return 0;
+			return a.getName().compareToIgnoreCase(b.getName());
+		});
+		Object[] options = new Object[weapons.size() + 1];
+		options[0] = new String("none");
+		for (int i = 1; i < options.length; i++) {
+			options[i] = weapons.get(i - 1);
+		}
+		Object s = JOptionPane.showInputDialog(this, "Select armor:", "Select armor", JOptionPane.QUESTION_MESSAGE, null, options, null);
+		if (s != null) {
+			if (s instanceof ItemDefinition) {
+				attack.item = (ItemDefinition) s;
+				ItemDefinition.Attack atk = attack.item.getAttack(0);
+				itemLabel.setText(attack.item.getName());
+				nameField.setText(attack.item.getName());
+				typeField.setText(atk.getDamageType());
+				damageField.setText(atk.getDamage());
+				attack.setBaseDamage(atk.getDamage());
+				criticalField.setText(atk.getCritical());
+				rangeField.setText(atk.getRange());
+				weightField.setText(attack.item.getWeight());
+				kindCombo.setSelectedItem(CharacterAttackForm.Kind.getKind(atk.getWeaponType()));
+				proficientCheck.setSelected(true);
+			} else {
+				attack.item = null;
+				itemLabel.setText("");
+				nameField.setText("");
+				typeField.setText("");
+				damageField.setText("");
+				attack.setBaseDamage("");
+				criticalField.setText("");
+				rangeField.setText("");
+				weightField.setText("");
+				kindCombo.setSelectedIndex(-1);
+				proficientCheck.setSelected(true);
+			}
+		}
+		update();
 	}
 
 	private MouseListener rightClickListener = new MouseAdapter() {
@@ -272,8 +338,10 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		sizeCombo.setEnabled(false);
 		kindCombo.setEnabled(false);
 		usageCombo.setEnabled(false);
+		itemButton.setEnabled(false);
 
 		nameField.setText("");
+		itemLabel.setText("");
 		attackBonusField.setText("");
 		totalAttackLabel.setText("");
 		damageField.setText("");
@@ -312,9 +380,15 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		sizeCombo.setEnabled(true);
 		kindCombo.setEnabled(true);
 		usageCombo.setEnabled(true);
+		itemButton.setEnabled(true);
 
 		updateAttack = false;	// don't apply these changes to the attack (since they come from the attack)
 		nameField.setText(attack.getName());
+		if (attack.item != null) {
+			itemLabel.setText(attack.item.getName());
+		} else {
+			itemLabel.setText("");
+		}
 		if (attack.isMasterwork()) {
 			attackBonusField.setText("Masterwork");
 		} else {
@@ -330,6 +404,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		sizeCombo.setSelectedItem(attack.attack.size);
 		kindCombo.setSelectedItem(attack.getKind());
 		usageCombo.setSelectedItem(attack.getUsage());
+		proficientCheck.setSelected(attack.getProficient());
 		updateAttack = true;
 		update();
 	}

@@ -3,4 +3,5 @@
 	<include file="core3.5/Skills.xml"/>
 	<include file="core3.5/Feats.xml"/>
 	<include file="core3.5/Spells.xml"/>
+	<include file="core3.5/Items.xml"/>
 </ruleset>

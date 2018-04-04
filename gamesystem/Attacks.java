@@ -440,6 +440,7 @@ public class Attacks extends Statistic {
 		public boolean doublePADmg = false;	// true if the power attack damage bonus is double the penalty taken (ie. two handed melee weapon)
 		public int maxAttacks = 4;	// limit on number of attacks with due to high BAB (e.g. weapons that need to be reloaded)
 		public boolean weaponSpecApplies = false;	// FIXME remove
+		boolean proficient = true;
 
 		private AttackForm(String name, PropertyCollection parent) {
 			super("attacks." + name.toLowerCase(), name, parent);
@@ -500,6 +501,16 @@ public class Attacks extends Statistic {
 
 		public boolean isMasterwork() {
 			return masterwork;
+		}
+
+		public void setProficient(boolean val) {
+			if (proficient == val) return;
+			proficient = val;
+			// FIXME implement
+		}
+
+		public boolean getProficient() {
+			return proficient;
 		}
 
 		// returns the String version of the base damage

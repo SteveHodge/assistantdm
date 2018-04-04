@@ -3,7 +3,7 @@
 * Feat prereqs.
 * Better handling of feats and skills with specific instances (knowledges, weapon focus, etc)
 * UI for adding skill type (really only need for specific instances)
-* Items
+* Items - simple (template style) implementation done for armor, shields, and weapons
 * BUG: creatures with missing abilities, e.g. colour out of space
 * Other feedback from website (spells cast etc)
 * Audit use of createOverrideIntegerField and look at moving other override controls to standard field (probably a new field type which only displays the override, not the total)

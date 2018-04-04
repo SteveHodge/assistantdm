@@ -6,6 +6,7 @@ import java.beans.PropertyChangeSupport;
 import gamesystem.Attacks.AttackForm;
 import gamesystem.Buff;
 import gamesystem.Feat;
+import gamesystem.ItemDefinition;
 
 // TODO would like to use property/statistic style change notification for this. Perhaps CharacterAttackForm should extend AttackForm
 public class CharacterAttackForm {
@@ -29,8 +30,9 @@ public class CharacterAttackForm {
 
 		public static Kind getKind(String d) {
 			for (Kind k : values()) {
-				if (k.description.equals(d)) return k;
+				if (k.description.compareToIgnoreCase(d) == 0) return k;
 			}
+			if (d.equals("Ranged")) return MISSILE;	// FIXME temporary
 			return null;	// TODO probably better to throw an exception
 		}
 
@@ -67,6 +69,7 @@ public class CharacterAttackForm {
 	public Kind kind;					// weapon kind (melee/ranged/thrown etc)
 	public Usage usage;					// style of use (one-handed, two-handed, primary, etc) // TODO when we have weapon definitions this should default to the correct "normal" use of the weapon
 	public int id;					// used to uniquely identify this attack form, primarily for the purposes of targeting effects	// TODO probably id should be refactored into AttackForm
+	public ItemDefinition item;
 
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -168,6 +171,14 @@ public class CharacterAttackForm {
 
 	public Kind getKind() {
 		return kind;
+	}
+
+	public void setProficient(boolean p) {
+		attack.setProficient(p);
+	}
+
+	public boolean getProficient() {
+		return attack.getProficient();
 	}
 
 	public void setUsage(Usage u) {

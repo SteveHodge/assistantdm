@@ -224,6 +224,7 @@ public class RuleSet {
 		if (el.hasAttribute("damage")) a.damage = el.getAttribute("damage");
 		if (el.hasAttribute("critical")) a.critical = el.getAttribute("critical");
 		if (el.hasAttribute("damage-type")) a.damageType = el.getAttribute("damage-type");
+		if (el.hasAttribute("range")) a.range = el.getAttribute("range");
 		if (item.attacks == null) item.attacks = new ArrayList<>();
 		item.attacks.add(a);
 	}

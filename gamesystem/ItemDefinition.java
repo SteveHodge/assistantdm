@@ -28,12 +28,37 @@ public class ItemDefinition {
 		return s.toString();
 	}
 
-	class Attack {
+	public class Attack {
 		String proficiency;
 		String type;
 		String damage;
 		String critical;
 		String damageType;
+		String range;
+
+		public ItemDefinition getItem() {
+			return ItemDefinition.this;
+		}
+
+		public String getDamageType() {
+			return damageType;
+		}
+
+		public String getCritical() {
+			return critical;
+		}
+
+		public String getRange() {
+			return range;
+		}
+
+		public String getDamage() {
+			return damage;
+		}
+
+		public String getWeaponType() {
+			return type;
+		}
 	}
 
 	class Armor {
@@ -73,11 +98,25 @@ public class ItemDefinition {
 		return armors;
 	}
 
+	public static Set<ItemDefinition> getAttacks() {
+		Set<ItemDefinition> attacks = new HashSet<>();
+		for (ItemDefinition item : items) {
+			if (item.attacks != null && item.attacks.size() > 0) {
+				attacks.add(item);
+			}
+		}
+		return attacks;
+	}
+
 	public static ItemDefinition getItem(String name) {
 		for (ItemDefinition item : items) {
 			if (item.name.compareToIgnoreCase(name) == 0) return item;
 		}
 		return null;
+	}
+
+	public Attack getAttack(int i) {
+		return attacks.get(i);
 	}
 
 	public String getShieldBonus() {
