@@ -184,12 +184,13 @@ public class XMLOutputHelper {
 		if (b.casterLevel > 0) e.setAttribute("caster_level", "" + b.casterLevel);
 		e.setAttribute("id", "" + b.id);
 
-		for (Modifier m : b.modifiers.keySet()) {
+		for (int i = 0; i < b.getModifierCount(); i++) {
+			Modifier m = b.getModifier(i);
+			String target = b.getModifierTarget(i);
 			Element me = doc.createElement("Modifier");
 			if (m.getType() != null) me.setAttribute("type", m.getType());
 			if (m.getCondition() != null) me.setAttribute("condition", m.getCondition());
 			me.setAttribute("value", "" + m.getModifier());
-			String target = b.modifiers.get(m);
 			me.setAttribute("target", target);		// WISH this can be XML relevant, i.e. an XPath
 			me.setAttribute("description", Buff.getTargetDescription(target) + ": " + m.toString());		// TODO this is needed only for the character sheet
 			e.appendChild(me);

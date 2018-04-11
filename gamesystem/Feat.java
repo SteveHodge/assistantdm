@@ -64,7 +64,7 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 
 			for (Effect e : effects) {
 				if (e instanceof FixedEffect)
-					b.modifiers.put(((FixedEffect) e).getModifier(name), e.target);
+					b.addModifier(((FixedEffect) e).getModifier(name), e.target);
 			}
 			return b;
 		}

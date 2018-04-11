@@ -1,8 +1,6 @@
 package gamesystem;
 
 
-import gamesystem.dice.Dice;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +9,8 @@ import java.util.Map;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import gamesystem.dice.Dice;
 
 
 /*
@@ -103,7 +103,7 @@ public class Buff extends Feature<Buff, BuffFactory> {
 			// create modifiers/properties for each Effect. this will fix the specifics of the Effects
 			for (FeatureDefinition.Effect e : effects) {
 				if (e instanceof FeatureDefinition.ModifierEffect) {
-					modifiers.put(((FeatureDefinition.ModifierEffect)e).getModifier(this), e.target);
+					addModifier(((FeatureDefinition.ModifierEffect) e).getModifier(this), e.target);
 				} else if (e instanceof PropertyEffect) {
 					PropertyChange change = new PropertyChange();
 					change.property = ((PropertyEffect)e).property;
@@ -136,8 +136,10 @@ public class Buff extends Feature<Buff, BuffFactory> {
 	public String getDescription() {
 		StringBuilder s = new StringBuilder();
 		s.append("<html><body>");
-		for (Modifier m : modifiers.keySet()) {
-			String target = modifiers.get(m);
+
+		for (int i = 0; i < getModifierCount(); i++) {
+			Modifier m = getModifier(i);
+			String target = getModifierTarget(i);
 			if (m.getModifier() >= 0) s.append("+");
 			s.append(m.getModifier());
 			if (m.getType() != null) s.append(" ").append(m.getType());
@@ -313,12 +315,13 @@ public class Buff extends Feature<Buff, BuffFactory> {
 		if (casterLevel > 0) e.setAttribute("caster_level", ""+casterLevel);
 		e.setAttribute("id", ""+id);
 
-		for (Modifier m : modifiers.keySet()) {
+		for (int i = 0; i < getModifierCount(); i++) {
+			Modifier m = getModifier(i);
+			String target = getModifierTarget(i);
 			Element me = doc.createElement("Modifier");
 			if (m.getType() != null) me.setAttribute("type", m.getType());
 			if (m.getCondition() != null) me.setAttribute("condition", m.getCondition());
 			me.setAttribute("value", ""+m.getModifier());
-			String target = modifiers.get(m);
 			me.setAttribute("target", target);		// WISH this can be XML relevant, i.e. an XPath
 			me.setAttribute("description", getTargetDescription(target)+": "+m.toString());		// TODO this is needed only for the character sheet
 			e.appendChild(me);

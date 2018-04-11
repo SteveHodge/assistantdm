@@ -275,7 +275,7 @@ public class XMLParserHelper {
 					mod = new ImmutableModifier(value, type, buff.name);
 				}
 				mod.id = buff.id;
-				buff.modifiers.put(mod, target);
+				buff.addModifier(mod, target);
 
 			} else if (mods.item(k).getNodeName().equals("PropertyChange")) {
 				Element m = (Element) mods.item(k);
