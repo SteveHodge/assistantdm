@@ -6,10 +6,12 @@ import org.w3c.dom.NodeList;
 
 import gamesystem.Buff;
 import gamesystem.Feat;
+import gamesystem.ItemDefinition;
 import gamesystem.SavingThrow;
 import gamesystem.XMLParserHelper;
 import gamesystem.XP;
 import party.Character.ACComponentType;
+import party.Character.Slot;
 
 
 public class XMLCharacterParser extends XMLParserHelper {
@@ -39,6 +41,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con and buffs to ensure temp hps are set correctly
 		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise
 		Element buffsElement = null;	// need to process after attacks so that all target statistics are set up
+		Element slotsElement = null;	// we process this after buffs to link up the buffs
 
 		NodeList nodes = el.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
@@ -133,6 +136,9 @@ public class XMLCharacterParser extends XMLParserHelper {
 			} else if (tag.equals("Buffs")) {
 				buffsElement = e;
 
+			} else if (tag.equals("ItemSlots")) {
+				slotsElement = e;
+
 			} else if (tag.equals("Size")) {
 				parseSize(e, c);
 			}
@@ -165,6 +171,38 @@ public class XMLCharacterParser extends XMLParserHelper {
 				Buff b = parseBuff((Element) buffs.item(j));
 				b.apply(c);
 				c.buffs.addElement(b);
+			}
+		}
+
+		if (slotsElement != null) {
+			NodeList slots = slotsElement.getChildNodes();
+			for (int i = 0; i < slots.getLength(); i++) {
+				if (!slots.item(i).getNodeName().equals("ItemSlot")) continue;
+				Element itemEl = (Element) slots.item(i);
+				Slot slot = Slot.getSlot(itemEl.getAttribute("slot"));
+				ItemDefinition item = ItemDefinition.getItem(itemEl.getAttribute("item"));
+				if (slot == null) {
+					System.err.println("Invalid slot: " + itemEl.getAttribute("slot"));
+				} else if (item == null) {
+					System.err.println("Invalid item: " + itemEl.getAttribute("item"));
+				} else {
+					c.slots.put(slot, item);
+					if (itemEl.hasAttribute("buff_id")) {
+						int buffId = Integer.parseInt(itemEl.getAttribute("buff_id"));
+						boolean found = false;
+						for (int j = 0; j < c.buffs.getSize(); j++) {
+							Buff b = c.buffs.get(j);
+							if (b.id == buffId) {
+								c.slotBuffs.put(slot, b);
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							System.err.println("Buff id " + buffId + " was not found");
+						}
+					}
+				}
 			}
 		}
 

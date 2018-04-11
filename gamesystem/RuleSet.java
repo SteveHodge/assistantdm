@@ -132,6 +132,58 @@ public class RuleSet {
 		}
 	}
 
+	private static void parseModifiers(Element e, FeatureDefinition<?> def) {
+		if (!e.getTagName().equals("modifiers")) ;
+		NodeList mods = e.getChildNodes();
+		for (int j = 0; j < mods.getLength(); j++) {
+			if (mods.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element m = (Element) mods.item(j);
+			if (!m.getTagName().equals("modifier")) {
+				System.err.println("Ignoring unexpected tag " + m.getTagName());
+			}
+			String stat = m.getAttribute("statistic");
+			String type = m.getAttribute("type");
+			if (type.length() == 0) type = null;
+			String value = m.getAttribute("value");
+			int val = 0;
+			Object dice = null;
+			try {
+				val = Integer.parseInt(value);
+			} catch (Exception ex) {
+				try {
+					dice = HDDice.parse(value);
+				} catch (Exception except) {
+					System.err.println("Error parsing modifier value '" + value + "' for " + def);
+				}
+			}
+			String condition = m.getAttribute("condition");
+			if (condition.length() == 0) condition = null;
+			String penalty = m.getAttribute("penalty");
+			String levelsPerExtra = m.getAttribute("levelsPerExtra");
+			String maxExtra = m.getAttribute("maxExtra");
+
+			if (dice != null || levelsPerExtra.length() > 0) {
+				if (def instanceof BuffFactory) {
+					BuffFactory buff = (BuffFactory) def;
+					Object baseMod = dice;
+					if (baseMod == null) baseMod = new Integer(val);
+					int perCL = 0, max = 0;
+					if (levelsPerExtra.length() > 0) perCL = Integer.parseInt(levelsPerExtra);
+					if (maxExtra.length() > 0) max = Integer.parseInt(maxExtra);
+					if (penalty.equals("true")) {
+						buff.addPenalty(stat, type, baseMod, perCL, max, condition);
+					} else {
+						buff.addBonus(stat, type, baseMod, perCL, max, condition);
+					}
+				} else {
+					System.err.println("Caster-level dependent and dice-based modifiers are not supported for " + def);
+				}
+			} else {
+				def.addFixedEffect(stat, type, val, condition);
+			}
+		}
+	}
+
 	private void parseFeats(Element el) {
 		if (!el.getTagName().equals("feats")) return;
 		System.out.print("Parsing feats... ");
@@ -151,26 +203,7 @@ public class RuleSet {
 					if (nodes.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
 					Element child = (Element) children.item(j);
 					if (child.getTagName().equals("modifiers")) {
-						String name = f.name;
-						BuffFactory buff = new BuffFactory(name);
-						buff.source = f;
-						NodeList mods = child.getChildNodes();
-						for (int k = 0; k < mods.getLength(); k++) {
-							if (mods.item(k).getNodeType() != Node.ELEMENT_NODE) continue;
-							Element m = (Element) mods.item(k);
-							String stat = m.getAttribute("statistic");
-							String value = m.getAttribute("value");
-							int val = 0;
-							try {
-								val = Integer.parseInt(value);
-							} catch (Exception ex) {
-								System.err.println("Error parsing value for modifier in feat " + f);
-							}
-							String condition = m.getAttribute("condition");
-							if (condition.length() == 0) condition = null;
-							f.addFixedEffect(stat, null, val, condition);
-						}
-
+						parseModifiers(child, f);
 					} else {
 						System.err.println("Ignoring unexpected node: " + e.getTagName());
 						continue;
@@ -209,6 +242,14 @@ public class RuleSet {
 					parseAttack(c, item);	// does nothing if the node tag is incorrect
 					parseArmor(c, item);	// does nothing if the node tag is incorrect
 					parseShield(c, item);	// does nothing if the node tag is incorrect
+
+					if (c.getTagName().equals("modifiers")) {
+						item.buff = new BuffFactory(item.name);
+						item.buff.source = item;
+						parseModifiers(c, item.buff);
+					}
+
+					// TODO description tag, creation tag (attributes aura, caster_level, prerequisites)
 				}
 				ItemDefinition.items.add(item);
 			}
@@ -329,42 +370,7 @@ public class RuleSet {
 				if (variant.length() > 0) name += " (" + variant + ")";
 				BuffFactory buff = new BuffFactory(name);
 				buff.source = s;
-				NodeList mods = e.getChildNodes();
-				for (int j = 0; j < mods.getLength(); j++) {
-					if (mods.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
-					Element m = (Element) mods.item(j);
-					String stat = m.getAttribute("statistic");
-					String type = m.getAttribute("type");
-					if (type.length() == 0) type = null;
-					String value = m.getAttribute("value");
-					int val = 0;
-					Object dice = null;
-					try {
-						val = Integer.parseInt(value);
-					} catch (Exception ex) {
-						dice = HDDice.parse(value);
-					}
-					String condition = m.getAttribute("condition");
-					if (condition.length() == 0) condition = null;
-					String penalty = m.getAttribute("penalty");
-					String levelsPerExtra = m.getAttribute("levelsPerExtra");
-					String maxExtra = m.getAttribute("maxExtra");
-
-					if (dice != null || levelsPerExtra.length() > 0) {
-						Object baseMod = dice;
-						if (baseMod == null) baseMod = new Integer(val);
-						int perCL = 0, max = 0;
-						if (levelsPerExtra.length() > 0) perCL = Integer.parseInt(levelsPerExtra);
-						if (maxExtra.length() > 0) max = Integer.parseInt(maxExtra);
-						if (penalty.equals("true")) {
-							buff.addPenalty(stat, type, baseMod, perCL, max, condition);
-						} else {
-							buff.addBonus(stat, type, baseMod, perCL, max, condition);
-						}
-					} else {
-						buff.addFixedEffect(stat, type, val, condition);
-					}
-				}
+				parseModifiers(e, buff);
 				s.buffFactories.put(variant, buff);
 
 			} else {

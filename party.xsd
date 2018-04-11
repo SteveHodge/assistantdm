@@ -251,6 +251,7 @@
 <xs:element name="Feat">
 	<xs:complexType>
 		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="target" type="xs:string"/>
 	</xs:complexType>
 </xs:element>
 
@@ -344,6 +345,19 @@
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element ref="Buff" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ItemSlots" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ItemSlot" minOccurs="0" maxOccurs="unbounded">
+							<xs:complexType>
+								<xs:attribute name="slot" type="xs:string" use="required"/>
+								<xs:attribute name="item" type="xs:string" use="required"/>
+								<xs:attribute name="buff_id" type="xs:int"/>
+							</xs:complexType>
+						</xs:element>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>

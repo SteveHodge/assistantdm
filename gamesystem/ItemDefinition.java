@@ -5,6 +5,27 @@ import java.util.List;
 import java.util.Set;
 
 public class ItemDefinition {
+	public enum SlotType {
+		RING, HEAD, BODY, FACE, TORSO, HANDS, NECK, WAIST, ARMS, SHOULDERS, FEET;
+
+		private SlotType() {
+			description = super.toString().toLowerCase();
+		}
+
+		@Override
+		public String toString() {return description;}
+
+		// XXX brute force implementation - could keep a map
+		public static SlotType getSlot(String d) {
+			for (SlotType t : values()) {
+				if (t.description.equals(d)) return t;
+			}
+			return null;	// TODO probably better to throw an exception
+		}
+
+		private final String description;
+	}
+
 	static Set<ItemDefinition> items = new HashSet<>();
 
 	String name;
@@ -14,13 +35,22 @@ public class ItemDefinition {
 	List<Attack> attacks;
 	Armor armor;
 	Shield shield;
+	BuffFactory buff;
 
 	public String getName() {
 		return name;
 	}
 
+	public BuffFactory getBuffFactory() {
+		return buff;
+	}
+
 	@Override
 	public String toString() {
+		return name;
+	}
+
+	public String getSummary() {
 		StringBuilder s = new StringBuilder();
 		s.append(name).append(" (").append(slot).append(")");
 		if (cost != null && cost.length() > 0) s.append(" ").append(cost);
@@ -106,6 +136,16 @@ public class ItemDefinition {
 			}
 		}
 		return attacks;
+	}
+
+	public static Set<ItemDefinition> getItemsForSlot(SlotType slot) {
+		Set<ItemDefinition> items = new HashSet<>();
+		for (ItemDefinition item : ItemDefinition.items) {
+			if (slot.description.compareToIgnoreCase(item.slot) == 0) {
+				items.add(item);
+			}
+		}
+		return items;
 	}
 
 	public static ItemDefinition getItem(String name) {

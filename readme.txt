@@ -1,4 +1,9 @@
 ---=== IN PROGRESS ===---
+* Slots: xml output/parsing (done). apply effects (done). tooltips - descriptions (todo). fix up notifications - probably best to make each slot a property
+* Weapon/armor proficiencies: ui done but no effects implemented
+* Weapon focus/spec: seems to be not working
+* Auto numbers for tokens not coming through on ui
+* Modifiers with a value of 0 should be suppressed in hints and website unless they are ability score mods or BAB mod.
 * Size
 * Feat prereqs.
 * Better handling of feats and skills with specific instances (knowledges, weapon focus, etc)

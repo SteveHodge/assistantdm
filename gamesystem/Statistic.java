@@ -61,6 +61,10 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	protected final PropertyChangeListener listener = evt -> fireEvent();
 
 	public void addModifier(Modifier m) {
+		if (m == null) {
+			System.err.println("Attempted to add null modifier to " + this);
+			return;
+		}
 		//int oldValue = getValue();
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
@@ -68,6 +72,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	}
 
 	public void removeModifier(Modifier m) {
+		if (m == null) return;
 		//int oldValue = getValue();
 		modifiers.remove(m);
 		m.removePropertyChangeListener(listener);

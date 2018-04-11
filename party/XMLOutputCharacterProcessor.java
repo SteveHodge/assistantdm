@@ -5,17 +5,20 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import gamesystem.AC;
+import gamesystem.Buff;
 import gamesystem.CharacterClass.ClassOption;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
 import gamesystem.HitDiceProperty;
+import gamesystem.ItemDefinition;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
 import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock;
+import party.Character.Slot;
 
 
 public class XMLOutputCharacterProcessor extends XMLOutputHelper implements CreatureProcessor {
@@ -52,6 +55,24 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 		setAttributeFromProperty(c, creatureEl, "arcane-spell-failure", Character.PROPERTY_ARCANE_SPELL_FAILURE);
 		setAttributeFromProperty(c, creatureEl, "action-points", Character.PROPERTY_ACTION_POINTS);
 		setAttributeFromProperty(c, creatureEl, "campaign", Character.PROPERTY_CAMPAIGN);
+
+		Element slots = doc.createElement("ItemSlots");
+		for (Slot s : Character.Slot.values()) {
+			ItemDefinition item = character.getSlotItem(s);
+			if (item != null) {
+				Element el = doc.createElement("ItemSlot");
+				el.setAttribute("slot", s.name().toLowerCase());
+				el.setAttribute("item", item.getName());
+				Buff b = character.slotBuffs.get(s);
+				if (b != null) {
+					el.setAttribute("buff_id", Integer.toString(b.id));
+				}
+				slots.appendChild(el);
+			}
+		}
+		if (slots.hasChildNodes()) {
+			creatureEl.appendChild(slots);
+		}
 	}
 
 	@Override

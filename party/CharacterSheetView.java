@@ -30,6 +30,7 @@ import gamesystem.Feat.FeatDefinition;
 import gamesystem.GrappleModifier;
 import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
+import gamesystem.ItemDefinition;
 import gamesystem.Levels;
 import gamesystem.Sanity;
 import gamesystem.SavingThrow;
@@ -41,6 +42,7 @@ import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import gamesystem.core.OverridableProperty;
 import party.Character.ACComponentType;
+import party.Character.Slot;
 import util.Updater;
 
 // TODO many changes trigger several updates which causes the document to be rebuilt several times. maybe better to have the updater call back to get the document when it's ready to output the character? (though then threading issues?)
@@ -96,6 +98,7 @@ public class CharacterSheetView {
 	// TODO this should probably include all the same data as the regular save as well as additional stuff
 	class CharacterSheetProcessor extends XMLOutputCharacterProcessor {
 		Element specials;
+		Element slots;
 
 		public CharacterSheetProcessor(Document doc) {
 			super(doc);
@@ -105,12 +108,27 @@ public class CharacterSheetView {
 		public void processCreature(Creature c) {
 			super.processCreature(c);
 
+			// item slots
+			if (slots == null) {
+				slots = doc.createElement("ItemSlots");
+				creatureEl.appendChild(slots);
+			}
+			for (Slot s : Character.Slot.values()) {
+				ItemDefinition item = character.getSlotItem(s);
+				if (item != null) {
+					Element el = doc.createElement("ItemSlot");
+					el.setAttribute("slot", s.name().toLowerCase());
+					el.setAttribute("item", item.getName());
+					el.setAttribute("weight", item.getWeight());
+					slots.appendChild(el);
+				}
+			}
+
 			// class features
 			if (specials == null) {
 				specials = doc.createElement("SpecialAbilities");
 				creatureEl.appendChild(specials);
 			}
-
 			for (ClassFeature f : character.features) {
 				Element el;
 				try {
@@ -257,6 +275,8 @@ public class CharacterSheetView {
 
 			Element e = getACElement(ac);
 
+			// FIXME doesn't account for armor or shield modifiers that aren't from the armor or shield
+
 			// apply formatting to existing values
 			NodeList children = e.getChildNodes();
 			for (int i = 0; i < children.getLength(); i++) {
@@ -307,8 +327,8 @@ public class CharacterSheetView {
 			value += ac.getModifiersTotal(ACComponentType.DODGE.toString());
 			setACComponent(doc, e, ACComponentType.OTHER.toString(), value);
 			setACComponent(doc, e, "Dexterity", ac.getModifiersTotal("Dexterity"));
-			setACComponent(doc, e, "Armor", ac.getArmor().getValue());
-			setACComponent(doc, e, "Shield", ac.getShield().getValue());
+			setACComponent(doc, e, "Armor", ac.getModifiersTotal("Armor"));
+			setACComponent(doc, e, "Shield", ac.getModifiersTotal("Shield"));
 			creatureEl.appendChild(e);
 		}
 
