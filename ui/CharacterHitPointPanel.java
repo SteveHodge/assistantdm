@@ -108,7 +108,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 		tempTable.addMouseListener(rightClickListener);
 
 		// update fields when character changes
-		character.addPropertyListener("hit_points", (source, old) -> {
+		character.addPropertyListener("hit_points", e -> {
 			currHP.setValue(new Integer(hps.getHPs()));
 			updateSummaries("" + hps.getHPs() + " / " + hps.getMaxHPStat().getValue());
 		});
@@ -131,7 +131,7 @@ class CharacterHitPointPanel extends CharacterSubPanel {
 		List<Modifier> tempHPs;
 
 		private TempHPModel() {
-			hps.addPropertyListener((source, oldValue) -> updateModel());
+			hps.addPropertyListener(e -> updateModel());
 			updateModel();
 		}
 

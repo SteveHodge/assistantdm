@@ -27,16 +27,16 @@ import party.Character;
 public class PropertyFields {
 	public static JLabel createIntegerPropertyLabel(Property<Integer> property, String prefix) {
 		JLabel label = new JLabel(prefix + property.getValue());
-		property.addPropertyListener((source, oldValue) -> {
-			label.setText(prefix + source.getValue());
+		property.addPropertyListener(e -> {
+			label.setText(prefix + e.source.getValue());
 		});
 		return label;
 	}
 
 	public static JLabel createStatisticLabel(Statistic stat, String prefix) {
 		JLabel label = new JLabel(prefix + stat.getValue() + (stat.hasConditionalModifier() ? "*" : ""));
-		stat.addPropertyListener((source, oldValue) -> {
-			label.setText(prefix + source.getValue() + (stat.hasConditionalModifier() ? "*" : ""));
+		stat.addPropertyListener(e -> {
+			label.setText(prefix + e.source.getValue() + (stat.hasConditionalModifier() ? "*" : ""));
 		});
 		return label;
 	}
@@ -82,7 +82,7 @@ public class PropertyFields {
 				}
 			}
 		});
-		stat.addPropertyListener((source, old) -> {
+		stat.addPropertyListener(e -> {
 			//it's ok to do this even if this change event is due to an update from this control
 			//because setValue will not fire a change event if the property isn't actually changing
 			field.setValue(stat.getBaseValue());
@@ -109,7 +109,7 @@ public class PropertyFields {
 				}
 			}
 		});
-		property.addPropertyListener((source, old) -> {
+		property.addPropertyListener(e -> {
 			//it's ok to do this even if this change event is due to an update from this control
 			//because setValue will not fire a change event if the property isn't actually changing
 			field.setValue(property.getValue());
@@ -141,7 +141,7 @@ public class PropertyFields {
 					}
 				}
 			});
-			property.addPropertyListener((source, old) -> {
+			property.addPropertyListener(e -> {
 				//it's ok to do this even if this change event is due to an update from this control
 				//because setValue will not fire a change event if the property isn't actually changing
 				setValue(property.getValue());
@@ -198,7 +198,7 @@ public class PropertyFields {
 
 			});
 
-			property.addPropertyListener((source, old) -> {
+			property.addPropertyListener(e -> {
 				//System.out.println("Notified "+BoundTextField.this.hashCode()+", setting value to "+creature.getProperty(property));
 				// we might get notified from the result of our own update (e.g. if there is another BoundTextField bound to the same property)
 				// if we try to set the text in this case it will cause an exception, so we set a flag

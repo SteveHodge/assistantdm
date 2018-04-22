@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gamesystem.core.AbstractProperty;
+import gamesystem.core.PropertyValueEvent;
 import gamesystem.core.PropertyCollection;
 import gamesystem.dice.HDDice;
 
@@ -47,7 +48,7 @@ public class Race extends AbstractProperty<String> {
 		if (type == t) return;
 		String old = toString();
 		type = t;
-		fireEvent(old);
+		fireEvent(new PropertyValueEvent<>(this, old));
 	}
 
 	public boolean hasSubtype(String t) {
@@ -57,7 +58,7 @@ public class Race extends AbstractProperty<String> {
 	public void addSubtype(String s) {
 		String old = toString();
 		subtypes.add(s);
-		fireEvent(old);
+		fireEvent(new PropertyValueEvent<>(this, old));
 	}
 
 	// Returns the original type as specified in the "Augmented..." subtype, if any
@@ -98,13 +99,13 @@ public class Race extends AbstractProperty<String> {
 		//System.out.println("Setting racial hitdice to " + hd);
 		String old = toString();
 		hitDice = hd;
-		fireEvent(old);
+		fireEvent(new PropertyValueEvent<>(this, old));
 	}
 
 	public void setHitDiceCount(int count) {
 		String old = toString();
 		hitDice = new HDDice(count, hitDice.getType(), hitDice.getConstant());
 		// TODO add any additional dice?
-		fireEvent(old);
+		fireEvent(new PropertyValueEvent<>(this, old));
 	}
 }

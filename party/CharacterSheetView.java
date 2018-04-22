@@ -41,6 +41,8 @@ import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import gamesystem.core.OverridableProperty;
+import gamesystem.core.PropertyEvent;
+import gamesystem.core.PropertyListener;
 import party.Character.ACComponentType;
 import party.Character.Slot;
 import util.Updater;
@@ -51,14 +53,18 @@ public class CharacterSheetView {
 	private Character character;
 	private boolean autosave = false;
 
+	@SuppressWarnings("rawtypes")
 	public CharacterSheetView(Character c, boolean auto) {
 		character = c;
 		autosave = auto;
 
-		character.addPropertyListener("", (source, old) -> {
-			if (autosave) {
-				System.out.println("Autosave trigger by change to " + source.getName());
-				saveCharacterSheet();
+		character.addPropertyListener("", new PropertyListener() {
+			@Override
+			public void propertyChanged(PropertyEvent e) {
+				if (autosave) {
+					System.out.println("Autosave trigger by change to " + e.source.getName());
+					saveCharacterSheet();
+				}
 			}
 		});
 	}

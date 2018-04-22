@@ -16,6 +16,7 @@ import gamesystem.CharacterClass.ClassOption;
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.Property;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEvent;
 import gamesystem.core.PropertyListener;
 import gamesystem.core.SimpleValueProperty;
 import swing.ListModelWithToolTips;
@@ -103,7 +104,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	protected Sanity sanity;
 
 	protected Map<String, Property<?>> properties = new HashMap<>();
-	protected Map<String, List<PropertyListener<?>>> listeners = new HashMap<>();
+	protected Map<String, List<PropertyListener>> listeners = new HashMap<>();
 
 	@SuppressWarnings("serial")
 	public class BuffListModel<T> extends DefaultListModel<T> implements ListModelWithToolTips<T> {
@@ -162,18 +163,18 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void addProperty(Property<T> property) {
+	public void addProperty(Property<?> property) {
 		properties.put(property.getName(), property);
 	}
 
 	@Override
-	public <T> void fireEvent(Property<T> source, T oldValue) {
-		String propName = source.getName();
+	public void fireEvent(PropertyEvent event) {
+		String propName = event.source.getName();
 		while (true) {
-			List<PropertyListener<?>> list = listeners.get(propName);
+			List<PropertyListener> list = listeners.get(propName);
 			if (list != null) {
-				for (PropertyListener<?> l : list) {
-					((PropertyListener<T>) l).propertyChanged(source, oldValue);
+				for (PropertyListener l : list) {
+					l.propertyChanged(event);
 				}
 			}
 			if (propName.equals("")) break;
@@ -186,9 +187,9 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public void addPropertyListener(String propName, PropertyListener<?> l) {
+	public void addPropertyListener(String propName, PropertyListener l) {
 		// TODO argument checking: check l is not null
-		List<PropertyListener<?>> list = listeners.get(propName);
+		List<PropertyListener> list = listeners.get(propName);
 		if (list == null) {
 			list = new ArrayList<>();
 			listeners.put(propName, list);
@@ -197,28 +198,22 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	@Override
-	public <T> void addPropertyListener(Property<T> property, PropertyListener<T> l) {
-		// TODO argument checking: check property is in this object, l is not null
-		List<PropertyListener<?>> list = listeners.get(property.getName());
-		if (list == null) {
-			list = new ArrayList<>();
-			listeners.put(property.getName(), list);
-		}
-		list.add(l);
+	public void addPropertyListener(Property<?> property, PropertyListener l) {
+		addPropertyListener(property.getName(), l);
 	}
 
 	@Override
-	public void removePropertyListener(String propName, PropertyListener<?> l) {
+	public void removePropertyListener(String propName, PropertyListener l) {
 		Property<?> property = getProperty(propName);
 		if (property == null) return;
-		List<PropertyListener<?>> list = listeners.get(property);
+		List<PropertyListener> list = listeners.get(property);
 		if (list == null) return;
 		list.remove(l);
 	}
 
 	@Override
-	public <T> void removePropertyListener(Property<T> property, PropertyListener<T> l) {
-		List<PropertyListener<?>> list = listeners.get(property);
+	public void removePropertyListener(Property<?> property, PropertyListener l) {
+		List<PropertyListener> list = listeners.get(property);
 		if (list == null) return;
 		list.remove(l);
 	}
@@ -480,7 +475,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		}
 		if (property instanceof SimpleValueProperty) {
 //			System.out.println("Setting adhoc property " + prop + " to '" + value + "'");
-			((SimpleValueProperty)property).setValue(value);
+			((SimpleValueProperty<String>) property).setValue(value);
 		} else {
 			System.err.println("Can't set value on " + property);
 		}

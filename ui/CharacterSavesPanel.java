@@ -15,8 +15,6 @@ import javax.swing.SwingUtilities;
 import gamesystem.AbilityScore;
 import gamesystem.Creature;
 import gamesystem.SavingThrow;
-import gamesystem.core.PropertyListener;
-import gamesystem.core.Property;
 import party.Character;
 import swing.NullableIntegerFieldFactory;
 
@@ -126,38 +124,32 @@ class CharacterSavesPanel extends CharacterSubPanel {
 			}
 		});
 
-		character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
-			@Override
-			public void propertyChanged(Property<Integer> source, Integer oldValue) {
-				if (source instanceof AbilityScore) {
-					AbilityScore.Type type = ((AbilityScore) source).getType();
-					for (int i = 0; i < 3; i++) {
-						if (type.equals(SavingThrow.Type.values()[i].getAbilityType())) {
-							//System.out.println("Ability "+prop+" modified for save "+SavingThrow.Type.values()[i].getAbilityType().toString());
-							modLabels[i].setText("" + character.getAbilityStatistic(SavingThrow.Type.values()[i].getAbilityType()).getModifierValue());
-						}
+		character.addPropertyListener("ability_scores", e -> {
+			if (e.source instanceof AbilityScore) {
+				AbilityScore.Type type = ((AbilityScore) e.source).getType();
+				for (int i = 0; i < 3; i++) {
+					if (type.equals(SavingThrow.Type.values()[i].getAbilityType())) {
+						//System.out.println("Ability "+prop+" modified for save "+SavingThrow.Type.values()[i].getAbilityType().toString());
+						modLabels[i].setText("" + character.getAbilityStatistic(SavingThrow.Type.values()[i].getAbilityType()).getModifierValue());
 					}
 				}
 			}
 		});
 
-		character.addPropertyListener("saving_throws", new PropertyListener<Integer>() {
-			@Override
-			public void propertyChanged(Property<Integer> source, Integer oldValue) {
-				for (int i = 0; i < 3; i++) {
-					if (stats[i] == source) {
-						baseLabels[i].setText(Integer.toString(stats[i].getCalculatedBase()));
-						if (stats[i].getBaseOverride() == -1) {
-							overrideFields[i].setText("");
-						} else {
-							overrideFields[i].setValue(stats[i].getBaseOverride());
-						}
-						totalLabels[i].setText(""+stats[i].getValue()+(stats[i].hasConditionalModifier()?"*":""));
+		character.addPropertyListener("saving_throws", e -> {
+			for (int i = 0; i < 3; i++) {
+				if (stats[i] == e.source) {
+					baseLabels[i].setText(Integer.toString(stats[i].getCalculatedBase()));
+					if (stats[i].getBaseOverride() == -1) {
+						overrideFields[i].setText("");
+					} else {
+						overrideFields[i].setValue(stats[i].getBaseOverride());
 					}
+					totalLabels[i].setText(""+stats[i].getValue()+(stats[i].hasConditionalModifier()?"*":""));
 				}
-				updateToolTips();
-				updateSummaries(getSummary());
 			}
+			updateToolTips();
+			updateSummaries(getSummary());
 		});
 
 		updateToolTips();

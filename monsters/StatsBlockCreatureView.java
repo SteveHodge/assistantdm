@@ -48,34 +48,35 @@ public class StatsBlockCreatureView {
 
 	private StatsBlockCreatureView(Monster c) {
 		creature = c;
-		creature.addPropertyListener("", (source, old) -> SwingUtilities.invokeLater(() -> {
+		creature.addPropertyListener("", e ->
+		SwingUtilities.invokeLater(() -> {
 			// FIXME test this is right
 			// XXX seem to need to invokeLater() but I don't think it should be necessary
 			// TODO recheck without invokeLater - perhaps the issue was caused by multiple view instances
-			pcs.firePropertyChange(source.getName(), old, source.getValue());
+			pcs.firePropertyChange(e.source.getName(), null, e.source.getValue());
 
 			// need to generate events for the fields that are built from statistics
 			// TODO need to handle attacks somehow
-			if (source.equals(c.getInitiativeStatistic())) {
+			if (e.source.equals(c.getInitiativeStatistic())) {
 				pcs.firePropertyChange(Field.INITIATIVE.name(), null, getField(Field.INITIATIVE));
-			} else if (source.getName().startsWith("ac")) {
+			} else if (e.source.getName().startsWith("ac")) {
 				pcs.firePropertyChange(Field.AC.name(), null, getField(Field.AC));
-			} else if (source.getName().startsWith("ability_score")) {
+			} else if (e.source.getName().startsWith("ability_score")) {
 				pcs.firePropertyChange(Field.ABILITIES.name(), null, getField(Field.ABILITIES));
-			} else if (source.getName().startsWith("saving_throw")) {
+			} else if (e.source.getName().startsWith("saving_throw")) {
 				pcs.firePropertyChange(Field.SAVES.name(), null, getField(Field.SAVES));
-			} else if (source.equals(creature.getSizeStatistic())) {
+			} else if (e.source.equals(creature.getSizeStatistic())) {
 				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
-			} else if (source.equals(creature.getHPStatistic()) || source.equals(creature.getHPStatistic().getMaxHPStat())) {
+			} else if (e.source.equals(creature.getHPStatistic()) || e.source.equals(creature.getHPStatistic().getMaxHPStat())) {
 				pcs.firePropertyChange(Field.HITDICE.name(), null, getField(Field.HITDICE));
-			} else if (source.equals(creature.getBAB())) {
+			} else if (e.source.equals(creature.getBAB())) {
 				pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
 				pcs.firePropertyChange(Field.ATTACK.name(), null, getField(Field.ATTACK));
 				pcs.firePropertyChange(Field.FULL_ATTACK.name(), null, getField(Field.FULL_ATTACK));
-			} else if (source.getName().equals("name")) {
+			} else if (e.source.getName().equals("name")) {
 				pcs.firePropertyChange(Field.NAME.name(), null, getField(Field.NAME));
 			} else {
-				System.out.println("StatsBlockCreatureview Unused update to " + source);
+				System.out.println("StatsBlockCreatureview Unused update to " + e.source);
 			}
 		}));
 	}
@@ -511,9 +512,9 @@ public class StatsBlockCreatureView {
 		}
 	}
 
-	// returns true if the calculated field is apparently the same as the field from the original block.
-	// several common alternate characters are treated as equal (e.g. various dashes and minus, commas
-	// and semicolons, etc). Special cases are included for certain fields.
+// returns true if the calculated field is apparently the same as the field from the original block.
+// several common alternate characters are treated as equal (e.g. various dashes and minus, commas
+// and semicolons, etc). Special cases are included for certain fields.
 	private boolean isEquivalent(Field field, String calculated) {
 		StatisticsBlock stats = creature.statisticsBlock;
 

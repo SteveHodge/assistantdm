@@ -203,13 +203,11 @@ public class RestDialog extends JDialog {
 			group.add(fourLTCButton);
 			sanityCheck.setSelected(true);
 
-			c.getHPStatistic().addPropertyListener((source, oldValue) -> {
+			c.getHPStatistic().addPropertyListener(e -> {
 				hpLabel.setText(c.getHPStatistic().getShortSummary());
 			});
 
-			c.addPropertyListener("name", (source, old) -> {
-				nameLabel.setText(c.getName());
-			});
+			c.addPropertyListener("name", e -> nameLabel.setText(c.getName()));
 		}
 	}
 }

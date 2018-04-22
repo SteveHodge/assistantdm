@@ -32,7 +32,7 @@ import gamesystem.AbilityScore;
 import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.Sanity;
-import gamesystem.core.Property;
+import gamesystem.core.PropertyEvent;
 import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.JTableWithToolTips;
@@ -184,7 +184,7 @@ public class CharacterDamagePanel extends JPanel {
 
 		public HPPanel(HPs hps) {
 			this.hps = hps;
-			hps.addPropertyListener((source, old) -> updateSummary());
+			hps.addPropertyListener(e -> updateSummary());
 
 			setBorder(BorderFactory.createTitledBorder("Hit Points"));
 
@@ -337,13 +337,13 @@ public class CharacterDamagePanel extends JPanel {
 
 		private class AbilityTableModel extends AbstractTableModel implements TableModelWithToolTips {
 			public AbilityTableModel() {
-				creature.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
+				creature.addPropertyListener("ability_scores", new PropertyListener() {
 					@Override
-					public void propertyChanged(Property<Integer> source, Integer oldValue) {
+					public void propertyChanged(PropertyEvent e) {
 						// this is a bit hackish as there is currently no good way to find the ability score or type from the drain and damage properties
 						for (int i = 0; i < 6; i++) {
 							AbilityScore a = getAbility(i);
-							if (a == source || a.getDamage() == source || a.getDrain() == source) {
+							if (a == e.source || a.getDamage() == e.source || a.getDrain() == e.source) {
 								fireTableRowsUpdated(i, i);
 							}
 						}

@@ -49,7 +49,6 @@ import combat.MonsterCombatEntry;
 import digital_table.controller.ControllerFrame;
 import gamesystem.Creature;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.Property;
 import monsters.StatisticsBlock.Field;
 import util.ModuleRegistry;
 import util.XMLUtils;
@@ -523,13 +522,10 @@ public class EncounterDialog extends JFrame {
 			return monsters.size();
 		}
 
-		private PropertyListener<Object> listener = new PropertyListener<Object>() {
-			@Override
-			public void propertyChanged(Property<Object> source, Object oldValue) {
-				int idx = monsters.indexOf(source.getParent());
-				if (idx != -1) {
-					fireContentsChanged(this, idx, idx);
-				}
+		private PropertyListener listener = e -> {
+			int idx = monsters.indexOf(e.source.getParent());
+			if (idx != -1) {
+				fireContentsChanged(this, idx, idx);
 			}
 		};
 	}

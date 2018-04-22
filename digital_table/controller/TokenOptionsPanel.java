@@ -44,7 +44,6 @@ import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.Size;
 import gamesystem.SizeCategory;
-import gamesystem.core.Property;
 import gamesystem.core.PropertyListener;
 import util.ModuleRegistry;
 
@@ -379,23 +378,15 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		display.setProperty(element, Group.PROPERTY_Y, p.getY() - o.getY());
 	}
 
-	private PropertyListener<Integer> hpListener = new PropertyListener<Integer>() {
-		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
-			updateHPs();
-		}
-	};
+	private PropertyListener hpListener = e -> updateHPs();
 
-	private PropertyListener<Integer> sizeListener = new PropertyListener<Integer>() {
-		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
-			Size size = creature.getSizeStatistic();
-			sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach().getValue()));
-			spaceField.setText("" + ((float) size.getSpace().getValue()) / 2);
-			display.setProperty(element, Token.PROPERTY_SPACE, size.getSpace().getValue());
-			reachField.setText("" + size.getReach().getValue());
-			display.setProperty(element, Token.PROPERTY_REACH, size.getReach().getValue());
-		}
+	private PropertyListener sizeListener = e -> {
+		Size size = creature.getSizeStatistic();
+		sizeCombo.setSelectedItem(CreatureSize.getSize(size.getSize(), size.getReach().getValue()));
+		spaceField.setText("" + ((float) size.getSpace().getValue()) / 2);
+		display.setProperty(element, Token.PROPERTY_SPACE, size.getSpace().getValue());
+		reachField.setText("" + size.getReach().getValue());
+		display.setProperty(element, Token.PROPERTY_REACH, size.getReach().getValue());
 	};
 
 	private void updateFloatingStatus() {

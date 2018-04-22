@@ -227,7 +227,7 @@ class HitPointsPanel extends DetailPanel {
 		update();
 	}
 
-	private PropertyListener<Integer> hpListener = (source, oldValue) -> update();
+	private PropertyListener hpListener = e -> update();
 
 	private void update() {
 		if (creature != null) {

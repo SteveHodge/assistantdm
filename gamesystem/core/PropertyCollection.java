@@ -1,19 +1,19 @@
 package gamesystem.core;
 
 public interface PropertyCollection {
-	public void addPropertyListener(String propName, PropertyListener<?> l);
+	public void addPropertyListener(String propName, PropertyListener l);
 
-	public <T> void addPropertyListener(Property<T> property, PropertyListener<T> l);
+	public void addPropertyListener(Property<?> property, PropertyListener l);
 
-	public void removePropertyListener(String propName, PropertyListener<?> l);
+	public void removePropertyListener(String propName, PropertyListener l);
 
-	public <T> void removePropertyListener(Property<T> property, PropertyListener<T> l);
+	public void removePropertyListener(Property<?> property, PropertyListener l);
 
 	public Property<?> getProperty(String name);
 
 	// XXX move this stuff to another interface as it should only be called by Property objects?
 
-	public <T> void addProperty(Property<T> property);
+	public void addProperty(Property<?> property);
 
-	public <T> void fireEvent(Property<T> source, T oldValue);
+	public void fireEvent(PropertyEvent event);
 }

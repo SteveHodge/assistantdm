@@ -77,7 +77,7 @@ public class CharacterAttackForm {
 		character = c;
 		attack = a;
 		attack.natural = false;	// character attacks are currently always manufactured
-		attack.addPropertyListener((source, old) -> pcs.firePropertyChange(source.getName(), old, source.getValue()));
+		attack.addPropertyListener(e -> pcs.firePropertyChange(e.source.getName(), null, e.source.getValue()));
 		this.id = id;
 	}
 

@@ -29,7 +29,6 @@ import digital_table.controller.TokenOptionsPanel;
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
 import gamesystem.core.PropertyListener;
-import gamesystem.core.Property;
 import swing.ImagePanel;
 
 @SuppressWarnings("serial")
@@ -216,12 +215,9 @@ class NamePanel extends DetailPanel {
 		}
 	}
 
-	final private PropertyListener<Object> listener = new PropertyListener<Object>() {
-		@Override
-		public void propertyChanged(Property<Object> source, Object oldValue) {
-			if (!nameField.getText().equals(source.getValue().toString())) {
-				nameField.setText(source.getValue().toString());
-			}
+	final private PropertyListener listener = e -> {
+		if (!nameField.getText().equals(e.source.getValue().toString())) {
+			nameField.setText(e.source.getValue().toString());
 		}
 	};
 }

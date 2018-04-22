@@ -41,11 +41,11 @@ class CharacterInitiativePanel extends CharacterSubPanel {
 		updateToolTip();
 
 		// update labels when character changes
-		character.addPropertyListener(init, (source, old) -> {
+		character.addPropertyListener(init, e -> {
 			updateToolTip();
 			updateSummaries((init.getValue() >= 0 ? "+" : "") + init.getValue());
 		});
-		character.addPropertyListener(character.getAbilityStatistic(AbilityScore.Type.DEXTERITY), (source, old) -> {
+		character.addPropertyListener(character.getAbilityStatistic(AbilityScore.Type.DEXTERITY), e -> {
 			dexLabel.setText("Dex Mod: " + character.getAbilityStatistic(AbilityScore.Type.DEXTERITY).getModifierValue());
 		});
 	}

@@ -14,6 +14,8 @@ import javax.swing.event.ListDataListener;
 
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.StatisticEvent;
+import gamesystem.core.StatisticEvent.EventType;
 import gamesystem.dice.CombinedDice;
 import party.Character;
 
@@ -84,8 +86,8 @@ public class Attacks extends Statistic {
 		}
 		ac = creature.getACStatistic();
 		bab = creature.getBAB();
-		bab.addPropertyListener((source, oldValue) -> {
-			fireEvent();	// may have been fired by the power attack or combate expertise, but maybe not
+		bab.addPropertyListener(e -> {
+			fireEvent();	// may have been fired by the power attack or combat expertise, but maybe not
 		});
 
 		strMod = creature.getAbilityModifier(AbilityScore.Type.STRENGTH);
@@ -97,18 +99,8 @@ public class Attacks extends Statistic {
 		addModifier(c.getSizeStatistic().getSizeModifier());
 	}
 
-	@Override
-	protected void fireEvent() {
-		super.fireEvent();
-		for (AttackForm a : attackForms) {
-			// TODO get rid of this eventually
-			a.refireEvent();
-		}
-	}
-
-	@Override
-	protected void fireEvent(Integer oldVal) {
-		super.fireEvent(oldVal);
+	private void fireEvent() {
+		super.fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));	// FIXME not really the right event type
 		for (AttackForm a : attackForms) {
 			// TODO get rid of this eventually
 			a.refireEvent();
@@ -453,7 +445,7 @@ public class Attacks extends Statistic {
 		}
 
 		public void refireEvent() {
-			fireEvent();
+			fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 		}
 
 		// convenient passthrough of Attacks method:
@@ -521,7 +513,7 @@ public class Attacks extends Statistic {
 		// expects format acceptable to CombinedDice.parse()
 		public void setBaseDamage(String s) {
 			damage = CombinedDice.parse(s);
-			fireEvent();
+			fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 		}
 
 		public String getDamage() {

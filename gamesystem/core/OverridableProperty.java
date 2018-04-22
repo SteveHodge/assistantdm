@@ -2,7 +2,7 @@ package gamesystem.core;
 
 import java.util.List;
 
-/* An OverridableProperty represents a single value that is overridable and that notifies interested parties of changes.
+/* An OverridableProperty represents a single value that is overrieable and that notifies interested parties of changes.
  * An OverridableProperty can have one of more override values, the last override value applied is reported as the OverridableProperty's
  * current value.
  * Two types of event are reported: valueChanged when the current value of the Property has changed and

@@ -1,6 +1,8 @@
 package gamesystem;
 
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.StatisticEvent;
+import gamesystem.core.StatisticEvent.EventType;
 
 /*
  * It is debatable as to whether modifiers to attack should apply to grapple. Skip Williams wrote an article on grapple for wizards.com that implied that they do and
@@ -18,8 +20,8 @@ public class GrappleModifier extends Statistic {
 
 		if (bab != null) {
 			this.bab = bab;
-			bab.addPropertyListener((source, oldValue) -> {
-				fireEvent();
+			bab.addPropertyListener(e -> {
+				fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 			});
 		}
 

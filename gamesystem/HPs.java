@@ -9,8 +9,9 @@ import java.util.Map;
 
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.SettableProperty;
 import gamesystem.core.SimpleValueProperty;
+import gamesystem.core.StatisticEvent;
+import gamesystem.core.StatisticEvent.EventType;
 
 
 // XXX change temp hitpoints to a property
@@ -109,23 +110,23 @@ public class HPs extends Statistic {
 			super("hit_points.max_hps", "Max Hit Points", parent);
 
 			hitdice = hd;
-			hitdice.addPropertyListener((source, oldValue) -> {
+			hitdice.addPropertyListener(e -> {
 				if (override != null && override.equals(getRegularValue())) {
 					override = null;	// XXX not sure if it's best to remove override if it now matches the correct value
 				}
-				this.fireEvent();
+				fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 			});
 		}
 
 		@Override
 		public OverridableProperty.PropertyValue<Integer> addOverride(Integer val) {
-			Integer old = getValue();
+//			Integer old = getValue();
 			if (val == null || val.equals(getRegularValue())) {
 				override = null;	// TODO removing override should be done through removeOverride method - remove this hack when overrides are properly suported in the ui and implemented in statistic
 			} else {
 				override = val;
 			}
-			fireEvent(old);
+			fireEvent(new StatisticEvent(this, EventType.OVERRIDE_ADDED));
 			return new PropertyValue<Integer>(val);
 		}
 
@@ -161,11 +162,11 @@ public class HPs extends Statistic {
 		return maxHPs;
 	}
 
-	public SettableProperty<Integer> getWoundsProperty() {
+	public SimpleValueProperty<Integer> getWoundsProperty() {
 		return wounds;
 	}
 
-	public SettableProperty<Integer> getNonLethalProperty() {
+	public SimpleValueProperty<Integer> getNonLethalProperty() {
 		return nonLethal;
 	}
 
@@ -183,7 +184,7 @@ public class HPs extends Statistic {
 	}
 
 	public void applyHealing(int heal) {
-		int oldHPs = getHPs();
+//		int oldHPs = getHPs();
 //		int oldWounds = wounds;
 //		int oldNL = nonLethal;
 
@@ -199,7 +200,7 @@ public class HPs extends Statistic {
 			wounds.setValue(0);
 		}
 
-		fireEvent(oldHPs);
+		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 	}
 
 	// dmg should be > 0
@@ -207,7 +208,7 @@ public class HPs extends Statistic {
 	public void applyDamage(int dmg) {
 		// remove damage from temporary hitpoint first:
 		// while there is damage remaining to be allocated and temphps to allocate them to:
-		int oldHPs = getHPs();
+//		int oldHPs = getHPs();
 		while (dmg > 0 && tempHPs.size() > 0) {
 			// find the first active temphps
 			TempHPs selected = null;
@@ -243,7 +244,7 @@ public class HPs extends Statistic {
 
 		}
 		// notify of change to temphps
-		fireEvent(oldHPs);
+		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 
 		// apply any remaining damage as wounds
 		if (dmg > 0) wounds.setValue(wounds.getValue() + dmg);
@@ -255,7 +256,7 @@ public class HPs extends Statistic {
 	}
 
 	Modifier addTemporaryHPs(TempHPs temps) {
-		int old = getHPs();
+//		int old = getHPs();
 
 		// find the highest instance of this source - that instance is active, all others with the same source are inactive
 		TempHPs best = temps;
@@ -271,13 +272,13 @@ public class HPs extends Statistic {
 		best.active = true;
 
 		tempHPs.add(temps);
-		fireEvent(old);
+		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 		return temps;
 	}
 
 	// assumes the source of the modifier knows it is being removed
 	private void removeTemporaryHPs(Modifier hps) {
-		int old = getHPs();
+//		int old = getHPs();
 		if (tempHPs.remove(hps)) {
 			TempHPs removed = (TempHPs)hps;
 			if (removed.active) {
@@ -291,7 +292,7 @@ public class HPs extends Statistic {
 					}
 				}
 				if (best != null) best.active = true;
-				fireEvent(old);
+				fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 			}
 		}
 	}

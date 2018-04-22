@@ -87,7 +87,7 @@ public class CharacterClassesPanel extends CharacterSubPanel {
 		public ClassListTableModel() {
 			currentLevel = level.getLevel();
 
-			level.addPropertyListener((source, oldValue) -> {
+			level.addPropertyListener(e -> {
 				int old = currentLevel;
 				currentLevel = character.getLevel();
 				if (currentLevel > old) {

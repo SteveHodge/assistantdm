@@ -2,7 +2,10 @@ package gamesystem;
 
 import gamesystem.core.AbstractOverridableProperty;
 import gamesystem.core.OverridableProperty;
+import gamesystem.core.OverridablePropertyEvent;
+import gamesystem.core.OverridablePropertyEvent.EventType;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.StatisticEvent;
 
 // TODO need to store certain size related characteristics of creatures: whether they are tall or long (for reach), and whether they count as quadrupeds for carrying capacity
 public class Size extends Statistic {
@@ -63,7 +66,7 @@ public class Size extends Statistic {
 	public void addModifier(Modifier m) {
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
-		fireEvent();
+		fireEvent(new StatisticEvent(this, StatisticEvent.EventType.MODIFIER_ADDED));
 	}
 
 	// TODO should probably replace the modifier with an ImmutableModifier of enhancement type
@@ -71,7 +74,7 @@ public class Size extends Statistic {
 	public void removeModifier(Modifier m) {
 		modifiers.remove(m);
 		m.removePropertyChangeListener(listener);
-		fireEvent();
+		fireEvent(new StatisticEvent(this, StatisticEvent.EventType.MODIFIER_REMOVED));
 	}
 
 	public SizeCategory getBaseSize() {
@@ -86,7 +89,7 @@ public class Size extends Statistic {
 	public void setBaseSize(SizeCategory size) {
 		if (size == null) throw new NullPointerException("Size cannot be set to null");
 		category = size;
-		fireEvent();
+		fireEvent(new StatisticEvent(this, StatisticEvent.EventType.TOTAL_CHANGED));
 	}
 
 	public OverridableProperty<Integer> getSpace() {
@@ -101,19 +104,19 @@ public class Size extends Statistic {
 		if (s < 0) throw new IllegalArgumentException("Space cannot be negative: " + s);
 		int old = space.getValue();
 		spaceValue = s;
-		parent.fireEvent(space, old);
+		parent.fireEvent(new OverridablePropertyEvent<>(space, EventType.REGULAR_VALUE_CHANGED, old));
 	}
 
 	public void setBaseReach(int r) {
 		if (r < 0) throw new IllegalArgumentException("Reach cannot be negative: " + r);
 		int old = reach.getValue();
 		reachValue = r;
-		parent.fireEvent(reach, old);
+		parent.fireEvent(new OverridablePropertyEvent<>(reach, EventType.REGULAR_VALUE_CHANGED, old));
 	}
 
 	protected abstract class SizeModifier extends AbstractModifier {
 		public SizeModifier() {
-			Size.this.addPropertyListener((source, old) -> pcs.firePropertyChange("value", null, getModifier()));
+			Size.this.addPropertyListener(e -> pcs.firePropertyChange("value", null, getModifier()));
 		}
 
 		@Override

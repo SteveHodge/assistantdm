@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.StatisticEvent;
+import gamesystem.core.StatisticEvent.EventType;
 
 /*
  * Skills is a compound Statistic - it represents all possible skills for a creature. Modifiers can be added to this class,
@@ -56,7 +58,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 
 	Set<SynergyModifier> synergyMods = new HashSet<>();	// the synergy modifiers that have been applied
 
-	final protected PropertyChangeListener modifierListener = evt -> fireEvent();	// for ability modifier changes. sends event to indicate all skills need updating
+	final protected PropertyChangeListener modifierListener = evt -> fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));	// for ability modifier changes. sends event to indicate all skills need updating
 
 	public Skills(Collection<AbilityScore> abilities, Modifier acp, PropertyCollection parent) {
 		super("skills", "Skills", parent);
@@ -92,7 +94,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 			//int oldValue = getValue(s);
 			skill.ranks = r;
 			updateSynergies(skill);
-			parent.fireEvent(skill, null);
+			fireEvent(new StatisticEvent(skill, EventType.TOTAL_CHANGED));
 		}
 	}
 
@@ -216,7 +218,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		//int oldValue = getValue(s);
 		m.addPropertyChangeListener(listener);
 		skill.modifiers.add(m);
-		parent.fireEvent(skill, null);
+		fireEvent(new StatisticEvent(skill, EventType.MODIFIER_ADDED));
 	}
 
 	public void removeModifier(SkillType s, Modifier m) {
@@ -226,7 +228,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		//int oldValue = getValue(s);
 		skill.modifiers.remove(m);
 		m.removePropertyChangeListener(listener);
-		parent.fireEvent(skill, null);
+		fireEvent(new StatisticEvent(skill, EventType.MODIFIER_REMOVED));
 	}
 
 	// returns all skills with ranks > 0
@@ -286,7 +288,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		public void setRanks(float r) {
 			ranks = r;
 			updateSynergies(this);
-			fireEvent();
+			fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 		}
 
 		@Override

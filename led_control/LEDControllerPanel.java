@@ -32,8 +32,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import gamesystem.HPs;
-import gamesystem.core.PropertyListener;
-import gamesystem.core.Property;
 import party.Character;
 import party.Party;
 import party.PartyXMLPlugin;
@@ -285,11 +283,8 @@ public class LEDControllerPanel extends JPanel implements PartyXMLPlugin {
 		Region r = new Region(regions.size(), true, 0, 0, p);
 		regions.add(r);
 		regionMap.put(c, r);
-		c.addPropertyListener(c.getHPStatistic(), new PropertyListener<Integer>() {
-			@Override
-			public void propertyChanged(Property<Integer> source, Integer oldValue) {
-				updateCharacter(c, false);
-			}
+		c.addPropertyListener(c.getHPStatistic(), e -> {
+			updateCharacter(c, false);
 		});
 		return r;
 	}

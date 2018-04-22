@@ -15,7 +15,6 @@ import javax.swing.table.AbstractTableModel;
 import gamesystem.SavingThrow;
 import gamesystem.SkillType;
 import gamesystem.Skills.Skill;
-import gamesystem.core.Property;
 import gamesystem.core.PropertyListener;
 import party.Character;
 import party.Party;
@@ -101,25 +100,19 @@ public class RollsPanel extends JPanel implements PartyListener {
 		reset();
 	}
 
-	PropertyListener<Integer> skillListener = new PropertyListener<Integer>() {
-		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
-			if (source instanceof Skill) {
-				Skill skill = (Skill) source;
-				if (!model.skillChange(skill.getSkillType())) reset();
-			}
+	PropertyListener skillListener = e -> {
+		if (e.source instanceof Skill) {
+			Skill skill = (Skill) e.source;
+			if (!model.skillChange(skill.getSkillType())) reset();
 		}
 	};
 
-	PropertyListener<Integer> saveListener = new PropertyListener<Integer>() {
-		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
-			if (source instanceof SavingThrow) {
-				SavingThrow save = (SavingThrow) source;
-				for (int i = 0; i < 3; i++) {
-					if (save.getType() == SavingThrow.Type.values()[i]) {
-						model.saveChange(i);
-					}
+	PropertyListener saveListener = e -> {
+		if (e.source instanceof SavingThrow) {
+			SavingThrow save = (SavingThrow) e.source;
+			for (int i = 0; i < 3; i++) {
+				if (save.getType() == SavingThrow.Type.values()[i]) {
+					model.saveChange(i);
 				}
 			}
 		}

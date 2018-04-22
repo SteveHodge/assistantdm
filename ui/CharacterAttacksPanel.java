@@ -34,15 +34,13 @@ import gamesystem.Creature;
 import gamesystem.Feat;
 import gamesystem.Modifier;
 import gamesystem.core.OverridableProperty;
-import gamesystem.core.PropertyListener;
-import gamesystem.core.Property;
 import party.Character;
 import party.CharacterAttackForm;
 import swing.NullableIntegerFieldFactory;
 
 // TODO make power attack and combat expertise filtered/numeric fields or combos or cycles
 @SuppressWarnings("serial")
-class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListener<Integer> {
+class CharacterAttacksPanel extends CharacterSubPanel {
 	private JFormattedTextField BAB;
 	private JLabel babLabel = new JLabel();
 	private JLabel strLabel = new JLabel();
@@ -72,7 +70,14 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 
 		updateToolTip();
 		// update labels when character changes
-		attacks.addPropertyListener(this);
+		attacks.addPropertyListener(e -> {
+			// we rely on the attack to tell us about feat and ability changes indirectly
+			// TODO maybe better to directly listen?
+			updateOptions();
+			updateLabels();
+			updateToolTip();
+			updateSummaries(getSummary());
+		});
 
 		addMouseListener(rightClickListener);
 
@@ -509,16 +514,6 @@ class CharacterAttacksPanel extends CharacterSubPanel implements PropertyListene
 		s.append("   Ranged ");
 		s.append(attacks.getAttacksDescription(attacks.getRangedValue()));
 		return s.toString();
-	}
-
-	// we rely on the attack to tell us about feat and ability changes indirectly
-	// TODO maybe better to directly listen?
-	@Override
-	public void propertyChanged(Property<Integer> source, Integer old) {
-		updateOptions();
-		updateLabels();
-		updateToolTip();
-		updateSummaries(getSummary());
 	}
 
 	// ------------ Attack forms / weapons list related ------------

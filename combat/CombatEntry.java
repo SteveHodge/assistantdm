@@ -59,13 +59,13 @@ abstract public class CombatEntry extends JPanel implements PropertyChangeListen
 	CombatEntry(Creature c) {
 		creature = c;
 		hps = c.getHPStatistic();
-		c.addPropertyListener(hps, (source, oldValue) -> {
-			if (source == hps.getMaxHPStat() && maxHPsField != null) {
+		c.addPropertyListener(hps, e -> {
+			if (e.source == hps.getMaxHPStat() && maxHPsField != null) {
 				maxHPsField.setValue(hps.getMaxHPStat().getValue());
 			}
 			updateHPs();
 		});
-		c.addPropertyListener(c.getInitiativeStatistic(), (source, oldValue) -> {
+		c.addPropertyListener(c.getInitiativeStatistic(), e -> {
 			total.setText("= "+getTotal());
 			fireChange();
 		});

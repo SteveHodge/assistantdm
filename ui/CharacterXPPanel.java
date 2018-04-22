@@ -20,14 +20,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import gamesystem.XP;
-import gamesystem.core.Property;
-import gamesystem.core.PropertyListener;
 import party.Character;
 
 // TODO better history dialog
 // FIXME: changing the level directly doesn't apply the comments or date
 @SuppressWarnings("serial")
-public class CharacterXPPanel extends CharacterSubPanel implements PropertyListener<Integer>, ActionListener {
+public class CharacterXPPanel extends CharacterSubPanel implements ActionListener {
 	JLabel xpLabel;
 	JLabel percentage;
 	JButton adhocButton, historyButton, levelButton;
@@ -133,12 +131,11 @@ public class CharacterXPPanel extends CharacterSubPanel implements PropertyListe
 		add(commentsField,c);
 
 		// update fields when character changes
-		character.addPropertyListener("xp", this);
-		character.addPropertyListener("level", this);
+		character.addPropertyListener("xp", e -> update());
+		character.addPropertyListener("level", e -> update());
 	}
 
-	@Override
-	public void propertyChanged(Property<Integer> source, Integer oldValue) {
+	public void update() {
 		xpLabel.setText(String.format("%,d / %,d", character.getXP(), character.getRequiredXP()));
 		float perc = ((float) character.getXP() - XP.getXPRequired(character.getLevel())) / (character.getLevel() * 10);
 		percentage.setText(String.format("%.2f%%", perc));

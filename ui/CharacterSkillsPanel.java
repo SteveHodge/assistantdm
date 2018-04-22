@@ -98,7 +98,7 @@ class CharacterSkillsPanel extends JPanel {
 			skillsAdhocPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier for all skills"));
 
 			Statistic allSkills = chr.getStatistic(Creature.STATISTIC_SKILLS);
-			allSkills.addPropertyListener((source, old) -> updateSummary());
+			allSkills.addPropertyListener(e -> updateSummary());
 
 			addPanel.setBorder(BorderFactory.createTitledBorder("Adhoc Modifier for " + title));
 
@@ -141,9 +141,9 @@ class CharacterSkillsPanel extends JPanel {
 		SkillsTableModel() {
 			skills = new SkillType[character.getSkills().size()];
 			character.getSkills().toArray(this.skills);
-			character.getSkillsStatistic().addPropertyListener((source, old) -> {
-				if (source instanceof Skill) {
-					Skill skill = (Skill) source;
+			character.getSkillsStatistic().addPropertyListener(e -> {
+				if (e.source instanceof Skill) {
+					Skill skill = (Skill) e.source;
 					boolean found = false;
 					for (int i = 0; i < skills.length; i++) {
 						if (skills[i].equals(skill.getSkillType())) {

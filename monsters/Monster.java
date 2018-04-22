@@ -68,7 +68,7 @@ public class Monster extends Creature {
 		initiative.setValue(0);
 
 		race = new Race(this);
-		race.addPropertyListener((source, oldValue) -> {
+		race.addPropertyListener(e -> {
 			hitDice.updateBonusHPs(Monster.this);	// TODO could override fireEvent rather than adding a listener
 		});
 		level = new Levels(this);

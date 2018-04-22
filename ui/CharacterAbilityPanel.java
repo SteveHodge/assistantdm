@@ -14,7 +14,7 @@ import javax.swing.table.AbstractTableModel;
 
 import gamesystem.AbilityScore;
 import gamesystem.Creature;
-import gamesystem.core.Property;
+import gamesystem.core.PropertyEvent;
 import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.JTableWithToolTips;
@@ -33,7 +33,7 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 		super(c);
 		summary = getSummary();
 
-		character.addPropertyListener("ability_scores", (source, old) -> updateSummaries(getSummary()));
+		character.addPropertyListener("ability_scores", e -> updateSummaries(getSummary()));
 
 		abilityModel = new AbilityTableModel();
 
@@ -84,13 +84,13 @@ class CharacterAbilityPanel extends CharacterSubPanel {
 
 	private class AbilityTableModel extends AbstractTableModel implements TableModelWithToolTips {
 		public AbilityTableModel() {
-			character.addPropertyListener("ability_scores", new PropertyListener<Integer>() {
+			character.addPropertyListener("ability_scores", new PropertyListener() {
 				@Override
-				public void propertyChanged(Property<Integer> source, Integer oldValue) {
+				public void propertyChanged(PropertyEvent e) {
 					// this is a bit hackish as there is currently no good way to find the ability score or type from the drain and damage properties
 					for (int i = 0; i < 6; i++) {
 						AbilityScore a = getAbility(i);
-						if (a == source || a.getDamage() == source || a.getDrain() == source) {
+						if (a == e.source || a.getDamage() == e.source || a.getDrain() == e.source) {
 							fireTableRowsUpdated(i, i);
 						}
 					}

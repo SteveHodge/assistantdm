@@ -2,6 +2,8 @@ package gamesystem;
 
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.SimpleValueProperty;
+import gamesystem.core.StatisticEvent;
+import gamesystem.core.StatisticEvent.EventType;
 
 // XXX might have to manage ability scores together otherwise some of the other statistics that use ability
 // modifiers will need special case handling for non-abilities (e.g. should use dex modifier for all attack if
@@ -54,7 +56,7 @@ public class AbilityScore extends Statistic {
 
 	protected class AbilityModifier extends AbstractModifier {
 		public AbilityModifier() {
-			AbilityScore.this.addPropertyListener((source, old) ->
+			AbilityScore.this.addPropertyListener(e ->
 			//int oldValue = ((Integer)evt.getOldValue())/2-5;
 			//int newValue = ((Integer)evt.getNewValue())/2-5;
 			//modpcs.firePropertyChange("value", null, newValue);
@@ -117,13 +119,13 @@ public class AbilityScore extends Statistic {
 //		int oldValue = getValue();
 		baseValue = v;
 //		System.out.println(name + ".setBaseValue(" + v + "). Old = " + oldValue + ", new = " + getValue() + ", getBaseValue = " + getBaseValue());
-		fireEvent();
+		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 	}
 
 	public void setOverride(int v) {
 		if (override != v) {
 			override = v;
-			fireEvent();
+			fireEvent(new StatisticEvent(this, EventType.OVERRIDE_ADDED));
 		}
 	}
 
@@ -134,7 +136,7 @@ public class AbilityScore extends Statistic {
 	public void clearOverride() {
 		if (override != -1) {
 			override = -1;
-			fireEvent();
+			fireEvent(new StatisticEvent(this, EventType.OVERRIDE_REMOVED));
 		}
 	}
 

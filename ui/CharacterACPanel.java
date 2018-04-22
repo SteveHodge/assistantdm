@@ -33,7 +33,7 @@ import gamesystem.AC;
 import gamesystem.ItemDefinition;
 import gamesystem.Modifier;
 import gamesystem.Statistic;
-import gamesystem.core.Property;
+import gamesystem.core.PropertyEvent;
 import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.SpinnerCellEditor;
@@ -82,10 +82,10 @@ public class CharacterACPanel extends CharacterSubPanel {
 
 	boolean editing = false;	// flag used to prevent updates while a field's document is changing
 
-	PropertyListener<Integer> armorListener = new PropertyListener<Integer>() {
+	PropertyListener armorListener = new PropertyListener() {
 		// NOTE: we call this to initially populate the fields with null evt
 		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+		public void propertyChanged(PropertyEvent e) {
 			if (editing) return;
 			nameField.setText(armor.description);
 			typeField.setText(armor.type);
@@ -107,10 +107,10 @@ public class CharacterACPanel extends CharacterSubPanel {
 		}
 	};
 
-	PropertyListener<Integer> shieldListener = new PropertyListener<Integer>() {
+	PropertyListener shieldListener = new PropertyListener() {
 		// NOTE: we call this to initially populate the fields with null evt
 		@Override
-		public void propertyChanged(Property<Integer> source, Integer oldValue) {
+		public void propertyChanged(PropertyEvent e) {
 			if (editing) return;
 			shieldNameField.setText(shield.description);
 			shieldBonusField.setText(""+shield.getBonus());
@@ -179,7 +179,7 @@ public class CharacterACPanel extends CharacterSubPanel {
 		a.gridx = 1; a.gridy = 0; a.gridheight = 4;
 		add(getArmorPanel(),a);
 
-		character.addPropertyListener("ac", (source, old) -> {
+		character.addPropertyListener("ac", (PropertyListener) e -> {
 			totalLabel.setText("Total AC: " + ac.getValue() + (ac.hasConditionalModifier() ? "*" : ""));
 			touchLabel.setText("Touch AC: " + ac.getTouchAC().getValue() + (ac.getTouchAC().hasConditionalModifier() ? "*" : ""));
 			flatLabel.setText("Flat-footed AC: " + ac.getFlatFootedAC().getValue() + (ac.getFlatFootedAC().hasConditionalModifier() ? "*" : ""));
@@ -188,8 +188,8 @@ public class CharacterACPanel extends CharacterSubPanel {
 		});
 		armor.addPropertyListener(armorListener);
 		shield.addPropertyListener(shieldListener);
-		armorListener.propertyChanged(null, null);		// update the values of the fields - won't work if we ever use the event object
-		shieldListener.propertyChanged(null, null);		// update the values of the fields - won't work if we ever use the event object
+		armorListener.propertyChanged(null);		// update the values of the fields - won't work if we ever use the event object
+		shieldListener.propertyChanged(null);		// update the values of the fields - won't work if we ever use the event object
 	}
 
 	protected JPanel getArmorPanel() {
@@ -509,7 +509,7 @@ public class CharacterACPanel extends CharacterSubPanel {
 		boolean[] active;
 
 		public ACTableModel() {
-			character.addPropertyListener("ac", (source, old) -> updateModifiers());
+			character.addPropertyListener("ac", (PropertyListener) e -> updateModifiers());
 			updateModifiers();
 		}
 

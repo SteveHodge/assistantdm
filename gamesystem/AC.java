@@ -43,7 +43,7 @@ public class AC extends Statistic implements StatisticsCollection {
 			addModifier(dexMod);
 		}
 
-		naturalArmor.addPropertyListener((source, oldValue) -> fireEvent());	// FIXME hierarchy might mean events are forwarded though this AC instance anyway
+//		naturalArmor.addPropertyListener((source, oldValue) -> fireEvent());	// FIXME hierarchy might mean events are forwarded though this AC instance anyway
 	}
 
 	// touch ac and flat-footed ac are also statistics, but they are not targettable (they are entirely based on the main AC stat with certain modifiers ignored)

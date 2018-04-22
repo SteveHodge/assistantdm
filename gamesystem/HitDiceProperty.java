@@ -6,6 +6,7 @@ import java.util.List;
 import gamesystem.SavingThrow.Type;
 import gamesystem.core.AbstractProperty;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEvent;
 import gamesystem.dice.HDDice;
 import gamesystem.dice.SimpleDice;
 import monsters.Monster;
@@ -14,6 +15,7 @@ import monsters.StatisticsBlock.Field;
 /* HitDiceProperty monitors Levels and monster hitdice (Race) and provides a combined hitdice property that other properties such as BAB can be based on.
  */
 
+// FIXME perhaps this should use the soon be added collection property?
 public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	private Race race;
 	private Levels levels;
@@ -35,9 +37,9 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			});
 		}
 
-		race.addPropertyListener((source, oldValue) -> updateHitDice());
+		race.addPropertyListener(e -> updateHitDice());
 
-		levels.addPropertyListener((source, oldValue) -> updateHitDice());
+		levels.addPropertyListener(e -> updateHitDice());
 
 		updateHitDice();
 	}
@@ -87,7 +89,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 
 		// FIXME for now we always send an update because we don't know if MaxHPs has changed
 //		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
-		fireEvent();
+		fireEvent(new PropertyEvent(this));
 //		}
 	}
 

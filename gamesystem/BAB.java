@@ -1,6 +1,8 @@
 package gamesystem;
 
 import gamesystem.core.AbstractOverridableProperty;
+import gamesystem.core.OverridablePropertyEvent;
+import gamesystem.core.OverridablePropertyEvent.EventType;
 import gamesystem.core.PropertyCollection;
 
 public class BAB extends AbstractOverridableProperty<Integer> {
@@ -14,9 +16,9 @@ public class BAB extends AbstractOverridableProperty<Integer> {
 		levels = l;
 		bab = getBAB();
 
-		levels.addPropertyListener((source, oldValue) -> recalculateBAB());
+		levels.addPropertyListener(e -> recalculateBAB());
 
-		r.addPropertyListener((source, oldValue) -> recalculateBAB());
+		r.addPropertyListener(e -> recalculateBAB());
 	}
 
 	private int getBAB() {
@@ -63,8 +65,10 @@ public class BAB extends AbstractOverridableProperty<Integer> {
 
 	private void recalculateBAB() {
 		if (getBAB() != bab) {
-			fireEvent(bab);
+			int old = bab;
+			fireEvent(new OverridablePropertyEvent<>(this, EventType.REGULAR_VALUE_CHANGED, old));
 			bab = getBAB();
 		}
 	}
+
 }

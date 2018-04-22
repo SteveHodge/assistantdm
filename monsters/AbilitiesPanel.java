@@ -116,7 +116,7 @@ class AbilitiesPanel extends DetailPanel {
 		}
 	}
 
-	final private PropertyListener<Integer> listener = (source, old) -> update();
+	final private PropertyListener listener = e -> update();
 
 	final private ChangeListener spinnerListener = new ChangeListener() {
 		@Override

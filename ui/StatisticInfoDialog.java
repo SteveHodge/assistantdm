@@ -69,7 +69,7 @@ public class StatisticInfoDialog extends JDialog {
 		creature = c;
 		statistic = c.getStatistic(statName);
 
-		statistic.addPropertyListener((source, oldValue) -> updateSummary());
+		statistic.addPropertyListener(e -> updateSummary());
 
 		summary = new JLabel();
 		updateSummary();

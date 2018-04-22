@@ -48,7 +48,10 @@ import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChange;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
+import gamesystem.core.PropertyValueEvent;
 import gamesystem.core.SimpleValueProperty;
+import gamesystem.core.StatisticEvent;
+import gamesystem.core.StatisticEvent.EventType;
 
 /**
  * @author Steve
@@ -405,7 +408,7 @@ public class Character extends Creature {
 			}
 		}
 
-		fireEvent(level, null);
+		fireEvent(new StatisticEvent(level, EventType.TOTAL_CHANGED));	// TODO more appropriate event type
 	}
 
 	private void rebuildClassFeatures() {
@@ -449,7 +452,7 @@ public class Character extends Creature {
 		}
 		opt.selection = selection;
 		rebuildClassFeatures();
-		fireEvent(level, null);
+		fireEvent(new StatisticEvent(level, EventType.TOTAL_CHANGED));	// TODO more appropriate event type
 	}
 
 //------------------- XP History ------------------
@@ -574,7 +577,7 @@ public class Character extends Creature {
 		if (id >= nextAttackId) nextAttackId = id + 1;
 		CharacterAttackForm a = new CharacterAttackForm(this, attack, id);
 		attackForms.add(a);
-		fireEvent(attacks, null);
+		fireEvent(new StatisticEvent(attacks, EventType.TOTAL_CHANGED));	// TODO more appropriate event type
 		return a;
 	}
 
@@ -582,7 +585,7 @@ public class Character extends Creature {
 		int i = attackForms.indexOf(a);
 		if (i > -1) {
 			attackForms.remove(a);
-			fireEvent(attacks, null);
+			fireEvent(new StatisticEvent(attacks, EventType.TOTAL_CHANGED));	// TODO more appropriate event type
 		}
 	}
 
@@ -609,7 +612,7 @@ public class Character extends Creature {
 				addBuff(buff);
 			}
 		}
-		fireEvent(name, null);	// FIXME send proper event
+		fireEvent(new PropertyValueEvent<String>(name, null));	// FIXME send proper event
 	}
 
 //------------------- Import/Export and other methods -------------------

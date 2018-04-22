@@ -11,6 +11,8 @@ import java.util.Set;
 
 import gamesystem.core.AbstractOverridableProperty;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.StatisticEvent;
+import gamesystem.core.StatisticEvent.EventType;
 
 /*
  * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
@@ -51,6 +53,18 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	}
 	//------------------------------------------------------------------------------
 
+	//--------------------------- Event Related Methods ----------------------------
+	@Override
+	protected void fireOverrideAddedEvent(Integer old) {
+		fireEvent(new StatisticEvent(this, EventType.OVERRIDE_ADDED));
+	}
+
+	@Override
+	protected void fireOverrideRemovedEvent(Integer old) {
+		fireEvent(new StatisticEvent(this, EventType.OVERRIDE_REMOVED));
+	}
+	//------------------------------------------------------------------------------
+
 	public String getDescription() {
 		return description;
 	}
@@ -58,7 +72,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	// problem here is that we know what the old value of the modifier is (from the event),
 	// but we can't easily use that old value to calculate the old total
 	// TODO could store old values locally
-	protected final PropertyChangeListener listener = evt -> fireEvent();
+	protected final PropertyChangeListener listener = evt -> fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
 
 	public void addModifier(Modifier m) {
 		if (m == null) {
@@ -68,7 +82,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 		//int oldValue = getValue();
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
-		fireEvent();
+		fireEvent(new StatisticEvent(this, EventType.MODIFIER_ADDED));
 	}
 
 	public void removeModifier(Modifier m) {
@@ -76,7 +90,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 		//int oldValue = getValue();
 		modifiers.remove(m);
 		m.removePropertyChangeListener(listener);
-		fireEvent();
+		fireEvent(new StatisticEvent(this, EventType.MODIFIER_REMOVED));
 	}
 
 	// set a specific property on the statistic. this default implementation doesn't implement any properties

@@ -1,5 +1,7 @@
 package gamesystem.core;
 
+// Just a value that notifies changes via ChangedValueEvents
+
 public class SimpleValueProperty<T> extends AbstractProperty<T> implements SettableProperty<T> {
 	T value;
 
@@ -17,6 +19,6 @@ public class SimpleValueProperty<T> extends AbstractProperty<T> implements Setta
 	public void setValue(T val) {
 		T old = value;
 		value = val;
-		fireEvent(old);
+		fireEvent(new PropertyValueEvent<>(this, old));
 	}
 }

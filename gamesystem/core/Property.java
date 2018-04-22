@@ -12,9 +12,9 @@ public interface Property<T> {
 
 	public PropertyCollection getParent();
 
-	public void addPropertyListener(PropertyListener<T> l);
+	public void addPropertyListener(PropertyListener l);
 
-	public void removePropertyListener(PropertyListener<T> l);
+	public void removePropertyListener(PropertyListener l);
 
 	public T getValue();	// the current (possibly overriden) value of the property
 }
