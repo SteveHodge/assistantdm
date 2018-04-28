@@ -1,9 +1,8 @@
 package gamesystem;
 
 import gamesystem.core.AbstractOverridableProperty;
-import gamesystem.core.OverridablePropertyEvent;
-import gamesystem.core.OverridablePropertyEvent.EventType;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEvent;
 
 public class BAB extends AbstractOverridableProperty<Integer> {
 	final Race race;
@@ -66,7 +65,7 @@ public class BAB extends AbstractOverridableProperty<Integer> {
 	private void recalculateBAB() {
 		if (getBAB() != bab) {
 			int old = bab;
-			fireEvent(new OverridablePropertyEvent<>(this, EventType.REGULAR_VALUE_CHANGED, old));
+			fireEvent(createEvent(PropertyEvent.REGULAR_VALUE_CHANGED, old));
 			bab = getBAB();
 		}
 	}

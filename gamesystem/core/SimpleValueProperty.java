@@ -19,6 +19,6 @@ public class SimpleValueProperty<T> extends AbstractProperty<T> implements Setta
 	public void setValue(T val) {
 		T old = value;
 		value = val;
-		fireEvent(new PropertyValueEvent<>(this, old));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
 	}
 }

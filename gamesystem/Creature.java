@@ -18,6 +18,7 @@ import gamesystem.core.Property;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.PropertyEvent;
 import gamesystem.core.PropertyListener;
+import gamesystem.core.SettableProperty;
 import gamesystem.core.SimpleValueProperty;
 import swing.ListModelWithToolTips;
 
@@ -473,9 +474,9 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 //			System.out.println("Adding adhoc property " + prop + " with value '" + value + "'");
 			property = new SimpleValueProperty<String>(prop, this, value);
 		}
-		if (property instanceof SimpleValueProperty) {
+		if (property instanceof SettableProperty) {
 //			System.out.println("Setting adhoc property " + prop + " to '" + value + "'");
-			((SimpleValueProperty<String>) property).setValue(value);
+			((SettableProperty<String>) property).setValue(value);
 		} else {
 			System.err.println("Can't set value on " + property);
 		}

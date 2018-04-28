@@ -1,7 +1,7 @@
 package gamesystem;
 
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.StatisticEvent;
+import gamesystem.core.PropertyEvent;
 
 public class SavingThrow extends Statistic {
 	public enum Type {
@@ -52,7 +52,7 @@ public class SavingThrow extends Statistic {
 		hitdice = hd;
 		if (hitdice != null) {
 			hitdice.addPropertyListener(e -> {
-				fireEvent(new StatisticEvent(this, StatisticEvent.EventType.TOTAL_CHANGED));
+				fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 			});
 		}
 	}
@@ -83,7 +83,7 @@ public class SavingThrow extends Statistic {
 	public void setBaseOverride(int v) {
 		if (baseValue != v) {
 			baseValue = v;
-			fireEvent(new StatisticEvent(this, StatisticEvent.EventType.TOTAL_CHANGED));	// TODO fix this, it should be a more appropriate type
+			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));	// TODO fix this, it should be a more appropriate type
 		}
 	}
 

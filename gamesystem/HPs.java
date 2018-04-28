@@ -9,9 +9,8 @@ import java.util.Map;
 
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEvent;
 import gamesystem.core.SimpleValueProperty;
-import gamesystem.core.StatisticEvent;
-import gamesystem.core.StatisticEvent.EventType;
 
 
 // XXX change temp hitpoints to a property
@@ -114,7 +113,7 @@ public class HPs extends Statistic {
 				if (override != null && override.equals(getRegularValue())) {
 					override = null;	// XXX not sure if it's best to remove override if it now matches the correct value
 				}
-				fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+				fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 			});
 		}
 
@@ -126,7 +125,7 @@ public class HPs extends Statistic {
 			} else {
 				override = val;
 			}
-			fireEvent(new StatisticEvent(this, EventType.OVERRIDE_ADDED));
+			fireEvent(createEvent(PropertyEvent.OVERRIDE_ADDED));
 			return new PropertyValue<Integer>(val);
 		}
 
@@ -200,7 +199,7 @@ public class HPs extends Statistic {
 			wounds.setValue(0);
 		}
 
-		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 	}
 
 	// dmg should be > 0
@@ -244,7 +243,7 @@ public class HPs extends Statistic {
 
 		}
 		// notify of change to temphps
-		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 
 		// apply any remaining damage as wounds
 		if (dmg > 0) wounds.setValue(wounds.getValue() + dmg);
@@ -272,7 +271,7 @@ public class HPs extends Statistic {
 		best.active = true;
 
 		tempHPs.add(temps);
-		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 		return temps;
 	}
 
@@ -292,7 +291,7 @@ public class HPs extends Statistic {
 					}
 				}
 				if (best != null) best.active = true;
-				fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+				fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 			}
 		}
 	}

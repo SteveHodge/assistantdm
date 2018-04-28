@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.StatisticEvent;
-import gamesystem.core.StatisticEvent.EventType;
+import gamesystem.core.PropertyEvent;
 import gamesystem.dice.HDDice;
 
 //FIXME this is statistic for the listener stuff but it doesn't really need modifiers so perhaps refactor
@@ -41,7 +40,7 @@ public class Levels extends Statistic {
 		System.out.println("Set level to " + l);
 		//int old = level;
 		level = l;
-		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 	}
 
 	public CharacterClass getClass(int level) {
@@ -70,7 +69,7 @@ public class Levels extends Statistic {
 		// get the levelup actions for the class in question
 //		Set<?> actions = cls.getActions(lvl);
 
-		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));	// TODO oldvalue
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));	// TODO oldvalue
 	}
 
 	public Integer getHPRoll(int level) {
@@ -90,7 +89,7 @@ public class Levels extends Statistic {
 		}
 		hpRolls.set(lvl - 1, hp);
 
-		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));	// TODO oldvalue
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));	// TODO oldvalue
 	}
 
 	public int getClassLevel(CharacterClass cls) {

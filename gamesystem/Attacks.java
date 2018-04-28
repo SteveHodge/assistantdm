@@ -14,8 +14,7 @@ import javax.swing.event.ListDataListener;
 
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.StatisticEvent;
-import gamesystem.core.StatisticEvent.EventType;
+import gamesystem.core.PropertyEvent;
 import gamesystem.dice.CombinedDice;
 import party.Character;
 
@@ -100,7 +99,7 @@ public class Attacks extends Statistic {
 	}
 
 	private void fireEvent() {
-		super.fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));	// FIXME not really the right event type
+		super.fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));	// FIXME not really the right event type
 		for (AttackForm a : attackForms) {
 			// TODO get rid of this eventually
 			a.refireEvent();
@@ -445,7 +444,7 @@ public class Attacks extends Statistic {
 		}
 
 		public void refireEvent() {
-			fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 		}
 
 		// convenient passthrough of Attacks method:
@@ -513,7 +512,7 @@ public class Attacks extends Statistic {
 		// expects format acceptable to CombinedDice.parse()
 		public void setBaseDamage(String s) {
 			damage = CombinedDice.parse(s);
-			fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 		}
 
 		public String getDamage() {

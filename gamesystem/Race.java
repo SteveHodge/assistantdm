@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gamesystem.core.AbstractProperty;
-import gamesystem.core.PropertyValueEvent;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEvent;
 import gamesystem.dice.HDDice;
 
 /* Race encapsulates monster advancement: it is the monster equivalent of Levels. As a Property it encapsulates a creature's type and subtypes (if any).
@@ -48,7 +48,7 @@ public class Race extends AbstractProperty<String> {
 		if (type == t) return;
 		String old = toString();
 		type = t;
-		fireEvent(new PropertyValueEvent<>(this, old));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
 	}
 
 	public boolean hasSubtype(String t) {
@@ -58,7 +58,7 @@ public class Race extends AbstractProperty<String> {
 	public void addSubtype(String s) {
 		String old = toString();
 		subtypes.add(s);
-		fireEvent(new PropertyValueEvent<>(this, old));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
 	}
 
 	// Returns the original type as specified in the "Augmented..." subtype, if any
@@ -99,13 +99,13 @@ public class Race extends AbstractProperty<String> {
 		//System.out.println("Setting racial hitdice to " + hd);
 		String old = toString();
 		hitDice = hd;
-		fireEvent(new PropertyValueEvent<>(this, old));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
 	}
 
 	public void setHitDiceCount(int count) {
 		String old = toString();
 		hitDice = new HDDice(count, hitDice.getType(), hitDice.getConstant());
 		// TODO add any additional dice?
-		fireEvent(new PropertyValueEvent<>(this, old));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
 	}
 }

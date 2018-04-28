@@ -1,9 +1,8 @@
 package gamesystem;
 
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEvent;
 import gamesystem.core.SettableProperty;
-import gamesystem.core.StatisticEvent;
-import gamesystem.core.StatisticEvent.EventType;
 
 // TODO will probably want to switch to overrides rather than this being a SettableProperty once overrides on statistics are implemented
 public class InitiativeModifier extends Statistic implements SettableProperty<Integer> {
@@ -35,8 +34,8 @@ public class InitiativeModifier extends Statistic implements SettableProperty<In
 	@Override
 	public void setValue(Integer val) {
 		if (baseValue == val.intValue()) return;
-//		int old = getValue();
+		int old = getValue();
 		baseValue = val;
-		fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
 	}
 }

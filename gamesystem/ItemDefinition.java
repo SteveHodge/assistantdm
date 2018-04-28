@@ -141,7 +141,7 @@ public class ItemDefinition {
 	public static Set<ItemDefinition> getItemsForSlot(SlotType slot) {
 		Set<ItemDefinition> items = new HashSet<>();
 		for (ItemDefinition item : ItemDefinition.items) {
-			if (slot.description.compareToIgnoreCase(item.slot) == 0) {
+			if (item.slot != null && slot.description.compareToIgnoreCase(item.slot) == 0) {
 				items.add(item);
 			}
 		}

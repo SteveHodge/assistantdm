@@ -11,8 +11,7 @@ import java.util.Set;
 
 import gamesystem.core.AbstractOverridableProperty;
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.StatisticEvent;
-import gamesystem.core.StatisticEvent.EventType;
+import gamesystem.core.PropertyEvent;
 
 /*
  * Statistic - a game mechanic that can have modifiers applied. Understands how to combine modifiers to correctly obtain a total.
@@ -53,18 +52,6 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	}
 	//------------------------------------------------------------------------------
 
-	//--------------------------- Event Related Methods ----------------------------
-	@Override
-	protected void fireOverrideAddedEvent(Integer old) {
-		fireEvent(new StatisticEvent(this, EventType.OVERRIDE_ADDED));
-	}
-
-	@Override
-	protected void fireOverrideRemovedEvent(Integer old) {
-		fireEvent(new StatisticEvent(this, EventType.OVERRIDE_REMOVED));
-	}
-	//------------------------------------------------------------------------------
-
 	public String getDescription() {
 		return description;
 	}
@@ -72,25 +59,25 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	// problem here is that we know what the old value of the modifier is (from the event),
 	// but we can't easily use that old value to calculate the old total
 	// TODO could store old values locally
-	protected final PropertyChangeListener listener = evt -> fireEvent(new StatisticEvent(this, EventType.TOTAL_CHANGED));
+	protected final PropertyChangeListener listener = evt -> fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 
 	public void addModifier(Modifier m) {
 		if (m == null) {
 			System.err.println("Attempted to add null modifier to " + this);
 			return;
 		}
-		//int oldValue = getValue();
+		int oldValue = getValue();
 		m.addPropertyChangeListener(listener);
 		modifiers.add(m);
-		fireEvent(new StatisticEvent(this, EventType.MODIFIER_ADDED));
+		fireEvent(createEvent(PropertyEvent.MODIFIER_ADDED, oldValue));
 	}
 
 	public void removeModifier(Modifier m) {
 		if (m == null) return;
-		//int oldValue = getValue();
+		int oldValue = getValue();
 		modifiers.remove(m);
 		m.removePropertyChangeListener(listener);
-		fireEvent(new StatisticEvent(this, EventType.MODIFIER_REMOVED));
+		fireEvent(createEvent(PropertyEvent.MODIFIER_REMOVED, oldValue));
 	}
 
 	// set a specific property on the statistic. this default implementation doesn't implement any properties
@@ -98,6 +85,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 	// property is reset. for the tracking of set values "key" should be a unique object/value. this key is used
 	// to remove the set value via resetProperty. "source" can be used in cases where multiple values are combined
 	// - usually in these cases only one value for each source is included
+	// FIXME *!* remove
 	public void setProperty(String property, Object value, String source, Object key) {
 	}
 

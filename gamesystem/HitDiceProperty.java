@@ -89,7 +89,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 
 		// FIXME for now we always send an update because we don't know if MaxHPs has changed
 //		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
-		fireEvent(new PropertyEvent(this));
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 //		}
 	}
 

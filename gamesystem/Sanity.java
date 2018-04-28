@@ -2,9 +2,8 @@ package gamesystem;
 
 import gamesystem.core.AbstractOverridableProperty;
 import gamesystem.core.OverridableProperty;
-import gamesystem.core.OverridablePropertyEvent;
-import gamesystem.core.OverridablePropertyEvent.EventType;
 import gamesystem.core.PropertyCollection;
+import gamesystem.core.PropertyEvent;
 import gamesystem.core.ValueProperty;
 
 public class Sanity extends ValueProperty<Integer> {
@@ -20,9 +19,10 @@ public class Sanity extends ValueProperty<Integer> {
 		maxSanity = new AbstractOverridableProperty<Integer>("sanity.maximum", parent) {
 			{
 				knowledgeSkill.addPropertyListener(e -> {
-					@SuppressWarnings("unchecked")
-					OverridablePropertyEvent<Integer> evt = (OverridablePropertyEvent<Integer>) e;
-					fireEvent(new OverridablePropertyEvent<>(this, EventType.REGULAR_VALUE_CHANGED, 99 - evt.getOldValue()));
+					PropertyEvent evt = createEvent(PropertyEvent.REGULAR_VALUE_CHANGED);
+					if (e.hasField(PropertyEvent.PREVIOUS_VALUE))
+						evt.set(PropertyEvent.PREVIOUS_VALUE, 99 - e.getInt(PropertyEvent.PREVIOUS_VALUE));
+					fireEvent(evt);
 				});
 			}
 
@@ -37,7 +37,7 @@ public class Sanity extends ValueProperty<Integer> {
 				wis.addPropertyListener(e -> {
 //					int oldValue = 0;
 //					if (old != null) oldValue = calculateStarting(old);
-					fireEvent(new OverridablePropertyEvent<>(this, EventType.REGULAR_VALUE_CHANGED, null));
+					fireEvent(createEvent(PropertyEvent.REGULAR_VALUE_CHANGED));
 				});
 			}
 
@@ -72,7 +72,7 @@ public class Sanity extends ValueProperty<Integer> {
 
 	public void startSession() {
 		sessionStart = getValue();
-		fireEvent(new OverridablePropertyEvent<>(this, EventType.REGULAR_VALUE_CHANGED, sessionStart));	// TODO this is not ideal as the value isn't changing. probably need a custom event class
+		fireEvent(createEvent(PropertyEvent.REGULAR_VALUE_CHANGED));
 	}
 
 	// heal must be > 0. note this affects the base value so it will have no apparent effect if an override is applied

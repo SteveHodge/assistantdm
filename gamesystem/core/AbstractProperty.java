@@ -42,6 +42,16 @@ abstract public class AbstractProperty<T> implements Property<T> {
 		parent.removePropertyListener(this, l);
 	}
 
+	public PropertyEvent createEvent(String type) {
+		return new PropertyEvent(this, type);
+	}
+
+	public PropertyEvent createEvent(String type, T old) {
+		PropertyEvent e = new PropertyEvent(this, type);
+		e.set(PropertyEvent.PREVIOUS_VALUE, old);
+		return e;
+	}
+
 	protected void fireEvent(PropertyEvent e) {
 		parent.fireEvent(e);
 	}
