@@ -277,6 +277,8 @@
 	<item slot="shield" name="Shield, tower" price="30 gp" weight="45 lb.">
 		<shield bonus="+4" max-dex="+2" acp="-10" spell-failure="50%"/>
 	</item>
+	<!-- rings -->
+	<!-- TODO add descriptions, creation, etc-->
 	<item slot="ring" name="Ring of Protection +1" price="2000 gp" weight="0 lb.">
 		<modifiers><modifier statistic="ac" type="Deflection" value="1"/></modifiers>
 	</item>
@@ -372,6 +374,7 @@
 	<item slot="ring" name="Ring of Elemental command (fire)" price="200000 gp" weight="0 lb."/>
 	<item slot="ring" name="Ring of Elemental command (water)" price="200000 gp" weight="0 lb."/>
 	<item slot="ring" name="Ring of Spell storing, major" price="200000 gp" weight="0 lb."/>
+	<!-- Slotted wonderous items with modifiers -->
 	<item slot="neck" name="Amulet of Health +2" price="4000 gp" weight="0 lb.">
 		<description>This amulet is a golden disk on a chain. It usually bears the image of a lion or other powerful animal. The amulet grants the wearer an enhancement bonus to Constitution of +2, +4, or +6.</description>
 		<creation aura="Moderate transmutation" caster_level="8" prerequisites="Craft Wondrous Item, bear’s endurance"/>
@@ -388,22 +391,27 @@
 		<modifiers><modifier statistic="ability_scores.constitution" type="Enhancement" value="6"/></modifiers>
 	</item>
 	<item slot="neck" name="Amulet of Mighty Fists +1" price="6000 gp" weight="0 lb.">
+		<!-- TODO modifiers-->
 		<description>This amulet grants an enhancement bonus of +1 to +5 on attack and damage rolls with unarmed attacks and natural weapons.</description>
 		<creation aura="Faint evocation" caster_level="5" prerequisites="Craft Wondrous Item, greater magic fang, creator’s caster level must be at least three times the amulet’s bonus"/>
 	</item>
 	<item slot="neck" name="Amulet of Mighty Fists +2" price="24000 gp" weight="0 lb.">
+		<!-- TODO modifiers-->
 		<description>This amulet grants an enhancement bonus of +1 to +5 on attack and damage rolls with unarmed attacks and natural weapons.</description>
 		<creation aura="Moderate evocation" caster_level="6" prerequisites="Craft Wondrous Item, greater magic fang, creator’s caster level must be at least three times the amulet’s bonus"/>
 	</item>
 	<item slot="neck" name="Amulet of Mighty Fists +3" price="54000 gp" weight="0 lb.">
+		<!-- TODO modifiers-->
 		<description>This amulet grants an enhancement bonus of +1 to +5 on attack and damage rolls with unarmed attacks and natural weapons.</description>
 		<creation aura="Moderate evocation" caster_level="9" prerequisites="Craft Wondrous Item, greater magic fang, creator’s caster level must be at least three times the amulet’s bonus"/>
 	</item>
 	<item slot="neck" name="Amulet of Mighty Fists +4" price="96000 gp" weight="0 lb.">
+		<!-- TODO modifiers-->
 		<description>This amulet grants an enhancement bonus of +1 to +5 on attack and damage rolls with unarmed attacks and natural weapons.</description>
 		<creation aura="Strong evocation" caster_level="12" prerequisites="Craft Wondrous Item, greater magic fang, creator’s caster level must be at least three times the amulet’s bonus"/>
 	</item>
 	<item slot="neck" name="Amulet of Mighty Fists +5" price="150000 gp" weight="0 lb.">
+		<!-- TODO modifiers-->
 		<description>This amulet grants an enhancement bonus of +1 to +5 on attack and damage rolls with unarmed attacks and natural weapons.</description>
 		<creation aura="Strong evocation" caster_level="15" prerequisites="Craft Wondrous Item, greater magic fang, creator’s caster level must be at least three times the amulet’s bonus"/>
 	</item>
@@ -431,14 +439,6 @@
 		<description>This amulet, usually crafted from bone or beast scales, toughens the wearer’s body and flesh, giving him an enhancement bonus to his natural armor bonus of from +1 to +5, depending on the kind of amulet.</description>
 		<creation aura="Strong transmutation" caster_level="15" prerequisites="Craft Wondrous Item, barkskin, creator’s caster level must be at least three times the amulet’s bonus"/>
 		<modifiers><modifier statistic="ac.natural_armor" type="Enhancement" value="5"/></modifiers>
-	</item>
-	<item slot="neck" name="Amulet of the Planes" price="120000 gp" weight="0 lb.">
-		<description>This device usually appears to be a black circular amulet, although any character looking closely at it sees a dark, moving swirl of color. The amulet allows its wearer to utilize plane shift. However, this is a difficult item to master. The user must make a DC 15 Intelligence check in order to get the amulet to take her to the plane (and the specific location on that plane) that she wants. If she fails, the amulet transports her and all those traveling with her to a random location on that plane (01–60 on d%) or to a random plane (61–100).</description>
-		<creation aura="Strong conjuration" caster_level="15" prerequisites="Craft Wondrous Item, plane shift"/>
-	</item>
-	<item slot="neck" name="Amulet of Proof against Detection and Location" price="35000 gp" weight="0 lb.">
-		<description>This silver amulet protects the wearer from scrying and magical location just as a nondetection spell does. If a divination spell is attempted against the wearer, the caster of the divination must succeed on a caster level check (1d20 + caster level) against a DC of 19 (as if the caster had cast nondetection on herself ).</description>
-		<creation aura="Moderate abjuration" caster_level="8" prerequisites="Craft Wondrous Item, nondetection"/>
 	</item>
 	<item slot="waist" name="Belt of Giant Strength +4" price="16000" weight="1 lb.">
 		<description>This wide belt is made of thick leather and studded with iron. The belt adds to the wearer’s Strength score in the form of an enhancement bonus of +4 or +6.</description>
@@ -514,10 +514,6 @@
 		<description>This lightweight and fashionable cloak has a highly decorative silver trim. When in a character’s possession, it adds a +2, +4, or +6 enhancement bonus to her Charisma score.</description>
 		<creation aura="Moderate transmutation" caster_level="8" prerequisites="Craft Wondrous Item, eagle’s splendor"/>
 		<modifiers><modifier statistic="ability_scores.charisma" type="Enhancement" value="6"/></modifiers>
-	</item>
-	<item slot="shoulders" name="Cloak of Displacement, Minor" price="24000 gp" weight="1 lb.">
-		<description>This item appears to be a normal cloak, but when worn by a character its magical properties distort and warp light waves. This displacement works similar to the displacement spell except that it only grants a 20% miss chance on attacks against the wearer. It functions continually.</description>
-		<creation aura="Faint illusion" caster_level="3" prerequisites="Craft Wondrous Item, displacement"/>
 	</item>
 	<item slot="shoulders" name="Cloak of Elvenkind" price="2500 gp" weight="1 lb.">
 		<description>This cloak of neutral gray cloth is indistinguishable from an ordinary cloak of the same color. However, when worn with the hood drawn up around the head, it gives the wearer a +5 competence bonus on Hide checks.</description>
@@ -612,7 +608,7 @@
 	<item slot="shoulders" name="Mantle of Spell Resistance" price="90000 gp" weight="0 lb.">
 		<description>This garment, worn over normal clothing or armor, grants the wearer spell resistance 21.</description>
 		<creation aura="Moderate abjuration" caster_level="9" prerequisites="Craft Wondrous Item, spell resistance"/>
-		<!-- spell resistence-->
+		<!-- TODO spell resistence-->
 	</item>
 	<item slot="neck" name="Periapt of Wisdom +2" price="4000 gp" weight="0 lb.">
 		<description>Although it appears to be a normal pearl on a light chain, a periapt of wisdom actually increases the possessor’s Wisdom score in the form of an enhancement bonus of +2, +4, or +6 (depending on the individual item).</description>
@@ -633,5 +629,439 @@
 		<description>Hidden within secret pockets of this simple silk vest are lockpicks that provide a +4 competence bonus on Open Lock checks. The vest also grants its wearer a +6 competence bonus on Escape Artist checks.</description>
 		<creation aura="Faint conjuration and transmutation" caster_level="4" prerequisites="Craft Wondrous Item, knock, grease"/>
 		<modifiers><modifier statistic="skills.Open Lock" type="Competence" value="4"/><modifier statistic="skills.Escape Artist" type="Competence" value="6"/></modifiers>
+	</item>
+	<item slot="waist" name="Belt, Monk’s" price="13000 gp" weight="1 lb.">
+		<description>This simple rope belt, when wrapped around a character’s waist, confers great ability in unarmed combat. The wearer’s AC and unarmed damage is treated as a monk of five levels higher. If donned by a character with the Stunning Fist feat, the belt lets her make one additional stunning attack per day. If the character is not a monk, she gains the AC and unarmed damage of a 5th-level monk. This AC bonus functions just like the monk’s AC bonus.</description>
+		<creation aura="Moderate transmutation" caster_level="10" prerequisites="Craft Wondrous Item, righteous might or transformation"/>
+		<!-- TODO modifiers -->
+	</item>
+	<item slot="waist" name="Belt of Dwarvenkind" price="14900 gp" weight="1 lb.">
+		<description>This belt gives the wearer a +4 competence bonus on Charisma checks and Charisma-based skill checks as they relate to dealing with dwarves, a +2 competence bonus on similar checks when dealing with gnomes and halflings, and a –2 competence penalty on similar checks when dealing with anyone else. The wearer can understand, speak, and read Dwarven. If the wearer is not a dwarf, he gains 60-foot darkvision, dwarven stonecunning, a +2 enhancement bonus to Constitution, and a +2 resistance bonus on saves against poison, spells, or spell-like effects.</description>
+		<creation aura="Moderate divination" caster_level="12" prerequisites="Craft Wondrous Item, tongues, creator must be a dwarf"/>
+		<!-- TODO modifiers-->
+	</item>
+	<item slot="arms" name="Bracers of Archery, Greater" price="25000 gp" weight="1 lb.">
+		<description>These wristbands look like normal protective wear. The bracers empower the wearer to use any bow (not including crossbows) as if she were proficient in its use. If she already has proficiency with any type of bow, she gains a +2 competence bonus on attack rolls and a +1 competence bonus on damage rolls whenever using that type of bow. Both bracers must be worn for the magic to be effective.</description>
+		<creation aura="Moderate transmutation" caster_level="8" prerequisites="Craft Wondrous Item, Craft Magic Arms and Armor"/>
+		<!-- TODO modifiers -->
+	</item>
+	<item slot="arms" name="Bracers of Archery, Lesser" price="5000 gp" weight="1 lb.">
+		<description>These wristbands function as greater bracers of archery, except that they grant a +1 competence bonus on attack rolls and no bonus on damage rolls.</description>
+		<creation aura="Faint transmutation" caster_level="4" prerequisites="Craft Wondrous Item, Craft Magic Arms and Armor"/>
+		<!-- TODO modifiers -->
+	</item>
+	<item slot="head" name="Circlet of Persuasion" price="4500 gp" weight="5 lb.">
+		<description>This silver headband grants a +3 competence bonus on the wearer’s Charisma-based checks.</description>
+		<creation aura="Faint transmutation" caster_level="5" prerequisites="Craft Wondrous Item, eagle’s splendor"/>
+		<!-- TODO modifiers -->
+	</item>
+	<item slot="shoulders" name="Cloak of the Bat" price="26000 gp" weight="1 lb.">
+		<description>Fashioned of dark brown or black cloth, this cloak bestows a +5 competence bonus on Hide checks. The wearer is also able to hang upside down from the ceiling, like a bat. By holding the edges of the garment, the wearer is able to fly as per the spell. If he desires, the wearer can actually polymorph himself into an ordinary bat and fly accordingly. (All possessions worn or carried are part of the transformation.) Flying, either with the cloak or in bat form, can be accomplished only in darkness (either under the night sky or in a lightless or near-lightless environment underground). Either of the flying powers is usable for up to 7 minutes at a time, but after a flight of any duration the cloak cannot bestow any flying power for a like period of time.</description>
+		<creation aura="" caster_level="" prerequisites=""/>
+		<modifiers><modifier statistic="skills.Hide" type="Competence" value="5"/></modifiers>
+	</item>
+	<item slot="shoulders" name="Cloak of the Manta Ray" price="7200 gp" weight="1 lb.">
+		<description>This cloak appears to be made of leather until the wearer enters salt water. At that time the cloak of the manta ray adheres to the individual, and he appears nearly identical to a manta ray (as the polymorph spell, except that it allows only manta ray form). He gains a +3 natural armor bonus, the ability to breathe underwater, and a swim speed of 60 feet, like a real manta ray. Although the cloak does not enable the wearer to bite opponents as a manta ray does, it does have a tail spine that can be used to strike at opponents behind the wearer, dealing 1d6 points of damage. This attack can be used in addition to any other attack the character has, using his highest melee attack bonus. The wearer can release his arms from the cloak without sacrificing underwater movement if so desired.</description>
+		<creation aura="Moderate transmutation" caster_level="9" prerequisites="Craft Wondrous Item, polymorph, water breathing"/>
+		<modifiers><modifier statistic="ac" type="Natural Armor" value="3" condition="when in salt water"/></modifiers>
+	</item>
+	<item slot="body" name="Robe of the Archmagi" price="75000 gp" weight="1 lb.">
+		<description>This normal-appearing garment can be white (01–45 on d%, good alignment), gray (46–75, neither good nor evil alignment), or black (76–100, evil alignment). Its wearer, if an arcane spellcaster, gains the following powers.
+• +5 armor bonus to AC.
+• Spell resistance 18.
+• +4 resistance bonus on all saving throws.
+• +2 enhancement bonus on caster level checks made to overcome spell resistance.
+If a white robe is donned by an evil character, she immediately gains three negative levels. The reverse is true with respect to a black robe donned by a good character. An evil or good character who puts on a gray robe, or a neutral character who dons either a white or black robe, gains two negative levels. While these negative levels never result in lost levels, they remain as long as the garment is worn and cannot be overcome in any way (including restoration spells).
+</description>
+		<creation aura="Strong varied" caster_level="14" prerequisites="Craft Wondrous Item, antimagic field, mage armor or shield of faith, creator must be of same alignment as robe"/>
+		<modifiers>
+			<modifier statistic="ac" type="Armor" value="5"/>
+			<modifier statistic="saving_throws" type="Resistance" value="4"/>
+			<!-- TODO spell resistence, caster level checks-->
+		</modifiers>
+	</item>
+	<item slot="body" name="Robe of Blending" price="30000 gp" weight="1 lb.">
+		<description>When this robe is put on, the wearer intuitively knows that the garment has very special properties. A robe of blending enables its wearer to appear to be part of his surroundings. This allows him a +10 competence bonus on Hide checks. The wearer can adopt the appearance of another creature, as with the disguise self spell, at will. All creatures acquainted with and friendly to the wearer see him normally.</description>
+		<creation aura="Moderate illusion" caster_level="10" prerequisites="Craft Wondrous Item, disguise self"/>
+		<modifiers><modifier statistic="skills.Hide" type="Competence" value="10"/></modifiers>
+	</item>
+	<item slot="body" name="Robe of Eyes" price="120000 gp" weight="1 lb.">
+		<description>This valuable garment appears to be a normal robe until it is put on. Its wearer is able to see in all directions at the same moment due to scores of visible, magical eyelike patterns that adorn the robe. She also gains 120-foot darkvision.
+The robe of eyes sees all forms of invisible or ethereal things within 120 feet.
+The wearer of a robe of eyes gains a +10 competence bonus on Search checks and Spot checks. She retains her Dexterity bonus to AC even when flat-footed, and she can’t be flanked. However, she is not able to avert her eyes or close her eyes when confronted by a creature with a gaze attack.
+A light or continual flame spell cast directly on a robe of eyes causes it to be blinded for 1d3 minutes. A daylight spell blinds it for 2d4 minutes.
+</description>
+		<creation aura="Moderate divination" caster_level="11" prerequisites="Craft Wondrous Item, true seeing"/>
+		<modifiers><modifier statistic="skills.Search" type="Competence" value="10"/><modifier statistic="skills.Spot" type="Competence" value="10"/></modifiers>
+	</item>
+	<item slot="body" name="Robe of Stars" price="58000 gp" weight="1 lb.">
+		<description>This garment is typically black or dark blue and embroidered with small white or silver stars. The robe has three magical powers.
+• It enables its wearer to travel physically to the Astral Plane, along with all that she is wearing or carrying.
+• It gives its wearer a +1 luck bonus on all saving throws.
+• Its wearer can use up to six of the embroidered stars on the chest portion of the robe as +5 shuriken. The robe grants its wearer proficiency with such weapons. Each shuriken disappears after it is used.
+</description>
+		<creation aura="Strong varied" caster_level="15" prerequisites="Craft Wondrous Item, magic missile, astral projection or plane shift"/>
+		<modifiers><modifier statistic="saving_throws" type="Luck" value="1"/></modifiers>
+	</item>
+	<item slot="neck" name="Scarab of Protection" price="38000 gp" weight="0 lb.">
+		<description>This device appears to be a silver medallion in the shape of a beetle. If it is held for 1 round, an inscription appears on its surface letting the holder know that it is a protective device.
+The scarab’s possessor gains spell resistance 20. The scarab can also absorb energy-draining attacks, death effects, and negative energy effects. Upon absorbing twelve such attacks, the scarab turns to powder and is destroyed.</description>
+		<creation aura="Strong abjuration and necromancy" caster_level="18" prerequisites="Craft Wondrous Item, death ward, spell resistance"/>
+	<!-- TODO modifiers -->
+	</item>
+
+	<!-- Unslotted wonderous items with modifiers -->
+	<item name="Stone of Good Luck (Luckstone)" price="20000 gp" weight="0 lb.">
+		<description>This stone is typically a bit of rough polished agate or some similar mineral. Its possessor gains a +1 luck bonus on saving throws, ability checks, and skill checks.</description>
+		<modifiers>
+			<modifier statistic="saving_throws" type="Luck" value="1"/>
+			<modifier statistic="skills" type="Luck" value="1"/>
+			<!-- todo ability checks-->
+		</modifiers>
+		<creation aura="Faint evocation" caster_level="5" prerequisites="Craft Wondrous Item, divine favor"/>
+	</item>
+	<item name="Ioun Stone, Dusty Rose Prism" price="5000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers><modifier statistic="ac" type="Insight" value="1"/></modifiers>
+		<creation aura="Moderate varied" caster_level="12" prerequisites="Craft Wondrous Item, creator must be 12th level"/>
+	</item>
+
+	<item name="Ioun Stone, Deep Red	Sphere" price="8000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers><modifier statistic="ability_scores.dexterity" type="Enhancement" value="2"/></modifiers>
+		<creation aura="Moderate varied" caster_level="12" prerequisites="Craft Wondrous Item, creator must be 12th level"/>
+	</item>
+	<item name="Ioun Stone, Incandescent Blue	Sphere" price="8000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers><modifier statistic="ability_scores.wisdom" type="Enhancement" value="2"/></modifiers>
+		<creation aura="Moderate varied" caster_level="12" prerequisites="Craft Wondrous Item, creator must be 12th level"/>
+	</item>
+	<item name="Ioun Stone, Pale Blue Rhomboid" price="8000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers><modifier statistic="ability_scores.strength" type="Enhancement" value="2"/></modifiers>
+		<creation aura="Moderate varied" caster_level="12" prerequisites="Craft Wondrous Item, creator must be 12th level"/>
+	</item>
+	<item name="Ioun Stone, Pink Rhomboid" price="8000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers><modifier statistic="ability_scores.constitution" type="Enhancement" value="2"/></modifiers>
+		<creation aura="Moderate varied" caster_level="12" prerequisites="Craft Wondrous Item, creator must be 12th level"/>
+	</item>
+	<item name="Ioun Stone, Pink and Green	Sphere" price="8000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers><modifier statistic="ability_scores.charisa" type="Enhancement" value="2"/></modifiers>
+		<creation aura="Moderate varied" caster_level="12" prerequisites="Craft Wondrous Item, creator must be 12th level"/>
+	</item>
+	<item name="Ioun Stone, Scarlet and Blue Sphere" price="8000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers><modifier statistic="ability_scores.intelligence" type="Enhancement" value="2"/></modifiers>
+		<creation aura="Moderate varied" caster_level="12" prerequisites="Craft Wondrous Item, creator must be 12th level"/>
+	</item>
+	<item name="Ioun Stone, Pale Green Prism" price="30000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers>
+			<modifier statistic="attacks" type="Competence" value="1"/>
+			<modifier statistic="saving_throws" type="Competence" value="1"/>
+			<modifier statistic="skills" type="Competence" value="1"/>
+			<!-- TODO ability check modifier-->
+		</modifiers>
+		<creation aura="Moderate varied" caster_level="12" prerequisites="Craft Wondrous Item, creator must be 12th level"/>
+	</item>
+	<item name="Ioun Stone, Orange Prism" price="30000 gp" weight="0 lb.">
+		<description>These crystalline stones always float in the air and must be within 3 feet of their owner to be of any use. When a character first acquires a stone, she must hold it and then release it, whereupon it takes up a circling orbit 1d3 feet from her head. Thereafter, a stone must be grasped or netted to separate it from its owner. The owner may voluntarily seize and stow a stone (to keep it safe while she is sleeping, for example), but she loses the benefits of the stone during that time. Ioun stones have AC 24, 10 hit points, and hardness 5.</description>
+		<modifiers><modifier statistic="ac" type="Insight" value="1"/></modifiers>
+		<!-- TODO caster level modifier-->
+	</item>
+
+	<!-- Slotted wonderous items without modifiers -->
+	<item slot="neck" name="Amulet of the Planes" price="120000 gp" weight="0 lb.">
+		<description>This device usually appears to be a black circular amulet, although any character looking closely at it sees a dark, moving swirl of color. The amulet allows its wearer to utilize plane shift. However, this is a difficult item to master. The user must make a DC 15 Intelligence check in order to get the amulet to take her to the plane (and the specific location on that plane) that she wants. If she fails, the amulet transports her and all those traveling with her to a random location on that plane (01–60 on d%) or to a random plane (61–100).</description>
+		<creation aura="Strong conjuration" caster_level="15" prerequisites="Craft Wondrous Item, plane shift"/>
+	</item>
+	<item slot="neck" name="Amulet of Proof against Detection and Location" price="35000 gp" weight="0 lb.">
+		<description>This silver amulet protects the wearer from scrying and magical location just as a nondetection spell does. If a divination spell is attempted against the wearer, the caster of the divination must succeed on a caster level check (1d20 + caster level) against a DC of 19 (as if the caster had cast nondetection on herself ).</description>
+		<creation aura="Moderate abjuration" caster_level="8" prerequisites="Craft Wondrous Item, nondetection"/>
+	</item>
+	<item slot="shoulders" name="Cloak of Displacement, Minor" price="24000 gp" weight="1 lb.">
+		<description>This item appears to be a normal cloak, but when worn by a character its magical properties distort and warp light waves. This displacement works similar to the displacement spell except that it only grants a 20% miss chance on attacks against the wearer. It functions continually.</description>
+		<creation aura="Faint illusion" caster_level="3" prerequisites="Craft Wondrous Item, displacement"/>
+	</item>
+	<item slot="feet" name="Boots of Levitation" price="7500 gp" weight="1 lb.">
+		<description>On command, these leather boots allow the wearer to levitate as if she had cast levitate on herself.</description>
+		<creation aura="Faint transmutation" caster_level="3" prerequisites="Craft Wondrous Item, levitate"/>
+	</item>
+	<item slot="feet" name="Boots of Speed" price="12000 gp" weight="1 lb.">
+		<description>As a free action, the wearer can click her boot heels together, enabling her to act as though affected by a haste spell for up to 10 rounds each day. The duration of the haste effect need not be consecutive rounds.</description>
+		<creation aura="Moderate transmutation" caster_level="10" prerequisites="Craft Wondrous Item, haste"/>
+	</item>
+	<item slot="feet" name="Boots of Teleportation" price="49000 gp" weight="3 lb.">
+		<description>Any character wearing this footwear may teleport three times per day, exactly as if he had cast the spell of the same name.</description>
+		<creation aura="Moderate conjuration" caster_level="9" prerequisites="Craft Wondrous Item, teleport"/>
+	</item>
+	<item slot="feet" name="Boots of the Winterlands" price="2500 gp" weight="1 lb.">
+		<description>This footgear bestows many powers upon the wearer. First, he is able to travel across snow at his normal speed, leaving no tracks. The boots also enable him to travel at normal speed across the most slippery ice (horizontal surfaces only, not vertical or sharply slanted ones) without falling or slipping. Finally, boots of the winterlands warm the wearer, as if he were affected by an endure elements spell.</description>
+		<creation aura="Faint abjuration and transmutation" caster_level="5" prerequisites="Craft Wondrous Item, cat’s grace, endure elements, pass without trace"/>
+	</item>
+	<item slot="feet" name="Boots, Winged" price="16000 gp" weight="1 lb.">
+		<description>These boots appear to be ordinary footgear. On command, the boots sprout wings at the heel and let the wearer fly, without having to maintain concentration, as if affected by a fly spell. He can fly three times day for up to 5 minutes per flight.</description>
+		<creation aura="Faint transmutation" caster_level="5" prerequisites="Craft Wondrous Item, fly"/>
+	</item>
+	<item slot="arms" name="Bracelet of Friends" price="19000 gp" weight="0 lb.">
+		<description>This silver charm bracelet has four charms upon it when created. The owner may designate one person known to him to be keyed to one charm. (This designation takes a standard action, but once done it lasts forever or until changed.) When a charm is grasped and the name of the keyed individual is spoken, that person is called to the spot (a standard action) along with his or her gear, as long as the owner and the called person are on the same plane. The keyed individual knows who is calling, and the bracelet of friends only functions on willing travelers. Once a charm is activated, it disappears. Charms separated from the bracelet are worthless. A bracelet found with fewer than four charms is worth 25% less for each missing charm.</description>
+		<creation aura="Strong conjuration" caster_level="15" prerequisites="Craft Wondrous Item, refuge"/>
+	</item>
+	<item slot="neck" name="Brooch of Shielding" price="1500 gp" weight="0 lb.">
+		<description>This appears to be a piece of silver or gold jewelry used to fasten a cloak or cape. In addition to this mundane task, it can absorb magic missiles of the sort generated by spell or spell-like ability. A brooch can absorb up to 101 points of damage from magic missiles before it melts and becomes useless.</description>
+		<creation aura="Faint abjuration" caster_level="1" prerequisites="Craft Wondrous Item, shield"/>
+	</item>
+	<item slot="shoulders" name="Cape of the Mountebank" price="10080 gp" weight="1 lb.">
+		<description>On command, this bright red and gold cape allows the wearer to use the magic of the dimension door spell once per day. When he disappears, he leaves behind a cloud of smoke, appearing in a similar fashion at his destination.</description>
+		<creation aura="Moderate conjuration" caster_level="9" prerequisites="Craft Wondrous Item, dimension door"/>
+	</item>
+	<item slot="head" name="Circlet of Blasting, Minor" price="6480 gp" weight="0 lb.">
+		<description>On command, this simple golden headband projects a blast of searing light (3d8 points of damage) once per day.</description>
+		<creation aura="Faint evocation" caster_level="6" prerequisites="Craft Wondrous Item, searing light"/>
+	</item>
+	<item slot="head" name="Circlet of Blasting, Major" price="23760 gp" weight="0 lb.">
+		<description>On command, this elaborate golden headband projects a blast of searing light (5d8 maximized for 40 points of damage) once per day.</description>
+		<creation aura="Strong evocation" caster_level="17" prerequisites="Craft Wondrous Item, Maximize Spell, searing light"/>
+	</item>
+	<item slot="shoulders" name="Cloak of Arachnida" price="14000 gp" weight="1 lb.">
+		<description>This black garment, embroidered with a weblike pattern in silk, gives the wearer the ability to climb as if a spider climb spell had been placed upon her. In addition, the cloak grants her immunity to entrapment by web spells or webs of any sort—she can actually move in webs at half her normal speed. Once per day, the wearer of this cloak can cast web. She also gains a +2 luck bonus on all Fortitude saves against poison from spiders.</description>
+		<creation aura="Faint conjuration and transmutation" caster_level="6" prerequisites="Craft Wondrous Item, spider climb, web"/>
+	</item>
+	<item slot="shoulders" name="Cloak of Displacement, Major" price="50000 gp" weight="1 lb.">
+		<description>This item appears to be a normal cloak, but on command its magical properties distort and warp light waves. This displacement works just like the displacement spell and lasts for a total of 15 rounds per day, which the wearer can divide up as she sees fit.</description>
+		<creation aura="Moderate illusion" caster_level="7" prerequisites="Craft Wondrous Item, Extend Spell, displacement"/>
+	</item>
+	<item slot="shoulders" name="Cloak of Etherealness" price="55000 gp" weight="1 lb.">
+		<description>This silvery-gray cloak seems to absorb light rather than be illuminated by it. On command, the cloak makes its wearer ethereal (as the ethereal jaunt spell). The effect is dismissible. The cloak works for a total of up to 10 minutes per day. This duration need not be continuous.</description>
+		<creation aura="Strong transmutation" caster_level="15" prerequisites="Craft Wondrous Item, ethereal jaunt"/>
+	</item>
+	<item slot="face" name="Eyes of Charming" price="56000 gp" weight="0 lb.">
+		<description>These two crystal lenses fit over the user’s eyes. The wearer is able to use charm person (one target per round) merely by meeting a target’s gaze. Those failing a DC 16 Will save are charmed as per the spell. If the wearer has only one lens, the DC of the saving throw is reduced to 10.</description>
+		<creation aura="Moderate enchantment" caster_level="7" prerequisites="Craft Wondrous Item, Heighten Spell, charm person"/>
+	</item>
+	<item slot="face" name="Eyes of Doom" price="25000 gp" weight="0 lb.">
+		<description>These crystal lenses fit over the user’s eyes, enabling him to cast doom upon those around him (one target per round) as a gaze attack, except that the wearer must take a standard action, and those merely looking at the wearer are not affected. Those failing a DC 11 Will save are affected as by the doom spell. If the wearer has only one lens, the DC of the saving throw is reduced to 10. However, if the wearer has both lenses, he gains the additional power of a continual deathwatch effect and can use fear (Will DC 16 partial) as a normal gaze attack once per week.</description>
+		<creation aura="Moderate necromancy" caster_level="11" prerequisites="Craft Wondrous Item, doom, deathwatch, fear"/>
+	</item>
+	<item slot="face" name="Eyes of Petrification" price="98000 gp" weight="0 lb.">
+		<description>These items are made of special crystal and fit over the eyes of the wearer. They allow her to use a petrification gaze attack (Fortitude DC 19 negates) for 10 rounds per day. Both lenses must be worn for the magic to be effective.</description>
+		<creation aura="Moderate transmutation" caster_level="11" prerequisites="Craft Wondrous Item, flesh to stone"/>
+	</item>
+	<item slot="hands" name="Gauntlet of Rust" price="11500 gp" weight="2 lb.">
+		<description>This single metal gauntlet looks rusted and pitted but is actually quite powerful. Once per day, it can affect an object as with the rusting grasp spell. It also completely protects the wearer and her gear from rust (magical or otherwise), including the attack of a rust monster.</description>
+		<creation aura="Moderate transmutation" caster_level="7" prerequisites="Craft Wondrous Item, rusting grasp"/>
+	</item>
+	<item slot="hands" name="Gloves of Arrow Snaring" price="4000 gp" weight="0 lb.">
+		<description>Once snugly worn, these gloves seem to meld with the hands, becoming almost invisible. Twice per day, the wearer can act as if he had the Snatch Arrows feat, even if he does not meet the prerequisites for it. Both gloves must be worn for the magic to be effective. At least one hand must be free to take advantage of the magic.</description>
+		<creation aura="Faint abjuration" caster_level="3" prerequisites="Craft Wondrous Item, shield"/>
+	</item>
+	<item slot="hands" name="Glove of Storing" price="10000 gp" weight="0 lb.">
+		<description>This device is a simple leather glove. On command, one item held in the hand wearing the glove disappears. The item can weigh no more than 20 pounds and must be able to be held in one hand. While stored, the item has negligible weight. With a snap of the fingers wearing the glove, the item reappears. A glove can only store one item at a time. Storing or retrieving the item is a free action. The item is held in stasis and shrunk down so small within the palm of the glove that it cannot be seen. Spell durations are not suppressed, but continue to expire. If an effect is suppressed or dispelled, the stored item appears instantly.</description>
+		<creation aura="Faint transmutation" caster_level="6" prerequisites="Craft Wondrous Item, shrink item"/>
+	</item>
+	<item slot="face" name="Goggles of Night" price="12000 gp" weight="0 lb.">
+		<description>The lenses of this item are made of dark crystal. Even though the lenses are opaque, when placed over the eyes of the wearer they enable him to see normally and also grant him 60-foot darkvision. Both lenses must be worn for the magic to be effective.</description>
+		<creation aura="Faint transmutation" caster_level="3" prerequisites="Craft Wondrous Item, darkvision"/>
+	</item>
+	<item slot="neck" name="Hand of Glory" price="8000 gp" weight="2 lb.">
+		<description>This mummified human hand hangs by a leather cord around a character’s neck (taking up space as a magic necklace would). If a magic ring is placed on one of the fingers of the hand, the wearer benefits from the ring as if wearing it herself, and it does not count against her two-ring limit. The hand can wear only one ring at a time. Even without a ring, the hand itself allows its wearer to use daylight and see invisibility each once per day.</description>
+		<creation aura="Faint varied" caster_level="5" prerequisites="Craft Wondrous Item, animate dead, daylight, detect invisibility"/>
+	</item>
+	<item slot="neck" name="Hand of the Mage" price="900 gp" weight="2 lb.">
+		<description>This mummified elf hand hangs by a golden chain around a character’s neck (taking up space as a magic necklace would). It allows the wearer to utilize the spell mage hand at will.</description>
+		<creation aura="Faint transmutation" caster_level="2" prerequisites="Craft Wondrous Item, mage hand"/>
+	</item>
+	<item slot="head" name="Hat of Disguise" price="1800 gp" weight="0 lb.">
+		<description>This apparently normal hat allows its wearer to alter her appearance as with a disguise self spell. As part of the disguise, the hat can be changed to appear as a comb, ribbon, headband, cap, coif, hood, helmet, and so on.</description>
+		<creation aura="Faint illusion" caster_level="1" prerequisites="Craft Wondrous Item, disguise self"/>
+	</item>
+	<item slot="head" name="Helm of Brilliance" price="125000 gp" weight="3 lb.">
+		<description>This normal-looking helm takes its true form and manifests its powers when the user dons it and speaks the command word. Made of brilliant silver and polished steel, a newly created helm is set with large magic gems: ten diamonds, twenty rubies, thirty fire opals, and forty opals. When struck by bright light, the helm scintillates and sends forth reflective rays in all directions from its crownlike, gem-tipped spikes. The jewels’ functions are as follows:
+• Diamond: Prismatic spray (save DC 20)
+• Ruby: Wall of fire
+• Fire opal: Fireball (10d6, Reflex DC 20 half )
+• Opal: Daylight
+The helm may be used once per round, but each gem can perform its spell-like power just once. Until all its jewels are depleted, a helm of brilliance also has the following magical properties when activated.
+• It emanates a bluish light when undead are within 30 feet. This light causes 1d6 points of damage per round to all such creatures within that range.
+• The wearer may command any weapon he wields to become a flaming weapon. This is in addition to whatever abilities the weapon may already have (unless the weapon already is a flaming weapon). The command takes 1 round to take effect.
+• The helm provides resistance to fire 30. This protection does not stack with similar protection from other sources.
+Once all its jewels have lost their magic, the helm loses its powers and the gems turn to worthless powder. Removing a jewel destroys it.
+If a creature wearing the helm is damaged by magical fire (after the fire protection is taken into account) and fails an additional DC 15 Will save, the remaining gems on the helm overload and detonate. Remaining diamonds become prismatic sprays that each randomly target a creature within range (possibly the wearer), rubies become straight-line walls of fire extending outward in a random direction from the helm wearer, and fire opals become fireballs centered on the helm wearer. The opals and the helm itself are destroyed.
+</description>
+		<creation aura="Strong varied" caster_level="13" prerequisites="Craft Wondrous Item, detect undead, fireball, flame blade, light, prismatic spray, protection from energy, wall of fire"/>
+	</item>
+	<item slot="head" name="Helm of Telepathy" price="27000 gp" weight="3 lb.">
+		<description>The wearer can use detect thoughts at will. Furthermore, he can send a telepathic message to anyone whose surface thoughts he is reading (allowing two-way communication). Once per day, the wearer of the helm can implant a suggestion (as the spell, Will DC 14 negates) along with his telepathic message.
+</description>
+		<creation aura="Faint divination and enchantment" caster_level="5" prerequisites="Craft Wondrous Item, detect thoughts, suggestion"/>
+	</item>
+	<item slot="head" name="Helm of Teleportation" price="73500 gp" weight="3 lb.">
+		<description>A character wearing this device may teleport three times per day, exactly as if he had cast the spell of the same name.</description>
+		<creation aura="Moderate conjuration" caster_level="9" prerequisites="Craft Wondrous Item, teleport"/>
+	</item>
+	<item slot="head" name="Helm of Underwater Action" price="57000 gp" weight="3 lb.">
+		<description>The wearer of this helmet can see underwater. Drawing the small lenses in compartments on either side into position before the wearer’s eyes activates the visual properties of the helm, allowing her to see five times farther than water and light conditions would allow for normal human vision. (Weeds, obstructions, and the like block vision in the usual manner.) If the command word is spoken, the helm of underwater action creates a globe of air around the wearer’s head and maintains it until the command word is spoken again, enabling her to breathe freely.</description>
+		<creation aura="Faint transmutation" caster_level="5" prerequisites="Craft Wondrous Item, water breathing"/>
+	</item>
+	<item slot="shoulders" name="Mantle of Faith" price="76000 gp" weight="0 lb.">
+		<description>This holy garment, worn over normal clothing, grants damage reduction 5/evil to the character wearing it.</description>
+		<creation aura="Strong abjuration [good]" caster_level="20" prerequisites="Craft Wondrous Item, stoneskin"/>
+	</item>
+	<item slot="face" name="Mask of the Skull" price="22000 gp" weight="3 lb.">
+		<description>This ivory mask has been fashioned into the likeness of a human skull. Once per day, after it has been worn for at least 1 hour, the mask can be loosed to fly from the wearer’s face. It travels up to 50 feet away from the wearer and attacks a target assigned to it. The grinning skull mask makes a touch attack against the target based on the wearer’s base attack bonus. If the attack succeeds, the target must make a DC 20 Fortitude save or be struck dead, as if affected by a finger of death spell. If the target succeeds on his saving throw, he nevertheless takes 3d6+13 points of damage. After attacking (whether successful or not), the mask flies back to its user. The mask has AC 16, 10 hit points, and hardness 6.</description>
+		<creation aura="Strong necromancy and transmutation" caster_level="13" prerequisites="Craft Wondrous Item, animate objects, finger of death, fly"/>
+	</item>
+	<item slot="neck" name="Medallion of Thoughts" price="12000 gp" weight="0 lb.">
+		<description>This appears to be a normal pendant disk hung from a neck chain. Usually fashioned from bronze, copper, or nickel-silver, the medallion allows the wearer to read the thoughts of others, as with the spell detect thoughts.</description>
+		<creation aura="Faint divination" caster_level="5" prerequisites="Craft Wondrous Item, detect thoughts"/>
+	</item>
+	<item slot="neck" name="Necklace of Adaptation" price="9000 gp" weight="0 lb.">
+		<description>This necklace is a heavy chain with a platinum medallion. The magic of the necklace wraps the wearer in a shell of fresh air, making him immune to all harmful vapors and gases (such as cloudkill and stinking cloud effects, as well as inhaled poisons) and allowing him to breathe, even underwater or in a vacuum.
+</description>
+		<creation aura="Moderate transmutation" caster_level="7" prerequisites="Craft Wondrous Item, alter self"/>
+	</item>
+	<item slot="neck" name="Necklace of Fireballs (Type I)" price="1650 gp" weight="0 lb.">
+		<description>
+This device appears to be nothing but beads on a string, sometimes with the ends tied together to form a necklace. (It does not count as an item worn around the neck for the purpose of determining which of a character’s worn magic items is effective.) If a character holds it, however, all can see the strand as it really is—a golden chain from which hang a number of golden spheres. The spheres are detachable by the wearer (and only by the wearer), who can easily hurl one of them up to 70 feet. When a sphere arrives at the end of its trajectory, it detonates as a fireball spell (Reflex DC 14 half ).
+Spheres come in different strengths, ranging from those that deal 2d6 points of fire damage to those that deal 10d6. The market price of a sphere is 150 gp for each die of damage it deals.
+Each necklace of fireballs contains a combination of spheres of various strengths. Type I necklaces have 1x5d6, and 2x3d6 spheres.
+If the necklace is being worn or carried by a character who fails her saving throw against a magical fire attack, the item must make a saving throw as well (with a save bonus of +7). If the necklace fails to save, all its remaining spheres detonate simultaneously, often with regrettable consequences for the wearer.
+		</description>
+		<creation aura="Moderate evocation" caster_level="10" prerequisites="Craft Wondrous Item, fireball"/>
+	</item>
+	<item slot="neck" name="Necklace of Fireballs (Type II)" price="2700 gp" weight="0 lb.">
+		<description>
+This device appears to be nothing but beads on a string, sometimes with the ends tied together to form a necklace. (It does not count as an item worn around the neck for the purpose of determining which of a character’s worn magic items is effective.) If a character holds it, however, all can see the strand as it really is—a golden chain from which hang a number of golden spheres. The spheres are detachable by the wearer (and only by the wearer), who can easily hurl one of them up to 70 feet. When a sphere arrives at the end of its trajectory, it detonates as a fireball spell (Reflex DC 14 half ).
+Spheres come in different strengths, ranging from those that deal 2d6 points of fire damage to those that deal 10d6. The market price of a sphere is 150 gp for each die of damage it deals.
+Each necklace of fireballs contains a combination of spheres of various strengths. Type II necklaces have 1x6d6, 2x4d6, and 2x2d6 spheres.
+If the necklace is being worn or carried by a character who fails her saving throw against a magical fire attack, the item must make a saving throw as well (with a save bonus of +7). If the necklace fails to save, all its remaining spheres detonate simultaneously, often with regrettable consequences for the wearer.
+		</description>
+		<creation aura="Moderate evocation" caster_level="10" prerequisites="Craft Wondrous Item, fireball"/>
+	</item>
+	<item slot="neck" name="Necklace of Fireballs (Type III)" price="4350 gp" weight="0 lb.">
+		<description>
+This device appears to be nothing but beads on a string, sometimes with the ends tied together to form a necklace. (It does not count as an item worn around the neck for the purpose of determining which of a character’s worn magic items is effective.) If a character holds it, however, all can see the strand as it really is—a golden chain from which hang a number of golden spheres. The spheres are detachable by the wearer (and only by the wearer), who can easily hurl one of them up to 70 feet. When a sphere arrives at the end of its trajectory, it detonates as a fireball spell (Reflex DC 14 half ).
+Spheres come in different strengths, ranging from those that deal 2d6 points of fire damage to those that deal 10d6. The market price of a sphere is 150 gp for each die of damage it deals.
+Each necklace of fireballs contains a combination of spheres of various strengths.  Type III necklaces have 1x7d6, 2x5d6, and 4x3d6 spheres.
+If the necklace is being worn or carried by a character who fails her saving throw against a magical fire attack, the item must make a saving throw as well (with a save bonus of +7). If the necklace fails to save, all its remaining spheres detonate simultaneously, often with regrettable consequences for the wearer.
+		</description>
+		<creation aura="Moderate evocation" caster_level="10" prerequisites="Craft Wondrous Item, fireball"/>
+	</item>
+	<item slot="neck" name="Necklace of Fireballs (Type IV)" price="5400 gp" weight="0 lb.">
+		<description>
+This device appears to be nothing but beads on a string, sometimes with the ends tied together to form a necklace. (It does not count as an item worn around the neck for the purpose of determining which of a character’s worn magic items is effective.) If a character holds it, however, all can see the strand as it really is—a golden chain from which hang a number of golden spheres. The spheres are detachable by the wearer (and only by the wearer), who can easily hurl one of them up to 70 feet. When a sphere arrives at the end of its trajectory, it detonates as a fireball spell (Reflex DC 14 half ).
+Spheres come in different strengths, ranging from those that deal 2d6 points of fire damage to those that deal 10d6. The market price of a sphere is 150 gp for each die of damage it deals.
+Each necklace of fireballs contains a combination of spheres of various strengths. Type IV necklaces have 1x8d6, 2x6d6, 2x4d6, and 4x2d6 spheres.
+If the necklace is being worn or carried by a character who fails her saving throw against a magical fire attack, the item must make a saving throw as well (with a save bonus of +7). If the necklace fails to save, all its remaining spheres detonate simultaneously, often with regrettable consequences for the wearer.
+		</description>
+		<creation aura="Moderate evocation" caster_level="10" prerequisites="Craft Wondrous Item, fireball"/>
+	</item>
+	<item slot="neck" name="Necklace of Fireballs (Type V)" price="5850 gp" weight="0 lb.">
+		<description>
+This device appears to be nothing but beads on a string, sometimes with the ends tied together to form a necklace. (It does not count as an item worn around the neck for the purpose of determining which of a character’s worn magic items is effective.) If a character holds it, however, all can see the strand as it really is—a golden chain from which hang a number of golden spheres. The spheres are detachable by the wearer (and only by the wearer), who can easily hurl one of them up to 70 feet. When a sphere arrives at the end of its trajectory, it detonates as a fireball spell (Reflex DC 14 half ).
+Spheres come in different strengths, ranging from those that deal 2d6 points of fire damage to those that deal 10d6. The market price of a sphere is 150 gp for each die of damage it deals.
+Each necklace of fireballs contains a combination of spheres of various strengths. Type V necklaces have 1x9d6, 2x7d6, 2x5d6, and 2x3d6 spheres.
+If the necklace is being worn or carried by a character who fails her saving throw against a magical fire attack, the item must make a saving throw as well (with a save bonus of +7). If the necklace fails to save, all its remaining spheres detonate simultaneously, often with regrettable consequences for the wearer.
+		</description>
+		<creation aura="Moderate evocation" caster_level="10" prerequisites="Craft Wondrous Item, fireball"/>
+	</item>
+	<item slot="neck" name="Necklace of Fireballs (Type VI)" price="8100 gp" weight="0 lb.">
+		<description>
+This device appears to be nothing but beads on a string, sometimes with the ends tied together to form a necklace. (It does not count as an item worn around the neck for the purpose of determining which of a character’s worn magic items is effective.) If a character holds it, however, all can see the strand as it really is—a golden chain from which hang a number of golden spheres. The spheres are detachable by the wearer (and only by the wearer), who can easily hurl one of them up to 70 feet. When a sphere arrives at the end of its trajectory, it detonates as a fireball spell (Reflex DC 14 half ).
+Spheres come in different strengths, ranging from those that deal 2d6 points of fire damage to those that deal 10d6. The market price of a sphere is 150 gp for each die of damage it deals.
+Each necklace of fireballs contains a combination of spheres of various strengths. Type VI necklaces have 1x10d6, 2x8d6, 2x6d6, and 4x4d6 spheres.
+If the necklace is being worn or carried by a character who fails her saving throw against a magical fire attack, the item must make a saving throw as well (with a save bonus of +7). If the necklace fails to save, all its remaining spheres detonate simultaneously, often with regrettable consequences for the wearer.
+		</description>
+		<creation aura="Moderate evocation" caster_level="10" prerequisites="Craft Wondrous Item, fireball"/>
+	</item>
+	<item slot="neck" name="Necklace of Fireballs (Type VII)" price="8700 gp" weight="0 lb.">
+		<description>
+This device appears to be nothing but beads on a string, sometimes with the ends tied together to form a necklace. (It does not count as an item worn around the neck for the purpose of determining which of a character’s worn magic items is effective.) If a character holds it, however, all can see the strand as it really is—a golden chain from which hang a number of golden spheres. The spheres are detachable by the wearer (and only by the wearer), who can easily hurl one of them up to 70 feet. When a sphere arrives at the end of its trajectory, it detonates as a fireball spell (Reflex DC 14 half ).
+Spheres come in different strengths, ranging from those that deal 2d6 points of fire damage to those that deal 10d6. The market price of a sphere is 150 gp for each die of damage it deals.
+Each necklace of fireballs contains a combination of spheres of various strengths.  Type VII necklaces have 1x10d6, 2x9d6, 2x7d6, and 2x3d6 spheres.
+If the necklace is being worn or carried by a character who fails her saving throw against a magical fire attack, the item must make a saving throw as well (with a save bonus of +7). If the necklace fails to save, all its remaining spheres detonate simultaneously, often with regrettable consequences for the wearer.
+		</description>
+		<creation aura="Moderate evocation" caster_level="10" prerequisites="Craft Wondrous Item, fireball"/>
+	</item>
+	<item slot="neck" name="Periapt of Health" price="7500 gp" weight="0 lb.">
+		<description>The wearer of this blue gem on a silver chain is immune to disease, including supernatural diseases.</description>
+		<creation aura="Faint conjuration" caster_level="5" prerequisites="Craft Wondrous Item, remove disease"/>
+	</item>
+	<item slot="neck" name="Periapt of Proof against Poison" price="27000 gp" weight="0 lb.">
+		<description>This item is a brilliant-cut black gem on a delicate silver chain. The wearer is immune to poison, although poisons still active when the periapt is first donned still run their course.</description>
+		<creation aura="Faint conjuration" caster_level="5" prerequisites="Craft Wondrous Item, neutralize poison"/>
+	</item>
+	<item slot="neck" name="Periapt of Wound Closure" price="15000 gp" weight="0 lb.">
+		<description>This stone is bright red and dangles on a gold chain. The wearer of this periapt automatically becomes stable if his hit points drop to between –1 and –9 inclusive. The periapt doubles the wearer’s normal rate of healing or allows normal healing of wounds that would not do so normally. Hit point damage that involves bleeding is negated for the wearer of the periapt, but he is still susceptible to damage from bleeding that causes Constitution loss, such as that dealt by a wounding weapon.</description>
+		<creation aura="Moderate conjuration" caster_level="10" prerequisites="Craft Wondrous Item, heal"/>
+	</item>
+	<item slot="head" name="Phylactery of Faithfulness" price="1000 gp" weight="0 lb.">
+		<description>This item is a small box containing religious scripture affixed to a leather cord and tied around the forehead. There is no mundane way to determine what function this religious item performs until it is worn. The wearer of a phylactery of faithfulness is aware of any action or item that could adversely affect his alignment and his standing with his deity, including magical effects. He acquires this information prior to performing such an action or becoming associated with such an item if he takes a moment to contemplate the act.</description>
+		<creation aura="Faint divination" caster_level="1" prerequisites="Craft Wondrous Item, detect chaos, detect evil, detect good, detect law"/>
+	</item>
+	<item slot="head" name="Phylactery of Undead Turning" price="11000 gp" weight="0 lb.">
+		<description>This item is a boon to any character able to turn undead, allowing him to do so as if his class level were four levels higher than it actually is.</description>
+		<creation aura="Moderate necromancy [good]" caster_level="10" prerequisites="Craft Wondrous Item, 10th-level cleric"/>
+	</item>
+	<item slot="body" name="Robe of Bones" price="2400 gp" weight="1 lb.">
+		<description>This handy item functions much like a robe of useful items for the serious necromancer. It appears to be an unremarkable robe, but a character who dons it notes that it is adorned with small embroidered figures representing undead creatures. Only the wearer of the robe can see the embroidery and recognize them for the creatures they become, and detach them. One figure can be detached each round. Detaching a figure causes it to become an actual undead creature (see the list below). The skeleton or zombie is not under the control of the wearer of the robe, but may be subsequently commanded, rebuked, turned, or destroyed. A newly created robe of bones always has two embroidered figures of each of the following undead:
+• Small goblin skeleton
+• Medium human commoner skeleton
+• Medium wolf skeleton
+• Small goblin zombie
+• Medium human commoner zombie
+• Medium wolf zombie</description>
+		<creation aura="Moderate necromancy [evil]" caster_level="6" prerequisites="Craft Wondrous Item, animate dead"/>
+	</item>
+	<item slot="body" name="Robe of Scintillating Colors" price="27000 gp" weight="1 lb.">
+		<description>The wearer of this robe can cause the garment to display a shifting pattern of incredible hues, color after color cascading from the upper part of the robe to the hem in sparkling rainbows of dazzling light. The colors daze those near the wearer, conceal the wearer, and illuminate the surroundings. It takes 1 full round after the wearer speaks the command word for the colors to start flowing on the robe. The colors create the equivalent of a gaze attack with a 30-foot range. Those who look at the wearer are dazed for 1d4+1 rounds (Will DC 16 negates). This is a mind-affecting pattern effect.
+Every round of continuous scintillation of the robe gives the wearer better concealment. The miss chance on attacks against the wearer starts at 10% and increases by 10% each round until it reaches 50% (total concealment).
+The robe illuminates a 30-foot radius continuously.
+The effect can be used no more than a total of 10 rounds per day.</description>
+		<creation aura="Moderate illusion" caster_level="11" prerequisites="Craft Wondrous Item, blur, rainbow pattern"/>
+	</item>
+	<item slot="body" name="Robe of Useful Items" price="7000 gp" weight="1 lb.">
+		<description>This appears to be an unremarkable robe, but a character who dons it notes that it is adorned with small cloth patches of various shapes. Only the wearer of the robe can see these patches, recognize them for what items they become, and detach them. One patch can be detached each round. Detaching a patch causes it to become an actual item, as indicated below. A newly created robe of useful items always has two each of the following patches:
+• Dagger
+• Bullseye lantern (filled and lit)
+• Mirror (a highly polished 2-foot-by-4-foot steel mirror)
+• Pole (10-foot length)
+• Hempen rope (50-foot coil)
+• Sack
+In addition, the robe has several other patches. Roll 4d4 for the number of other patches and then roll for each patch on the table below to determine its nature.
+d%	Result
+01–08	Bag of 100 gold pieces
+09–15	Coffer, silver (6 in. by 6 in. by 1 ft.), 500 gp value
+16–22	Door, iron (up to 10 ft. wide and 10 ft. high and barred on one side—must be placed upright, attaches and hinges itself)
+23–30	Gems, 10 (100 gp value each)
+31–44	Ladder, wooden (24 ft. long)
+45–51	Mule (with saddle bags)
+52–59	Pit, open (10 ft. by 10 ft. by 10 ft.)
+60–68	Potion of cure serious wounds
+69–75	Rowboat (12 ft. long)
+76–83	Minor scroll of one randomly determined spell
+84–90	War dogs, pair (treat as riding dogs)
+91–96	Window (2 ft. by 4 ft., up to 2 ft. deep)
+97–100	Portable ram
+Multiple items of the same kind are permissible. Once removed, a patch cannot be replaced.</description>
+		<creation aura="Moderate transmutation" caster_level="9" prerequisites="Craft Wondrous Item, fabricate"/>
+	</item>
+	<item slot="neck" name="Scarab, Golembane" price="2500 gp" weight="0 lb.">
+		<description>This beetle-shaped pin enables its wearer to detect any golem within 60 feet, although he must concentrate (a standard action) in order for the detection to take place. A scarab enables its possessor to combat golems with weapons, unarmed attacks, or natural weapons as if those golems had no damage reduction.</description>
+		<creation aura="Moderate divination" caster_level="8" prerequisites="Craft Wondrous Item, detect magic, creator must be at least 10th level"/>
+	</item>
+	<item slot="feet" name="Slippers of Spider Climbing" price="4800 gp" weight="1/2 lb.">
+		<description>When worn, a pair of these slippers enable movement on vertical surfaces or even upside down along ceilings, leaving the wearer’s hands free. Her speed is 20 feet. Severely slippery surfaces—icy, oiled, or greased surfaces— make these slippers useless. The slippers can be used for 10 minutes per day, split up as the wearer chooses.</description>
+		<creation aura="Faint transmutation" caster_level="4" prerequisites="Craft Wondrous Item, spider climb"/>
+	</item>
+	<item slot="torso" name="Vestment, Druid’s" price=" gp" weight="0 lb.">
+		<description>This light garment is worn over normal clothing or armor. Most such vestments are green, embroidered with plant or animal motifs. When this item is worn by a character with the wild shape ability, the character can use that ability one additional time each day.</description>
+		<creation aura="Moderate transmutation" caster_level="10" prerequisites="Craft Wondrous Item, polymorph or wild shape ability"/>
+	</item>
+	<item slot="shoulders" name="Wings of Flying" price="54000 gp" weight="2 lb.">
+		<description>A pair of these wings might appear to be nothing more than a plain cloak of old, black cloth, or they could be as elegant as a long cape of blue feathers. When the wearer speaks the command word, the cloak turns into a pair of bat or bird wings that empower her to fly with a speed of 60 feet (good maneuverability).</description>
+		<creation aura="Moderate transmutation" caster_level="10" prerequisites="Craft Wondrous Item, fly"/>
 	</item>
 </items>

@@ -1,5 +1,7 @@
 ---=== IN PROGRESS ===---
 * Slots: xml output/parsing (done). apply effects (done). tooltips - descriptions (todo). fix up notifications - probably best to make each slot a property
+* Check how natural armor bonus is implemented. It's both a modifier type (that only applies to AC), and a statistic that can itself be enhanced
+* Implement Spell Resistance   
 * Weapon/armor proficiencies: ui done but no effects implemented
 * Weapon focus/spec: seems to be not working
 * Auto numbers for tokens not coming through on ui
