@@ -19,7 +19,6 @@ import gamesystem.Attacks;
 import gamesystem.Attacks.AttackForm;
 import gamesystem.BAB;
 import gamesystem.Buff;
-import gamesystem.BuffFactory;
 import gamesystem.CharacterClass;
 import gamesystem.CharacterClass.ClassOption;
 import gamesystem.CharacterClass.LevelUpAction;
@@ -33,7 +32,6 @@ import gamesystem.HitDiceProperty;
 import gamesystem.ImmutableModifier;
 import gamesystem.InitiativeModifier;
 import gamesystem.ItemDefinition;
-import gamesystem.ItemDefinition.SlotType;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.Race;
@@ -50,6 +48,7 @@ import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import gamesystem.core.PropertyEvent;
 import gamesystem.core.SimpleValueProperty;
+import party.InventorySlots.Slot;
 
 /**
  * @author Steve
@@ -115,40 +114,7 @@ public class Character extends Creature {
 
 	public List<XPHistoryItem> xpChanges = new ArrayList<>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
-	// FIXME should replace this with a collection of slot properties
-	public enum Slot {
-		RIGHT_RING("Ring Slot (RH)", SlotType.RING), LEFT_RING("Ring Slot (LH", SlotType.RING), HANDS("Hand Slot", SlotType.HANDS), ARMS("Arm Slot", SlotType.ARMS), HEAD("Head Slot",
-				SlotType.HEAD), FACE("Face Slot", SlotType.FACE), SHOULDERS("Shoulder Slot", SlotType.SHOULDERS), NECK("Neck Slot",
-						SlotType.NECK), BODY("Body Slot", SlotType.BODY), TORSO("Torso Slot", SlotType.TORSO), WAIST("Waist Slot", SlotType.WAIST), FEET("Feet Slot", SlotType.FEET);
-
-		private Slot(String d, SlotType t) {
-			description = d;
-			this.type = t;
-		}
-
-		@Override
-		public String toString() {
-			return description;
-		}
-
-		public SlotType getSlotType() {
-			return type;
-		}
-
-		// XXX brute force implementation - could keep a map
-		public static Slot getSlot(String d) {
-			for (Slot s : values()) {
-				if (s.name().compareToIgnoreCase(d) == 0) return s;
-			}
-			return null;	// TODO probably better to throw an exception
-		}
-
-		private final String description;
-		private final SlotType type;
-	}
-
-	public Map<Slot, ItemDefinition> slots = new HashMap<>();
-	public Map<Slot, Buff> slotBuffs = new HashMap<>();
+	public InventorySlots slots;
 
 	public class XPHistoryItem {
 		public XPChange xpChange;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
@@ -256,6 +222,8 @@ public class Character extends Creature {
 		attacks = new Attacks(this);
 
 		sanity = new Sanity(this, abilities.get(AbilityScore.Type.WISDOM));
+
+		slots = new InventorySlots(this);
 	}
 
 	//------------------- Skills -------------------
@@ -588,29 +556,11 @@ public class Character extends Creature {
 	}
 
 	public ItemDefinition getSlotItem(Slot slot) {
-		return slots.get(slot);
+		return slots.getItem(slot);
 	}
 
 	public void setSlotItem(Slot slot, ItemDefinition item) {
-		ItemDefinition old = slots.get(slot);
-		if (old != null && old.equals(item) || old == null && item == null) return;
-		Buff buff = slotBuffs.get(slot);
-		if (buff != null) {
-			removeBuff(buff);
-			slotBuffs.remove(slot);
-		}
-		if (item == null) {
-			slots.remove(slot);
-		} else {
-			slots.put(slot, item);
-			BuffFactory factory = item.getBuffFactory();
-			if (factory != null) {
-				buff = factory.getBuff();
-				slotBuffs.put(slot, buff);
-				addBuff(buff);
-			}
-		}
-		fireEvent(name.createEvent(PropertyEvent.VALUE_CHANGED));	// FIXME send proper event
+		slots.setItem(slot, item);
 	}
 
 //------------------- Import/Export and other methods -------------------

@@ -11,7 +11,7 @@ import gamesystem.SavingThrow;
 import gamesystem.XMLParserHelper;
 import gamesystem.XP;
 import party.Character.ACComponentType;
-import party.Character.Slot;
+import party.InventorySlots.Slot;
 
 
 public class XMLCharacterParser extends XMLParserHelper {
@@ -186,14 +186,14 @@ public class XMLCharacterParser extends XMLParserHelper {
 				} else if (item == null) {
 					System.err.println("Invalid item: " + itemEl.getAttribute("item"));
 				} else {
-					c.slots.put(slot, item);
+					c.slots.items.put(slot, item);
 					if (itemEl.hasAttribute("buff_id")) {
 						int buffId = Integer.parseInt(itemEl.getAttribute("buff_id"));
 						boolean found = false;
 						for (int j = 0; j < c.buffs.getSize(); j++) {
 							Buff b = c.buffs.get(j);
 							if (b.id == buffId) {
-								c.slotBuffs.put(slot, b);
+								c.slots.buffs.put(slot, b);
 								found = true;
 								break;
 							}

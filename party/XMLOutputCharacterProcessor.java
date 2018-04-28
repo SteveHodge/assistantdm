@@ -18,7 +18,7 @@ import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
 import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock;
-import party.Character.Slot;
+import party.InventorySlots.Slot;
 
 
 public class XMLOutputCharacterProcessor extends XMLOutputHelper implements CreatureProcessor {
@@ -57,13 +57,13 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 		setAttributeFromProperty(c, creatureEl, "campaign", Character.PROPERTY_CAMPAIGN);
 
 		Element slots = doc.createElement("ItemSlots");
-		for (Slot s : Character.Slot.values()) {
+		for (Slot s : Slot.values()) {
 			ItemDefinition item = character.getSlotItem(s);
 			if (item != null) {
 				Element el = doc.createElement("ItemSlot");
 				el.setAttribute("slot", s.name().toLowerCase());
 				el.setAttribute("item", item.getName());
-				Buff b = character.slotBuffs.get(s);
+				Buff b = character.slots.buffs.get(s);
 				if (b != null) {
 					el.setAttribute("buff_id", Integer.toString(b.id));
 				}

@@ -44,7 +44,7 @@ import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyEvent;
 import gamesystem.core.PropertyListener;
 import party.Character.ACComponentType;
-import party.Character.Slot;
+import party.InventorySlots.Slot;
 import util.Updater;
 
 // TODO many changes trigger several updates which causes the document to be rebuilt several times. maybe better to have the updater call back to get the document when it's ready to output the character? (though then threading issues?)
@@ -119,7 +119,7 @@ public class CharacterSheetView {
 				slots = doc.createElement("ItemSlots");
 				creatureEl.appendChild(slots);
 			}
-			for (Slot s : Character.Slot.values()) {
+			for (Slot s : Slot.values()) {
 				ItemDefinition item = character.getSlotItem(s);
 				if (item != null) {
 					Element el = doc.createElement("ItemSlot");
