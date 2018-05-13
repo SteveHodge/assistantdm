@@ -618,6 +618,8 @@ function switchToTab(tab) {
 		updateButton(availableList);
 		updateButton(slotList);
 	}
+
+	if (currentTab.onActivate) currentTab.onActivate();
 }
 
 function lockSlots(list, dontSave) {

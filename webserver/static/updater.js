@@ -8,9 +8,7 @@
 	var xsl2 = null;	// xslt transform for character sheet 1
 	var name = null;	// character name, if any
 
-	$(window).on('load', function(e) {
-		$('#webcam').css('min-height', $('#photo1').height()+'px');
-	});
+	$(window).on('load', adjustHeight);
 
 	$(document).ready(function () {
 		if (token == null) token = (new Date()).valueOf();
@@ -47,14 +45,21 @@
 		req.send(JSON.stringify(output, null, '\t'));
 	}
 
+	// this stuff seems a bit hackish
+	function adjustHeight() {
+		var h = $('#photo1').height();
+		if (!h) return;
+		$('#webcam').css('min-height', h+'px');
+	}
+
 	function setupWebcam() {
 		$('#tokens1').click(openPhoto);
 		$('#tokens1check').click(toggleTokens);
 
-		// TODO fix this hack. perhaps periodically re-check the height
-		$('#photo1').on('load', function(e) {
-			$('#webcam').css('min-height', $('#photo1').height()+'px');
-		});
+		$('#photo1').on('load', adjustHeight);
+		if (document.getElementById('tab_webcam')) {
+			document.getElementById('tab_webcam').onActivate = adjustHeight;
+		}
 
 		if (name) {
 			$('#movetoken')

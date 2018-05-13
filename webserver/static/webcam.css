@@ -34,12 +34,14 @@
 	position:absolute;
 	z-index:1;
 	width:75%;
+	border: 1px solid black;
 }
 
 #tokens1 {
 	position:absolute;
 	z-index:2;
 	width:75%;
+	border: 1px solid black;
 }
 
 #images {

@@ -163,6 +163,18 @@
     </table>
 </xsl:template>
 
+<xsl:template name="item-slot">
+	<xsl:param name="item"/>
+	<xsl:choose>
+		<xsl:when test="$item">
+  <td colspan='23' class='slot-item'><xsl:value-of select="$item/@item"/> (<xsl:value-of select="$item/@price"/> GP)</td>
+		</xsl:when><xsl:otherwise>
+  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
+		</xsl:otherwise>
+	</xsl:choose>
+  <td colspan='4' class='slot-weight R'><xsl:value-of select="$item/@weight"/></td>
+</xsl:template>
+
 <xsl:template match="Character">
 <div class="character-table sheet2">
 
@@ -567,8 +579,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='right_ring']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -582,8 +593,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='left_ring']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -597,8 +607,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='hands']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -612,8 +621,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='arms']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -627,8 +635,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='head']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -642,8 +649,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='face']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -657,8 +663,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='shoulders']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -672,8 +677,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='neck']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -687,8 +691,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='body']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -702,8 +705,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='torso']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -717,8 +719,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='waist']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
@@ -732,8 +733,7 @@
   <td/>
   <td colspan='23' class='possessions-item L'></td>
   <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='slot-item'>(none) (0 GP)</td>
-  <td colspan='4' class='slot-weight R'>0</td>
+  <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='feet']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
