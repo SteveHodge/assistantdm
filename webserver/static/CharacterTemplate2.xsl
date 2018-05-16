@@ -175,6 +175,20 @@
   <td colspan='4' class='slot-weight R'><xsl:value-of select="$item/@weight"/></td>
 </xsl:template>
 
+<xsl:template name="possession">
+	<xsl:param name="item"/>
+	<xsl:param name="item-class"/>
+	<xsl:param name="weight-class"/>
+	<xsl:choose>
+		<xsl:when test="$item">
+  <td colspan='23' class='possessions-item {$item-class}'><xsl:value-of select="$item/@name"/></td>
+		</xsl:when><xsl:otherwise>
+  <td colspan='23' class='possessions-item {$item-class}'></td>
+		</xsl:otherwise>
+	</xsl:choose>
+  <td colspan='4' class='possessions-weight {$weight-class}'><xsl:value-of select="$item/@weight"/></td>
+</xsl:template>
+
 <xsl:template match="Character">
 <div class="character-table sheet2">
 
@@ -483,263 +497,217 @@
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[1]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[37]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[2]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[38]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[3]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[39]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[4]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[40]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[5]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[41]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[6]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[42]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[7]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[43]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[8]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[44]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[9]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[45]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
-  <td colspan='23' class='possessions-item'></td>
-  <td colspan='4' class='possessions-weight R'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[10]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[46]"/><xsl:with-param name="weight-class" select='"R"'/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[11]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-heading R'>Magic Items Equipped by Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[12]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Ring Slot (RH)</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[13]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='right_ring']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[14]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Ring Slot (LH)</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[15]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='left_ring']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[16]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Hand Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[17]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='hands']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[18]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Arm Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[19]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='arms']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[20]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Head Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[21]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='head']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[22]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Face Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[23]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='face']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[24]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Shoulder Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[25]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='shoulders']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[26]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Neck Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[27]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='neck']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[28]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Body Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[29]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='body']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[30]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Torso Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[31]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='torso']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[32]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Waist Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[33]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='waist']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[34]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <td colspan='27' class='slot-subhead R'>Feet Slot</td>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item L'></td>
-  <td colspan='4' class='possessions-weight'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[35]"/><xsl:with-param name="item-class" select='"L"'/></xsl:call-template>
   <xsl:call-template name="item-slot"><xsl:with-param name="item" select="ItemSlots/ItemSlot[@slot='feet']"/></xsl:call-template>
   <td/>
  </tr>
  <tr class='double-row'>
   <td/>
-  <td colspan='23' class='possessions-item B L'></td>
-  <td colspan='4' class='possessions-weight B'></td>
+  <xsl:call-template name="possession"><xsl:with-param name="item" select="Inventory/Item[36]"/><xsl:with-param name="item-class" select='"B L"'/><xsl:with-param name="weight-class" select='"B"'/></xsl:call-template>
   <td colspan='23' class='slot-subhead B'>TOTAL WEIGHT CARRIED</td>
   <td colspan='4' class='total-weight B R'>0</td>
   <td/>

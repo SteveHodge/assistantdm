@@ -104,7 +104,6 @@ public class CharacterSheetView {
 	// TODO this should probably include all the same data as the regular save as well as additional stuff
 	class CharacterSheetProcessor extends XMLOutputCharacterProcessor {
 		Element specials;
-		Element slots;
 
 		public CharacterSheetProcessor(Document doc) {
 			super(doc);
@@ -113,22 +112,6 @@ public class CharacterSheetView {
 		@Override
 		public void processCreature(Creature c) {
 			super.processCreature(c);
-
-			// item slots
-			if (slots == null) {
-				slots = doc.createElement("ItemSlots");
-				creatureEl.appendChild(slots);
-			}
-			for (Slot s : Slot.values()) {
-				ItemDefinition item = character.getSlotItem(s);
-				if (item != null) {
-					Element el = doc.createElement("ItemSlot");
-					el.setAttribute("slot", s.name().toLowerCase());
-					el.setAttribute("item", item.getName());
-					el.setAttribute("weight", item.getWeight());
-					slots.appendChild(el);
-				}
-			}
 
 			// class features
 			if (specials == null) {
@@ -152,6 +135,43 @@ public class CharacterSheetView {
 				el.setAttribute("type", "class");
 				specials.appendChild(el);
 			}
+		}
+
+		@Override
+		public void processItemSlots() {
+			// item slots
+			Element slots = doc.createElement("ItemSlots");
+			for (Slot s : Slot.values()) {
+				ItemDefinition item = character.getSlotItem(s);
+				if (item != null) {
+					Element el = doc.createElement("ItemSlot");
+					el.setAttribute("slot", s.name().toLowerCase());
+					el.setAttribute("item", item.getName());
+					el.setAttribute("weight", item.getWeight());
+					slots.appendChild(el);
+				}
+			}
+			if (slots.hasChildNodes())
+				creatureEl.appendChild(slots);
+		}
+
+		@Override
+		public void processInventory() {
+			Element inventory = doc.createElement("Inventory");
+			for (ItemDefinition item : character.inventory.items) {
+				if (item != null) {
+					Element el = doc.createElement("Item");
+					el.setAttribute("name", item.getName());
+					el.setAttribute("weight", item.getWeight());
+//					Buff b = character.slots.buffs.get(s);
+//					if (b != null) {
+//						el.setAttribute("buff_id", Integer.toString(b.id));
+//					}
+					inventory.appendChild(el);
+				}
+			}
+			if (inventory.hasChildNodes())
+				creatureEl.appendChild(inventory);
 		}
 
 		@Override

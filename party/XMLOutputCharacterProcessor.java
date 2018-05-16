@@ -56,6 +56,11 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 		setAttributeFromProperty(c, creatureEl, "action-points", Character.PROPERTY_ACTION_POINTS);
 		setAttributeFromProperty(c, creatureEl, "campaign", Character.PROPERTY_CAMPAIGN);
 
+		processItemSlots();
+		processInventory();
+	}
+
+	public void processItemSlots() {
 		Element slots = doc.createElement("ItemSlots");
 		for (Slot s : Slot.values()) {
 			ItemDefinition item = character.getSlotItem(s);
@@ -72,6 +77,24 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 		}
 		if (slots.hasChildNodes()) {
 			creatureEl.appendChild(slots);
+		}
+	}
+
+	public void processInventory() {
+		Element inventory = doc.createElement("Inventory");
+		for (ItemDefinition item : character.inventory.items) {
+			if (item != null) {
+				Element el = doc.createElement("Item");
+				el.setAttribute("name", item.getName());
+//				Buff b = character.slots.buffs.get(s);
+//				if (b != null) {
+//					el.setAttribute("buff_id", Integer.toString(b.id));
+//				}
+				inventory.appendChild(el);
+			}
+		}
+		if (inventory.hasChildNodes()) {
+			creatureEl.appendChild(inventory);
 		}
 	}
 

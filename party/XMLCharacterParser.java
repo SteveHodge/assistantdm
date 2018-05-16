@@ -42,6 +42,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise
 		Element buffsElement = null;	// need to process after attacks so that all target statistics are set up
 		Element slotsElement = null;	// we process this after buffs to link up the buffs
+		Element inventoryElement = null;	// we process this after buffs to link up the buffs
 
 		NodeList nodes = el.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
@@ -139,6 +140,9 @@ public class XMLCharacterParser extends XMLParserHelper {
 			} else if (tag.equals("ItemSlots")) {
 				slotsElement = e;
 
+			} else if (tag.equals("Inventory")) {
+				inventoryElement = e;
+
 			} else if (tag.equals("Size")) {
 				parseSize(e, c);
 			}
@@ -202,6 +206,35 @@ public class XMLCharacterParser extends XMLParserHelper {
 							System.err.println("Buff id " + buffId + " was not found");
 						}
 					}
+				}
+			}
+		}
+
+		if (inventoryElement != null) {
+			NodeList items = inventoryElement.getChildNodes();
+			for (int i = 0; i < items.getLength(); i++) {
+				if (!items.item(i).getNodeName().equals("Item")) continue;
+				Element itemEl = (Element) items.item(i);
+				ItemDefinition item = ItemDefinition.getItem(itemEl.getAttribute("name"));
+				if (item != null) {
+					c.inventory.add(item);
+//					if (itemEl.hasAttribute("buff_id")) {
+//						int buffId = Integer.parseInt(itemEl.getAttribute("buff_id"));
+//						boolean found = false;
+//						for (int j = 0; j < c.buffs.getSize(); j++) {
+//							Buff b = c.buffs.get(j);
+//							if (b.id == buffId) {
+//								c.slots.buffs.put(slot, b);
+//								found = true;
+//								break;
+//							}
+//						}
+//						if (!found) {
+//							System.err.println("Buff id " + buffId + " was not found");
+//						}
+//					}
+				} else {
+					System.err.println("Unknown item " + itemEl.getAttribute("name"));
 				}
 			}
 		}

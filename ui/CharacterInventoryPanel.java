@@ -16,11 +16,22 @@ import party.Inventory;
 
 @SuppressWarnings("serial")
 public class CharacterInventoryPanel extends CharacterSubPanel {
+	InventoryListModel model;
+	JList<ItemDefinition> itemList;
+	JScrollPane scroller;
+
 	public CharacterInventoryPanel(Character chr) {
 		super(chr);
 
-		InventoryListModel model = new InventoryListModel();
-		JList<ItemDefinition> itemList = new JList<>(model);
+		model = new InventoryListModel();
+		itemList = new JList<>(model);
+		itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		itemList.setVisibleRowCount(12);
+//		itemList.addListSelectionListener(e -> {
+//			if (!e.getValueIsAdjusting()) {
+//				attackPanel.setAttackForm(weaponList.getSelectedValue());
+//			}
+//		});
 
 		setLayout(new GridBagLayout());
 
@@ -74,14 +85,7 @@ public class CharacterInventoryPanel extends CharacterSubPanel {
 		c.anchor = GridBagConstraints.NORTH;
 		add(buttonPanel, c);
 
-		itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		itemList.setVisibleRowCount(12);
-//		itemList.addListSelectionListener(e -> {
-//			if (!e.getValueIsAdjusting()) {
-//				attackPanel.setAttackForm(weaponList.getSelectedValue());
-//			}
-//		});
-		JScrollPane scroller = new JScrollPane(itemList);
+		scroller = new JScrollPane(itemList);
 		//scroller.setPreferredSize(preferredSize);
 
 		c.gridx = 0;
