@@ -116,6 +116,8 @@ public class Character extends Creature {
 
 	public InventorySlots slots;
 
+	public Inventory inventory;
+
 	public class XPHistoryItem {
 		public XPChange xpChange;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 		private int total;
@@ -224,6 +226,8 @@ public class Character extends Creature {
 		sanity = new Sanity(this, abilities.get(AbilityScore.Type.WISDOM));
 
 		slots = new InventorySlots(this);
+
+		inventory = new Inventory(this);
 	}
 
 	//------------------- Skills -------------------

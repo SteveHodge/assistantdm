@@ -19,6 +19,7 @@ import javax.swing.table.TableCellEditor;
 import gamesystem.ItemDefinition;
 import gamesystem.ItemDefinition.SlotType;
 import party.Character;
+import party.InventorySlots.Slot;
 import swing.JTableWithToolTips;
 import swing.TableModelWithToolTips;
 
@@ -90,15 +91,15 @@ public class CharacterSlotsPanel extends CharacterSubPanel {
 
 		@Override
 		public int getRowCount() {
-			return Character.Slot.values().length;
+			return Slot.values().length;
 		}
 
 		@Override
 		public Object getValueAt(int row, int col) {
 			if (col == 0) {
-				return Character.Slot.values()[row].toString();
+				return Slot.values()[row].toString();
 			} else if (col == 1) {
-				return character.getSlotItem(Character.Slot.values()[row]);
+				return character.getSlotItem(Slot.values()[row]);
 			}
 			return null;
 		}
@@ -108,7 +109,7 @@ public class CharacterSlotsPanel extends CharacterSubPanel {
 		public void setValueAt(Object value, int row, int column) {
 			if (column != 1) return;
 			if (value != null && !(value instanceof ItemDefinition)) return;
-			character.setSlotItem(Character.Slot.values()[row], (ItemDefinition) value);
+			character.setSlotItem(Slot.values()[row], (ItemDefinition) value);
 		}
 
 		@Override
@@ -131,7 +132,7 @@ public class CharacterSlotsPanel extends CharacterSubPanel {
 
 		@Override
 		public String getToolTipAt(int row, int col) {
-			return Character.Slot.values()[row].toString();
+			return Slot.values()[row].toString();
 		}
 
 	}

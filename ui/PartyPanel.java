@@ -200,6 +200,9 @@ public class PartyPanel extends JPanel implements PartyListener {
 		sub = new JSubSection("Skills", new CharacterSkillsPanel(c));
 		rightPanel.add(sub);
 
+		sub = new JSubSection("Inventory", new CharacterInventoryPanel(c));
+		rightPanel.add(sub);
+
 		rightPanel.add(Box.createVerticalGlue());
 
 		panel.setLeftComponent(leftPanel);
