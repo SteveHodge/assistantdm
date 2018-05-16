@@ -2,7 +2,6 @@ package ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.util.Random;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
@@ -103,14 +102,6 @@ public class CharacterInventoryPanel extends CharacterSubPanel {
 				// TODO more appropriate events
 				fireContentsChanged(this, 0, getSize() - 1);
 			});
-			ItemDefinition[] items = ItemDefinition.getItemsForSlot(null).toArray(new ItemDefinition[0]);
-			Random rand = new Random();
-			ItemDefinition item = items[rand.nextInt(items.length)];
-			inventory.add(item);
-			item = items[rand.nextInt(items.length)];
-			inventory.add(item);
-			item = items[rand.nextInt(items.length)];
-			inventory.add(item);
 		}
 
 		@Override
