@@ -144,7 +144,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		int col = 0;
 		int mult = 1;
 		for (int i = chars.length() - 1; i >= 0; i--) {
-			col += mult * (chars.charAt(i) - 'A');
+			col += mult * (chars.charAt(i) - 'A' + (mult > 1 ? 1 : 0));	// last part of expression is because last letter represents 0..25, but other letters represent 1..25
 			mult *= 26;
 		}
 
