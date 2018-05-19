@@ -3,6 +3,7 @@ package gamesystem;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class ItemDefinition {
 	public enum SlotType {
@@ -20,6 +21,7 @@ public class ItemDefinition {
 			for (SlotType t : values()) {
 				if (t.description.equals(d)) return t;
 			}
+			System.err.println("Unknown slot type: '" + d + "'");
 			return null;	// TODO probably better to throw an exception
 		}
 
@@ -29,9 +31,13 @@ public class ItemDefinition {
 	static Set<ItemDefinition> items = new HashSet<>();
 
 	String name;
-	String slot;
-	String cost;
+	String category;
+	SlotType slot;
+	String price;
 	String weight;
+	boolean magical;
+	String aura;
+	boolean scaleWeight;	// small size version of this item weighs 1/4 of the weight
 	List<Attack> attacks;
 	Armor armor;
 	Shield shield;
@@ -53,7 +59,7 @@ public class ItemDefinition {
 	public String getSummary() {
 		StringBuilder s = new StringBuilder();
 		s.append(name).append(" (").append(slot).append(")");
-		if (cost != null && cost.length() > 0) s.append(" ").append(cost);
+		if (price != null && price.length() > 0) s.append(" ").append(price);
 		if (weight != null && weight.length() > 0) s.append(" ").append(weight);
 		return s.toString();
 	}
@@ -138,10 +144,18 @@ public class ItemDefinition {
 		return attacks;
 	}
 
+	public static Set<ItemDefinition> getItems() {
+		return items;
+	}
+
 	public static Set<ItemDefinition> getItemsForSlot(SlotType slot) {
+		return getItems(item -> item.slot == slot);
+	}
+
+	public static Set<ItemDefinition> getItems(Predicate<ItemDefinition> predicate) {
 		Set<ItemDefinition> items = new HashSet<>();
 		for (ItemDefinition item : ItemDefinition.items) {
-			if (item.slot != null && slot.description.compareToIgnoreCase(item.slot) == 0) {
+			if (predicate.test(item)) {
 				items.add(item);
 			}
 		}

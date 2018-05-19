@@ -1,10 +1,7 @@
 package party;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 import gamesystem.ItemDefinition;
 import gamesystem.core.AbstractProperty;
@@ -16,7 +13,7 @@ import gamesystem.core.PropertyEvent;
 // "removed_at" -> index that item(s) were removed from (-1 means unknown which items were removed)
 // "changed_at" -> index that item(s) were changed at (-1 means unknown which items changed)
 
-public class Inventory extends AbstractProperty<Inventory> implements List<ItemDefinition> {
+public class Inventory extends AbstractProperty<Inventory> {
 	List<ItemDefinition> items = new ArrayList<>();
 
 	public Inventory(Character c) {
@@ -28,10 +25,6 @@ public class Inventory extends AbstractProperty<Inventory> implements List<ItemD
 		return this;
 	}
 
-	// ------------------------------------- List interface -------------------------------------
-	// TODO the default list/collection methods (e.g. replaceAll) will not report events properly
-
-	@Override
 	public boolean add(ItemDefinition item) {
 		boolean ret = items.add(item);
 		if (ret) {
@@ -43,7 +36,6 @@ public class Inventory extends AbstractProperty<Inventory> implements List<ItemD
 		return ret;
 	}
 
-	@Override
 	public void add(int index, ItemDefinition item) {
 		items.add(index, item);
 		PropertyEvent e = createEvent(PropertyEvent.VALUE_CHANGED);
@@ -52,6 +44,26 @@ public class Inventory extends AbstractProperty<Inventory> implements List<ItemD
 		fireEvent(e);
 	}
 
+	public ItemDefinition get(int index) {
+		return items.get(index);
+	}
+
+	public ItemDefinition remove(int index) {
+		ItemDefinition item = items.remove(index);
+		PropertyEvent e = createEvent(PropertyEvent.VALUE_CHANGED);
+		e.set("removed_at", item);
+		e.set("count", 1);
+		fireEvent(e);
+		return item;
+	}
+
+	public int size() {
+		return items.size();
+	}
+
+	// ------------------------------------- List interface -------------------------------------
+	// TODO the default list/collection methods (e.g. replaceAll) will not report events properly
+/*
 	@Override
 	public boolean addAll(Collection<? extends ItemDefinition> c) {
 		int index = items.size();
@@ -96,11 +108,6 @@ public class Inventory extends AbstractProperty<Inventory> implements List<ItemD
 	@Override
 	public boolean containsAll(Collection<?> c) {
 		return items.containsAll(c);
-	}
-
-	@Override
-	public ItemDefinition get(int index) {
-		return items.get(index);
 	}
 
 	@Override
@@ -149,16 +156,6 @@ public class Inventory extends AbstractProperty<Inventory> implements List<ItemD
 	}
 
 	@Override
-	public ItemDefinition remove(int index) {
-		ItemDefinition item = items.remove(index);
-		PropertyEvent e = createEvent(PropertyEvent.VALUE_CHANGED);
-		e.set("removed_at", item);
-		e.set("count", 1);
-		fireEvent(e);
-		return item;
-	}
-
-	@Override
 	public boolean removeAll(Collection<?> c) {
 		boolean ret = items.removeAll(c);
 		if (ret) {
@@ -190,11 +187,6 @@ public class Inventory extends AbstractProperty<Inventory> implements List<ItemD
 		return old;
 	}
 
-	@Override
-	public int size() {
-		return items.size();
-	}
-
 	// TODO the sublist will not report events properly
 	@Override
 	public List<ItemDefinition> subList(int fromIndex, int toIndex) {
@@ -210,4 +202,5 @@ public class Inventory extends AbstractProperty<Inventory> implements List<ItemD
 	public <T> T[] toArray(T[] a) {
 		return items.toArray(a);
 	}
+ */
 }

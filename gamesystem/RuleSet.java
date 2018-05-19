@@ -19,6 +19,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import gamesystem.ItemDefinition.SlotType;
 import gamesystem.dice.HDDice;
 
 // A RuleSet encapsulates the specific options used in a campaign, e.g. spells, feats, skills, classes, etc.
@@ -220,25 +221,44 @@ public class RuleSet {
 		System.out.println(Feat.feats.size() + " found");
 	}
 
+//	private void addAttributes(Map<String, Set<String>> attributes, Element e) {
+//		for (int j = 0; j < e.getAttributes().getLength(); j++) {
+//			Set<String> attrs = attributes.get(e.getNodeName());
+//			if (attrs == null) {
+//				attrs = new HashSet<String>();
+//				attributes.put(e.getNodeName(), attrs);
+//			}
+//			attrs.add(e.getAttributes().item(j).getNodeName());
+//		}
+//	}
+
 	private void parseItems(Element el) {
 		if (!el.getTagName().equals("items")) return;
 		System.out.print("Parsing items... ");
+
+//		Map<String, Set<String>> attributes = new HashMap<>();
 
 		NodeList nodes = el.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
 			Element e = (Element) nodes.item(i);
 			if (e.getTagName().equals("item")) {
+//				addAttributes(attributes, e);
 				ItemDefinition item = new ItemDefinition();
 				item.name = e.getAttribute("name");
-				if (e.hasAttribute("slot")) item.slot = e.getAttribute("slot");
-				if (e.hasAttribute("cost")) item.cost = e.getAttribute("cost");
+				if (e.hasAttribute("category")) item.category = e.getAttribute("category");
+				if (e.hasAttribute("slot")) item.slot = SlotType.getSlot(e.getAttribute("slot"));
+				if (e.hasAttribute("price")) item.price = e.getAttribute("price");
 				if (e.hasAttribute("weight")) item.weight = e.getAttribute("weight");
+				if (e.hasAttribute("aura")) item.category = e.getAttribute("aura");
+				if (e.hasAttribute("scale-weight")) item.scaleWeight = e.getAttribute("scale-weight").toLowerCase() == "true";
+				if (e.hasAttribute("magical")) item.magical = e.getAttribute("magical").toLowerCase() == "true";
 
 				NodeList children = e.getChildNodes();
 				for (int j = 0; j < children.getLength(); j++) {
 					if (children.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
 					Element c = (Element) children.item(j);
+//					addAttributes(attributes, c);
 					parseAttack(c, item);	// does nothing if the node tag is incorrect
 					parseArmor(c, item);	// does nothing if the node tag is incorrect
 					parseShield(c, item);	// does nothing if the node tag is incorrect
@@ -249,12 +269,15 @@ public class RuleSet {
 						parseModifiers(c, item.buff);
 					}
 
-					// TODO description tag, creation tag (attributes aura, caster_level, prerequisites)
+					// TODO description tag, creation tag (attributes caster_level, prerequisites)
 				}
 				ItemDefinition.items.add(item);
 			}
 		}
 		System.out.println(ItemDefinition.items.size() + " found");
+//		for (String element : attributes.keySet()) {
+//			System.out.println(element + " attributes: " + String.join(", ", attributes.get(element)));
+//		}
 	}
 
 	private void parseAttack(Element el, ItemDefinition item) {
