@@ -250,7 +250,7 @@ public class RuleSet {
 				if (e.hasAttribute("slot")) item.slot = SlotType.getSlot(e.getAttribute("slot"));
 				if (e.hasAttribute("price")) item.price = e.getAttribute("price");
 				if (e.hasAttribute("weight")) item.weight = e.getAttribute("weight");
-				if (e.hasAttribute("aura")) item.category = e.getAttribute("aura");
+				if (e.hasAttribute("aura")) item.aura = e.getAttribute("aura");
 				if (e.hasAttribute("scale-weight")) item.scaleWeight = e.getAttribute("scale-weight").toLowerCase() == "true";
 				if (e.hasAttribute("magical")) item.magical = e.getAttribute("magical").toLowerCase() == "true";
 

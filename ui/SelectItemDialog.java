@@ -2,11 +2,15 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.AbstractListModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -21,12 +25,17 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import gamesystem.ItemDefinition;
+import swing.CheckedComboBox;
 
 @SuppressWarnings("serial")
 public class SelectItemDialog extends JDialog {
 	private boolean okSelected = false;
 	private ItemDefinition item = null;
 	final private SelectItemListModel model = new SelectItemListModel();
+	JTextField nameField;
+	CheckedComboBox<String> categoryCombo;
+	DefaultComboBoxModel<String> categoryModel;
+	ListSelectionModel categorySelectModel;
 
 	public SelectItemDialog(JComponent parent) {
 		super(SwingUtilities.windowForComponent(parent), "Select Item", Dialog.ModalityType.DOCUMENT_MODAL);
@@ -51,26 +60,38 @@ public class SelectItemDialog extends JDialog {
 
 		add(scroller, BorderLayout.CENTER);
 
-		JTextField nameField = new JTextField(30);
+		nameField = new JTextField(30);
 		nameField.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void changedUpdate(DocumentEvent e) {
-				model.setNameFilter(nameField.getText());
+				updateFilter();
 			}
 
 			@Override
 			public void insertUpdate(DocumentEvent e) {
-				model.setNameFilter(nameField.getText());
+				updateFilter();
 			}
 
 			@Override
 			public void removeUpdate(DocumentEvent e) {
-				model.setNameFilter(nameField.getText());
+				updateFilter();
 			}
 		});
+
+		String[] categories = ItemDefinition.stream().map(ItemDefinition::getCategory).filter(s -> s != null).distinct().sorted().toArray(String[]::new);
+		System.out.println("Categories = " + String.join(", ", categories));
+		categoryModel = new DefaultComboBoxModel<String>(categories);
+		categoryCombo = new CheckedComboBox<String>(categoryModel);
+		categoryCombo.setPreferredSize(new Dimension(200, 20));
+		categorySelectModel = categoryCombo.getSelectionModel();
+		categoryCombo.selectAll();
+		categorySelectModel.addListSelectionListener(e -> updateFilter());
+
 		JPanel panel = new JPanel();
 		panel.add(new JLabel("Name: "));
 		panel.add(nameField);
+		panel.add(new JLabel("Category: "));
+		panel.add(categoryCombo);
 		add(panel, BorderLayout.NORTH);
 
 		JButton okButton = new JButton("Ok");
@@ -100,16 +121,39 @@ public class SelectItemDialog extends JDialog {
 		return null;
 	}
 
+	private void updateFilter() {
+		final Predicate<ItemDefinition> nameFilter;
+		final Predicate<ItemDefinition> catFilter;
+
+		String name = nameField.getText();
+		if (name != null && name.length() > 0) {
+			nameFilter = i -> i.getName().toLowerCase().contains(name);
+		} else {
+			nameFilter = null;
+		}
+
+		if (!categoryCombo.allSelected()) {
+			catFilter = i -> {
+				int idx = categoryModel.getIndexOf(i.getCategory());
+				return idx > 0 && categorySelectModel.isSelectedIndex(idx);
+			};
+		} else {
+			catFilter = null;
+		}
+
+		Predicate<ItemDefinition> f = i -> {
+			if (nameFilter != null && !nameFilter.test(i)) return false;
+			if (catFilter != null && !catFilter.test(i)) return false;
+			return true;
+		};
+		model.filter(f);
+	}
+
 	class SelectItemListModel extends AbstractListModel<ItemDefinition> {
-		ItemDefinition[] items;
 		List<ItemDefinition> filteredItems = new ArrayList<>();
 
 		SelectItemListModel() {
-			items = ItemDefinition.getItems().toArray(new ItemDefinition[0]);
-			Arrays.sort(items, (a, b) -> {
-				return a.getName().compareTo(b.getName());
-			});
-			filteredItems.addAll(Arrays.asList(items));
+			filter(null);
 		}
 
 		@Override
@@ -122,19 +166,12 @@ public class SelectItemDialog extends JDialog {
 			return filteredItems.size();
 		}
 
-		public void setNameFilter(String filter) {
+		public void filter(Predicate<ItemDefinition> filter) {
 			int oldSize = filteredItems.size();
-			filteredItems.clear();
-			if (filter == null) {
-				filteredItems.addAll(Arrays.asList(items));
-			} else {
-				filter = filter.toLowerCase();
-				for (int i = 0; i < items.length; i++) {
-					if (items[i].getName().toLowerCase().contains(filter)) {
-						filteredItems.add(items[i]);
-					}
-				}
-			}
+			Stream<ItemDefinition> stream = ItemDefinition.stream();
+			if (filter != null)
+				stream = stream.filter(filter);
+			filteredItems = stream.sorted((a, b) -> a.getName().compareToIgnoreCase(b.getName())).collect(Collectors.toList());
 			int size = filteredItems.size();
 			if (size < oldSize) {
 				fireIntervalRemoved(this, size, oldSize - 1);

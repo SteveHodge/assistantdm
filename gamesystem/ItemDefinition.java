@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class ItemDefinition {
 	public enum SlotType {
@@ -45,6 +46,10 @@ public class ItemDefinition {
 
 	public String getName() {
 		return name;
+	}
+
+	public String getCategory() {
+		return category;
 	}
 
 	public BuffFactory getBuffFactory() {
@@ -148,11 +153,15 @@ public class ItemDefinition {
 		return items;
 	}
 
+	public static Stream<ItemDefinition> stream() {
+		return items.stream();
+	}
+
 	public static Set<ItemDefinition> getItemsForSlot(SlotType slot) {
 		return getItems(item -> item.slot == slot);
 	}
 
-	public static Set<ItemDefinition> getItems(Predicate<ItemDefinition> predicate) {
+	private static Set<ItemDefinition> getItems(Predicate<ItemDefinition> predicate) {
 		Set<ItemDefinition> items = new HashSet<>();
 		for (ItemDefinition item : ItemDefinition.items) {
 			if (predicate.test(item)) {
