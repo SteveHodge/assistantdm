@@ -2,7 +2,6 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -82,7 +81,6 @@ public class SelectItemDialog extends JDialog {
 		System.out.println("Categories = " + String.join(", ", categories));
 		categoryModel = new DefaultComboBoxModel<String>(categories);
 		categoryCombo = new CheckedComboBox<String>(categoryModel);
-		categoryCombo.setPreferredSize(new Dimension(200, 20));
 		categorySelectModel = categoryCombo.getSelectionModel();
 		categoryCombo.selectAll();
 		categorySelectModel.addListSelectionListener(e -> updateFilter());
@@ -135,7 +133,7 @@ public class SelectItemDialog extends JDialog {
 		if (!categoryCombo.allSelected()) {
 			catFilter = i -> {
 				int idx = categoryModel.getIndexOf(i.getCategory());
-				return idx > 0 && categorySelectModel.isSelectedIndex(idx);
+				return idx >= 0 && categorySelectModel.isSelectedIndex(idx);
 			};
 		} else {
 			catFilter = null;

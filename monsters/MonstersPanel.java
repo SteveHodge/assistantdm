@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -31,6 +32,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.TableRowSorter;
+
+import swing.CheckedComboBox;
 
 // TODO move listeners to inner classes
 
@@ -85,17 +88,19 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		sorter.setRowFilter(RowFilter.andFilter(set));
 	}
 
-	private void newFilter(JComboBox<String> combo) {
-		if (combo.getSelectedItem().equals("")) {
+	private void newFilter(CheckedComboBox<String> combo) {
+		ListSelectionModel selectModel = combo.getSelectionModel();
+		if (selectModel.isSelectionEmpty()) {
 			filters.remove(combo);
 		} else {
-			RowFilter<MonstersTableModel, Integer> rf = null;
 			int col = filterCols.get(combo);
-			try {
-				rf = RowFilter.regexFilter("^"+combo.getSelectedItem().toString()+"$", col);	// XXX slight hack to force exact matching - could implement a more efficient filter
-			} catch (java.util.regex.PatternSyntaxException e) {
-				// if the expression doesn't parse then we ignore it
-			}
+			RowFilter<MonstersTableModel, Integer> rf = new RowFilter<MonstersTableModel, Integer>() {
+				@Override
+				public boolean include(javax.swing.RowFilter.Entry<? extends MonstersTableModel, ? extends Integer> entry) {
+					int optionIdx = ((DefaultComboBoxModel<String>) combo.getModel()).getIndexOf(entry.getStringValue(col));
+					return optionIdx >= 0 && combo.getSelectionModel().isSelectedIndex(optionIdx);
+				}
+			};
 			filters.put(combo, rf);
 		}
 		HashSet<RowFilter<MonstersTableModel, Integer>> set = new HashSet<>(filters.values());
@@ -156,17 +161,18 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		return panel;
 	}
 
-	private JComboBox<String> createFilterCombo(int col) {
+	private CheckedComboBox<String> createFilterCombo(int col) {
 		HashSet<String> optionSet = new HashSet<>();
 		for (int row = 0; row < monsters.getRowCount(); row++) {
 			optionSet.add(monsters.getValueAt(row, col).toString());
 		}
-		optionSet.add(new String());
 		Vector<String> options = new Vector<>(optionSet);
-		Collections.sort(options);
-		final JComboBox<String> combo = new JComboBox<>(options);
-		filterCols.put(combo,col);
-		combo.addActionListener(e -> newFilter(combo));
+		Collections.sort(options);	// TODO default sort sucks. need more appropriate sort for size and CR
+
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>(options);
+		CheckedComboBox<String> combo = new CheckedComboBox<String>(model);
+		combo.getSelectionModel().addListSelectionListener(e -> newFilter(combo));
+		filterCols.put(combo, col);
 		return combo;
 	}
 

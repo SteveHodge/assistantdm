@@ -1,7 +1,4 @@
 package swing;
-//-*- mode:java; encoding:utf-8 -*-
-// vim:set fileencoding=utf-8:
-//https://ateraimemo.com/Swing/CheckedComboBox.html
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -39,12 +36,14 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import javax.swing.plaf.basic.ComboPopup;
 
-// Based on https://java-swing-tips.blogspot.co.nz/2016/07/select-multiple-jcheckbox-in-jcombobox.html
+// Based on https://java-swing-tips.blogspot.co.nz/2016/07/select-multiple-jcheckbox-in-jcombobox.html (https://ateraimemo.com/Swing/CheckedComboBox.html)
 
 // FIXME probably doesn't handle adding/removing elements correctly
 // TODO needs convenience methods forwarding to the selection model. Also could allow setting selectionmodel
+// TODO add "select all/none" element
+// XXX bet preferred size calculation?
 
-class CheckedComboBox<E> extends JComboBox<E> {
+public class CheckedComboBox<E> extends JComboBox<E> {
 	private static final long serialVersionUID = 1L;
 	private boolean keepOpen;
 	private transient ActionListener listener;
@@ -54,12 +53,24 @@ class CheckedComboBox<E> extends JComboBox<E> {
 		super();
 	}
 
-	protected CheckedComboBox(ComboBoxModel<E> aModel) {
+	public CheckedComboBox(ComboBoxModel<E> aModel) {
 		super(aModel);
 	}
 
 	public ListSelectionModel getSelectionModel() {
 		return selectionModel;
+	}
+
+	public void selectAll() {
+		selectionModel.setSelectionInterval(0, dataModel.getSize()-1);
+	}
+
+	public boolean allSelected() {
+		boolean all = true;
+		for (int i = 0; all && i < dataModel.getSize(); i++) {
+			all = all && selectionModel.isSelectedIndex(i);
+		}
+		return all;
 	}
 
 	// XXX not sure updateUI is the right place for this stuff
@@ -91,6 +102,7 @@ class CheckedComboBox<E> extends JComboBox<E> {
 				}
 			}
 		});
+		setPreferredSize(new Dimension(200, 20));
 	}
 
 	protected void selectItem(int index) {
@@ -203,7 +215,15 @@ class CheckBoxCellRenderer<E> implements ListCellRenderer<E> {
 	@Override
 	public Component getListCellRendererComponent(JList<? extends E> list, E value, int index, boolean isSelected, boolean cellHasFocus) {
 		if (index < 0) {
-			label.setText(getCheckedItemString(list.getModel()));
+			boolean all = true;
+			for (int i = 0; all && i < list.getModel().getSize(); i++) {
+				all = all && selectionModel.isSelectedIndex(i);
+			}
+			if (all) {
+				label.setText("(all)");
+			} else {
+				label.setText(getCheckedItemString(list.getModel()));
+			}
 			return label;
 		} else {
 			check.setText(Objects.toString(value, ""));
