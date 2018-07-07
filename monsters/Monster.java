@@ -287,18 +287,18 @@ public class Monster extends Creature {
 	}
 
 	@Override
-	public boolean hasFeat(String feat, String target) {
+	public boolean hasFeat(String feat, AttackForm attack) {
 		if (feat == null) return false;
 		String f = feat.toLowerCase();
 		// check recognised feats
 		for (Feat ff : feats) {
-			if (ff.getName().equals(name) && ff.target.equals(target)) return true;
+			if (ff.getName().equals(name) && ff.target.equals(attack.getDescription())) return true;
 		}
 		// check other feats and properties
 		String feats = (String) getPropertyValue(Field.FEATS.name());
-		if (feats != null && feats.toLowerCase().contains(f + " (" + target + ")")) return true;
+		if (feats != null && feats.toLowerCase().contains(f + " (" + attack.getDescription() + ")")) return true;
 		feats = (String) getPropertyValue(Field.SPECIAL_QUALITIES.name());
-		if (feats != null && feats.toLowerCase().contains(f + " (" + target + ")")) return true;
+		if (feats != null && feats.toLowerCase().contains(f + " (" + attack.getDescription() + ")")) return true;
 		return false;
 	}
 

@@ -36,6 +36,8 @@ import gamesystem.Modifier.StandardType;
 import gamesystem.SizeCategory;
 import gamesystem.dice.CombinedDice;
 import party.CharacterAttackForm;
+import party.CharacterAttackForm.WeaponFocus;
+import party.CharacterAttackForm.WeaponSpecialization;
 
 // TODO only attack and damage labels are updated on changes from the attack, other changes will be ignored (needs fixing if something other than this panel makes changes to the attack)
 
@@ -57,6 +59,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 	private JComboBox<CharacterAttackForm.Kind> kindCombo;
 	private JComboBox<CharacterAttackForm.Usage> usageCombo;
 	private JCheckBox proficientCheck = new JCheckBox();
+	private JComboBox<WeaponFocus> focusOverride;
+	private JComboBox<WeaponSpecialization> specializationOverride;
 	private JLabel itemLabel = new JLabel();
 	private JButton itemButton = new JButton("...");
 
@@ -74,6 +78,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 
 		kindCombo = new JComboBox<>(CharacterAttackForm.Kind.values());
 		usageCombo = new JComboBox<>(CharacterAttackForm.Usage.values());
+		focusOverride = new JComboBox<>(WeaponFocus.values());
+		specializationOverride = new JComboBox<>(WeaponSpecialization.values());
 		itemButton.setMargin(new Insets(2, 4, 2, 2));
 		itemButton.addActionListener(e -> openWeaponChooser());
 
@@ -97,6 +103,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		add(new JLabel("Properties:"),c);
 		add(new JLabel("Ammunition:"),c);
 		add(new JLabel("Proficient:"),c);
+		add(new JLabel("Weapon Focus:"), c);
+		add(new JLabel("Specialization:"), c);
 
 		c.gridx = 1; c.gridy = 0;
 		c.weightx = 1.0;
@@ -116,6 +124,10 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		c.gridy++; add(ammunitionField,c);
 		c.gridy++;
 		add(proficientCheck, c);
+		c.gridy++;
+		add(focusOverride, c);
+		c.gridy++;
+		add(specializationOverride, c);
 
 		c.gridy = 1;
 		c.weightx = 0.5;
@@ -175,6 +187,18 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 				attack.setUsage((CharacterAttackForm.Usage) usageCombo.getSelectedItem());
 			}
 		});
+
+		focusOverride.addActionListener(e -> {
+			if (attack != null) {
+				attack.setFocus((WeaponFocus) focusOverride.getSelectedItem());
+			}
+		});
+
+		specializationOverride.addActionListener(e -> {
+			if (attack != null) {
+				attack.setSpecialization((WeaponSpecialization) specializationOverride.getSelectedItem());
+			}
+		});
 	}
 
 	void openWeaponChooser() {
@@ -203,6 +227,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 				weightField.setText(attack.item.getWeight());
 				kindCombo.setSelectedItem(CharacterAttackForm.Kind.getKind(atk.getWeaponType()));
 				proficientCheck.setSelected(true);
+				focusOverride.setSelectedItem(WeaponFocus.DEFAULT);
+				specializationOverride.setSelectedItem(WeaponFocus.DEFAULT);
 			} else {
 				attack.item = null;
 				itemLabel.setText("");
@@ -215,6 +241,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 				weightField.setText("");
 				kindCombo.setSelectedIndex(-1);
 				proficientCheck.setSelected(true);
+				focusOverride.setSelectedItem(WeaponFocus.DEFAULT);
+				specializationOverride.setSelectedItem(WeaponFocus.DEFAULT);
 			}
 		}
 		update();
@@ -339,6 +367,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		kindCombo.setEnabled(false);
 		usageCombo.setEnabled(false);
 		itemButton.setEnabled(false);
+		focusOverride.setEnabled(false);
+		specializationOverride.setEnabled(false);
 
 		nameField.setText("");
 		itemLabel.setText("");
@@ -355,6 +385,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		sizeCombo.setSelectedItem(null);
 		kindCombo.setSelectedItem(null);
 		usageCombo.setSelectedItem(null);
+		focusOverride.setSelectedItem(null);
+		specializationOverride.setSelectedItem(null);
 	}
 
 	void setAttackForm(CharacterAttackForm attack) {
@@ -381,6 +413,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		kindCombo.setEnabled(true);
 		usageCombo.setEnabled(true);
 		itemButton.setEnabled(true);
+		focusOverride.setEnabled(true);
+		specializationOverride.setEnabled(true);
 
 		updateAttack = false;	// don't apply these changes to the attack (since they come from the attack)
 		nameField.setText(attack.getName());
@@ -405,6 +439,8 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		kindCombo.setSelectedItem(attack.getKind());
 		usageCombo.setSelectedItem(attack.getUsage());
 		proficientCheck.setSelected(attack.getProficient());
+		focusOverride.setSelectedItem(attack.getFocus());
+		specializationOverride.setSelectedItem(attack.getSpecialization());
 		updateAttack = true;
 		update();
 	}

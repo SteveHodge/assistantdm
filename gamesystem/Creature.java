@@ -12,6 +12,7 @@ import java.util.Set;
 
 import javax.swing.DefaultListModel;
 
+import gamesystem.Attacks.AttackForm;
 import gamesystem.CharacterClass.ClassOption;
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.Property;
@@ -506,7 +507,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 //------------- Others --------------
 	abstract public boolean hasFeat(String feat);
 
-	abstract public boolean hasFeat(String name, String target);
+	abstract public boolean hasFeat(String name, AttackForm attack);	// check if a feat applies to a specific attack
 
 // ----- visitor pattern for processing -----
 	public void executeProcess(CreatureProcessor processor) {

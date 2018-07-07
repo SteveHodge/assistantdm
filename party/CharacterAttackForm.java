@@ -58,6 +58,50 @@ public class CharacterAttackForm {
 		private final String description;
 	}
 
+	public enum WeaponFocus {
+		DEFAULT("Default"), NO("No"), YES("Yes"), GREATER("Greater");
+
+		private WeaponFocus(String d) {
+			description = d;
+		}
+
+		@Override
+		public String toString() {
+			return description;
+		}
+
+		public static WeaponFocus getFocus(String d) {
+			for (WeaponFocus f : values()) {
+				if (f.description.compareToIgnoreCase(d) == 0) return f;
+			}
+			return null;	// TODO probably better to throw an exception
+		}
+
+		private final String description;
+	}
+
+	public enum WeaponSpecialization {
+		DEFAULT("Default"), NO("No"), YES("Yes"), GREATER("Greater");
+
+		private WeaponSpecialization(String d) {
+			description = d;
+		}
+
+		@Override
+		public String toString() {
+			return description;
+		}
+
+		public static WeaponSpecialization getSpecialization(String d) {
+			for (WeaponSpecialization s : values()) {
+				if (s.description.compareToIgnoreCase(d) == 0) return s;
+			}
+			return null;	// TODO probably better to throw an exception
+		}
+
+		private final String description;
+	}
+
 	private Character character;
 	public AttackForm attack;	// TODO change to private
 	public String critical;				// TODO split into range and multiplier
@@ -70,6 +114,8 @@ public class CharacterAttackForm {
 	public Usage usage;					// style of use (one-handed, two-handed, primary, etc) // TODO when we have weapon definitions this should default to the correct "normal" use of the weapon
 	public int id;					// used to uniquely identify this attack form, primarily for the purposes of targeting effects	// TODO probably id should be refactored into AttackForm
 	public ItemDefinition item;
+	WeaponFocus focusLevel = WeaponFocus.DEFAULT;
+	WeaponSpecialization specLevel = WeaponSpecialization.DEFAULT;
 
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -179,6 +225,28 @@ public class CharacterAttackForm {
 
 	public boolean getProficient() {
 		return attack.getProficient();
+	}
+
+	public void setFocus(WeaponFocus v) {
+		if (focusLevel == v) return;
+		focusLevel = v;
+		updateAttack();
+		pcs.firePropertyChange("damage", null, getDamage());	// TODO wrong event type
+	}
+
+	public WeaponFocus getFocus() {
+		return focusLevel;
+	}
+
+	public void setSpecialization(WeaponSpecialization v) {
+		if (specLevel == v) return;
+		specLevel = v;
+		updateAttack();
+		pcs.firePropertyChange("damage", null, getDamage());
+	}
+
+	public WeaponSpecialization getSpecialization() {
+		return specLevel;
 	}
 
 	public void setUsage(Usage u) {

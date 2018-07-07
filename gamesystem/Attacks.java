@@ -411,8 +411,6 @@ public class Attacks extends Statistic {
 	public class AttackForm extends Statistic {
 		protected final Statistic dmgStat;
 
-		protected String attackFormName;	// used to check weapon focus and specialization feats
-
 		private Modifier twoWeaponPenalty = null;	// TODO rename as this includes natural secondary attacks
 		Modifier enhancement = null;
 		private boolean masterwork = false;		// if true then enhancement should not be added to damage (enhancement should be +1)
@@ -435,7 +433,6 @@ public class Attacks extends Statistic {
 
 		private AttackForm(String name, PropertyCollection parent) {
 			super("attacks." + name.toLowerCase(), name, parent);
-			attackFormName = name;
 			dmgStat = new Damage(name, parent);
 		}
 
@@ -570,10 +567,10 @@ public class Attacks extends Statistic {
 				// enhancement modifier
 				if (enhancement != null && !masterwork) mods.add(enhancement);
 
-				if (creature.hasFeat(Feat.FEAT_WEAPON_SPECIALIZATION, attackFormName)) {
+				if (creature.hasFeat(Feat.FEAT_WEAPON_SPECIALIZATION, AttackForm.this)) {
 					mods.add(new ImmutableModifier(2, null, Feat.FEAT_WEAPON_SPECIALIZATION));
 				}
-				if (creature.hasFeat(Feat.FEAT_GREATER_WEAPON_SPECIALIZATION, attackFormName)) {
+				if (creature.hasFeat(Feat.FEAT_GREATER_WEAPON_SPECIALIZATION, AttackForm.this)) {
 					mods.add(new ImmutableModifier(2, null, Feat.FEAT_GREATER_WEAPON_SPECIALIZATION));
 				}
 
@@ -647,10 +644,10 @@ public class Attacks extends Statistic {
 				}
 			}
 
-			if (creature.hasFeat(Feat.FEAT_WEAPON_FOCUS, attackFormName)) {
+			if (creature.hasFeat(Feat.FEAT_WEAPON_FOCUS, this)) {
 				mods.add(new ImmutableModifier(1, null, Feat.FEAT_WEAPON_FOCUS));
 			}
-			if (creature.hasFeat(Feat.FEAT_GREATER_WEAPON_FOCUS, attackFormName)) {
+			if (creature.hasFeat(Feat.FEAT_GREATER_WEAPON_FOCUS, this)) {
 				mods.add(new ImmutableModifier(1, null, Feat.FEAT_GREATER_WEAPON_FOCUS));
 			}
 

@@ -48,6 +48,8 @@ import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import gamesystem.core.PropertyEvent;
 import gamesystem.core.SimpleValueProperty;
+import party.CharacterAttackForm.WeaponFocus;
+import party.CharacterAttackForm.WeaponSpecialization;
 import party.InventorySlots.Slot;
 
 /**
@@ -485,10 +487,14 @@ public class Character extends Creature {
 	}
 
 	@Override
-	public boolean hasFeat(String name, String target) {
+	public boolean hasFeat(String name, AttackForm attack) {
+		CharacterAttackForm chrAtk = attackForms.stream().filter(a -> a.attack == attack).findFirst().get();
+		if (chrAtk != null && name.equals(Feat.FEAT_WEAPON_FOCUS) && chrAtk.focusLevel != WeaponFocus.DEFAULT) return chrAtk.focusLevel != WeaponFocus.NO;
+		if (chrAtk != null && name.equals(Feat.FEAT_WEAPON_SPECIALIZATION) && chrAtk.specLevel != WeaponSpecialization.DEFAULT) return chrAtk.specLevel != WeaponSpecialization.NO;
+		// FIXME override checks for greater focus, greater specialization
 		for (int i = 0; i < feats.size(); i++) {
 			Feat f = feats.get(i);
-			if (f.getName().equals(name) && f.target.equals(target)) return true;
+			if (f.getName().equals(name) && f.target.equals(attack.getDescription())) return true;
 		}
 		return false;
 	}

@@ -13,6 +13,8 @@ import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import party.CharacterAttackForm;
+import party.CharacterAttackForm.WeaponFocus;
+import party.CharacterAttackForm.WeaponSpecialization;
 
 // TODO extract creature generic super class and move character specific code to class in the party package
 // TODO this should become a base class of helper methods that doesn't actually implement the interface. the process... methods should return the element instead of adding it. subclasses can implement the processor interface(s)
@@ -113,6 +115,8 @@ public class XMLOutputHelper {
 		if (a.getUsage() != null) e.setAttribute("usage", "" + a.getUsage().ordinal());
 		e.setAttribute("proficient", Boolean.toString(a.getProficient()));
 		if (a.item != null) e.setAttribute("base_item", a.item.getName());
+		if (a.getFocus() != WeaponFocus.DEFAULT) e.setAttribute("focus", a.getFocus().toString());
+		if (a.getSpecialization() != WeaponSpecialization.DEFAULT) e.setAttribute("specialization", a.getSpecialization().toString());
 
 		attacksEl.appendChild(e);
 	}

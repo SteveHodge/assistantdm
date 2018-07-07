@@ -20,6 +20,8 @@ import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
 import gamesystem.dice.CombinedDice;
 import party.CharacterAttackForm;
+import party.CharacterAttackForm.WeaponFocus;
+import party.CharacterAttackForm.WeaponSpecialization;
 
 public class XMLParserHelper {
 
@@ -305,6 +307,8 @@ public class XMLParserHelper {
 		if (s != null && !s.equals(f.usage)) f.properties = s;
 		f.setProficient(!e.hasAttribute("proficient") || Boolean.parseBoolean(e.getAttribute("proficient")));
 		if (e.hasAttribute("base_item")) f.item = ItemDefinition.getItem(e.getAttribute("base_item"));
+		if (e.hasAttribute("focus")) f.setFocus(WeaponFocus.getFocus(e.getAttribute("focus")));
+		if (e.hasAttribute("specialization")) f.setSpecialization(WeaponSpecialization.getSpecialization(e.getAttribute("specialization")));
 	}
 
 	protected void parseAttackForm(Element e, Attacks.AttackForm f) {
