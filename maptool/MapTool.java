@@ -176,7 +176,7 @@ public class MapTool extends JFrame {
 			bytes = new byte[(int) f.length()];
 			in.read(bytes);
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println(e);
 		}
 
 		try {
@@ -191,11 +191,11 @@ public class MapTool extends JFrame {
 
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println(e);
 		}
 
 		if (image == null) {
-			System.out.println("No image");
+			System.err.println("No image");
 		}
 
 		return image;
@@ -363,7 +363,10 @@ public class MapTool extends JFrame {
 		JButton saveButton = new JButton("Save");
 		saveButton.addActionListener(e -> saveFile());
 
-		sizeLabel = new JLabel(String.format("Original size: %dx%d\n", image.getWidth(), image.getHeight()));
+		if (image != null)
+			sizeLabel = new JLabel(String.format("Original size: %dx%d\n", image.getWidth(), image.getHeight()));
+		else
+			sizeLabel = new JLabel("Original size: 0x0\n");
 
 		zoomLabel = new JLabel("Zoom: ");
 		JButton zoomIn = new JButton("+");
