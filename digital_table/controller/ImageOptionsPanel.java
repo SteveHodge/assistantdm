@@ -261,6 +261,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_ASPECT_LOCKED)) {
 				aspectCheck.setSelected((Boolean) e.getNewValue());
 
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
+				// ignore
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}

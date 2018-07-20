@@ -126,6 +126,9 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 			} else if (e.getPropertyName().equals(LineTemplate.PROPERTY_IMAGE_VISIBLE)) {
 				imagePanel.imageVisibleCheck.setSelected((Boolean) e.getNewValue());
 
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
+				// ignore
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}

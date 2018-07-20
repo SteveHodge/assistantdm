@@ -136,6 +136,9 @@ class LabelOptionsPanel extends OptionsPanel<Label> {
 			} else if (e.getPropertyName().equals(Label.PROPERTY_TEXT)) {
 				textField.setText(e.getNewValue().toString());
 
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
+				// ignore
+
 			} else {
 				System.out.println(toString() + ": Unknown property: " + e.getPropertyName());
 			}

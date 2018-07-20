@@ -1,9 +1,11 @@
 package digital_table.elements;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
@@ -90,21 +92,24 @@ public class LightSource extends MapElement {
 
 	@Override
 	public Order getDefaultOrder() {
-		return Order.BELOWGRID;
+		return Order.TOP;
 	}
 
 	@Override
 	public void paint(Graphics2D g) {
-		if (isDragging()) {
+		if (isDragging() || selected) {
 			Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 			g.translate(o.getX(), o.getY());
 
 			Point p1 = canvas.convertGridCoordsToDisplay(x.getValue(), y.getValue(), null);
 			g.setColor(Color.RED);
+			Stroke stroke = g.getStroke();
+			g.setStroke(new BasicStroke(3.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 			g.drawLine(p1.x - 10, p1.y, p1.x + 10, p1.y);
 			g.drawLine(p1.x, p1.y - 10, p1.x, p1.y + 10);
 
 			g.translate(-o.getX(), -o.getY());
+			g.setStroke(stroke);
 		}
 	}
 

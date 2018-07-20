@@ -107,6 +107,9 @@ class PersonalEmanationOptionsPanel extends OptionsPanel<PersonalEmanation> {
 			} else if (e.getPropertyName().equals(PersonalEmanation.PROPERTY_Y)) {
 				yField.setText(e.getNewValue().toString());
 
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
+				// ignore
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}

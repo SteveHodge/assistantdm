@@ -87,6 +87,9 @@ class GroupOptionsPanel extends OptionsPanel<Group> {
 				xField.setText(Double.toString(loc.getX()));
 				yField.setText(Double.toString(loc.getY()));
 
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
+				// ignore
+
 			} else {
 				System.out.println(toString() + ": Unknown property: " + e.getPropertyName());
 			}

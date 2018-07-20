@@ -101,6 +101,9 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 			} else if (e.getPropertyName().equals(LightSource.PROPERTY_ALL_CORNERS)) {
 				allCornersCheck.setSelected((Boolean) e.getNewValue());
 
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
+				// ignore
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}

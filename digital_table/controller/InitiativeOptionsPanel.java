@@ -107,6 +107,9 @@ class InitiativeOptionsPanel extends OptionsPanel<Initiative> {
 			} else if (e.getPropertyName().equals(Initiative.PROPERTY_BACKGROUND_COLOR)) {
 				bgColorPanel.setBackground((Color)e.getNewValue());
 
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
+				// ignore
+
 			} else {
 				System.out.println("Unknown property: "+e.getPropertyName());
 			}
