@@ -25,7 +25,7 @@ import org.xml.sax.SAXException;
 
 import digital_table.server.MapCanvas.Order;
 
-// TODO processing the walls takes too long and happens for each display - it should be threaded and perhaps done before being passed to the MapElement
+// FIXME processing the walls happens for each display - it would be better to parse once and pass the resulting WallLayout to each display
 
 public class Walls extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -85,15 +85,18 @@ public class Walls extends MapElement {
 
 		try {
 			System.out.println("Reading wall layout");
-			System.out.println("Width = " + width.getValue());
-			System.out.println("Height = " + height.getValue());
-			System.out.println("X = " + x.getValue());
-			System.out.println("Y = " + y.getValue());
-			System.out.println("Rotations = " + rotations.getValue());
-			System.out.println("Mirrored = " + mirrored.getValue());
+			System.out.println("  Width = " + width.getValue());
+			System.out.println("  Height = " + height.getValue());
+			System.out.println("  X = " + x.getValue());
+			System.out.println("  Y = " + y.getValue());
+			System.out.println("  Rotations = " + rotations.getValue());
+			System.out.println("  Mirrored = " + mirrored.getValue());
 			long startTime = System.nanoTime();
 
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);	// disabling these features improves parsing time by at least 3 orders of magnitude
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			DocumentBuilder builder = factory.newDocumentBuilder();
 			InputStream is = new ByteArrayInputStream(xml.getBytes());
 			Document document = builder.parse(is);
 			// expecting svg->g->path, but we'll just get all the paths
@@ -102,6 +105,10 @@ public class Walls extends MapElement {
 			String viewBox[] = svg.getAttribute("viewBox").split(" ");
 			double xScale = Double.parseDouble(viewBox[2]) / width.getValue();
 			double yScale = Double.parseDouble(viewBox[3]) / height.getValue();
+
+//			double millis = (System.nanoTime() - startTime) / 1000000d;
+//			System.out.printf("Loading DOM took %.3fms\n", millis);
+//			startTime = System.nanoTime();
 
 			NodeList paths = document.getElementsByTagName("path");
 			for (int i = 0; i < paths.getLength(); i++) {
