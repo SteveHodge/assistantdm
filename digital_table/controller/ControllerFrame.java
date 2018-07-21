@@ -218,7 +218,8 @@ public class ControllerFrame extends JFrame {
 			AddElementAction<?> action = (AddElementAction<?>) availableCombo.getSelectedItem();
 			if (action != null) {
 				OptionsPanel<?> options = action.addElement(null);
-				elementTree.setSelectionPath(miniMapCanvas.getTreePath(options.getElement()));
+				if (options != null)
+					elementTree.setSelectionPath(miniMapCanvas.getTreePath(options.getElement()));
 			}
 		});
 

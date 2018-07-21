@@ -91,6 +91,7 @@ public class Walls extends MapElement {
 			System.out.println("Y = " + y.getValue());
 			System.out.println("Rotations = " + rotations.getValue());
 			System.out.println("Mirrored = " + mirrored.getValue());
+			long startTime = System.nanoTime();
 
 			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			InputStream is = new ByteArrayInputStream(xml.getBytes());
@@ -112,6 +113,9 @@ public class Walls extends MapElement {
 				for (int j = 0; j < parts.length;) {
 					String op = parts[j++];
 					String coords = parts[j++];
+					if (coords.indexOf(',') == -1) {
+						System.err.println("Error parsing walls: no comma in '" + coords + "' path #" + i + ", part #" + (j - 1) + ", op = " + op);
+					}
 					double x = Double.parseDouble(coords.substring(0, coords.indexOf(',')));
 					double y = Double.parseDouble(coords.substring(coords.indexOf(',') + 1));
 					double temp;
@@ -152,6 +156,8 @@ public class Walls extends MapElement {
 					y1 = y;
 				}
 			}
+			double millis = (System.nanoTime() - startTime) / 1000000d;
+			System.out.printf("Wall segment generation took %.3fms\n", millis);
 			System.out.println("Wall segments: " + wallLayout.walls.size());
 			canvas.repaint();
 

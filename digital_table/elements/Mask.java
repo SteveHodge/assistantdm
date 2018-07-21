@@ -102,6 +102,7 @@ public class Mask extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		long startTime = System.nanoTime();
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		if (parent != image) return;
 		if (image.getVisibility() != Visibility.VISIBLE) return;
@@ -116,9 +117,13 @@ public class Mask extends MapElement {
 
 		g.setComposite(c);
 		g.translate(-o.getX(), -o.getY());
-		//long micros = (System.nanoTime() - startTime) / 1000;
+		logPainting(startTime);
+	}
+
+	void logPainting(long startTime) {
+		long micros = (System.nanoTime() - startTime) / 1000;
 		//logger.info("Painting complete for " + this + " in " + micros + "ms");
-		//System.out.println("Image painting took "+micros+"ms");
+		System.out.println("Image painting took " + micros + "ms");
 	}
 
 	synchronized BufferedImage getMaskImage() {
