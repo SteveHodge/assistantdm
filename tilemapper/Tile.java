@@ -19,7 +19,8 @@ import org.w3c.dom.Element;
 
 public class Tile {
 	public String tileSet = null;
-	public File file = null;
+	public File hiresFile = null;	// full resolution file
+	public File file = null;	// low resolution file if any, or full res file
 	public BufferedImage image = null;
 	boolean mirrored = false;
 	Tile mirror = null;
@@ -125,7 +126,8 @@ public class Tile {
 	public static Tile parseDOM(Element node, File dir, String tileset, Set<String> style, int width, int height) {
 		Tile t = new Tile(width, height);
 		t.tileSet = tileset;
-		t.file = new File(dir, node.getAttribute("file"));
+		t.hiresFile = new File(dir, node.getAttribute("file"));
+		t.file = findLoResFile(dir, node.getAttribute("file"));
 		try {
 			t.image = ImageIO.read(t.file);
 		} catch (IOException ex) {
@@ -148,6 +150,23 @@ public class Tile {
 			t.styles.addAll(style);
 		}
 		return t;
+	}
+
+	// Tries to locate a small version of the file first, and falls back on the large image is no small version is found
+	static File findLoResFile(File dir, String largefile) {
+		String file = largefile;
+		String[] types = { "jpg", "png" };
+		if (file.contains(".")) {
+			file = file.substring(0, file.indexOf('.'));
+		}
+		for (String type : types) {
+			File f = new File(dir, "Small/" + file + "." + type);
+			if (f.exists()) return f;
+		}
+		File f = new File(dir, largefile);
+		if (f.exists()) return f;
+		return null;
+
 	}
 
 	public String getXML(String indent, Set<String> defaultStyle, int setWidth, int setHeight) {

@@ -99,6 +99,53 @@ public class TileManager {
 		c.anchor = GridBagConstraints.WEST;
 		p.add(new JLabel(title), c);
 
+		c.gridy++;
+		c.anchor = GridBagConstraints.CENTER;
+		ButtonGroup group = new ButtonGroup();
+
+		Map<JRadioButton, String> includeButtons = new HashMap<>();
+		Map<JRadioButton, String> ignoreButtons = new HashMap<>();
+		Map<JRadioButton, String> excludeButtons = new HashMap<>();
+
+		JRadioButton inc = new JRadioButton();
+		inc.addActionListener(e -> {
+			for (JRadioButton b : includeButtons.keySet()) {
+				String s = includeButtons.get(b);
+				b.setSelected(true);
+				map.put(s, Visibility.INCLUDED);
+				pcs.firePropertyChange(propName, s, Visibility.INCLUDED);
+			}
+		});
+		group.add(inc);
+		p.add(inc, c);
+
+		JRadioButton ign = new JRadioButton();
+		ign.addActionListener(e -> {
+			for (JRadioButton b : ignoreButtons.keySet()) {
+				String s = ignoreButtons.get(b);
+				b.setSelected(true);
+				map.put(s, Visibility.IGNORED);
+				pcs.firePropertyChange(propName, s, Visibility.IGNORED);
+			}
+		});
+		group.add(ign);
+		p.add(ign, c);
+
+		JRadioButton exc = new JRadioButton();
+		exc.addActionListener(e -> {
+			for (JRadioButton b : excludeButtons.keySet()) {
+				String s = excludeButtons.get(b);
+				b.setSelected(true);
+				map.put(s, Visibility.EXCLUDED);
+				pcs.firePropertyChange(propName, s, Visibility.EXCLUDED);
+			}
+		});
+		group.add(exc);
+		p.add(exc, c);
+
+		c.anchor = GridBagConstraints.WEST;
+		p.add(new JLabel("All"), c);
+
 		ArrayList<String> names = new ArrayList<String>(map.keySet());
 		Collections.sort(names);
 		for (String s : names) {
@@ -106,9 +153,10 @@ public class TileManager {
 
 			c.gridy++;
 			c.anchor = GridBagConstraints.CENTER;
-			ButtonGroup group = new ButtonGroup();
+			group = new ButtonGroup();
 
-			JRadioButton inc = new JRadioButton();
+			inc = new JRadioButton();
+			includeButtons.put(inc, s);
 			inc.addActionListener(e -> {
 				map.put(s, Visibility.INCLUDED);
 				pcs.firePropertyChange(propName, s, Visibility.INCLUDED);
@@ -117,7 +165,8 @@ public class TileManager {
 			group.add(inc);
 			p.add(inc, c);
 
-			JRadioButton ign = new JRadioButton();
+			ign = new JRadioButton();
+			ignoreButtons.put(ign, s);
 			ign.addActionListener(e -> {
 				map.put(s, Visibility.IGNORED);
 				pcs.firePropertyChange(propName, s, Visibility.IGNORED);
@@ -126,7 +175,8 @@ public class TileManager {
 			group.add(ign);
 			p.add(ign, c);
 
-			JRadioButton exc = new JRadioButton();
+			exc = new JRadioButton();
+			excludeButtons.put(exc, s);
 			exc.addActionListener(e -> {
 				map.put(s, Visibility.EXCLUDED);
 				pcs.firePropertyChange(propName, s, Visibility.EXCLUDED);
@@ -194,6 +244,10 @@ public class TileManager {
 
 	static void scanDirectory(File dir) {
 		File[] dirFiles = dir.listFiles();
+		if (dirFiles == null) {
+			System.err.println("No files found in " + dir);
+			return;
+		}
 		for (File f : dirFiles) {
 			if (f.isDirectory()) {
 				scanDirectory(f);
