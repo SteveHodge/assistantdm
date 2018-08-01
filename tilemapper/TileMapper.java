@@ -22,9 +22,12 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -62,11 +65,9 @@ import org.w3c.dom.NodeList;
  * TODO
  * BUG - still problem with dragging tiles on the map. Because the selected tile is a separate component, while the drag is still over the tile's original location it doesn't snap to grid.
  * BUG - refresh bug with tile palette when selecting a set after the palette has previous been cleared - doesn't always happen
- * Scale tiles, particularly for ADM save
  * Disappearing tile bug still happens - confirm
  * Smooth dragging when it should be snapping still happens - confirm
  * Save to layout overlay image in ADM save file
- * Option to save hi-res (ADM native res) image
  * Should save/load dialogs all default to common last used dir?
  * Have separate default directories for tilemap, image, ADM files?
  * Wider than normal tiles don't drag properly (get cropped) - happens if a rotated wilderness tile is dragged, for example. Note rotating mid-drag works so the issue is with the top palette
@@ -138,7 +139,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 			}
 		};
 
-		Action saveADMAction = new MapperAction("Save As ADM...", new ImageIcon("tilemapper/Icons/SaveAs.png"), "Save map to AssistantDM file") {
+		Action saveADMAction = new MapperAction("Save ADM Map...", new ImageIcon("tilemapper/Icons/SaveAs.png"), "Save map to AssistantDM file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				saveADMMap();
@@ -215,6 +216,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		toolBar.add(new JButton(newAction));
 		toolBar.add(new JButton(openAction));
 		toolBar.add(new JButton(saveAction));
+		toolBar.add(new JButton(saveImageAction));
 		toolBar.add(new JButton(debugAction));
 		add(toolBar, BorderLayout.NORTH);
 
@@ -281,19 +283,24 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	}
 
 	File getSaveFile(String fileTypeDesc, String defaultExt) {
-		return getFile(fileTypeDesc, defaultExt, true);
+		return getFile(fileTypeDesc, defaultExt, true, null);
+	}
+
+	File getSaveFile(String fileTypeDesc, String defaultExt, JComponent extraComp) {
+		return getFile(fileTypeDesc, defaultExt, true, extraComp);
 	}
 
 	File getOpenFile(String fileTypeDesc, String defaultExt) {
-		return getFile(fileTypeDesc, defaultExt, false);
+		return getFile(fileTypeDesc, defaultExt, false, null);
 	}
 
-	File getFile(String fileTypeDesc, String defaultExt, boolean save) {
+	File getFile(String fileTypeDesc, String defaultExt, boolean save, JComponent extraComp) {
 		JFileChooser fc = new JFileChooser();
 		FileFilter filter = new FileNameExtensionFilter(fileTypeDesc, defaultExt);
 		fc.addChoosableFileFilter(filter);
 		fc.setFileFilter(filter);
 		fc.setCurrentDirectory(defaultDir);
+		fc.setAccessory(extraComp);
 //		fc.setCurrentDirectory(file);
 		if (defaultExt.equals("tilemap")) {
 			fc.setSelectedFile(file);
@@ -413,9 +420,24 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 	}
 
 	public void saveImage() {
-		File f = getSaveFile("Jpeg Files", "jpg");
-		if (f != null) {
-			RenderedImage img = mapPanel.getImage();
+		String[] dpiOptions = { "33 dpi", "86 dpi (DTT)", "200 dpi" };
+		double[] dpis = { 33.0d, 25400.0d / 294.0d, 200.0d };	// 2nd element is the resolution of a 0.294 mm dot pitch monitor
+
+		JComboBox<String> dpiCombo = new JComboBox<>(dpiOptions);
+		System.out.println("Combo preferred size = " + dpiCombo.getPreferredSize());
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+
+		c.gridx = 0;
+		panel.add(new JLabel("Output DPI:"), c);
+		panel.add(dpiCombo, c);
+
+		File f = getSaveFile("Jpeg Files", "jpg", panel);
+		if (f == null) return;
+
+		RenderedImage img = mapPanel.getImage(dpis[dpiCombo.getSelectedIndex()]);
+		if (img != null) {
 			System.out.println("Saving image to " + f.getAbsolutePath());
 			try {
 				ImageIO.write(img, "jpeg", f);

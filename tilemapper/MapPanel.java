@@ -304,7 +304,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 
 	// TODO option to include grid
 	// TODO shrink to fit
-	public RenderedImage getImage() {
+	public RenderedImage getImage(double dpi) {
 		if (tiles.size() < 1) return null;
 
 		// first determine the extent of the map
@@ -323,19 +323,13 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		minx--;
 		miny--;
 
-		BufferedImage img = null;
-		Graphics g = null;
+		BufferedImage img = new BufferedImage((int) ((maxx - minx + 1) * dpi), (int) ((maxy - miny + 1) * dpi), BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = img.createGraphics();
+		g.setColor(Color.WHITE);
+		g.fillRect(0, 0, img.getWidth(), img.getHeight());
 		for (PlacedTile t : tiles) {
-			if (t.image == null) {
-				t.image = t.tile.getScaledImage(gridSize*t.tile.getWidth(t.orientation), t.orientation);
-			}
-			if (img == null) {
-				img = new BufferedImage((maxx-minx+1)*gridSize, (maxy-miny+1)*gridSize, BufferedImage.TYPE_INT_RGB);
-				g = img.getGraphics();
-				g.setColor(Color.WHITE);
-				g.fillRect(0, 0, img.getWidth(), img.getHeight());
-			}
-			g.drawImage(t.image, (t.x-minx)*gridSize, (t.y-miny)*gridSize, null);
+			Image tileImg = t.tile.getScaledImage((int) (dpi * t.tile.getWidth(t.orientation)), t.orientation);
+			g.drawImage(tileImg, (int) ((t.x - minx) * dpi), (int) ((t.y - miny) * dpi), null);
 		}
 		return img;
 	}

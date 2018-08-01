@@ -75,12 +75,25 @@ public class Tile {
 	// width in pixels
 	// orient is the number of clockwise 90 degree rotations the tile should have been subjected to
 	public Image getScaledImage(int width, int orient) {
-		BufferedImage img = image;
+		if (image == null) return null;
+
+		BufferedImage img = null;
+		if (width > image.getWidth() && hiresFile != null) {
+			// use the hires file if possible
+			try {
+				img = ImageIO.read(hiresFile);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if (img == null) img = image;
+
 		if (img != null) {
 			for (int i = 0; i < orient; i++) {
 				img = rotateImage(img);	// should cache these
 			}
-			if (width == img.getTileWidth()) return img;
+			if (width == img.getWidth()) return img;
 			return img.getScaledInstance(width, img.getHeight()*width/img.getWidth(), Image.SCALE_SMOOTH);
 		}
 		return img;
