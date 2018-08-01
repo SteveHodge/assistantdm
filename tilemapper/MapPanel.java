@@ -172,6 +172,17 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		gridSnap = snap;
 	}
 
+	public void setGridSize(int gridSize) {
+		this.gridSize = gridSize;
+		// reset cached imges
+		for (PlacedTile t : tiles) {
+			if (t.image != null) {
+				t.image = null;
+			}
+		}
+		repaint();
+	}
+
 	public void reset() {
 		tiles = new ArrayList<PlacedTile>();
 		repaint();
@@ -291,7 +302,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		}
 		for (PlacedTile t : tiles) {
 			if (t.image == null) {
-				t.image = t.tile.getScaledImage(gridSize*t.getWidth(), t.orientation);
+				t.image = t.tile.getTileImage(gridSize, t.orientation);
 			}
 			g.drawImage(t.image, t.getPixelX(), t.getPixelY(), null);
 			if (selected == t) {
@@ -328,7 +339,12 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, img.getWidth(), img.getHeight());
 		for (PlacedTile t : tiles) {
-			Image tileImg = t.tile.getScaledImage((int) (dpi * t.tile.getWidth(t.orientation)), t.orientation);
+			Image tileImg;
+			if (t.image != null & t.image.getWidth(null) == (int) (dpi * t.tile.getWidth(t.orientation))) {
+				tileImg = t.image;
+			} else {
+				tileImg = t.tile.getTileImage(dpi, t.orientation);
+			}
 			g.drawImage(tileImg, (int) ((t.x - minx) * dpi), (int) ((t.y - miny) * dpi), null);
 		}
 		return img;

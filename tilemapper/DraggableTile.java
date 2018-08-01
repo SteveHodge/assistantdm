@@ -61,7 +61,7 @@ public class DraggableTile extends JComponent implements ChangeListener, DragSou
 		if (s != gridSize) {
 			gridSize = s;
 			if (tile != null) {
-				image = tile.getScaledImage(tile.getWidth(orientation)*gridSize, orientation);
+				image = tile.getTileImage(gridSize, orientation);
 			}
 			fireChangeEvent();
 			updateSize();
@@ -119,7 +119,7 @@ public class DraggableTile extends JComponent implements ChangeListener, DragSou
 	public void setOrientation(int o) {
 		orientation = o % 4;
 		if (tile != null) {
-			image = tile.getScaledImage(tile.getWidth(orientation)*gridSize, orientation);
+			image = tile.getTileImage(gridSize, orientation);
 		}
 		fireChangeEvent();
 	}

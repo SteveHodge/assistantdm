@@ -65,12 +65,12 @@ import org.w3c.dom.NodeList;
  * TODO
  * BUG - still problem with dragging tiles on the map. Because the selected tile is a separate component, while the drag is still over the tile's original location it doesn't snap to grid.
  * BUG - refresh bug with tile palette when selecting a set after the palette has previous been cleared - doesn't always happen
+ * BUG - Wider than normal tiles don't drag properly (get cropped) - happens if a rotated wilderness tile is dragged, for example. Note rotating mid-drag works so the issue is with the top palette
  * Disappearing tile bug still happens - confirm
  * Smooth dragging when it should be snapping still happens - confirm
  * Save to layout overlay image in ADM save file
  * Should save/load dialogs all default to common last used dir?
  * Have separate default directories for tilemap, image, ADM files?
- * Wider than normal tiles don't drag properly (get cropped) - happens if a rotated wilderness tile is dragged, for example. Note rotating mid-drag works so the issue is with the top palette
  * Performance is bad
  * Allow map panel to be used as palette as well (selected tile populates top palette, tiles can be used as drag source)
  * Keep recently used tiles in top palette?
@@ -207,9 +207,26 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		snapMenu.add(snap3);
 		snapMenu.add(snap6);
 
+		JMenu gridMenu = new JMenu("Zoom");
+		snapMenu.setMnemonic(KeyEvent.VK_Z);
+		JRadioButtonMenuItem zoom1 = new JRadioButtonMenuItem("16x16", true);
+		zoom1.addActionListener(e -> {
+			mapPanel.setGridSize(16);
+		});
+		JRadioButtonMenuItem zoom2 = new JRadioButtonMenuItem("33x33");
+		zoom2.addActionListener(e -> {
+			mapPanel.setGridSize(33);
+		});
+		ButtonGroup zoomGroup = new ButtonGroup();
+		zoomGroup.add(zoom1);
+		zoomGroup.add(zoom2);
+		gridMenu.add(zoom1);
+		gridMenu.add(zoom2);
+
 		menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(snapMenu);
+		menuBar.add(gridMenu);
 		frame.setJMenuBar(menuBar);
 
 		toolBar = new JToolBar("Still draggable");
