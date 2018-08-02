@@ -64,7 +64,6 @@ import org.w3c.dom.NodeList;
 /*
  * TODO
  * BUG - still problem with dragging tiles on the map. Because the selected tile is a separate component, while the drag is still over the tile's original location it doesn't snap to grid.
- * BUG - refresh bug with tile palette when selecting a set after the palette has previous been cleared - doesn't always happen
  * Disappearing tile bug still happens - confirm
  * Smooth dragging when it should be snapping still happens - confirm
  * Save to layout overlay image in ADM save file

@@ -69,6 +69,7 @@ public class TilePalette extends JPanel implements MouseListener, Scrollable {
 			mainPalette.add(tile);
 		}
 		mainPalette.revalidate();	// this is not necessary for initial layout but is necessary for subsequent changes
+		repaint();
 	}
 
 	// Scrollable interface: we need this is lock our width to the parent scrollpane's width
