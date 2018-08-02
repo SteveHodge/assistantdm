@@ -120,6 +120,7 @@ public class DraggableTile extends JComponent implements ChangeListener, DragSou
 		orientation = o % 4;
 		if (tile != null) {
 			image = tile.getTileImage(gridSize, orientation);
+			updateSize();
 		}
 		fireChangeEvent();
 	}
