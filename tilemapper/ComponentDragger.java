@@ -82,11 +82,14 @@ public class ComponentDragger implements MouseMotionListener, MouseListener {
 		pane.repaint();	// TODO is this necessary?
 	}
 
-	private Component getComponentUnderDrag(Point p) {
+	// p is in coordinate system of pane (the JLayeredPane)
+	private Component getComponentUnderDrag(Point panePoint) {
+		Point p = SwingUtilities.convertPoint(pane, panePoint, frame.getContentPane());
 		Component deepest = SwingUtilities.getDeepestComponentAt(frame.getContentPane(), p.x, p.y);
 		// look for an ancestor that is DragTarget - if there is then we'll use that, if not then we'll use the deepest component
 		Component c = deepest;
 		while (c != frame.getContentPane() && c != null) {
+			p = SwingUtilities.convertPoint(pane, panePoint, c);
 			if (c instanceof DragTarget && c.contains(p)) {
 				return c;
 			}

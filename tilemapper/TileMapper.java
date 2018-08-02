@@ -63,9 +63,6 @@ import org.w3c.dom.NodeList;
 
 /*
  * TODO
- * BUG - still problem with dragging tiles on the map. Because the selected tile is a separate component, while the drag is still over the tile's original location it doesn't snap to grid.
- * Disappearing tile bug still happens - confirm
- * Smooth dragging when it should be snapping still happens - confirm
  * Save to layout overlay image in ADM save file
  * Should save/load dialogs all default to common last used dir?
  * Have separate default directories for tilemap, image, ADM files?
