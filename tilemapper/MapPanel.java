@@ -59,6 +59,8 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	private ComponentDragger dragger;
 	EventListenerList listenerList = new EventListenerList();
 
+	boolean modified = false;
+
 	static class TileSelectionEvent extends EventObject {
 		PlacedTile tile;
 
@@ -231,6 +233,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 
 	public void reset() {
 		tiles = new ArrayList<PlacedTile>();
+		modified = false;
 		repaint();
 	}
 
@@ -256,6 +259,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 					@Override
 					public Component getDragComponent() {
 						tiles.remove(selected);
+						modified = true;
 						selected = null;
 						MapPanel.this.repaint();
 						return super.getDragComponent();
@@ -305,6 +309,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	public void deleteSelected() {
 		if (selected != null) {
 			tiles.remove(selected);
+			modified = true;
 			setSelected(null);
 		}
 	}
@@ -312,6 +317,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	public void addTileGrid(Tile t, int x, int y, int o) {
 		PlacedTile tile = new PlacedTile(t, x, y, o);
 		tiles.add(tile);
+		modified = true;
 
 		// check if resizing is necessary
 		boolean resize = false;
@@ -540,6 +546,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 				}
 			}
 		}
+		modified = false;
 	}
 
 	// Scrollable implementation:

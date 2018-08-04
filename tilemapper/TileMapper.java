@@ -5,10 +5,10 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,6 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
@@ -66,7 +67,6 @@ import tilemapper.MapPanel.TileSelectionListener;
 
 /*
  * TODO
- * Confirm on new if map is unsaved. Perhaps remove shortcut for new
  * Save mask image
  * BUG: selecting small set (e.g. Props) and then picking a tile causes the top palette to take most of the room. top palette should never take more than it needs
  * Save to layout overlay image in ADM save file
@@ -78,7 +78,7 @@ import tilemapper.MapPanel.TileSelectionListener;
  * Edge matching
  */
 @SuppressWarnings("serial")
-public class TileMapper extends JPanel implements ActionListener, KeyListener {
+public class TileMapper extends JPanel {
 	static TileMapper tileMapper;
 
 	private JMenuBar menuBar;
@@ -103,7 +103,23 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		//TileManager.readXMLConfig("tiles.xml");
 
 		frame = new JFrame("TileMapper");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+		Action exitAction = new AbstractAction("Exit") {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (!mapPanel.modified || confirmAction()) {
+					System.exit(0);
+				}
+			}
+		};
+
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				exitAction.actionPerformed(null);
+			}
+		});
 
 		dragger = new ComponentDragger(frame) {
 			@Override
@@ -120,14 +136,16 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		Action newAction = new MapperAction("New", new ImageIcon("tilemapper/Icons/New.png"), "New map", KeyEvent.VK_N) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mapPanel.reset();
+				if (!mapPanel.modified || confirmAction())
+					mapPanel.reset();
 			}
 		};
 
 		Action openAction = new MapperAction("Open...", new ImageIcon("tilemapper/Icons/Open.png"), "Open map file", KeyEvent.VK_O) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				open();
+				if (!mapPanel.modified || confirmAction())
+					open();
 			}
 		};
 
@@ -220,8 +238,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		fileMenu.add(new JMenuItem(saveADMAction));
 		fileMenu.add(new JMenuItem(saveLayoutImageAction));
 		fileMenu.add(new JMenuItem(listTilesAction));
-		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
-			public void actionPerformed(ActionEvent arg0) {System.exit(0);}}));
+		fileMenu.add(new JMenuItem(exitAction));
 
 		JMenu snapMenu = new JMenu("Snap to Grid");
 		snapMenu.setMnemonic(KeyEvent.VK_G);
@@ -313,7 +330,6 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		add(splitPane, BorderLayout.CENTER);
 
 		setFocusable(true);
-		addKeyListener(this);
 		requestFocusInWindow();
 
 		setOpaque(true); //content panes must be opaque
@@ -324,6 +340,10 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		//frame.pack();
 		frame.setVisible(true);
 		tilePanel.revalidate();	// this is necessary here to ensure that the palette is correctly sized
+	}
+
+	boolean confirmAction() {
+		return JOptionPane.showConfirmDialog(frame, "You have unsaved changes.\nContinue?", "Please Confirm", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION;
 	}
 
 	File getSaveFile(String fileTypeDesc, String defaultExt) {
@@ -440,6 +460,7 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 			trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 			outputStream = new FileOutputStream(f);
 			trans.transform(new DOMSource(doc), new StreamResult(outputStream));
+			mapPanel.modified = false;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
@@ -534,44 +555,6 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 				}
 			}
 		}
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		System.err.println("ActionEvent from unknown source: "+e);
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-//		if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-//			mapPanel.deleteSelected();
-//		}
-		/*if (e.getKeyCode() == KeyEvent.VK_F) {
-				Tile.Edge[] edges = mapPanel.getSelectedTileEdges();
-				if (edges[0] != null || edges[1] != null || edges[2] != null || edges[3] != null) {
-					tilePanel.setTopPalette(TileManager.getMatchingTiles(edges));
-				} else {
-					JOptionPane.showMessageDialog(mapPanel, "All tiles can go there",
-							"Warning", JOptionPane.WARNING_MESSAGE);
-				}
-
-			}*/
-		if (e.getKeyCode() == KeyEvent.VK_M) {
-			// TODO fix this
-/*			DraggableImage drag = dragger.getDraggingImage();
-			if (drag != null && drag.getModel() instanceof DraggableTileModel) {
-				DraggableTileModel m = (DraggableTileModel)drag.getModel();
-				m.mirrorTile();
-			}*/
-		}
-	};
-
-	@Override
-	public void keyTyped(KeyEvent e) {
 	}
 
 	public static void main(String[] args) {
