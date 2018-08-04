@@ -61,14 +61,21 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import tilemapper.MapPanel.TileSelectionEvent;
+import tilemapper.MapPanel.TileSelectionListener;
+
 /*
  * TODO
+ * Confirm on new if map is unsaved. Perhaps remove shortcut for new
+ * Save mask image
+ * BUG: selecting small set (e.g. Props) and then picking a tile causes the top palette to take most of the room. top palette should never take more than it needs
  * Save to layout overlay image in ADM save file
  * Should save/load dialogs all default to common last used dir?
  * Have separate default directories for tilemap, image, ADM files?
  * Performance is bad
  * Allow map panel to be used as palette as well (selected tile populates top palette, tiles can be used as drag source)
  * Keep recently used tiles in top palette?
+ * Edge matching
  */
 @SuppressWarnings("serial")
 public class TileMapper extends JPanel implements ActionListener, KeyListener {
@@ -97,6 +104,18 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 
 		frame = new JFrame("TileMapper");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		dragger = new ComponentDragger(frame) {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				super.mouseReleased(e);
+				if (dragComponent != null && e.getButton() == MouseEvent.BUTTON3 && dragComponent instanceof DraggableTile) {
+					((DraggableTile) dragComponent).rotateTile();
+				}
+			}
+		};
+		tilePanel = new TilePalette(dragger);
+		mapPanel = new MapPanel(dragger);
 
 		Action newAction = new MapperAction("New", new ImageIcon("tilemapper/Icons/New.png"), "New map", KeyEvent.VK_N) {
 			@Override
@@ -154,6 +173,30 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 				mapPanel.listTiles();
 			}
 		};
+
+		Action deleteAction = new MapperAction("Delete", new ImageIcon("tilemapper/Icons/Delete.png"), "Delete selected tile") {
+			{
+				mapPanel.addTileSelectionListener(new TileSelectionListener() {
+					@Override
+					public void tileSelected(TileSelectionEvent e) {
+						setEnabled(true);
+					}
+
+					@Override
+					public void tileDeselected(TileSelectionEvent e) {
+						setEnabled(false);
+					}
+				});
+				setEnabled(false);
+			}
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mapPanel.deleteSelected();
+			}
+		};
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		getActionMap().put("delete", deleteAction);
 
 		Action debugAction = new AbstractAction("Debug") {
 			@Override
@@ -229,18 +272,9 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		toolBar.add(new JButton(openAction));
 		toolBar.add(new JButton(saveAction));
 		toolBar.add(new JButton(saveImageAction));
+		toolBar.add(new JButton(deleteAction));
 		toolBar.add(new JButton(debugAction));
 		add(toolBar, BorderLayout.NORTH);
-
-		dragger = new ComponentDragger(frame) {
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				super.mouseReleased(e);
-				if (dragComponent != null && e.getButton() == MouseEvent.BUTTON3 && dragComponent instanceof DraggableTile) {
-					((DraggableTile)dragComponent).rotateTile();
-				}
-			}
-		};
 
 		JPanel filterPanel = new JPanel();
 		filterPanel.setLayout(new GridBagLayout());
@@ -257,8 +291,6 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 		filterPanel.add(setsScroll, c);
 		add(filterPanel, BorderLayout.WEST);
 
-		tilePanel = new TilePalette(dragger);
-		mapPanel = new MapPanel(dragger);
 		JScrollPane mapScroll = new JScrollPane(mapPanel,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		mapScroll.getViewport().addChangeListener(new ChangeListener() {
 			@Override
@@ -515,9 +547,9 @@ public class TileMapper extends JPanel implements ActionListener, KeyListener {
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-			mapPanel.deleteSelected();
-		}
+//		if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+//			mapPanel.deleteSelected();
+//		}
 		/*if (e.getKeyCode() == KeyEvent.VK_F) {
 				Tile.Edge[] edges = mapPanel.getSelectedTileEdges();
 				if (edges[0] != null || edges[1] != null || edges[2] != null || edges[3] != null) {

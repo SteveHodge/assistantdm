@@ -17,11 +17,14 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.EventObject;
 
 import javax.swing.JPanel;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
+import javax.swing.event.EventListenerList;
 import javax.swing.event.MouseInputAdapter;
 
 import org.w3c.dom.Element;
@@ -54,6 +57,26 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	PlacedTile selected = null;
 	DraggableTile dragTile;
 	private ComponentDragger dragger;
+	EventListenerList listenerList = new EventListenerList();
+
+	static class TileSelectionEvent extends EventObject {
+		PlacedTile tile;
+
+		public TileSelectionEvent(Object source, PlacedTile tile) {
+			super(source);
+			this.tile = tile;
+		}
+
+		public PlacedTile getTile() {
+			return tile;
+		}
+	}
+
+	static interface TileSelectionListener extends EventListener {
+		public void tileSelected(TileSelectionEvent e);
+
+		public void tileDeselected(TileSelectionEvent e);
+	}
 
 	class PlacedTile {
 		int x, y;
@@ -105,6 +128,29 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		setLayout(null);
 		addMouseListener(mapMouseListener);
 		addMouseMotionListener(mapMouseListener);
+	}
+
+	public void addTileSelectionListener(TileSelectionListener l) {
+		listenerList.add(TileSelectionListener.class, l);
+	}
+
+	public void removeTileSelectionListener(TileSelectionListener l) {
+		listenerList.remove(TileSelectionListener.class, l);
+	}
+
+	protected void fireTileSelectionEvent(PlacedTile tile, boolean selected) {
+		Object[] listeners = listenerList.getListenerList();
+		TileSelectionEvent event = null;
+		for (int i = listeners.length - 2; i >= 0; i -= 2) {
+			if (listeners[i] == TileSelectionListener.class) {
+				if (event == null)
+					event = new TileSelectionEvent(this, tile);
+				if (selected)
+					((TileSelectionListener) listeners[i + 1]).tileSelected(event);
+				else
+					((TileSelectionListener) listeners[i + 1]).tileDeselected(event);
+			}
+		}
 	}
 
 	MouseInputAdapter mapMouseListener = new MouseInputAdapter() {
@@ -197,6 +243,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 				// remove old dragTile
 				remove(dragTile);
 				dragger.unregisterSource(dragTile);
+				fireTileSelectionEvent(selected, false);
 			}
 			selected = newselected;
 			if (selected != null) {
@@ -231,6 +278,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 				dragger.registerSource(dragTile);
 				add(dragTile);
 				dragTile.setLocation(selected.getPixelX(), selected.getPixelY());
+				fireTileSelectionEvent(selected, true);
 			}
 			repaint();
 		}
@@ -255,7 +303,6 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	}
 
 	public void deleteSelected() {
-		System.out.println("deleteSelected " + selected);
 		if (selected != null) {
 			tiles.remove(selected);
 			setSelected(null);
