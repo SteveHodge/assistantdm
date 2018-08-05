@@ -92,9 +92,10 @@ public class DraggableTile extends JComponent implements ChangeListener, DragSou
 			}
 		}
 
-		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, image == null ? getPreferredSize().width : size.width,
-				image == null ? getPreferredSize().height : size.height);
+		// don't paint background, honour tiles transparency...
+//		g.setColor(Color.WHITE);
+//		g.fillRect(0, 0, image == null ? getPreferredSize().width : size.width,
+//				image == null ? getPreferredSize().height : size.height);
 
 		if (image != null) {
 			g.drawImage(image, 1, 1, this);
