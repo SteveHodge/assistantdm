@@ -11,6 +11,7 @@ import java.awt.geom.Point2D;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class Walls extends MapElement {
 
 	public final static String PROPERTY_COLOR = "color";	// Color
 	public final static String PROPERTY_ALPHA = "alpha";	// float
-	public final static String PROPERTY_WALL_LAYOUT = "wall_layout";	// String (xml content)
+	public final static String PROPERTY_WALL_LAYOUT = "wall_layout";	// WallLayout
 	public final static String PROPERTY_X = "x";	// double
 	public final static String PROPERTY_Y = "y";	// double
 	public final static String PROPERTY_ROTATIONS = "rotations";	// int - number of quadrants rotated clockwise
@@ -69,109 +70,180 @@ public class Walls extends MapElement {
 
 	List<Point> cleared = new ArrayList<>();
 
-	class WallLayout {
+	public static class WallLayout implements Serializable {
+		private static final long serialVersionUID = 1L;
 		List<Line2D.Double> walls = new ArrayList<Line2D.Double>();
+		double width, height;
+
+		public static WallLayout parseXML(String xml, double xoff, double yoff, double width, double height, int rotations, boolean mirrored) {
+			WallLayout wallLayout = new WallLayout();
+
+			try {
+				long startTime = System.nanoTime();
+
+				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+				factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);	// disabling these features improves parsing time by at least 3 orders of magnitude
+				factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				DocumentBuilder builder = factory.newDocumentBuilder();
+				InputStream is = new ByteArrayInputStream(xml.getBytes());
+				Document document = builder.parse(is);
+				// expecting svg->g->path, but we'll just get all the paths
+				NodeList svgList = document.getElementsByTagName("svg");
+				boolean svg = svgList.getLength() > 0;
+				if (!svg) {
+					svgList = document.getElementsByTagName("walls");
+				}
+
+				Element root = (Element) svgList.item(0);
+				double xScale, yScale;
+				if (svg) {
+					System.out.println("  Format = svg");
+					String viewBox[] = root.getAttribute("viewBox").split(" ");
+					xScale = Double.parseDouble(viewBox[2]) / width;
+					yScale = Double.parseDouble(viewBox[3]) / height;
+				} else {
+					System.out.println("  Format = walls xml");
+					int w = Integer.parseInt(root.getAttribute("width"));
+					int h = Integer.parseInt(root.getAttribute("height"));
+					xScale = w / width;
+					yScale = h / height;
+				}
+
+//				double millis = (System.nanoTime() - startTime) / 1000000d;
+//				System.out.printf("Loading DOM took %.3fms\n", millis);
+//				startTime = System.nanoTime();
+
+				NodeList paths;
+				if (svg)
+					paths = document.getElementsByTagName("path");
+				else
+					paths = document.getElementsByTagName("wall");
+				for (int i = 0; i < paths.getLength(); i++) {
+					Element p = (Element) paths.item(i);
+					String d = p.getAttribute("d");
+					String[] parts = d.split(" ");
+					double x1 = 0, y1 = 0;
+//					System.out.println("Path has " + parts.length / 2 + " segments");
+					for (int j = 0; j < parts.length;) {
+						String op = parts[j++];
+						String coords = parts[j++];
+						if (coords.indexOf(',') == -1) {
+							System.err.println("Error parsing walls: no comma in '" + coords + "' path #" + i + ", part #" + (j - 1) + ", op = " + op);
+						}
+						double x = Double.parseDouble(coords.substring(0, coords.indexOf(',')));
+						double y = Double.parseDouble(coords.substring(coords.indexOf(',') + 1));
+						double temp;
+						if (rotations % 1 == 0) {
+							x = x / xScale;
+							y = y / yScale;
+						} else {
+							x = x / yScale;
+							y = y / xScale;
+						}
+						switch (rotations) {
+						case 1:
+							temp = y;
+							y = x;
+							x = -temp;
+							break;
+						case 2:
+							x = -x;
+							y = -y;
+							break;
+						case 3:
+							temp = y;
+							y = -x;
+							x = temp;
+							break;
+						}
+						if (mirrored) {
+							x = -x;
+						}
+						x += xoff;
+						y += yoff;
+						if (op.equals("L")) {
+							wallLayout.walls.add(new Line2D.Double(x1, y1, x, y));
+						} else if (!op.equals("M")) {
+							System.err.println("Unknown path operator: " + op);
+						}
+						x1 = x;
+						y1 = y;
+					}
+				}
+				double millis = (System.nanoTime() - startTime) / 1000000d;
+				System.out.printf("Wall segment generation took %.3fms\n", millis);
+				System.out.println("Wall segments: " + wallLayout.walls.size());
+
+			} catch (ParserConfigurationException | SAXException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return wallLayout;
+		}
+
+		// TODO should be able to do this with an affine transformation
+		public List<Line2D.Double> getTransformed(double xoff, double yoff, double width, double height, int rotations, boolean mirrored) {
+			List<Line2D.Double> transformed = new ArrayList<>();
+			double xScale = this.width / width;
+			double yScale = this.height / height;
+			for (Line2D.Double line : walls) {
+				Point2D a = transformPoint(line.x1, line.y1, xoff, yoff, xScale, yScale, rotations, mirrored);
+				Point2D b = transformPoint(line.x2, line.y2, xoff, yoff, xScale, yScale, rotations, mirrored);
+				transformed.add(new Line2D.Double(a, b));
+			}
+			return transformed;
+		}
+
+		Point2D transformPoint(double x, double y, double xoff, double yoff, double xScale, double yScale, int rotations, boolean mirrored) {
+			double temp;
+			if (rotations % 1 == 0) {
+				x = x / xScale;
+				y = y / yScale;
+			} else {
+				x = x / yScale;
+				y = y / xScale;
+			}
+			switch (rotations) {
+			case 1:
+				temp = y;
+				y = x;
+				x = -temp;
+				break;
+			case 2:
+				x = -x;
+				y = -y;
+				break;
+			case 3:
+				temp = y;
+				y = -x;
+				x = temp;
+				break;
+			}
+			if (mirrored) {
+				x = -x;
+			}
+			x += xoff;
+			y += yoff;
+			return new Point2D.Double(x, y);
+		}
 	}
 
 	transient WallLayout wallLayout = null;
 	transient String wallLayoutXML = null;
 
 	void setWallLayout(String xml) {
-		wallLayout = new WallLayout();
-		wallLayoutXML = xml;
 		if (width.getValue() == 0 || height.getValue() == 0) {
 			System.out.println("Wall layout has no width or height");
 		}
-
-		try {
-			System.out.println("Reading wall layout");
-			System.out.println("  Width = " + width.getValue());
-			System.out.println("  Height = " + height.getValue());
-			System.out.println("  X = " + x.getValue());
-			System.out.println("  Y = " + y.getValue());
-			System.out.println("  Rotations = " + rotations.getValue());
-			System.out.println("  Mirrored = " + mirrored.getValue());
-			long startTime = System.nanoTime();
-
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);	// disabling these features improves parsing time by at least 3 orders of magnitude
-			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			InputStream is = new ByteArrayInputStream(xml.getBytes());
-			Document document = builder.parse(is);
-			// expecting svg->g->path, but we'll just get all the paths
-			NodeList svgList = document.getElementsByTagName("svg");
-			Element svg = (Element) svgList.item(0);
-			String viewBox[] = svg.getAttribute("viewBox").split(" ");
-			double xScale = Double.parseDouble(viewBox[2]) / width.getValue();
-			double yScale = Double.parseDouble(viewBox[3]) / height.getValue();
-
-//			double millis = (System.nanoTime() - startTime) / 1000000d;
-//			System.out.printf("Loading DOM took %.3fms\n", millis);
-//			startTime = System.nanoTime();
-
-			NodeList paths = document.getElementsByTagName("path");
-			for (int i = 0; i < paths.getLength(); i++) {
-				Element p = (Element) paths.item(i);
-				String d = p.getAttribute("d");
-				String[] parts = d.split(" ");
-				double x1 = 0, y1 = 0;
-//				System.out.println("Path has " + parts.length / 2 + " segments");
-				for (int j = 0; j < parts.length;) {
-					String op = parts[j++];
-					String coords = parts[j++];
-					if (coords.indexOf(',') == -1) {
-						System.err.println("Error parsing walls: no comma in '" + coords + "' path #" + i + ", part #" + (j - 1) + ", op = " + op);
-					}
-					double x = Double.parseDouble(coords.substring(0, coords.indexOf(',')));
-					double y = Double.parseDouble(coords.substring(coords.indexOf(',') + 1));
-					double temp;
-					if (rotations.getValue() % 1 == 0) {
-						x = x / xScale;
-						y = y / yScale;
-					} else {
-						x = x / yScale;
-						y = y / xScale;
-					}
-					switch (rotations.getValue()) {
-					case 1:
-						temp = y;
-						y = x;
-						x = -temp;
-						break;
-					case 2:
-						x = -x;
-						y = -y;
-						break;
-					case 3:
-						temp = y;
-						y = -x;
-						x = temp;
-						break;
-					}
-					if (mirrored.getValue()) {
-						x = -x;
-					}
-					x += this.x.getValue();
-					y += this.y.getValue();
-					if (op.equals("L")) {
-						wallLayout.walls.add(new Line2D.Double(x1, y1, x, y));
-					} else if (!op.equals("M")) {
-						System.err.println("Unknown path operator: " + op);
-					}
-					x1 = x;
-					y1 = y;
-				}
-			}
-			double millis = (System.nanoTime() - startTime) / 1000000d;
-			System.out.printf("Wall segment generation took %.3fms\n", millis);
-			System.out.println("Wall segments: " + wallLayout.walls.size());
-			canvas.repaint();
-
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		System.out.println("Reading wall layout");
+		System.out.println("  Width = " + width.getValue());
+		System.out.println("  Height = " + height.getValue());
+		System.out.println("  X = " + x.getValue());
+		System.out.println("  Y = " + y.getValue());
+		System.out.println("  Rotations = " + rotations.getValue());
+		System.out.println("  Mirrored = " + mirrored.getValue());
+		wallLayout = WallLayout.parseXML(xml, x.getValue(), y.getValue(), width.getValue(), height.getValue(), rotations.getValue(), mirrored.getValue());
+		canvas.repaint();
 	}
 
 	@Override
