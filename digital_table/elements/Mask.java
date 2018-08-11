@@ -264,8 +264,10 @@ public class Mask extends MapElement {
 			clearMask();
 		} else if (property.equals(PROPERTY_REMOVE_MASK)) {
 			int i = (Integer) value;
-			masks.remove(i);
-			clearMask();
+			if (i >= 0 && masks.size() > i) {
+				masks.remove(i);
+				clearMask();
+			}
 		} else if (property.equals(PROPERTY_PROMOTE_MASK)) {
 			int i = (Integer) value;
 			if (i > 0) {

@@ -120,12 +120,14 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		}
 
 		void delete(int row) {
-			display.setProperty(element, Mask.PROPERTY_REMOVE_MASK, row);
-			masks.remove(row);
-			visible.remove(row);
-			names.remove(row);
-			isImage.remove(row);
-			fireTableRowsDeleted(row, row);
+			if (row >= 0) {
+				display.setProperty(element, Mask.PROPERTY_REMOVE_MASK, row);
+				masks.remove(row);
+				visible.remove(row);
+				names.remove(row);
+				isImage.remove(row);
+				fireTableRowsDeleted(row, row);
+			}
 		}
 
 		void promote(int row) {
