@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,13 +55,13 @@ public class DarknessMask extends MapElement {
 		}
 
 		ListModel<MapElement> m = canvas.getModel();
-		Walls.WallLayout wallLayout = null;
+		List<Line2D.Double> wallLayout = null;
 		// find the first wall layout
 		// TODO should support multiples
 		for (int i = 0; i < m.getSize(); i++) {
 			Object e = m.getElementAt(i);
 			if (e instanceof Walls) {
-				wallLayout = ((Walls) e).wallLayout;
+				wallLayout = ((Walls) e).walls;
 			}
 		}
 

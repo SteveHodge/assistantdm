@@ -6,6 +6,7 @@ import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.io.ByteArrayInputStream;
@@ -75,7 +76,7 @@ public class Walls extends MapElement {
 		List<Line2D.Double> walls = new ArrayList<Line2D.Double>();
 		double width, height;
 
-		public static WallLayout parseXML(String xml, double xoff, double yoff, double width, double height, int rotations, boolean mirrored) {
+		public static WallLayout parseXML(String xml) {
 			WallLayout wallLayout = new WallLayout();
 
 			try {
@@ -95,18 +96,15 @@ public class Walls extends MapElement {
 				}
 
 				Element root = (Element) svgList.item(0);
-				double xScale, yScale;
 				if (svg) {
 					System.out.println("  Format = svg");
 					String viewBox[] = root.getAttribute("viewBox").split(" ");
-					xScale = Double.parseDouble(viewBox[2]) / width;
-					yScale = Double.parseDouble(viewBox[3]) / height;
+					wallLayout.width = Double.parseDouble(viewBox[2]);
+					wallLayout.height = Double.parseDouble(viewBox[3]);
 				} else {
 					System.out.println("  Format = walls xml");
-					int w = Integer.parseInt(root.getAttribute("width"));
-					int h = Integer.parseInt(root.getAttribute("height"));
-					xScale = w / width;
-					yScale = h / height;
+					wallLayout.width = Integer.parseInt(root.getAttribute("width"));
+					wallLayout.height = Integer.parseInt(root.getAttribute("height"));
 				}
 
 //				double millis = (System.nanoTime() - startTime) / 1000000d;
@@ -132,35 +130,6 @@ public class Walls extends MapElement {
 						}
 						double x = Double.parseDouble(coords.substring(0, coords.indexOf(',')));
 						double y = Double.parseDouble(coords.substring(coords.indexOf(',') + 1));
-						double temp;
-						if (rotations % 1 == 0) {
-							x = x / xScale;
-							y = y / yScale;
-						} else {
-							x = x / yScale;
-							y = y / xScale;
-						}
-						switch (rotations) {
-						case 1:
-							temp = y;
-							y = x;
-							x = -temp;
-							break;
-						case 2:
-							x = -x;
-							y = -y;
-							break;
-						case 3:
-							temp = y;
-							y = -x;
-							x = temp;
-							break;
-						}
-						if (mirrored) {
-							x = -x;
-						}
-						x += xoff;
-						y += yoff;
 						if (op.equals("L")) {
 							wallLayout.walls.add(new Line2D.Double(x1, y1, x, y));
 						} else if (!op.equals("M")) {
@@ -180,56 +149,55 @@ public class Walls extends MapElement {
 			}
 			return wallLayout;
 		}
-
-		// TODO should be able to do this with an affine transformation
-		public List<Line2D.Double> getTransformed(double xoff, double yoff, double width, double height, int rotations, boolean mirrored) {
-			List<Line2D.Double> transformed = new ArrayList<>();
-			double xScale = this.width / width;
-			double yScale = this.height / height;
-			for (Line2D.Double line : walls) {
-				Point2D a = transformPoint(line.x1, line.y1, xoff, yoff, xScale, yScale, rotations, mirrored);
-				Point2D b = transformPoint(line.x2, line.y2, xoff, yoff, xScale, yScale, rotations, mirrored);
-				transformed.add(new Line2D.Double(a, b));
-			}
-			return transformed;
-		}
-
-		Point2D transformPoint(double x, double y, double xoff, double yoff, double xScale, double yScale, int rotations, boolean mirrored) {
-			double temp;
-			if (rotations % 1 == 0) {
-				x = x / xScale;
-				y = y / yScale;
-			} else {
-				x = x / yScale;
-				y = y / xScale;
-			}
-			switch (rotations) {
-			case 1:
-				temp = y;
-				y = x;
-				x = -temp;
-				break;
-			case 2:
-				x = -x;
-				y = -y;
-				break;
-			case 3:
-				temp = y;
-				y = -x;
-				x = temp;
-				break;
-			}
-			if (mirrored) {
-				x = -x;
-			}
-			x += xoff;
-			y += yoff;
-			return new Point2D.Double(x, y);
-		}
 	}
 
 	transient WallLayout wallLayout = null;
-	transient String wallLayoutXML = null;
+	transient List<Line2D.Double> walls = null;
+
+	// TODO should be able to do this with an affine transformation
+	private List<Line2D.Double> getTransformed() {
+		if (wallLayout == null) return null;
+		List<Line2D.Double> transformed = new ArrayList<>();
+		AffineTransform t = getTransform(wallLayout.width, wallLayout.height);
+		for (Line2D.Double line : wallLayout.walls) {
+			Point2D.Double a = new Point2D.Double(line.x1, line.y1);
+			t.transform(a, a);
+			Point2D.Double b = new Point2D.Double(line.x2, line.y2);
+			t.transform(b, b);
+			transformed.add(new Line2D.Double(a, b));
+		}
+		return transformed;
+	}
+
+	// returns the AffineTransform that would transform an image of the specified width and height to the
+	// dimensions of this element. the AffineTransform includes and rotations and mirroring set on this element
+	AffineTransform getTransform(double srcWidth, double srcHeight) {
+		AffineTransform transform;
+		if (mirrored.getValue()) {
+			transform = AffineTransform.getScaleInstance(-1, 1);
+			transform.quadrantRotate(-rotations.getValue());
+			if (rotations.getValue() == 0)
+				transform.translate(-x.getValue() - width.getValue(), y.getValue());
+			else if (rotations.getValue() == 1)
+				transform.translate(-y.getValue() - height.getValue(), -x.getValue() - width.getValue());
+			else if (rotations.getValue() == 2)
+				transform.translate(x.getValue(), -y.getValue() - height.getValue());
+			else if (rotations.getValue() == 3)
+				transform.translate(y.getValue(), x.getValue());
+		} else {
+			transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
+			if (rotations.getValue() == 0) transform.translate(x.getValue(), y.getValue());
+			if (rotations.getValue() == 1) transform.translate(y.getValue(), -x.getValue() - width.getValue());
+			if (rotations.getValue() == 2) transform.translate(-x.getValue() - width.getValue(), -y.getValue() - height.getValue());
+			if (rotations.getValue() == 3) transform.translate(-y.getValue() - height.getValue(), x.getValue());
+		}
+		if (rotations.getValue() % 2 == 0) {
+			transform.scale(width.getValue() / srcWidth, height.getValue() / srcHeight);
+		} else {
+			transform.scale(height.getValue() / srcWidth, width.getValue() / srcHeight);
+		}
+		return transform;
+	}
 
 	void setWallLayout(String xml) {
 		if (width.getValue() == 0 || height.getValue() == 0) {
@@ -242,7 +210,8 @@ public class Walls extends MapElement {
 		System.out.println("  Y = " + y.getValue());
 		System.out.println("  Rotations = " + rotations.getValue());
 		System.out.println("  Mirrored = " + mirrored.getValue());
-		wallLayout = WallLayout.parseXML(xml, x.getValue(), y.getValue(), width.getValue(), height.getValue(), rotations.getValue(), mirrored.getValue());
+		wallLayout = WallLayout.parseXML(xml);
+		walls = getTransformed();
 		canvas.repaint();
 	}
 
@@ -254,14 +223,14 @@ public class Walls extends MapElement {
 	@Override
 	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() != Visibility.VISIBLE) return;
-		if (wallLayout == null || wallLayout.walls == null) return;
+		if (walls == null) return;
 
 		g.setColor(color.getValue());
 		Composite c = g.getComposite();
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
 
 //			long startTime = System.nanoTime();
-		for (Line2D.Double l : wallLayout.walls) {
+		for (Line2D.Double l : walls) {
 			Point p1 = canvas.convertCanvasCoordsToDisplay(l.getP1());
 			Point p2 = canvas.convertCanvasCoordsToDisplay(l.getP2());
 			g.drawLine(p1.x, p1.y, p2.x, p2.y);
@@ -273,7 +242,7 @@ public class Walls extends MapElement {
 
 		// highlight border for selected element
 		if (selected) {
-			Point offset = canvas.convertGridCoordsToDisplay(new Point2D.Double(x.getValue(), y.getValue()));
+			Point offset = canvas.convertCanvasCoordsToDisplay(new Point2D.Double(x.getValue(), y.getValue()));
 			Dimension size = canvas.getDisplayDimension(width.getValue(), height.getValue());
 			g.setColor(Color.BLUE);
 			g.drawRect(offset.x, offset.y, size.width, size.height);
@@ -294,6 +263,15 @@ public class Walls extends MapElement {
 			setWallLayout((String) value);
 		} else {
 			super.setProperty(property, value);
+			if (property.equals(PROPERTY_X)
+					|| property.equals(PROPERTY_Y)
+					|| property.equals(PROPERTY_ROTATIONS)
+					|| property.equals(PROPERTY_MIRRORED)
+					|| property.equals(PROPERTY_WIDTH)
+					|| property.equals(PROPERTY_HEIGHT)) {
+				walls = getTransformed();
+				canvas.repaint();
+			}
 		}
 	}
 }

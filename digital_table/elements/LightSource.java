@@ -11,6 +11,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import digital_table.server.MapCanvas.Order;
@@ -113,29 +114,29 @@ public class LightSource extends MapElement {
 		}
 	}
 
-	Area getBrightArea(Walls.WallLayout walls) {
+	Area getBrightArea(List<Line2D.Double> walls) {
 		int r = type.getValue().getBrightRadius(radius.getValue());
 		return getArea(r, walls);
 	}
 
-	Area getShadowArea(Walls.WallLayout walls) {
+	Area getShadowArea(List<Line2D.Double> walls) {
 		int r = type.getValue().getShadowRadius(radius.getValue());
 		return getArea(r, walls);
 	}
 
-	Area getLowLightArea(Walls.WallLayout walls) {
+	Area getLowLightArea(List<Line2D.Double> walls) {
 		int r = 2 * type.getValue().getShadowRadius(radius.getValue());
 		return getArea(r, walls);
 	}
 
 	// shadow mask cache:
-	Walls.WallLayout cachedWalls = null;
+	List<Line2D.Double> cachedWalls = null;
 	Point cachedLocation = null;
 	double cachedRadius = 0;
 	Area cachedShadow = null;
 	int cachedTokenSize = 0;
 
-	private Area getArea(int radius, Walls.WallLayout walls) {
+	private Area getArea(int radius, List<Line2D.Double> walls) {
 		Area area = new Area();
 		if (radius == 0) return area;
 		Point o = getAbsLocation();
@@ -156,7 +157,7 @@ public class LightSource extends MapElement {
 		Double r = canvas.getDisplayDimension(4 * this.radius.getValue() + 1, 0).getWidth();			// the factor of 4 is the maximum shadowy radius with low light vision. the +1 helps make sure no bits that should be shadowed are seen
 		Double s = canvas.getDisplayDimension(tokenSize, 0).getWidth();
 
-		if (walls != null && walls.walls != null) {
+		if (walls != null) {
 			// create shadow mask and remove from area
 			Point origin = canvas.convertCanvasCoordsToDisplay(getAbsLocation());
 
@@ -172,7 +173,7 @@ public class LightSource extends MapElement {
 //				double x = 0;
 //				double y = s;
 						Point localOrigin = new Point((int) (origin.x + x), (int) (origin.y + y));
-						Area shad = walls.walls.parallelStream().collect(
+						Area shad = walls.parallelStream().collect(
 								() -> {
 									return new Area(shadowBounds);
 								},
