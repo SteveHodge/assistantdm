@@ -1,6 +1,5 @@
 package digital_table.controller;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -20,7 +19,6 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
 import javax.swing.JTextField;
 
 import org.w3c.dom.Document;
@@ -30,8 +28,8 @@ import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
-import digital_table.elements.MapImage;
 import digital_table.elements.Walls;
+import digital_table.elements.Walls.WallLayout;
 import digital_table.server.MediaManager;
 
 @SuppressWarnings("serial")
@@ -39,7 +37,6 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 	protected URI uri = null;
 
 	private JPanel colorPanel;
-	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
 	private JTextField xField;
 	private JTextField yField;
@@ -47,6 +44,7 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 	private JTextField heightField;
 	private JComboBox<String> rotationsCombo;
 	private JCheckBox mirrorCheck;
+	private JCheckBox showWallsCheck;
 	public static File lastDir = new File(".");	// last selected image - used to keep the current directory
 
 	WallsOptionsPanel(MapElement parent, DisplayManager r) {
@@ -54,11 +52,8 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		element = new Walls();
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		display.addElement(element, parent);
-		element.setProperty(Walls.PROPERTY_ALPHA, 0.5f);
 		element.addPropertyChangeListener(listener);
 
-		colorPanel = createColorControl(Walls.PROPERTY_COLOR);
-		alphaSlider = createSliderControl(Walls.PROPERTY_ALPHA, Mode.LOCAL);
 		visibleCheck = createVisibilityControl();
 		visibleCheck.setSelected(false);
 
@@ -83,16 +78,15 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		widthField = createDoubleControl(Walls.PROPERTY_WIDTH);
 		heightField = createDoubleControl(Walls.PROPERTY_HEIGHT);
 		rotationsCombo = createRotationControl(Walls.PROPERTY_ROTATIONS, Mode.ALL);
-		mirrorCheck = createCheckBox(Walls.PROPERTY_MIRRORED, Mode.ALL, "mirrored?");
+		mirrorCheck = createCheckBox(Walls.PROPERTY_MIRRORED, Mode.ALL, "Mirrored?");
+		showWallsCheck = createCheckBox(Walls.PROPERTY_SHOW_WALLS, Mode.LOCAL, "DM sees walls?");
+		showWallsCheck.setSelected(true);
 
 		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 1; add(new JLabel("Colour:"), c);
-		c.gridy = 2; add(new JLabel("Transparency:"), c);
-
-		c.gridy = 4; add(new JLabel("Left edge column:"), c);
+		c.gridy = 2; add(new JLabel("Left edge column:"), c);
 		c.gridy = GridBagConstraints.RELATIVE;
 		add(new JLabel("Top edge Row:"), c);
 		add(new JLabel("Width:"), c);
@@ -104,8 +98,6 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		c.gridx = 1;
 		c.gridy = GridBagConstraints.RELATIVE;
 		add(visibleCheck, c);
-		add(colorPanel, c);
-		add(alphaSlider, c);
 		add(loadWallsButton, c);
 		add(xField, c);
 		add(yField, c);
@@ -113,6 +105,7 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		add(heightField, c);
 		add(rotationsCombo, c);
 		add(mirrorCheck, c);
+		add(showWallsCheck, c);
 
 		c.gridwidth = 2;
 		c.fill = GridBagConstraints.BOTH;
@@ -126,9 +119,22 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		try {
 			File file = MediaManager.INSTANCE.getFile(uri);
 			System.out.println("Opening wall layout " + file.getAbsolutePath());
+
+//			if (width.getValue() == 0 || height.getValue() == 0) {
+//				System.out.println("Wall layout has no width or height");
+//			}
+//			System.out.println("Reading wall layout");
+//			System.out.println("  Width = " + width.getValue());
+//			System.out.println("  Height = " + height.getValue());
+//			System.out.println("  X = " + x.getValue());
+//			System.out.println("  Y = " + y.getValue());
+//			System.out.println("  Rotations = " + rotations.getValue());
+//			System.out.println("  Mirrored = " + mirrored.getValue());
+
 			byte[] encoded = Files.readAllBytes(file.toPath());
 			String contents = new String(encoded, StandardCharsets.UTF_8);
-			display.setProperty(element, Walls.PROPERTY_WALL_LAYOUT, contents);
+			WallLayout layout = WallLayout.parseXML(contents);
+			display.setProperty(element, Walls.PROPERTY_WALL_LAYOUT, layout);
 			this.uri = uri;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -141,12 +147,6 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
-
-			} else if (e.getPropertyName().equals(Walls.PROPERTY_ALPHA)) {
-				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
-
-			} else if (e.getPropertyName().equals(Walls.PROPERTY_COLOR)) {
-				colorPanel.setBackground((Color)e.getNewValue());
 
 			} else if (e.getPropertyName().equals(Walls.PROPERTY_X)) {
 				xField.setText(e.getNewValue().toString());
@@ -165,6 +165,9 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 
 			} else if (e.getPropertyName().equals(Walls.PROPERTY_MIRRORED)) {
 				mirrorCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(Walls.PROPERTY_SHOW_WALLS)) {
+				showWallsCheck.setSelected((Boolean) e.getNewValue());
 
 			} else {
 				System.out.println("Unknown property changed: " + e.getPropertyName());
@@ -194,15 +197,13 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
-		parseColorAttribute(Walls.PROPERTY_COLOR, e, Mode.ALL);
-		parseFloatAttribute(Walls.PROPERTY_ALPHA, e, Mode.LOCAL);
-
 		parseDoubleAttribute(Group.PROPERTY_X, e, Mode.ALL);
 		parseDoubleAttribute(Group.PROPERTY_Y, e, Mode.ALL);
-		parseIntegerAttribute(MapImage.PROPERTY_ROTATIONS, e, Mode.ALL);	// must be done before dimensions
-		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
-		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
-		parseBooleanAttribute(MapImage.PROPERTY_MIRRORED, e, Mode.ALL);
+		parseIntegerAttribute(Walls.PROPERTY_ROTATIONS, e, Mode.ALL);	// must be done before dimensions
+		parseDoubleAttribute(Walls.PROPERTY_WIDTH, e, Mode.ALL);
+		parseDoubleAttribute(Walls.PROPERTY_HEIGHT, e, Mode.ALL);
+		parseBooleanAttribute(Walls.PROPERTY_MIRRORED, e, Mode.ALL);
+		parseBooleanAttribute(Walls.PROPERTY_SHOW_WALLS, e, Mode.LOCAL);
 
 		if (e.hasAttribute(FILE_ATTRIBUTE_NAME)) {
 			try {

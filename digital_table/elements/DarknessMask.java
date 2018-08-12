@@ -55,13 +55,13 @@ public class DarknessMask extends MapElement {
 		}
 
 		ListModel<MapElement> m = canvas.getModel();
-		List<Line2D.Double> wallLayout = null;
-		// find the first wall layout
-		// TODO should support multiples
+		List<Line2D.Double> wallLayout = new ArrayList<>();
+
+		// find the wall layouts
 		for (int i = 0; i < m.getSize(); i++) {
 			Object e = m.getElementAt(i);
 			if (e instanceof Walls) {
-				wallLayout = ((Walls) e).walls;
+				wallLayout.addAll(((Walls) e).getWalls());
 			}
 		}
 

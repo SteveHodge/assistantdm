@@ -1,11 +1,10 @@
 package digital_table.elements;
 
-import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -27,13 +26,9 @@ import org.xml.sax.SAXException;
 
 import digital_table.server.MapCanvas.Order;
 
-// FIXME processing the walls happens for each display - it would be better to parse once and pass the resulting WallLayout to each display
-
 public class Walls extends MapElement {
 	private static final long serialVersionUID = 1L;
 
-	public final static String PROPERTY_COLOR = "color";	// Color
-	public final static String PROPERTY_ALPHA = "alpha";	// float
 	public final static String PROPERTY_WALL_LAYOUT = "wall_layout";	// WallLayout
 	public final static String PROPERTY_X = "x";	// double
 	public final static String PROPERTY_Y = "y";	// double
@@ -41,9 +36,8 @@ public class Walls extends MapElement {
 	public final static String PROPERTY_MIRRORED = "mirrored";	// boolean - image is flipped horizontally
 	public final static String PROPERTY_WIDTH = "width";	// double
 	public final static String PROPERTY_HEIGHT = "height";	// double
+	public final static String PROPERTY_SHOW_WALLS = "draw_walls";	// boolean - draw walls
 
-	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK, Color.class);
-	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 1.0f, Float.class);
 	Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d, Double.class);
 	Property<Double> height = new Property<Double>(PROPERTY_HEIGHT, 0d, Double.class);
 	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
@@ -68,12 +62,11 @@ public class Walls extends MapElement {
 		}
 	};
 	private Property<Boolean> mirrored = new Property<Boolean>(PROPERTY_MIRRORED, false, Boolean.class);
-
-	List<Point> cleared = new ArrayList<>();
+	private Property<Boolean> showWalls = new Property<Boolean>(PROPERTY_SHOW_WALLS, false, Boolean.class);
 
 	public static class WallLayout implements Serializable {
 		private static final long serialVersionUID = 1L;
-		List<Line2D.Double> walls = new ArrayList<Line2D.Double>();
+		List<Point2D.Double[]> walls = new ArrayList<>();
 		double width, height;
 
 		public static WallLayout parseXML(String xml) {
@@ -88,56 +81,35 @@ public class Walls extends MapElement {
 				DocumentBuilder builder = factory.newDocumentBuilder();
 				InputStream is = new ByteArrayInputStream(xml.getBytes());
 				Document document = builder.parse(is);
-				// expecting svg->g->path, but we'll just get all the paths
-				NodeList svgList = document.getElementsByTagName("svg");
-				boolean svg = svgList.getLength() > 0;
-				if (!svg) {
-					svgList = document.getElementsByTagName("walls");
-				}
+				NodeList svgList = document.getElementsByTagName("walls");
 
 				Element root = (Element) svgList.item(0);
-				if (svg) {
-					System.out.println("  Format = svg");
-					String viewBox[] = root.getAttribute("viewBox").split(" ");
-					wallLayout.width = Double.parseDouble(viewBox[2]);
-					wallLayout.height = Double.parseDouble(viewBox[3]);
-				} else {
-					System.out.println("  Format = walls xml");
-					wallLayout.width = Integer.parseInt(root.getAttribute("width"));
-					wallLayout.height = Integer.parseInt(root.getAttribute("height"));
-				}
+				System.out.println("  Format = walls xml");
+				wallLayout.width = Integer.parseInt(root.getAttribute("width"));
+				wallLayout.height = Integer.parseInt(root.getAttribute("height"));
 
 //				double millis = (System.nanoTime() - startTime) / 1000000d;
 //				System.out.printf("Loading DOM took %.3fms\n", millis);
 //				startTime = System.nanoTime();
 
-				NodeList paths;
-				if (svg)
-					paths = document.getElementsByTagName("path");
-				else
-					paths = document.getElementsByTagName("wall");
-				for (int i = 0; i < paths.getLength(); i++) {
-					Element p = (Element) paths.item(i);
-					String d = p.getAttribute("d");
-					String[] parts = d.split(" ");
+				NodeList walls = document.getElementsByTagName("wall");
+				for (int i = 0; i < walls.getLength(); i++) {
+					Element wall = (Element) walls.item(i);
+					String wallPoints = wall.getAttribute("points");
 					double x1 = 0, y1 = 0;
 //					System.out.println("Path has " + parts.length / 2 + " segments");
-					for (int j = 0; j < parts.length;) {
-						String op = parts[j++];
-						String coords = parts[j++];
-						if (coords.indexOf(',') == -1) {
-							System.err.println("Error parsing walls: no comma in '" + coords + "' path #" + i + ", part #" + (j - 1) + ", op = " + op);
+					List<Point2D.Double> points = new ArrayList<>();
+					for (String point : wallPoints.split(" ")) {
+						if (point.indexOf(',') == -1) {
+							System.err.println("Error parsing walls: no comma in '" + point + "' path #" + i + ", part #" + points.size());
 						}
-						double x = Double.parseDouble(coords.substring(0, coords.indexOf(',')));
-						double y = Double.parseDouble(coords.substring(coords.indexOf(',') + 1));
-						if (op.equals("L")) {
-							wallLayout.walls.add(new Line2D.Double(x1, y1, x, y));
-						} else if (!op.equals("M")) {
-							System.err.println("Unknown path operator: " + op);
-						}
-						x1 = x;
-						y1 = y;
+						double x = Double.parseDouble(point.substring(0, point.indexOf(',')));
+						double y = Double.parseDouble(point.substring(point.indexOf(',') + 1));
+						points.add(new Point2D.Double(x + x1, y + y1));
+						x1 += x;
+						y1 += y;
 					}
+					wallLayout.walls.add(points.toArray(new Point2D.Double[0]));
 				}
 				double millis = (System.nanoTime() - startTime) / 1000000d;
 				System.out.printf("Wall segment generation took %.3fms\n", millis);
@@ -151,20 +123,26 @@ public class Walls extends MapElement {
 		}
 	}
 
-	transient WallLayout wallLayout = null;
-	transient List<Line2D.Double> walls = null;
+	private transient WallLayout wallLayout = null;
+	private transient List<Line2D.Double> walls = null;
 
-	// TODO should be able to do this with an affine transformation
+	public List<Line2D.Double> getWalls() {
+		if (visible.getValue() == Visibility.VISIBLE)
+			return walls;
+		else
+			return new ArrayList<Line2D.Double>();
+	}
+
 	private List<Line2D.Double> getTransformed() {
 		if (wallLayout == null) return null;
 		List<Line2D.Double> transformed = new ArrayList<>();
 		AffineTransform t = getTransform(wallLayout.width, wallLayout.height);
-		for (Line2D.Double line : wallLayout.walls) {
-			Point2D.Double a = new Point2D.Double(line.x1, line.y1);
-			t.transform(a, a);
-			Point2D.Double b = new Point2D.Double(line.x2, line.y2);
-			t.transform(b, b);
-			transformed.add(new Line2D.Double(a, b));
+		for (Point2D.Double[] wall : wallLayout.walls) {
+			Point2D.Double[] newpts = new Point2D.Double[wall.length];
+			t.transform(wall, 0, newpts, 0, wall.length);
+			for (int i = 1; i < wall.length; i++) {
+				transformed.add(new Line2D.Double(newpts[i - 1], newpts[i]));
+			}
 		}
 		return transformed;
 	}
@@ -199,22 +177,6 @@ public class Walls extends MapElement {
 		return transform;
 	}
 
-	void setWallLayout(String xml) {
-		if (width.getValue() == 0 || height.getValue() == 0) {
-			System.out.println("Wall layout has no width or height");
-		}
-		System.out.println("Reading wall layout");
-		System.out.println("  Width = " + width.getValue());
-		System.out.println("  Height = " + height.getValue());
-		System.out.println("  X = " + x.getValue());
-		System.out.println("  Y = " + y.getValue());
-		System.out.println("  Rotations = " + rotations.getValue());
-		System.out.println("  Mirrored = " + mirrored.getValue());
-		wallLayout = WallLayout.parseXML(xml);
-		walls = getTransformed();
-		canvas.repaint();
-	}
-
 	@Override
 	public Order getDefaultOrder() {
 		return Order.ABOVEGRID;
@@ -222,12 +184,11 @@ public class Walls extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
-		if (canvas == null || getVisibility() != Visibility.VISIBLE) return;
-		if (walls == null) return;
+		if (canvas == null || walls == null || !showWalls.getValue()) return;
 
-		g.setColor(color.getValue());
-		Composite c = g.getComposite();
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha.getValue()));
+		Stroke s = g.getStroke();
+		g.setStroke(new BasicStroke(3.0f));
+		g.setColor(selected ? Color.RED : Color.BLUE);
 
 //			long startTime = System.nanoTime();
 		for (Line2D.Double l : walls) {
@@ -239,17 +200,7 @@ public class Walls extends MapElement {
 //			//logger.info("Painting complete for " + this + " in " + micros + "ms");
 //			System.out.printf("Wall painting took %.3fms\n", millis);
 
-
-		// highlight border for selected element
-		if (selected) {
-			Point offset = canvas.convertCanvasCoordsToDisplay(new Point2D.Double(x.getValue(), y.getValue()));
-			Dimension size = canvas.getDisplayDimension(width.getValue(), height.getValue());
-			g.setColor(Color.BLUE);
-			g.drawRect(offset.x, offset.y, size.width, size.height);
-			g.drawRect(offset.x + 1, offset.y + 1, size.width - 2, size.height - 2);
-		}
-
-		g.setComposite(c);
+		g.setStroke(s);
 	}
 
 	@Override
@@ -260,7 +211,10 @@ public class Walls extends MapElement {
 	@Override
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_WALL_LAYOUT)) {
-			setWallLayout((String) value);
+			wallLayout = (WallLayout) value;
+			walls = getTransformed();
+			canvas.repaint();
+
 		} else {
 			super.setProperty(property, value);
 			if (property.equals(PROPERTY_X)
@@ -270,7 +224,6 @@ public class Walls extends MapElement {
 					|| property.equals(PROPERTY_WIDTH)
 					|| property.equals(PROPERTY_HEIGHT)) {
 				walls = getTransformed();
-				canvas.repaint();
 			}
 		}
 	}
