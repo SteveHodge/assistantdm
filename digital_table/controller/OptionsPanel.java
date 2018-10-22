@@ -322,7 +322,8 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 	// sets attributes for all properties of the local MapElement
 	void setAllAttributes(Element e) {
 		for (String p : element.getProperties()) {
-			setAttribute(e, p, element.getProperty(p));
+			if (!MapElement.PROPERTY_DRAGGING.equals(p))
+				setAttribute(e, p, element.getProperty(p));
 		}
 	}
 

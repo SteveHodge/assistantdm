@@ -82,6 +82,7 @@ public class Tile {
 				img = ImageIO.read(hiresFile);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
+				System.err.println("Error reading '" + hiresFile.getAbsolutePath() + "'");
 				e.printStackTrace();
 			}
 		}

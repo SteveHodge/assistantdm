@@ -1,4 +1,11 @@
 ---=== IN PROGRESS ===---
+* DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
+* DTT: make walls a sub-element of map (as mask is)
+* 	supoprt linking wall layouts to map images - if Walls element has image as parent then concatenate location, rotation, and mirroring
+* DTT: split simple image (which supports animation) from map (which supports masks and walls)
+* DTT: split rendering into layers, have separate ui elements for selecting maps, tokens, and perhaps lightsources
+* 	layers for painting order
+* 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
 * Slots: xml output/parsing (done). apply effects (done). tooltips - descriptions (todo). fix up notifications - probably best to make each slot a property
 * Check how natural armor bonus is implemented. It's both a modifier type (that only applies to AC), and a statistic that can itself be enhanced
 * Implement Spell Resistance   
@@ -27,6 +34,7 @@
 * Allow grid references to be entered for element x/y coordinates in ui
 * BUG "reset" button caused index out of bounds error in RemoteImageDisplay
 * Drawing lines should optionally add walls and/or allow editing of walls elements
+* Skill focus feat needs targeting implemented
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
@@ -223,24 +231,21 @@ Game system things to implement:
 
 ---=== DIGITAL TABLE PRIORITIES ===---
 * Drawing element: freehand paint, eraser, map symbols
-* layers for painting order
-* Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
-DONE? * Allow setting of DarknessMask and Mask colours
+* Allow modifying Mask colours
 * standard visibility controls
-* supoprt linking wall layouts to map images - if Walls element has image as parent then concatenate location, rotation, and mirroring
-* lightsources attached to tokens should behave as if there was one on each corner of the token
-* building wall layout from xml should be threaded for performance
+* lightsources attached to tokens should behave as if there was one on each corner of the token (auto set property?)
 PART * tilemapper element - tilemapper editor added and maps supported as groups of images. a custom element would still have advantages
 * ENH: Reordering the elements resets the group expanded/collapsed state
-* free paint element
 * add caching of loaded files in MediaManager
 * performance improvements in animation code - bounding boxes for elements
 DONE? * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
 * BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
 * asynchronous loading of images
 * soft references for ImageMedia - at least for transformed images
+* ImageMedia could use a soft/weak/strong reference for transformed images
 * BUG: "Set Image" on token options panel doesn't always immediately repaint with the new image
 * Pre-guess the screen layout
+* Auto configure - set defaults according to OS screen layout
 * Threaded remote display communication
 * Recalibrate display - could be done using screen bounds element
 * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
@@ -248,14 +253,12 @@ DONE? * grouping - changing parent should modify children to maintain position -
 * BUG: LineTemplate: setting image after rotation draws the un-transformed image
 * REF: Factor clear cells code into support class
 * Hidden elements in table display should clear ImageMedia transforms
-* ImageMedia could use a soft/weak/strong reference for transformed images
 * Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
 * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
 * Add colour to the overlay tokens. either indicator of health or settable
 * Consider expanding "selected" support. Would need hierarchy support as with visibility
 * Refactor common utility methods into MapElement (e.g. template creation)
 * Alternate button dragging (e.g. resize, non-snapped to grid)
-* Auto configure - set defaults according to OS screen layout
 * Make line and spread templates editable?
 * Swarm Token (editable token with replicated painting)
 * dice roller element?

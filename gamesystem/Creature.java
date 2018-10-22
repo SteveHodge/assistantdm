@@ -423,7 +423,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		} else if (name.equals(STATISTIC_GRAPPLE)) {
 			return grapple;
 		} else {
-			System.err.println("Unknown statistic " + name + " in " + this);
+			System.err.println("Unknown statistic '" + name + "' in " + this + " (Creature.getStatistic)");
 			Thread.dumpStack();
 			return null;
 		}

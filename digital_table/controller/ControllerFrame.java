@@ -540,7 +540,7 @@ public class ControllerFrame extends JFrame {
 		URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
 		if (uri != null) {
 			// XXX maybe should have dedicated group for corpses
-			ImageOptionsPanel imagePanel = new ImageOptionsPanel(uri, options.element.parent, display, maskAction);
+			ImageOptionsPanel imagePanel = new ImageOptionsPanel(uri, options.element.parent, display, maskAction, poisAction);
 			MapImage image = imagePanel.getElement();
 			display.setProperty(image, Group.PROPERTY_X, (double) x, Mode.ALL);
 			display.setProperty(image, Group.PROPERTY_Y, (double) y, Mode.ALL);
@@ -1176,7 +1176,7 @@ public class ControllerFrame extends JFrame {
 		protected ImageOptionsPanel createOptionsPanel(MapElement parent) {
 			URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
 			if (uri != null) {
-				return new ImageOptionsPanel(uri, parent, display, maskAction);
+				return new ImageOptionsPanel(uri, parent, display, maskAction, poisAction);
 			}
 			return null;
 		}
@@ -1186,6 +1186,13 @@ public class ControllerFrame extends JFrame {
 		@Override
 		protected MaskOptionsPanel createOptionsPanel(MapElement parent) {
 			return new MaskOptionsPanel(parent, display);
+		}
+	};
+
+	private AddElementAction<POIOptionsPanel> poisAction = new AddElementAction<POIOptionsPanel>("Points of Interest") {
+		@Override
+		protected POIOptionsPanel createOptionsPanel(MapElement parent) {
+			return new POIOptionsPanel(parent, display);
 		}
 	};
 
@@ -1306,16 +1313,20 @@ public class ControllerFrame extends JFrame {
 		for (int i = 0; i < tree.getChildCount(treeParent); i++) {
 			Object mapElement = tree.getChild(treeParent, i);
 			OptionsPanel<?> p = optionPanels.get(mapElement);
-			Element e = p.getElement(doc);
-			if (e != null) {
-				docParent.appendChild(e);
-				addChildren(doc, e, mapElement);
+			if (p != null) {
+				Element e = p.getElement(doc);
+				if (e != null) {
+					docParent.appendChild(e);
+					addChildren(doc, e, mapElement);
+				}
 			}
 		}
 	}
 
+	public final static String ROOT_TAG = "Elements";
+
 	public Node getElement(Document doc) {
-		Element root = doc.createElement("Elements");
+		Element root = doc.createElement(ROOT_TAG);
 		TreeModel tree = miniMapCanvas.getTreeModel();
 		addChildren(doc, root, tree.getRoot());
 		return root;
@@ -1326,7 +1337,9 @@ public class ControllerFrame extends JFrame {
 		OptionsPanel<?> p = null;
 		MapElement parent = parentPanel == null ? null : parentPanel.getElement();
 
-		if (tag.equals(GridOptionsPanel.XML_TAG)) {
+		if (tag.equals(ROOT_TAG)) {
+			// no element for the root group
+		} else if (tag.equals(GridOptionsPanel.XML_TAG)) {
 			p = gridPanel;
 		} else if (tag.equals(GridCoordinatesOptionsPanel.XML_TAG)) {
 			p = gridCoordsPanel;
@@ -1363,12 +1376,16 @@ public class ControllerFrame extends JFrame {
 			p = browserAction.addElement(parent);
 		} else if (tag.equals(MaskOptionsPanel.XML_TAG)) {
 			p = maskAction.addElement(parent);
+		} else if (tag.equals(POIOptionsPanel.XML_TAG)) {
+			p = poisAction.addElement(parent);
+		} else if (tag.equals(POIOptionsPanel.POI_TAG)) {
+			// handled by the POIGroup above
 		} else if (tag.equals(ImageOptionsPanel.XML_TAG)) {
 			if (e.hasAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME)) {
 				URI uri;
 				try {
 					uri = new URI(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
-					p = new ImageOptionsPanel(uri, parent, display, maskAction);
+					p = new ImageOptionsPanel(uri, parent, display, maskAction, poisAction);
 					MapElement element = p.getElement();
 					element.addPropertyChangeListener(labelListener);
 					optionPanels.put(element, p);

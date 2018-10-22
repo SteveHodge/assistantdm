@@ -36,7 +36,6 @@ import digital_table.server.MediaManager;
 class WallsOptionsPanel extends OptionsPanel<Walls> {
 	protected URI uri = null;
 
-	private JPanel colorPanel;
 	private JCheckBox visibleCheck;
 	private JTextField xField;
 	private JTextField yField;
