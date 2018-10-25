@@ -19,6 +19,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -31,6 +33,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -52,6 +55,7 @@ import util.XMLUtils;
 /* TODO:
  * Open function should handle .map files
  * Functionality to trim masks
+ * Add POI groups
  */
 @SuppressWarnings("serial")
 public class MapTool extends JFrame {
@@ -72,6 +76,7 @@ public class MapTool extends JFrame {
 	JFileChooser chooser = new JFileChooser();
 	JToggleButton grid1;
 	JToggleButton grid2;
+	JToggleButton locateButton;
 	Point grid1loc, grid2loc;
 	JFormattedTextField cols;
 	JFormattedTextField rows;
@@ -80,6 +85,9 @@ public class MapTool extends JFrame {
 	URI imageURI;
 	JTable maskTable;
 	MasksModel masksModel;
+	POIsModel poisModel;
+	JTable poisTable;
+	JScrollPane imageScroller;
 
 	public static void main(String[] args) {
 		try {
@@ -99,7 +107,7 @@ public class MapTool extends JFrame {
 		super("MapTool");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-		lastDir = new File("D:/Programming/git/assistantdm/media/Maps/Chapter 5/The Halls of Wrath/Background.png");
+		lastDir = new File("D:/DnDBooks/_Campaigns/Ptolus Madness Rising/Maps/Ptolus/Small.png");
 		imageURI = lastDir.toURI();
 		image = openImage(lastDir);
 
@@ -113,19 +121,19 @@ public class MapTool extends JFrame {
 		canvas.add(imagePane, JLayeredPane.DEFAULT_LAYER);
 		canvas.add(grid, new Integer(100));
 
-		JScrollPane scroller = new JScrollPane(canvas);
-		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-		scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		imageScroller = new JScrollPane(canvas);
+		imageScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+		imageScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
 		setLayout(new BorderLayout());
 
-		add(scroller, BorderLayout.CENTER);
+		add(imageScroller, BorderLayout.CENTER);
 		add(makeControls(), BorderLayout.LINE_END);
 		setZoom(1.0d);
 
 		setSize(1200, 800);
 		setExtendedState(MAXIMIZED_BOTH);
-
+		updateGrid();
 	}
 
 	MouseListener mouseListener = new MouseListener() {
@@ -143,18 +151,31 @@ public class MapTool extends JFrame {
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			if (!grid1.isSelected() && !grid2.isSelected()) return;
+			if (image == null) return;
+			if (!grid1.isSelected() && !grid2.isSelected() && !locateButton.isSelected()) return;
 			Point p = new Point(e.getX(), e.getY());
-			if (grid1.isSelected()) {
-				grid1loc = p;
-				grid.setRef1(p.x, p.y);
-				grid2.setSelected(true);
-			} else if (grid2.isSelected()) {
-				grid2loc = p;
-				grid.setRef2(p.x, p.y);
-				grid1.setSelected(true);
+			if (locateButton.isSelected()) {
+				int selectedIdx = poisTable.getSelectedRow();
+				POI selected = poisModel.getPOI(selectedIdx);
+				if (selected == null) return;
+				selected.relX = p.getX() / imagePane.displayWidth;
+				selected.relY = p.getY() / imagePane.displayHeight;
+				grid.setPOI(selected);
+				if (++selectedIdx < poisModel.getRowCount())
+					poisTable.setRowSelectionInterval(selectedIdx, selectedIdx);	// advance to next poi
+
+			} else {
+				if (grid1.isSelected()) {
+					grid1loc = p;
+					grid.setRef1(p);
+					grid2.setSelected(true);
+				} else if (grid2.isSelected()) {
+					grid2loc = p;
+					grid.setRef2(p);
+					grid1.setSelected(true);
+				}
+				updateGrid();
 			}
-			updateGrid();
 		}
 
 		@Override
@@ -225,8 +246,10 @@ public class MapTool extends JFrame {
 		image = openImage(f);
 		imageURI = f.toURI();
 		imagePane.setImage(image);
+		if (image == null) return;
 		setZoom(1.0d);
 		sizeLabel.setText(String.format("Original size: %dx%d\n", image.getWidth(), image.getHeight()));
+		updateGrid();
 	}
 
 	private void saveFile() {
@@ -280,6 +303,22 @@ public class MapTool extends JFrame {
 					uri = mediaURI.relativize(uri);
 					m.setAttribute("uri", uri.toString());
 					m.setAttribute("visible", mask.visible ? "VISIBLE" : "HIDDEN");
+					el.appendChild(m);
+				}
+				root.appendChild(el);
+			}
+
+			if (poisModel.getRowCount() > 0) {
+				Element el = doc.createElement("POIGroup");
+				el.setAttribute("visible", "FADED");
+				for (int i = 0; i < poisModel.getRowCount(); i++) {
+					POI poi = poisModel.getPOI(i);
+					Element m = doc.createElement("POI");
+					m.setAttribute("text", poi.text);
+					m.setAttribute("id", poi.id);
+					m.setAttribute("rel-x", "" + poi.relX);
+					m.setAttribute("rel-y", "" + poi.relY);
+					m.setAttribute("visible", "VISIBLE");
 					el.appendChild(m);
 				}
 				root.appendChild(el);
@@ -375,10 +414,8 @@ public class MapTool extends JFrame {
 		zoomOut.addActionListener(e -> setZoom(scale / Math.sqrt(2)));
 		JButton zoomFit = new JButton("Fit");
 		zoomFit.addActionListener(e -> {
-			Insets insets = imagePane.getInsets();
-			int availWidth = imagePane.getWidth() - insets.right - insets.left;
-			int availHeight = imagePane.getHeight() - insets.right - insets.left;
-			imagePane.scaleToFit(availWidth, availHeight);
+			Dimension avail = imageScroller.getViewport().getExtentSize();
+			imagePane.scaleToFit(avail.width, avail.height);
 			scale = imagePane.getScale();
 			zoomLabel.setText(String.format("Zoom: %.1f%%", 100 * scale));
 		});
@@ -477,17 +514,24 @@ public class MapTool extends JFrame {
 		c.gridy++;
 		pane.add(memLabel, c);
 		c.gridy++;
+		c.weightx = 1.0d;
 		addSeparator(pane, c);
 
 		c.gridy++;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
 		pane.add(getMaskPanel(), c);
 
 		c.gridy++;
-		c.gridwidth = 2;
-		c.weighty = 1.0d;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weighty = 0d;
+		addSeparator(pane, c);
+
+		c.gridy++;
 		c.fill = GridBagConstraints.BOTH;
-		JPanel p = new JPanel();
-		pane.add(p, c);
+		c.weighty = 1.0d;
+		pane.add(getPOIPanel(), c);
+
 		return pane;
 	}
 
@@ -546,6 +590,7 @@ public class MapTool extends JFrame {
 		c.gridy = 0;
 		c.gridwidth = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 0.25d;
 
 		p.add(addMaskButton, c);
 		c.gridx++;
@@ -565,7 +610,109 @@ public class MapTool extends JFrame {
 		c.weighty = 1.0d;
 		c.weightx = 1.0d;
 		p.add(scrollPane, c);
+		return p;
+	}
 
+	private JPanel getPOIPanel() {
+		JPanel p = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+
+		JButton addButton = new JButton("Add POI");
+		addButton.addActionListener(e -> {
+			POI poi = new POI();
+			poi.text = "";
+			poi.id = "id";
+			poisModel.add(poi);
+		});
+
+		JButton addManyButton = new JButton("Add Multiple");
+		addManyButton.addActionListener(e -> {
+			String startStr = JOptionPane.showInputDialog(p, "Enter first POI's ID:", "1");
+			// if startStr is an integer, use that. if startStr ends with an integer then remember the prefix. otherwise just use the startStr as is
+			int start = -1;
+			try {
+				start = Integer.parseInt(startStr);
+				startStr = "";
+			} catch (Exception x) {
+			}
+			if (start == -1) {
+				Pattern lastIntPattern = Pattern.compile("[^0-9]+([0-9]+)$");
+				Matcher matcher = lastIntPattern.matcher(startStr);
+				if (matcher.find()) {
+					start = Integer.parseInt(matcher.group(1));
+					startStr = startStr.substring(0, matcher.start(1));
+				}
+			}
+			if (start == -1) {
+				String countStr = JOptionPane.showInputDialog(p, "Enter number of POIs to create:", "1");
+				try {
+					int count = Integer.parseInt(countStr);
+					for (int i = 0; i < count; i++) {
+						POI poi = new POI();
+						poi.text = "";
+						poi.id = startStr;
+						poisModel.add(poi);
+					}
+				} catch (Exception x) {
+				}
+			} else {
+				String countStr = JOptionPane.showInputDialog(p, "Enter last ID number or number of POIs to create (with leading '+')", "+1");
+				int end = -1;
+				try {
+					if (countStr.startsWith("+")) {
+						end = start + Integer.parseInt(countStr.substring(1));
+					} else {
+						end = Integer.parseInt(countStr) + 1;
+					}
+					for (int i = start; i < end; i++) {
+						POI poi = new POI();
+						poi.text = "";
+						poi.id = startStr + i;
+						poisModel.add(poi);
+					}
+				} catch (Exception x) {
+				}
+			}
+		});
+
+		JButton delButton = new JButton("Delete");
+		delButton.addActionListener(e -> {
+			poisModel.delete(poisTable.getSelectedRow());
+		});
+
+		locateButton = new JToggleButton("Locate");
+		gridGroup.add(locateButton);
+
+		poisModel = new POIsModel();
+		poisTable = new JTable(poisModel);
+		poisTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+		poisTable.getColumnModel().getColumn(1).setPreferredWidth(160);
+		poisTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JScrollPane poiScrollPane = new JScrollPane(poisTable);
+		poiScrollPane.setPreferredSize(new Dimension(200, 200));
+		poisTable.setFillsViewportHeight(true);
+
+		c.gridx = 0;
+		c.gridy = 0;
+		c.gridwidth = 1;
+		c.weightx = 0.2d;
+		c.fill = GridBagConstraints.HORIZONTAL;
+
+		p.add(addButton, c);
+		c.gridx++;
+		p.add(addManyButton, c);
+		c.gridx++;
+		p.add(delButton, c);
+		c.gridx++;
+		p.add(locateButton, c);
+
+		c.gridx = 0;
+		c.gridy++;
+		c.gridwidth = 4;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1.0d;
+		c.weightx = 1.0d;
+		p.add(poiScrollPane, c);
 		return p;
 	}
 
@@ -739,4 +886,92 @@ public class MapTool extends JFrame {
 			return null;
 		}
 	}
+
+	static class POI {
+		String id;
+		String text;
+		double relX;
+		double relY;
+	}
+
+	class POIsModel extends AbstractTableModel {
+		private List<POI> pois = new ArrayList<>();
+
+		void add(POI poi) {
+			pois.add(poi);
+			fireTableRowsInserted(pois.size() - 1, pois.size() - 1);
+		}
+
+		POI getPOI(int row) {
+			if (row < 0 || row >= pois.size()) return null;
+			return pois.get(row);
+		}
+
+		void delete(int row) {
+			if (row >= 0) {
+				pois.remove(row);
+				fireTableRowsDeleted(row, row);
+			}
+		}
+
+		void promote(int row) {
+			if (row > 0) {
+				pois.add(row - 1, pois.remove(row));
+				fireTableRowsUpdated(row - 1, row);
+			}
+		}
+
+		void demote(int row) {
+			if (row < pois.size() - 1) {
+				pois.add(row + 1, pois.remove(row));
+				fireTableRowsUpdated(row, row + 1);
+			}
+		}
+
+		@Override
+		public void setValueAt(Object value, int row, int col) {
+			POI poi = pois.get(row);
+			if (col == 0) {
+				poi.id = (String) value;
+				if (poi.relX != 0 || poi.relY != 0) grid.repaint();
+			}
+			if (col == 1) {
+				poi.text = (String) value;
+			}
+		}
+
+		@Override
+		public Class<?> getColumnClass(int col) {
+			return String.class;
+		}
+
+		@Override
+		public String getColumnName(int col) {
+			if (col == 0) return "ID";
+			if (col == 1) return "Text";
+			return super.getColumnName(col);
+		}
+
+		@Override
+		public boolean isCellEditable(int row, int col) {
+			return true;
+		}
+
+		@Override
+		public int getColumnCount() {
+			return 2;
+		}
+
+		@Override
+		public int getRowCount() {
+			return pois.size();
+		}
+
+		@Override
+		public Object getValueAt(int row, int col) {
+			if (col == 0) return pois.get(row).id;
+			if (col == 1) return pois.get(row).text;
+			return null;
+		}
+	};
 }

@@ -80,8 +80,8 @@ public class ScalableImagePanel extends JPanel {
 	}
 
 	public void scaleToFit(int availWidth, int availHeight) {
-		//System.out.println("scaleImage: width(avail,display) = "+availWidth+", "+displayWidth
-		//		+", height (avail,display) = "+availHeight+", "+displayHeight);
+		//System.out.println("scaleImage: width(avail,display) = " + availWidth + ", " + displayWidth
+		//		+ ", height (avail,display) = " + availHeight + ", " + displayHeight);
 		if (displayWidth != availWidth || displayHeight != availHeight) {
 			if ((availWidth == sourceWidth && availHeight >= sourceHeight)
 					|| (availWidth >= sourceWidth && availHeight == sourceHeight)
