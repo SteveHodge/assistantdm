@@ -193,7 +193,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.gridwidth = 2;
 		add(new JPanel(), c);
 
-		if (mapNode != null) parseMapNode(mapNode, maskFactory);
+		if (mapNode != null) parseMapNode(mapNode, maskFactory, poiFactory);
 	}
 
 	private Element getMapNode(URI uri) {
@@ -321,7 +321,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		}
 	};
 
-	private void parseMapNode(Element e, ElementFactory<MaskOptionsPanel> maskFactory) {
+	private void parseMapNode(Element e, ElementFactory<MaskOptionsPanel> maskFactory, ElementFactory<POIOptionsPanel> poiFactory) {
 		display.setProperty(element, MapImage.PROPERTY_ASPECT_LOCKED, false, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(MapImage.PROPERTY_HEIGHT, e, Mode.ALL);
@@ -346,6 +346,9 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 					mask = maskFactory.addElement(element);
 				}
 				mask.parseDOM(el, this);
+			} else if (el.getTagName().equals("POIGroup")) {
+				POIOptionsPanel poiGroup = poiFactory.addElement(element);
+				poiGroup.parseDOM(el, this);
 			}
 		}
 	}
