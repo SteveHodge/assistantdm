@@ -86,55 +86,41 @@ public class PointOfInterest extends MapElement {
 
 		Point2D pos = getTransform(map).transform(new Point2D.Double(relX.getValue(), relY.getValue()), null);
 		Point position = canvas.convertGridCoordsToDisplay(new Point2D.Double(pos.getX() * map.width.getValue(), pos.getY() * map.height.getValue()));
-		//Point position = canvas.convertGridCoordsToDisplay(new Point2D.Double(relX.getValue() * map.width.getValue(), relY.getValue() * map.height.getValue()));
 
+		Composite c = g.getComposite();
 		if (labelWidth > 0) {
-			Composite c = g.getComposite();
+			AffineTransform t = g.getTransform();
+			g.rotate(Math.toRadians(group.rotations.getValue() * 90), position.x + 1, position.y + 1);
+			g.translate(8, -9);
 
-			Point p = new Point((int) position.getX() + 7, (int) position.getY() - 10);
-
-			int w = labelWidth + 10;
-			int h = metrics.getHeight();
-
-			AffineTransform t = AffineTransform.getQuadrantRotateInstance(group.rotations.getValue());
-			Point size = new Point(w, h);
-			t.transform(size, size);	// transform to get new dimensions
-			int newWidth = Math.abs(size.x);
-			int newHeight = Math.abs(size.y);
-			t = g.getTransform();
-			g.rotate(Math.toRadians(group.rotations.getValue() * 90), p.x + newWidth / 2, p.y + newHeight / 2);
-			g.translate((newWidth - w) / 2, (newHeight - h) / 2);
-
-			// paint background
-			if (!group.solidBackground.getValue()) {
+			// paint text background
+			if (!group.solidBackground.getValue())
 				g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-			}
 			g.setColor(group.backgroundColor.getValue());
-			g.fillRect(p.x, p.y, w, h);
-			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, group.alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
+			g.fillRect(position.x, position.y, labelWidth + 10, metrics.getHeight());
 
 			// draw text
-			int y = p.y + metrics.getAscent();
+			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, group.alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 			g.setColor(group.color.getValue());
-			g.drawString(id.getValue(), p.x + 5, y);
+			g.drawString(id.getValue(), position.x + 5, position.y + metrics.getAscent());
 
 			g.setTransform(t);
-			g.setComposite(c);
-			g.setFont(f);
 		}
 
-		// paint background
-		Composite c = g.getComposite();
-		if (!group.solidBackground.getValue()) {
+		// paint dot background
+		if (!group.solidBackground.getValue())
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-		}
 		g.setColor(group.backgroundColor.getValue());
-		g.fillOval((int) position.getX() - 7, (int) position.getY() - 7, 15, 15);
+		g.fillOval(position.x - 7, position.y - 7, 15, 15);
+
+		// paint dot
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, group.alpha.getValue() * (getVisibility() == Visibility.FADED ? 0.5f : 1f)));
 		g.setColor(group.color.getValue());
-		g.fillOval((int) position.getX() - 5, (int) position.getY() - 5, 11, 11);
-		g.setComposite(c);
+		g.fillOval(position.x - 5, position.y - 5, 11, 11);
 
+		// restore previous settings
+		g.setComposite(c);
+		g.setFont(f);
 		g.translate(-o.getX(), -o.getY());
 	}
 
@@ -153,20 +139,6 @@ public class PointOfInterest extends MapElement {
 				relY.setValue(rel.getY());
 			} catch (NoninvertibleTransformException e) {
 			}
-//		} else if (property.equals(PROPERTY_REL_X)) {
-//			if (!(parent instanceof POIGroup)) return;
-//			POIGroup group = (POIGroup) parent;
-//			if (!(group.parent instanceof MapImage)) return;
-//			MapImage map = (MapImage) group.parent;
-//			double d = (Double) value;
-//			relX.setValue(d / (map.width.getValue() * 2));
-//		} else if (property.equals(PROPERTY_REL_Y)) {
-//			if (!(parent instanceof POIGroup)) return;
-//			POIGroup group = (POIGroup) parent;
-//			if (!(group.parent instanceof MapImage)) return;
-//			MapImage map = (MapImage) group.parent;
-//			double d = (Double) value;
-//			relY.setValue(d / (map.height.getValue() * 2));
 		} else {
 			super.setProperty(property, value);
 		}
