@@ -149,13 +149,8 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 		Boolean visible;
 		String id;
 		String text;
-		double x;
-		double y;
-
-		public void setLocation(Point2D gridloc) {
-			x = gridloc.getX();
-			y = gridloc.getY();
-		}
+		double relX;
+		double relY;
 	}
 
 	private class POIsModel extends AbstractTableModel {
@@ -166,8 +161,8 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 			poi.element.setProperty(PointOfInterest.PROPERTY_TEXT, poi.text);
 			poi.element.setProperty(PointOfInterest.PROPERTY_ID, poi.id);
 			poi.element.setProperty(MapElement.PROPERTY_VISIBLE, poi.visible ? Visibility.VISIBLE : Visibility.HIDDEN);
-			poi.element.setProperty(PointOfInterest.PROPERTY_X, poi.x);
-			poi.element.setProperty(PointOfInterest.PROPERTY_Y, poi.y);
+			poi.element.setProperty(PointOfInterest.PROPERTY_REL_X, poi.relX);
+			poi.element.setProperty(PointOfInterest.PROPERTY_REL_Y, poi.relY);
 			display.addElement(poi.element, element);
 			pois.add(poi);
 			fireTableRowsInserted(pois.size() - 1, pois.size() - 1);
@@ -274,10 +269,7 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 			if (e.getClickCount() != 1) return;
 			POI poi = poisModel.getPOI(poisTable.getSelectedRow());
 			if (poi != null) {
-				System.out.println("Clicked at " + gridloc);
-				poi.setLocation(gridloc);
-				display.setProperty(poi.element, PointOfInterest.PROPERTY_X, poi.x);
-				display.setProperty(poi.element, PointOfInterest.PROPERTY_Y, poi.y);
+				display.setProperty(poi.element, PointOfInterest.PROPERTY_LOCATION, gridloc);
 			}
 		}
 
@@ -345,7 +337,8 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 			POI poi = poisModel.pois.get(i);
 			Element p = doc.createElement(POI_TAG);
 			for (String prop : poi.element.getProperties()) {
-				setAttribute(p, prop, poi.element.getProperty(prop));
+				if (!MapElement.PROPERTY_DRAGGING.equals(prop))
+					setAttribute(p, prop, poi.element.getProperty(prop));
 			}
 //			p.setAttribute(MapElement.PROPERTY_VISIBLE, poi.visible ? Visibility.VISIBLE.toString() : Visibility.HIDDEN.toString());
 			e.appendChild(p);
@@ -375,11 +368,11 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 				poi.id = m.getAttribute(PointOfInterest.PROPERTY_ID);
 				poi.text = m.getAttribute(PointOfInterest.PROPERTY_TEXT);
 				poi.visible = !m.getAttribute(MapElement.PROPERTY_VISIBLE).equals(Visibility.HIDDEN.toString());
-				String attr = m.getAttribute(PointOfInterest.PROPERTY_X);
+				String attr = m.getAttribute(PointOfInterest.PROPERTY_REL_X);
 				if (attr.length() > 0) {
 					try {
-						poi.x = Double.parseDouble(attr);
-						poi.y = Double.parseDouble(m.getAttribute(PointOfInterest.PROPERTY_Y));
+						poi.relX = Double.parseDouble(attr);
+						poi.relY = Double.parseDouble(m.getAttribute(PointOfInterest.PROPERTY_REL_Y));
 					} catch (NumberFormatException ex) {
 						ex.printStackTrace();
 					}
