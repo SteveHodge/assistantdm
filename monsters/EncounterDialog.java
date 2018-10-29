@@ -142,15 +142,13 @@ public class EncounterDialog extends JFrame {
 		detailPanels.put(Field.ABILITIES, new AbilitiesPanel());
 		detailPanels.put(Field.HITDICE, new HitPointsPanel());
 		for (Field f : Field.getStandardOrder()) {
-			// TODO implement parsing these remaining fields:
-			if (f == Field.SIZE_TYPE
-					|| f == Field.AC
-					|| f == Field.SPACE_REACH
-					|| f == Field.SPECIAL_QUALITIES
-					|| f == Field.FEATS) continue;
-
+			// TODO implement parsing these remaining fields which are currently set to readonly
 			if (!detailPanels.containsKey(f)) {
-				detailPanels.put(f, new DefaultDetailPanel(f));
+				detailPanels.put(f, new DefaultDetailPanel(f, (f == Field.SIZE_TYPE
+						|| f == Field.AC
+						|| f == Field.SPACE_REACH
+						|| f == Field.SPECIAL_QUALITIES
+						|| f == Field.FEATS)));
 			}
 		}
 
@@ -236,10 +234,10 @@ public class EncounterDialog extends JFrame {
 		saveButton.addActionListener(saveButtonListener);
 
 		JButton addCombatButton = new JButton("Add To Combat");
-		addCombatButton.addActionListener(addToCombatButtonListener);
+		addCombatButton.addActionListener(e -> addToCombat());
 
 		JButton addTokenButton = new JButton("Add Tokens");
-		addTokenButton.addActionListener(addTokensButtonListener);
+		addTokenButton.addActionListener(e -> addTokens());
 
 		JPanel buttons = new JPanel();
 		buttons.add(loadButton);
@@ -262,6 +260,7 @@ public class EncounterDialog extends JFrame {
 			setVisible(true);
 		}
 	}
+
 
 	private final ActionListener addButtonListener = new ActionListener() {
 		@Override
@@ -303,38 +302,32 @@ public class EncounterDialog extends JFrame {
 		}
 	};
 
-	private final ActionListener addTokensButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent arg0) {
-			for (int i = 0; i < monsterListModel.getSize(); i++) {
-				Monster m = monsterListModel.getElementAt(i);
-				Integer imgIndex = imageIndexes.get(m);
-				File f = null;
-				List<URL> urls = imageURLs.get(m.statisticsBlock);
-				if (urls != null && imgIndex != null && imgIndex.intValue() >= 0) {
-					URL url = urls.get(imgIndex.intValue());
-					// TODO fix this. probably addMonster should take a URL for the image
-					try {
-						f = new File(url.toURI());
-					} catch (URISyntaxException e) {
-					}
+	private void addTokens() {
+		for (int i = 0; i < monsterListModel.getSize(); i++) {
+			Monster m = monsterListModel.getElementAt(i);
+			Integer imgIndex = imageIndexes.get(m);
+			File f = null;
+			List<URL> urls = imageURLs.get(m.statisticsBlock);
+			if (urls != null && imgIndex != null && imgIndex.intValue() >= 0) {
+				URL url = urls.get(imgIndex.intValue());
+				// TODO fix this. probably addMonster should take a URL for the image
+				try {
+					f = new File(url.toURI());
+				} catch (URISyntaxException e) {
 				}
-				ControllerFrame.addMonster(m, f);
 			}
+			ControllerFrame.addMonster(m, f);
 		}
-	};
+	}
 
-	private final ActionListener addToCombatButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent arg0) {
-			EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
+	private void addToCombat() {
+		EncounterModule enc = ModuleRegistry.getModule(EncounterModule.class);
 
-			for (int i = 0; i < monsterListModel.getSize(); i++) {
-				Creature m = monsterListModel.getElementAt(i);
-				enc.getInitiativeListModel().addEntry(new MonsterCombatEntry(m));
-			}
+		for (int i = 0; i < monsterListModel.getSize(); i++) {
+			Creature m = monsterListModel.getElementAt(i);
+			enc.getInitiativeListModel().addEntry(new MonsterCombatEntry(m));
 		}
-	};
+	}
 
 	public void load(Component dialogParent) {
 		JFileChooser fc = new JFileChooser();
