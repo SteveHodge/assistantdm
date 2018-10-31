@@ -1,27 +1,11 @@
 package monsters;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.table.DefaultTableModel;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.SchemaFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import util.XMLUtils;
 
 @SuppressWarnings("serial")
 public class MonstersTableModel extends DefaultTableModel {
-	private List<MonsterEntry> monsters;
-
 	public enum Column {
 		NAME("Name"),
 		SIZE("Size"),
@@ -43,11 +27,26 @@ public class MonstersTableModel extends DefaultTableModel {
 	}
 
 	MonstersTableModel() {
-		monsters = new ArrayList<>();
+		MonsterLibrary.instance.addListener(new ListDataListener() {
+			@Override
+			public void contentsChanged(ListDataEvent e) {
+				fireTableDataChanged();
+			}
+
+			@Override
+			public void intervalAdded(ListDataEvent e) {
+				fireTableRowsInserted(e.getIndex0(), e.getIndex1());
+			}
+
+			@Override
+			public void intervalRemoved(ListDataEvent e) {
+				fireTableRowsDeleted(e.getIndex0(), e.getIndex1());
+			}
+		});
 	}
 
 	MonsterEntry getMonsterEntry(int index) {
-		return monsters.get(index);
+		return MonsterLibrary.instance.monsters.get(index);
 	}
 
 	@Override
@@ -65,15 +64,14 @@ public class MonstersTableModel extends DefaultTableModel {
 
 	@Override
 	public int getRowCount() {
-		if (monsters != null) return monsters.size();
-		return 0;
+		return MonsterLibrary.instance.monsters.size();
 	}
 
 	@Override
 	public Object getValueAt(int row, int column) {
 		if (column >= 0 && column < getColumnCount()) {
 			Column col = Column.values()[column];
-			MonsterEntry e = monsters.get(row);
+			MonsterEntry e = MonsterLibrary.instance.monsters.get(row);
 			switch (col) {
 			case NAME:
 				return e.name;
@@ -96,46 +94,5 @@ public class MonstersTableModel extends DefaultTableModel {
 	@Override
 	public boolean isCellEditable(int row, int column) {
 		return false;
-	}
-
-	void parseXML(File xmlFile) {
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			InputStream is = getClass().getClassLoader().getResourceAsStream("monsters.xsd");
-			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
-			Document dom = factory.newDocumentBuilder().parse(xmlFile);
-			//printNode(dom,"");
-
-			Element node = XMLUtils.findNode(dom,"MonsterList");
-			if (node != null) {
-				String src = node.getAttribute("source");
-				NodeList children = node.getChildNodes();
-				for (int i=0; i<children.getLength(); i++) {
-					if (children.item(i).getNodeName().equals("Monster")) {
-						MonsterEntry me = parseDOM((Element)children.item(i));
-						if (me != null) {
-							me.source = src;
-							monsters.add(me);
-						}
-					}
-				}
-			}
-
-			Collections.sort(monsters, (a, b) -> a.name.compareTo(b.name));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static MonsterEntry parseDOM(Element node) {
-		if (!node.getNodeName().equals("Monster")) return null;
-		MonsterEntry me = new MonsterEntry();
-		me.name = node.getAttribute("name");
-		me.url = node.getAttribute("url");
-		me.size = node.getAttribute("size");
-		me.type = node.getAttribute("type");
-		me.environment = node.getAttribute("environment");
-		me.cr = node.getAttribute("cr");
-		return me;
 	}
 }

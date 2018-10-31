@@ -457,7 +457,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	public Object getPropertyValue(String prop) {
 		Property<?> property = getProperty(prop);
-		if (property == null && !prop.startsWith("extra.")) {
+		if (property == null && !prop.startsWith("extra.") && !prop.startsWith("field.")) {
 			property = getProperty("extra." + prop);
 		}
 		if (property == null) {
@@ -468,8 +468,9 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		return property.getValue();
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setProperty(String prop, String value) {
-		if (!prop.startsWith("extra.")) prop = "extra." + prop;
+		if (!prop.startsWith("extra.") && !prop.startsWith("field.")) prop = "extra." + prop;
 		Property<?> property = getProperty(prop);
 		if (property == null) {
 //			System.out.println("Adding adhoc property " + prop + " with value '" + value + "'");
@@ -484,7 +485,8 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 	public boolean hasProperty(String name) {
-		return properties.containsKey(name);
+		if (properties.containsKey(name)) return true;
+		return properties.containsKey("extra." + name);
 	}
 
 	@Override

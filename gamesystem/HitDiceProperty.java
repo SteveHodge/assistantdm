@@ -197,7 +197,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		}
 
 		// unholy toughness: add charisma bonus per hd
-		String quals = (String) m.getPropertyValue(Field.SPECIAL_QUALITIES.name());
+		String quals = (String) m.getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
 		if (quals != null && quals.toLowerCase().contains("unholy toughness")) {
 			Modifier chr = m.getAbilityModifier(AbilityScore.Type.CHARISMA);
 			if (chr != null) {
@@ -207,7 +207,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		}
 
 		// desecrating aura (+2 hp per hd)
-		quals = (String) m.getPropertyValue(Field.SPECIAL_ATTACKS.name());
+		quals = (String) m.getPropertyValue("field." + Field.SPECIAL_ATTACKS.name());
 		if (quals != null && quals.toLowerCase().contains("desecrating aura")) {
 			bonusHPs += getHitDiceCount() * 2;
 		}

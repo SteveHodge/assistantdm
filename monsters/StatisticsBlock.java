@@ -81,6 +81,10 @@ public class StatisticsBlock {
 		@Override
 		public String toString() {return label;}
 
+		public String getTagName() {
+			return tag;
+		}
+
 		public static Field fromLabel(String p) {
 			// TODO more efficient implementation
 			for (Field prop : Field.values()) {
@@ -95,6 +99,14 @@ public class StatisticsBlock {
 				if (prop.tag != null && prop.tag.equals(t)) return prop;
 			}
 			return null;
+		}
+
+		public static Field fromString(String f) {
+			try {
+				return Field.valueOf(f);
+			} catch (IllegalArgumentException x) {
+				return null;
+			}
 		}
 
 		public static Field[] getStandardOrder() {
@@ -746,12 +758,12 @@ public class StatisticsBlock {
 
 		@Override
 		public String getFeats() {
-			return (String) creature.getPropertyValue(Field.FEATS.name());
+			return (String) creature.getPropertyValue("field." + Field.FEATS.name());
 		}
 
 		@Override
 		public String getSpecialQualities() {
-			return (String) creature.getPropertyValue(Field.SPECIAL_QUALITIES.name());
+			return (String) creature.getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
 		}
 
 		@Override
@@ -1286,7 +1298,57 @@ public class StatisticsBlock {
 		}
 	}
 
-	private static List<StatisticsBlock> parseXMLFile(Source source, File file) {
+	static List<StatisticsBlock> parseMonsterElement(Element monster) {
+		List<StatisticsBlock> statsBlocks = new ArrayList<>();
+		if (!monster.getTagName().equals("monster")) return statsBlocks;
+
+		String name = monster.getAttribute("name");
+
+		// find the statsblocks
+		NodeList children = monster.getElementsByTagName("statsblock");
+		for (int j = 0; j < children.getLength(); j++) {
+			Map<String, Integer> tags = new HashMap<>();	// counts of how many of each tag we've seen. For detecting multiple columns
+			int maxTags = 0;	// highest number of one type of tag we've seen. Ultimately this is the number of columns in this statsblock
+
+			//System.out.println("Parsing block " + (j + 1));
+			NodeList rows = ((Element) children.item(j)).getChildNodes();
+			for (int k = 0; k < rows.getLength(); k++) {
+				if (rows.item(k).getNodeType() == Node.ELEMENT_NODE) {
+					Element row = (Element) rows.item(k);
+					String tag = row.getTagName();
+
+					int index = 0;
+					if (tags.containsKey(tag)) index = tags.get(tag);
+					index++;
+					tags.put(tag, index);
+					//System.out.println("Parsing row " + tag + " " + index);
+
+					StatisticsBlock block;
+					if (index > maxTags) {
+						// add a block
+						block = new StatisticsBlock();
+						block.fields.put(Field.NAME, name);
+						block.images = new URL[0];
+						statsBlocks.add(block);
+						//System.out.println("Added new block");
+						maxTags = index;
+					} else {
+						block = statsBlocks.get(index - 1);
+					}
+
+					if (tag.equals("form")) {
+						block.fields.put(Field.NAME, name + " (" + row.getTextContent().trim() + ")");
+					} else {
+						Field f = Field.fromTagName(tag);
+						if (f != null) block.fields.put(f, row.getTextContent().trim());
+					}
+				}
+			}
+		}
+		return statsBlocks;
+	}
+
+	static List<StatisticsBlock> parseXMLFile(Source source, File file) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		Document dom;
 		List<StatisticsBlock> blocks = new ArrayList<>();
@@ -1295,70 +1357,27 @@ public class StatisticsBlock {
 			builder.setEntityResolver(new LocalEntityResolver());
 			dom = builder.parse(file);
 
+			URL url;
+			if (source != null) {
+				url = new File(source.getLocation() + "\\" + file.getName()).toURI().toURL();
+			} else {
+				url = file.toURI().toURL();
+			}
+
 			NodeList monsters = dom.getElementsByTagName("monster");
 			for (int i = 0; i < monsters.getLength(); i++) {
 				Element monster = (Element) monsters.item(i);
-
-				String name = monster.getAttribute("name");
-				URL url;
-				if (source != null) {
-					url = new File(source.getLocation() + "\\" + file.getName()).toURI().toURL();
-				} else {
-					url = file.toURI().toURL();
-				}
-
-				// find the statsblocks
-				List<StatisticsBlock> statsBlocks = new ArrayList<>();
-				NodeList children = monster.getElementsByTagName("statsblock");
-				for (int j = 0; j < children.getLength(); j++) {
-					Map<String, Integer> tags = new HashMap<>();	// counts of how many of each tag we've seen. For detecting multiple columns
-					int maxTags = 0;	// highest number of one type of tag we've seen. Ultimately this is the number of columns in this statsblock
-
-					NodeList rows = ((Element) children.item(j)).getChildNodes();
-					for (int k = 0; k < rows.getLength(); k++) {
-						if (rows.item(k).getNodeType() == Node.ELEMENT_NODE) {
-							Element row = (Element) rows.item(k);
-							String tag = row.getTagName();
-
-							int index = 0;
-							if (tags.containsKey(tag)) index = tags.get(tag);
-							index++;
-							tags.put(tag, index);
-
-							StatisticsBlock block;
-							if (index > maxTags) {
-								// add a block
-								block = new StatisticsBlock();
-								block.fields.put(Field.NAME, name);
-								block.fields.put(Field.URL, url.toString());
-								statsBlocks.add(block);
-								maxTags = index;
-							} else {
-								block = statsBlocks.get(index - 1);
-							}
-
-							if (tag.equals("form")) {
-								block.fields.put(Field.NAME, name + " (" + row.getTextContent().trim() + ")");
-							} else {
-								Field f = Field.fromTagName(tag);
-								if (f != null) block.fields.put(f, row.getTextContent().trim());
-							}
-						}
-					}
-				}
+				List<StatisticsBlock> statsBlocks = parseMonsterElement(monster);
 
 				for (StatisticsBlock block : statsBlocks) {
 					block.source = source;
+					block.fields.put(Field.URL, url.toString());
 					blocks.add(block);
 				}
 			}
 
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			e.printStackTrace();
-		}
-
-		for (StatisticsBlock s : blocks) {
-			s.images = new URL[0];
 		}
 
 		return blocks;

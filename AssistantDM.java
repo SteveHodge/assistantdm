@@ -55,6 +55,7 @@ import magicitems.MagicGeneratorPanel;
 import magicitems.Shop;
 import magicitems.ShoppingPanel;
 import monsters.EncounterDialog;
+import monsters.MonsterLibrary;
 import monsters.MonstersPanel;
 import party.Character;
 import party.CharacterLibrary;
@@ -65,9 +66,9 @@ import ui.RestDialog;
 import ui.RollsPanel;
 import ui.SelectPartyDialog;
 import ui.XPEntryDialog;
-import util.WebsiteMonitor;
 import util.ModuleRegistry;
 import util.Updater;
+import util.WebsiteMonitor;
 import util.XMLUtils;
 
 @SuppressWarnings("serial")
@@ -122,6 +123,13 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		// create modules
 		RuleSet.parseXML(new File("rulesets/ptolus.xml"));
+		MonsterLibrary.instance.parseXML(new File("html/monsters/monster_manual.xml"));
+		MonsterLibrary.instance.parseXML(new File("html/monsters/monster_manual_ii.xml"));
+		MonsterLibrary.instance.parseXML(new File("html/monsters/monster_manual_iii.xml"));
+		MonsterLibrary.instance.parseXML(new File("html/monsters/ptolus.xml"));
+		MonsterLibrary.instance.parseXML(new File("html/monsters/cthulhu.xml"));
+		MonsterLibrary.instance.loadLibraryFile();
+
 		party = new Party();
 
 		combatPanel = new CombatPanel(party);
@@ -421,29 +429,10 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 	}
 
 	public void saveParty(File f) {
-		// check if file exists
-		if (f.exists()) {
-			String filename = f.getName();
-			String backName;
-			if (filename.contains(".")) {
-				backName = filename.substring(0,filename.lastIndexOf('.'));
-				backName += "_backup";
-				backName += filename.substring(filename.lastIndexOf('.'));
-			} else {
-				backName = filename + "_backup";
-			}
-			File back = new File(f.getParent(),backName);
-			System.out.println("Writing backup to: "+back.getAbsolutePath());
-			if (back.exists()) back.delete();
-			File newF = f;
-			f.renameTo(back);
-			f = newF;
-		}
-
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			doc.appendChild(party.getElement(doc));
-			XMLUtils.writeDOM(doc, f);
+			XMLUtils.writeDOMWithBackup(doc, f);
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 		}

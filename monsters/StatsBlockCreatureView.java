@@ -10,6 +10,9 @@ import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import gamesystem.AC;
 import gamesystem.AbilityScore;
 import gamesystem.Attacks;
@@ -53,17 +56,20 @@ public class StatsBlockCreatureView {
 			// FIXME test this is right
 			// XXX seem to need to invokeLater() but I don't think it should be necessary
 			// TODO recheck without invokeLater - perhaps the issue was caused by multiple view instances
-			pcs.firePropertyChange(e.source.getName(), null, e.source.getValue());
+			String source = e.source.getName();
+			System.out.println("StatsBlockCreatureView property listener: Update to " + e.source + " (name = '" + source + "') to '" + e.source.getValue() + "'");
+
+			pcs.firePropertyChange(source, null, e.source.getValue());	// XXX necessary?
 
 			// need to generate events for the fields that are built from statistics
 			// TODO need to handle attacks somehow
 			if (e.source.equals(c.getInitiativeStatistic())) {
 				pcs.firePropertyChange(Field.INITIATIVE.name(), null, getField(Field.INITIATIVE));
-			} else if (e.source.getName().startsWith("ac")) {
+			} else if (source.startsWith("ac")) {
 				pcs.firePropertyChange(Field.AC.name(), null, getField(Field.AC));
-			} else if (e.source.getName().startsWith("ability_score")) {
+			} else if (source.startsWith("ability_score")) {
 				pcs.firePropertyChange(Field.ABILITIES.name(), null, getField(Field.ABILITIES));
-			} else if (e.source.getName().startsWith("saving_throw")) {
+			} else if (source.startsWith("saving_throw")) {
 				pcs.firePropertyChange(Field.SAVES.name(), null, getField(Field.SAVES));
 			} else if (e.source.equals(creature.getSizeStatistic())) {
 				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
@@ -73,10 +79,18 @@ public class StatsBlockCreatureView {
 				pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
 				pcs.firePropertyChange(Field.ATTACK.name(), null, getField(Field.ATTACK));
 				pcs.firePropertyChange(Field.FULL_ATTACK.name(), null, getField(Field.FULL_ATTACK));
-			} else if (e.source.getName().equals("name")) {
+			} else if (source.equals("name")) {
 				pcs.firePropertyChange(Field.NAME.name(), null, getField(Field.NAME));
 			} else {
-				System.out.println("StatsBlockCreatureview Unused update to " + e.source);
+				Field f = null;
+				if (source.startsWith("field."))
+					f = Field.fromString(source.substring(6));
+				if (f != null) {
+//					System.out.println("Update to field " + f + " (from " + fieldName + ")");
+					pcs.firePropertyChange(f.name(), null, e.source.getValue());
+				} else {
+					System.out.println("StatsBlockCreatureview Unused update to " + e.source);
+				}
 			}
 		}));
 	}
@@ -118,8 +132,8 @@ public class StatsBlockCreatureView {
 		Monster m = new Monster(name, abilities);
 
 		// need these for hitdice, which will want to update when race is set
-		m.setProperty(Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));
-		m.setProperty(Field.SPECIAL_ATTACKS.name(), blk.get(Field.SPECIAL_ATTACKS));
+		m.setProperty("field." + Field.SPECIAL_QUALITIES.name(), blk.get(Field.SPECIAL_QUALITIES));
+		m.setProperty("field." + Field.SPECIAL_ATTACKS.name(), blk.get(Field.SPECIAL_ATTACKS));
 
 		m.race.setType(blk.getType());
 		for (String s : blk.getSubtypes()) {
@@ -196,7 +210,7 @@ public class StatsBlockCreatureView {
 
 		m.statisticsBlock = blk;
 		// need feats/special qualities before setting up attacks
-		m.setProperty(Field.FEATS.name(), blk.get(Field.FEATS));
+		m.setProperty("field." + Field.FEATS.name(), blk.get(Field.FEATS));
 		// apply any feats we recognise:
 		if (blk.get(Field.FEATS) != null) {
 			String[] feats = blk.get(Field.FEATS).split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
@@ -252,16 +266,16 @@ public class StatsBlockCreatureView {
 		}
 
 		// add fields we don't use as extra properties:
-		m.setProperty(Field.CLASS_LEVELS.name(), blk.get(Field.CLASS_LEVELS));
-		m.setProperty(Field.SPEED.name(), blk.get(Field.SPEED));
-		m.setProperty(Field.SKILLS.name(), blk.get(Field.SKILLS));
-		m.setProperty(Field.ENVIRONMENT.name(), blk.get(Field.ENVIRONMENT));
-		m.setProperty(Field.ORGANIZATION.name(), blk.get(Field.ORGANIZATION));
-		m.setProperty(Field.CR.name(), blk.get(Field.CR));
-		m.setProperty(Field.TREASURE.name(), blk.get(Field.TREASURE));
-		m.setProperty(Field.ALIGNMENT.name(), blk.get(Field.ALIGNMENT));
-		m.setProperty(Field.ADVANCEMENT.name(), blk.get(Field.ADVANCEMENT));
-		m.setProperty(Field.LEVEL_ADJUSTMENT.name(), blk.get(Field.LEVEL_ADJUSTMENT));
+		m.setProperty("field." + Field.CLASS_LEVELS.name(), blk.get(Field.CLASS_LEVELS));
+		m.setProperty("field." + Field.SPEED.name(), blk.get(Field.SPEED));
+		m.setProperty("field." + Field.SKILLS.name(), blk.get(Field.SKILLS));
+		m.setProperty("field." + Field.ENVIRONMENT.name(), blk.get(Field.ENVIRONMENT));
+		m.setProperty("field." + Field.ORGANIZATION.name(), blk.get(Field.ORGANIZATION));
+		m.setProperty("field." + Field.CR.name(), blk.get(Field.CR));
+		m.setProperty("field." + Field.TREASURE.name(), blk.get(Field.TREASURE));
+		m.setProperty("field." + Field.ALIGNMENT.name(), blk.get(Field.ALIGNMENT));
+		m.setProperty("field." + Field.ADVANCEMENT.name(), blk.get(Field.ADVANCEMENT));
+		m.setProperty("field." + Field.LEVEL_ADJUSTMENT.name(), blk.get(Field.LEVEL_ADJUSTMENT));
 
 		m.hitDice.updateBonusHPs(m);	// doing this last because it may use special attacks
 
@@ -354,7 +368,7 @@ public class StatsBlockCreatureView {
 	}
 
 	public void setField(Field field, String value) {
-		// TODO remaining parsable fields need to be reparsed - AC
+		// TODO remaining parseable fields need to be reparsed - AC
 
 		if (field == Field.ABILITIES) {
 			for (AbilityScore.Type t : AbilityScore.Type.values()) {
@@ -413,12 +427,19 @@ public class StatsBlockCreatureView {
 			pcs.firePropertyChange(Field.FULL_ATTACK.name(), null, getField(Field.FULL_ATTACK));
 		}
 
-		if (creature.hasProperty(field.name())) {
-			creature.setProperty(field.name(), value);
+		if (creature.hasProperty("field." + field.name())) {
+			System.out.println("Setting property '" + field.name() + "' to '" + value + "'");
+			creature.setProperty("field." + field.name(), value);
+		} else {
+			System.out.println("Monster does not have property '" + field.name() + "'");
 		}
 	}
 
 	public String getField(Field field) {
+		return getField(field, true);
+	}
+
+	public String getField(Field field, boolean highlightChanged) {
 		StringBuilder s = new StringBuilder();
 		if (field == Field.INITIATIVE) {
 			if (creature.getInitiativeStatistic().getValue() >= 0) s.append("+");
@@ -436,7 +457,14 @@ public class StatsBlockCreatureView {
 						} else {
 							s.append(", ");
 						}
-						s.append(m);
+						if (AbilityScore.Type.DEXTERITY.toString().equals(m.getType()) || AbilityScore.Type.WISDOM.toString().equals(m.getType())) {
+							// use abbreviated modifier descriptions for ability scores as this is the usual practice for stats blocks
+							if (m.getModifier() >= 0)
+								s.append("+");
+							s.append(m.getModifier()).append(" ").append(m.getType().substring(0, 3));
+						} else {
+							s.append(m);
+						}
 					}
 				}
 				s.append(")");
@@ -498,14 +526,14 @@ public class StatsBlockCreatureView {
 
 		StatisticsBlock stats = creature.statisticsBlock;
 		if (s.length() == 0) {
-			if (creature.hasProperty(field.name()) && creature.getPropertyValue(field.name()) != null) {
-				s.append(creature.getPropertyValue(field.name()));
+			if (creature.hasProperty("field." + field.name()) && creature.getPropertyValue("field." + field.name()) != null) {
+				s.append(creature.getPropertyValue("field." + field.name()));
 			} else if (stats != null && stats.get(field) != null) {
 				s.append(stats.get(field));
 			}
 		}
 
-		if (stats != null && !isEquivalent(field, s.toString())) {
+		if (highlightChanged && stats != null && !isEquivalent(field, s.toString())) {
 			return "<b>" + s.append("</b>");
 		} else {
 			return s.toString();
@@ -566,5 +594,18 @@ public class StatsBlockCreatureView {
 
 		s.append("</table></html>");
 		return s.toString();
+	}
+
+	public Element getXMLElement(Document doc) {
+		Element root = doc.createElement("monster");
+		root.setAttribute("name", creature.getName());
+		Element stats = doc.createElement("statsblock");
+		root.appendChild(stats);
+		for (Field f : Field.getStandardOrder()) {
+			Element line = doc.createElement(f.getTagName());
+			line.setTextContent(getField(f, false));
+			stats.appendChild(line);
+		}
+		return root;
 	}
 }

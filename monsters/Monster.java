@@ -279,9 +279,9 @@ public class Monster extends Creature {
 			if (ff.getName().equals(name)) return true;
 		}
 		// check other feats and properties
-		String feats = (String) getPropertyValue(Field.FEATS.name());
+		String feats = (String) getPropertyValue("field." + Field.FEATS.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
-		feats = (String) getPropertyValue(Field.SPECIAL_QUALITIES.name());
+		feats = (String) getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		return false;
 	}
@@ -295,9 +295,9 @@ public class Monster extends Creature {
 			if (ff.getName().equals(name) && ff.target.equals(attack.getDescription())) return true;
 		}
 		// check other feats and properties
-		String feats = (String) getPropertyValue(Field.FEATS.name());
+		String feats = (String) getPropertyValue("field." + Field.FEATS.name());
 		if (feats != null && feats.toLowerCase().contains(f + " (" + attack.getDescription() + ")")) return true;
-		feats = (String) getPropertyValue(Field.SPECIAL_QUALITIES.name());
+		feats = (String) getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
 		if (feats != null && feats.toLowerCase().contains(f + " (" + attack.getDescription() + ")")) return true;
 		return false;
 	}
@@ -310,7 +310,7 @@ public class Monster extends Creature {
 	// returns the counts of regular feats and bonus feats parsed from the FEATS property. Does not consider the feats member.
 	public int[] countFeats() {
 		int[] counts = { 0, 0 };
-		String list = (String) getPropertyValue(Field.FEATS.name());
+		String list = (String) getPropertyValue("field." + Field.FEATS.name());
 		if (list == null || list.equals("—")) return counts;
 
 		String[] feats = list.split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses

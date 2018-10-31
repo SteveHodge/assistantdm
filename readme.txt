@@ -1,4 +1,14 @@
 ---=== IN PROGRESS ===---
+* Monster library needs to check for dupes and confirm replacement.
+* Fix editing initiative, saves fields: editing edits base but shows total. Either have custom edit panel a la abilities, or reparse edited value a la attacks, or allow both. 
+* Implement editing for BAB/Grapple, Spec. Qualities, Feats, Space/Reach.
+* Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups). show source values for fields with custom panels (HD, abilities)
+* Reopen encounter window from combat/menu
+* Export to html file? Maybe live?
+* Advance monster by hit dice: flag fields that need updates (skills, abilities, feats), auto update where possible including CR, size
+* Advance monster by template: select template, flag fields that need updates, show template text for each field as selected
+* Advance monster by character class
+*
 * DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
 * DTT: make walls a sub-element of map (as mask is)
 * 	supoprt linking wall layouts to map images - if Walls element has image as parent then concatenate location, rotation, and mirroring

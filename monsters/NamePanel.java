@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,12 +25,17 @@ import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
 
 import digital_table.controller.TokenOptionsPanel;
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
 import gamesystem.core.PropertyListener;
 import swing.ImagePanel;
+import util.XMLUtils;
 
 @SuppressWarnings("serial")
 class NamePanel extends DetailPanel {
@@ -125,6 +131,20 @@ class NamePanel extends DetailPanel {
 		nextImageButton.addActionListener(e -> setSelectedImage(getImageIndex() + 1));
 		buttonPanel.add(nextImageButton);
 
+		JButton libraryButton = new JButton("Save to Library");
+		libraryButton.addActionListener(e -> {
+			if (monster == null) return;
+			StatsBlockCreatureView view = StatsBlockCreatureView.getView(monster);
+			try {
+				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+				doc.appendChild(view.getXMLElement(doc));
+				XMLUtils.writeDOM(doc, new PrintWriter(System.out));
+				MonsterLibrary.instance.addMonster(monster);
+			} catch (ParserConfigurationException x) {
+				x.printStackTrace();
+			}
+		});
+
 		setLayout(new GridBagLayout());
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -139,17 +159,24 @@ class NamePanel extends DetailPanel {
 		add(nameField, c);
 
 		c.gridx = 0;
-		c.gridy = 1;
+		c.gridy++;
 		c.gridwidth = 2;
 		c.weightx = 1.0d;
 		add(augSummonCheck, c);
 
-		c.gridy = 2;
+		c.gridy++;
+		c.fill = GridBagConstraints.NONE;
+		c.anchor = GridBagConstraints.WEST;
+		add(libraryButton, c);
+
+		c.gridy++;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.CENTER;
 		add(buttonPanel, c);
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
-		c.gridy = 3;
+		c.gridy++;
 		add(imagePanel, c);
 	}
 

@@ -23,6 +23,28 @@ import org.w3c.dom.NodeList;
 final public class XMLUtils {
 	private XMLUtils() {};
 
+	public static void writeDOMWithBackup(Document doc, File f) {
+		// check if file exists
+		if (f.exists()) {
+			String filename = f.getName();
+			String backName;
+			if (filename.contains(".")) {
+				backName = filename.substring(0, filename.lastIndexOf('.'));
+				backName += "_backup";
+				backName += filename.substring(filename.lastIndexOf('.'));
+			} else {
+				backName = filename + "_backup";
+			}
+			File back = new File(f.getParent(), backName);
+			System.out.println("Writing backup to: " + back.getAbsolutePath());
+			if (back.exists()) back.delete();
+			File newF = f;
+			f.renameTo(back);
+			f = newF;
+		}
+		writeDOM(doc, f);
+	}
+
 	public static void writeDOM(Document doc, File f) {
 		try (FileOutputStream fos = new FileOutputStream(f);) {
 			try (OutputStreamWriter writer = new OutputStreamWriter(fos, "UTF-8");) {

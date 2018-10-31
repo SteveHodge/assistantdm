@@ -361,8 +361,8 @@ public class GetStatsBlock {
 			System.out.println("  Race: " + m.race + " " + m.race.getHitDiceCount());
 			System.out.println("  Classes: " + m.level);
 			System.out.println("  Feats: " + block.get(Field.FEATS));
-			System.out.println("  Special Attacks: " + m.getPropertyValue(Field.SPECIAL_ATTACKS.name()));
-			System.out.println("  Special Qualities: " + m.getPropertyValue(Field.SPECIAL_QUALITIES.name()));
+			System.out.println("  Special Attacks: " + m.getPropertyValue("field." + Field.SPECIAL_ATTACKS.name()));
+			System.out.println("  Special Qualities: " + m.getPropertyValue("field." + Field.SPECIAL_QUALITIES.name()));
 		}
 	}
 

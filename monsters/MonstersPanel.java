@@ -10,6 +10,7 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,7 +32,11 @@ import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.TableRowSorter;
+
+import org.w3c.dom.Element;
 
 import swing.CheckedComboBox;
 
@@ -54,12 +59,6 @@ public class MonstersPanel extends JPanel implements MouseListener {
 			e.printStackTrace();
 		}
 		monsters = new MonstersTableModel();
-		// TODO remove hardcoded files here - probably best to use one global master or just scan for xml files
-		monsters.parseXML(new File("html/monsters/monster_manual.xml"));
-		monsters.parseXML(new File("html/monsters/monster_manual_ii.xml"));
-		monsters.parseXML(new File("html/monsters/monster_manual_iii.xml"));
-		monsters.parseXML(new File("html/monsters/ptolus.xml"));
-		monsters.parseXML(new File("html/monsters/cthulhu.xml"));
 		//filterModel = new FilterTableModel<>(monsters);
 		table = new JTable(monsters);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -172,6 +171,38 @@ public class MonstersPanel extends JPanel implements MouseListener {
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>(options);
 		CheckedComboBox<String> combo = new CheckedComboBox<String>(model);
 		combo.getSelectionModel().addListSelectionListener(e -> newFilter(combo));
+		monsters.addTableModelListener(new TableModelListener() {
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				// check and update options
+				HashSet<String> allOptions = new HashSet<>();
+				List<String> toAdd = new ArrayList<>();
+				for (int row = 0; row < monsters.getRowCount(); row++) {
+					String option = monsters.getValueAt(row, col).toString();
+					allOptions.add(option);
+					if (model.getIndexOf(option) == -1)
+						toAdd.add(option);
+				}
+				// remove missing sources
+				for (int i = model.getSize() - 1; i >= 0; i--) {
+					String option = model.getElementAt(i);
+					if (!allOptions.contains(option)) {
+						System.out.println("Removing option " + option);
+						model.removeElementAt(i);
+					}
+				}
+				for (String newOpt : toAdd) {
+					for (int i = 0; i < model.getSize(); i++) {
+						String option = model.getElementAt(i);
+						if (newOpt.compareTo(option) <= 0) {
+							System.out.println("Inserting new option " + newOpt + " at " + i);
+							model.insertElementAt(newOpt, i);
+							break;
+						}
+					}
+				}
+			}
+		});
 		filterCols.put(combo, col);
 		return combo;
 	}
@@ -241,6 +272,18 @@ public class MonstersPanel extends JPanel implements MouseListener {
 				} else {
 					JFrame frame = new MonsterFrame(me, url);
 					frame.setVisible(true);
+				}
+			} else if (me.source.equals("Custom")) {
+				// monster should be in the library
+				Element el = MonsterLibrary.instance.getMonsterElement(me.name);
+				if (el != null) {
+					List<StatisticsBlock> blocks = StatisticsBlock.parseMonsterElement(el);
+					if (blocks.size() == 1) {
+						Window parentFrame = SwingUtilities.windowForComponent(this);
+						EncounterDialog.createOrExtendEncounter(parentFrame, blocks.get(0));
+					} else {
+						throw new IllegalStateException("Expected exactly 1 statistic block for '" + me.name + "', but got " + blocks.size());
+					}
 				}
 			}
 		}
