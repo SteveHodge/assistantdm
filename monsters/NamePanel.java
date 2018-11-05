@@ -21,8 +21,10 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -31,31 +33,37 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 
 import digital_table.controller.TokenOptionsPanel;
+import gamesystem.AbilityScore;
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
+import gamesystem.SizeCategory;
 import gamesystem.core.PropertyListener;
+import monsters.EncounterDialog.MonsterData;
+import monsters.StatisticsBlock.HDAdvancement;
 import swing.ImagePanel;
 import util.XMLUtils;
 
 @SuppressWarnings("serial")
 class NamePanel extends DetailPanel {
 	private Monster monster;
+	private MonsterData customisation;
 
 	private JTextField nameField;
 	private JCheckBox augSummonCheck;
 	private ImagePanel imagePanel;
 	private JButton prevImageButton;
 	private JButton nextImageButton;
+	private JPanel hdPanel;
 
 	// XXX shared from AddMonsterDialog - this is messy
 	private Map<StatisticsBlock, List<URL>> imageURLs;
-	private Map<Monster, Integer> imageIndexes;
+	private Map<Monster, MonsterData> customisations;
 
 	private static Buff augmentedSummoning = BuffFactory.AUGMENTED_SUMMONING.getBuff();
 
-	NamePanel(Map<StatisticsBlock, List<URL>> urls, Map<Monster, Integer> indexes) {
+	NamePanel(Map<StatisticsBlock, List<URL>> urls, Map<Monster, MonsterData> customisations) {
 		imageURLs = urls;
-		imageIndexes = indexes;
+		this.customisations = customisations;
 
 		nameField = new JTextField(20);
 		nameField.getDocument().addDocumentListener(new DocumentListener() {
@@ -124,11 +132,11 @@ class NamePanel extends DetailPanel {
 		buttonPanel.add(imageButton);
 
 		prevImageButton = new JButton("<");
-		prevImageButton.addActionListener(e -> setSelectedImage(getImageIndex() - 1));
+		prevImageButton.addActionListener(e -> setSelectedImage(customisation.imageIndex - 1));
 		buttonPanel.add(prevImageButton);
 
 		nextImageButton = new JButton(">");
-		nextImageButton.addActionListener(e -> setSelectedImage(getImageIndex() + 1));
+		nextImageButton.addActionListener(e -> setSelectedImage(customisation.imageIndex + 1));
 		buttonPanel.add(nextImageButton);
 
 		JButton libraryButton = new JButton("Save to Library");
@@ -144,6 +152,8 @@ class NamePanel extends DetailPanel {
 				x.printStackTrace();
 			}
 		});
+
+		hdPanel = new JPanel();
 
 		setLayout(new GridBagLayout());
 
@@ -165,6 +175,9 @@ class NamePanel extends DetailPanel {
 		add(augSummonCheck, c);
 
 		c.gridy++;
+		add(hdPanel, c);
+
+		c.gridy++;
 		c.fill = GridBagConstraints.NONE;
 		c.anchor = GridBagConstraints.WEST;
 		add(libraryButton, c);
@@ -180,12 +193,6 @@ class NamePanel extends DetailPanel {
 		add(imagePanel, c);
 	}
 
-	private int getImageIndex() {
-		Integer index = imageIndexes.get(monster);
-		if (index == null) return -1;
-		return index.intValue();
-	}
-
 	@Override
 	void setMonster(Monster m) {
 //		System.out.println("NamePanel.setMonster('" + m.getName() + "')");
@@ -196,14 +203,11 @@ class NamePanel extends DetailPanel {
 		}
 		monster = m;
 		if (m != null) {
+			customisation = customisations.get(monster);
 			nameField.setEnabled(true);
 			nameField.setText(m.getName());
 			monster.addPropertyListener("name", listener);
-			if (!imageIndexes.containsKey(m)) {
-				setSelectedImage(0);
-			} else {
-				setSelectedImage(imageIndexes.get(m));
-			}
+			setSelectedImage(customisation.imageIndex);
 
 			augSummonCheck.setSelected(false);
 			ListModel<Buff> buffs = monster.getBuffListModel();
@@ -211,7 +215,116 @@ class NamePanel extends DetailPanel {
 				Buff b = buffs.getElementAt(i);
 				if (augmentedSummoning == b) augSummonCheck.setSelected(true);
 			}
+
+			if (customisation.hdAdvancements.size() > 0) {
+				// expects the hdAdvancement list to be ordered, and to have an entry for the standard hd and size first
+				int max = customisation.hdAdvancements.get(customisation.hdAdvancements.size() - 1).maxHD;
+				int min = customisation.hdAdvancements.get(0).minHD;
+				int initial = monster.race.getHitDiceCount();	// XXX this is probably pretty fragile given the user could manually modify hitdice
+				SpinnerNumberModel spinnerModel = new SpinnerNumberModel(initial, min, max, 1);
+				spinnerModel.addChangeListener(e -> advanceHD(spinnerModel));
+				JSpinner hdSpinner = new JSpinner(spinnerModel);
+				hdPanel.add(hdSpinner);
+			} else {
+				hdPanel.removeAll();
+			}
 		}
+	}
+
+	static class SizeChangeMods {
+		int strBonus;
+		int dexBonus;
+		int conBonus;
+		int naturalArmorBonus;
+
+		SizeChangeMods(int s, int d, int c, int na) {
+			strBonus = s;
+			dexBonus = d;
+			conBonus = c;
+			naturalArmorBonus = na;
+		}
+	}
+
+	SizeChangeMods[] sizeChangeMods = {
+			new SizeChangeMods(0, -2, 0, 0),	// fine -> diminutive
+			new SizeChangeMods(2, -2, 0, 0),	// diminutive -> tiny
+			new SizeChangeMods(4, -2, 0, 0),	// tiny -> small
+			new SizeChangeMods(4, -2, 2, 0),	// small -> medium
+			new SizeChangeMods(8, -2, 4, 2),	// medium -> large
+			new SizeChangeMods(8, -2, 4, 3),	// large -> huge
+			new SizeChangeMods(8, 0, 4, 4),		// huge -> gargantuan
+			new SizeChangeMods(8, 0, 4, 5),		// gargantuan -> colossal
+	};
+
+	// TODO perhaps better to move the actual changes to Race
+	void advanceHD(SpinnerNumberModel spinnerModel) {
+		int newHD = (Integer) spinnerModel.getNumber();
+		SizeCategory newSize = null;
+		for (HDAdvancement adv : customisation.hdAdvancements) {
+			if (adv.minHD <= newHD && adv.maxHD >= newHD) {
+				newSize = adv.size;
+			}
+		}
+		if (newSize != null) {
+			System.out.println("-------------Set HD to " + newHD + " -> size " + newSize);
+			// * possible size change -> str, dex, con, natural armor, ac, attack
+			// possible size change -> damage
+			// hit points
+			// * bab (automatic)
+			// * saves (automatic)
+			// * skills
+			// * feats
+			// * possible ability score
+			// cr
+			int oldHD = monster.race.getHitDiceCount();
+			AbilityScore intScore = monster.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE);
+			int statIncreases = newHD / 4 - oldHD / 4;
+			int extraFeats = newHD / 3 - oldHD / 3;
+			int skillPoints = monster.race.getType().getSkillPoints();
+			if (intScore == null) {
+				extraFeats = 0;
+				skillPoints = 0;
+			} else {
+				skillPoints += AbilityScore.getModifier(intScore.getRegularValue());	// TODO using getRegularValue, but we really want the value including permanent but not temporary modifiers
+				if (intScore.getRegularValue() > 0 && skillPoints < 1) skillPoints = 1;
+				if (skillPoints < 0) skillPoints = 0;	// shouldn't really happen as it's odd to advance a monster with int 0 and is therefore unconscious
+			}
+			skillPoints *= (newHD - oldHD);
+			System.out.println("Extra ability points = " + statIncreases + ", extra feats = " + extraFeats + ", extra skills = " + skillPoints);
+			monster.race.setHitDiceCount(newHD);
+			int sizeChange = newSize.ordinal() - monster.size.getBaseSize().ordinal();
+			if (sizeChange != 0) {
+				int direction = sizeChange/Math.abs(sizeChange);
+				SizeChangeMods totalMods = new SizeChangeMods(0, 0, 0, 0);
+				int start = monster.size.getBaseSize().ordinal();
+				if (direction == -1) start--;
+				int end = newSize.ordinal();
+				if (direction == 1) end--;
+				System.out.println("Direction = " + direction + ", start = " + start + ", end = " + end);
+				for (int i = start;; i += direction) {
+					SizeChangeMods mods = sizeChangeMods[i];
+					totalMods.strBonus += direction * mods.strBonus;
+					totalMods.dexBonus += direction * mods.dexBonus;
+					totalMods.conBonus += direction * mods.conBonus;
+					totalMods.naturalArmorBonus += direction * mods.naturalArmorBonus;
+					if (i == end) break;
+				}
+				System.out.println("Size change from " + monster.size.getBaseSize() + " to " + newSize + ", " + sizeChange + " steps");
+				System.out.println("  Str: " + totalMods.strBonus + ", Dex: " + totalMods.dexBonus + ", Con: " + totalMods.conBonus + ", NA: " + totalMods.naturalArmorBonus);
+				monster.size.setBaseSize(newSize);
+				advanceAbility(AbilityScore.Type.STRENGTH, totalMods.strBonus);
+				advanceAbility(AbilityScore.Type.DEXTERITY, totalMods.dexBonus);
+				advanceAbility(AbilityScore.Type.CONSTITUTION, totalMods.conBonus);
+				monster.race.setNaturalArmor(monster.getACStatistic(), monster.race.getNaturalArmor() + totalMods.naturalArmorBonus);
+			}
+			System.out.println("-------------");
+		}
+	}
+
+	private void advanceAbility(AbilityScore.Type type, int delta) {
+		AbilityScore ability = monster.getAbilityStatistic(type);
+		if (ability == null) return;
+		ability.setBaseValue(ability.getBaseValue() + delta);
 	}
 
 	// handles out of range indexes
@@ -220,10 +333,10 @@ class NamePanel extends DetailPanel {
 		List<URL> urls = imageURLs.get(monster.statisticsBlock);
 		if (index < 0) index = 0;
 		if (index >= urls.size()) index = urls.size() - 1;
-		imageIndexes.put(monster, index);
+		customisation.imageIndex = index;
 		BufferedImage image = null;
-		if (getImageIndex() >= 0) {
-			URL url = urls.get(getImageIndex());
+		if (index >= 0) {
+			URL url = urls.get(index);
 			try {
 				image = ImageIO.read(url);
 			} catch (IOException e) {
@@ -231,8 +344,8 @@ class NamePanel extends DetailPanel {
 			}
 		}
 		imagePanel.setImage(image);
-		prevImageButton.setEnabled(getImageIndex() > 0);
-		nextImageButton.setEnabled(getImageIndex() < urls.size() - 1);
+		prevImageButton.setEnabled(index > 0);
+		nextImageButton.setEnabled(index < urls.size() - 1);
 	}
 
 	private void updateName() {

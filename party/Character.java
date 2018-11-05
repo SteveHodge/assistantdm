@@ -211,7 +211,9 @@ public class Character extends Creature {
 			saves.put(t, s);
 		}
 
-		ac = new AC(abilities.get(AbilityScore.Type.DEXTERITY), this);
+		size = new Size(this);
+
+		ac = new AC(abilities.get(AbilityScore.Type.DEXTERITY), size, this);
 
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty(), this);
 
@@ -220,8 +222,6 @@ public class Character extends Creature {
 		bab = new BAB(this, race, level);
 
 		grapple = new GrappleModifier(this, bab, size, abilities.get(AbilityScore.Type.STRENGTH));
-
-		size = new Size(this);
 
 		attacks = new Attacks(this);
 

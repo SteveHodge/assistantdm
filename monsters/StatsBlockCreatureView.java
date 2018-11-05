@@ -195,6 +195,12 @@ public class StatsBlockCreatureView {
 			} else if (mod.getType().equals(Modifier.StandardType.SHIELD.toString())) {
 				ac.getShield().setBonus(mod.getModifier());
 				ac.getShield().description = mod.getSource();
+			} else if (mod.getType().equals(Modifier.StandardType.NATURAL_ARMOR.toString())) {
+				m.race.setNaturalArmor(ac, mod.getModifier());
+			} else if (mod.getType().equals(Modifier.StandardType.SIZE.toString())) {
+				// size modifier should already be set up
+				if (mod.getModifier() != size.getSizeModifier().getModifier())
+					System.out.println("WARN: " + blk.getName() + " size modifier in AC (" + mod.getModifier() + ") does not match size field modifier (" + size.getSizeModifier().getModifier() + ")");
 			} else {
 				if (mod.getType().equals(AbilityScore.Type.WISDOM.name())) {
 					AbilityScore wis = m.getAbilityStatistic(AbilityScore.Type.WISDOM);
@@ -234,6 +240,7 @@ public class StatsBlockCreatureView {
 					//System.out.print("stripped specialisation/count leaving '" + f + "', ");
 				}
 				f = f.trim();
+				if (f.equals("—")) continue;
 				FeatDefinition def = Feat.getFeatDefinition(f);
 				if (def != null) {
 					//System.out.println("Found " + def.name + ", count = " + count);
@@ -543,7 +550,7 @@ public class StatsBlockCreatureView {
 // returns true if the calculated field is apparently the same as the field from the original block.
 // several common alternate characters are treated as equal (e.g. various dashes and minus, commas
 // and semicolons, etc). Special cases are included for certain fields.
-	private boolean isEquivalent(Field field, String calculated) {
+	boolean isEquivalent(Field field, String calculated) {
 		StatisticsBlock stats = creature.statisticsBlock;
 
 		if (calculated == null) calculated = "";
@@ -561,11 +568,11 @@ public class StatsBlockCreatureView {
 			cleanBuilt = cleanBuilt.replace(";", ",");
 		}
 
-		if (!cleanValue.equals(cleanBuilt)) {
-			System.out.println("   " + cleanValue);
-			System.out.println("!= " + cleanBuilt);
-			System.out.println();
-		}
+//		if (!cleanValue.equals(cleanBuilt)) {
+//			System.out.println("   " + cleanValue);
+//			System.out.println("!= " + cleanBuilt);
+//			System.out.println();
+//		}
 		return cleanValue.equals(cleanBuilt);
 	}
 

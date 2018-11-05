@@ -16,21 +16,23 @@ package gamesystem;
  */
 
 public enum MonsterType {
-	ABERRATION("Aberration", 8, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST),
-	ANIMAL("Animal", 8, BABProgression.AVERAGE, SaveProgression.FAST, SaveProgression.FAST, SaveProgression.SLOW),
-	CONSTRUCT("Construct", 10, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW),
-	DRAGON("Dragon", 12, BABProgression.FAST, SaveProgression.FAST, SaveProgression.FAST, SaveProgression.FAST),
-	ELEMENTAL("Elemental", 8, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW),
-	FEY("Fey", 6, BABProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST, SaveProgression.FAST),
-	GIANT("Giant", 8, BABProgression.AVERAGE, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW),
-	HUMANOID("Humanoid", 8, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW),
-	MAGICAL_BEAST("Magical Beast", 10, BABProgression.FAST, SaveProgression.FAST, SaveProgression.FAST, SaveProgression.SLOW),
-	MONSTROUS_HUMANOID("Monstrous Humanoid", 8, BABProgression.FAST, SaveProgression.SLOW, SaveProgression.FAST, SaveProgression.FAST),
-	OOZE("Ooze", 10, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW),
-	OUTSIDER("Outsider", 8, BABProgression.FAST, SaveProgression.FAST, SaveProgression.FAST, SaveProgression.FAST),
-	PLANT("Plant", 8, BABProgression.AVERAGE, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW),
-	UNDEAD("Undead", 12, BABProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST),
-	VERMIN("Vermin", 8, BABProgression.AVERAGE, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW);
+	// @formatter:off
+	ABERRATION("Aberration", 8, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST, 2),
+	ANIMAL("Animal", 8, BABProgression.AVERAGE, SaveProgression.FAST, SaveProgression.FAST, SaveProgression.SLOW, 2),
+	CONSTRUCT("Construct", 10, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW, 2),
+	DRAGON("Dragon", 12, BABProgression.FAST, SaveProgression.FAST, SaveProgression.FAST, SaveProgression.FAST, 6),
+	ELEMENTAL("Elemental", 8, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW, 2),	// save progression depends on element, this is handled in Monster
+	FEY("Fey", 6, BABProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST, SaveProgression.FAST, 6),
+	GIANT("Giant", 8, BABProgression.AVERAGE, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW, 2),
+	HUMANOID("Humanoid", 8, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW, 2),
+	MAGICAL_BEAST("Magical Beast", 10, BABProgression.FAST, SaveProgression.FAST, SaveProgression.FAST, SaveProgression.SLOW, 2),
+	MONSTROUS_HUMANOID("Monstrous Humanoid", 8, BABProgression.FAST, SaveProgression.SLOW, SaveProgression.FAST, SaveProgression.FAST, 2),
+	OOZE("Ooze", 10, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW, 2),
+	OUTSIDER("Outsider", 8, BABProgression.FAST, SaveProgression.FAST, SaveProgression.FAST, SaveProgression.FAST, 8),
+	PLANT("Plant", 8, BABProgression.AVERAGE, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW, 2),
+	UNDEAD("Undead", 12, BABProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST, 4),
+	VERMIN("Vermin", 8, BABProgression.AVERAGE, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW, 2);
+	// @formatter:on
 
 	@Override
 	public String toString() {
@@ -53,6 +55,10 @@ public enum MonsterType {
 		return 0;
 	}
 
+	public int getSkillPoints() {
+		return skillPoints;
+	}
+
 	public SaveProgression getProgression(SavingThrow.Type type) {
 		switch (type) {
 		case FORTITUDE:
@@ -73,13 +79,14 @@ public enum MonsterType {
 		return null;
 	}
 
-	private MonsterType(String name, int hdType, BABProgression bab, SaveProgression fort, SaveProgression ref, SaveProgression will) {
+	private MonsterType(String name, int hdType, BABProgression bab, SaveProgression fort, SaveProgression ref, SaveProgression will, int skills) {
 		this.name = name;
 		hitDiceType = hdType;
 		babProgression = bab;
 		fortitude = fort;
 		reflex = ref;
 		this.will = will;
+		skillPoints = skills;
 	}
 
 	private String name;
@@ -88,4 +95,5 @@ public enum MonsterType {
 	private SaveProgression fortitude;
 	private SaveProgression reflex;
 	private SaveProgression will;
+	private int skillPoints;
 }

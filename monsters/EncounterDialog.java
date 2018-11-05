@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -50,6 +52,7 @@ import digital_table.controller.ControllerFrame;
 import gamesystem.Creature;
 import gamesystem.core.PropertyListener;
 import monsters.StatisticsBlock.Field;
+import monsters.StatisticsBlock.HDAdvancement;
 import util.ModuleRegistry;
 import util.XMLUtils;
 
@@ -79,8 +82,26 @@ public class EncounterDialog extends JFrame {
 	private JPanel detailPanel;
 	private Map<Field, DetailPanel> detailPanels = new HashMap<>();
 
+	private NotesPanel notesPanel;
+
 	private Map<StatisticsBlock, List<URL>> imageURLs = new HashMap<>();	// null key is used for adhoc monsters with no attached stats block
-	private Map<Monster, Integer> imageIndexes = new HashMap<>();
+	private Map<Monster, MonsterData> monsterData = new HashMap<>();		// stores extra data for each monster in the encounter
+
+	class MonsterData {
+		int imageIndex = -1;	// -1 = no image
+		List<HDAdvancement> hdAdvancements;
+
+		MonsterData(Monster m) {
+			StatsBlockCreatureView view = StatsBlockCreatureView.getView(m);
+			hdAdvancements = StatisticsBlock.parseHDAdvancement(view.getField(Field.ADVANCEMENT));
+			if (hdAdvancements.size() > 0) {
+				// add entry for standard HD and size
+				int hd = m.hitDice.getHitDiceCount();
+				hdAdvancements.add(0, new HDAdvancement(hd, hd, m.size.getBaseSize()));
+			}
+			System.out.println(m.getName() + " hdAdvancements = " + hdAdvancements);
+		}
+	}
 
 	static void createOrExtendEncounter(Window parentFrame, StatisticsBlock blk) {
 		if (EncounterDialog.dialogs.size() > 0) {
@@ -133,11 +154,12 @@ public class EncounterDialog extends JFrame {
 		if (s != null) {
 			selected = StatsBlockCreatureView.createMonster(s);
 			monsterListModel.addMonster(selected);
+			monsterData.put(selected, new MonsterData(selected));
 			Collections.addAll(urls, s.getImageURLs());
 			imageURLs.put(s, urls);
 		}
 
-		NamePanel namePanel = new NamePanel(imageURLs, imageIndexes);
+		NamePanel namePanel = new NamePanel(imageURLs, monsterData);
 		detailPanels.put(Field.NAME, namePanel);
 		detailPanels.put(Field.ABILITIES, new AbilitiesPanel());
 		detailPanels.put(Field.HITDICE, new HitPointsPanel());
@@ -191,18 +213,21 @@ public class EncounterDialog extends JFrame {
 			monsterListModel.removeElementAt(sel);
 		});
 
+		notesPanel = new NotesPanel();
+
 		//@formatter:off
 		JPanel main = new JPanel();
 		main.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 
+		c.anchor = GridBagConstraints.NORTH;
 		c.fill = GridBagConstraints.BOTH; c.weightx = 0.5d; c.weighty = 1.0d;
-		c.gridwidth = 2;
+		c.gridwidth = 2; c.gridheight = 1;
 		c.gridx = 0; c.gridy = 0;
 		main.add(new JScrollPane(monsterList), c);
 
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 0.25d; c.weighty = 0d;
-		c.gridwidth = 1;
+		c.gridwidth = 1; c.gridheight = 1;
 		c.gridy = 1;
 		main.add(detailsButton,c);
 		c.gridx = 1;
@@ -216,14 +241,17 @@ public class EncounterDialog extends JFrame {
 		p.add(new JLabel("copies"));
 		main.add(p, c);
 
-		c.fill = GridBagConstraints.NONE; c.weightx = 0d; c.weighty = 0d;
+		c.fill = GridBagConstraints.BOTH; c.weightx = 0.5d; c.weighty = 0d;
 		c.gridheight = 3;
 		c.gridx = 2; c.gridy = 0;
 		main.add(statsPanel, c);
 
 		c.gridx = 3;
 		c.fill = GridBagConstraints.BOTH; c.weightx = 1.0d; c.weighty = 1.0d;
-		main.add(detailPanel, c);
+		JPanel rightPanel = new JPanel(new BorderLayout());
+		rightPanel.add(detailPanel);
+		rightPanel.add(notesPanel, BorderLayout.SOUTH);
+		main.add(rightPanel, c);
 
 		// @formatter:on
 
@@ -297,7 +325,9 @@ public class EncounterDialog extends JFrame {
 
 				m.setName(name + " " + ordinal);
 				monsterListModel.addMonster(m);
-				if (imageURLs.get(blk).size() > 0) imageIndexes.put(m, 0);
+				MonsterData customisation = new MonsterData(m);
+				monsterData.put(m, customisation);
+				if (imageURLs.get(blk).size() > 0) customisation.imageIndex = 0;
 			}
 		}
 	};
@@ -305,11 +335,11 @@ public class EncounterDialog extends JFrame {
 	private void addTokens() {
 		for (int i = 0; i < monsterListModel.getSize(); i++) {
 			Monster m = monsterListModel.getElementAt(i);
-			Integer imgIndex = imageIndexes.get(m);
+			MonsterData data = monsterData.get(m);
 			File f = null;
 			List<URL> urls = imageURLs.get(m.statisticsBlock);
-			if (urls != null && imgIndex != null && imgIndex.intValue() >= 0) {
-				URL url = urls.get(imgIndex.intValue());
+			if (urls != null && data.imageIndex >= 0) {
+				URL url = urls.get(data.imageIndex);
 				// TODO fix this. probably addMonster should take a URL for the image
 				try {
 					f = new File(url.toURI());
@@ -436,25 +466,20 @@ public class EncounterDialog extends JFrame {
 	void addMonster(StatisticsBlock s) {
 		// TODO check if the name is already in use, if so should change the existing name and add an ordinal
 		Monster m = StatsBlockCreatureView.createMonster(s);
-		monsterListModel.addMonster(m);
-		if (!imageURLs.containsKey(s)) {
-			List<URL> urls = new ArrayList<>();
-			Collections.addAll(urls, s.getImageURLs());
-			imageURLs.put(s, urls);
-		}
-		if (imageURLs.get(s).size() > 0) imageIndexes.put(m, 0);
-		checkSelection();
+		addMonster(m);
 	}
 
 	public void addMonster(Monster m) {
-		monsterListModel.addMonster(m);
 		StatisticsBlock s = m.statisticsBlock;
+		MonsterData customisation = new MonsterData(m);
+		monsterData.put(m, customisation);
+		monsterListModel.addMonster(m);
 		if (!imageURLs.containsKey(s)) {
 			List<URL> urls = new ArrayList<>();
 			if (s != null) Collections.addAll(urls, s.getImageURLs());
 			imageURLs.put(s, urls);
 		}
-		if (imageURLs.get(s).size() > 0) imageIndexes.put(m, 0);
+		if (imageURLs.get(s).size() > 0) customisation.imageIndex = 0;
 		checkSelection();
 	}
 
@@ -488,7 +513,77 @@ public class EncounterDialog extends JFrame {
 		} else {
 			detailLayout.show(detailPanel, BLANK_PANEL);
 		}
+
+		notesPanel.setMonsterField(selected, statsPanel.getSelectedField());
 	}
+
+	private class NotesPanel extends JPanel {
+		Monster monster;
+		StatsBlockCreatureView view;
+		Field field;
+		JLabel sourceLabel = new JLabel("Source: ");
+		JLabel sourceDetails = new JLabel();
+
+		NotesPanel() {
+			add(sourceLabel);
+			add(sourceDetails);
+
+			// code from old defaultdetailspanel to limit label length:
+//			sourceLabel = new JLabel("") {
+//				@Override
+//				public Dimension getPreferredSize() {
+//					// Prefer a width of 200
+//					Dimension d = super.getPreferredSize();
+//					if (d.width > 200)
+//						d.width = 200;
+//					return d;
+//				}
+//			};
+
+		}
+
+		void setMonsterField(Monster m, Field f) {
+			if (monster != m) {
+				if (view != null) view.removePropertyChangeListener(listener);
+				monster = m;
+				if (monster != null) {
+					view = StatsBlockCreatureView.getView(monster);
+					view.addPropertyChangeListener(listener);
+				}
+			}
+			field = f;
+			updateNotes();
+		}
+
+		void updateNotes() {
+			if (monster == null) {
+				sourceLabel.setVisible(false);
+				sourceDetails.setVisible(false);
+				return;
+			}
+			StatisticsBlock blk = selected.statisticsBlock;
+			if (blk != null) {
+				String source = blk.get(field);
+				String now = view.getField(field, false);
+				if (!view.isEquivalent(field, now)) {
+					sourceLabel.setVisible(true);
+					sourceDetails.setVisible(true);
+					sourceDetails.setText("<html>" + source + "</html>");
+				} else {
+					sourceLabel.setVisible(false);
+					sourceDetails.setVisible(false);
+				}
+			}
+		}
+
+		PropertyChangeListener listener = new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent e) {
+				if (field == null || field.name() == e.getPropertyName()) return;
+				updateNotes();
+			}
+		};
+	};
 
 	private class MonsterListModel extends AbstractListModel<Monster> {
 		private List<Monster> monsters = new ArrayList<>();

@@ -11,6 +11,7 @@ import gamesystem.core.SimpleValueProperty;
 
 // TODO overrides are a bit unintuituve - they ignore modifiers, which is fine, but the modifiers are reapplied once the override is removed (which at the moment happens if the override is set to the baseValue in the ui)
 // FIXME base value and overrides should not be reimplemented here
+// TODO for level/hd progression we need to know the score with permanent modifiers (such as from race, levelling up, magic books that grant inherent bonuses etc) but not with temporary modifiers (e.g. from spells or magic items)
 public class AbilityScore extends Statistic {
 	public enum Type {
 		STRENGTH("Strength"),

@@ -1,7 +1,6 @@
 package monsters;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -26,7 +25,6 @@ public class DefaultDetailPanel extends DetailPanel {
 	private Field field;
 
 	private JTextArea textArea;
-	private JLabel sourceLabel;
 	private JLabel statLabel;
 	private Color defaultBG;
 
@@ -55,30 +53,12 @@ public class DefaultDetailPanel extends DetailPanel {
 			}
 		});
 
-		sourceLabel = new JLabel("") {
-			@Override
-			public Dimension getPreferredSize() {
-				// Prefer a width of 200
-				Dimension d = super.getPreferredSize();
-				if (d.width > 200)
-					d.width = 200;
-				return d;
-			}
-		};
-
 		statLabel = new JLabel("");
 
 		c.insets = new Insets(2, 4, 2, 4);
-		c.gridx = 0;
-		c.gridy = 0;
+		c.gridy = -1;	// will be incremented by the first field
 		c.gridwidth = 1;
 		c.anchor = GridBagConstraints.NORTHWEST;
-		add(new JLabel("Source:"), c);
-
-		c.gridx = 1;
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1.0;
-		add(sourceLabel, c);
 
 		if (hasCalculation()) {
 			c.gridx = 0;
@@ -152,9 +132,6 @@ public class DefaultDetailPanel extends DetailPanel {
 			if (val.startsWith("<b>")) val = val.substring(3, val.length() - 4);	// TODO remove when no longer required
 			textArea.setText(val);
 
-			StatisticsBlock blk = creature.statisticsBlock;
-			if (blk != null) sourceLabel.setText("<html>" + blk.get(field) + "</html>");
-
 			String summary = getCalculationSummary();
 			if (summary != null)
 				statLabel.setText("<html>" + summary + "</html>");
@@ -215,7 +192,11 @@ public class DefaultDetailPanel extends DetailPanel {
 			for (MonsterAttackRoutine r : creature.fullAttackList) {
 				for (MonsterAttackForm f : r.attackForms) {
 					b.append(f.description).append(": ");
-					b.append(f.attack.getSummary()).append("<br/>");
+					if (f.attack != null)
+						b.append(f.attack.getSummary());
+					else
+						b.append("ERROR getting attack");
+					b.append("<br/>");
 				}
 			}
 			return b.toString();

@@ -1,11 +1,12 @@
 ---=== IN PROGRESS ===---
+* MOSTLY DONE: Advance monster by hit dice: flag fields that need updates (skills, abilities, feats), auto update where possible including CR, size. Still to do: CR, hitpoints, damage. Flag fields needing attention.
+* Bug: HD panel doesn't update if HD is changed on monster
 * Monster library needs to check for dupes and confirm replacement.
 * Fix editing initiative, saves fields: editing edits base but shows total. Either have custom edit panel a la abilities, or reparse edited value a la attacks, or allow both. 
 * Implement editing for BAB/Grapple, Spec. Qualities, Feats, Space/Reach.
-* Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups). show source values for fields with custom panels (HD, abilities)
+* Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
 * Reopen encounter window from combat/menu
 * Export to html file? Maybe live?
-* Advance monster by hit dice: flag fields that need updates (skills, abilities, feats), auto update where possible including CR, size
 * Advance monster by template: select template, flag fields that need updates, show template text for each field as selected
 * Advance monster by character class
 *

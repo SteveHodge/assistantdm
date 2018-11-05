@@ -64,6 +64,12 @@ class StatsBlockPanel extends JPanel {
 			add(l, c);
 		}
 
+		// padding after the grid for any extra space
+		c.gridx = 0;
+		c.weighty = 1.0d;
+		c.gridwidth = 2;
+		add(new JPanel(), c);
+
 		setCreature(m);
 		setSelected(0);
 	}

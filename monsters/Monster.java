@@ -100,9 +100,9 @@ public class Monster extends Creature {
 			// if there is no dex score then treat it as a score of 0
 			AbilityScore zeroDex = new AbilityScore(AbilityScore.Type.DEXTERITY, this);
 			zeroDex.setBaseValue(0);
-			ac = new AC(zeroDex, this);
+			ac = new AC(zeroDex, size, this);
 		} else {
-			ac = new AC(dex, this);
+			ac = new AC(dex, size, this);
 		}
 
 		skills = new Skills(abilities.values(), ac.getArmorCheckPenalty(), this);

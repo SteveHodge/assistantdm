@@ -404,11 +404,72 @@ public class StatisticsBlock {
 		return parseClassLevels(get(Field.CLASS_LEVELS));
 	}
 
-	// parse hitdice:
-	// pattern for a dice roll is "#d#[+#]"
-	// multiple dice rolls can be separated by " plus "
-	// hitdice section ends with " (# hp)"
-	// first number may be "½ "
+	// parse HD advancement:
+	// pattern for a HD range is: "#-# Hd (size)" or "#+ HD (size)"
+	// multiple ranges can be separated by colon or semicolon
+	// returns a map of a pair of integers that define the range to the size category
+	static final private Pattern hdAdvRangePattern = Pattern.compile("(\\d+)[-–](\\d+) HD \\((.*)\\)");
+	static final private Pattern hdAdvSingleRangePattern = Pattern.compile("^(\\d+)(\\+?) HD \\((.*)\\)");
+
+	static class HDAdvancement {
+		int minHD;
+		int maxHD;
+		SizeCategory size;
+
+		HDAdvancement(int min, int max, SizeCategory size) {
+			minHD = min;
+			maxHD = max;
+			this.size = size;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder s = new StringBuilder();
+			s.append(minHD);
+			if (maxHD == Integer.MAX_VALUE)
+				s.append("+");
+			else if (minHD != maxHD)
+				s.append("-").append(maxHD);
+			s.append(" HD (").append(size).append(")");
+			return s.toString();
+		}
+	}
+
+	public static List<HDAdvancement> parseHDAdvancement(String adv) {
+		List<HDAdvancement> advancement = new ArrayList<>();
+		String[] parts = adv.split("\\s*[,;]\\s*");
+		for (String part : parts) {
+			Matcher matcher = hdAdvRangePattern.matcher(part);
+			int high;
+			if (matcher.find()) {
+				high = Integer.parseInt(matcher.group(2));
+			} else {
+				matcher = hdAdvSingleRangePattern.matcher(part);
+				if (!matcher.find())
+					continue;
+				if (matcher.group(2).equals("+"))
+					high = Integer.MAX_VALUE;
+				else
+					high = Integer.parseInt(matcher.group(1));
+			}
+			int low = Integer.parseInt(matcher.group(1));
+			String sizeStr = matcher.group(3);
+			if (sizeStr.endsWith("-size")) sizeStr = sizeStr.substring(0, sizeStr.indexOf("-size"));
+			SizeCategory size = SizeCategory.getSize(sizeStr);
+			if (size != null) {
+				advancement.add(new HDAdvancement(low, high, size));
+			} else {
+				System.out.println("Size not recognised: '" + sizeStr + "' in '" + adv + "'");
+			}
+		}
+		return advancement;
+	}
+
+// parse hitdice:
+// pattern for a dice roll is "#d#[+#]"
+// multiple dice rolls can be separated by " plus "
+// hitdice section ends with " (# hp)"
+// first number may be "½ "
 	List<HDDice> parseHitDice(String hd) {
 		hd = hd.substring(0, hd.indexOf(" ("));
 		return HDDice.parseList(hd);
@@ -423,8 +484,8 @@ public class StatisticsBlock {
 		return parseHitDice(hd);
 	}
 
-	// parse default hitpoints:
-	// pattern is "<hitdice> (# hp)"
+// parse default hitpoints:
+// pattern is "<hitdice> (# hp)"
 	public int getDefaultHPs() {
 		int hp = 0;
 		String hps = get(Field.HITDICE);
@@ -443,10 +504,10 @@ public class StatisticsBlock {
 		return hp;
 	}
 
-	// parse armor class:
-	// pattern is "# (components), touch #, flat-footed #"
-	// returns an array of integers: full, touch, and flat-footed ac totals respectively
-	// if multiple ac versions appear (separated by " or ") then the first one is parsed and returned
+// parse armor class:
+// pattern is "# (components), touch #, flat-footed #"
+// returns an array of integers: full, touch, and flat-footed ac totals respectively
+// if multiple ac versions appear (separated by " or ") then the first one is parsed and returned
 	public int[] getACs() {
 		String acProp = get(Field.AC);
 		if (acProp == null) {
@@ -456,7 +517,7 @@ public class StatisticsBlock {
 		return parseACs(acProp);
 	}
 
-	// this version parses the first of any alternate ACs
+// this version parses the first of any alternate ACs
 	static int[] parseACs(String acProp) {
 		String[] acStrs = acProp.split("\\s+or\\s+");
 		if (acStrs[0].endsWith(",")) acStrs[0] = acStrs[0].substring(0, acStrs[0].length() - 1);	// strip any trailing ','
@@ -498,17 +559,17 @@ public class StatisticsBlock {
 		acComponentTypes.put("size", Modifier.StandardType.SIZE.toString());
 	}
 
-	// returns the components for the first full ac section found
-	// format for the ac line is:
-	// <fullac>, touch <touchac>, flat-footed <flatfootedac>
-	// each of <fullac>, <touchac>, and <flatfootedac> can have multiple versions separated by " or "
-	// <touchac> and <flatfootedac> are simple integers
-	// each version of <fullac> has the format "<value>[ (<component>[, component]*)]"
-	// <value> is a simple integer
-	// <component> has the format "<modifier> <type>[ (<description)]"
-	// <modifier> is a simple integer (optionally having '+' before non-negative values)
-	// <type> is a string which should be one of the standard Modifier types
-	// <description> is a string
+// returns the components for the first full ac section found
+// format for the ac line is:
+// <fullac>, touch <touchac>, flat-footed <flatfootedac>
+// each of <fullac>, <touchac>, and <flatfootedac> can have multiple versions separated by " or "
+// <touchac> and <flatfootedac> are simple integers
+// each version of <fullac> has the format "<value>[ (<component>[, component]*)]"
+// <value> is a simple integer
+// <component> has the format "<modifier> <type>[ (<description)]"
+// <modifier> is a simple integer (optionally having '+' before non-negative values)
+// <type> is a string which should be one of the standard Modifier types
+// <description> is a string
 	public Set<Modifier> getACModifiers() {
 		String acProp = get(Field.AC);
 		if (acProp == null) {
@@ -562,7 +623,7 @@ public class StatisticsBlock {
 		return components;
 	}
 
-	// <desc> '+|-'<bonus>[/'+|-'<bonus>...] [(<modifiers>) ]'melee|ranged'[ 'touch'] (<damage>)
+// <desc> '+|-'<bonus>[/'+|-'<bonus>...] [(<modifiers>) ]'melee|ranged'[ 'touch'] (<damage>)
 	static final private Pattern stdAttackPattern = Pattern.compile("(.*)\\s+([+-–]\\d+(\\/[+-]\\d+)*)\\s+(\\((.*)\\)\\s+)?(melee|ranged)(\\stouch)?\\s\\((.*)\\)");
 	static final private Pattern autoHitPattern = Pattern.compile("(.*)\\s+\\((.*)\\)");
 	static final private Pattern routineSep = Pattern.compile(",?\\s+(and|plus)\\s+");
@@ -687,7 +748,7 @@ public class StatisticsBlock {
 	}
 
 	static final Pattern modPattern = Pattern.compile("[+-](\\d+)\\s+(.*)");
-	// [<num> ]['+'<bonus>]<desc>[(<modifiers>)] though note the enhancement bonus is parse in calculateAttackBonus
+// [<num> ]['+'<bonus>]<desc>[(<modifiers>)] though note the enhancement bonus is parse in calculateAttackBonus
 	static final Pattern descPattern = Pattern.compile("((\\d+)\\s+)?([^\\(]*)(\\((.*)\\))?");
 	static final Pattern wfPattern = Pattern.compile("weapon focus \\(([^\\)]+)\\)");
 	static final Pattern dmgPattern = Pattern.compile("(\\d+)d(\\d+)([+-]\\d+)?(\\/(\\d+)[-]20)?(\\/[x×](\\d+))?");
@@ -724,7 +785,7 @@ public class StatisticsBlock {
 		plurals.put("hoof", "hooves");
 	}
 
-	// information required by the attack parsing classes.
+// information required by the attack parsing classes.
 	static interface CreatureDetails {
 		int getDexterity();
 

@@ -16,6 +16,21 @@ public class Race extends AbstractProperty<String> {
 	protected MonsterType type;
 	public List<String> subtypes = new ArrayList<String>();	// subtypes			// TODO should be protected
 	protected HDDice hitDice;
+	private NaturalArmorModifier naturalArmor;
+
+	protected class NaturalArmorModifier extends AbstractModifier {
+		int naturalArmor;
+
+		@Override
+		public String getType() {
+			return Modifier.StandardType.NATURAL_ARMOR.toString();
+		}
+
+		@Override
+		public int getModifier() {
+			return naturalArmor;
+		}
+	}
 
 	public Race(PropertyCollection parent) {
 		super("race", parent);
@@ -107,5 +122,30 @@ public class Race extends AbstractProperty<String> {
 		hitDice = new HDDice(count, hitDice.getType(), hitDice.getConstant());
 		// TODO add any additional dice?
 		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
+	}
+
+	// TODO ugly passing AC here
+	public void setNaturalArmor(AC ac, int naBonus) {
+		if (naBonus == 0) {
+			if (naturalArmor != null) {
+				ac.removeModifier(naturalArmor);
+				naturalArmor = null;
+			}
+			return;
+		}
+		if (naturalArmor == null) {
+			naturalArmor = new NaturalArmorModifier();
+			ac.addModifier(naturalArmor);
+		} else if (naturalArmor.naturalArmor == naBonus) {
+			return;
+		}
+		int old = naturalArmor.naturalArmor;
+		naturalArmor.naturalArmor = naBonus;
+		naturalArmor.pcs.firePropertyChange("value", old, naBonus);
+	}
+
+	public int getNaturalArmor() {
+		if (naturalArmor == null) return 0;
+		return naturalArmor.naturalArmor;
 	}
 }

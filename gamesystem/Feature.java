@@ -48,9 +48,12 @@ public abstract class Feature<T extends Feature<T, S>, S extends FeatureDefiniti
 	public void apply(Creature c) {
 		for (int i = 0; i < getModifierCount(); i++) {
 			// add modifier to target stat
-			//System.out.println("Adding modifiers for " + this);
-			for (Statistic s : c.getStatistics(getModifierTarget(i))) {
-				s.addModifier(getModifier(i));
+			if (getModifierTarget(i).equals("target")) {
+				System.err.println("Can't add modifiers for " + this + ", user specified targets not yet implemented");
+			} else {
+				for (Statistic s : c.getStatistics(getModifierTarget(i))) {
+					s.addModifier(getModifier(i));
+				}
 			}
 		}
 	}

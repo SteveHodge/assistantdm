@@ -17,6 +17,7 @@ import gamesystem.CharacterClass;
 import gamesystem.Creature;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
+import gamesystem.RuleSet;
 import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
 import gamesystem.SizeCategory;
@@ -28,19 +29,22 @@ import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine.Attack;
 import monsters.StatisticsBlock.Field;
+import monsters.StatisticsBlock.HDAdvancement;
 
 
 public class GetStatsBlock {
 	static String baseName = "D:\\Programming\\git\\assistantdm\\html\\monsters\\";
 
 	public static void main(String[] args) {
+		RuleSet.parseXML(new File("rulesets/ptolus.xml"));	// needed for feat definitions
+
 		List<StatisticsBlock> blocks = new ArrayList<>();
 		Source[] sources = new Source[] {
 				new Source("Monster Manual", "monster_manual"),
-				//				new Source("Monster Manual II", "monster_manual_ii"),
+				new Source("Monster Manual II", "monster_manual_ii"),
 				new Source("Monster Manual III", "monster_manual_iii"),
-				//				new Source("Ptolus", "ptolus"),
-//				new Source("Cthulhu", "cthulhu")
+				new Source("Ptolus", "ptolus"),
+				new Source("Cthulhu", "cthulhu")
 		};
 
 		int blockCount = 0;
@@ -105,11 +109,32 @@ public class GetStatsBlock {
 		}
 
 		// get unique values for specified property
-//		List<String> sorted = new ArrayList<>(getUniqueValues(blocks, StatisticsBlock.Property.FULL_ATTACK));
+//		System.out.println("\nUnique values for " + StatisticsBlock.Field.ADVANCEMENT + ":");
+//		List<String> sorted = new ArrayList<>(getUniqueValues(blocks, StatisticsBlock.Field.ADVANCEMENT));
+//		if (sorted.contains(null)) sorted.remove(null);
 //		Collections.sort(sorted);
 //		for (String value : sorted) {
 //			System.out.println("'" + value + "'");
 //		}
+
+		// check HD advancement
+		System.out.println("\nBad values for " + Field.ADVANCEMENT + ":");
+		for (StatisticsBlock block : blocks) {
+			String value = block.get(Field.ADVANCEMENT);
+			List<HDAdvancement> ranges = StatisticsBlock.parseHDAdvancement(value);
+			if (ranges.size() > 0) {
+				StringBuilder s = new StringBuilder();
+				for (HDAdvancement range : ranges) {
+					if (s.length() > 0) s.append("; ");
+					s.append(range);
+				}
+//				if (!s.toString().equals(value.replace('–', '-').replaceAll("-size", "").replace(',', ';')))
+				if (ranges.size() > 2)
+					System.out.println(block.getName() + ": '" + value + "' != '" + s.toString() + "'");
+			} else {
+				//System.out.println("'" + value + "': no HD advancement");
+			}
+		}
 
 		//		for (StatisticsBlock block : blocks) {
 		//			String env = block.get(StatisticsBlock.Property.ENVIRONMENT);

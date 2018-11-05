@@ -29,7 +29,7 @@ public class AC extends Statistic implements StatisticsCollection {
 	protected final Statistic flatFootedAC;
 	LimitModifier dexMod = null;
 
-	public AC(AbilityScore dex, PropertyCollection parent) {
+	public AC(AbilityScore dex, Size size, PropertyCollection parent) {
 		super("ac", "AC", parent);
 
 		naturalArmor = new Statistic("ac.natural_armor", "Natural Armor", parent);
@@ -43,6 +43,7 @@ public class AC extends Statistic implements StatisticsCollection {
 			addModifier(dexMod);
 		}
 
+		addModifier(size.getSizeModifier());
 //		naturalArmor.addPropertyListener((source, oldValue) -> fireEvent());	// FIXME hierarchy might mean events are forwarded though this AC instance anyway
 	}
 
