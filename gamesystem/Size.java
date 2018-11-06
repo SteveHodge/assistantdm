@@ -126,7 +126,7 @@ public class Size extends Statistic {
 		public String toString() {
 			StringBuilder s = new StringBuilder();
 			if (getModifier() >= 0) s.append("+");
-			s.append(getModifier()).append(" size modifier");
+			s.append(getModifier()).append(" Size modifier");
 			return s.toString();
 		}
 	};

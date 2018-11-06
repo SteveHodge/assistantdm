@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -17,13 +18,16 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.View;
 
+import monsters.EncounterDialog.MonsterData;
 import monsters.StatisticsBlock.Field;
 
 @SuppressWarnings("serial")
 class StatsBlockPanel extends JPanel {
 	private StatsBlockCreatureView creature;
+	private MonsterData monsterData;
 	private JLabel[] labels;
 	private JLabel[] fields;
+	private JLabel[] icons;
 	private int selected = -1;
 	private Color selectedBackground = Color.BLUE;
 	private Color selectedForeground = Color.WHITE;
@@ -31,7 +35,7 @@ class StatsBlockPanel extends JPanel {
 
 	private EventListenerList listenerList = new EventListenerList();
 
-	StatsBlockPanel(Monster m) {
+	StatsBlockPanel(Monster m, MonsterData d) {
 		setLayout(new GridBagLayout());
 
 		int i = 0;
@@ -44,10 +48,12 @@ class StatsBlockPanel extends JPanel {
 			stripe = !stripe;
 		}
 
-		stripe = false;
 		fields = new JLabel[labels.length];
+		icons = new JLabel[labels.length];
+		stripe = false;
 		for (i = 0; i < labels.length; i++) {
 			fields[i] = createLabel("", stripe);
+			icons[i] = createLabel("", stripe);
 			stripe = !stripe;
 		}
 
@@ -64,26 +70,34 @@ class StatsBlockPanel extends JPanel {
 			add(l, c);
 		}
 
+		c.gridx = 2;
+		c.weightx = 0;
+		for (JLabel l : icons) {
+			add(l, c);
+		}
+
 		// padding after the grid for any extra space
 		c.gridx = 0;
 		c.weighty = 1.0d;
-		c.gridwidth = 2;
+		c.gridwidth = 3;
 		add(new JPanel(), c);
 
-		setCreature(m);
+		setCreature(m, d);
 		setSelected(0);
 	}
 
-	void setCreature(Monster m) {
+	void setCreature(Monster m, MonsterData d) {
 		if (creature != null) {
 			creature.removePropertyChangeListener(listener);
 		}
 
 		if (m != null) {
 			creature = StatsBlockCreatureView.getView(m);
+			monsterData = d;
 			creature.addPropertyChangeListener(listener);
 		} else {
 			creature = null;
+			monsterData = null;
 		}
 
 		updateFields();
@@ -97,6 +111,7 @@ class StatsBlockPanel extends JPanel {
 				fields[i].setText("");
 				fields[i].setPreferredSize(labels[i].getPreferredSize());
 				fields[i].setMinimumSize(labels[i].getMinimumSize());
+				icons[i].setText("");
 			}
 			return;
 		}
@@ -104,8 +119,8 @@ class StatsBlockPanel extends JPanel {
 		int i = 0;
 		fields[i++].setText(creature.getName());
 		fields[i++].setText(creature.getMonsterName());
-		for (Field p : Field.getStandardOrder()) {
-			fields[i].setText("<html><body>" + creature.getField(p) + "</body></html>");
+		for (Field field : Field.getStandardOrder()) {
+			fields[i].setText("<html><body>" + creature.getField(field) + "</body></html>");
 
 			// determine the required size to fit the wrapped html text
 			View view = (View) fields[i].getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
@@ -115,6 +130,29 @@ class StatsBlockPanel extends JPanel {
 
 			fields[i].setPreferredSize(d);
 			fields[i].setMinimumSize(d);
+
+			List<Object> notes = monsterData.notes.get(field);
+			if (notes != null && notes.size() > 0) {
+				icons[i].setText("<html><b>!</b></html>");
+			} else {
+				icons[i].setText("");
+			}
+
+			i++;
+		}
+	}
+
+	void updateIcons() {
+		if (creature == null) return;
+
+		int i = 2;
+		for (Field field : Field.getStandardOrder()) {
+			List<Object> notes = monsterData.notes.get(field);
+			if (notes != null && notes.size() > 0) {
+				icons[i].setText("<html><b>*</b></html>");
+			} else {
+				icons[i].setText("");
+			}
 
 			i++;
 		}
@@ -147,6 +185,7 @@ class StatsBlockPanel extends JPanel {
 
 								fields[i].setPreferredSize(d);
 								fields[i].setMinimumSize(d);
+								StatsBlockPanel.this.revalidate();
 							}
 							i++;
 						}
@@ -163,6 +202,7 @@ class StatsBlockPanel extends JPanel {
 		if (selected != -1) {
 			labels[selected].setForeground(c);
 			fields[selected].setForeground(c);
+			icons[selected].setForeground(c);
 		}
 	}
 
@@ -171,6 +211,7 @@ class StatsBlockPanel extends JPanel {
 		if (selected != -1) {
 			labels[selected].setBackground(c);
 			fields[selected].setBackground(c);
+			icons[selected].setBackground(c);
 		}
 	}
 
@@ -193,6 +234,8 @@ class StatsBlockPanel extends JPanel {
 			labels[old].setBackground(oldBackground);
 			fields[old].setForeground(oldForeground);
 			fields[old].setBackground(oldBackground);
+			icons[old].setForeground(oldForeground);
+			icons[old].setBackground(oldBackground);
 		}
 
 		selected = row;
@@ -202,6 +245,8 @@ class StatsBlockPanel extends JPanel {
 		labels[selected].setBackground(selectedBackground);
 		fields[selected].setForeground(selectedForeground);
 		fields[selected].setBackground(selectedBackground);
+		icons[selected].setForeground(selectedForeground);
+		icons[selected].setBackground(selectedBackground);
 
 		fireListSelectionEvent(old, selected);
 	}

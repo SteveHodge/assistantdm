@@ -1,5 +1,6 @@
 ---=== IN PROGRESS ===---
-* MOSTLY DONE: Advance monster by hit dice: flag fields that need updates (skills, abilities, feats), auto update where possible including CR, size. Still to do: CR, hitpoints, damage. Flag fields needing attention.
+* MOSTLY DONE: Advance monster by hit dice: Still to do: CR, hitpoints, damage.
+* Should be a way to dismiss notes against stats block fields
 * Bug: HD panel doesn't update if HD is changed on monster
 * Monster library needs to check for dupes and confirm replacement.
 * Fix editing initiative, saves fields: editing edits base but shows total. Either have custom edit panel a la abilities, or reparse edited value a la attacks, or allow both. 

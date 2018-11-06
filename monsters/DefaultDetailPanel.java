@@ -14,13 +14,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import gamesystem.SavingThrow;
+import monsters.EncounterDialog.MonsterData;
 import monsters.Monster.MonsterAttackForm;
 import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock.Field;
 
 @SuppressWarnings("serial")
 public class DefaultDetailPanel extends DetailPanel {
-	private Monster creature;	// TODO remove eventually - should be able to just use the view
+	private Monster monster;	// TODO remove eventually - should be able to just use the view
+	private MonsterData monsterData;
 	private StatsBlockCreatureView view;
 	private Field field;
 
@@ -101,17 +103,18 @@ public class DefaultDetailPanel extends DetailPanel {
 	}
 
 	@Override
-	void setMonster(Monster m) {
-		if (creature == m) return;
+	void setMonster(Monster m, MonsterData d) {
+		if (monster == m) return;
 
-		if (creature != null) {
+		if (monster != null) {
 			view.removePropertyChangeListener(listener);
 		}
 
-		creature = m;
+		monster = m;
+		monsterData = d;
 
-		if (creature != null) {
-			view = StatsBlockCreatureView.getView(creature);
+		if (monster != null) {
+			view = StatsBlockCreatureView.getView(monster);
 			view.addPropertyChangeListener(listener);
 			// add listener
 		}
@@ -127,7 +130,7 @@ public class DefaultDetailPanel extends DetailPanel {
 	};
 
 	private void update() {
-		if (creature != null) {
+		if (monster != null) {
 			String val = view.getField(field);
 			if (val.startsWith("<b>")) val = val.substring(3, val.length() - 4);	// TODO remove when no longer required
 			textArea.setText(val);
@@ -152,9 +155,9 @@ public class DefaultDetailPanel extends DetailPanel {
 
 	private String getCalculationSummary() {
 		if (field == Field.INITIATIVE) {
-			return creature.getInitiativeStatistic().getSummary();
+			return monster.getInitiativeStatistic().getSummary();
 		} else if (field == Field.AC) {
-			return creature.getACStatistic().getSummary();
+			return monster.getACStatistic().getSummary();
 //		} else if (field == Field.ABILITIES) {
 //			for (AbilityScore.Type t : AbilityScore.Type.values()) {
 //				AbilityScore score = creature.getAbilityStatistic(t);
@@ -162,7 +165,7 @@ public class DefaultDetailPanel extends DetailPanel {
 		} else if (field == Field.SAVES) {
 			StringBuilder b = new StringBuilder();
 			for (SavingThrow.Type t : SavingThrow.Type.values()) {
-				SavingThrow save = creature.getSavingThrowStatistic(t);
+				SavingThrow save = monster.getSavingThrowStatistic(t);
 				b.append(t.toString()).append(": ");
 				if (save != null) {
 					b.append(save.getSummary());
@@ -176,10 +179,10 @@ public class DefaultDetailPanel extends DetailPanel {
 //			return creature.getHPStatistic().getSummary();
 //			creature.getHPStatistic().getMaxHPStat()
 		} else if (field == Field.SIZE_TYPE) {
-			return creature.getSizeStatistic().getSummary();
+			return monster.getSizeStatistic().getSummary();
 		} else if (field == Field.ATTACK) {
 			StringBuilder b = new StringBuilder();
-			for (MonsterAttackRoutine r : creature.attackList) {
+			for (MonsterAttackRoutine r : monster.attackList) {
 				for (MonsterAttackForm f : r.attackForms) {
 					b.append(f.description).append(": ");
 					b.append(f.attack.getSummary()).append("<br/>");
@@ -189,7 +192,7 @@ public class DefaultDetailPanel extends DetailPanel {
 		} else if (field == Field.FULL_ATTACK) {
 			// TODO should filter out repeated attack forms
 			StringBuilder b = new StringBuilder();
-			for (MonsterAttackRoutine r : creature.fullAttackList) {
+			for (MonsterAttackRoutine r : monster.fullAttackList) {
 				for (MonsterAttackForm f : r.attackForms) {
 					b.append(f.description).append(": ");
 					if (f.attack != null)
@@ -202,8 +205,8 @@ public class DefaultDetailPanel extends DetailPanel {
 			return b.toString();
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
 			StringBuilder b = new StringBuilder();
-			b.append("BAB: ").append(creature.getBAB().toString()).append("<br/>");
-			b.append("Grapple: ").append(creature.getGrappleModifier().getSummary());
+			b.append("BAB: ").append(monster.getBAB().toString()).append("<br/>");
+			b.append("Grapple: ").append(monster.getGrappleModifier().getSummary());
 			return b.toString();
 		}
 		return null;

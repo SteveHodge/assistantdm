@@ -23,6 +23,7 @@ import gamesystem.HPs;
 import gamesystem.core.PropertyListener;
 import gamesystem.dice.DiceList;
 import gamesystem.dice.HDDice;
+import monsters.EncounterDialog.MonsterData;
 
 
 // TODO hitdice should show con bonus as read-only and auto-adjust with change to con
@@ -207,7 +208,7 @@ class HitPointsPanel extends DetailPanel {
 	};
 
 	@Override
-	void setMonster(Monster m) {
+	void setMonster(Monster m, MonsterData d) {
 		if (creature == m) return;
 
 		if (creature != null) {

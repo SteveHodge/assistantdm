@@ -39,6 +39,7 @@ import gamesystem.BuffFactory;
 import gamesystem.SizeCategory;
 import gamesystem.core.PropertyListener;
 import monsters.EncounterDialog.MonsterData;
+import monsters.StatisticsBlock.Field;
 import monsters.StatisticsBlock.HDAdvancement;
 import swing.ImagePanel;
 import util.XMLUtils;
@@ -46,7 +47,7 @@ import util.XMLUtils;
 @SuppressWarnings("serial")
 class NamePanel extends DetailPanel {
 	private Monster monster;
-	private MonsterData customisation;
+	private MonsterData monsterData;
 
 	private JTextField nameField;
 	private JCheckBox augSummonCheck;
@@ -57,13 +58,11 @@ class NamePanel extends DetailPanel {
 
 	// XXX shared from AddMonsterDialog - this is messy
 	private Map<StatisticsBlock, List<URL>> imageURLs;
-	private Map<Monster, MonsterData> customisations;
 
 	private static Buff augmentedSummoning = BuffFactory.AUGMENTED_SUMMONING.getBuff();
 
-	NamePanel(Map<StatisticsBlock, List<URL>> urls, Map<Monster, MonsterData> customisations) {
+	NamePanel(Map<StatisticsBlock, List<URL>> urls) {
 		imageURLs = urls;
-		this.customisations = customisations;
 
 		nameField = new JTextField(20);
 		nameField.getDocument().addDocumentListener(new DocumentListener() {
@@ -132,11 +131,11 @@ class NamePanel extends DetailPanel {
 		buttonPanel.add(imageButton);
 
 		prevImageButton = new JButton("<");
-		prevImageButton.addActionListener(e -> setSelectedImage(customisation.imageIndex - 1));
+		prevImageButton.addActionListener(e -> setSelectedImage(monsterData.imageIndex - 1));
 		buttonPanel.add(prevImageButton);
 
 		nextImageButton = new JButton(">");
-		nextImageButton.addActionListener(e -> setSelectedImage(customisation.imageIndex + 1));
+		nextImageButton.addActionListener(e -> setSelectedImage(monsterData.imageIndex + 1));
 		buttonPanel.add(nextImageButton);
 
 		JButton libraryButton = new JButton("Save to Library");
@@ -194,7 +193,7 @@ class NamePanel extends DetailPanel {
 	}
 
 	@Override
-	void setMonster(Monster m) {
+	void setMonster(Monster m, MonsterData d) {
 //		System.out.println("NamePanel.setMonster('" + m.getName() + "')");
 		if (monster == m) return;
 		if (monster != null) {
@@ -202,12 +201,12 @@ class NamePanel extends DetailPanel {
 			monster.removePropertyListener("name", listener);
 		}
 		monster = m;
+		monsterData = d;
 		if (m != null) {
-			customisation = customisations.get(monster);
 			nameField.setEnabled(true);
 			nameField.setText(m.getName());
 			monster.addPropertyListener("name", listener);
-			setSelectedImage(customisation.imageIndex);
+			setSelectedImage(monsterData.imageIndex);
 
 			augSummonCheck.setSelected(false);
 			ListModel<Buff> buffs = monster.getBuffListModel();
@@ -216,10 +215,10 @@ class NamePanel extends DetailPanel {
 				if (augmentedSummoning == b) augSummonCheck.setSelected(true);
 			}
 
-			if (customisation.hdAdvancements.size() > 0) {
+			if (monsterData.hdAdvancements.size() > 0) {
 				// expects the hdAdvancement list to be ordered, and to have an entry for the standard hd and size first
-				int max = customisation.hdAdvancements.get(customisation.hdAdvancements.size() - 1).maxHD;
-				int min = customisation.hdAdvancements.get(0).minHD;
+				int max = monsterData.hdAdvancements.get(monsterData.hdAdvancements.size() - 1).maxHD;
+				int min = monsterData.hdAdvancements.get(0).minHD;
 				int initial = monster.race.getHitDiceCount();	// XXX this is probably pretty fragile given the user could manually modify hitdice
 				SpinnerNumberModel spinnerModel = new SpinnerNumberModel(initial, min, max, 1);
 				spinnerModel.addChangeListener(e -> advanceHD(spinnerModel));
@@ -260,7 +259,7 @@ class NamePanel extends DetailPanel {
 	void advanceHD(SpinnerNumberModel spinnerModel) {
 		int newHD = (Integer) spinnerModel.getNumber();
 		SizeCategory newSize = null;
-		for (HDAdvancement adv : customisation.hdAdvancements) {
+		for (HDAdvancement adv : monsterData.hdAdvancements) {
 			if (adv.minHD <= newHD && adv.maxHD >= newHD) {
 				newSize = adv.size;
 			}
@@ -277,8 +276,8 @@ class NamePanel extends DetailPanel {
 			// * possible ability score
 			// cr
 			int oldHD = monster.race.getHitDiceCount();
+			AdvancementNote.addNoteForChange(monsterData, Field.ABILITIES, newHD / 4 - oldHD / 4, "point");
 			AbilityScore intScore = monster.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE);
-			int statIncreases = newHD / 4 - oldHD / 4;
 			int extraFeats = newHD / 3 - oldHD / 3;
 			int skillPoints = monster.race.getType().getSkillPoints();
 			if (intScore == null) {
@@ -290,7 +289,9 @@ class NamePanel extends DetailPanel {
 				if (skillPoints < 0) skillPoints = 0;	// shouldn't really happen as it's odd to advance a monster with int 0 and is therefore unconscious
 			}
 			skillPoints *= (newHD - oldHD);
-			System.out.println("Extra ability points = " + statIncreases + ", extra feats = " + extraFeats + ", extra skills = " + skillPoints);
+			AdvancementNote.addNoteForChange(monsterData, Field.FEATS, extraFeats, "feat");
+			AdvancementNote.addNoteForChange(monsterData, Field.SKILLS, skillPoints, "skill point");
+
 			monster.race.setHitDiceCount(newHD);
 			int sizeChange = newSize.ordinal() - monster.size.getBaseSize().ordinal();
 			if (sizeChange != 0) {
@@ -321,6 +322,48 @@ class NamePanel extends DetailPanel {
 		}
 	}
 
+	static private class AdvancementNote {
+		int number;
+		String type;
+
+		static void addNoteForChange(MonsterData monsterData, Field f, int change, String type) {
+			if (change == 0) return;
+			AdvancementNote note = null;
+
+			// find existing note, if any
+			List<Object> notes = monsterData.notes.get(f);
+			if (notes != null) {
+				for (Object n : notes) {
+					if (n instanceof AdvancementNote) {
+						note = (AdvancementNote) n;
+						break;
+					}
+				}
+			}
+
+			if (note == null) {
+				note = new AdvancementNote();
+				note.number = change;
+				note.type = type;
+			} else {
+				notes.remove(note);	// we remove and replace the note to trigger repainting
+				note.number += change;
+			}
+			if (note.number != 0)	// might be zero if we're adjusting an existing note
+				monsterData.addNote(f, note);
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder text = new StringBuilder();
+			text.append(number > 0 ? "Add " : "Subtract ");
+			text.append(number).append(" ").append(type);
+			if (number > 1) text.append("s");
+			text.append(" due to HD advancement");
+			return text.toString();
+		}
+	}
+
 	private void advanceAbility(AbilityScore.Type type, int delta) {
 		AbilityScore ability = monster.getAbilityStatistic(type);
 		if (ability == null) return;
@@ -333,7 +376,7 @@ class NamePanel extends DetailPanel {
 		List<URL> urls = imageURLs.get(monster.statisticsBlock);
 		if (index < 0) index = 0;
 		if (index >= urls.size()) index = urls.size() - 1;
-		customisation.imageIndex = index;
+		monsterData.imageIndex = index;
 		BufferedImage image = null;
 		if (index >= 0) {
 			URL url = urls.get(index);

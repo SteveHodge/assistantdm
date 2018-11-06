@@ -13,6 +13,7 @@ import javax.swing.event.ChangeListener;
 import gamesystem.AbilityScore;
 import gamesystem.Creature;
 import gamesystem.core.PropertyListener;
+import monsters.EncounterDialog.MonsterData;
 
 
 @SuppressWarnings("serial")
@@ -56,7 +57,7 @@ class AbilitiesPanel extends DetailPanel {
 	}
 
 	@Override
-	void setMonster(Monster m) {
+	void setMonster(Monster m, MonsterData d) {
 		if (monster == m) return;
 
 		if (monster != null) {

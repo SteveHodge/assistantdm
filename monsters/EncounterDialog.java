@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -90,6 +91,7 @@ public class EncounterDialog extends JFrame {
 	class MonsterData {
 		int imageIndex = -1;	// -1 = no image
 		List<HDAdvancement> hdAdvancements;
+		Map<Field, List<Object>> notes = new HashMap<>();
 
 		MonsterData(Monster m) {
 			StatsBlockCreatureView view = StatsBlockCreatureView.getView(m);
@@ -99,7 +101,18 @@ public class EncounterDialog extends JFrame {
 				int hd = m.hitDice.getHitDiceCount();
 				hdAdvancements.add(0, new HDAdvancement(hd, hd, m.size.getBaseSize()));
 			}
-			System.out.println(m.getName() + " hdAdvancements = " + hdAdvancements);
+//			System.out.println(m.getName() + " hdAdvancements = " + hdAdvancements);
+		}
+
+		void addNote(Field f, Object note) {
+			List<Object> fieldNotes = notes.get(f);
+			if (fieldNotes == null) {
+				fieldNotes = new ArrayList<>();
+				notes.put(f, fieldNotes);
+			}
+			fieldNotes.add(note);
+			notesPanel.updateNotes();
+			statsPanel.updateIcons();
 		}
 	}
 
@@ -159,7 +172,7 @@ public class EncounterDialog extends JFrame {
 			imageURLs.put(s, urls);
 		}
 
-		NamePanel namePanel = new NamePanel(imageURLs, monsterData);
+		NamePanel namePanel = new NamePanel(imageURLs);
 		detailPanels.put(Field.NAME, namePanel);
 		detailPanels.put(Field.ABILITIES, new AbilitiesPanel());
 		detailPanels.put(Field.HITDICE, new HitPointsPanel());
@@ -183,7 +196,7 @@ public class EncounterDialog extends JFrame {
 		monsterList.setSelectedIndex(0);
 		monsterList.addListSelectionListener(e -> updateFields());
 
-		statsPanel = new StatsBlockPanel(selected);
+		statsPanel = new StatsBlockPanel(selected, monsterData.get(selected));
 		statsPanel.setSelectionForeground(monsterList.getSelectionForeground());
 		statsPanel.setSelectionBackground(monsterList.getSelectionBackground());
 		statsPanel.addListSelectionListener(e -> updateFields());
@@ -277,7 +290,7 @@ public class EncounterDialog extends JFrame {
 		add(buttons, BorderLayout.NORTH);
 
 		for (DetailPanel dp : detailPanels.values()) {
-			dp.setMonster(selected);
+			dp.setMonster(selected, monsterData.get(selected));
 		}
 		updateFields();
 		namePanel.setSelectedImage(0);
@@ -488,9 +501,9 @@ public class EncounterDialog extends JFrame {
 
 		if (m != selected) {
 			selected = m;
-			statsPanel.setCreature(selected);
+			statsPanel.setCreature(selected, monsterData.get(selected));
 			for (DetailPanel p : detailPanels.values()) {
-				p.setMonster(selected);
+				p.setMonster(selected, monsterData.get(selected));
 			}
 
 			if (selected == null) {
@@ -525,9 +538,8 @@ public class EncounterDialog extends JFrame {
 		JLabel sourceDetails = new JLabel();
 
 		NotesPanel() {
-			add(sourceLabel);
-			add(sourceDetails);
-
+			setBorder(BorderFactory.createTitledBorder("Notes"));
+			setLayout(new GridBagLayout());
 			// code from old defaultdetailspanel to limit label length:
 //			sourceLabel = new JLabel("") {
 //				@Override
@@ -556,22 +568,36 @@ public class EncounterDialog extends JFrame {
 		}
 
 		void updateNotes() {
-			if (monster == null) {
-				sourceLabel.setVisible(false);
-				sourceDetails.setVisible(false);
-				return;
+			removeAll();
+			if (monster == null) return;
+
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridwidth = 2;
+			c.weightx = 1.0d;
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.gridx = 0;
+
+			// show any notes
+			List<Object> notes = monsterData.get(monster).notes.get(field);
+			if (notes != null) {
+				for (Object note : notes) {
+					add(new JLabel(note.toString()), c);
+				}
 			}
+
+			// show source if the current field value is different
 			StatisticsBlock blk = selected.statisticsBlock;
 			if (blk != null) {
 				String source = blk.get(field);
 				String now = view.getField(field, false);
 				if (!view.isEquivalent(field, now)) {
-					sourceLabel.setVisible(true);
-					sourceDetails.setVisible(true);
 					sourceDetails.setText("<html>" + source + "</html>");
-				} else {
-					sourceLabel.setVisible(false);
-					sourceDetails.setVisible(false);
+					c.gridwidth = 1;
+					c.weightx = 0.0d;
+					add(sourceLabel, c);
+					c.gridx = 1;
+					c.weightx = 1.0d;
+					add(sourceDetails, c);
 				}
 			}
 		}
