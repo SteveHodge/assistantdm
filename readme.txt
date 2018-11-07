@@ -1,6 +1,5 @@
 ---=== IN PROGRESS ===---
-* MOSTLY DONE: Advance monster by hit dice: Still to do: hitpoints, damage.
-* Bug: HD panel doesn't update if HD is changed on monster
+* Damage should be adjusted for size changes during HD advancement
 * Monster library needs to check for dupes and confirm replacement.
 * Fix editing initiative, saves fields: editing edits base but shows total. Either have custom edit panel a la abilities, or reparse edited value a la attacks, or allow both. 
 * Implement editing for BAB/Grapple, Spec. Qualities, Feats, Space/Reach.

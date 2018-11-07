@@ -574,20 +574,14 @@ public class EncounterDialog extends JFrame {
 			if (monster == null) return;
 
 			GridBagConstraints c = new GridBagConstraints();
+			c.fill = GridBagConstraints.HORIZONTAL;
 
 			// show any notes
 			List<Object> notes = monsterData.get(monster).notes.get(field);
 			if (notes != null) {
-				c.gridwidth = 2;
-				c.weightx = 1.0d;
-				c.fill = GridBagConstraints.HORIZONTAL;
-				c.gridx = 0;
-				for (Object note : notes) {
-					add(new JLabel(note.toString()), c);
-				}
 				c.gridwidth = 1;
 				c.weightx = 0;
-				c.gridx = 2;
+				c.gridx = 0;
 				for (Object note : notes) {
 					JCheckBox check = new JCheckBox();
 					check.addActionListener(e -> {
@@ -599,6 +593,13 @@ public class EncounterDialog extends JFrame {
 					});
 					add(check, c);
 				}
+
+				c.gridwidth = 2;
+				c.weightx = 1.0d;
+				c.gridx = 1;
+				for (Object note : notes) {
+					add(new JLabel(note.toString()), c);
+				}
 			}
 
 			// show source if the current field value is different
@@ -608,12 +609,13 @@ public class EncounterDialog extends JFrame {
 				String now = view.getField(field, false);
 				if (!view.isEquivalent(field, now)) {
 					sourceDetails.setText("<html>" + source + "</html>");
-					c.gridwidth = 1;
-					c.weightx = 0.0d;
-					add(sourceLabel, c);
-					c.gridx = 1;
-					c.weightx = 1.0d;
 					c.gridwidth = 2;
+					c.weightx = 0.0d;
+					c.gridx = 0;
+					add(sourceLabel, c);
+					c.gridx = 2;
+					c.weightx = 1.0d;
+					c.gridwidth = 1;
 					add(sourceDetails, c);
 				}
 			}

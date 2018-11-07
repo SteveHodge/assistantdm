@@ -32,8 +32,9 @@ import monsters.EncounterDialog.MonsterData;
 @SuppressWarnings("serial")
 class HitPointsPanel extends DetailPanel {
 	private Monster creature;
-	private HPs hps;				// cached copy from creature
-	private DiceList<HDDice> hitdice;		// cached copy from creature
+	private HPs hps;					// cached copy from creature
+	private List<HDDice> hitdice;		// cached copy from creature
+	private DiceList<HDDice> diceList;	// DiceList version of hitdice
 
 	private JTextField hitDiceField;
 	private Color defaultBG;
@@ -53,10 +54,10 @@ class HitPointsPanel extends DetailPanel {
 		hitDiceField.addActionListener(evt -> {
 			String s = hitDiceField.getText();
 			try {
-				List<HDDice> test = HDDice.parseList(s);
+				hitdice = HDDice.parseList(s);
 				if (creature != null) {
-					hitdice = DiceList.fromList(test);
-					creature.hitDice.setHitDice(test);	// will fire property change that will trigger update
+					diceList = DiceList.fromList(hitdice);
+					creature.hitDice.setHitDice(hitdice);	// will fire property change that will trigger update
 				}
 				hitDiceField.setBackground(defaultBG);
 			} catch(Exception e) {
@@ -72,8 +73,8 @@ class HitPointsPanel extends DetailPanel {
 				//TODO some type checking should be done
 				if (creature != null) {
 					int value = (Integer) hitPointsField.getValue();
-					if (value < hitdice.getMinimum()) value = hitdice.getMinimum();
-					if (value > hitdice.getMaximum()) value = hitdice.getMaximum();
+					if (value < diceList.getMinimum()) value = diceList.getMinimum();
+					if (value > diceList.getMaximum()) value = diceList.getMaximum();
 					hps.getMaxHPStat().addOverride(value);
 				}
 			}
@@ -146,8 +147,8 @@ class HitPointsPanel extends DetailPanel {
 
 				@Override
 				public void mousePressed(MouseEvent e) {
-					int len = hitdice.getMaximum() - hitdice.getMinimum() + 1;
-					int hps = e.getX() * len / getSize().width + hitdice.getMinimum();
+					int len = diceList.getMaximum() - diceList.getMinimum() + 1;
+					int hps = e.getX() * len / getSize().width + diceList.getMinimum();
 					creature.getHPStatistic().getMaxHPStat().addOverride(hps);	// TODO this should set the per-level/race rolls
 				}
 			});
@@ -164,13 +165,13 @@ class HitPointsPanel extends DetailPanel {
 
 			if (creature == null) return;
 
-			int first = hitdice.getNumber();
-			int length = hitdice.getMaximum() - hitdice.getModifier() + 1;
+			int first = diceList.getNumber();
+			int length = diceList.getMaximum() - diceList.getModifier() + 1;
 			int possTotals = length - first;
 
-			BigInteger max = hitdice.getCombinations(first);
+			BigInteger max = diceList.getCombinations(first);
 			for (int i = first; i < length; i++) {
-				if (hitdice.getCombinations(i) != null && hitdice.getCombinations(i).compareTo(max) > 0) max = hitdice.getCombinations(i);
+				if (diceList.getCombinations(i) != null && diceList.getCombinations(i).compareTo(max) > 0) max = diceList.getCombinations(i);
 			}
 //			max = max.subtract(BigInteger.ONE);
 
@@ -184,9 +185,9 @@ class HitPointsPanel extends DetailPanel {
 				int y;
 				if (max.equals(BigInteger.ONE)) {
 					// no result has more than one combination - we'll draw 1 combination results as a bar 3/4 of the height of the graph
-					y = d.height - 1 - hitdice.getCombinations(i).multiply(BigInteger.valueOf(3 * (d.height - 1))).divide(BigInteger.valueOf(4)).intValue();
+					y = d.height - 1 - diceList.getCombinations(i).multiply(BigInteger.valueOf(3 * (d.height - 1))).divide(BigInteger.valueOf(4)).intValue();
 				} else {
-					y = d.height - 1 - hitdice.getCombinations(i).multiply(BigInteger.valueOf(d.height - 1)).divide(max).intValue();
+					y = d.height - 1 - diceList.getCombinations(i).multiply(BigInteger.valueOf(d.height - 1)).divide(max).intValue();
 				}
 				p.addPoint(prevX, y);
 				p.addPoint(x, y);
@@ -199,7 +200,7 @@ class HitPointsPanel extends DetailPanel {
 			g.setColor(Color.RED);
 			g.drawPolygon(p);
 
-			int hps = creature.getHPStatistic().getMaxHPStat().getValue() - hitdice.getModifier();
+			int hps = creature.getHPStatistic().getMaxHPStat().getValue() - diceList.getModifier();
 			int minx = ((hps - first) * d.width) / possTotals;
 			int maxx = ((hps - first + 1) * d.width) / possTotals;
 			g.setColor(new Color(0f, 0f, 1f, 0.5f));
@@ -213,6 +214,7 @@ class HitPointsPanel extends DetailPanel {
 
 		if (creature != null) {
 			hps.removePropertyListener(hpListener);
+			creature.getHitDice().removePropertyListener(hpListener);
 		}
 
 		creature = m;
@@ -220,7 +222,9 @@ class HitPointsPanel extends DetailPanel {
 		if (creature != null) {
 			hps = creature.getHPStatistic();
 			hps.addPropertyListener(hpListener);
-			hitdice = DiceList.fromList(creature.getHitDice().getValue());
+			hitdice = creature.getHitDice().getValue();
+			diceList = DiceList.fromList(hitdice);
+			creature.getHitDice().addPropertyListener(hpListener);
 		} else {
 			hps = null;
 		}
@@ -232,14 +236,22 @@ class HitPointsPanel extends DetailPanel {
 
 	private void update() {
 		if (creature != null) {
+			List<HDDice> newHD = creature.getHitDice().getValue();
+			List<HDDice> diff = HDDice.difference(hitdice, newHD);
+			if (!diff.isEmpty()) {
+				// HD change
+				hitdice = newHD;
+				diceList = DiceList.fromList(hitdice);
+				setHPs();
+			}
 			int maxHPs = hps.getMaxHPStat().getValue();
-			hitDiceField.setText(hitdice.toString());
+			hitDiceField.setText(diceList.toString());
 			hitPointsField.setValue(new Integer(maxHPs));
-			hpRangeLabel.setText("(" + hitdice.getMinimum() + " - " + hitdice.getMaximum() + ")");
-			double stdDev = hitdice.getStdDeviation();
-			double devs = Math.abs(maxHPs - hitdice.getMeanRoll()) / stdDev;
-			statsLabel.setText(String.format("%dth percentile, %.2f standard deviations (std dev = %.2f)", getPercentile(maxHPs, hitdice), devs, stdDev));
-			averageHPsButton.setText("Fixed average (" + hitdice.getMeanRoll() + ")");
+			hpRangeLabel.setText("(" + diceList.getMinimum() + " - " + diceList.getMaximum() + ")");
+			double stdDev = diceList.getStdDeviation();
+			double devs = Math.abs(maxHPs - diceList.getMeanRoll()) / stdDev;
+			statsLabel.setText(String.format("%dth percentile, %.2f standard deviations (std dev = %.2f)", getPercentile(maxHPs, diceList), devs, stdDev));
+			averageHPsButton.setText("Fixed average (" + diceList.getMeanRoll() + ")");
 		} else {
 			hitDiceField.setText("");
 			hitPointsField.setValue(new Integer(0));
@@ -276,11 +288,11 @@ class HitPointsPanel extends DetailPanel {
 	private void setHPs() {
 		int newVal = 0;
 		if (averageHPsButton.isSelected()) {
-			newVal = (int) hitdice.getMeanRoll();
+			newVal = (int) diceList.getMeanRoll();
 		} else if (rollHPsButton.isSelected()) {
-			newVal = hitdice.roll();
+			newVal = diceList.roll();
 		} else if (minHalfHPsButton.isSelected()) {
-			newVal = hitdice.rollMinHalf();
+			newVal = diceList.rollMinHalf();
 		}
 		hps.getMaxHPStat().addOverride(newVal);	//TODO this should set the pre-level/race rolls
 	}

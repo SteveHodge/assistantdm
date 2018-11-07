@@ -57,7 +57,7 @@ public class StatsBlockCreatureView {
 			// XXX seem to need to invokeLater() but I don't think it should be necessary
 			// TODO recheck without invokeLater - perhaps the issue was caused by multiple view instances
 			String source = e.source.getName();
-			System.out.println("StatsBlockCreatureView property listener: Update to " + e.source + " (name = '" + source + "') to '" + e.source.getValue() + "'");
+			//System.out.println("StatsBlockCreatureView property listener: Update for '" + source + "' to '" + e.source.getValue() + "'");
 
 			pcs.firePropertyChange(source, null, e.source.getValue());	// XXX necessary?
 
@@ -73,7 +73,7 @@ public class StatsBlockCreatureView {
 				pcs.firePropertyChange(Field.SAVES.name(), null, getField(Field.SAVES));
 			} else if (e.source.equals(creature.getSizeStatistic())) {
 				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
-			} else if (e.source.equals(creature.getHPStatistic()) || e.source.equals(creature.getHPStatistic().getMaxHPStat())) {
+			} else if (e.source.equals(creature.getHPStatistic()) || e.source.equals(creature.getHPStatistic().getMaxHPStat()) || e.source.equals(creature.getHitDice())) {
 				pcs.firePropertyChange(Field.HITDICE.name(), null, getField(Field.HITDICE));
 			} else if (e.source.equals(creature.getBAB())) {
 				pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
@@ -89,7 +89,7 @@ public class StatsBlockCreatureView {
 //					System.out.println("Update to field " + f + " (from " + fieldName + ")");
 					pcs.firePropertyChange(f.name(), null, e.source.getValue());
 				} else {
-					System.out.println("StatsBlockCreatureview Unused update to " + e.source);
+					//System.out.println("  ^ update was unused (source = [" + e.source + "])");
 				}
 			}
 		}));

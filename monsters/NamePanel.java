@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -154,6 +156,7 @@ class NamePanel extends DetailPanel {
 		});
 
 		hdPanel = new JPanel();
+		hdPanel.setLayout(new BoxLayout(hdPanel, BoxLayout.LINE_AXIS));
 
 		setLayout(new GridBagLayout());
 
@@ -175,11 +178,11 @@ class NamePanel extends DetailPanel {
 		add(augSummonCheck, c);
 
 		c.gridy++;
+		c.anchor = GridBagConstraints.WEST;
 		add(hdPanel, c);
 
 		c.gridy++;
 		c.fill = GridBagConstraints.NONE;
-		c.anchor = GridBagConstraints.WEST;
 		add(libraryButton, c);
 
 		c.gridy++;
@@ -224,7 +227,12 @@ class NamePanel extends DetailPanel {
 				SpinnerNumberModel spinnerModel = new SpinnerNumberModel(initial, min, max, 1);
 				spinnerModel.addChangeListener(e -> advanceHD(spinnerModel));
 				JSpinner hdSpinner = new JSpinner(spinnerModel);
+				Dimension size = hdSpinner.getMaximumSize();
+				size.width = 40;
+				hdSpinner.setMaximumSize(size);
+				hdPanel.add(new JLabel("Advance HD: "));
 				hdPanel.add(hdSpinner);
+				hdPanel.add(Box.createHorizontalGlue());
 			} else {
 				hdPanel.removeAll();
 			}
@@ -266,16 +274,10 @@ class NamePanel extends DetailPanel {
 			}
 		}
 		if (newSize != null) {
-			System.out.println("-------------Set HD to " + newHD + " -> size " + newSize);
-			// * possible size change -> str, dex, con, natural armor, ac, attack
-			// possible size change -> damage
-			// hit points
-			// * bab (automatic)
-			// * saves (automatic)
-			// * skills
-			// * feats
-			// * possible ability score
-			// cr
+			//System.out.println("-------------Set HD to " + newHD + " -> size " + newSize);
+			// handles HD advancement affecting hit points, bab (automatic), saves (automatic), skills, feats, possible ability score, cr,
+			// possible size change -> (affecting str, dex, con, natural armor, ac, attack, damage)
+			// not currently handled: damage due to size change (adds note)
 			int oldHD = monster.race.getHitDiceCount();
 			AdvancementNote.addNoteForChange(monsterData, Field.ABILITIES, newHD / 4 - oldHD / 4, "point");
 			AbilityScore intScore = monster.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE);
@@ -304,7 +306,7 @@ class NamePanel extends DetailPanel {
 				if (direction == -1) start--;
 				int end = newSize.ordinal();
 				if (direction == 1) end--;
-				System.out.println("Direction = " + direction + ", start = " + start + ", end = " + end);
+				//System.out.println("Direction = " + direction + ", start = " + start + ", end = " + end);
 				for (int i = start;; i += direction) {
 					SizeChangeMods mods = sizeChangeMods[i];
 					totalMods.strBonus += direction * mods.strBonus;
@@ -313,18 +315,20 @@ class NamePanel extends DetailPanel {
 					totalMods.naturalArmorBonus += direction * mods.naturalArmorBonus;
 					if (i == end) break;
 				}
-				System.out.println("Size change from " + monster.size.getBaseSize() + " to " + newSize + ", " + sizeChange + " steps");
-				System.out.println("  Str: " + totalMods.strBonus + ", Dex: " + totalMods.dexBonus + ", Con: " + totalMods.conBonus + ", NA: " + totalMods.naturalArmorBonus);
+				//System.out.println("Size change from " + monster.size.getBaseSize() + " to " + newSize + ", " + sizeChange + " steps");
+				//System.out.println("  Str: " + totalMods.strBonus + ", Dex: " + totalMods.dexBonus + ", Con: " + totalMods.conBonus + ", NA: " + totalMods.naturalArmorBonus);
 				monster.size.setBaseSize(newSize);
 				advanceAbility(AbilityScore.Type.STRENGTH, totalMods.strBonus);
 				advanceAbility(AbilityScore.Type.DEXTERITY, totalMods.dexBonus);
 				advanceAbility(AbilityScore.Type.CONSTITUTION, totalMods.conBonus);
 				monster.race.setNaturalArmor(monster.getACStatistic(), monster.race.getNaturalArmor() + totalMods.naturalArmorBonus);
+				monsterData.addNote(Field.ATTACK, "Damage should be updated to account for size change");
+				monsterData.addNote(Field.FULL_ATTACK, "Damage should be updated to account for size change");
 			}
 
 			// CR is based on the difference from the base creature. If we're advancing a creature with an already advanced stat block then there could be compounded rounding errors.
 			if (monster.statisticsBlock != null) {
-				System.out.println("Base CR = "+monster.statisticsBlock.get(Field.CR));
+				//System.out.println("Base CR = "+monster.statisticsBlock.get(Field.CR));
 				HDDice baseHD = monster.statisticsBlock.getRacialHD();
 				// XXX could check baseHD type vs racial type
 				int oldCRdelta = (oldHD - baseHD.getNumber()) / monster.race.getType().getCRProgression();
@@ -343,7 +347,7 @@ class NamePanel extends DetailPanel {
 				// XXX I think this probably isn't possible
 				monsterData.addNote(Field.CR, "Couldn't calculate advanced CR as no base statistics block exists");
 			}
-			System.out.println("-------------");
+			//System.out.println("-------------");
 		}
 	}
 
