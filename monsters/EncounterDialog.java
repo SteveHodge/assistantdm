@@ -26,6 +26,7 @@ import java.util.Map;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -37,6 +38,7 @@ import javax.swing.JSpinner;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -572,16 +574,30 @@ public class EncounterDialog extends JFrame {
 			if (monster == null) return;
 
 			GridBagConstraints c = new GridBagConstraints();
-			c.gridwidth = 2;
-			c.weightx = 1.0d;
-			c.fill = GridBagConstraints.HORIZONTAL;
-			c.gridx = 0;
 
 			// show any notes
 			List<Object> notes = monsterData.get(monster).notes.get(field);
 			if (notes != null) {
+				c.gridwidth = 2;
+				c.weightx = 1.0d;
+				c.fill = GridBagConstraints.HORIZONTAL;
+				c.gridx = 0;
 				for (Object note : notes) {
 					add(new JLabel(note.toString()), c);
+				}
+				c.gridwidth = 1;
+				c.weightx = 0;
+				c.gridx = 2;
+				for (Object note : notes) {
+					JCheckBox check = new JCheckBox();
+					check.addActionListener(e -> {
+						SwingUtilities.invokeLater(() -> {
+							monsterData.get(monster).notes.get(field).remove(note);
+							updateNotes();
+							statsPanel.updateIcons();
+						});
+					});
+					add(check, c);
 				}
 			}
 
@@ -597,6 +613,7 @@ public class EncounterDialog extends JFrame {
 					add(sourceLabel, c);
 					c.gridx = 1;
 					c.weightx = 1.0d;
+					c.gridwidth = 2;
 					add(sourceDetails, c);
 				}
 			}

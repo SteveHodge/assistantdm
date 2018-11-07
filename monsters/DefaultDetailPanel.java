@@ -185,7 +185,11 @@ public class DefaultDetailPanel extends DetailPanel {
 			for (MonsterAttackRoutine r : monster.attackList) {
 				for (MonsterAttackForm f : r.attackForms) {
 					b.append(f.description).append(": ");
-					b.append(f.attack.getSummary()).append("<br/>");
+					if (f.attack != null)
+						b.append(f.attack.getSummary());
+					else
+						b.append("ERROR getting attack");
+					b.append("<br/>");
 				}
 			}
 			return b.toString();
