@@ -1,6 +1,5 @@
 ---=== IN PROGRESS ===---
-* MOSTLY DONE: Advance monster by hit dice: Still to do: CR, hitpoints, damage.
-* Should be a way to dismiss notes against stats block fields
+* MOSTLY DONE: Advance monster by hit dice: Still to do: hitpoints, damage.
 * Bug: HD panel doesn't update if HD is changed on monster
 * Monster library needs to check for dupes and confirm replacement.
 * Fix editing initiative, saves fields: editing edits base but shows total. Either have custom edit panel a la abilities, or reparse edited value a la attacks, or allow both. 
@@ -30,7 +29,7 @@
 * Better handling of feats and skills with specific instances (knowledges, weapon focus, etc)
 * UI for adding skill type (really only need for specific instances)
 * Items - simple (template style) implementation done for armor, shields, and weapons
-* BUG: creatures with missing abilities, e.g. colour out of space
+* BUG: creatures with missing abilities, e.g. colour out of space - issue seems to be with attacks that can't be parsed correctly (crash fixed but parsing needs fixing)
 * Other feedback from website (spells cast etc)
 * Audit use of createOverrideIntegerField and look at moving other override controls to standard field (probably a new field type which only displays the override, not the total)
 * Enhance standard fields with tool tip?

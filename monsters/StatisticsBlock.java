@@ -404,6 +404,19 @@ public class StatisticsBlock {
 		return parseClassLevels(get(Field.CLASS_LEVELS));
 	}
 
+	public HDDice getRacialHD() {
+		List<HDDice> hd = getHitDice();
+		Map<CharacterClass, Integer> classLevels = getClassLevels();
+		for (CharacterClass c : classLevels.keySet()) {
+			List<HDDice> classHD = new ArrayList<HDDice>();
+			classHD.add(new HDDice(classLevels.get(c), c.getHitDiceType()));
+			hd = HDDice.difference(hd, classHD);
+		}
+		if (hd.size() == 0) return null;
+		if (hd.size() > 1) throw new IllegalArgumentException("Racial HD can't be determined from remaining HD: total = " + getHitDice() + ", non-class HD = " + hd);
+		return hd.get(0);
+	}
+
 	// parse HD advancement:
 	// pattern for a HD range is: "#-# Hd (size)" or "#+ HD (size)"
 	// multiple ranges can be separated by colon or semicolon

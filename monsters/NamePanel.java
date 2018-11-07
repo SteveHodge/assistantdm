@@ -38,6 +38,7 @@ import gamesystem.Buff;
 import gamesystem.BuffFactory;
 import gamesystem.SizeCategory;
 import gamesystem.core.PropertyListener;
+import gamesystem.dice.HDDice;
 import monsters.EncounterDialog.MonsterData;
 import monsters.StatisticsBlock.Field;
 import monsters.StatisticsBlock.HDAdvancement;
@@ -292,12 +293,14 @@ class NamePanel extends DetailPanel {
 			AdvancementNote.addNoteForChange(monsterData, Field.FEATS, extraFeats, "feat");
 			AdvancementNote.addNoteForChange(monsterData, Field.SKILLS, skillPoints, "skill point");
 
+			int oldSize = monster.size.getBaseSize().ordinal();
+
 			monster.race.setHitDiceCount(newHD);
 			int sizeChange = newSize.ordinal() - monster.size.getBaseSize().ordinal();
 			if (sizeChange != 0) {
 				int direction = sizeChange/Math.abs(sizeChange);
 				SizeChangeMods totalMods = new SizeChangeMods(0, 0, 0, 0);
-				int start = monster.size.getBaseSize().ordinal();
+				int start = oldSize;
 				if (direction == -1) start--;
 				int end = newSize.ordinal();
 				if (direction == 1) end--;
@@ -317,6 +320,28 @@ class NamePanel extends DetailPanel {
 				advanceAbility(AbilityScore.Type.DEXTERITY, totalMods.dexBonus);
 				advanceAbility(AbilityScore.Type.CONSTITUTION, totalMods.conBonus);
 				monster.race.setNaturalArmor(monster.getACStatistic(), monster.race.getNaturalArmor() + totalMods.naturalArmorBonus);
+			}
+
+			// CR is based on the difference from the base creature. If we're advancing a creature with an already advanced stat block then there could be compounded rounding errors.
+			if (monster.statisticsBlock != null) {
+				System.out.println("Base CR = "+monster.statisticsBlock.get(Field.CR));
+				HDDice baseHD = monster.statisticsBlock.getRacialHD();
+				// XXX could check baseHD type vs racial type
+				int oldCRdelta = (oldHD - baseHD.getNumber()) / monster.race.getType().getCRProgression();
+				int newCRdelta = (newHD - baseHD.getNumber()) / monster.race.getType().getCRProgression();
+				int baseSize = monster.statisticsBlock.getSize().ordinal();
+				int oldSizeCR = oldSize > baseSize && oldSize >= SizeCategory.LARGE.ordinal() ? 1 : 0;
+				int newSizeCR = monster.size.getBaseSize().ordinal() > baseSize && monster.size.getBaseSize().ordinal() >= SizeCategory.LARGE.ordinal() ? 1 : 0;
+				try {
+					int cr = Integer.parseInt(StatsBlockCreatureView.getView(monster).getField(Field.CR, false));
+					cr += newCRdelta - oldCRdelta + newSizeCR - oldSizeCR;
+					monster.setProperty("field."+Field.CR.name(), Integer.toString(cr));
+				} catch (Exception x) {
+					monsterData.addNote(Field.CR, "Couldn't calculate advanced CR as unable to parse existing CR");
+				}
+			} else {
+				// XXX I think this probably isn't possible
+				monsterData.addNote(Field.CR, "Couldn't calculate advanced CR as no base statistics block exists");
 			}
 			System.out.println("-------------");
 		}

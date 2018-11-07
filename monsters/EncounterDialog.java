@@ -542,7 +542,7 @@ public class EncounterDialog extends JFrame {
 		NotesPanel() {
 			setBorder(BorderFactory.createTitledBorder("Notes"));
 			setLayout(new GridBagLayout());
-			// code from old defaultdetailspanel to limit label length:
+			// old code to limit label length:
 //			sourceLabel = new JLabel("") {
 //				@Override
 //				public Dimension getPreferredSize() {
