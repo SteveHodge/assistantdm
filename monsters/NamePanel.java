@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,8 @@ import gamesystem.SizeCategory;
 import gamesystem.core.PropertyListener;
 import gamesystem.dice.HDDice;
 import monsters.EncounterDialog.MonsterData;
+import monsters.Monster.MonsterAttackForm;
+import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock.Field;
 import monsters.StatisticsBlock.HDAdvancement;
 import swing.ImagePanel;
@@ -273,83 +276,139 @@ class NamePanel extends DetailPanel {
 				newSize = adv.size;
 			}
 		}
-		if (newSize != null) {
-			//System.out.println("-------------Set HD to " + newHD + " -> size " + newSize);
-			// handles HD advancement affecting hit points, bab (automatic), saves (automatic), skills, feats, possible ability score, cr,
-			// possible size change -> (affecting str, dex, con, natural armor, ac, attack, damage)
-			// not currently handled: damage due to size change (adds note)
-			int oldHD = monster.race.getHitDiceCount();
-			AdvancementNote.addNoteForChange(monsterData, Field.ABILITIES, newHD / 4 - oldHD / 4, "point");
-			AbilityScore intScore = monster.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE);
-			int extraFeats = newHD / 3 - oldHD / 3;
-			int skillPoints = monster.race.getType().getSkillPoints();
-			if (intScore == null) {
-				extraFeats = 0;
-				skillPoints = 0;
-			} else {
-				skillPoints += AbilityScore.getModifier(intScore.getRegularValue());	// TODO using getRegularValue, but we really want the value including permanent but not temporary modifiers
-				if (intScore.getRegularValue() > 0 && skillPoints < 1) skillPoints = 1;
-				if (skillPoints < 0) skillPoints = 0;	// shouldn't really happen as it's odd to advance a monster with int 0 and is therefore unconscious
-			}
-			skillPoints *= (newHD - oldHD);
-			AdvancementNote.addNoteForChange(monsterData, Field.FEATS, extraFeats, "feat");
-			AdvancementNote.addNoteForChange(monsterData, Field.SKILLS, skillPoints, "skill point");
+		if (newSize == null) return;
 
-			int oldSize = monster.size.getBaseSize().ordinal();
-
-			monster.race.setHitDiceCount(newHD);
-			int sizeChange = newSize.ordinal() - monster.size.getBaseSize().ordinal();
-			if (sizeChange != 0) {
-				int direction = sizeChange/Math.abs(sizeChange);
-				SizeChangeMods totalMods = new SizeChangeMods(0, 0, 0, 0);
-				int start = oldSize;
-				if (direction == -1) start--;
-				int end = newSize.ordinal();
-				if (direction == 1) end--;
-				//System.out.println("Direction = " + direction + ", start = " + start + ", end = " + end);
-				for (int i = start;; i += direction) {
-					SizeChangeMods mods = sizeChangeMods[i];
-					totalMods.strBonus += direction * mods.strBonus;
-					totalMods.dexBonus += direction * mods.dexBonus;
-					totalMods.conBonus += direction * mods.conBonus;
-					totalMods.naturalArmorBonus += direction * mods.naturalArmorBonus;
-					if (i == end) break;
-				}
-				//System.out.println("Size change from " + monster.size.getBaseSize() + " to " + newSize + ", " + sizeChange + " steps");
-				//System.out.println("  Str: " + totalMods.strBonus + ", Dex: " + totalMods.dexBonus + ", Con: " + totalMods.conBonus + ", NA: " + totalMods.naturalArmorBonus);
-				monster.size.setBaseSize(newSize);
-				advanceAbility(AbilityScore.Type.STRENGTH, totalMods.strBonus);
-				advanceAbility(AbilityScore.Type.DEXTERITY, totalMods.dexBonus);
-				advanceAbility(AbilityScore.Type.CONSTITUTION, totalMods.conBonus);
-				monster.race.setNaturalArmor(monster.getACStatistic(), monster.race.getNaturalArmor() + totalMods.naturalArmorBonus);
-				monsterData.addNote(Field.ATTACK, "Damage should be updated to account for size change");
-				monsterData.addNote(Field.FULL_ATTACK, "Damage should be updated to account for size change");
-			}
-
-			// CR is based on the difference from the base creature. If we're advancing a creature with an already advanced stat block then there could be compounded rounding errors.
-			if (monster.statisticsBlock != null) {
-				//System.out.println("Base CR = "+monster.statisticsBlock.get(Field.CR));
-				HDDice baseHD = monster.statisticsBlock.getRacialHD();
-				// XXX could check baseHD type vs racial type
-				int oldCRdelta = (oldHD - baseHD.getNumber()) / monster.race.getType().getCRProgression();
-				int newCRdelta = (newHD - baseHD.getNumber()) / monster.race.getType().getCRProgression();
-				int baseSize = monster.statisticsBlock.getSize().ordinal();
-				int oldSizeCR = oldSize > baseSize && oldSize >= SizeCategory.LARGE.ordinal() ? 1 : 0;
-				int newSizeCR = monster.size.getBaseSize().ordinal() > baseSize && monster.size.getBaseSize().ordinal() >= SizeCategory.LARGE.ordinal() ? 1 : 0;
-				try {
-					int cr = Integer.parseInt(StatsBlockCreatureView.getView(monster).getField(Field.CR, false));
-					cr += newCRdelta - oldCRdelta + newSizeCR - oldSizeCR;
-					monster.setProperty("field."+Field.CR.name(), Integer.toString(cr));
-				} catch (Exception x) {
-					monsterData.addNote(Field.CR, "Couldn't calculate advanced CR as unable to parse existing CR");
-				}
-			} else {
-				// XXX I think this probably isn't possible
-				monsterData.addNote(Field.CR, "Couldn't calculate advanced CR as no base statistics block exists");
-			}
-			//System.out.println("-------------");
+		//System.out.println("-------------Set HD to " + newHD + " -> size " + newSize);
+		// handles HD advancement affecting hit points, bab (automatic), saves (automatic), skills, feats, possible ability score, cr,
+		// possible size change -> (affecting str, dex, con, natural armor, ac, attack, damage)
+		// not currently handled: damage due to size change (adds note)
+		int oldHD = monster.race.getHitDiceCount();
+		AdvancementNote.addNoteForChange(monsterData, Field.ABILITIES, newHD / 4 - oldHD / 4, "point");
+		AbilityScore intScore = monster.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE);
+		int extraFeats = newHD / 3 - oldHD / 3;
+		int skillPoints = monster.race.getType().getSkillPoints();
+		if (intScore == null) {
+			extraFeats = 0;
+			skillPoints = 0;
+		} else {
+			skillPoints += AbilityScore.getModifier(intScore.getRegularValue());	// TODO using getRegularValue, but we really want the value including permanent but not temporary modifiers
+			if (intScore.getRegularValue() > 0 && skillPoints < 1) skillPoints = 1;
+			if (skillPoints < 0) skillPoints = 0;	// shouldn't really happen as it's odd to advance a monster with int 0 and is therefore unconscious
 		}
+		skillPoints *= (newHD - oldHD);
+		AdvancementNote.addNoteForChange(monsterData, Field.FEATS, extraFeats, "feat");
+		AdvancementNote.addNoteForChange(monsterData, Field.SKILLS, skillPoints, "skill point");
+
+		int oldSize = monster.size.getBaseSize().ordinal();
+
+		monster.race.setHitDiceCount(newHD);
+		int sizeChange = newSize.ordinal() - monster.size.getBaseSize().ordinal();
+		if (sizeChange != 0) {
+			int direction = sizeChange/Math.abs(sizeChange);
+			SizeChangeMods totalMods = new SizeChangeMods(0, 0, 0, 0);
+			int start = oldSize;
+			if (direction == -1) start--;
+			int end = newSize.ordinal();
+			if (direction == 1) end--;
+			//System.out.println("Direction = " + direction + ", start = " + start + ", end = " + end);
+			for (int i = start;; i += direction) {
+				SizeChangeMods mods = sizeChangeMods[i];
+				totalMods.strBonus += direction * mods.strBonus;
+				totalMods.dexBonus += direction * mods.dexBonus;
+				totalMods.conBonus += direction * mods.conBonus;
+				totalMods.naturalArmorBonus += direction * mods.naturalArmorBonus;
+				if (i == end) break;
+			}
+			//System.out.println("Size change from " + monster.size.getBaseSize() + " to " + newSize + ", " + sizeChange + " steps");
+			//System.out.println("  Str: " + totalMods.strBonus + ", Dex: " + totalMods.dexBonus + ", Con: " + totalMods.conBonus + ", NA: " + totalMods.naturalArmorBonus);
+			monster.size.setBaseSize(newSize);
+			advanceAbility(AbilityScore.Type.STRENGTH, totalMods.strBonus);
+			advanceAbility(AbilityScore.Type.DEXTERITY, totalMods.dexBonus);
+			advanceAbility(AbilityScore.Type.CONSTITUTION, totalMods.conBonus);
+			monster.race.setNaturalArmor(monster.getACStatistic(), monster.race.getNaturalArmor() + totalMods.naturalArmorBonus);
+
+			increaseAttackDamage(Field.ATTACK);
+			increaseAttackDamage(Field.FULL_ATTACK);
+		}
+
+		// CR is based on the difference from the base creature. If we're advancing a creature with an already advanced stat block then there could be compounded rounding errors.
+		if (monster.statisticsBlock != null) {
+			//System.out.println("Base CR = "+monster.statisticsBlock.get(Field.CR));
+			HDDice baseHD = monster.statisticsBlock.getRacialHD();
+			// XXX could check baseHD type vs racial type
+			int oldCRdelta = (oldHD - baseHD.getNumber()) / monster.race.getType().getCRProgression();
+			int newCRdelta = (newHD - baseHD.getNumber()) / monster.race.getType().getCRProgression();
+			int baseSize = monster.statisticsBlock.getSize().ordinal();
+			int oldSizeCR = oldSize > baseSize && oldSize >= SizeCategory.LARGE.ordinal() ? 1 : 0;
+			int newSizeCR = monster.size.getBaseSize().ordinal() > baseSize && monster.size.getBaseSize().ordinal() >= SizeCategory.LARGE.ordinal() ? 1 : 0;
+			try {
+				int cr = Integer.parseInt(StatsBlockCreatureView.getView(monster).getField(Field.CR, false));
+				cr += newCRdelta - oldCRdelta + newSizeCR - oldSizeCR;
+				monster.setProperty("field."+Field.CR.name(), Integer.toString(cr));
+			} catch (Exception x) {
+				monsterData.addNote(Field.CR, "Couldn't calculate advanced CR as unable to parse existing CR");
+			}
+		} else {
+			// XXX I think this probably isn't possible
+			monsterData.addNote(Field.CR, "Couldn't calculate advanced CR as no base statistics block exists");
+		}
+
+		// update name, if the old name matches the stats block
+		String currentName = monster.getName();
+		String blockName = monster.statisticsBlock.getName();
+		if (currentName.equals(blockName) || currentName.startsWith("Advanced " + blockName + " (" + oldHD + " HD)")) {
+			monster.setName("Advanced " + blockName + " (" + newHD + " HD)");
+		}
+
+		//System.out.println("-------------");
 	}
+
+	private void increaseAttackDamage(Field field) {
+		boolean unknownAttack = false;
+		List<MonsterAttackRoutine> routines = null;
+		if (field == Field.ATTACK) routines = monster.attackList;
+		if (field == Field.FULL_ATTACK) routines = monster.fullAttackList;
+		if (routines == null) throw new IllegalArgumentException("increaseAttackDamage can't be applied to field " + field);
+		for (MonsterAttackRoutine r : routines) {
+			for (MonsterAttackForm f : r.attackForms) {
+				if (f.attack != null) {
+					String newDmg = damageIncrease.get(f.attack.getBaseDamage());
+					if (newDmg != null) {
+						f.attack.setBaseDamage(newDmg);
+					} else {
+						System.out.println("Couldn't parse damage " + f.attack.getBaseDamage() + " as SimpleDice");
+						unknownAttack = true;
+					}
+				} else {
+					unknownAttack = true;
+				}
+			}
+		}
+		if (unknownAttack)
+			monsterData.addNote(field, "Not all damage has been updated to account for size change");
+	}
+
+	final static private Map<String, String> damageIncrease = new HashMap<>();
+	{
+		damageIncrease.put("1d2", "1d3");
+		damageIncrease.put("1d3", "1d4");
+		damageIncrease.put("1d4", "1d6");
+		damageIncrease.put("1d6", "1d8");
+		damageIncrease.put("1d8", "2d6");
+		damageIncrease.put("1d10", "2d8");
+		damageIncrease.put("1d12", "3d6");
+		damageIncrease.put("2d4", "2d6");
+		damageIncrease.put("2d10", "4d8");
+		damageIncrease.put("2d6", "3d6");
+		damageIncrease.put("3d6", "4d6");
+		damageIncrease.put("4d6", "6d6");
+		damageIncrease.put("6d6", "8d6");
+		damageIncrease.put("2d8", "3d8");
+		damageIncrease.put("3d8", "4d8");
+		damageIncrease.put("4d8", "6d8");
+		damageIncrease.put("6d8", "8d8");
+		damageIncrease.put("8d8", "12d8");
+	};
 
 	static private class AdvancementNote {
 		int number;
