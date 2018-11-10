@@ -1,12 +1,10 @@
 ---=== IN PROGRESS ===---
-* Damage should be adjusted for size changes during HD advancement
 * Monster library needs to check for dupes and confirm replacement.
-* Fix editing initiative, saves fields: editing edits base but shows total. Either have custom edit panel a la abilities, or reparse edited value a la attacks, or allow both. 
-* Implement editing for BAB/Grapple, Spec. Qualities, Feats, Space/Reach.
+* Implement editing for remaining fields: Spec. Qualities, Feats, Space/Reach, AC, Size/type, Grapple
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
 * Reopen encounter window from combat/menu
 * Export to html file? Maybe live?
-* Advance monster by template: select template, flag fields that need updates, show template text for each field as selected
+* Advance monster by template: select template, flag fields that need updates, show template text for each field as selected - may be tricky as some templates change the type but don't recalculate
 * Advance monster by character class
 *
 * DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
@@ -17,13 +15,13 @@
 * 	layers for painting order
 * 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
 * Slots: xml output/parsing (done). apply effects (done). tooltips - descriptions (todo). fix up notifications - probably best to make each slot a property
-* Check how natural armor bonus is implemented. It's both a modifier type (that only applies to AC), and a statistic that can itself be enhanced
+* Check how natural armor bonus is implemented. It's both a modifier type (that only applies to AC), and a statistic that can itself be enhanced - seems to be right?
 * Implement Spell Resistance   
 * Weapon/armor proficiencies: ui done but no effects implemented
 * Weapon focus/spec: seems to be not working
 * Auto numbers for tokens not coming through on ui
 * Modifiers with a value of 0 should be suppressed in hints and website unless they are ability score mods or BAB mod.
-* Size
+* Size - think this is done for monsters? needs to be added to character and/or character ui
 * Feat prereqs.
 * Better handling of feats and skills with specific instances (knowledges, weapon focus, etc)
 * UI for adding skill type (really only need for specific instances)
@@ -180,7 +178,7 @@ Game system things to implement:
  * Special abilities: class and race
  * Turn/Rebuke
  * size (where is up to?)
- * AC Size modifiers should be correctly linked to size stat. Size should also modify carrying capacity
+ * AC Size modifiers should be correctly linked to size stat (done). Size should also modify carrying capacity
  * Remove misc modifiers from skills and saves - adhoc buffs replace these (should be read only fields in ui)
  * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
  * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
@@ -202,7 +200,7 @@ Game system things to implement:
  * Clean up CameraPanel layout
  *
  * Copy in encounters dialog should copy the current creature, not the base
- * In encounters dialog, adding an image should select it for the current creature
+ * In encounters dialog, adding an image should select it for the current creature (done?)
  *
  * Combat panel should save full monsters, not just combat entries
  * EncounterDialog: calc encounter level, display CRs

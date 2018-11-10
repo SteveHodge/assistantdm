@@ -25,6 +25,7 @@ import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
 import gamesystem.SavingThrow;
 import gamesystem.Size;
+import gamesystem.core.OverridableProperty;
 import gamesystem.dice.DiceList;
 import monsters.Monster.MonsterAttackForm;
 import monsters.Monster.MonsterAttackRoutine;
@@ -374,6 +375,8 @@ public class StatsBlockCreatureView {
 		return f;
 	}
 
+	private OverridableProperty.PropertyValue<Integer> babOverride;
+
 	public void setField(Field field, String value) {
 		// TODO remaining parseable fields need to be reparsed - AC
 
@@ -407,20 +410,31 @@ public class StatsBlockCreatureView {
 //			}
 
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
-			// XXX currently disabled as it's determined by hitdice
-			//int bab = StatisticsBlock.parseBAB(value);
-			//creature.getBAB().setBaseValue(bab);
+			// XXX grapple is currently ignored. should apply an override
+			int bab = StatisticsBlock.parseBAB(value);
+			OverridableProperty<Integer> babProp = creature.getBAB();
+			if (babOverride != null) {
+				babProp.removeOverride(babOverride);
+			}
+			if (bab == babProp.getRegularValue()) {
+				babOverride = null;
+			} else {
+				babOverride = babProp.addOverride(bab);
+			}
 
 		} else if (field == Field.INITIATIVE) {
-			int init = StatisticsBlock.parseInitiativeModifier(value);
-			creature.getInitiativeStatistic().setValue(init);	// XXX is this right? should it be setting the total?
+			// sets the base value
+			int newBase = StatisticsBlock.parseInitiativeModifier(value) - creature.getInitiativeStatistic().getModifiersTotal();
+			if (newBase != creature.getInitiativeStatistic().getBaseValue()) {
+				creature.getInitiativeStatistic().setValue(newBase);
+			}
 
 		} else if (field == Field.SAVES) {
 			for (SavingThrow.Type t : SavingThrow.Type.values()) {
 				SavingThrow s = creature.getSavingThrowStatistic(t);
 				int save = StatisticsBlock.parseSavingThrow(value, t);
 				if (save > Integer.MIN_VALUE) {
-					s.setBaseOverride(s.getRegularValue() + save - s.getValue());
+					s.setBaseOverride(save - s.getModifiersTotal());
 				}
 			}
 		} else if (field == Field.ATTACK) {
