@@ -18,7 +18,6 @@ import gamesystem.XP.Challenge;
 import gamesystem.XP.XPChangeAdhoc;
 import gamesystem.XP.XPChangeChallenges;
 import gamesystem.XP.XPChangeLevel;
-import gamesystem.dice.CombinedDice;
 import party.CharacterAttackForm;
 import party.CharacterAttackForm.WeaponFocus;
 import party.CharacterAttackForm.WeaponSpecialization;
@@ -318,8 +317,16 @@ public class XMLParserHelper {
 			f.setAttackEnhancement(Integer.parseInt(e.getAttribute("enhancement")));
 		}
 		if (e.getAttribute("masterwork").equals("true") || e.getAttribute("masterwork").equals("1")) f.setMasterwork(true);
-		f.damage = CombinedDice.parse(e.getAttribute("base_damage"));
-		if (e.hasAttribute("size")) f.size = SizeCategory.getSize(e.getAttribute("size"));
+		if (e.hasAttribute("original-size")) {
+			f.setOriginalSize(SizeCategory.getSize(e.getAttribute("original-size")));
+			f.setBaseDamage(e.getAttribute("original-damage"));
+			f.setSize(SizeCategory.getSize(e.getAttribute("size")));
+		} else {
+			// old format compatibility. assumes base damage is for the current size
+			if (e.hasAttribute("size")) f.setOriginalSize(SizeCategory.getSize(e.getAttribute("size")));
+			f.setBaseDamage(e.getAttribute("base_damage"));
+			if (e.hasAttribute("size")) f.setSize(SizeCategory.getSize(e.getAttribute("size")));
+		}
 		f.updateModifiers();
 	}
 

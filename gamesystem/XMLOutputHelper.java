@@ -89,12 +89,13 @@ public class XMLOutputHelper {
 			e.setAttribute("enhancement", "0");
 		}
 		if (a.isMasterwork()) e.setAttribute("masterwork", "true");
-		e.setAttribute("base_damage", a.damage.toString());
-		e.setAttribute("damage", a.getDamage());
-		e.setAttribute("size", "" + a.size);
+		e.setAttribute("size", a.getSize().toString());
+		e.setAttribute("original-size", a.getOriginalSize().toString());
+		e.setAttribute("original-damage", a.getOriginalDamage());
 
 		// informational attributes:
 		e.setAttribute("total", "" + a.getValue());
+		e.setAttribute("damage", a.getDamage());
 		return e;
 	}
 

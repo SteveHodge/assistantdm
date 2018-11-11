@@ -1,4 +1,5 @@
 ---=== IN PROGRESS ===---
+* BUG increasing then reducing HD results in the wrong HD constant if monster has unholy toughness (almost seems delayed by one update. see when UT is applied)
 * Monster library needs to check for dupes and confirm replacement.
 * Implement editing for remaining fields: Spec. Qualities, Feats, Space/Reach, AC, Size/type, Grapple
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).

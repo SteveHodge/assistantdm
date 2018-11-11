@@ -179,7 +179,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		});
 		sizeCombo.addActionListener(e -> {
 			if (attack != null) {
-				attack.attack.size = (SizeCategory) sizeCombo.getSelectedItem();
+				attack.attack.setSize((SizeCategory) sizeCombo.getSelectedItem());
 			}
 		});
 		usageCombo.addActionListener(e -> {
@@ -435,7 +435,7 @@ class AttackFormPanel extends JPanel implements PropertyChangeListener {
 		typeField.setText(attack.damage_type);
 		propertiesField.setText(attack.properties);
 		ammunitionField.setText(attack.ammunition);
-		sizeCombo.setSelectedItem(attack.attack.size);
+		sizeCombo.setSelectedItem(attack.attack.getSize());
 		kindCombo.setSelectedItem(attack.getKind());
 		usageCombo.setSelectedItem(attack.getUsage());
 		proficientCheck.setSelected(attack.getProficient());

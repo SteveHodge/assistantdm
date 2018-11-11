@@ -371,6 +371,28 @@ public class Attacks extends Statistic {
 		return s.toString();
 	}
 
+	final static private Map<String, String> damageIncrease = new HashMap<>();
+	{
+		damageIncrease.put("1d2", "1d3");
+		damageIncrease.put("1d3", "1d4");
+		damageIncrease.put("1d4", "1d6");
+		damageIncrease.put("1d6", "1d8");
+		damageIncrease.put("1d8", "2d6");
+		damageIncrease.put("1d10", "2d8");
+		damageIncrease.put("1d12", "3d6");
+		damageIncrease.put("2d4", "2d6");
+		damageIncrease.put("2d10", "4d8");
+		damageIncrease.put("2d6", "3d6");
+		damageIncrease.put("3d6", "4d6");
+		damageIncrease.put("4d6", "6d6");
+		damageIncrease.put("6d6", "8d6");
+		damageIncrease.put("2d8", "3d8");
+		damageIncrease.put("3d8", "4d8");
+		damageIncrease.put("4d8", "6d8");
+		damageIncrease.put("6d8", "8d8");
+		damageIncrease.put("8d8", "12d8");
+	};
+
 	/*
 	 * Weapons (specific attacks):
 	 * Name (of the AttackForm)
@@ -415,8 +437,11 @@ public class Attacks extends Statistic {
 		Modifier enhancement = null;
 		private boolean masterwork = false;		// if true then enhancement should not be added to damage (enhancement should be +1)
 
-		CombinedDice damage = new CombinedDice();
-		public SizeCategory size = SizeCategory.MEDIUM;	// weapon size // TODO should default to character's size
+		private CombinedDice damage = new CombinedDice();
+		private SizeCategory size = SizeCategory.MEDIUM;	// weapon size // TODO should default to character's size
+
+		CombinedDice originalDamage = new CombinedDice();	// used to recalculate damage when changing size
+		SizeCategory originalSize = SizeCategory.MEDIUM;	// size that originalDamage uses
 
 		public boolean natural = false;	// natural weapons use -5 penalty for all non-primary attacks (-2 with multiattack)
 		public boolean primary = true;
@@ -501,23 +526,84 @@ public class Attacks extends Statistic {
 			return proficient;
 		}
 
-		// returns the String version of the base damage
+		// returns the String version of the base damage. base damage is the damage (at the current size) before modifiers are applied
 		public String getBaseDamage() {
 			return damage.toString();
 		}
 
-		// expects format acceptable to CombinedDice.parse()
-		public void setBaseDamage(String s) {
-			damage = CombinedDice.parse(s);
+		// expects format acceptable to CombinedDice.parse(). base damage is the damage before modifiers are applied. this sets both the current
+		// and canonical damage, and sets original size to the current size. any future size changes will use this damage to base any adjustment on.
+		public void setBaseDamage(String newDmg) {
+			damage = CombinedDice.parse(newDmg);
+			originalDamage = damage;
+			originalSize = size;
 			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 		}
 
+		// gets the current damage, for the current size, with modifiers applied
 		public String getDamage() {
 			int oldC = damage.getConstant();
 			damage.setConstant(oldC + getModifiersTotal(dmgStat.getModifierSet(), null));
 			String dmg = damage.toString();
 			damage.setConstant(oldC);
 			return dmg;
+		}
+
+		// gets the original (canonical) damage
+		public String getOriginalDamage() {
+			return originalDamage.toString();
+		}
+
+		// original size is the size that the attack's canonical damage is for. this is used when resizing to avoid mistake arising from the damage increase/decrease tables not being symmetrical
+		public void setOriginalSize(SizeCategory s) {
+			if (originalSize == s) return;
+			originalSize = s;
+			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
+		}
+
+		public SizeCategory getOriginalSize() {
+			return originalSize;
+		}
+
+		// setSize will adjust the damage according to the difference between the new size and the attack's original size.
+		// if there are multiple damage dice types then damage is not modified and false is returned.
+		// if the damage can't be adjusted (due to a dice number/type that is not supported) then damage is not modified and false is returned.
+		// this does handle damage with a constant
+		public boolean setSize(SizeCategory newSize) {
+			if (size == newSize) return true;
+			size = newSize;
+
+			boolean ok = true;
+			int steps = size.ordinal() - originalSize.ordinal();
+			if (steps > 0) {
+				int constant = originalDamage.getConstant();
+				originalDamage.setConstant(0);
+				String dmgStr = originalDamage.toString();
+				originalDamage.setConstant(constant);
+
+				for (int i = 0; i < steps; i++) {
+					dmgStr = damageIncrease.get(dmgStr);
+					if (dmgStr == null) {
+						ok = false;
+						break;
+					}
+				}
+				if (ok) {
+					damage = CombinedDice.parse(dmgStr);
+					damage.setConstant(constant);
+				}
+			} else {
+				if (steps < 0)
+					System.err.println("AttackForm.setSize() does have implementation to reduce weapon damage to smaller than the original size");					// TODO can only handle sizes larger than the original at the moment
+				damage = originalDamage;
+			}
+
+			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
+			return ok;
+		}
+
+		public SizeCategory getSize() {
+			return size;
 		}
 
 		// ------------ Damage statistic --------------

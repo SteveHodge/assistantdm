@@ -341,8 +341,12 @@ public class StatsBlockCreatureView {
 			f.attack.maxAttacks = a.attackBonuses.length;
 //		attack.noStrPenalty =
 //		attack.doublePADmg =
+			f.attack.setSize(m.getSizeStatistic().getBaseSize());
 			if (a.damageParsed) {
 				if (!a.byWeapon) f.attack.setBaseDamage(a.damageDice);
+				else {
+					System.err.println("Damage not set for " + m.getName() + " because it's 'by weapon'");
+				}
 				f.attack.strMultiplier = a.strMultiplier;
 				f.damageCritical = a.damageCritical;
 				f.attack.weaponSpecApplies = a.weaponSpecApplies;

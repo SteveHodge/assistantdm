@@ -12,7 +12,6 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -327,8 +326,8 @@ class NamePanel extends DetailPanel {
 			advanceAbility(AbilityScore.Type.CONSTITUTION, totalMods.conBonus);
 			monster.race.setNaturalArmor(monster.getACStatistic(), monster.race.getNaturalArmor() + totalMods.naturalArmorBonus);
 
-			increaseAttackDamage(Field.ATTACK);
-			increaseAttackDamage(Field.FULL_ATTACK);
+			increaseAttackDamage(Field.ATTACK, newSize);
+			increaseAttackDamage(Field.FULL_ATTACK, newSize);
 		}
 
 		// CR is based on the difference from the base creature. If we're advancing a creature with an already advanced stat block then there could be compounded rounding errors.
@@ -363,7 +362,7 @@ class NamePanel extends DetailPanel {
 		//System.out.println("-------------");
 	}
 
-	private void increaseAttackDamage(Field field) {
+	private void increaseAttackDamage(Field field, SizeCategory newSize) {
 		boolean unknownAttack = false;
 		List<MonsterAttackRoutine> routines = null;
 		if (field == Field.ATTACK) routines = monster.attackList;
@@ -372,11 +371,8 @@ class NamePanel extends DetailPanel {
 		for (MonsterAttackRoutine r : routines) {
 			for (MonsterAttackForm f : r.attackForms) {
 				if (f.attack != null) {
-					String newDmg = damageIncrease.get(f.attack.getBaseDamage());
-					if (newDmg != null) {
-						f.attack.setBaseDamage(newDmg);
-					} else {
-						System.out.println("Couldn't parse damage " + f.attack.getBaseDamage() + " as SimpleDice");
+					if (!f.attack.setSize(newSize)) {
+						System.out.println("Couldn't update damage " + f.attack.getBaseDamage() + " for size change to " + newSize);
 						unknownAttack = true;
 					}
 				} else {
@@ -385,30 +381,8 @@ class NamePanel extends DetailPanel {
 			}
 		}
 		if (unknownAttack)
-			monsterData.addNote(field, "Not all damage has been updated to account for size change");
+			monsterData.addNote(field, "Not all damage has been updated to account for size change to " + newSize);
 	}
-
-	final static private Map<String, String> damageIncrease = new HashMap<>();
-	{
-		damageIncrease.put("1d2", "1d3");
-		damageIncrease.put("1d3", "1d4");
-		damageIncrease.put("1d4", "1d6");
-		damageIncrease.put("1d6", "1d8");
-		damageIncrease.put("1d8", "2d6");
-		damageIncrease.put("1d10", "2d8");
-		damageIncrease.put("1d12", "3d6");
-		damageIncrease.put("2d4", "2d6");
-		damageIncrease.put("2d10", "4d8");
-		damageIncrease.put("2d6", "3d6");
-		damageIncrease.put("3d6", "4d6");
-		damageIncrease.put("4d6", "6d6");
-		damageIncrease.put("6d6", "8d6");
-		damageIncrease.put("2d8", "3d8");
-		damageIncrease.put("3d8", "4d8");
-		damageIncrease.put("4d8", "6d8");
-		damageIncrease.put("6d8", "8d8");
-		damageIncrease.put("8d8", "12d8");
-	};
 
 	static private class AdvancementNote {
 		int number;
