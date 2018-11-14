@@ -238,7 +238,7 @@ class HitPointsPanel extends DetailPanel {
 		if (creature != null) {
 			List<HDDice> newHD = creature.getHitDice().getValue();
 			List<HDDice> diff = HDDice.difference(hitdice, newHD);
-			if (!diff.isEmpty()) {
+			if (!diff.isEmpty() || HDDice.getTotalConstant(newHD) != HDDice.getTotalConstant(hitdice)) {
 				// HD change
 				hitdice = newHD;
 				diceList = DiceList.fromList(hitdice);

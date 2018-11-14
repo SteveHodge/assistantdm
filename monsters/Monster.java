@@ -68,11 +68,9 @@ public class Monster extends Creature {
 		initiative.setValue(0);
 
 		race = new Race(this);
-		race.addPropertyListener(e -> {
-			hitDice.updateBonusHPs(Monster.this);	// TODO could override fireEvent rather than adding a listener
-		});
 		level = new Levels(this);
 		hitDice = new HitDiceProperty(this, race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
+		hitDice.setupBonusHPs(this);
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice, this);

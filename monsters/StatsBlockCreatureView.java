@@ -285,8 +285,6 @@ public class StatsBlockCreatureView {
 		m.setProperty("field." + Field.ADVANCEMENT.name(), blk.get(Field.ADVANCEMENT));
 		m.setProperty("field." + Field.LEVEL_ADJUSTMENT.name(), blk.get(Field.LEVEL_ADJUSTMENT));
 
-		m.hitDice.updateBonusHPs(m);	// doing this last because it may use special attacks
-
 		return m;
 	}
 

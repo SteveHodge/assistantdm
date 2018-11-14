@@ -1,5 +1,4 @@
 ---=== IN PROGRESS ===---
-* BUG increasing then reducing HD results in the wrong HD constant if monster has unholy toughness (almost seems delayed by one update. see when UT is applied)
 * Monster library needs to check for dupes and confirm replacement.
 * Implement editing for remaining fields: Spec. Qualities, Feats, Space/Reach, AC, Size/type, Grapple
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
@@ -7,6 +6,7 @@
 * Export to html file? Maybe live?
 * Advance monster by template: select template, flag fields that need updates, show template text for each field as selected - may be tricky as some templates change the type but don't recalculate
 * Advance monster by character class
+* Feats should be refactored to Creature and should be a property. Also consider making feats provide "features" which can be tested for in order to support things like ranger combat styles (this new class or the current Feature/FeatureDefinition classes could be called Attribute, Aspect, Quality or Effect)
 *
 * DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
 * DTT: make walls a sub-element of map (as mask is)

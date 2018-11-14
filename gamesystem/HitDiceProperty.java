@@ -197,21 +197,45 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		}
 
 		// unholy toughness: add charisma bonus per hd
-		String quals = (String) m.getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
-		if (quals != null && quals.toLowerCase().contains("unholy toughness")) {
-			Modifier chr = m.getAbilityModifier(AbilityScore.Type.CHARISMA);
-			if (chr != null) {
-				// TODO add listener to chr (but only once)
-				bonusHPs += getHitDiceCount() * chr.getModifier();
+		if (m.hasProperty("field." + Field.SPECIAL_QUALITIES.name())) {
+			String quals = (String) m.getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
+			if (quals != null && quals.toLowerCase().contains("unholy toughness")) {
+				Modifier chr = m.getAbilityModifier(AbilityScore.Type.CHARISMA);
+				if (chr != null) {
+					bonusHPs += getHitDiceCount() * chr.getModifier();
+				}
 			}
 		}
 
 		// desecrating aura (+2 hp per hd)
-		quals = (String) m.getPropertyValue("field." + Field.SPECIAL_ATTACKS.name());
-		if (quals != null && quals.toLowerCase().contains("desecrating aura")) {
-			bonusHPs += getHitDiceCount() * 2;
+		if (m.hasProperty("field." + Field.SPECIAL_ATTACKS.name())) {
+			String quals = (String) m.getPropertyValue("field." + Field.SPECIAL_ATTACKS.name());
+			if (quals != null && quals.toLowerCase().contains("desecrating aura")) {
+				bonusHPs += getHitDiceCount() * 2;
+			}
 		}
 
-		if (bonusHPs != old) updateHitDice();
+		//System.out.println("updateBonusHPs from " + old + " to " + bonusHPs);
+
+		if (bonusHPs != old) {
+			updateHitDice();
+			//System.out.println("HD updated to " + this.getValue());
+		}
+	}
+
+	public void setupBonusHPs(Monster m) {
+		m.addPropertyListener("", e -> {
+			String source = e.source.getName();
+			if (source.equals("race")
+					|| source.equals("hitdice")
+					|| source.equals("size")
+					|| source.equals("ability_scores.charisma")
+					|| source.equals("field." + Field.ABILITIES.name())	// TODO this won't trigger for feats added by monster.addFeat() - feats should be a property
+					|| source.equals("field." + Field.SPECIAL_ATTACKS.name())
+					|| source.equals("field." + Field.SPECIAL_QUALITIES.name())) {
+				//System.out.print(source + ": ");
+				updateBonusHPs(m);
+			}
+		});
 	}
 }

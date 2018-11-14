@@ -301,6 +301,7 @@ class NamePanel extends DetailPanel {
 		int oldSize = monster.size.getBaseSize().ordinal();
 
 		monster.race.setHitDiceCount(newHD);
+		//System.out.println("hit dice set");
 		int sizeChange = newSize.ordinal() - monster.size.getBaseSize().ordinal();
 		if (sizeChange != 0) {
 			int direction = sizeChange/Math.abs(sizeChange);
@@ -328,6 +329,7 @@ class NamePanel extends DetailPanel {
 
 			increaseAttackDamage(Field.ATTACK, newSize);
 			increaseAttackDamage(Field.FULL_ATTACK, newSize);
+			//System.out.println("Size set");
 		}
 
 		// CR is based on the difference from the base creature. If we're advancing a creature with an already advanced stat block then there could be compounded rounding errors.
@@ -356,6 +358,7 @@ class NamePanel extends DetailPanel {
 		String currentName = monster.getName();
 		String blockName = monster.statisticsBlock.getName();
 		if (currentName.equals(blockName) || currentName.startsWith("Advanced " + blockName + " (" + oldHD + " HD)")) {
+			// TODO if the monster has been reverted to base HD then we should revert to the blockname
 			monster.setName("Advanced " + blockName + " (" + newHD + " HD)");
 		}
 
