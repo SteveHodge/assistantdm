@@ -6,7 +6,7 @@
 * Export to html file? Maybe live?
 * Advance monster by template: select template, flag fields that need updates, show template text for each field as selected - may be tricky as some templates change the type but don't recalculate
 * Advance monster by character class
-* Feats should be refactored to Creature and should be a property. Also consider making feats provide "features" which can be tested for in order to support things like ranger combat styles (this new class or the current Feature/FeatureDefinition classes could be called Attribute, Aspect, Quality or Effect)
+* Feats should be refactored to Creature and should be a property
 *
 * DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
 * DTT: make walls a sub-element of map (as mask is)
@@ -81,33 +81,29 @@ The same naming hierarchy will be used for effect targets.
 
 ---=== ARCHITECTURE ===---
 
-Property - a value that can be overridden. can be a non-numeric value e.g. race. notifies changes.
+Property - a value that can be overridden. can be a non-numeric value (e.g. race), even a list. used for most end-user visible attributes of a creature. notifies changes.
 Statistic - a numeric Property that can receive Modifiers. notifies changes. can also represent a collection of statistics (e.g. all skills, or attacks collectively).
+
+Propertys and Statistics notify changes through a PropertyCollection which is currently always the base creature. This is used to provide support for a hierarchy of
+notification, e.g. a listener can listen for changes to a Property that represents a collection of values (e.g. "Skills") or a specific Property (e.g. "Disable Device").
+This also allows a listener to listen for a Property that doesn't yet exist. 
+
 Modifier - an adjustment to a Statistic. Modifiers have a type and Statistics follow the 3.5 rules of stacking.
 
-FeatureDefinition - base class for templates that generate Features. Allows simple fixed effects to be defined.
-Feature - base class for features that are comprised of a set of Modifiers and can be applied to creatures.
-Buff - an instance of an effect that can be applied to a creature. the buff can be customised to set variable effects. when applied to a creature the effects are fixed. A type of Feature.
-BuffFactory - template for a Buff. A type of FeatureDefinition.
-Feat - A type of Feature.
-Feat.FeatDefinition - template for Feat. A type of FeatureDefinition.
-ClassFeature - A type of Feature. Can have parameters that modify the effect.
-ClassFeature.ClassFeatureDefinition - template for ClassFeature. A type of FeatureDefinition. Can define parameter in the generated ClassFeatures and can provide descriptions that reflect current parameter values.
+EffectorDefinition - base class for templates that generate Effector. Allows simple fixed effects to be defined.
+Effector - base class for things that are modify creatures via Modifiers or Property changes, e.g. feats, class features, spells, conditions, etc.
+Buff - an instance of an effect that can be applied to a creature. the buff can be customised to set variable effects. when applied to a creature the effects are fixed. A type of Effector.
+BuffFactory - template for a Buff. A type of EffectorDefinition.
+Feat - A type of Effector.
+Feat.FeatDefinition - template for Feat. A type of EffectorDefinition.
+ClassFeature - A type of Effector. Can have parameters that modify the effect.
+ClassFeature.ClassFeatureDefinition - template for ClassFeature. A type of EffectorDefinition. Can define parameter in the generated ClassFeatures and can provide descriptions that reflect current parameter values.
 
 ** Currently Buffs are all spells though they could easily encompass conditions as well. Currently Buffs are temporary effects and Feat/ClassFeature are more permanent, but I don't
 think there is any significance to the distinction (though perhaps for determining what modifiers to an ability score should apply to spell memorisation?). Items should also fit into this framework.
 Also need to incorporate effects that can be added to a creature but that don't apply Modifiers. Many spells fall into this category.
 
-refactor: Buff/BuffFactory -> SpellEffect and AdhocEffect
-
-(old) Proposed architecture:
-A Statistic is a value that can be modified by bonuses and penalties and can also be overridden. Statistics can have
-sub-Statistics which include all the parent's modifiers but can also be targeted separately. E.g. there will be a
-hierarchy of Attacks -> Melee Attack -> specific melee attack form.
-A Property is a value that can be overridden but is not a valid target for bonuses and penalties.
-Both Statistic and Property provide change notification.
-Creature is a collection of Statistics and Properties and acts as the root of the hierarchy. Creature also maintains
-other data such as feats, special abilities/qualities, xp (Characters subclass).
+refactor: Buff/BuffFactory -> SpellEffect and AdhocEffect [not sure what I intended the significance of the difference to be, perhaps duration or are AdhocEffects ones that are created on the fly like custom modifiers?] 
 
 There is a distinction between selected core feats, selected class bonus feats, and automatic class bonus feats - each
 will need to be tracked. In addition there are cases where creatures are treated as having a feat in some circumstances
@@ -118,8 +114,8 @@ even perhaps as a racial feature.
 
 ---=== TODO ===---
 Game system things to implement:
-  (in progress) Size
-  (in progress) Race
+  (in progress) Size - mostly done. just ui and xml for characters?
+  (in progress) Race - monster advancement is done. still need to do character race features etc.
   (in progress) Feats - better UI support for targetted feats, implement weapon and armor proficiencies
   (in progress) Grapple modifier
   Ability score checks
@@ -127,25 +123,25 @@ Game system things to implement:
   Spell lists / spells per day (web version done)
   Damage reduction
   Spell resistance
-  Magic items slots
+  (in progress) Magic items slots - done?
   Weight/encumberance/ACP
   Skill named versions (Crafting, Profession etc)
   Speed
   (in progress) Items
 
-* rework combat panels so they have hps and sanity and popup to modify either. also fix monster stats tooltip, it's annoying
+* fix monster stats tooltip, it's annoying
 * website track saves to verify not overwriting other client changes
 * Remote input - joysticks, web
-* split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels
+* split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels. or have "bonus hitpoints" statistic in HitDiceProperty for permanent changes (amounts to the same thing)
 * implement negative levels
-* implement conditions.
-* implement StatisticsCollection for Attacks  
+* implement conditions
+* implement StatisticsCollection for Attacks [not sure what I intended... mechanism for notifying changes to the attackform list I assume? if so then there is commonality with things like feats and skills]
 * implement caster levels with saving to website. (probably easiest to have a dedicated field for the relevant ability for rememorising, to be eventually replaced with a system that knows what modifiers are temporary and therefore shouldn't be counted)
 * implement periodic special abilities and item uses/charges.
-* move definitions of FeatDefinition, ClassFeatureDefinition, and BuffFactory to XML.
-* clarify how Feature "types" should work (simply the class or explicit field). clarify how Feature "source" should work.
-* expand to allow override effects (property changes already implemented for buffs).
-* implement items. probably better to rename Feature to Effect or something more generic.
+* move definitions of ClassFeatureDefinition to XML. FeatDefinition and BuffFactory are done.
+* clarify how Effector "types" should work (simply the class or explicit field). clarify how Effector "source" should work.
+* expand to allow Effectors to have effects that apply overrides (property changes already implemented for buffs).
+* implement items - partly done
 * adhoc weapon bonuses: done
     ... Implementation only works for characters (via CharacterAttackForm), for monsters would want to refactor the id stuff back to AttackForm and come up with a way to locate given attack forms.
     ... Implementation includes the beginnings of Effect targets that select multiple Statistics based on some criterion (in this case id), this can be expanded for use with things like Feats
@@ -155,18 +151,16 @@ Game system things to implement:
 * implement cross-class skills flag somehow, at least for straight class characters
     
  * Skill parsing for monsters
- * Make HitDiceProperty into Statistic (rename to HitDice) so that bonus hps from feats and race (constructs) can be added as a modifier
- * Saving throw modifiers in monster stats blocks
  *
- * Rework Statistic change notification. Consider making it a subclass of property (override would override total value). Consider factoring out interface.
+ * Rework Statistic change notification. Consider making it a subclass of property (override would override total value). Consider factoring out interface. (all done)
  * ? properties for statistics: bab, convert temp hps
  * ? consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
  * ?    level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
  * ? review Statistics vs creature Properties
- * ? ... need to review how properties work on Character and BoundIntegerField
+ * ? ... need to review how properties work on Character and BoundIntegerField (done)
  * ? character is not registered as a listener on the attack forms so it doesn't get notified of changes. probably should revisit the whole property/statistic notification system
  * ? rework statistc notification system. a listener registered with the top of a tree (like Skills or Attacks)
- * ?    should get notification of all sub-statistics. consider whether statistics need to provide old and new values
+ * ?    should get notification of all sub-statistics (done). consider whether statistics need to provide old and new values
  * ?    (this is desirable for mutable Modifiers at least)
  * ? ... convert ui classes that listen to Character to listen to the specific Statistics instead - could do a StatisticsProxy class
  * ?    that could be used as a base for statistics that rely on a common set of modifiers such as touch AC, skills etc
@@ -176,12 +170,10 @@ Game system things to implement:
  * BUG: Interface to add skills
  * BUG: Perform skills need subtype
  *
- * Special abilities: class and race
  * Turn/Rebuke
- * size (where is up to?)
  * AC Size modifiers should be correctly linked to size stat (done). Size should also modify carrying capacity
  * Remove misc modifiers from skills and saves - adhoc buffs replace these (should be read only fields in ui)
- * add damage statistic on attackforms. add extra_damage property to damage statistics (for e.g. flamming)
+ * add damage statistic on attackforms (done). add extra_damage property to damage statistics (for e.g. flaming)
  * implement buffs on attackforms - need to implement add action in AttackFormPanel.AttackFormInfoDialog
  * Sort out magic shops: make them fully configurable in XML
  * Upload character sheet should update caster config
@@ -195,10 +187,10 @@ Game system things to implement:
  * rework attacks - they need an interface to filter properties like type etc. then filters can be used to build
  *    target lists (e.g  "type=bludgeoning and subclass=one handed melee")
  *
- * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes
+ * Fix the layout/sizing of the character panels - think we're going to need a customised splitpane controlling two scrollpanes (done?)
  * Continue to update for new module system (particularly digital table controller)
  * Perhaps make Updater a module
- * Clean up CameraPanel layout
+ * Clean up CameraPanel layout (obsolete now)
  *
  * Copy in encounters dialog should copy the current creature, not the base
  * In encounters dialog, adding an image should select it for the current creature (done?)
@@ -206,7 +198,6 @@ Game system things to implement:
  * Combat panel should save full monsters, not just combat entries
  * EncounterDialog: calc encounter level, display CRs
  * Encounterdialog should load/save buffs and maybe DTT selected elements
- * EncounterDialog: allow editing of AC, feats, size, SQ, etc
  * clear all for images. also cleared squares should be translucent on local
  * spell lists in AssistantDM
  * In party.xml consider changing "base" attribute on saves and attacks to "baseOverride" or "override"
@@ -225,9 +216,8 @@ Game system things to implement:
  * website: simplify updating - updates can be missed at the moment
  *
  * add combat panel section for pending xp/defeated monsters
- * Better support for instansiating monsters - size, HPs generation, select token image, show image, etc
- * camera: EOS camera support + refactoring of camera library
- * camera/dtt: Detect token movement
+ * camera: EOS camera support + refactoring of camera library (obsolete)
+ * camera/dtt: Detect token movement (obsolete)
  * ability checks
  * enum conversions - property and statistics types
  * feats - selecting of feats with target skill/weapon/spells/school. change available list to remove already selected feats

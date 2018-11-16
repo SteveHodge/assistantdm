@@ -19,9 +19,9 @@ import gamesystem.dice.Dice;
  * Once the Buff is applied, it's effects are fixed.
  */
 
-public class Buff extends Feature<Buff, BuffFactory> {
+public class Buff extends Effector<Buff, BuffFactory> {
 	public String name;
-	public List<FeatureDefinition.Effect> effects = new ArrayList<>();
+	public List<EffectorDefinition.Effect> effects = new ArrayList<>();
 	boolean realised = false;	// set to true once the effects have been fixed
 	Map<PropertyChange, String> propertyChanges = new HashMap<>();	// map of property changes to the target
 	int casterLevel = 0;
@@ -69,7 +69,7 @@ public class Buff extends Feature<Buff, BuffFactory> {
 	}
 
 	public boolean requiresCasterLevel() {
-		for (FeatureDefinition.Effect e : effects) {
+		for (EffectorDefinition.Effect e : effects) {
 			if (e.requiresCasterLevel()) return true;
 		}
 		return false;
@@ -101,9 +101,9 @@ public class Buff extends Feature<Buff, BuffFactory> {
 	public void apply(Creature c) {
 		if (!realised) {
 			// create modifiers/properties for each Effect. this will fix the specifics of the Effects
-			for (FeatureDefinition.Effect e : effects) {
-				if (e instanceof FeatureDefinition.ModifierEffect) {
-					addModifier(((FeatureDefinition.ModifierEffect) e).getModifier(this), e.target);
+			for (EffectorDefinition.Effect e : effects) {
+				if (e instanceof EffectorDefinition.ModifierEffect) {
+					addModifier(((EffectorDefinition.ModifierEffect) e).getModifier(this), e.target);
 				} else if (e instanceof PropertyEffect) {
 					PropertyChange change = new PropertyChange();
 					change.property = ((PropertyEffect)e).property;
@@ -171,7 +171,7 @@ public class Buff extends Feature<Buff, BuffFactory> {
 		return target;
 	}
 
-	public static class PropertyEffect extends FeatureDefinition.Effect {
+	public static class PropertyEffect extends EffectorDefinition.Effect {
 		String property;
 		Object value;
 		String description;
@@ -194,7 +194,7 @@ public class Buff extends Feature<Buff, BuffFactory> {
 		}
 	}
 
-	protected static class CLEffect extends FeatureDefinition.ModifierEffect {
+	protected static class CLEffect extends EffectorDefinition.ModifierEffect {
 		Object baseMod;
 		int perCL;
 		int maxPerCL;
@@ -289,7 +289,7 @@ public class Buff extends Feature<Buff, BuffFactory> {
 		}
 	}
 
-	public static class FixedEffect extends FeatureDefinition.FixedEffect {
+	public static class FixedEffect extends EffectorDefinition.FixedEffect {
 		public int modifier;
 
 		@Override

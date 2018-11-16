@@ -133,7 +133,7 @@ public class RuleSet {
 		}
 	}
 
-	private static void parseModifiers(Element e, FeatureDefinition<?> def) {
+	private static void parseModifiers(Element e, EffectorDefinition<?> def) {
 		if (!e.getTagName().equals("modifiers")) ;
 		NodeList mods = e.getChildNodes();
 		for (int j = 0; j < mods.getLength(); j++) {

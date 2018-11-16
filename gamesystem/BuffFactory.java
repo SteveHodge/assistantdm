@@ -4,7 +4,7 @@ package gamesystem;
  * BuffFactory is a source of a Buff. It is a description of an effect of some sort in terms of game mechanics (e.g. a spell).
  */
 
-public class BuffFactory extends FeatureDefinition<BuffFactory> implements Comparable<BuffFactory> {
+public class BuffFactory extends EffectorDefinition<BuffFactory> implements Comparable<BuffFactory> {
 	public Object source;	// source object with more details, e.g. Spell
 
 	public Buff getBuff() {

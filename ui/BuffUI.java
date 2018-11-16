@@ -2,7 +2,7 @@ package ui;
 
 import gamesystem.Buff;
 import gamesystem.BuffFactory;
-import gamesystem.FeatureDefinition;
+import gamesystem.EffectorDefinition;
 import gamesystem.Modifier;
 import gamesystem.Spell;
 import gamesystem.dice.Dice;
@@ -186,7 +186,7 @@ public class BuffUI {
 		c.insets = new Insets(2, 5, 2, 5);
 		c.gridy = 0;
 		int i = 0;
-		for (FeatureDefinition.Effect e : buff.effects) {
+		for (EffectorDefinition.Effect e : buff.effects) {
 			JLabel l = new JLabel(e.toString().trim());
 			c.gridx = 0;
 			c.gridwidth = 3;
@@ -232,11 +232,11 @@ public class BuffUI {
 
 	private void updateEffects(Buff buff) {
 		int i = 0;
-		for (FeatureDefinition.Effect e : buff.effects) {
-			if (e instanceof FeatureDefinition.ModifierEffect) {
+		for (EffectorDefinition.Effect e : buff.effects) {
+			if (e instanceof EffectorDefinition.ModifierEffect) {
 				if (e.requiresCasterLevel()) {
 					StringBuilder s = new StringBuilder("Total: ");
-					Modifier m = ((FeatureDefinition.ModifierEffect) e).getModifier(buff);
+					Modifier m = ((EffectorDefinition.ModifierEffect) e).getModifier(buff);
 					if (m.getModifier() >= 0) s.append("+");
 					s.append(m.getModifier());
 					effectLabels[i].setText(s.toString());

@@ -34,7 +34,7 @@ import gamesystem.ClassFeature.ClassFeatureDefinition.ParameterModifier;
  */
 
 // a class feature as instantiated for a particular character. tracks the values of parameters
-public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> {
+public class ClassFeature extends Effector<ClassFeature, ClassFeatureDefinition> {
 	Map<String, Object> parameters;	// maps parameter name to value
 	int template = 0;	// index of current template
 
@@ -136,7 +136,7 @@ public class ClassFeature extends Feature<ClassFeature, ClassFeatureDefinition> 
 	}
 
 	// represents the definition of a class feature. generates instances of ClassFeature as required
-	public static class ClassFeatureDefinition extends FeatureDefinition<ClassFeatureDefinition> {
+	public static class ClassFeatureDefinition extends EffectorDefinition<ClassFeatureDefinition> {
 		public String id;
 		SpecialAbilityType type;
 		List<String> summaries = new ArrayList<>();

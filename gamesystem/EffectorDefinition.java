@@ -6,14 +6,14 @@ import java.util.Set;
 import gamesystem.dice.Dice;
 
 /*
- * FeatureDefinition is a base class for factories like ClassFeatureDefinition and FeatDefinition. It allows the definition of simple fixed effects that are realised as
+ * EffectorDefinition is a base class for factories like ClassFeatureDefinition and FeatDefinition. It allows the definition of simple fixed effects that are realised as
  * ImmutableModifiers when the feature is added to a Creature.
  */
-public abstract class FeatureDefinition<S extends FeatureDefinition<S>> {
+public abstract class EffectorDefinition<S extends EffectorDefinition<S>> {
 	public String name;
 	Set<Effect> effects = new HashSet<>();
 
-	protected FeatureDefinition(String name) {
+	protected EffectorDefinition(String name) {
 		this.name = name;
 	}
 

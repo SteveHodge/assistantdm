@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /*
- * Feature is a generic base class for features like Feats and ClassFeatures that can provide simple bonuses via Modifiers
+ * Effector is a generic base class for things that modify a creature's statistics and/or properties, e.g. Feats and ClassFeatures. An Effector can have multiple effects.
  */
-public abstract class Feature<T extends Feature<T, S>, S extends FeatureDefinition<S>> {
+public abstract class Effector<T extends Effector<T, S>, S extends EffectorDefinition<S>> {
 	public S definition;
 	private List<Modifier> modifiers = new ArrayList<>();
 	private List<String> targets = new ArrayList<>();
 
-	protected Feature(S def) {
+	protected Effector(S def) {
 		definition = def;
 	}
 

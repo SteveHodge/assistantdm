@@ -8,7 +8,7 @@ import gamesystem.Feat.FeatDefinition;
 
 
 // Feat is an instance of a FeatDefinition that can be applied to a Creature
-public class Feat extends Feature<Feat, FeatDefinition> {
+public class Feat extends Effector<Feat, FeatDefinition> {
 	public boolean bonus = false;	// true if this feat was added due to a class feature. eventually will want to expand to list of sources
 	public String target;
 
@@ -35,7 +35,7 @@ public class Feat extends Feature<Feat, FeatDefinition> {
 //		return false;
 //	}
 
-	public static class FeatDefinition extends FeatureDefinition<FeatDefinition> {
+	public static class FeatDefinition extends EffectorDefinition<FeatDefinition> {
 		public boolean repeatable = false;
 		public String summary;
 		public String ref;
