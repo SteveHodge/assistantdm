@@ -248,8 +248,7 @@ public class StatsBlockCreatureView {
 					for (int j = 0; j < count; j++) {
 						Feat feat = def.getFeat();
 						feat.bonus = bonus;
-						feat.apply(m);
-						m.feats.add(feat);
+						m.getFeats().addFeat(feat);
 					}
 				} else {
 					System.out.println("Couldn't find feat '" + f + "'");

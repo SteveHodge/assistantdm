@@ -39,7 +39,6 @@ public class Monster extends Creature {
 
 	public List<MonsterAttackRoutine> attackList;		// TODO should not be public. should be notified
 	public List<MonsterAttackRoutine> fullAttackList;	// TODO should not be public. should be notified
-	public List<Feat> feats = new ArrayList<Feat>();			// applied feats	// TODO should not be public. should be notified
 
 	StatisticsBlock statisticsBlock;
 
@@ -271,12 +270,9 @@ public class Monster extends Creature {
 	@Override
 	public boolean hasFeat(String feat) {
 		if (feat == null) return false;
-		String f = feat.toLowerCase();
-		// check recognised feats
-		for (Feat ff : feats) {
-			if (ff.getName().equals(name)) return true;
-		}
+		if (feats.hasFeat(feat)) return true;		// check recognised feats
 		// check other feats and properties
+		String f = feat.toLowerCase();
 		String feats = (String) getPropertyValue("field." + Field.FEATS.name());
 		if (feats != null && feats.toLowerCase().contains(f)) return true;
 		feats = (String) getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
@@ -289,7 +285,8 @@ public class Monster extends Creature {
 		if (feat == null) return false;
 		String f = feat.toLowerCase();
 		// check recognised feats
-		for (Feat ff : feats) {
+		for (int i = 0; i < feats.getSize(); i++) {
+			Feat ff = feats.get(i);
 			if (ff.getName().equals(name) && ff.target.equals(attack.getDescription())) return true;
 		}
 		// check other feats and properties
@@ -298,11 +295,6 @@ public class Monster extends Creature {
 		feats = (String) getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
 		if (feats != null && feats.toLowerCase().contains(f + " (" + attack.getDescription() + ")")) return true;
 		return false;
-	}
-
-	@Override
-	public void addFeat(Feat f) {
-		feats.add(f);
 	}
 
 	// returns the counts of regular feats and bonus feats parsed from the FEATS property. Does not consider the feats member.

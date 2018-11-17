@@ -129,8 +129,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 				for (int j = 0; j < children.getLength(); j++) {
 					if (children.item(j).getNodeName().equals("Feat")) {
 						Feat b = parseFeat((Element) children.item(j));
-						b.apply(c);
-						c.feats.addElement(b);
+						c.getFeats().addFeat(b);
 					}
 				}
 

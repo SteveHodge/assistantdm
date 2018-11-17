@@ -102,6 +102,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	public Map<String, ClassOption> classOptions = new HashMap<>();
 	public List<ClassFeature> features = new ArrayList<>();		// TODO shouldn't be public
 	public HitDiceProperty hitDice;		// TODO shouldn't be public
+	protected Feats feats;
 
 	protected Sanity sanity;
 
@@ -167,6 +168,12 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	@Override
 	public void addProperty(Property<?> property) {
 		properties.put(property.getName(), property);
+	}
+
+	// doesn't remove any listeners
+	@Override
+	public void removeProperty(Property<?> property) {
+		properties.remove(property);
 	}
 
 	@Override
@@ -270,7 +277,9 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		return sanity;
 	}
 
-	abstract public void addFeat(Feat f);
+	public Feats getFeats() {
+		return feats;
+	}
 
 	//------------ Features -------------
 	public void addClassFeature(ClassFeature f) {
@@ -507,7 +516,9 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 	}
 
 //------------- Others --------------
-	abstract public boolean hasFeat(String feat);
+	public boolean hasFeat(String feat) {
+		return feats.hasFeat(feat);
+	}
 
 	abstract public boolean hasFeat(String name, AttackForm attack);	// check if a feat applies to a specific attack
 

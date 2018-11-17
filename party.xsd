@@ -281,9 +281,10 @@
 					<xs:attribute name="ammunition" type="xs:string"/>
 					<xs:attribute name="critical" type="xs:string"/>
 					<xs:attribute name="enhancement" type="xs:int"/>
-					<xs:attribute name="base_damage" type="xs:string"/>
+					<xs:attribute name="original-damage" type="xs:string"/>
 					<xs:attribute name="damage" type="xs:string"/>		<!-- for character sheet only -->
 					<xs:attribute name="properties" type="xs:string"/>
+					<xs:attribute name="original-size" type="xs:string"/>
 					<xs:attribute name="size" type="xs:string"/>
 					<xs:attribute name="type" type="xs:string"/>
 					<xs:attribute name="total" type="xs:int"/>	<!-- for character sheet only -->

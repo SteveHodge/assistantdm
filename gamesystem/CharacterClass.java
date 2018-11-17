@@ -192,7 +192,7 @@ public enum CharacterClass {
 				if (feat != null) {
 					Feat f = feat.getFeat();
 					f.bonus = true;
-					c.addFeat(f);
+					c.getFeats().addFeat(f);
 				} else {
 					System.err.println("Could not find feat " + options[0]);
 				}

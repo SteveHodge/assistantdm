@@ -6,7 +6,7 @@ import java.beans.PropertyChangeSupport;
 /*
  * Abstract implementation of Modifier that provides simple PropertyChangeListener support and default
  * type, source and condition of null, and ID of 0.
- * This is a useful starting point for any mutable Modifier implementation 
+ * This is a useful starting point for any mutable Modifier implementation
  */
 public abstract class AbstractModifier implements Modifier {
 	final protected PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -19,6 +19,11 @@ public abstract class AbstractModifier implements Modifier {
 	@Override
 	public String getSource() {
 		return null;
+	}
+
+	@Override
+	public void setSource(String s) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

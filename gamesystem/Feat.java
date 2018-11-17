@@ -25,6 +25,13 @@ public class Feat extends Effector<Feat, FeatDefinition> {
 		return s;
 	}
 
+	// add a suffix of " (X)" to the source of all modifiers in this feat. this is used for repeatable feats to prevent modifiers from being ignored due to having the same source
+	public void addOrdinal(int ordinal) {
+		for (Modifier m : modifiers) {
+			m.setSource(m.getSource() + " (" + ordinal + ")");
+		}
+	}
+
 //	@Override
 //	public boolean equals(Object obj) {
 //		if (!(obj instanceof Feat)) return false;

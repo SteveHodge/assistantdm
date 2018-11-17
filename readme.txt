@@ -1,4 +1,5 @@
 ---=== IN PROGRESS ===---
+* IN WORK: Feats should be refactored to Creature and should be a property. Feats refactored, need to clean up monster use of Feats
 * Monster library needs to check for dupes and confirm replacement.
 * Implement editing for remaining fields: Spec. Qualities, Feats, Space/Reach, AC, Size/type, Grapple
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
@@ -6,7 +7,6 @@
 * Export to html file? Maybe live?
 * Advance monster by template: select template, flag fields that need updates, show template text for each field as selected - may be tricky as some templates change the type but don't recalculate
 * Advance monster by character class
-* Feats should be refactored to Creature and should be a property
 *
 * DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
 * DTT: make walls a sub-element of map (as mask is)
@@ -17,7 +17,7 @@
 * 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
 * Slots: xml output/parsing (done). apply effects (done). tooltips - descriptions (todo). fix up notifications - probably best to make each slot a property
 * Check how natural armor bonus is implemented. It's both a modifier type (that only applies to AC), and a statistic that can itself be enhanced - seems to be right?
-* Implement Spell Resistance   
+* Implement Spell Resistance
 * Weapon/armor proficiencies: ui done but no effects implemented
 * Weapon focus/spec: seems to be not working
 * Auto numbers for tokens not coming through on ui
@@ -44,6 +44,7 @@
 * BUG "reset" button caused index out of bounds error in RemoteImageDisplay
 * Drawing lines should optionally add walls and/or allow editing of walls elements
 * Skill focus feat needs targeting implemented
+* StatisticsCollection should be expanded to provide the filtering required for selecting targets like weapons for spells. Also consider how it fits into notification of changes to collective properties
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
@@ -112,12 +113,64 @@ would include some feats, racial abilities, class abilities, etc. The "Two-Weapo
 by the "Two-Weapon Fighting" feat but it could also alternately be provided by a ranger's Combat Style class feature or
 even perhaps as a racial feature.
 
+---=== GAMESYSTEM PACKAGE CLASSES ===---
+Statistics:
+	AbilityScore
+	AC
+	Attacks
+	GrappleModifier
+	HPs
+	InititativeModifier
+	Levels (probably should be a Property)
+	SavingThrow
+	Size
+	Skills
+
+Properties:
+	BAB
+	Race
+	Sanity
+
+3.5 System classes:
+	AbstractModifier
+	CalculatedValue (probably should be a factory that creates Propertys)
+	CR
+	CreatureProcessor
+	DoubleModifier
+	ImmutableModifier
+	LimitModifier
+	Modifier
+	RuleSet
+	Statistic
+	StatisticsCollection
+	XMLOutputHelper
+	XMLParserHelper
+	XP
+
+Rule definition classes:
+	BABProgression
+	Buff
+	BuffFactory
+	CharacterClass
+	ClassFeature
+	Creature
+	Effector
+	EffectorFactory
+	Feat
+	HitDiceProperty
+	ItemDefinition
+	MonsterType
+	SaveProgression
+	SizeCategory
+	SkillType
+	Spell
+
 ---=== TODO ===---
 Game system things to implement:
   (in progress) Size - mostly done. just ui and xml for characters?
   (in progress) Race - monster advancement is done. still need to do character race features etc.
   (in progress) Feats - better UI support for targetted feats, implement weapon and armor proficiencies
-  (in progress) Grapple modifier
+  (in progress) Grapple modifier - done?
   Ability score checks
   (in progress) Class levels - negative levels
   Spell lists / spells per day (web version done)
@@ -132,10 +185,10 @@ Game system things to implement:
 * fix monster stats tooltip, it's annoying
 * website track saves to verify not overwriting other client changes
 * Remote input - joysticks, web
-* split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels. or have "bonus hitpoints" statistic in HitDiceProperty for permanent changes (amounts to the same thing)
+* (in progress) split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels. perhaps move the max HPs stat to hitdice
 * implement negative levels
 * implement conditions
-* implement StatisticsCollection for Attacks [not sure what I intended... mechanism for notifying changes to the attackform list I assume? if so then there is commonality with things like feats and skills]
+* implement StatisticsCollection for Attacks so they can be used for custom buffs
 * implement caster levels with saving to website. (probably easiest to have a dedicated field for the relevant ability for rememorising, to be eventually replaced with a system that knows what modifiers are temporary and therefore shouldn't be counted)
 * implement periodic special abilities and item uses/charges.
 * move definitions of ClassFeatureDefinition to XML. FeatDefinition and BuffFactory are done.

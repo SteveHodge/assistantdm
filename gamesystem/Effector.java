@@ -8,7 +8,7 @@ import java.util.List;
  */
 public abstract class Effector<T extends Effector<T, S>, S extends EffectorDefinition<S>> {
 	public S definition;
-	private List<Modifier> modifiers = new ArrayList<>();
+	protected List<Modifier> modifiers = new ArrayList<>();
 	private List<String> targets = new ArrayList<>();
 
 	protected Effector(S def) {

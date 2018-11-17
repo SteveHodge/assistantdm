@@ -26,6 +26,7 @@ import gamesystem.ClassFeature;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
+import gamesystem.Feats;
 import gamesystem.GrappleModifier;
 import gamesystem.HPs;
 import gamesystem.HitDiceProperty;
@@ -104,15 +105,11 @@ public class Character extends Creature {
 
 	public EnumMap<SavingThrow.Type, Modifier> saveMisc = new EnumMap<>(SavingThrow.Type.class);	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
-	//	private Set<Feat> feats = new HashSet<>();
-
 	public SimpleValueProperty<Integer> xp;	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
 	public EnumMap<ACComponentType, Modifier> acMods = new EnumMap<>(ACComponentType.class); // TODO should move to AC panel
 
 	public List<CharacterAttackForm> attackForms = new ArrayList<>();
-
-	public BuffListModel<Feat> feats = new BuffListModel<>();	// TODO reimplement for better encapsulation
 
 	public List<XPHistoryItem> xpChanges = new ArrayList<>();	// TODO shouldn't be public - change when XMLOutputProcessor has character specific subclass
 
@@ -222,6 +219,8 @@ public class Character extends Creature {
 		bab = new BAB(this, race, level);
 
 		grapple = new GrappleModifier(this, bab, size, abilities.get(AbilityScore.Type.STRENGTH));
+
+		feats = new Feats(this, this);
 
 		attacks = new Attacks(this);
 
@@ -385,10 +384,9 @@ public class Character extends Creature {
 
 	private void rebuildClassFeatures() {
 		// remove any bonus feats
-
 		for (int i = feats.getSize() - 1; i >= 0; i--) {
 			Feat f = feats.get(i);
-			if (f.bonus) feats.remove(i);
+			if (f.bonus) feats.removeFeat(f);
 		}
 
 		// remove all class features
@@ -478,32 +476,19 @@ public class Character extends Creature {
 
 //------------ Feats -------------
 	@Override
-	public boolean hasFeat(String name) {
-		for (int i = 0; i < feats.size(); i++) {
-			Feat f = feats.get(i);
-			if (f.getName().equals(name)) return true;
-		}
-		return false;
-	}
-
-	@Override
 	public boolean hasFeat(String name, AttackForm attack) {
 		CharacterAttackForm chrAtk = attackForms.stream().filter(a -> a.attack == attack).findFirst().get();
 		if (chrAtk != null && name.equals(Feat.FEAT_WEAPON_FOCUS) && chrAtk.focusLevel != WeaponFocus.DEFAULT) return chrAtk.focusLevel != WeaponFocus.NO;
 		if (chrAtk != null && name.equals(Feat.FEAT_WEAPON_SPECIALIZATION) && chrAtk.specLevel != WeaponSpecialization.DEFAULT) return chrAtk.specLevel != WeaponSpecialization.NO;
 		// FIXME override checks for greater focus, greater specialization
-		for (int i = 0; i < feats.size(); i++) {
+		for (int i = 0; i < feats.getSize(); i++) {
 			Feat f = feats.get(i);
 			if (f.getName().equals(name) && f.target.equals(attack.getDescription())) return true;
 		}
 		return false;
 	}
 
-	@Override
-	public void addFeat(Feat f) {
-		feats.addElement(f);
-	}
-
+	//-------------------------
 	// TODO handling of AttackForm selection should probably be done by the Attacks statistic
 	@Override
 	public Set<Statistic> getStatistics(String selector) {

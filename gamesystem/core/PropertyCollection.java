@@ -15,5 +15,7 @@ public interface PropertyCollection {
 
 	public void addProperty(Property<?> property);
 
+	public void removeProperty(Property<?> property);
+
 	public void fireEvent(PropertyEvent event);
 }

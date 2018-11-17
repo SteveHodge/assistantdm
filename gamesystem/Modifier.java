@@ -89,7 +89,8 @@ public interface Modifier {
 
 	public int getModifier();
 	public String getType();
-	public String getSource();		// returns null if no specific source (typically source is only necessary for magic spells
+	public String getSource();		// returns null if no specific source (typically source is only necessary for magic spells)
+	public void setSource(String s);		// shouldn't be used. it's used by repeatable feats to distinguish instances so that bonuses stack. currently only implemented by ImmutableModifier
 	public String getCondition();	// returns null if no condition
 	public void addPropertyChangeListener(PropertyChangeListener listener);
 	public void removePropertyChangeListener(PropertyChangeListener listener);

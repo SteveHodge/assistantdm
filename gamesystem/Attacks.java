@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
-
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.PropertyEvent;
@@ -54,24 +51,6 @@ public class Attacks extends Statistic {
 
 	final PropertyChangeListener listener = evt -> fireEvent();
 
-	final ListDataListener featsListener = new ListDataListener() {
-		@Override
-		public void contentsChanged(ListDataEvent e) {update();}
-		@Override
-		public void intervalAdded(ListDataEvent e) {update();}
-		@Override
-		public void intervalRemoved(ListDataEvent e) {update();}
-
-		protected void update() {
-			setPowerAttack(getPowerAttack());
-			setCombatExpertise(getCombatExpertise());
-			for (AttackForm a : attackForms) {
-				a.updateModifiers();
-			}
-			fireEvent();	// may have been fired by the power attack or combate expertise, but maybe not
-		}
-	};
-
 	// FIXME monsters have feats now so clean up feats handling
 	public Attacks(Creature c) {
 		super("attacks", "Attacks", c);
@@ -79,9 +58,18 @@ public class Attacks extends Statistic {
 		damageStat = new Damage(parent);
 
 		creature = c;
+
+		// FIXME should listen to specific feats
 		if (creature instanceof Character) {
 			Character chr = (Character) creature;
-			chr.feats.addListDataListener(featsListener);
+			chr.feats.addPropertyListener(e -> {
+				setPowerAttack(getPowerAttack());
+				setCombatExpertise(getCombatExpertise());
+				for (AttackForm a : attackForms) {
+					a.updateModifiers();
+				}
+				fireEvent();	// may have been fired by the power attack or combate expertise, but maybe not
+			});
 		}
 		ac = creature.getACStatistic();
 		bab = creature.getBAB();

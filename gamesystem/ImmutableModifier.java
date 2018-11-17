@@ -63,6 +63,11 @@ public class ImmutableModifier implements Modifier {
 	}
 
 	@Override
+	public void setSource(String s) {
+		source = s;
+	}
+
+	@Override
 	public String getCondition() {
 		return condition;
 	}
