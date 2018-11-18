@@ -268,15 +268,13 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 
 		@Override
 		public OverridableProperty.PropertyValue<Integer> addOverride(Integer val) {
-			System.out.println("Overriding to total of " + val + ". Old override = " + override + ", modifiers = " + getModifiersTotal());
 			Integer old = override;
 			if (val == null || val == 0 || val.equals(getTotalRolled() + getModifiersTotal())) {
 				override = null;	// TODO removing override should be done through removeOverride method - remove this hack when overrides are properly suported in the ui and implemented in statistic
 			} else {
 				override = val - getModifiersTotal() - bonusHPs;
 			}
-			System.out.println("Value now " + getValue());
-			if (!override.equals(old)) fireEvent(createEvent(PropertyEvent.OVERRIDE_ADDED));
+			if (override == null && old != null || override != null && !override.equals(old)) fireEvent(createEvent(PropertyEvent.OVERRIDE_ADDED));
 			return new PropertyValue<Integer>(val);
 		}
 
