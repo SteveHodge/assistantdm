@@ -10,6 +10,8 @@ import gamesystem.AbilityScore.Type;
  * Expressions are constructed using instances of Calculation classes.
  */
 
+// XXX maybe CalcualtedValue should be a Property?
+
 public class CalculatedValue {
 	Term root;
 	PropertyChangeSupport pcs = new PropertyChangeSupport(this);

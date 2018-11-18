@@ -184,8 +184,9 @@ public class EncounterDialog extends JFrame {
 				detailPanels.put(f, new DefaultDetailPanel(f, (f == Field.SIZE_TYPE
 						|| f == Field.AC
 						|| f == Field.SPACE_REACH
-						|| f == Field.SPECIAL_QUALITIES
-						|| f == Field.FEATS)));
+						//|| f == Field.SPECIAL_QUALITIES	// TODO uncanny dodge affects flat-footed ac but isn't checked on updates
+						//|| f == Field.FEATS
+						)));
 			}
 		}
 

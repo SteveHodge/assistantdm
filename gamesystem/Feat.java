@@ -18,6 +18,14 @@ public class Feat extends Effector<Feat, FeatDefinition> {
 		super(def);
 	}
 
+	// returns a string that fully identifies this feat: the name with 'B' appended if this is a bonus feat and the target string appended in parentheses, if there is one.
+	public String getIdentityString() {
+		String s = super.toString();
+		if (bonus) s += "B";
+		if (definition.hasTarget() && target != null && target.length() > 0) s += " (" + target + ")";
+		return s;
+	}
+
 	@Override
 	public String toString() {
 		String s = super.toString();

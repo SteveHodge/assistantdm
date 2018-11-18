@@ -14,6 +14,7 @@ import gamesystem.Buff;
 import gamesystem.Creature;
 import gamesystem.CreatureProcessor;
 import gamesystem.Feat;
+import gamesystem.Feats;
 import gamesystem.GrappleModifier;
 import gamesystem.HPs;
 import gamesystem.HitDiceProperty;
@@ -107,6 +108,8 @@ public class Monster extends Creature {
 		bab = new BAB(this, race, level);
 
 		grapple = new GrappleModifier(this, bab, size, abilities.get(AbilityScore.Type.STRENGTH));
+
+		feats = new Feats(this, this);
 
 		attacks = new Attacks(this);
 		// TODO size modifier to attack needs to be setup correctly

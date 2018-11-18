@@ -3,7 +3,9 @@ package monsters;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +22,7 @@ import gamesystem.CharacterClass;
 import gamesystem.CharacterClass.LevelUpAction;
 import gamesystem.Feat;
 import gamesystem.Feat.FeatDefinition;
+import gamesystem.Feats;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
@@ -220,39 +223,9 @@ public class StatsBlockCreatureView {
 		m.setProperty("field." + Field.FEATS.name(), blk.get(Field.FEATS));
 		// apply any feats we recognise:
 		if (blk.get(Field.FEATS) != null) {
-			String[] feats = blk.get(Field.FEATS).split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
-			for (String f : feats) {
-				int count = 1;
-				boolean bonus = false;
-				f = f.trim();
-				//System.out.print("  '" + f + "': ");
-				if (f.endsWith("B")) {
-					f = f.substring(0, f.length() - 1);
-					bonus = true;
-					//System.out.print("bonus feat, ");
-				}
-				if (f.contains("(")) {
-					try {
-						count = Integer.parseInt(f.substring(f.indexOf("(") + 1, f.indexOf(")")));
-					} catch (NumberFormatException e) {
-						// assume if it's not a number then it's a subtype
-					}
-					f = f.substring(0, f.indexOf("(")).trim();
-					//System.out.print("stripped specialisation/count leaving '" + f + "', ");
-				}
-				f = f.trim();
-				if (f.equals("—")) continue;
-				FeatDefinition def = Feat.getFeatDefinition(f);
-				if (def != null) {
-					//System.out.println("Found " + def.name + ", count = " + count);
-					for (int j = 0; j < count; j++) {
-						Feat feat = def.getFeat();
-						feat.bonus = bonus;
-						m.getFeats().addFeat(feat);
-					}
-				} else {
-					System.out.println("Couldn't find feat '" + f + "'");
-				}
+			Set<Feat> feats = getFeats(blk.get(Field.FEATS));
+			for (Feat f : feats) {
+				m.getFeats().addFeat(f);
 			}
 		}
 
@@ -284,6 +257,13 @@ public class StatsBlockCreatureView {
 		m.setProperty("field." + Field.ADVANCEMENT.name(), blk.get(Field.ADVANCEMENT));
 		m.setProperty("field." + Field.LEVEL_ADJUSTMENT.name(), blk.get(Field.LEVEL_ADJUSTMENT));
 
+//		StatsBlockCreatureView view = StatsBlockCreatureView.getView(m);
+//		String hpStr = view.getField(Field.HITDICE, false);
+//		if (!view.isEquivalent(Field.HITDICE, hpStr)) {
+//			System.out.println("Discrepency in hitdice:");
+//			System.out.println(m.getHPStatistic().getMaxHPStat().getSummary());
+//		}
+
 		return m;
 	}
 
@@ -293,6 +273,49 @@ public class StatsBlockCreatureView {
 
 	static void setFullAttackList(Monster m, List<AttackRoutine> attacks) {
 		m.fullAttackList = getAttackList(m, attacks);
+	}
+
+	private static Set<Feat> getFeats(String featsField) {
+		Set<Feat> featsSet = new HashSet<>();
+		String[] feats = featsField.split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
+		for (String f : feats) {
+			int count = 1;
+			String target = null;
+			boolean bonus = false;
+			if (f.contains("(")) {
+				String countOrTarget = f.substring(f.indexOf("(") + 1, f.indexOf(")"));
+				try {
+					count = Integer.parseInt(countOrTarget);
+				} catch (NumberFormatException e) {
+					// assume if it's not a number then it's a target
+					target = countOrTarget;
+				}
+				f = f.substring(0, f.indexOf("(")).trim();
+				//System.out.print("stripped specialisation/count leaving '" + f + "', ");
+			}
+			f = f.trim();
+			//System.out.print("  '" + f + "': ");
+			if (f.endsWith("B")) {
+				f = f.substring(0, f.length() - 1);
+				bonus = true;
+				//System.out.print("bonus feat, ");
+			}
+			if (f.equals("—")) continue;
+			FeatDefinition def = Feat.getFeatDefinition(f);
+			if (def != null) {
+				//System.out.println("Found " + def.name + ", count = " + count);
+				for (int j = 0; j < count; j++) {
+					Feat feat = def.getFeat();
+					feat.bonus = bonus;
+					if (target != null)
+						feat.target = target;
+					featsSet.add(feat);
+				}
+			} else {
+				System.out.println("Couldn't find feat '" + f + "'");
+			}
+		}
+		return featsSet;
 	}
 
 	private static List<MonsterAttackRoutine> getAttackList(Monster m, List<AttackRoutine> attacks) {
@@ -438,6 +461,7 @@ public class StatsBlockCreatureView {
 					s.setBaseOverride(save - s.getModifiersTotal());
 				}
 			}
+
 		} else if (field == Field.ATTACK) {
 			// TODO this should trigger a property change on the Monster
 			setAttackList(creature, StatisticsBlock.parseAttacks(value, new MonsterDetails(creature)));
@@ -447,6 +471,42 @@ public class StatsBlockCreatureView {
 			// TODO this should trigger a property change on the Monster
 			setFullAttackList(creature, StatisticsBlock.parseAttacks(value, new MonsterDetails(creature)));
 			pcs.firePropertyChange(Field.FULL_ATTACK.name(), null, getField(Field.FULL_ATTACK));
+
+		} else if (field == Field.FEATS) {
+			// get a map of feat names to lists of the feat (the list is to handle repeated feats)
+			HashMap<String, List<Feat>> newFeats = new HashMap<>();
+			for (Feat f : getFeats(value)) {
+				List<Feat> list = newFeats.get(f.getIdentityString());
+				if (list == null)
+					list = new ArrayList<>();
+				list.add(f);
+				newFeats.put(f.getIdentityString(), list);
+			}
+			// compare with existing feats so we know which feats need to be added and which need to be removed
+			Feats feats = creature.getFeats();
+			HashSet<Feat> toRemove = new HashSet<>();
+			for (int i = 0; i < feats.getSize(); i++) {
+				Feat f = feats.get(i);
+				String key = f.getIdentityString();
+				if (newFeats.containsKey(key)) {
+					List<Feat> list = newFeats.get(key);
+					list.remove(0);
+					if (list.size() > 0)
+						newFeats.put(key, list);
+					else
+						newFeats.remove(key);
+				} else {
+					toRemove.add(f);
+				}
+			}
+			for (Feat f : toRemove) {
+				feats.removeFeat(f);
+			}
+			for (List<Feat> list : newFeats.values()) {
+				for (Feat f : list) {
+					feats.addFeat(f);
+				}
+			}
 		}
 
 		if (creature.hasProperty("field." + field.name())) {
@@ -544,6 +604,25 @@ public class StatsBlockCreatureView {
 				if (g >= 0) s.append("+");
 				s.append(g);
 			}
+		} else if (field == Field.FEATS) {
+			Feats feats = creature.getFeats();
+			HashMap<String, Integer> featsMap = new HashMap<>();
+			for (int i = 0; i < feats.getSize(); i++) {
+				Feat f = feats.get(i);
+				String featName = f.getIdentityString();
+				int count = 1;
+				if (featsMap.containsKey(featName)) {
+					count = featsMap.get(featName) + 1;
+				}
+				featsMap.put(featName, count);
+			}
+			ArrayList<String> featNames = new ArrayList<>();
+			for (String f : featsMap.keySet()) {
+				int count = featsMap.get(f);
+				featNames.add(f + (count > 1 ? " (" + count + ")" : ""));
+			}
+			Collections.sort(featNames);
+			s.append(String.join(", ", featNames));
 		}
 
 		StatisticsBlock stats = creature.statisticsBlock;

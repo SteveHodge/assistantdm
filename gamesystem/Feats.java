@@ -35,7 +35,6 @@ public class Feats extends AbstractProperty<Integer> {
 	}
 
 	// adds a feat and returns the feat's property
-	// TODO should check if property is repeatable and return null if it can't be added
 	public Property<Boolean> addFeat(Feat f) {
 		Set<Integer> used = new HashSet<>();
 		for (Feat feat : featList) {
@@ -53,7 +52,6 @@ public class Feats extends AbstractProperty<Integer> {
 			}
 		}
 		if (prop.ordinal > 1) {
-			System.out.println("Adding repeatable feat " + f + ", ordinal " + prop.ordinal);
 			// need to adjust the source of the modifiers in the feat. this is a bit of hack but seems the best option
 			f.addOrdinal(prop.ordinal);
 		}
@@ -61,6 +59,7 @@ public class Feats extends AbstractProperty<Integer> {
 		featList.add(f);
 		f.apply(creature);
 		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
+		//System.out.println("Added feat " + f.getName() + (f.bonus ? " (bonus feat)" : "") + (f.definition.hasTarget() ? " (" + f.target + ")" : ""));
 		return prop;
 	}
 

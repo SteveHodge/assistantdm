@@ -1,5 +1,6 @@
 ---=== IN PROGRESS ===---
-* IN WORK: Feats should be refactored to Creature and should be a property. Feats refactored, need to clean up monster use of Feats
+* BUG: Toughness doesn't work on monsters because max hps is an override. need to be able to set the max hitpoints according to hitdice or store the actual rolls for race (and class) for monsters. maybe move max hps stat to hitdice
+* BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
 * Implement editing for remaining fields: Spec. Qualities, Feats, Space/Reach, AC, Size/type, Grapple
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
