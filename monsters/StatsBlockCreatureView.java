@@ -172,7 +172,6 @@ public class StatsBlockCreatureView {
 		m.hitDice.setHitDice(blk.getHitDice());
 
 		HPs hps = m.getHPStatistic();
-		hps.getMaxHPStat().addOverride(blk.getDefaultHPs());
 
 		Size size = m.getSizeStatistic();
 		size.setBaseSize(blk.getSize());
@@ -256,6 +255,8 @@ public class StatsBlockCreatureView {
 		m.setProperty("field." + Field.ALIGNMENT.name(), blk.get(Field.ALIGNMENT));
 		m.setProperty("field." + Field.ADVANCEMENT.name(), blk.get(Field.ADVANCEMENT));
 		m.setProperty("field." + Field.LEVEL_ADJUSTMENT.name(), blk.get(Field.LEVEL_ADJUSTMENT));
+
+		hps.getMaxHPStat().addOverride(blk.getDefaultHPs());
 
 //		StatsBlockCreatureView view = StatsBlockCreatureView.getView(m);
 //		String hpStr = view.getField(Field.HITDICE, false);

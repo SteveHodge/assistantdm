@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import gamesystem.core.OverridableProperty;
+import gamesystem.HitDiceProperty.MaxHPs;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.PropertyEvent;
 import gamesystem.core.SimpleValueProperty;
@@ -15,7 +15,7 @@ import gamesystem.core.SimpleValueProperty;
 
 // XXX change temp hitpoints to a property
 // TODO there are difference in how damage and healing are handled (particularly with temporary hitpoints). going to need undo
-// XXX i think hps should be a property rather than a statistic
+// XXX i think hps should be a property rather than a statistic, though we're using modifiers for temporary hitpoints so that effects can add them
 
 /* Architecture:
  * HPs is a statistic representing current hitpoints. Modifiers on HPs apply temporary hitpoints. Not sure overrides make sense though there are effects that set current hps to a particular value. Perhaps could be a property.
@@ -57,13 +57,14 @@ import gamesystem.core.SimpleValueProperty;
  * If an effect has no hps left it should be be notified
  */
 
+// The max_hps
 // TODO fix up encapsulation since parsing has moved to XMLCreatureParser
 public class HPs extends Statistic {
 	List<TempHPs> tempHPs = new ArrayList<>();	// this list should contain exactly one active TempHPs from each source. all members should have hps > 0
 	Map<Modifier, TempHPs> modMap = new HashMap<>();
-	MaxHPs maxHPs;
 	SimpleValueProperty<Integer> wounds;
 	SimpleValueProperty<Integer> nonLethal;
+	HitDiceProperty hitdice;
 
 	// interested parties can register listeners as with other Modifier subclasses. if damage reduces a hps to 0, the TempHPs will be removed from the HPs instance
 	class TempHPs extends AbstractModifier {
@@ -98,67 +99,16 @@ public class HPs extends Statistic {
 		}
 	}
 
-	// FIXME the max hps field in the ui should set a override on the total of this (so that modifiers are preserved), currently it effectively sets the base value
-	// TODO should probably move this to HitDiceProperty
-	// FIXME temporarily only supports a single override value
-	public class MaxHPs extends Statistic implements OverridableProperty<Integer> {
-		HitDiceProperty hitdice;
-		Integer override = null;
-
-		public MaxHPs(HitDiceProperty hd, PropertyCollection parent) {
-			super("hit_points.max_hps", "Max Hit Points", parent);
-
-			hitdice = hd;
-			hitdice.addPropertyListener(e -> {
-				if (override != null && override.equals(getRegularValue())) {
-					override = null;	// XXX not sure if it's best to remove override if it now matches the correct value
-				}
-				fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
-			});
-		}
-
-		@Override
-		public OverridableProperty.PropertyValue<Integer> addOverride(Integer val) {
-//			Integer old = getValue();
-			if (val == null || val.equals(getRegularValue())) {
-				override = null;	// TODO removing override should be done through removeOverride method - remove this hack when overrides are properly suported in the ui and implemented in statistic
-			} else {
-				override = val;
-			}
-			fireEvent(createEvent(PropertyEvent.OVERRIDE_ADDED));
-			return new PropertyValue<Integer>(val);
-		}
-
-		@Override
-		public int getBaseValue() {
-			return hitdice.getMaxHPs();
-		}
-
-		@Override
-		public Integer getValue() {
-			if (override == null) return super.getRegularValue();
-			return override;
-		}
-
-		@Override
-		public boolean hasOverride() {
-			return override != null;
-		}
-	}
-
-	// TODO should probably move con monitoring to HitDiceProperty
 	public HPs(HitDiceProperty hd, PropertyCollection parent) {
 		super("hit_points", "Hit Points", parent);
 
-		maxHPs = new MaxHPs(hd, parent);
-
+		hitdice = hd;
 		wounds = new SimpleValueProperty<Integer>("hit_points.wounds", parent, 0);
-
 		nonLethal = new SimpleValueProperty<Integer>("hit_points.non-lethal", parent, 0);
 	}
 
 	public MaxHPs getMaxHPStat() {
-		return maxHPs;
+		return hitdice.maxHPs;
 	}
 
 	public SimpleValueProperty<Integer> getWoundsProperty() {
@@ -307,7 +257,7 @@ public class HPs extends Statistic {
 
 	// returns the current hitpoints (not including any non-lethal damage)
 	public int getHPs() {
-		return maxHPs.getValue() + getTemporaryHPs() - wounds.getValue();
+		return hitdice.maxHPs.getValue() + getTemporaryHPs() - wounds.getValue();
 	}
 
 	// Statistics methods
@@ -360,7 +310,7 @@ public class HPs extends Statistic {
 	@Override
 	public String getSummary() {
 		StringBuilder text = new StringBuilder();
-		text.append(maxHPs.getValue()).append(" maximum<br/>");
+		text.append(hitdice.maxHPs.getValue()).append(" maximum<br/>");
 		if (wounds.getValue() != 0) text.append(-wounds.getValue()).append(" wounds<br/>");
 
 		Map<Modifier, Boolean> mods = getModifiers();
@@ -384,7 +334,7 @@ public class HPs extends Statistic {
 		StringBuilder text = new StringBuilder();
 		text.append(getHPs());
 		if (nonLethal.getValue() != 0) text.append(" (" + nonLethal.getValue()).append(" NL)");
-		text.append(" / ").append(maxHPs.getValue());
+		text.append(" / ").append(hitdice.maxHPs.getValue());
 		return text.toString();
 	}
 

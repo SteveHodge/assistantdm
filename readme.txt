@@ -1,8 +1,7 @@
 ---=== IN PROGRESS ===---
-* BUG: Toughness doesn't work on monsters because max hps is an override. need to be able to set the max hitpoints according to hitdice or store the actual rolls for race (and class) for monsters. maybe move max hps stat to hitdice
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
-* Implement editing for remaining fields: Spec. Qualities, Feats, Space/Reach, AC, Size/type, Grapple
+* Implement editing for remaining fields: Spec. Qualities, Space/Reach, AC, Size/type, Grapple (DONE Feats)
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
 * Reopen encounter window from combat/menu
 * Export to html file? Maybe live?
@@ -186,7 +185,6 @@ Game system things to implement:
 * fix monster stats tooltip, it's annoying
 * website track saves to verify not overwriting other client changes
 * Remote input - joysticks, web
-* (in progress) split hps statistic in max and current. modifiers to current are temporary hitpoints. modifiers to max are permanent changes (e.g. from feats) or penalties such as negative levels. perhaps move the max HPs stat to hitdice
 * implement negative levels
 * implement conditions
 * implement StatisticsCollection for Attacks so they can be used for custom buffs

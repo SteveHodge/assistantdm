@@ -5,6 +5,7 @@ import java.util.List;
 
 import gamesystem.SavingThrow.Type;
 import gamesystem.core.AbstractProperty;
+import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.PropertyEvent;
 import gamesystem.dice.HDDice;
@@ -13,15 +14,18 @@ import monsters.Monster;
 import monsters.StatisticsBlock.Field;
 
 /* HitDiceProperty monitors Levels and monster hitdice (Race) and provides a combined hitdice property that other properties such as BAB can be based on.
+ * Note that while this has a list value, it's not a list of individual hitdice, it's a list of hitdice types. I.e. a monster with 6d8 hitdice will have a single
+ * HDDice entry in the list, while a monster with 2d8 + 2d10 hitdice will have two.
  */
 
-// FIXME perhaps this should use the soon be added collection property?
+// XXX perhaps this should use the soon be added collection property? Or perhaps it shouldn't have a List<HDDice> value.
 public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	private Race race;
 	private Levels levels;
 	private List<HDDice> hitDice;
 	private Modifier conMod;
 	public int bonusHPs = 0;	// TODO remove this hack
+	MaxHPs maxHPs;
 
 	public HitDiceProperty(PropertyCollection parent, Race r, Levels l, AbilityScore con) {
 		super("hitdice", parent);
@@ -41,37 +45,23 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 
 		levels.addPropertyListener(e -> updateHitDice());
 
+		maxHPs = new MaxHPs(parent);
+
 		updateHitDice();
 	}
 
-	// TODO add race hps once we have them stored
-	public int getMaxHPs() {
-		int mod = 0;
-		if (conMod != null) mod = conMod.getModifier();
-		int hps = 0;
-		for (int i = 1; i <= levels.getLevel(); i++) {
-			Integer roll = levels.getHPRoll(i);
-			if (roll != null) {
-				int r = roll.intValue() + mod;
-				if (r < 1) r = 1;
-				hps += r;
-			}
-		}
-		return hps + bonusHPs;
-	}
-
 	private void updateHitDice() {
-//		List<HDDice> old = hitDice;
 		int mod = 0;
 		if (conMod != null) mod = conMod.getModifier();
 		hitDice = new ArrayList<>();
 		HDDice raceHD = race.getHitDice();
-		boolean doneBonus = bonusHPs == 0;	// will be initialised to true if we don't need to worry about this
+		int bonus = bonusHPs + maxHPs.getModifiersTotal() - mod * HDDice.getTotalConstant(hitDice);
+		boolean doneBonus = bonus == 0;	// will be initialised to true if we don't need to worry about this
 
 		if (levels.getHitDiceCount() == 0 || raceHD.getNumber() > 1) {
 			int constant = raceHD.getConstant() + mod * (raceHD.getNumber() < 1 ? 1 : raceHD.getNumber());
 			if (!doneBonus) {
-				constant += bonusHPs;
+				constant += bonus;
 				doneBonus = true;
 			}
 			raceHD = new HDDice(raceHD.getNumber(), raceHD.getType(), constant);
@@ -81,16 +71,13 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		for (SimpleDice s : levels.getHitDice()) {
 			int constant = mod * s.getNumber();
 			if (!doneBonus) {
-				constant += bonusHPs;
+				constant += bonus;
 				doneBonus = true;
 			}
 			hitDice.add(new HDDice(s.getNumber(), s.getType(), constant));
 		}
 
-		// FIXME for now we always send an update because we don't know if MaxHPs has changed
-//		if (hitDice == null && old != null || hitDice != null && !hitDice.equals(old)) {
 		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
-//		}
 	}
 
 	private List<HDDice> getLevelsHD() {
@@ -153,7 +140,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		return save;
 	}
 
-	// TODO this is a bit of a hack
+	// FIXME replace all of these with modifiers on maxHPs
 	public void updateBonusHPs(Monster m) {
 		int old = bonusHPs;
 		bonusHPs = 0;
@@ -187,10 +174,12 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		}
 
 		// bonus hitpoints from feats
-		for (Feat feat : m.feats) {
+		// TODO doesn't work with feats field. revist when feats are reworked
+		for (int i = 0; i < m.feats.getSize(); i++) {
+			Feat feat = m.feats.get(i);
 			String f = feat.getName();
 			if (f.equals("Toughness")) {
-				bonusHPs += 3;
+//				bonusHPs += 3;	// implemented via MaxHPs mod
 			} else if (f.equals("Improved Toughness")) {
 				bonusHPs += getHitDiceCount();
 			}
@@ -230,6 +219,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 					|| source.equals("hitdice")
 					|| source.equals("size")
 					|| source.equals("ability_scores.charisma")
+					|| source.equals("feats")
 					|| source.equals("field." + Field.ABILITIES.name())	// TODO this won't trigger for feats added by monster.addFeat() - feats should be a property
 					|| source.equals("field." + Field.SPECIAL_ATTACKS.name())
 					|| source.equals("field." + Field.SPECIAL_QUALITIES.name())) {
@@ -237,5 +227,98 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 				updateBonusHPs(m);
 			}
 		});
+	}
+
+	// FIXME temporarily only supports a single override value
+	// Overrides on MaxHPs are applied as a total, but in fact override the base value. This means that modifiers still apply so subsequent changes to (e.g.) con will behave as expected.
+	// The rule of every hitdice contributing a minimum of 1 HP regardless of con modifier is implemented by adjusting the total of the dice rolls rather than adjusting the total con modifier.
+	public class MaxHPs extends Statistic implements OverridableProperty<Integer> {
+		Integer override = null;
+		AbstractModifier totalConMod = new AbstractModifier() {
+			{
+				if (conMod != null) {
+					conMod.addPropertyChangeListener(e -> pcs.firePropertyChange("value", null, getModifier()));
+				}
+			}
+
+			@Override
+			public int getModifier() {
+				return HDDice.getTotalNumber(hitDice) * conMod.getModifier();
+			}
+
+			@Override
+			public String getType() {
+				return conMod.getType();
+			}
+		};
+
+		public MaxHPs(PropertyCollection parent) {
+			super("hit_points.max_hps", "Max Hit Points", parent);
+
+			HitDiceProperty.this.addPropertyListener(e -> {
+				if (override != null && override.equals(getTotalRolled() + getModifiersTotal())) {
+					override = null;	// XXX not sure if it's best to remove override if it now matches the correct value
+				}
+				fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
+			});
+
+			if (conMod != null)
+				super.addModifier(totalConMod);	// super.addModifier because we don't want to trigger an updateHitDice while this is still being constructed
+		}
+
+		@Override
+		public OverridableProperty.PropertyValue<Integer> addOverride(Integer val) {
+			System.out.println("Overriding to total of " + val + ". Old override = " + override + ", modifiers = " + getModifiersTotal());
+			Integer old = override;
+			if (val == null || val == 0 || val.equals(getTotalRolled() + getModifiersTotal())) {
+				override = null;	// TODO removing override should be done through removeOverride method - remove this hack when overrides are properly suported in the ui and implemented in statistic
+			} else {
+				override = val - getModifiersTotal() - bonusHPs;
+			}
+			System.out.println("Value now " + getValue());
+			if (!override.equals(old)) fireEvent(createEvent(PropertyEvent.OVERRIDE_ADDED));
+			return new PropertyValue<Integer>(val);
+		}
+
+		@Override
+		public int getBaseValue() {
+			if (override != null)
+				return override + bonusHPs;
+
+			return getTotalRolled();
+		}
+
+		@Override
+		public void addModifier(Modifier m) {
+			super.addModifier(m);
+			updateHitDice();
+		}
+
+		@Override
+		public void removeModifier(Modifier m) {
+			super.removeModifier(m);
+			updateHitDice();
+		}
+
+		int getTotalRolled() {
+			int mod = 0;
+			if (conMod != null) mod = conMod.getModifier();
+			int hps = 0;
+			for (int i = 1; i <= levels.getLevel(); i++) {
+				Integer roll = levels.getHPRoll(i);
+				if (roll != null) {
+					int r = roll.intValue();
+					if (r + mod < 1) r = 1 - mod;
+					hps += r;
+				}
+			}
+			// TODO add race hps once we have them stored
+			return hps + bonusHPs;
+		}
+
+		@Override
+		public boolean hasOverride() {
+			return override != null;
+		}
 	}
 }

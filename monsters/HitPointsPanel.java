@@ -294,6 +294,6 @@ class HitPointsPanel extends DetailPanel {
 		} else if (minHalfHPsButton.isSelected()) {
 			newVal = diceList.rollMinHalf();
 		}
-		hps.getMaxHPStat().addOverride(newVal);	//TODO this should set the pre-level/race rolls
+		hps.getMaxHPStat().addOverride(newVal);
 	}
 }
