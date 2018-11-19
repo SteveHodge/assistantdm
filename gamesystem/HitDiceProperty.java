@@ -1,16 +1,19 @@
 package gamesystem;
 
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import gamesystem.SavingThrow.Type;
 import gamesystem.core.AbstractProperty;
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.PropertyCollection;
 import gamesystem.core.PropertyEvent;
+import gamesystem.core.PropertyListener;
+import gamesystem.dice.DiceList;
 import gamesystem.dice.HDDice;
 import gamesystem.dice.SimpleDice;
-import monsters.Monster;
 import monsters.StatisticsBlock.Field;
 
 /* HitDiceProperty monitors Levels and monster hitdice (Race) and provides a combined hitdice property that other properties such as BAB can be based on.
@@ -20,45 +23,54 @@ import monsters.StatisticsBlock.Field;
 
 // XXX perhaps this should use the soon be added collection property? Or perhaps it shouldn't have a List<HDDice> value.
 public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
-	private Race race;
-	private Levels levels;
-	private List<HDDice> hitDice;
+	private Creature creature;
 	private Modifier conMod;
-	public int bonusHPs = 0;	// TODO remove this hack
+	private List<HDDice> hitDice;
 	MaxHPs maxHPs;
+	ConstructBonusHPs constructBonus;
+	UnholyToughnessHPs unholyToughness;
+	DesecratingAuraHPs desecratingAura;
+	ImprovedToughnessHPs improvedToughness;
 
-	public HitDiceProperty(PropertyCollection parent, Race r, Levels l, AbilityScore con) {
+	public HitDiceProperty(Creature c, PropertyCollection parent) {
 		super("hitdice", parent);
-		if (r == null) throw new IllegalArgumentException("Race parameter cannot be null");
-		if (l == null) throw new IllegalArgumentException("Levels parameter cannot be null");
-		race = r;
-		levels = l;
+		creature = c;
+		AbilityScore con = c.abilities.get(AbilityScore.Type.CONSTITUTION);
 
-		if (con != null) {
-			conMod = con.getModifier();
-			conMod.addPropertyChangeListener(e -> {
-				updateHitDice();
-			});
-		}
+		if (con != null) conMod = con.getModifier();
 
-		race.addPropertyListener(e -> updateHitDice());
+		creature.race.addPropertyListener(e -> {
+			updateConstructMod();
+			updateHitDice();
+		});
 
-		levels.addPropertyListener(e -> updateHitDice());
+		creature.level.addPropertyListener(e -> updateHitDice());
 
 		maxHPs = new MaxHPs(parent);
+		maxHPs.addPropertyListener(e -> updateHitDice());
 
+		creature.addPropertyListener("field." + Field.SPECIAL_QUALITIES.name(), e -> updateUnholyToughness());
+		creature.addPropertyListener("field." + Field.SPECIAL_ATTACKS.name(), e -> updateDesecratingAura());
+		creature.addPropertyListener("feats", e -> updateImprovedToughness());
+
+		updateConstructMod();
+		updateUnholyToughness();
+		updateDesecratingAura();
+		updateImprovedToughness();
 		updateHitDice();
 	}
 
 	private void updateHitDice() {
-		int mod = 0;
-		if (conMod != null) mod = conMod.getModifier();
-		hitDice = new ArrayList<>();
-		HDDice raceHD = race.getHitDice();
-		int bonus = bonusHPs + maxHPs.getModifiersTotal() - mod * HDDice.getTotalConstant(hitDice);
+		String old = "";
+		if (hitDice != null) old = DiceList.toString(hitDice);
+		HDDice raceHD = creature.race.getHitDice();
+		int bonus = maxHPs.getStaticModifiersTotal();
+		int mod = maxHPs.getModifiersPerHDTotal();
+		//System.out.println("updateHitDice static bonus HPs = " + bonus + ", per HD bonus = " + mod);
 		boolean doneBonus = bonus == 0;	// will be initialised to true if we don't need to worry about this
 
-		if (levels.getHitDiceCount() == 0 || raceHD.getNumber() > 1) {
+		hitDice = new ArrayList<>();	// this needs to be after we get the per HD modifiers as if there are no hitdice then the mods will be disabled
+		if (creature.level.getHitDiceCount() == 0 || raceHD.getNumber() > 1) {
 			int constant = raceHD.getConstant() + mod * (raceHD.getNumber() < 1 ? 1 : raceHD.getNumber());
 			if (!doneBonus) {
 				constant += bonus;
@@ -68,7 +80,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			hitDice.add(raceHD);
 		}
 
-		for (SimpleDice s : levels.getHitDice()) {
+		for (SimpleDice s : creature.level.getHitDice()) {
 			int constant = mod * s.getNumber();
 			if (!doneBonus) {
 				constant += bonus;
@@ -77,7 +89,9 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			hitDice.add(new HDDice(s.getNumber(), s.getType(), constant));
 		}
 
-		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
+		if (!DiceList.toString(hitDice).equals(old)) {
+			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
+		}
 	}
 
 	private List<HDDice> getLevelsHD() {
@@ -85,7 +99,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		int mod = 0;
 		if (conMod != null) mod = conMod.getModifier();
 
-		for (SimpleDice s : levels.getHitDice()) {
+		for (SimpleDice s : creature.level.getHitDice()) {
 			int constant = mod * s.getNumber();
 			hd.add(new HDDice(s.getNumber(), s.getType(), constant));
 		}
@@ -95,28 +109,29 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	// Sets the racial hitdice based on the supplied total hitdice and existing class levels. Modifiers are ignored as these are calculated later (though they are used to identify which parts of hd are from levels)
 	public void setHitDice(List<HDDice> hd) {
 		//System.out.println("Setting HD to " + DiceList.toString(hd) + ", class HD = " + levels.getHitDice() + " based on level " + levels.getLevel());
-		if (levels.getLevel() != 0) {
+		if (creature.level.getLevel() != 0) {
 			List<HDDice> diff = HDDice.difference(hd, getLevelsHD());
 			if (diff.size() == 0) {
 				// no difference - reset race hitdice back to 1
-				race.setHitDiceCount(1);
+				creature.race.setHitDiceCount(1);
 				return;
 			}
-			if (diff.size() > 1) throw new IllegalArgumentException("Remaining HD not suitable: total = " + hd + ", class HD = " + levels.getHitDice());
+			if (diff.size() > 1) throw new IllegalArgumentException("Remaining HD not suitable: total = " + hd + ", class HD = " + creature.level.getHitDice());
 			HDDice d = diff.get(0);
-			race.setHitDice(new HDDice(d.getNumber(), d.getType(), 0));
+			creature.race.setHitDice(new HDDice(d.getNumber(), d.getType(), 0));
 		} else {
 			HDDice d = hd.get(0);
-			race.setHitDice(new HDDice(d.getNumber(), d.getType(), 0));
+			creature.race.setHitDice(new HDDice(d.getNumber(), d.getType(), 0));
 		}
+		if (unholyToughness != null) unholyToughness.fireUpdate();
 		updateHitDice();
 	}
 
 	// Returns true if the base value includes racial hitdice. Creatures without class levels should always have racial hitdice.
 	// Creatures with class levels lose their racial hitdice if they have 1 HD or less.
 	public boolean hasRaceHD() {
-		if (levels.getLevel() == 0) return true;
-		if (race.getHitDiceCount() > 1) return true;
+		if (creature.level.getLevel() == 0) return true;
+		if (creature.race.getHitDiceCount() > 1) return true;
 		return false;
 	}
 
@@ -126,6 +141,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	}
 
 	public int getHitDiceCount() {
+		if (hitDice == null) return 0;
 		int num = 0;
 		for (HDDice d : hitDice) {
 			if (d.getNumber() >= 1) num += d.getNumber();
@@ -135,98 +151,34 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 
 	public int getBaseSave(Type type) {
 		int save = 0;
-		if (hasRaceHD()) save += race.getBaseSave(type);
-		save += levels.getBaseSave(type);
+		if (hasRaceHD()) save += creature.race.getBaseSave(type);
+		save += creature.level.getBaseSave(type);
 		return save;
 	}
 
-	// FIXME replace all of these with modifiers on maxHPs
-	public void updateBonusHPs(Monster m) {
-		int old = bonusHPs;
-		bonusHPs = 0;
+	abstract class PerHDModifier extends AbstractModifier {
+		String source;
 
-		// bonus hitpoints for constructs
-		MonsterType t = race.getAugmentedType();
-		if (t == null) t = race.getType();
-		if (t == MonsterType.CONSTRUCT && !race.hasSubtype("Living Construct")) {
-			switch (m.size.getSize()) {
-			case SMALL:
-				bonusHPs = 10;
-				break;
-			case MEDIUM:
-				bonusHPs = 20;
-				break;
-			case LARGE:
-				bonusHPs = 30;
-				break;
-			case HUGE:
-				bonusHPs = 40;
-				break;
-			case GARGANTUAN:
-				bonusHPs = 60;
-				break;
-			case COLOSSAL:
-				bonusHPs = 80;
-				break;
-			default:
-				break;
-			}
+		PerHDModifier(String source) {
+			this.source = source;
+			//HitDiceProperty.this.addPropertyListener(e -> fireUpdate());	// should be unnecessary. if the HD change then max HPs will fire an even and the modifiers will get updated anyway
 		}
 
-		// bonus hitpoints from feats
-		// TODO doesn't work with feats field. revist when feats are reworked
-		for (int i = 0; i < m.feats.getSize(); i++) {
-			Feat feat = m.feats.get(i);
-			String f = feat.getName();
-			if (f.equals("Toughness")) {
-//				bonusHPs += 3;	// implemented via MaxHPs mod
-			} else if (f.equals("Improved Toughness")) {
-				bonusHPs += getHitDiceCount();
-			}
+		abstract int getModPerHD();
+
+		@Override
+		public int getModifier() {
+			return getHitDiceCount() * getModPerHD();
 		}
 
-		// unholy toughness: add charisma bonus per hd
-		if (m.hasProperty("field." + Field.SPECIAL_QUALITIES.name())) {
-			String quals = (String) m.getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
-			if (quals != null && quals.toLowerCase().contains("unholy toughness")) {
-				Modifier chr = m.getAbilityModifier(AbilityScore.Type.CHARISMA);
-				if (chr != null) {
-					bonusHPs += getHitDiceCount() * chr.getModifier();
-				}
-			}
+		void fireUpdate() {
+			pcs.firePropertyChange("value", null, getModifier());
 		}
 
-		// desecrating aura (+2 hp per hd)
-		if (m.hasProperty("field." + Field.SPECIAL_ATTACKS.name())) {
-			String quals = (String) m.getPropertyValue("field." + Field.SPECIAL_ATTACKS.name());
-			if (quals != null && quals.toLowerCase().contains("desecrating aura")) {
-				bonusHPs += getHitDiceCount() * 2;
-			}
+		@Override
+		public String getSource() {
+			return source;
 		}
-
-		//System.out.println("updateBonusHPs from " + old + " to " + bonusHPs);
-
-		if (bonusHPs != old) {
-			updateHitDice();
-			//System.out.println("HD updated to " + this.getValue());
-		}
-	}
-
-	public void setupBonusHPs(Monster m) {
-		m.addPropertyListener("", e -> {
-			String source = e.source.getName();
-			if (source.equals("race")
-					|| source.equals("hitdice")
-					|| source.equals("size")
-					|| source.equals("ability_scores.charisma")
-					|| source.equals("feats")
-					|| source.equals("field." + Field.ABILITIES.name())	// TODO this won't trigger for feats added by monster.addFeat() - feats should be a property
-					|| source.equals("field." + Field.SPECIAL_ATTACKS.name())
-					|| source.equals("field." + Field.SPECIAL_QUALITIES.name())) {
-				//System.out.print(source + ": ");
-				updateBonusHPs(m);
-			}
-		});
 	}
 
 	// FIXME temporarily only supports a single override value
@@ -234,21 +186,17 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 	// The rule of every hitdice contributing a minimum of 1 HP regardless of con modifier is implemented by adjusting the total of the dice rolls rather than adjusting the total con modifier.
 	public class MaxHPs extends Statistic implements OverridableProperty<Integer> {
 		Integer override = null;
-		AbstractModifier totalConMod = new AbstractModifier() {
+		PerHDModifier totalConMod = new PerHDModifier(AbilityScore.Type.CONSTITUTION.name()) {
 			{
 				if (conMod != null) {
-					conMod.addPropertyChangeListener(e -> pcs.firePropertyChange("value", null, getModifier()));
+					conMod.addPropertyChangeListener(e -> fireUpdate());
 				}
 			}
 
 			@Override
-			public int getModifier() {
-				return HDDice.getTotalNumber(hitDice) * conMod.getModifier();
-			}
-
-			@Override
-			public String getType() {
-				return conMod.getType();
+			int getModPerHD() {
+				if (conMod == null) return 0;
+				return conMod.getModifier();
 			}
 		};
 
@@ -272,7 +220,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			if (val == null || val == 0 || val.equals(getTotalRolled() + getModifiersTotal())) {
 				override = null;	// TODO removing override should be done through removeOverride method - remove this hack when overrides are properly suported in the ui and implemented in statistic
 			} else {
-				override = val - getModifiersTotal() - bonusHPs;
+				override = val - getModifiersTotal();
 			}
 			if (override == null && old != null || override != null && !override.equals(old)) fireEvent(createEvent(PropertyEvent.OVERRIDE_ADDED));
 			return new PropertyValue<Integer>(val);
@@ -280,30 +228,41 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 
 		@Override
 		public int getBaseValue() {
-			if (override != null)
-				return override + bonusHPs;
-
+			if (override != null) return override;
 			return getTotalRolled();
 		}
 
-		@Override
-		public void addModifier(Modifier m) {
-			super.addModifier(m);
-			updateHitDice();
+		int getStaticModifiersTotal() {
+			int total = 0;
+			Map<Modifier, Boolean> map = getModifiers(modifiers);
+			for (Modifier m : map.keySet()) {
+				if (map.get(m) && m.getCondition() == null && !(m instanceof PerHDModifier)) {
+					total += m.getModifier();
+				}
+			}
+			return total;
 		}
 
-		@Override
-		public void removeModifier(Modifier m) {
-			super.removeModifier(m);
-			updateHitDice();
+		// note that if there are no hitdice then any per HD mods will be disabled. we shortcut this case to make it obvious
+		int getModifiersPerHDTotal() {
+			if (hitDice == null) return 0;
+			int total = 0;
+			Map<Modifier, Boolean> map = getModifiers(modifiers);
+			for (Modifier m : map.keySet()) {
+				if (m instanceof PerHDModifier)
+					if (map.get(m) && m.getCondition() == null && m instanceof PerHDModifier) {
+						total += ((PerHDModifier) m).getModPerHD();
+					}
+			}
+			return total;
 		}
 
 		int getTotalRolled() {
 			int mod = 0;
 			if (conMod != null) mod = conMod.getModifier();
 			int hps = 0;
-			for (int i = 1; i <= levels.getLevel(); i++) {
-				Integer roll = levels.getHPRoll(i);
+			for (int i = 1; i <= creature.level.getLevel(); i++) {
+				Integer roll = creature.level.getHPRoll(i);
 				if (roll != null) {
 					int r = roll.intValue();
 					if (r + mod < 1) r = 1 - mod;
@@ -311,12 +270,163 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 				}
 			}
 			// TODO add race hps once we have them stored
-			return hps + bonusHPs;
+			return hps;
 		}
 
 		@Override
 		public boolean hasOverride() {
 			return override != null;
+		}
+	}
+
+	void updateConstructMod() {
+		MonsterType t = creature.race.getAugmentedType();
+		if (t == null) t = creature.race.getType();
+		if (t == MonsterType.CONSTRUCT && !creature.race.hasSubtype("Living Construct")) {
+			if (constructBonus == null) constructBonus = new ConstructBonusHPs();
+		} else if (constructBonus != null) {
+			constructBonus.remove();
+			constructBonus = null;
+		}
+	}
+
+	// This modifier handles the bonus hitpoints that constructs receive. Note that it doesn't check the creature's type, it is assumed that
+	// this modifier will only be applied when appropriate.
+	class ConstructBonusHPs extends AbstractModifier {
+		PropertyListener l = e -> pcs.firePropertyChange("value", null, getModifier());
+
+		ConstructBonusHPs() {
+			creature.size.addPropertyListener(l);
+			maxHPs.addModifier(this);
+		}
+
+		void remove() {
+			creature.size.removePropertyListener(l);
+			maxHPs.removeModifier(this);
+		}
+
+		@Override
+		public int getModifier() {
+			switch (creature.size.getSize()) {
+			case SMALL:
+				return 10;
+			case MEDIUM:
+				return 20;
+			case LARGE:
+				return 30;
+			case HUGE:
+				return 40;
+			case GARGANTUAN:
+				return 60;
+			case COLOSSAL:
+				return 80;
+			default:
+				return 0;
+			}
+		}
+
+		@Override
+		public String getSource() {
+			return "Construct Type";
+		}
+	}
+
+	void updateUnholyToughness() {
+		// unholy toughness: add charisma bonus per hd
+		if (!creature.hasProperty("field." + Field.SPECIAL_QUALITIES.name())) return;
+		String quals = (String) creature.getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
+		boolean hasUT = (quals != null && quals.toLowerCase().contains("unholy toughness"));
+		if (hasUT && unholyToughness == null) {
+			unholyToughness = new UnholyToughnessHPs();
+		} else if (!hasUT && unholyToughness != null) {
+			unholyToughness.remove();
+			unholyToughness = null;
+		}
+	}
+
+	// unholy toughness: add charisma bonus per hd
+	class UnholyToughnessHPs extends PerHDModifier {
+		PropertyChangeListener l = e -> fireUpdate();
+
+		UnholyToughnessHPs() {
+			super("Unholy Toughness");
+			creature.getAbilityModifier(AbilityScore.Type.CHARISMA).addPropertyChangeListener(l);
+			maxHPs.addModifier(this);
+		}
+
+		void remove() {
+			creature.getAbilityModifier(AbilityScore.Type.CHARISMA).removePropertyChangeListener(l);
+			maxHPs.removeModifier(this);
+		}
+
+		@Override
+		void fireUpdate() {
+			pcs.firePropertyChange("value", null, getModifier());
+		}
+
+		@Override
+		int getModPerHD() {
+			Modifier chr = creature.getAbilityModifier(AbilityScore.Type.CHARISMA);
+			if (chr != null) {
+				return chr.getModifier();
+			}
+			return 0;
+		}
+	}
+
+	void updateDesecratingAura() {
+		if (!creature.hasProperty("field." + Field.SPECIAL_ATTACKS.name())) return;
+		String quals = (String) creature.getPropertyValue("field." + Field.SPECIAL_ATTACKS.name());
+		boolean hasDA = (quals != null && quals.toLowerCase().contains("desecrating aura"));
+		if (hasDA && desecratingAura == null) {
+			desecratingAura = new DesecratingAuraHPs();
+		} else if (!hasDA && desecratingAura != null) {
+			desecratingAura.remove();
+			desecratingAura = null;
+		}
+	}
+
+	// desecrating aura (+2 hp per hd)
+	class DesecratingAuraHPs extends PerHDModifier {
+		DesecratingAuraHPs() {
+			super("Descecrating Aura");
+			maxHPs.addModifier(this);
+		}
+
+		void remove() {
+			maxHPs.removeModifier(this);
+		}
+
+		@Override
+		int getModPerHD() {
+			return 2;
+		}
+	}
+
+	void updateImprovedToughness() {
+		if (creature.hasFeat("Improved Toughness")) {
+			if (improvedToughness == null)
+				improvedToughness = new ImprovedToughnessHPs();
+		} else if (improvedToughness != null) {
+			improvedToughness.remove();
+			improvedToughness = null;
+		}
+	}
+
+	// improved toughness +1 HP per HD
+	class ImprovedToughnessHPs extends PerHDModifier {
+		ImprovedToughnessHPs() {
+			super("Improved Toughness");
+			maxHPs.addModifier(this);
+		}
+
+		void remove() {
+			maxHPs.removeModifier(this);
+		}
+
+		@Override
+		int getModPerHD() {
+			return 1;
 		}
 	}
 }

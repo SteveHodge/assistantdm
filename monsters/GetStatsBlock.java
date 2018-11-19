@@ -371,7 +371,7 @@ public class GetStatsBlock {
 		List<HDDice> monsterHD = m.getHitDice().getValue();
 		Object blockDice = blockHD.size() == 1 ? blockHD.get(0) : CombinedDice.fromList(blockHD);
 		Object monsterDice = monsterHD.size() == 1 ? monsterHD.get(0) : CombinedDice.fromList(monsterHD);
-		messages.checkValues("HD", blockDice, monsterDice, "Bonus HPs = " + m.getHitDice().bonusHPs);
+		messages.checkValues("HD", blockDice, monsterDice, m.getHitDice().toString());
 
 		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
 				" bonus feats = " + m.countFeats()[1]);

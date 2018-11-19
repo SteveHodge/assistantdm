@@ -69,8 +69,8 @@ public class Monster extends Creature {
 
 		race = new Race(this);
 		level = new Levels(this);
-		hitDice = new HitDiceProperty(this, race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
-		hitDice.setupBonusHPs(this);
+		size = new Size(this);
+		hitDice = new HitDiceProperty(this, this);
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice, this);
@@ -79,8 +79,6 @@ public class Monster extends Creature {
 		}
 
 		hps = new HPs(hitDice, this);
-
-		size = new Size(this);
 
 		// Missing dex: The rules on nonabilities state that the modifier is 0, but the MM is inconsistent in this
 		// regard. Formian Queens are listed as not having a dex modifier to AC (following the rules as written) but
@@ -196,8 +194,11 @@ public class Monster extends Creature {
 				if (dmgMods != null && dmgMods.size() > 0) {
 					boolean hasMod = false;
 					for (Modifier m : dmgMods) {
-						if (m.getSource().equals(AbilityScore.Type.STRENGTH.toString())) continue;
-						if (!hasMod) s.append(" (");
+						if (m.getSource() != null && m.getSource().equals(AbilityScore.Type.STRENGTH.toString())) continue;
+						if (!hasMod) {
+							s.append(" (");
+							hasMod = true;
+						}
 						if (s.charAt(s.length() - 1) != '(') s.append(", ");
 						if (m.getModifier() > 0) s.append("+");
 						s.append(m.getModifier()).append(" ");
@@ -270,16 +271,22 @@ public class Monster extends Creature {
 	}
 
 	// we check both feats and special qualities
+	// TODO why do we check special qualities? search monsters for cases where this is necessary
 	@Override
 	public boolean hasFeat(String feat) {
-		if (feat == null) return false;
+		if (feat == null || feats == null) return false;
 		if (feats.hasFeat(feat)) return true;		// check recognised feats
 		// check other feats and properties
 		String f = feat.toLowerCase();
-		String feats = (String) getPropertyValue("field." + Field.FEATS.name());
-		if (feats != null && feats.toLowerCase().contains(f)) return true;
-		feats = (String) getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
-		if (feats != null && feats.toLowerCase().contains(f)) return true;
+		String feats;
+		if (hasProperty("field." + Field.FEATS.name())) {
+			feats = (String) getPropertyValue("field." + Field.FEATS.name());
+			if (feats != null && feats.toLowerCase().contains(f)) return true;
+		}
+		if (hasProperty("field." + Field.SPECIAL_QUALITIES.name())) {
+			feats = (String) getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
+			if (feats != null && feats.toLowerCase().contains(f)) return true;
+		}
 		return false;
 	}
 

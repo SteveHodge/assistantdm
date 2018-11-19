@@ -744,7 +744,7 @@ public class StatisticsBlock {
 				} else {
 					matcher = autoHitPattern.matcher(cleanValue);
 					if (matcher.find()) {
-						attack.description = matcher.group(1);
+						attack.description = matcher.group(1).trim();
 						attack.automatic = true;
 						attack.setDamage(matcher.group(2).replace("_OR_", "or").replace("_AND_", "and").replace("_PLUS_", "plus"));
 					}
@@ -1074,7 +1074,7 @@ public class StatisticsBlock {
 					// 4: modifiers including parentheses
 					// 5: modifiers
 					if (m.group(2) != null) number = Integer.parseInt(m.group(2));
-					description = m.group(3);
+					description = m.group(3).trim();
 					if (m.group(5) != null) setModifiers(m.group(5), true);	// modifiers in the description apply to attack and damage
 				} else {
 					// shouldn't happen

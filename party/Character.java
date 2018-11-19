@@ -201,7 +201,7 @@ public class Character extends Creature {
 		race = new Race(this);
 		level = new Levels(this);
 		level.setLevel(1);
-		hitDice = new HitDiceProperty(this, race, level, abilities.get(AbilityScore.Type.CONSTITUTION));
+		hitDice = new HitDiceProperty(this, this);
 
 		for (SavingThrow.Type t : SavingThrow.Type.values()) {
 			SavingThrow s = new SavingThrow(t, abilities.get(t.getAbilityType()), hitDice, this);

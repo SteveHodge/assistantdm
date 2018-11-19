@@ -517,6 +517,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 //------------- Others --------------
 	public boolean hasFeat(String feat) {
+		if (feats == null || feat == null) return false;
 		return feats.hasFeat(feat);
 	}
 

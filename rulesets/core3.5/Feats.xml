@@ -120,17 +120,17 @@
 	<feat name="Craft Wondrous Item" ref="PH 92">Create magic wondrous items.</feat>
 	<feat name="Forge Ring" ref="PH 94">Create magic rings.</feat>
 
-	<feat name="Ability Focus" ref="MM 303">+2 to DC of saves against selected attack.</feat>
+	<feat name="Ability Focus" target="special attack" ref="MM 303">+2 to DC of saves against selected attack.</feat>
 	<feat name="Awesome Blow" ref="MM 303"/>
 	<feat name="Craft Construct" ref="MM 303"/>
-	<feat name="Empower Spell-like Ability" ref="MM 303"/>
+	<feat name="Empower Spell-Like Ability" target="spell-like ability" ref="MM 303"/>
 	<feat name="Flyby Attack" ref="MM 303"/>
 	<feat name="Hover" ref="MM 304"/>
 	<feat name="Improved Natural Armor" ref="MM 303"/>
-	<feat name="Improved Natural Attack" ref="MM 303"/>
+	<feat name="Improved Natural Attack" target="natural attack" ref="MM 303"/>
 	<feat name="Multiattack" ref="MM 303"/>
 	<feat name="Multiweapon Fighting" ref="MM 303"/>
-	<feat name="Quicken Spell-like Ability" ref="MM 303"/>
+	<feat name="Quicken Spell-Like Ability" target="spell-like ability" ref="MM 303"/>
 	<feat name="Snatch" ref="MM 303"/>
 	<feat name="Wingover" ref="MM 303"/>
 	<feat name="Improved Toughness" ref="MM3 207"/>
