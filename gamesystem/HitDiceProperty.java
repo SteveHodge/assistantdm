@@ -144,7 +144,10 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		if (hitDice == null) return 0;
 		int num = 0;
 		for (HDDice d : hitDice) {
-			if (d.getNumber() >= 1) num += d.getNumber();
+			if (d.getNumber() >= 1)
+				num += d.getNumber();
+			else
+				num++;
 		}
 		return num;
 	}

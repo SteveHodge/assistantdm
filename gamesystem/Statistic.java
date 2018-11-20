@@ -65,6 +65,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 		if (m == null) {
 			System.err.println("Attempted to add null modifier to " + this);
 			return;
+//			throw new IllegalStateException();
 		}
 		int oldValue = getValue();
 		m.addPropertyChangeListener(listener);

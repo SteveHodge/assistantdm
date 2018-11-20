@@ -270,40 +270,14 @@ public class Monster extends Creature {
 		return true;
 	}
 
-	// we check both feats and special qualities
-	// TODO why do we check special qualities? search monsters for cases where this is necessary
-	@Override
-	public boolean hasFeat(String feat) {
-		if (feat == null || feats == null) return false;
-		if (feats.hasFeat(feat)) return true;		// check recognised feats
-		// check other feats and properties
-		String f = feat.toLowerCase();
-		String feats;
-		if (hasProperty("field." + Field.FEATS.name())) {
-			feats = (String) getPropertyValue("field." + Field.FEATS.name());
-			if (feats != null && feats.toLowerCase().contains(f)) return true;
-		}
-		if (hasProperty("field." + Field.SPECIAL_QUALITIES.name())) {
-			feats = (String) getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
-			if (feats != null && feats.toLowerCase().contains(f)) return true;
-		}
-		return false;
-	}
-
 	@Override
 	public boolean hasFeat(String feat, AttackForm attack) {
 		if (feat == null) return false;
-		String f = feat.toLowerCase();
 		// check recognised feats
 		for (int i = 0; i < feats.getSize(); i++) {
 			Feat ff = feats.get(i);
 			if (ff.getName().equals(name) && ff.target.equals(attack.getDescription())) return true;
 		}
-		// check other feats and properties
-		String feats = (String) getPropertyValue("field." + Field.FEATS.name());
-		if (feats != null && feats.toLowerCase().contains(f + " (" + attack.getDescription() + ")")) return true;
-		feats = (String) getPropertyValue("field." + Field.SPECIAL_QUALITIES.name());
-		if (feats != null && feats.toLowerCase().contains(f + " (" + attack.getDescription() + ")")) return true;
 		return false;
 	}
 

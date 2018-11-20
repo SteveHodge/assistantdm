@@ -125,6 +125,10 @@ public class StatsBlockCreatureView {
 	}
 
 	public static Monster createMonster(StatisticsBlock blk) {
+		return createMonster(blk, null);
+	}
+
+	public static Monster createMonster(StatisticsBlock blk, List<String> messages) {
 		String name = blk.getName();
 
 		int[] abilities = new int[6];
@@ -222,10 +226,12 @@ public class StatsBlockCreatureView {
 		m.setProperty("field." + Field.FEATS.name(), blk.get(Field.FEATS));
 		// apply any feats we recognise:
 		if (blk.get(Field.FEATS) != null) {
-			Set<Feat> feats = getFeats(blk.get(Field.FEATS));
+			List<String> notFound = new ArrayList<>();
+			Set<Feat> feats = getFeats(blk.get(Field.FEATS), notFound);
 			for (Feat f : feats) {
 				m.getFeats().addFeat(f);
 			}
+			if (messages != null) messages.addAll(notFound);
 		}
 
 		m.getInitiativeStatistic().setValue(blk.getInitiativeModifier() - m.getInitiativeStatistic().getValue());	// set the base value to whatever is unaccounted for
@@ -277,6 +283,11 @@ public class StatsBlockCreatureView {
 	}
 
 	private static Set<Feat> getFeats(String featsField) {
+		return getFeats(featsField, null);
+	}
+
+	// adds any feats that aren't found to notFound, if it's not null
+	private static Set<Feat> getFeats(String featsField, List<String> notFound) {
 		Set<Feat> featsSet = new HashSet<>();
 		String[] feats = featsField.split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
 		for (String f : feats) {
@@ -313,7 +324,10 @@ public class StatsBlockCreatureView {
 					featsSet.add(feat);
 				}
 			} else {
-				System.out.println("Couldn't find feat '" + f + "'");
+				if (notFound == null)
+					System.out.println("Couldn't find feat '" + f + "'");
+				else
+					notFound.add(f);
 			}
 		}
 		return featsSet;

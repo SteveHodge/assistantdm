@@ -521,6 +521,7 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		return feats.hasFeat(feat);
 	}
 
+	// currently used for checking (greater) weapon spec, (greater) weapon focus
 	abstract public boolean hasFeat(String name, AttackForm attack);	// check if a feat applies to a specific attack
 
 // ----- visitor pattern for processing -----

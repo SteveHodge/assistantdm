@@ -263,7 +263,7 @@ public class Skills extends Statistic implements StatisticsCollection {
 		protected Skill(SkillType type, Modifier abilityMod, Modifier acp, PropertyCollection parent) {
 			super("skills." + type.getName().toLowerCase(), type.getName(), parent);
 			skillType = type;
-			addModifier(abilityMod);
+			if (abilityMod != null) addModifier(abilityMod);
 			if (type.armorCheckPenaltyApplies) {
 				if (type.doubleACP) acp = new DoubleModifier(acp);
 				addModifier(acp);

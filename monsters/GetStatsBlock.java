@@ -29,7 +29,6 @@ import monsters.Monster.MonsterAttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine;
 import monsters.StatisticsBlock.AttackRoutine.Attack;
 import monsters.StatisticsBlock.Field;
-import monsters.StatisticsBlock.HDAdvancement;
 
 
 public class GetStatsBlock {
@@ -118,23 +117,43 @@ public class GetStatsBlock {
 //		}
 
 		// check HD advancement
-		System.out.println("\nBad values for " + Field.ADVANCEMENT + ":");
-		for (StatisticsBlock block : blocks) {
-			String value = block.get(Field.ADVANCEMENT);
-			List<HDAdvancement> ranges = StatisticsBlock.parseHDAdvancement(value);
-			if (ranges.size() > 0) {
-				StringBuilder s = new StringBuilder();
-				for (HDAdvancement range : ranges) {
-					if (s.length() > 0) s.append("; ");
-					s.append(range);
-				}
+//		System.out.println("\nBad values for " + Field.ADVANCEMENT + ":");
+//		for (StatisticsBlock block : blocks) {
+//			String value = block.get(Field.ADVANCEMENT);
+//			List<HDAdvancement> ranges = StatisticsBlock.parseHDAdvancement(value);
+//			if (ranges.size() > 0) {
+//				StringBuilder s = new StringBuilder();
+//				for (HDAdvancement range : ranges) {
+//					if (s.length() > 0) s.append("; ");
+//					s.append(range);
+//				}
 //				if (!s.toString().equals(value.replace('–', '-').replaceAll("-size", "").replace(',', ';')))
-				if (ranges.size() > 2)
-					System.out.println(block.getName() + ": '" + value + "' != '" + s.toString() + "'");
-			} else {
-				//System.out.println("'" + value + "': no HD advancement");
-			}
-		}
+//					System.out.println(block.getName() + ": '" + value + "' != '" + s.toString() + "'");
+//			} else {
+//				//System.out.println("'" + value + "': no HD advancement");
+//			}
+//		}
+
+//		System.out.println("\nSpecial Qualities:");
+//		Map<String, Integer> specialQuals = new HashMap<>();
+//		Map<String, String> examples = new HashMap<>();
+//		for (StatisticsBlock block : blocks) {
+//			String value = block.get(Field.SPECIAL_QUALITIES);
+//			if (value == null || value.length() == 0) continue;
+//			String[] quals = value.split(",(?![^()]*+\\))");	// split on commas that aren't in parentheses
+//			for (String q : quals) {
+//				q = q.toLowerCase().trim();
+//				int count = 1;
+//				if (specialQuals.containsKey(q)) count = specialQuals.get(q) + 1;
+//				specialQuals.put(q, count);
+//				examples.put(q, block.getName());
+//			}
+//		}
+//		List<String> sorted = new ArrayList<>(specialQuals.keySet());
+//		Collections.sort(sorted);
+//		for (String q : sorted) {
+//			System.out.println("'" + q + "': " + specialQuals.get(q) + ", e.g. " + examples.get(q));
+//		}
 
 		//		for (StatisticsBlock block : blocks) {
 		//			String env = block.get(StatisticsBlock.Property.ENVIRONMENT);
@@ -317,7 +336,8 @@ public class GetStatsBlock {
 		@SuppressWarnings("serial")
 		class Messages extends ArrayList<String> {
 			void checkValues(String field, Object parsed, Object calculated) {
-				if (!parsed.equals(calculated)) {
+				if (parsed == null && (calculated == null || calculated.equals(""))) return;
+				if ((parsed == null && calculated != null && !calculated.equals("")) || !parsed.equals(calculated)) {
 					add(field + ": " + parsed + " != calculated value of " + calculated);
 				}
 			}
@@ -356,7 +376,14 @@ public class GetStatsBlock {
 		//if (block.getClassLevels().size() == 0) return;	// skip creatures with no class levels for now
 
 		Messages messages = new Messages();
-		Monster m = StatsBlockCreatureView.createMonster(block);
+		List<String> fromCreate = new ArrayList<>();
+		Monster m = StatsBlockCreatureView.createMonster(block, fromCreate);
+		if (fromCreate.size() > 0) {
+			System.out.println("Create Monster Messages for " + m.getName() + ":");
+			for (String s : fromCreate) {
+				System.out.println("  " + s);
+			}
+		}
 
 		messages.checkValues("BAB", block.getBAB(), m.getBAB().getValue(), m.getBAB().toString());
 		messages.checkValues("Grapple", block.getGrapple(), m.race.hasSubtype("Incorporeal") || m.race.hasSubtype("Swarm") ? Integer.MIN_VALUE : m.getGrappleModifier().getValue(), m
@@ -373,8 +400,10 @@ public class GetStatsBlock {
 		Object monsterDice = monsterHD.size() == 1 ? monsterHD.get(0) : CombinedDice.fromList(monsterHD);
 		messages.checkValues("HD", blockDice, monsterDice, m.getHitDice().toString());
 
-		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
-				" bonus feats = " + m.countFeats()[1]);
+//		messages.checkValues("Feats", m.countFeats()[0], m.getAbilityStatistic(AbilityScore.Type.INTELLIGENCE) == null ? 0 : (1 + m.getHitDice().getHitDiceCount() / 3),
+//				" bonus feats = " + m.countFeats()[1]);
+		StatsBlockCreatureView view = StatsBlockCreatureView.getView(m);
+		messages.checkValues("Feats", block.get(Field.FEATS), view.getField(Field.FEATS, false));
 
 		if (messages.size() == 0) {
 			//System.out.println(block.getName() + " OK");
@@ -385,7 +414,8 @@ public class GetStatsBlock {
 			}
 			System.out.println("  Race: " + m.race + " " + m.race.getHitDiceCount());
 			System.out.println("  Classes: " + m.level);
-			System.out.println("  Feats: " + block.get(Field.FEATS));
+			System.out.println("  Feats (parsed): " + block.get(Field.FEATS));
+			System.out.println("  Feats (calc'd): " + view.getField(Field.FEATS, false));
 			System.out.println("  Special Attacks: " + m.getPropertyValue("field." + Field.SPECIAL_ATTACKS.name()));
 			System.out.println("  Special Qualities: " + m.getPropertyValue("field." + Field.SPECIAL_QUALITIES.name()));
 		}

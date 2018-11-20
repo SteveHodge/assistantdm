@@ -37,7 +37,7 @@ public class Levels extends Statistic {
 	}
 
 	public void setLevel(int l) {
-		System.out.println("Set level to " + l);
+//		System.out.println("Set level to " + l);
 		//int old = level;
 		level = l;
 		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));

@@ -166,6 +166,7 @@ class HitPointsPanel extends DetailPanel {
 			if (creature == null) return;
 
 			int first = diceList.getNumber();
+			if (first < 1) first = 1;	// partial hitdice still start at 1
 			int length = diceList.getMaximum() - diceList.getModifier() + 1;
 			int possTotals = length - first;
 

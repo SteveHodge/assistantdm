@@ -4,6 +4,7 @@ public enum BABProgression {
 	FAST {
 		@Override
 		public int getBAB(int level) {
+			if (level < 1) level = 1;	// level = 0 -> 1/2 hitdice, level = -1 -> 1/4 hitdice, as with HDDice
 			return level;
 		}
 	},
@@ -11,6 +12,7 @@ public enum BABProgression {
 	AVERAGE {
 		@Override
 		public int getBAB(int level) {
+			if (level < 1) level = 1;	// level = 0 -> 1/2 hitdice, level = -1 -> 1/4 hitdice, as with HDDice
 			return 3 * level / 4;
 		}
 	},
@@ -18,6 +20,7 @@ public enum BABProgression {
 	SLOW {
 		@Override
 		public int getBAB(int level) {
+			if (level < 1) level = 1;	// level = 0 -> 1/2 hitdice, level = -1 -> 1/4 hitdice, as with HDDice
 			return level / 2;
 		}
 	};
