@@ -1,5 +1,4 @@
 ---=== IN PROGRESS ===---
-* Scan monsters for HP fields and feat fields that don't match. Scan monsters for feats that are in the special qualities field
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
 * Implement editing for remaining fields: Spec. Qualities, Space/Reach, AC, Size/type, Grapple (DONE Feats)
@@ -9,7 +8,9 @@
 * Advance monster by template: select template, flag fields that need updates, show template text for each field as selected - may be tricky as some templates change the type but don't recalculate
 * Advance monster by character class
 *
-* Nightcrawler: "Attempted to add null modifier to Total skills.concentration = 0"
+* Cthuhlu oozes have bonus hps - add as special quality if it's worth it
+* Armor proficiency feats don't parse in statistic blocks because of the parentheses for the subtype
+* Warforged feats, multidexterity, improved multiattack
 *
 * DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
 * DTT: make walls a sub-element of map (as mask is)

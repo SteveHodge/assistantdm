@@ -149,6 +149,7 @@ public class HDDice extends SimpleDice {
 
 	@Override
 	public int getMinimum() {
+		if (number < 1) return 1 + constant;
 		return number + constant;
 	}
 

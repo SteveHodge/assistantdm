@@ -126,7 +126,7 @@
 	<feat name="Empower Spell-Like Ability" target="spell-like ability" ref="MM 303"/>
 	<feat name="Flyby Attack" ref="MM 303"/>
 	<feat name="Hover" ref="MM 304"/>
-	<feat name="Improved Natural Armor" ref="MM 303"/>
+	<feat name="Improved Natural Armor" ref="MM 303" repeatable="true"/>
 	<feat name="Improved Natural Attack" target="natural attack" ref="MM 303"/>
 	<feat name="Multiattack" ref="MM 303"/>
 	<feat name="Multiweapon Fighting" ref="MM 303"/>
