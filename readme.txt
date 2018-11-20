@@ -1,5 +1,4 @@
 ---=== IN PROGRESS ===---
-* Implement AttackForm.setSize weapon damage reductions
 * Scan monsters for HP fields and feat fields that don't match. Scan monsters for feats that are in the special qualities field
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.

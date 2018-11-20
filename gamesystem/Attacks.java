@@ -381,6 +381,21 @@ public class Attacks extends Statistic {
 		damageIncrease.put("8d8", "12d8");
 	};
 
+	final static private Map<String, String> damageDecrease = new HashMap<>();
+	{
+		damageDecrease.put("1d2", "1");
+		damageDecrease.put("1d3", "1d2");
+		damageDecrease.put("1d4", "1d3");
+		damageDecrease.put("1d6", "1d4");
+		damageDecrease.put("1d8", "1d6");
+		damageDecrease.put("1d10", "1d8");
+		damageDecrease.put("1d12", "1d10");
+		damageDecrease.put("2d4", "1d6");
+		damageDecrease.put("2d6", "1d10");
+		damageDecrease.put("2d8", "2d6");
+		damageDecrease.put("2d10", "2d8");
+	}
+
 	/*
 	 * Weapons (specific attacks):
 	 * Name (of the AttackForm)
@@ -563,30 +578,36 @@ public class Attacks extends Statistic {
 
 			boolean ok = true;
 			int steps = size.ordinal() - originalSize.ordinal();
-			if (steps > 0) {
+			if (steps != 0) {
 				int constant = originalDamage.getConstant();
 				originalDamage.setConstant(0);
 				String dmgStr = originalDamage.toString();
 				originalDamage.setConstant(constant);
 
-				for (int i = 0; i < steps; i++) {
-					dmgStr = damageIncrease.get(dmgStr);
-					if (dmgStr == null) {
-						ok = false;
-						break;
+				if (steps > 0) {
+					for (int i = 0; i < steps; i++) {
+						dmgStr = damageIncrease.get(dmgStr);
+						if (dmgStr == null) {
+							ok = false;
+							break;
+						}
+					}
+				} else {
+					for (int i = steps; i > 0; i--) {
+						dmgStr = damageDecrease.get(dmgStr);
+						if (dmgStr == null) {
+							ok = false;
+							break;
+						}
 					}
 				}
 				if (ok) {
 					damage = CombinedDice.parse(dmgStr);
 					damage.setConstant(constant);
+					fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 				}
-			} else {
-				if (steps < 0)
-					System.err.println("AttackForm.setSize() does have implementation to reduce weapon damage to smaller than the original size");					// TODO can only handle sizes larger than the original at the moment
-				damage = originalDamage;
 			}
 
-			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 			return ok;
 		}
 
