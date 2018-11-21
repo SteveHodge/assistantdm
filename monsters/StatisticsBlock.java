@@ -230,7 +230,10 @@ public class StatisticsBlock {
 	 * @return the space taken by the creature in 6" units or -1 if the SPACE_REACH field can't be parsed
 	 */
 	public int getSpace() {
-		String space = get(Field.SPACE_REACH);
+		return parseSpace(get(Field.SPACE_REACH));
+	}
+
+	public static int parseSpace(String space) {
 		if (space == null || space.indexOf(" ft./") < 1) return -1;
 		space = space.substring(0, space.indexOf(" ft./"));
 		if (space.equals("1/2") || space.equals("½")) return 1;
@@ -253,7 +256,10 @@ public class StatisticsBlock {
 	 * @return the reach of the creature in feet or -1 if the SPACE_REACH field can't be parsed
 	 */
 	public int getReach() {
-		String reach = get(Field.SPACE_REACH);
+		return parseReach(get(Field.SPACE_REACH));
+	}
+
+	public static int parseReach(String reach) {
 		if (reach == null || reach.indexOf(" ft./") < 1) return -1;
 		reach = reach.substring(reach.indexOf(" ft./") + 5);
 		if (reach.indexOf(" ft.") < 1) return -1;
@@ -348,9 +354,12 @@ public class StatisticsBlock {
 	}
 
 	// returns the parsed grapple modifier
-	// TODO perhaps better to return Integer and use null as guard value?
 	public int getGrapple() {
-		String field = get(Field.BASE_ATTACK_GRAPPLE);
+		return parseGrapple(get(Field.BASE_ATTACK_GRAPPLE));
+	}
+
+	// XXX perhaps better to return Integer and use null as guard value?
+	public static int parseGrapple(String field) {
 		field = field.substring(field.indexOf('/') + 1);
 		if (field.contains(" (")) field = field.substring(0, field.indexOf(" ("));
 		if (field.contains(",")) field = field.substring(0, field.indexOf(","));

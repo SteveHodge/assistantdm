@@ -23,6 +23,7 @@ import gamesystem.CharacterClass.LevelUpAction;
 import gamesystem.Feat;
 import gamesystem.Feat.FeatDefinition;
 import gamesystem.Feats;
+import gamesystem.GrappleModifier;
 import gamesystem.HPs;
 import gamesystem.ImmutableModifier;
 import gamesystem.Modifier;
@@ -77,8 +78,12 @@ public class StatsBlockCreatureView {
 				pcs.firePropertyChange(Field.SAVES.name(), null, getField(Field.SAVES));
 			} else if (e.source.equals(creature.getSizeStatistic())) {
 				pcs.firePropertyChange(Field.SIZE_TYPE.name(), null, getField(Field.SIZE_TYPE));
+			} else if (source.startsWith("size.")) {
+				pcs.firePropertyChange(Field.SPACE_REACH.name(), null, getField(Field.SIZE_TYPE));
 			} else if (e.source.equals(creature.getHPStatistic()) || e.source.equals(creature.getHPStatistic().getMaxHPStat()) || e.source.equals(creature.getHitDice())) {
 				pcs.firePropertyChange(Field.HITDICE.name(), null, getField(Field.HITDICE));
+			} else if (e.source.equals(creature.getGrappleModifier())) {
+				pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
 			} else if (e.source.equals(creature.getBAB())) {
 				pcs.firePropertyChange(Field.BASE_ATTACK_GRAPPLE.name(), null, getField(Field.BASE_ATTACK_GRAPPLE));
 				pcs.firePropertyChange(Field.ATTACK.name(), null, getField(Field.ATTACK));
@@ -415,6 +420,7 @@ public class StatsBlockCreatureView {
 	}
 
 	private OverridableProperty.PropertyValue<Integer> babOverride;
+	private Modifier grappleMisc;
 
 	public void setField(Field field, String value) {
 		// TODO remaining parseable fields need to be reparsed - AC
@@ -448,8 +454,16 @@ public class StatsBlockCreatureView {
 //				}
 //			}
 
+		} else if (field == Field.SPACE_REACH) {
+			System.out.println("Setting space/reach to " + value);
+			int space = StatisticsBlock.parseSpace(value);
+			int reach = StatisticsBlock.parseReach(value);
+			System.out.println("  parsed as " + space + "/" + reach);
+			if (space != -1) creature.size.setBaseSpace(space);
+			if (reach != -1) creature.size.setBaseReach(reach);
+
 		} else if (field == Field.BASE_ATTACK_GRAPPLE) {
-			// XXX grapple is currently ignored. should apply an override
+			// BAB:
 			int bab = StatisticsBlock.parseBAB(value);
 			OverridableProperty<Integer> babProp = creature.getBAB();
 			if (babOverride != null) {
@@ -459,6 +473,20 @@ public class StatsBlockCreatureView {
 				babOverride = null;
 			} else {
 				babOverride = babProp.addOverride(bab);
+			}
+
+			// Grapple:
+			int newGrapple = StatisticsBlock.parseGrapple(value);
+			// overrides don't currently work for statistics generally so we'll add a modifier
+			// TODO replace with override when overrides work for statistics
+			GrappleModifier grapple = creature.getGrappleModifier();
+			if (grappleMisc != null) {
+				grapple.removeModifier(grappleMisc);
+				grappleMisc = null;
+			}
+			if (newGrapple != grapple.getValue()) {
+				grappleMisc = new ImmutableModifier(newGrapple - grapple.getValue());
+				grapple.addModifier(grappleMisc);
 			}
 
 		} else if (field == Field.INITIATIVE) {
@@ -525,10 +553,11 @@ public class StatsBlockCreatureView {
 		}
 
 		if (creature.hasProperty("field." + field.name())) {
-			System.out.println("Setting property '" + field.name() + "' to '" + value + "'");
+			System.out.println("Setting property 'field." + field.name() + "' to '" + value + "'");
 			creature.setProperty("field." + field.name(), value);
 		} else {
-			System.out.println("Monster does not have property '" + field.name() + "'");
+			System.out.println("Monster does not have property 'field." + field.name() + "'. Known fields are:");
+			//creature.debugDumpStructure();
 		}
 	}
 

@@ -1,7 +1,7 @@
 ---=== IN PROGRESS ===---
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
-* Implement editing for remaining fields: Spec. Qualities, Space/Reach, AC, Size/type, Grapple (DONE Feats)
+* Implement editing for remaining fields: AC, Size/type (DONE Feats,  Spec. Qualities, Space/Reach, Grapple)
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
 * Reopen encounter window from combat/menu
 * Export to html file? Maybe live?
@@ -173,7 +173,7 @@ Rule definition classes:
 Game system things to implement:
   (in progress) Size - mostly done. just ui and xml for characters?
   (in progress) Race - monster advancement is done. still need to do character race features etc.
-  (in progress) Feats - better UI support for targetted feats, implement weapon and armor proficiencies
+  (in progress) Feats - better UI support for targeted feats, implement weapon and armor proficiencies
   (in progress) Grapple modifier - done?
   Ability score checks
   (in progress) Class levels - negative levels
