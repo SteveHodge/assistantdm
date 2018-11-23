@@ -606,6 +606,10 @@ public class Attacks extends Statistic {
 					damage.setConstant(constant);
 					fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 				}
+			} else {
+				// reset to original size
+				damage = originalDamage;
+				fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 			}
 
 			return ok;

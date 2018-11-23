@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -205,6 +204,7 @@ class NamePanel extends DetailPanel {
 		if (monster != null) {
 			//monster.setName(nameField.getText());	// should be unnecessary
 			monster.removePropertyListener("name", listener);
+			hdPanel.removeAll();
 		}
 		monster = m;
 		monsterData = d;
@@ -235,8 +235,6 @@ class NamePanel extends DetailPanel {
 				hdPanel.add(new JLabel("Advance HD: "));
 				hdPanel.add(hdSpinner);
 				hdPanel.add(Box.createHorizontalGlue());
-			} else {
-				hdPanel.removeAll();
 			}
 		}
 	}
@@ -447,8 +445,8 @@ class NamePanel extends DetailPanel {
 			URL url = urls.get(index);
 			try {
 				image = ImageIO.read(url);
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				System.err.println("NamePanel.setSelectedImage exception for " + monster.getName() + ": " + e);
 			}
 		}
 		imagePanel.setImage(image);

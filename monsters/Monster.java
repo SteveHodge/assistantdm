@@ -220,7 +220,7 @@ public class Monster extends Creature {
 				Iterator<Modifier> iter = modifiers.iterator();
 				while (iter.hasNext()) {
 					Modifier m = iter.next();
-					if (m.getType() != null && (m.getType().equals(size.getName())
+					if (m.getType() != null && (Modifier.StandardType.SIZE.toString().equals(m.getType())
 							|| m.getType().equals(AbilityScore.Type.STRENGTH.toString())
 							|| m.getType().equals(AbilityScore.Type.DEXTERITY.toString()))) {
 						iter.remove();

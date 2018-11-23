@@ -139,48 +139,62 @@ public class RuleSet {
 		for (int j = 0; j < mods.getLength(); j++) {
 			if (mods.item(j).getNodeType() != Node.ELEMENT_NODE) continue;
 			Element m = (Element) mods.item(j);
-			if (!m.getTagName().equals("modifier")) {
-				System.err.println("Ignoring unexpected tag " + m.getTagName());
-			}
-			String stat = m.getAttribute("statistic");
-			String type = m.getAttribute("type");
-			if (type.length() == 0) type = null;
-			String value = m.getAttribute("value");
-			int val = 0;
-			Object dice = null;
-			try {
-				val = Integer.parseInt(value);
-			} catch (Exception ex) {
+			if (m.getTagName().equals("modifier")) {
+				String stat = m.getAttribute("statistic");
+				String type = m.getAttribute("type");
+				if (type.length() == 0) type = null;
+				String value = m.getAttribute("value");
+				int val = 0;
+				Object dice = null;
 				try {
-					dice = HDDice.parse(value);
-				} catch (Exception except) {
-					System.err.println("Error parsing modifier value '" + value + "' for " + def);
+					val = Integer.parseInt(value);
+				} catch (Exception ex) {
+					try {
+						dice = HDDice.parse(value);
+					} catch (Exception except) {
+						System.err.println("Error parsing modifier value '" + value + "' for " + def);
+					}
 				}
-			}
-			String condition = m.getAttribute("condition");
-			if (condition.length() == 0) condition = null;
-			String penalty = m.getAttribute("penalty");
-			String levelsPerExtra = m.getAttribute("levelsPerExtra");
-			String maxExtra = m.getAttribute("maxExtra");
+				String condition = m.getAttribute("condition");
+				if (condition.length() == 0) condition = null;
+				String penalty = m.getAttribute("penalty");
+				String levelsPerExtra = m.getAttribute("levelsPerExtra");
+				String maxExtra = m.getAttribute("maxExtra");
 
-			if (dice != null || levelsPerExtra.length() > 0) {
-				if (def instanceof BuffFactory) {
-					BuffFactory buff = (BuffFactory) def;
-					Object baseMod = dice;
-					if (baseMod == null) baseMod = new Integer(val);
-					int perCL = 0, max = 0;
-					if (levelsPerExtra.length() > 0) perCL = Integer.parseInt(levelsPerExtra);
-					if (maxExtra.length() > 0) max = Integer.parseInt(maxExtra);
-					if (penalty.equals("true")) {
-						buff.addPenalty(stat, type, baseMod, perCL, max, condition);
+				if (dice != null || levelsPerExtra.length() > 0) {
+					if (def instanceof BuffFactory) {
+						BuffFactory buff = (BuffFactory) def;
+						Object baseMod = dice;
+						if (baseMod == null) baseMod = new Integer(val);
+						int perCL = 0, max = 0;
+						if (levelsPerExtra.length() > 0) perCL = Integer.parseInt(levelsPerExtra);
+						if (maxExtra.length() > 0) max = Integer.parseInt(maxExtra);
+						if (penalty.equals("true")) {
+							buff.addPenalty(stat, type, baseMod, perCL, max, condition);
+						} else {
+							buff.addBonus(stat, type, baseMod, perCL, max, condition);
+						}
 					} else {
-						buff.addBonus(stat, type, baseMod, perCL, max, condition);
+						System.err.println("Caster-level dependent and dice-based modifiers are not supported for " + def);
 					}
 				} else {
-					System.err.println("Caster-level dependent and dice-based modifiers are not supported for " + def);
+					def.addFixedEffect(stat, type, val, condition);
 				}
+
+			} else if (m.getTagName().equals("property") && def instanceof BuffFactory) {
+				String stat = m.getAttribute("statistic");
+				String prop = m.getAttribute("property");
+				String value = m.getAttribute("value");
+				Integer val = null;
+				try {
+					val = Integer.parseInt(value);
+				} catch (Exception ex) {
+				}
+				String description = m.getAttribute("description");
+				((BuffFactory) def).addPropertyChange(stat, prop, val == null ? value : val, description);
+
 			} else {
-				def.addFixedEffect(stat, type, val, condition);
+				System.err.println("Ignoring unexpected tag '" + m.getTagName() + "' for " + def.name);
 			}
 		}
 	}

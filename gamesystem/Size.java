@@ -119,7 +119,7 @@ public class Size extends Statistic {
 
 		@Override
 		public String getType() {
-			return name;
+			return Modifier.StandardType.SIZE.toString();
 		}
 
 		@Override
