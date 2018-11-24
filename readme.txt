@@ -1,7 +1,7 @@
 ---=== IN PROGRESS ===---
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
-* Implement editing for remaining fields: AC, Size/type (DONE Feats,  Spec. Qualities, Space/Reach, Grapple)
+* Implement editing for remaining fields: Size/type (DONE Feats,  Spec. Qualities, Space/Reach, Grapple, AC)
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
 * Reopen encounter window from combat/menu
 * Export to html file? Maybe live?
