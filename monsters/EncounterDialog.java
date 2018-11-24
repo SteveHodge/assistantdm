@@ -179,12 +179,10 @@ public class EncounterDialog extends JFrame {
 		detailPanels.put(Field.ABILITIES, new AbilitiesPanel());
 		detailPanels.put(Field.HITDICE, new HitPointsPanel());
 		detailPanels.put(Field.AC, new ACPanel());
+		detailPanels.put(Field.SIZE_TYPE, new SizeTypePanel());
 		for (Field f : Field.getStandardOrder()) {
-			// TODO implement parsing these remaining fields which are currently set to readonly
 			if (!detailPanels.containsKey(f)) {
-				detailPanels.put(f, new DefaultDetailPanel(f, (f == Field.SIZE_TYPE
-						//|| f == Field.SPECIAL_QUALITIES	// TODO uncanny dodge affects flat-footed ac but isn't checked on updates
-						)));
+				detailPanels.put(f, new DefaultDetailPanel(f));
 			}
 		}
 

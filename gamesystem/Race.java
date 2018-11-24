@@ -76,6 +76,12 @@ public class Race extends AbstractProperty<String> {
 		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
 	}
 
+	public void removeSubtype(String s) {
+		String old = toString();
+		if (subtypes.remove(s))
+			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, old));
+	}
+
 	// Returns the original type as specified in the "Augmented..." subtype, if any
 	public MonsterType getAugmentedType() {
 		for (String subtype : subtypes) {

@@ -41,13 +41,13 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 
 		creature.race.addPropertyListener(e -> {
 			updateConstructMod();
-			updateHitDice();
+			updateHitDice(true);
 		});
 
-		creature.level.addPropertyListener(e -> updateHitDice());
+		creature.level.addPropertyListener(e -> updateHitDice(true));
 
 		maxHPs = new MaxHPs(parent);
-		maxHPs.addPropertyListener(e -> updateHitDice());
+		maxHPs.addPropertyListener(e -> updateHitDice(false));
 
 		creature.addPropertyListener("field." + Field.SPECIAL_QUALITIES.name(), e -> updateUnholyToughness());
 		creature.addPropertyListener("field." + Field.SPECIAL_ATTACKS.name(), e -> updateDesecratingAura());
@@ -57,10 +57,13 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		updateUnholyToughness();
 		updateDesecratingAura();
 		updateImprovedToughness();
-		updateHitDice();
+		updateHitDice(false);
 	}
 
-	private void updateHitDice() {
+	// We need to fire changes if races changes even if the hitDice value doesn't change because BAB or saves might need to be change even if hitdice don't.
+	// But this method gets called when maxHPs changes and maxHPs forwards all events from this statistic so infinite recursion would result if we always
+	// fired an event. Therefore alwaysFire is set only for race and level changes (the cases where BAB or saves could change even though hitDice is unchanged).
+	private void updateHitDice(boolean alwaysFire) {
 		String old = "";
 		if (hitDice != null) old = DiceList.toString(hitDice);
 		HDDice raceHD = creature.race.getHitDice();
@@ -89,7 +92,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			hitDice.add(new HDDice(s.getNumber(), s.getType(), constant));
 		}
 
-		if (!DiceList.toString(hitDice).equals(old)) {
+		if (alwaysFire || !DiceList.toString(hitDice).equals(old)) {
 			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
 		}
 	}
@@ -106,7 +109,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 		return hd;
 	}
 
-	// Sets the racial hitdice based on the supplied total hitdice and existing class levels. Modifiers are ignored as these are calculated later (though they are used to identify which parts of hd are from levels)
+	// Sets the racial hitdice based on the supplied total hitdice and existing class levels. Modifiers are ignored as these are calculated later (though they are used to identify which parts of hd are from levels).
 	public void setHitDice(List<HDDice> hd) {
 		//System.out.println("Setting HD to " + DiceList.toString(hd) + ", class HD = " + levels.getHitDice() + " based on level " + levels.getLevel());
 		if (creature.level.getLevel() != 0) {
@@ -124,7 +127,7 @@ public class HitDiceProperty extends AbstractProperty<List<HDDice>> {
 			creature.race.setHitDice(new HDDice(d.getNumber(), d.getType(), 0));
 		}
 		if (unholyToughness != null) unholyToughness.fireUpdate();
-		updateHitDice();
+		updateHitDice(false);
 	}
 
 	// Returns true if the base value includes racial hitdice. Creatures without class levels should always have racial hitdice.

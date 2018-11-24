@@ -1,12 +1,12 @@
 ---=== IN PROGRESS ===---
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
-* Implement editing for remaining fields: Size/type (DONE Feats,  Spec. Qualities, Space/Reach, Grapple, AC)
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
 * Reopen encounter window from combat/menu
 * Export to html file? Maybe live?
 * Advance monster by template: select template, flag fields that need updates, show template text for each field as selected - may be tricky as some templates change the type but don't recalculate
 * Advance monster by character class
+* Changes to special attacks and special qualities should trigger the statistics they affect
 *
 * Cthuhlu oozes have bonus hps - add as special quality if it's worth it
 * Armor proficiency feats don't parse in statistic blocks because of the parentheses for the subtype
