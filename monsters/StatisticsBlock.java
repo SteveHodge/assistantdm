@@ -628,12 +628,23 @@ public class StatisticsBlock {
 					int mod = parseModifier(component.substring(0, component.indexOf(' ')));
 					String type = component.substring(component.indexOf(' ') + 1);
 					String desc = null;
+
 					if (type.indexOf(" (") >= 0) {
 						desc = type.substring(type.indexOf(" (") + 2, type.lastIndexOf(')'));
 						type = type.substring(0, type.indexOf(" ("));
 					}
+
+					if (type.endsWith(" modifier")) {
+						type = type.substring(0,  type.indexOf(" modifier"));
+					} else if (type.endsWith(" bonus")) {
+						type = type.substring(0,  type.indexOf(" bonus"));
+					} else if (type.endsWith(" penalty")) {
+						type = type.substring(0,  type.indexOf(" penalty"));
+					}
 					if (acComponentTypes.containsKey(type.toLowerCase())) {
 						type = acComponentTypes.get(type.toLowerCase());
+					} else {
+						//System.err.println("Stats block unexpected AC modifier type '" + type + "'");
 					}
 					ImmutableModifier m = new ImmutableModifier(mod, type, desc);
 					components.add(m);
