@@ -122,7 +122,7 @@ public class RuleSet {
 			t.ability = AbilityScore.Type.getAbilityType(e.getAttribute("ability"));
 		t.trainedOnly = e.hasAttribute("trained") && e.getAttribute("trained").equals("true");
 		t.armorCheckPenaltyApplies = e.hasAttribute("acp") && e.getAttribute("acp").equals("true");
-		t.doubleACP = e.hasAttribute("double_acp") && e.getAttribute("double_acp").equals("true");
+		t.doubleACP = e.hasAttribute("double-acp") && e.getAttribute("double-acp").equals("true");
 		NodeList nodes = e.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;

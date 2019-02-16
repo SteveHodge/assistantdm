@@ -7,6 +7,7 @@
 * Advance monster by template: select template, flag fields that need updates, show template text for each field as selected - may be tricky as some templates change the type but don't recalculate
 * Advance monster by character class
 * Changes to special attacks and special qualities should trigger the statistics they affect
+* BUG: ACPanel has an issue with unknown modifier types
 *
 * Cthuhlu oozes have bonus hps - add as special quality if it's worth it
 * Armor proficiency feats don't parse in statistic blocks because of the parentheses for the subtype

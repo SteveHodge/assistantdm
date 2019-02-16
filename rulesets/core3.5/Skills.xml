@@ -75,7 +75,7 @@
 		<synergy for="Diplomacy"/>
 	</skill>
 	<skill name="Sleight of Hand" ability="Dexterity" acp="true" trained="true"/>
-	<skill name="Spellcraft" ability="Intelligence" acp="true">
+	<skill name="Spellcraft" ability="Intelligence">
 		<synergy for="Use Magic Device" condition="involving scrolls"/>
 	</skill>
 	<skill name="Spot" ability="Wisdom" trained="false"/>
