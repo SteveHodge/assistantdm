@@ -126,6 +126,7 @@ class ACPanel extends DetailPanel {
 		for (Modifier mod : mods.keySet()) {
 			if (!mods.get(mod)) continue;
 			String type = mod.getType();
+//			System.err.println("'" + type + "': " + mod.getModifier());
 			if (type.equals(Modifier.StandardType.ARMOR.toString())) {
 			} else if (type.equals(Modifier.StandardType.SHIELD.toString())) {
 			} else if (type.equals(Modifier.StandardType.SIZE.toString())
@@ -134,16 +135,27 @@ class ACPanel extends DetailPanel {
 				l.setText(mod.getModifier() >= 0 ? "+" + mod.getModifier() : Integer.toString(mod.getModifier()));
 			} else {
 				String t = type;
-				if (!components.containsKey(type)) t = "Misc";
+				if (!components.containsKey(type)) {
+					// FIXME totaling unknown mod types as "misc" doesn't work because SpinnerListener.stateChanged() only checks to see if the actual misc mod matches. i.e. if we have mod type A then we set misc to the same value but then
+					// SpinnerListener.stateChanged() will set a actual misc modifier to that value which results in update() being called which will then calculate the correct value of the misc modifier as A+misc (=A+A). this causes infinite recursion
+					System.err.println("ACPanel: Unknown modifier type " + type);
+					t = "Misc";
+				}
 				int total = 0;
 				if (totals.containsKey(t)) total = totals.get(t);
 				totals.put(t, total + mod.getModifier());
 			}
 		}
+
+//		for (String type : totals.keySet()) {
+//			System.err.println(type + ": " + totals.get(type));
+//		}
+
 		for (String t : components.keySet()) {
 			JComponent c = components.get(t);
 			if (c instanceof JSpinner) {
 				if (totals.containsKey(t)) {
+//					System.err.println("ACPanel update spinner for " + t + " to " + totals.get(t));
 					((JSpinner) c).setValue(totals.get(t));
 				} else {
 					((JSpinner) c).setValue(0);
@@ -165,6 +177,7 @@ class ACPanel extends DetailPanel {
 		public void stateChanged(ChangeEvent e) {
 			JSpinner spinner = (JSpinner) e.getSource();
 			int newVal = (Integer)spinner.getValue();
+//			System.err.println("Spinner for " + modName + " changed to " + newVal);
 			AC ac = monster.getACStatistic();
 
 			if (modName.equals(Modifier.StandardType.ARMOR.toString())) {
@@ -184,6 +197,7 @@ class ACPanel extends DetailPanel {
 						if (mod.getModifier() == newVal && !found) {
 							found = true;
 						} else {
+//							System.err.println("Removing " + mod + ", found = " + found);
 							ac.removeModifier(mod);
 						}
 					}

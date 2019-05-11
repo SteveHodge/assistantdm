@@ -168,7 +168,11 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 		});
 
 		JButton resetEffectsButton = new JButton("Reset Effects");
-		resetEffectsButton.addActionListener(e -> effectsTableModel.clear());
+		resetEffectsButton.addActionListener(e -> {
+			for (int i = effectsTableModel.getRowCount() - 1; i >= 0; i--) {
+				effectsTableModel.removeEffect(i, effectsPanel, initiativeListModel);
+			}
+		});
 
 		JPanel topPanel = new JPanel();
 		topPanel.add(roundsLabel);

@@ -116,6 +116,13 @@ public class GetStatsBlock {
 //			System.out.println("'" + value + "'");
 //		}
 
+		for (StatisticsBlock block : blocks) {
+			int space = block.getSpace();
+			if (space == 1) {
+				System.out.println("Space of 1/2: " + block.getName());
+			}
+		}
+
 		// check HD advancement
 //		System.out.println("\nBad values for " + Field.ADVANCEMENT + ":");
 //		for (StatisticsBlock block : blocks) {

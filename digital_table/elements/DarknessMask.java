@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
+import java.awt.geom.Line2D.Double;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +62,8 @@ public class DarknessMask extends MapElement {
 		for (int i = 0; i < m.getSize(); i++) {
 			Object e = m.getElementAt(i);
 			if (e instanceof Walls) {
-				wallLayout.addAll(((Walls) e).getWalls());
+				List<Double> points = ((Walls) e).getWalls();
+				if (points != null) wallLayout.addAll(points);
 			}
 		}
 
