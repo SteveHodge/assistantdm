@@ -272,18 +272,20 @@ class TokenOverlay {
 	// this version used by the RemoteImageDisplay repaint thread
 	void updateOverlay(BufferedImage img, SortedMap<String, MapElement> descriptions) {
 		try {
+//			System.out.println("Updating token overlay");
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			ImageIO.write(img, "png", stream);
 			StringBuilder json = new StringBuilder("[\n");
 			boolean first = true;
 			for (String k : descriptions.keySet()) {
+				MapElement t = descriptions.get(k);
+				if (t.getVisibility() == Visibility.HIDDEN) continue;
 				if (first) {
 					first = false;
 				} else {
 					json.append(",\n");
 				}
 				json.append("\t{\"token\": \"").append(k).append("\", ");
-				MapElement t = descriptions.get(k);
 				json.append("\"name\": \"").append(t.getProperty(MaskToken.PROPERTY_LABEL)).append("\"");
 				Color c = (Color) t.getProperty(Token.PROPERTY_COLOR);
 				if (!Color.BLACK.equals(c)) {

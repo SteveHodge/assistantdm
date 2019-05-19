@@ -1,4 +1,6 @@
 ---=== IN PROGRESS ===---
+* TODO Darkness element should have mode where it shows walls that have every been revealed. Will need undo function.
+* TODO Key based movement for tokens
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
