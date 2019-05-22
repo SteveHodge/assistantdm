@@ -28,6 +28,8 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 	private JSlider alphaSlider;
 	private JCheckBox lowLightCheck;
 	private JCheckBox visibleCheck;
+	private JCheckBox trackHistory;
+	private JPanel historyColorPanel;
 
 	DarknessMaskOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -42,6 +44,8 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		lowLightCheck = createCheckBox(DarknessMask.PROPERTY_LOW_LIGHT, Mode.ALL, "Lowlight vision");
 		visibleCheck = createVisibilityControl();
 		visibleCheck.setSelected(true);
+		trackHistory = createCheckBox(DarknessMask.PROPERTY_TRACK_HISTORY, Mode.ALL, "Show previously seen");
+		historyColorPanel = createColorControl(DarknessMask.PROPERTY_HISTORY_COLOR);
 
 		//@formatter:off
 		setLayout(new GridBagLayout());
@@ -58,6 +62,8 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		add(colorPanel, c);
 		add(alphaSlider, c);
 		add(lowLightCheck, c);
+		add(trackHistory, c);
+		add(historyColorPanel, c);
 
 		c.gridwidth = 2;
 		c.fill = GridBagConstraints.BOTH;
@@ -81,6 +87,12 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 
 			} else if (e.getPropertyName().equals(DarknessMask.PROPERTY_LOW_LIGHT)) {
 				lowLightCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(DarknessMask.PROPERTY_TRACK_HISTORY)) {
+				trackHistory.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(DarknessMask.PROPERTY_HISTORY_COLOR)) {
+				historyColorPanel.setBackground((Color) e.getNewValue());
 
 			} else {
 				System.out.println("Unknown property changed: " + e.getPropertyName());
@@ -154,6 +166,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		setAllAttributes(e);
 		setAttribute(e, REMOTE_PREFIX + MapElement.PROPERTY_VISIBLE, visibleCheck.isSelected() ? Visibility.VISIBLE : Visibility.HIDDEN);
 		setCellListAttribute(e, CLEARED_CELL_LIST_ATTRIBUTE, element.getCells());
+		setAttribute(e, DarknessMask.PROPERTY_HISTORY, element.getProperty(DarknessMask.PROPERTY_HISTORY));
 		return e;
 	}
 
@@ -164,6 +177,9 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		parseColorAttribute(DarknessMask.PROPERTY_COLOR, e, Mode.ALL);
 		parseFloatAttribute(DarknessMask.PROPERTY_ALPHA, e, Mode.LOCAL);
 		parseBooleanAttribute(DarknessMask.PROPERTY_LOW_LIGHT, e, Mode.ALL);
+		parseBooleanAttribute(DarknessMask.PROPERTY_TRACK_HISTORY, e, Mode.ALL);
+		parseColorAttribute(DarknessMask.PROPERTY_HISTORY_COLOR, e, Mode.ALL);
+		parseStringAttribute(DarknessMask.PROPERTY_HISTORY, e, Mode.ALL);
 		parseCellList(DarknessMask.PROPERTY_UNMASKCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
