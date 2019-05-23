@@ -9,6 +9,7 @@ import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -30,6 +31,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 	private JCheckBox visibleCheck;
 	private JCheckBox trackHistory;
 	private JPanel historyColorPanel;
+	private JButton resetHistory;
 
 	DarknessMaskOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -46,6 +48,10 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		visibleCheck.setSelected(true);
 		trackHistory = createCheckBox(DarknessMask.PROPERTY_TRACK_HISTORY, Mode.ALL, "Show previously seen");
 		historyColorPanel = createColorControl(DarknessMask.PROPERTY_HISTORY_COLOR);
+		resetHistory = new JButton("Reset");
+		resetHistory.addActionListener(e -> {
+			display.setProperty(element, DarknessMask.PROPERTY_HISTORY, "");
+		});
 
 		//@formatter:off
 		setLayout(new GridBagLayout());
@@ -64,6 +70,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		add(lowLightCheck, c);
 		add(trackHistory, c);
 		add(historyColorPanel, c);
+		add(resetHistory, c);
 
 		c.gridwidth = 2;
 		c.fill = GridBagConstraints.BOTH;
@@ -177,7 +184,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		parseColorAttribute(DarknessMask.PROPERTY_COLOR, e, Mode.ALL);
 		parseFloatAttribute(DarknessMask.PROPERTY_ALPHA, e, Mode.LOCAL);
 		parseBooleanAttribute(DarknessMask.PROPERTY_LOW_LIGHT, e, Mode.ALL);
-		parseBooleanAttribute(DarknessMask.PROPERTY_TRACK_HISTORY, e, Mode.ALL);
+//		parseBooleanAttribute(DarknessMask.PROPERTY_TRACK_HISTORY, e, Mode.ALL);
 		parseColorAttribute(DarknessMask.PROPERTY_HISTORY_COLOR, e, Mode.ALL);
 		parseStringAttribute(DarknessMask.PROPERTY_HISTORY, e, Mode.ALL);
 		parseCellList(DarknessMask.PROPERTY_UNMASKCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);

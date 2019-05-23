@@ -6,10 +6,12 @@ import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -94,24 +96,38 @@ public class DarknessMask extends MapElement {
 			}
 		}
 
-		if (seen == null || !trackHistory.getValue())
-			seen = new Area();
-
+		Area currentSeen = new Area();
 		// remove brighter areas from the dimmer areas so each Area is just the area lit at that level, subtract all from the dark area
 		// also update the historically seen area to include the currently visible area
-		Area fogOfWar = new Area(seen);	// all areas previous but not currently seen
 		if (this.lowLight.getValue()) {
-			seen.add(lowLight);
-			fogOfWar.subtract(lowLight);
+			currentSeen.add(lowLight);	// don't need to add shadow as lowLight will contain it
 //			dark.subtract(lowLight);
 			lowLight.subtract(shadow);
+			lowLight.subtract(bright);
 		} else {
-			seen.add(shadow);
-			fogOfWar.subtract(shadow);
+			currentSeen.add(shadow);
 //			dark.subtract(shadow);
 		}
+		currentSeen.add(bright);
+		Point offset = canvas.convertCanvasCoordsToDisplay(0, 0);
+		AffineTransform offsetTrans = AffineTransform.getTranslateInstance(-offset.getX(), -offset.getY());
+		currentSeen.transform(offsetTrans);
+		if (seen == null)
+			seen = new Area();
+		seen.add(currentSeen);
+		Area fogOfWar = new Area(seen);	// all areas previous but not currently seen
+		fogOfWar.subtract(currentSeen);
+		offsetTrans = AffineTransform.getTranslateInstance(offset.getX(), offset.getY());
+		fogOfWar.transform(offsetTrans);
 		shadow.subtract(bright);
-		dark.subtract(seen);	// dark is now the area never seen
+		if (trackHistory.getValue()) {
+			dark.subtract(seen.createTransformedArea(offsetTrans));	// dark is now the area never seen
+		} else {
+			dark.subtract(bright);
+			dark.subtract(shadow);
+			if (this.lowLight.getValue())
+				dark.subtract(lowLight);
+		}
 
 		g.setColor(color.getValue());
 		Composite c = g.getComposite();
@@ -182,15 +198,22 @@ public class DarknessMask extends MapElement {
 
 		DecimalFormat fmt = new DecimalFormat();
 		fmt.setRoundingMode(RoundingMode.HALF_UP);
-		fmt.setMaximumFractionDigits(2);
+		fmt.setMaximumFractionDigits(3);
 
+		int i = 0;
 		while (!p.isDone()) {
 			double[] coords = new double[6];
 			s.append(" ");
 			int type = p.currentSegment(coords);
 			if (type == PathIterator.SEG_MOVETO) {
 				s.append("M");
-				appendCoords(s, coords, 0, fmt);
+				if (i++ < 10) {
+					StringBuilder s2 = new StringBuilder();
+					appendCoords(s2, coords, 0, fmt);
+					s.append(s2);
+					System.out.println("output " + coords[0] + ", " + coords[1] + " -> " + s2);
+				} else
+					appendCoords(s, coords, 0, fmt);
 			} else if (type == PathIterator.SEG_LINETO) {
 				s.append("L");
 				appendCoords(s, coords, 0, fmt);
@@ -216,7 +239,8 @@ public class DarknessMask extends MapElement {
 	}
 
 	StringBuilder appendCoords(StringBuilder s, double[] coords, int idx, DecimalFormat fmt) {
-		s.append(fmt.format(coords[idx])).append(",").append(fmt.format(coords[idx + 1]));
+		Point2D p = canvas.convertDisplayCoordsToGrid((int) coords[idx], (int) coords[idx + 1]);	// convert to grid coords because the area should already be adjusted for canvas offset
+		s.append(fmt.format(p.getX())).append(",").append(fmt.format(p.getY()));
 		return s;
 	}
 
@@ -240,9 +264,6 @@ public class DarknessMask extends MapElement {
 			return null;
 		}
 
-		double[] coord = new double[2];
-		double[] coord2 = new double[2];
-		double[] coord3 = new double[2];
 		for (int i = 1; i < pieces.length; i++) {
 			String piece = pieces[i];
 			if (piece.endsWith(")"))
@@ -253,41 +274,39 @@ public class DarknessMask extends MapElement {
 			if (cmd == 'X') {
 				path.closePath();
 			} else if (cmd == 'M') {
-				parseCoord(coords, 0, coord);
-				path.moveTo(coord[0], coord[1]);
+				Point p = parseCoord(coords, 0);
+				if (i < 10) {
+					System.out.println("parse " + coords[0] + ", " + coords[1] + " -> " + p);
+				}
+				path.moveTo(p.getX(), p.getY());
 			} else if (cmd == 'L') {
-				parseCoord(coords, 0, coord);
-				path.lineTo(coord[0], coord[1]);
+				Point p = parseCoord(coords, 0);
+				path.lineTo(p.getX(), p.getY());
 			} else if (cmd == 'Q') {
-				parseCoord(coords, 0, coord);
-				parseCoord(coords, 2, coord2);
-				path.quadTo(coord[0], coord[1], coord2[0], coord2[1]);
+				Point p = parseCoord(coords, 0);
+				Point p2 = parseCoord(coords, 2);
+				path.quadTo(p.getX(), p.getY(), p2.getX(), p2.getY());
 			} else if (cmd == 'C') {
-				parseCoord(coords, 0, coord);
-				parseCoord(coords, 2, coord2);
-				parseCoord(coords, 4, coord3);
-				path.curveTo(coord[0], coord[1], coord2[0], coord2[1], coord3[0], coord3[1]);
+				Point p = parseCoord(coords, 0);
+				Point p2 = parseCoord(coords, 2);
+				Point p3 = parseCoord(coords, 4);
+				path.curveTo(p.getX(), p.getY(), p2.getX(), p2.getY(), p3.getX(), p3.getY());
 			}
 		}
 		return path;
 	}
 
-	void parseCoord(String[] coords, int idx, double[] coord) {
+	Point parseCoord(String[] coords, int idx) {
 		if (coords.length < idx + 2) {
 			System.err.println("parsePath: can't parse coords from: '" + String.join(",", coords) + "'");
-			coord[0] = 0;
-			coord[1] = 0;
-			return;
+			return new Point();
 		}
 		try {
-			coord[0] = Double.parseDouble(coords[idx]);
+			Point2D p = new Point2D.Double(Double.parseDouble(coords[idx]), Double.parseDouble(coords[idx + 1]));
+			return canvas.convertGridCoordsToDisplay(p);
 		} catch (NumberFormatException e) {
-			System.err.println("parsePath: can't parse double from: '" + coords[idx] + "'");
-		}
-		try {
-			coord[1] = Double.parseDouble(coords[idx + 1]);
-		} catch (NumberFormatException e) {
-			System.err.println("parsePath: can't parse double from: '" + coords[idx + 1] + "'");
+			System.err.println("parsePath: can't parse coords from: '" + coords[idx] + "," + coords[idx + 1] + "'");
+			return new Point();
 		}
 	}
 
