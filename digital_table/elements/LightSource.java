@@ -164,7 +164,7 @@ public class LightSource extends MapElement {
 			if (!origin.equals(cachedLocation) || walls != cachedWalls || cachedRadius != r || cachedTokenSize != tokenSize) {	// FIXME radius check should be less than I think
 //				System.out.println("Cache out of date, updating shadow: location? " + (!origin.equals(cachedLocation)) + ", walls? " + (walls != cachedWalls) + ", radius? " + (cachedRadius != r)
 //						+ ", tokenSize? " + (cachedTokenSize != tokenSize));
-				long startTime = System.nanoTime();
+//				long startTime = System.nanoTime();
 				Rectangle2D shadowBounds = new Rectangle2D.Double(origin.x - r, origin.y - r, r * 2 + s, r * 2 + s);	// performance of Area.add sucks, so instead we subtract the shadows from a rectangle and then intersect the result with the lit area
 				Area shadowArea = null;
 				double[] offsets = new double[tokenSize == 0 ? 1 : 2];
@@ -198,7 +198,7 @@ public class LightSource extends MapElement {
 				cachedRadius = r;
 				cachedLocation = origin;
 				cachedTokenSize = tokenSize;
-				double millis = (System.nanoTime() - startTime) / 1000000d;
+//				double millis = (System.nanoTime() - startTime) / 1000000d;
 				//logger.info("Painting complete for " + this + " in " + micros + "ms");
 //				System.out.printf("Shadow calculation took %.3fms\n", millis);
 			} else {

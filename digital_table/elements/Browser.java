@@ -1,21 +1,19 @@
 package digital_table.elements;
 
-import static javafx.concurrent.Worker.State.FAILED;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
+
+import digital_table.server.MapCanvas.Order;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
-
-import digital_table.server.MapCanvas.Order;
-
+@SuppressWarnings("restriction")
 public abstract class Browser extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -124,7 +122,7 @@ public abstract class Browser extends MapElement {
 			}));
 
 			engine.getLoadWorker().exceptionProperty().addListener((o, old, value) -> {
-				if (engine.getLoadWorker().getState() == FAILED) {
+				if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.FAILED) {
 					SwingUtilities.invokeLater(() -> {
 //                                    JOptionPane.showMessageDialog(
 //                                            panel,

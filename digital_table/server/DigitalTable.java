@@ -33,6 +33,7 @@ import javafx.application.Platform;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 
+@SuppressWarnings("restriction")
 public class DigitalTable implements TableDisplay, ScreenManager {
 	private static final String SERVICE_NAME = "TableDisplay";
 

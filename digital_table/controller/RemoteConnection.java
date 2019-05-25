@@ -22,6 +22,7 @@ import javafx.application.Platform;
  *
  */
 
+@SuppressWarnings("restriction")
 public class RemoteConnection {
 	private TableDisplay remote;
 

@@ -136,6 +136,7 @@ public class Token extends Group {
 	private Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
 	private Property<Integer> maxHPs = new Property<Integer>(PROPERTY_MAX_HPS, null, Integer.class);
 	private Property<Integer> currentHPs = new Property<Integer>(PROPERTY_CURRENT_HPS, null, Integer.class);
+	@SuppressWarnings("unused")
 	private Property<String> webLabel = new Property<String>(PROPERTY_WEB_LABEL, false, "", String.class);
 
 	private transient BufferedImage sourceImage = null;

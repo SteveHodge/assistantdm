@@ -40,7 +40,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		else
 			element = new LightSource(4, 0, 0);
 		display.addElement(element, parent);
-		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
+		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
 		element.addPropertyChangeListener(listener);
 
 		radiusField = createIntegerControl(LightSource.PROPERTY_RADIUS);

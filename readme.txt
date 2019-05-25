@@ -1,4 +1,5 @@
 ---=== IN PROGRESS ===---
+* TODO darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
 * TODO Key based movement for tokens
 * TODO Toggleable walls
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops

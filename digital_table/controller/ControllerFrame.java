@@ -83,7 +83,7 @@ import util.XMLUtils;
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
 //TODO buttons that aren't applicable to the selected element should be disabled
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "restriction" })
 public class ControllerFrame extends JFrame {
 	private static ControllerFrame instance = null;	// FIXME remove - use ModuleRegistry
 
