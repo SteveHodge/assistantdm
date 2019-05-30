@@ -29,6 +29,7 @@ import digital_table.server.MapCanvas.Order;
 public class Walls extends MapElement {
 	private static final long serialVersionUID = 1L;
 
+	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_WALL_LAYOUT = "wall_layout";	// WallLayout
 	public final static String PROPERTY_X = "x";	// double
 	public final static String PROPERTY_Y = "y";	// double
@@ -38,6 +39,7 @@ public class Walls extends MapElement {
 	public final static String PROPERTY_HEIGHT = "height";	// double
 	public final static String PROPERTY_SHOW_WALLS = "draw_walls";	// boolean - draw walls
 
+	Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
 	Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d, Double.class);
 	Property<Double> height = new Property<Double>(PROPERTY_HEIGHT, 0d, Double.class);
 	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
@@ -205,7 +207,9 @@ public class Walls extends MapElement {
 
 	@Override
 	public String toString() {
-		return "Walls (" + getID() + ")";
+		String text = label.getValue();
+		if (text == null || text.equals("")) text += getID();
+		return "Walls (" + text + ")";
 	}
 
 	@Override

@@ -28,6 +28,7 @@ import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
+import digital_table.elements.Token;
 import digital_table.elements.Walls;
 import digital_table.elements.Walls.WallLayout;
 import digital_table.server.MediaManager;
@@ -37,6 +38,7 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 	protected URI uri = null;
 
 	private JCheckBox visibleCheck;
+	private JTextField labelField;
 	private JTextField xField;
 	private JTextField yField;
 	private JTextField widthField;
@@ -72,6 +74,7 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 				}
 			}
 		});
+		labelField = createStringControl(Walls.PROPERTY_LABEL, Mode.LOCAL);
 		xField = createDoubleControl(Walls.PROPERTY_X);
 		yField = createDoubleControl(Walls.PROPERTY_Y);
 		widthField = createDoubleControl(Walls.PROPERTY_WIDTH);
@@ -85,7 +88,10 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 2; add(new JLabel("Left edge column:"), c);
+		c.gridy = 0;
+		add(visibleCheck, c);
+		c.gridy = 2;
+		add(new JLabel("Left edge column:"), c);
 		c.gridy = GridBagConstraints.RELATIVE;
 		add(new JLabel("Top edge Row:"), c);
 		add(new JLabel("Width:"), c);
@@ -96,7 +102,7 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = GridBagConstraints.RELATIVE;
-		add(visibleCheck, c);
+		add(labelField, c);
 		add(loadWallsButton, c);
 		add(xField, c);
 		add(yField, c);
@@ -168,6 +174,9 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 			} else if (e.getPropertyName().equals(Walls.PROPERTY_SHOW_WALLS)) {
 				showWallsCheck.setSelected((Boolean) e.getNewValue());
 
+			} else if (e.getPropertyName().equals(Walls.PROPERTY_LABEL)) {
+				labelField.setText(e.getNewValue().toString());
+
 			} else {
 				System.out.println("Unknown property changed: " + e.getPropertyName());
 			}
@@ -196,6 +205,7 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 	void parseDOM(Element e, OptionsPanel<?> parent) {
 		if (!e.getTagName().equals(XML_TAG)) return;
 
+		parseStringAttribute(Token.PROPERTY_LABEL, e, Mode.ALL);
 		parseDoubleAttribute(Group.PROPERTY_X, e, Mode.ALL);
 		parseDoubleAttribute(Group.PROPERTY_Y, e, Mode.ALL);
 		parseIntegerAttribute(Walls.PROPERTY_ROTATIONS, e, Mode.ALL);	// must be done before dimensions
