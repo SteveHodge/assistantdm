@@ -275,9 +275,6 @@ public class DarknessMask extends MapElement {
 				path.closePath();
 			} else if (cmd == 'M') {
 				Point p = parseCoord(coords, 0);
-				if (i < 10) {
-					System.out.println("parse " + coords[0] + ", " + coords[1] + " -> " + p);
-				}
 				path.moveTo(p.getX(), p.getY());
 			} else if (cmd == 'L') {
 				Point p = parseCoord(coords, 0);

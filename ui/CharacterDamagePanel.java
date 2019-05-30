@@ -343,7 +343,7 @@ public class CharacterDamagePanel extends JPanel {
 						// this is a bit hackish as there is currently no good way to find the ability score or type from the drain and damage properties
 						for (int i = 0; i < 6; i++) {
 							AbilityScore a = getAbility(i);
-							if (a == e.source || a.getDamage() == e.source || a.getDrain() == e.source) {
+							if (a != null && (a == e.source || a.getDamage() == e.source || a.getDrain() == e.source)) {
 								fireTableRowsUpdated(i, i);
 							}
 						}
@@ -353,6 +353,7 @@ public class CharacterDamagePanel extends JPanel {
 
 			@Override
 			public boolean isCellEditable(int rowIndex, int columnIndex) {
+				if (getAbility(rowIndex) == null) return false;
 				return columnIndex >= 1 && columnIndex <= 2;
 			}
 
@@ -411,6 +412,7 @@ public class CharacterDamagePanel extends JPanel {
 			public Object getValueAt(int row, int column) {
 				if (column == 0) return getAbilityName(row);
 				AbilityScore a = getAbility(row);
+				if (a == null) return null;
 				if (column == 1) return a.getDrain().getValue();
 				if (column == 2) return a.getDamage().getValue();
 				if (column == 3) {
@@ -422,7 +424,11 @@ public class CharacterDamagePanel extends JPanel {
 			@Override
 			public String getToolTipAt(int row, int col) {
 				StringBuilder text = new StringBuilder();
-				text.append("<html><body>").append(getAbility(row).getSummary()).append("</body></html>");
+				AbilityScore a = getAbility(row);
+				if (a == null)
+					text.append("<html><body>No ").append(AbilityScore.Type.values()[row].toString()).append("</body></html>");
+				else
+					text.append("<html><body>").append(a.getSummary()).append("</body></html>");
 				return text.toString();
 			}
 		}

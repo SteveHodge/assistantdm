@@ -1,4 +1,5 @@
 ---=== IN PROGRESS ===---
+* TODO if walls have an image as parent then they should use the parent's position and size
 * TODO darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
 * TODO Key based movement for tokens
 * TODO Toggleable walls
