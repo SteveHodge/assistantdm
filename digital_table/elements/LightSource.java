@@ -1,7 +1,9 @@
 package digital_table.elements;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -25,6 +27,9 @@ public class LightSource extends MapElement {
 	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_TYPE = "type";	// Type
 	public final static String PROPERTY_ALL_CORNERS = "all_corners";	// boolean
+	public final static String PROPERTY_COLOR = "color";	// Color
+	public final static String PROPERTY_ALWAYS_SHOW_ORIGIN = "always_show";	// boolean. if true then always draws an indicator of the origin, if false then this occurs only if the element is selected or dragging
+	public final static String PROPERTY_PAINT_LIGHT = "paint_light";	// boolean. if true then will fill the area lit (out to the shadowy radius)
 
 	public enum Type {
 		BRIGHT("Bright Light") {
@@ -84,6 +89,9 @@ public class LightSource extends MapElement {
 	Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
 	Property<Type> type = new Property<Type>(PROPERTY_TYPE, Type.BRIGHT, Type.class);
 	Property<Boolean> allCorners = new Property<Boolean>(PROPERTY_ALL_CORNERS, false, Boolean.class);
+	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.YELLOW, Color.class);
+	Property<Boolean> showOrigin = new Property<Boolean>(PROPERTY_ALWAYS_SHOW_ORIGIN, false, Boolean.class);
+	Property<Boolean> paintLight = new Property<Boolean>(PROPERTY_PAINT_LIGHT, false, Boolean.class);
 
 	public LightSource(int radius, int x, int y) {
 		this.x = new Property<Integer>(PROPERTY_X, true, x, Integer.class);
@@ -93,24 +101,77 @@ public class LightSource extends MapElement {
 
 	@Override
 	public Order getDefaultOrder() {
-		return Order.TOP;
+		return Order.ABOVEGRID;
 	}
 
 	@Override
 	public void paint(Graphics2D g) {
-		if (isDragging() || selected) {
+		g.setColor(color.getValue());
+
+		if (isDragging() || selected || (showOrigin.getValue() && getVisibility() != Visibility.HIDDEN)) {
 			Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 			g.translate(o.getX(), o.getY());
-
-			Point p1 = canvas.convertGridCoordsToDisplay(x.getValue(), y.getValue(), null);
-			g.setColor(Color.RED);
 			Stroke stroke = g.getStroke();
 			g.setStroke(new BasicStroke(3.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-			g.drawLine(p1.x - 10, p1.y, p1.x + 10, p1.y);
-			g.drawLine(p1.x, p1.y - 10, p1.x, p1.y + 10);
+			if (allCorners.getValue() && parent != null && parent instanceof Token) {
+				// if radiating from a token, ignore this element's position offset, but draw a light in each corner
+				int tokenSize = ((Token) parent).getSpace();
+				Point p1 = canvas.convertGridCoordsToDisplay(tokenSize, tokenSize, null);
+				g.drawLine(-10, 0, 0, 0);
+				g.drawLine(0, -10, 0, 0);
+				g.drawLine(-5, -5, 0, 0);
+				g.drawLine(5, -5, -5, 5);
 
-			g.translate(-o.getX(), -o.getY());
+				g.drawLine(p1.x, 0, p1.x + 10, 0);
+				g.drawLine(p1.x, -10, p1.x, 0);
+				g.drawLine(p1.x - 5, -5, p1.x + 5, 5);
+				g.drawLine(p1.x + 5, -5, p1.x, 0);
+
+				g.drawLine(p1.x, p1.y, p1.x + 10, p1.y);
+				g.drawLine(p1.x, p1.y, p1.x, p1.y + 10);
+				g.drawLine(p1.x, p1.y, p1.x + 5, p1.y + 5);
+				g.drawLine(p1.x + 5, p1.y - 5, p1.x - 5, p1.y + 5);
+
+				g.drawLine(-10, p1.y, 0, p1.y);
+				g.drawLine(0, p1.y, 0, p1.y + 10);
+				g.drawLine(-5, p1.y - 5, +5, p1.y + 5);
+				g.drawLine(0, p1.y, -5, p1.y + 5);
+
+			} else {
+				Point p1 = canvas.convertGridCoordsToDisplay(x.getValue(), y.getValue(), null);
+				g.drawLine(p1.x - 10, p1.y, p1.x + 10, p1.y);
+				g.drawLine(p1.x, p1.y - 10, p1.x, p1.y + 10);
+				g.drawLine(p1.x - 5, p1.y - 5, p1.x + 5, p1.y + 5);
+				g.drawLine(p1.x + 5, p1.y - 5, p1.x - 5, p1.y + 5);
+			}
 			g.setStroke(stroke);
+			g.translate(-o.getX(), -o.getY());
+		}
+
+		if (paintLight.getValue() && getVisibility() != Visibility.HIDDEN) {
+			Composite c = g.getComposite();
+			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+			int brightRadius = type.getValue().getBrightRadius(radius.getValue());
+			int shadowRadius = type.getValue().getShadowRadius(radius.getValue());
+			int radius = brightRadius > shadowRadius ? brightRadius : shadowRadius;
+			Area area = new Area();
+			int tokenSize = 0;
+			Point2D o = canvas.getElementOrigin(this);	// grid coordinates - converted to display coords by getRectangle
+			Point oo = new Point((int) o.getX() + x.getValue(), (int) o.getY() + y.getValue());
+			if (allCorners.getValue() && parent != null && parent instanceof Token) {
+				oo = new Point((int) o.getX(), (int) o.getY());			// if radiate from all corners, and there is a token then ignore the x, y values for this element
+				tokenSize = ((Token) parent).getSpace();
+				area.add(new Area(getRectangle(oo.x, oo.y, oo.x + tokenSize, oo.y + tokenSize + radius)));
+				area.add(new Area(getRectangle(oo.x, oo.y, oo.x + tokenSize + radius, oo.y + tokenSize)));
+				area.add(new Area(getRectangle(oo.x, oo.y, oo.x + tokenSize, oo.y + -radius)));
+				area.add(new Area(getRectangle(oo.x, oo.y, oo.x - radius, oo.y + tokenSize)));
+			}
+			addQuadrant(area, oo.x + tokenSize, oo.y + tokenSize, 1, 1, radius);
+			addQuadrant(area, oo.x + tokenSize, oo.y, 1, -1, radius);
+			addQuadrant(area, oo.x, oo.y + tokenSize, -1, 1, radius);
+			addQuadrant(area, oo.x, oo.y, -1, -1, radius);
+			g.fill(area);
+			g.setComposite(c);
 		}
 	}
 
@@ -271,7 +332,13 @@ public class LightSource extends MapElement {
 	Point lastLoc;
 	private Point getAbsLocation() {
 		if (isDragging()) return lastLoc;
-		Point2D p = new Point2D.Double(x.getValue(), y.getValue());
+		Point2D p;
+		if (allCorners.getValue() && parent != null && parent instanceof Token) {
+			// if we're radiating from all corners of a token, then lock the origin to the token's position (ignore this element's position offset)
+			p = new Point2D.Double(0, 0);
+		} else {
+			p = new Point2D.Double(x.getValue(), y.getValue());
+		}
 		Group parent = getParent();
 		while (parent != null) {
 			p = parent.translate(p);

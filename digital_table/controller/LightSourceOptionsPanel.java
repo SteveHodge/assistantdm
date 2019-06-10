@@ -1,5 +1,6 @@
 package digital_table.controller;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
@@ -21,6 +22,8 @@ import digital_table.elements.LightSource;
 import digital_table.elements.LightSource.Type;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
+import digital_table.elements.PersonalEmanation;
+import digital_table.elements.SpreadTemplate;
 
 
 @SuppressWarnings("serial")
@@ -32,6 +35,9 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 	private JComboBox<Type> typeCombo;
 	private JCheckBox visibleCheck;
 	private JCheckBox allCornersCheck;
+	private JCheckBox showOriginCheck;
+	private JCheckBox paintLightCheck;
+	private JPanel colorPanel;
 
 	LightSourceOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -50,6 +56,9 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		labelField = createStringControl(LightSource.PROPERTY_LABEL, Mode.LOCAL);
 		visibleCheck = createVisibilityControl();
 		allCornersCheck = createCheckBox(LightSource.PROPERTY_ALL_CORNERS, Mode.ALL, "Radiate from all corners of token");
+		showOriginCheck = createCheckBox(LightSource.PROPERTY_ALWAYS_SHOW_ORIGIN, Mode.ALL, "Always show the light origin");
+		paintLightCheck = createCheckBox(LightSource.PROPERTY_PAINT_LIGHT, Mode.ALL, "Colour the illuminated area");
+		colorPanel = createColorControl(PersonalEmanation.PROPERTY_COLOR);
 
 		// @formatter:off
 		setLayout(new GridBagLayout());
@@ -71,6 +80,9 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 
 		c.gridx = 0; c.gridwidth = 2;
 		c.gridy++; add(allCornersCheck, c);
+		c.gridy++; add(showOriginCheck, c);
+		c.gridy++; add(paintLightCheck, c);
+		c.gridy++; add(colorPanel, c);
 		c.gridy++;
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		add(new JPanel(), c);
@@ -100,6 +112,15 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 
 			} else if (e.getPropertyName().equals(LightSource.PROPERTY_ALL_CORNERS)) {
 				allCornersCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(LightSource.PROPERTY_ALWAYS_SHOW_ORIGIN)) {
+				showOriginCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(LightSource.PROPERTY_PAINT_LIGHT)) {
+				paintLightCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_COLOR)) {
+				colorPanel.setBackground((Color) e.getNewValue());
 
 			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
 				// ignore
@@ -155,6 +176,9 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		parseIntegerAttribute(LightSource.PROPERTY_RADIUS, e, Mode.ALL);
 		parseEnumAttribute(LightSource.PROPERTY_TYPE, LightSource.Type.class, e, Mode.ALL);
 		parseBooleanAttribute(LightSource.PROPERTY_ALL_CORNERS, e, Mode.ALL);
+		parseBooleanAttribute(LightSource.PROPERTY_ALWAYS_SHOW_ORIGIN, e, Mode.ALL);
+		parseBooleanAttribute(LightSource.PROPERTY_PAINT_LIGHT, e, Mode.ALL);
+		parseColorAttribute(SpreadTemplate.PROPERTY_COLOR, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 }

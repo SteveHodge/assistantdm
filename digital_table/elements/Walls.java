@@ -132,7 +132,7 @@ public class Walls extends MapElement {
 		double height = img.height.getValue();
 		int rotations = img.rotations.getValue();
 		boolean mirrored = img.mirrored.getValue();
-		System.out.printf("Walls from image: (%.1f, %.1f) - (%.1f, %.1f) rot = %d, mirror = %b\n", x, y, width, height, rotations, mirrored);
+//		System.out.printf("Walls from image: (%.1f, %.1f) - (%.1f, %.1f) rot = %d, mirror = %b\n", x, y, width, height, rotations, mirrored);
 
 		if (mirrored) {
 			transform = AffineTransform.getScaleInstance(-1, 1);
