@@ -16,6 +16,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.ListModel;
+
 import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
@@ -272,6 +274,25 @@ public class MapImage extends Group {
 		} else {
 			super.setProperty(property, value);
 		}
+
+		if ((property.equals(PROPERTY_X)
+				|| property.equals(PROPERTY_Y)
+				|| property.equals(PROPERTY_ROTATIONS)
+				|| property.equals(PROPERTY_MIRRORED)
+				|| property.equals(PROPERTY_WIDTH)
+				|| property.equals(PROPERTY_HEIGHT)
+				|| property.equals(PROPERTY_LOCATION))
+				&& canvas != null) {
+			ListModel<MapElement> model = canvas.getModel();
+			for (int i = 0; i < model.getSize(); i++) {
+				MapElement e = model.getElementAt(i);
+				if (e instanceof Walls && e.parent == this) {
+					Walls w = (Walls) e;
+					w.imageUpdated();
+				}
+			}
+		}
+
 	}
 
 	public boolean isCleared(Point p) {

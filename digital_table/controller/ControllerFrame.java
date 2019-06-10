@@ -177,7 +177,6 @@ public class ControllerFrame extends JFrame {
 				labelAction,
 				darknessAction,
 				lightSourceAction,
-				wallsAction,
 				initiativeAction,
 				browserAction,
 				groupAction,
@@ -540,7 +539,7 @@ public class ControllerFrame extends JFrame {
 		URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
 		if (uri != null) {
 			// XXX maybe should have dedicated group for corpses
-			ImageOptionsPanel imagePanel = new ImageOptionsPanel(uri, options.element.parent, display, maskAction, poisAction);
+			ImageOptionsPanel imagePanel = new ImageOptionsPanel(uri, options.element.parent, display, maskAction, poisAction, wallsAction);
 			MapImage image = imagePanel.getElement();
 			display.setProperty(image, Group.PROPERTY_X, (double) x, Mode.ALL);
 			display.setProperty(image, Group.PROPERTY_Y, (double) y, Mode.ALL);
@@ -1176,7 +1175,7 @@ public class ControllerFrame extends JFrame {
 		protected ImageOptionsPanel createOptionsPanel(MapElement parent) {
 			URI uri = MediaManager.INSTANCE.showFileChooser(ControllerFrame.this);
 			if (uri != null) {
-				return new ImageOptionsPanel(uri, parent, display, maskAction, poisAction);
+				return new ImageOptionsPanel(uri, parent, display, maskAction, poisAction, wallsAction);
 			}
 			return null;
 		}
@@ -1385,7 +1384,7 @@ public class ControllerFrame extends JFrame {
 				URI uri;
 				try {
 					uri = new URI(e.getAttribute(ImageOptionsPanel.FILE_ATTRIBUTE_NAME));
-					p = new ImageOptionsPanel(uri, parent, display, maskAction, poisAction);
+					p = new ImageOptionsPanel(uri, parent, display, maskAction, poisAction, wallsAction);
 					MapElement element = p.getElement();
 					element.addPropertyChangeListener(labelListener);
 					optionPanels.put(element, p);

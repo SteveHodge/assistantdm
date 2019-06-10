@@ -31,39 +31,9 @@ public class Walls extends MapElement {
 
 	public final static String PROPERTY_LABEL = "label";	// String
 	public final static String PROPERTY_WALL_LAYOUT = "wall_layout";	// WallLayout
-	public final static String PROPERTY_X = "x";	// double
-	public final static String PROPERTY_Y = "y";	// double
-	public final static String PROPERTY_ROTATIONS = "rotations";	// int - number of quadrants rotated clockwise
-	public final static String PROPERTY_MIRRORED = "mirrored";	// boolean - image is flipped horizontally
-	public final static String PROPERTY_WIDTH = "width";	// double
-	public final static String PROPERTY_HEIGHT = "height";	// double
 	public final static String PROPERTY_SHOW_WALLS = "draw_walls";	// boolean - draw walls
 
 	Property<String> label = new Property<String>(PROPERTY_LABEL, "", String.class);
-	Property<Double> width = new Property<Double>(PROPERTY_WIDTH, 0d, Double.class);
-	Property<Double> height = new Property<Double>(PROPERTY_HEIGHT, 0d, Double.class);
-	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
-	Property<Double> y = new Property<Double>(PROPERTY_Y, 0d, Double.class);
-
-	Property<Integer> rotations = new Property<Integer>(PROPERTY_ROTATIONS, 0, Integer.class) {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void setValue(Integer r) {
-			r = r % 4;
-			int oldR = rotations.getValue();
-			if (oldR == r) return;
-			super.setValue(r);
-
-			if ((r + oldR) % 2 == 1) {
-				// change is an odd number of quadrants so we need to swap width and height
-				double w = width.getValue();
-				width.setValue(height.getValue());
-				height.setValue(w);
-			}
-		}
-	};
-	private Property<Boolean> mirrored = new Property<Boolean>(PROPERTY_MIRRORED, false, Boolean.class);
 	private Property<Boolean> showWalls = new Property<Boolean>(PROPERTY_SHOW_WALLS, false, Boolean.class);
 
 	public static class WallLayout implements Serializable {
@@ -152,31 +122,46 @@ public class Walls extends MapElement {
 	// returns the AffineTransform that would transform an image of the specified width and height to the
 	// dimensions of this element. the AffineTransform includes and rotations and mirroring set on this element
 	AffineTransform getTransform(double srcWidth, double srcHeight) {
+		if (parent == null || !(parent instanceof MapImage))
+			return null;
 		AffineTransform transform;
-		if (mirrored.getValue()) {
+		MapImage img = (MapImage) parent;
+		double x = img.getX();
+		double y = img.getY();
+		double width = img.width.getValue();
+		double height = img.height.getValue();
+		int rotations = img.rotations.getValue();
+		boolean mirrored = img.mirrored.getValue();
+		System.out.printf("Walls from image: (%.1f, %.1f) - (%.1f, %.1f) rot = %d, mirror = %b\n", x, y, width, height, rotations, mirrored);
+
+		if (mirrored) {
 			transform = AffineTransform.getScaleInstance(-1, 1);
-			transform.quadrantRotate(-rotations.getValue());
-			if (rotations.getValue() == 0)
-				transform.translate(-x.getValue() - width.getValue(), y.getValue());
-			else if (rotations.getValue() == 1)
-				transform.translate(-y.getValue() - height.getValue(), -x.getValue() - width.getValue());
-			else if (rotations.getValue() == 2)
-				transform.translate(x.getValue(), -y.getValue() - height.getValue());
-			else if (rotations.getValue() == 3)
-				transform.translate(y.getValue(), x.getValue());
+			transform.quadrantRotate(-rotations);
+			if (rotations == 0)
+				transform.translate(-x - width, y);
+			else if (rotations == 1)
+				transform.translate(-y - height, -x - width);
+			else if (rotations == 2)
+				transform.translate(x, -y - height);
+			else if (rotations == 3)
+				transform.translate(y, x);
 		} else {
-			transform = AffineTransform.getQuadrantRotateInstance(rotations.getValue());
-			if (rotations.getValue() == 0) transform.translate(x.getValue(), y.getValue());
-			if (rotations.getValue() == 1) transform.translate(y.getValue(), -x.getValue() - width.getValue());
-			if (rotations.getValue() == 2) transform.translate(-x.getValue() - width.getValue(), -y.getValue() - height.getValue());
-			if (rotations.getValue() == 3) transform.translate(-y.getValue() - height.getValue(), x.getValue());
+			transform = AffineTransform.getQuadrantRotateInstance(rotations);
+			if (rotations == 0) transform.translate(x, y);
+			if (rotations == 1) transform.translate(y, -x - width);
+			if (rotations == 2) transform.translate(-x - width, -y - height);
+			if (rotations == 3) transform.translate(-y - height, x);
 		}
-		if (rotations.getValue() % 2 == 0) {
-			transform.scale(width.getValue() / srcWidth, height.getValue() / srcHeight);
+		if (rotations % 2 == 0) {
+			transform.scale(width / srcWidth, height / srcHeight);
 		} else {
-			transform.scale(height.getValue() / srcWidth, width.getValue() / srcHeight);
+			transform.scale(height / srcWidth, width / srcHeight);
 		}
 		return transform;
+	}
+
+	void imageUpdated() {
+		walls = getTransformed();
 	}
 
 	@Override
@@ -221,14 +206,6 @@ public class Walls extends MapElement {
 
 		} else {
 			super.setProperty(property, value);
-			if (property.equals(PROPERTY_X)
-					|| property.equals(PROPERTY_Y)
-					|| property.equals(PROPERTY_ROTATIONS)
-					|| property.equals(PROPERTY_MIRRORED)
-					|| property.equals(PROPERTY_WIDTH)
-					|| property.equals(PROPERTY_HEIGHT)) {
-				walls = getTransformed();
-			}
 		}
 	}
 }

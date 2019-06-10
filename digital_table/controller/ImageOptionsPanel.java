@@ -59,7 +59,8 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 	private MaskOptionsPanel mask = null;
 
-	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r, final ElementFactory<MaskOptionsPanel> maskFactory, final ElementFactory<POIOptionsPanel> poiFactory) {
+	ImageOptionsPanel(URI uri, MapElement parent, DisplayManager r, final ElementFactory<MaskOptionsPanel> maskFactory, final ElementFactory<POIOptionsPanel> poiFactory,
+			final ElementFactory<WallsOptionsPanel> wallsFactory) {
 		super(r);
 
 		Element mapNode = getMapNode(uri);
@@ -148,6 +149,11 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			poiFactory.addElement(element);
 		});
 
+		final JButton addWallsButton = new JButton("Add Walls");
+		addWallsButton.addActionListener(e -> {
+			wallsFactory.addElement(element);
+		});
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -183,6 +189,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		add(checks, c);
 		JPanel panel = new JPanel();
 		panel.add(addMaskButton);
+		panel.add(addWallsButton);
 		panel.add(addPOIsButton);
 		add(panel, c);
 		add(imagePanel, c);
