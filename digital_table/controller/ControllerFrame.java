@@ -161,9 +161,10 @@ public class ControllerFrame extends JFrame {
 		}
 		miniMapCanvas.setRemote(display);
 
-		miniMapCanvas.getPanel().addMouseMotionListener(miniMapMouseListener);
-		miniMapCanvas.getPanel().addMouseListener(miniMapMouseListener);
-		add(miniMapCanvas.getPanel());
+		JPanel miniMapPanel = miniMapCanvas.getPanel();
+		miniMapPanel.addMouseMotionListener(miniMapMouseListener);
+		miniMapPanel.addMouseListener(miniMapMouseListener);
+		add(miniMapPanel);
 
 		AddElementAction<?>[] availableElements = {
 				tokenAction,
@@ -197,16 +198,17 @@ public class ControllerFrame extends JFrame {
 					previous.setSelected(false);
 				}
 				MapElement element = getSelectedElement();
+				//System.out.println("Selected " + element);
 				if (element != null) {
 					element.setSelected(true);
 					previous = element;
-					JPanel options = optionPanels.get(element);
+					OptionsPanel<?> options = optionPanels.get(element);
 					if (options != null) {
 						elementPanel.removeAll();
 						elementPanel.add(options);
 						options.revalidate();
 						options.repaint();
-						//System.out.println(""+element);
+						options.requestFocusInWindow();
 					}
 				}
 			}
@@ -284,8 +286,11 @@ public class ControllerFrame extends JFrame {
 		debugButton.addActionListener(e -> {
 			System.out.print("Local memory usage: ");
 			printMemoryUsage(miniMapCanvas.getMemoryUsage());
-			System.out.print("Remote memory usage: ");
-			printMemoryUsage(display.getRemoteMemoryUsage());
+			MemoryLog remoteLog = display.getRemoteMemoryUsage();
+			if (remoteLog != null) {
+				System.out.print("Remote memory usage: ");
+				printMemoryUsage(remoteLog);
+			}
 		});
 
 		JButton loadButton = new JButton("Load...");
@@ -645,6 +650,14 @@ public class ControllerFrame extends JFrame {
 
 		@Override
 		public void mousePressed(MouseEvent e) {
+			// focus the current element panel, if any. this allows the user to switch the focus away for UI controls that might steal keypresses (such a JTree taking arrow keys)
+			MapElement element = getSelectedElement();
+			if (element != null) {
+				OptionsPanel<?> options = optionPanels.get(element);
+				if (options != null)
+					options.requestFocusInWindow();
+			}
+
 			MapElementMouseListener l = getElementMouseListener();
 			if (l != null) {
 				l.mousePressed(e, getLocation(e, l));

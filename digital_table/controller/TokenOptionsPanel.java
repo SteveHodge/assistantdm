@@ -7,6 +7,8 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -15,15 +17,20 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.ComboBoxModel;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -270,7 +277,14 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.weighty = 1.0d;
 		c.gridx = 0;
 		c.gridwidth = 3;
-		add(new JPanel(), c);
+		JPanel filler = new JPanel();
+		filler.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				requestFocusInWindow();
+			}
+		});
+		add(filler, c);
 
 		c.gridx = 2;
 		c.gridy = 1;
@@ -284,6 +298,52 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.insets = new Insets(0, 4, 0, 4);
 		add(webLabel, c);
+
+		ActionMap actions = getActionMap();
+		actions.put("west", new MoveTokenAction(-1, 0));
+		actions.put("east", new MoveTokenAction(1, 0));
+		actions.put("south", new MoveTokenAction(0, 1));
+		actions.put("north", new MoveTokenAction(0, -1));
+		actions.put("north-west", new MoveTokenAction(-1, -1));
+		actions.put("north-east", new MoveTokenAction(1, -1));
+		actions.put("south-east", new MoveTokenAction(1, 1));
+		actions.put("south-west", new MoveTokenAction(-1, 1));
+
+		InputMap im = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		im.put(KeyStroke.getKeyStroke("LEFT"), "west");
+		im.put(KeyStroke.getKeyStroke("RIGHT"), "east");
+		im.put(KeyStroke.getKeyStroke("UP"), "north");
+		im.put(KeyStroke.getKeyStroke("DOWN"), "south");
+		im.put(KeyStroke.getKeyStroke("NUMPAD9"), "north-east");
+		im.put(KeyStroke.getKeyStroke("NUMPAD8"), "north");
+		im.put(KeyStroke.getKeyStroke("NUMPAD7"), "north-west");
+		im.put(KeyStroke.getKeyStroke("NUMPAD6"), "east");
+		im.put(KeyStroke.getKeyStroke("NUMPAD4"), "west");
+		im.put(KeyStroke.getKeyStroke("NUMPAD3"), "south-east");
+		im.put(KeyStroke.getKeyStroke("NUMPAD2"), "south");
+		im.put(KeyStroke.getKeyStroke("NUMPAD1"), "south-west");
+	}
+
+	class MoveTokenAction extends AbstractAction {
+		int x, y;
+
+		public MoveTokenAction(int x, int y) {
+			putValue(ACTION_COMMAND_KEY, "MoveToken(" + x + ", " + y + ")");
+			putValue(NAME, "MoveToken(" + x + ", " + y + ")");
+			this.x = x;
+			this.y = y;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+//			System.out.println(getValue(ACTION_COMMAND_KEY));
+			double newx = (double) element.getProperty(Group.PROPERTY_X);
+			newx += x;
+			double newy = (double) element.getProperty(Group.PROPERTY_Y);
+			newy += y;
+			// send location rather than separate x,y so any lightsources attached to the token move in a single update
+			display.setProperty(element, Group.PROPERTY_LOCATION, new Point2D.Double(newx, newy));
+		}
 	}
 
 	private JTextField createHPControl(final String property) {
@@ -374,8 +434,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 	void moveTo(Point p) {
 		Point2D o = element.getElementOrigin();
-		display.setProperty(element, Group.PROPERTY_X, p.getX() - o.getX());
-		display.setProperty(element, Group.PROPERTY_Y, p.getY() - o.getY());
+		// send location rather than separate x,y so any lightsources attached to the token move in a single update
+		display.setProperty(element, Group.PROPERTY_LOCATION, new Point2D.Double(p.getX() - o.getX(), p.getY() - o.getY()));
 	}
 
 	private PropertyListener hpListener = e -> updateHPs();
@@ -493,8 +553,8 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		@Override
 		void setTargetLocation(Point2D p) {
-			display.setProperty(element, Group.PROPERTY_X, (double) Math.round(p.getX()));
-			display.setProperty(element, Group.PROPERTY_Y, (double) Math.round(p.getY()));
+			// send location rather than separate x,y so any lightsources attached to the token move in a single update
+			display.setProperty(element, Group.PROPERTY_LOCATION, new Point2D.Double(Math.round(p.getX()), Math.round(p.getY())));
 		}
 
 		@Override

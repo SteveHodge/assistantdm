@@ -154,6 +154,8 @@ class DisplayManager implements CoordinateConverter {
 	}
 
 	public MemoryLog getRemoteMemoryUsage() {
+		if (remote == null)
+			return null;
 		return remote.getMemoryUsage();
 	}
 
