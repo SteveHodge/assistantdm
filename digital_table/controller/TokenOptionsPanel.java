@@ -212,6 +212,14 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			if (floatingLabel != null) display.setProperty(floatingLabel.getElement(), Token.PROPERTY_ROTATIONS, index, Mode.ALL);
 		});
 
+		JButton resetButton = new JButton("Reset Movement");
+		resetButton.addActionListener(e -> {
+			moving = false;
+			doubleDiagonal = false;
+			distance = 0;
+			moveLabel.setText(String.format("Distance: %d", 0));
+		});
+
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -272,6 +280,11 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		p.add(imageButton);
 		if (deadButton != null) p.add(deadButton);
 		add(p, c);
+		p = new JPanel();
+		moveLabel = new JLabel("Distance: 0");
+		p.add(moveLabel);
+		p.add(resetButton);
+		add(p, c);
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
@@ -324,6 +337,11 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		im.put(KeyStroke.getKeyStroke("NUMPAD1"), "south-west");
 	}
 
+	boolean moving = false;
+	JLabel moveLabel;
+	int distance = 0;
+	boolean doubleDiagonal = false;
+
 	class MoveTokenAction extends AbstractAction {
 		int x, y;
 
@@ -337,6 +355,15 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 //			System.out.println(getValue(ACTION_COMMAND_KEY));
+			if (!moving)
+				moving = true;
+			distance += 5;
+			if (x != 0 && y != 0) {
+				if (doubleDiagonal) distance += 5;
+				doubleDiagonal = !doubleDiagonal;
+			}
+			moveLabel.setText(String.format("Distance: %d", distance));
+
 			double newx = (double) element.getProperty(Group.PROPERTY_X);
 			newx += x;
 			double newy = (double) element.getProperty(Group.PROPERTY_Y);

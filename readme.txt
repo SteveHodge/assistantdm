@@ -1,8 +1,8 @@
 ---=== IN PROGRESS ===---
-* TODO if walls have an image as parent then they should use the parent's position and size
-* TODO darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
-* TODO Key based movement for tokens
-* TODO Toggleable walls
+* DTT: darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
+* DTT: Toggleable walls (workaround is to use separate walls element for each toggleable section)
+* DTT: When colouring lightsource area, clip the area using the walls. Would be best to do area painting from the darkness instance for this.
+* DTT: Darkness options panel could have list of all lightsources so they can be toggled on and off without having to find them in the element tree.
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
@@ -18,18 +18,17 @@
 * Warforged feats, multidexterity, improved multiattack
 *
 * DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
-* DTT: make walls a sub-element of map (as mask is)
-* 	supoprt linking wall layouts to map images - if Walls element has image as parent then concatenate location, rotation, and mirroring
 * DTT: split simple image (which supports animation) from map (which supports masks and walls)
 * DTT: split rendering into layers, have separate ui elements for selecting maps, tokens, and perhaps lightsources
 * 	layers for painting order
 * 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
+* DTT: tokens could show movement trail and measurement
 * Slots: xml output/parsing (done). apply effects (done). tooltips - descriptions (todo). fix up notifications - probably best to make each slot a property
 * Check how natural armor bonus is implemented. It's both a modifier type (that only applies to AC), and a statistic that can itself be enhanced - seems to be right?
 * Implement Spell Resistance
 * Weapon/armor proficiencies: ui done but no effects implemented
 * Weapon focus/spec: seems to be not working
-* Auto numbers for tokens not coming through on ui
+* Auto numbers for tokens not coming through on ui 
 * Modifiers with a value of 0 should be suppressed in hints and website unless they are ability score mods or BAB mod.
 * Size - think this is done for monsters? needs to be added to character and/or character ui
 * Feat prereqs.
@@ -293,7 +292,6 @@ Game system things to implement:
 * Drawing element: freehand paint, eraser, map symbols
 * Allow modifying Mask colours
 * standard visibility controls
-* lightsources attached to tokens should behave as if there was one on each corner of the token (auto set property?)
 PART * tilemapper element - tilemapper editor added and maps supported as groups of images. a custom element would still have advantages
 * ENH: Reordering the elements resets the group expanded/collapsed state
 * add caching of loaded files in MediaManager
