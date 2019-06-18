@@ -1,8 +1,4 @@
 ---=== IN PROGRESS ===---
-* DTT: darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
-* DTT: Toggleable walls (workaround is to use separate walls element for each toggleable section)
-* DTT: When colouring lightsource area, clip the area using the walls. Would be best to do area painting from the darkness instance for this.
-* DTT: Darkness options panel could have list of all lightsources so they can be toggled on and off without having to find them in the element tree.
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).
@@ -17,12 +13,6 @@
 * Armor proficiency feats don't parse in statistic blocks because of the parentheses for the subtype
 * Warforged feats, multidexterity, improved multiattack
 *
-* DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
-* DTT: split simple image (which supports animation) from map (which supports masks and walls)
-* DTT: split rendering into layers, have separate ui elements for selecting maps, tokens, and perhaps lightsources
-* 	layers for painting order
-* 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
-* DTT: tokens could show movement trail and measurement
 * Slots: xml output/parsing (done). apply effects (done). tooltips - descriptions (todo). fix up notifications - probably best to make each slot a property
 * Check how natural armor bonus is implemented. It's both a modifier type (that only applies to AC), and a statistic that can itself be enhanced - seems to be right?
 * Implement Spell Resistance
@@ -47,12 +37,63 @@
 * Modifiers event/listener stuff should perhaps be similar to property in style
 * BUG floating labels on tokens: website token key has no description, floating label checkbox is not restored on reload, if the label itself is deleted then changing the remote label will cause an exception
 * Support conditions (and change barbarian rage to a condition) 
-* Clean up grid references before A0
-* Allow grid references to be entered for element x/y coordinates in ui
-* BUG "reset" button caused index out of bounds error in RemoteImageDisplay
-* Drawing lines should optionally add walls and/or allow editing of walls elements
 * Skill focus feat needs targeting implemented
 * StatisticsCollection should be expanded to provide the filtering required for selecting targets like weapons for spells. Also consider how it fits into notification of changes to collective properties
+
+---=== DTT PERFORMANCE CHANGES ===---
+* Comprehensive logging
+* Threaded painting on remote?
+* Bounds and bounds-optimized painting?
+* Threaded media loading
+* Low res versions of images for faster loading (especially for animations)?
+
+---=== DIGITAL TABLE PRIORITIES ===---
+* DTT: darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
+* DTT: Toggleable walls (workaround is to use separate walls element for each toggleable section)
+* DTT: When colouring lightsource area, clip the area using the walls. Would be best to do area painting from the darkness instance for this.
+* DTT: Darkness options panel could have list of all lightsources so they can be toggled on and off without having to find them in the element tree.
+* DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
+* DTT: split simple image (which supports animation) from map (which supports masks and walls)
+* DTT: split rendering into layers, have separate ui elements for selecting maps, tokens, and perhaps lightsources
+* 	layers for painting order
+* 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
+* DTT: tokens could show movement trail and measurement
+* DTT: Clean up grid references before A0
+* DTT: Allow grid references to be entered for element x/y coordinates in ui
+* BUG DTT: "reset" button caused index out of bounds error in RemoteImageDisplay
+* DTT: Drawing lines should optionally add walls and/or allow editing of walls elements
+* Drawing element: freehand paint, eraser, map symbols
+* Allow modifying Mask colours
+* standard visibility controls
+PART * tilemapper element - tilemapper editor added and maps supported as groups of images. a custom element would still have advantages
+* ENH: Reordering the elements resets the group expanded/collapsed state
+* add caching of loaded files in MediaManager
+* performance improvements in animation code - bounding boxes for elements
+DONE? * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
+* BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
+* asynchronous loading of images
+* soft references for ImageMedia - at least for transformed images
+* ImageMedia could use a soft/weak/strong reference for transformed images
+* BUG: "Set Image" on token options panel doesn't always immediately repaint with the new image
+* Pre-guess the screen layout
+* Auto configure - set defaults according to OS screen layout
+* Threaded remote display communication
+* Recalibrate display - could be done using screen bounds element
+* BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
+* parsing display xml resets the node priorty - need to save the list model order
+* BUG: LineTemplate: setting image after rotation draws the un-transformed image
+* REF: Factor clear cells code into support class
+* Hidden elements in table display should clear ImageMedia transforms
+* Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
+* Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
+* Add colour to the overlay tokens. either indicator of health or settable
+* Consider expanding "selected" support. Would need hierarchy support as with visibility
+* Refactor common utility methods into MapElement (e.g. template creation)
+* Alternate button dragging (e.g. resize, non-snapped to grid)
+* Make line and spread templates editable?
+* Swarm Token (editable token with replicated painting)
+* dice roller element?
+* thrown object scatter? compass rose?
 
 ---=== CODE STRUCTURE ===---
  camera - camera panel ui and functionality
@@ -286,38 +327,3 @@ Game system things to implement:
 //TODO ultimately would like a live DOM. the DOM saved to the party XML file would be a filtered version
 //WISH refactor classes that should be in ui package
 //TODO add new party menu option, ask to save modified file
-
-
----=== DIGITAL TABLE PRIORITIES ===---
-* Drawing element: freehand paint, eraser, map symbols
-* Allow modifying Mask colours
-* standard visibility controls
-PART * tilemapper element - tilemapper editor added and maps supported as groups of images. a custom element would still have advantages
-* ENH: Reordering the elements resets the group expanded/collapsed state
-* add caching of loaded files in MediaManager
-* performance improvements in animation code - bounding boxes for elements
-DONE? * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
-* BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
-* asynchronous loading of images
-* soft references for ImageMedia - at least for transformed images
-* ImageMedia could use a soft/weak/strong reference for transformed images
-* BUG: "Set Image" on token options panel doesn't always immediately repaint with the new image
-* Pre-guess the screen layout
-* Auto configure - set defaults according to OS screen layout
-* Threaded remote display communication
-* Recalibrate display - could be done using screen bounds element
-* BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
-* parsing display xml resets the node priorty - need to save the list model order
-* BUG: LineTemplate: setting image after rotation draws the un-transformed image
-* REF: Factor clear cells code into support class
-* Hidden elements in table display should clear ImageMedia transforms
-* Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
-* Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
-* Add colour to the overlay tokens. either indicator of health or settable
-* Consider expanding "selected" support. Would need hierarchy support as with visibility
-* Refactor common utility methods into MapElement (e.g. template creation)
-* Alternate button dragging (e.g. resize, non-snapped to grid)
-* Make line and spread templates editable?
-* Swarm Token (editable token with replicated painting)
-* dice roller element?
-* thrown object scatter? compass rose?

@@ -6,6 +6,8 @@ import java.net.URI;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 import digital_table.elements.MapElement;
@@ -24,10 +26,41 @@ import javafx.application.Platform;
 
 @SuppressWarnings("restriction")
 public class RemoteConnection {
+	interface RemoteOperation {
+		void execute() throws RemoteException;
+	}
+
+	class Operation {
+		String description;
+		RemoteOperation operation;
+
+		Operation(String desc, RemoteOperation op) {
+			description = desc;
+			operation = op;
+		}
+
+		void execute() {
+			try {
+				operation.execute();
+			} catch (RemoteException e) {
+				System.err.printf("remote.%s failed: %s\n", description, e);
+			}
+		}
+
+		@Override
+		public
+		String toString() {
+			return description;
+		}
+	}
+
 	private TableDisplay remote;
+	private final BlockingQueue<Operation> queue;
 
 	private RemoteConnection(TableDisplay remote) {
 		this.remote = remote;
+		queue = new LinkedBlockingQueue<>();
+		new Thread(new Sender()).start();
 	}
 
 	static void attemptConnection(String server, Consumer<RemoteConnection> consumer) {
@@ -87,6 +120,7 @@ public class RemoteConnection {
 		}
 	}
 
+	// addElement needs to be synchronous as it can't be serialised after being added to the display (also we don't want to send property changes that were supposed to be local)
 	public void addElement(MapElement element) {
 		try {
 			remote.addElement(element);
@@ -95,6 +129,7 @@ public class RemoteConnection {
 		}
 	}
 
+	// addElement needs to be synchronous as it can't be serialised after being added to the display (also we don't want to send property changes that were supposed to be local)
 	public void addElement(MapElement element, MapElement parent) {
 		try {
 			remote.addElement(element, parent.getID());
@@ -104,51 +139,39 @@ public class RemoteConnection {
 	}
 
 	public void removeElement(int id) {
-		try {
+		queue.add(new Operation(String.format("removeElement(%s)", id), () -> {
 			remote.removeElement(id);
-		} catch (RemoteException e) {
-			System.err.printf("remote.removeElement(%s) failed: %s\n", id, e);
-		}
+		}));
 	}
 
 	public void changeParent(MapElement element, MapElement parent) {
-		try {
+		queue.add(new Operation(String.format("changeParent(%s, %s)", element, parent), () -> {
 			remote.changeParent(element.getID(), parent == null ? -1 : parent.getID());
-		} catch (RemoteException e) {
-			System.err.printf("remote.changeParent(%s, %s) failed: %s\n", element, parent, e);
-		}
+		}));
 	}
 
 	public void promoteElement(MapElement element) {
-		try {
+		queue.add(new Operation(String.format("promoteElement(%s)", element), () -> {
 			remote.promoteElement(element.getID());
-		} catch (RemoteException e) {
-			System.err.printf("remote.promoteElement(%s) failed: %s\n", element, e);
-		}
+		}));
 	}
 
 	public void demoteElement(MapElement element) {
-		try {
+		queue.add(new Operation(String.format("demoteElement(%s)", element), () -> {
 			remote.demoteElement(element.getID());
-		} catch (RemoteException e) {
-			System.err.printf("remote.demoteElement(%s) failed: %s\n", element, e);
-		}
+		}));
 	}
 
 	public void reorganiseBefore(MapElement el1, MapElement el2) {
-		try {
+		queue.add(new Operation(String.format("moveBefore(%s, %s)", el1, el2), () -> {
 			remote.reorganiseBefore(el1.getID(), el2.getID());
-		} catch (RemoteException e) {
-			System.err.printf("remote.moveBefore(%s, %s) failed: %s\n", el1, el2, e);
-		}
+		}));
 	}
 
 	public void setElementProperty(MapElement element, String property, Object value) {
-		try {
+		queue.add(new Operation(String.format("setElementProperty(%s, %s, %s)", element, property, (value == null ? "<null>" : value.toString())), () -> {
 			remote.setElementProperty(element.getID(), property, value);
-		} catch (RemoteException e) {
-			System.err.printf("remote.setElementProperty(%s, %s, %s) failed: %s\n", element, property, (value == null ? "<null>" : value.toString()), e);
-		}
+		}));
 	}
 
 	public boolean hasMedia(URI uri) {
@@ -175,5 +198,21 @@ public class RemoteConnection {
 			System.err.printf("getMemoryUsage() failed: %s\n", e);
 		}
 		return null;
+	}
+
+	class Sender implements Runnable {
+		@Override
+		public void run() {
+			try {
+				while (true) {
+					Operation op = queue.take();
+//					if (queue.size() > 1)
+//						System.out.println("Queue backlog = " + queue.size());
+					op.execute();
+				}
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 }
