@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 
 public class Calibrate extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -26,6 +27,9 @@ public class Calibrate extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		if (!showBackground.getValue()) {
@@ -41,6 +45,16 @@ public class Calibrate extends MapElement {
 		g.setColor(Color.BLUE);
 		g.fillOval(br.x - size / 2, tl.y - size / 2, size, size);
 		g.fillOval(br.x - size / 2, br.y - size / 2, size, size);
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
+	}
+
+	long lastPaintTime = 0;
+
+	@Override
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("Calibrate", id);
+		m.total = lastPaintTime;
+		return m;
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 
 public class Walls extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -171,6 +172,9 @@ public class Walls extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		if (canvas == null || walls == null || !showWalls.getValue()) return;
 
 		Stroke s = g.getStroke();
@@ -183,11 +187,18 @@ public class Walls extends MapElement {
 			Point p2 = canvas.convertCanvasCoordsToDisplay(l.getP2());
 			g.drawLine(p1.x, p1.y, p2.x, p2.y);
 		}
-//			double millis = (System.nanoTime() - startTime) / 1000000d;
-//			//logger.info("Painting complete for " + this + " in " + micros + "ms");
-//			System.out.printf("Wall painting took %.3fms\n", millis);
 
 		g.setStroke(s);
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
+	}
+
+	long lastPaintTime = 0;
+
+	@Override
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("Walls" + (label == null || label.getValue().length() == 0 ? "" : " (" + label + ")"), id);
+		m.total = lastPaintTime;
+		return m;
 	}
 
 	@Override

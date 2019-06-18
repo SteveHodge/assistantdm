@@ -16,6 +16,7 @@ import java.net.URI;
 
 import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 import digital_table.server.MediaManager;
 
 // TODO convert PROPERTY constants to enum?
@@ -125,6 +126,9 @@ public class SpreadTemplate extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
@@ -182,6 +186,16 @@ public class SpreadTemplate extends MapElement {
 		}
 		g.setStroke(oldStroke);
 		g.translate(-o.getX(), -o.getY());
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
+	}
+
+	long lastPaintTime = 0;
+
+	@Override
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("SpreadTemplate" + (label == null || label.getValue().length() == 0 ? "" : " (" + label + ")"), id);
+		m.total = lastPaintTime;
+		return m;
 	}
 
 	protected Area getQuadrant(int xdir, int ydir) {

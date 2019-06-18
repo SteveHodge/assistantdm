@@ -26,6 +26,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 import ui.CreatureStatus;
 import ui.SimpleStatus;
 import ui.Status;
@@ -148,8 +149,20 @@ public class Token extends Group {
 		return Order.ABOVEGRID;
 	}
 
+	long lastPaintTime = 0;
+
+	@Override
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("Token (" + label + ")", id);
+		m.total = lastPaintTime;
+		return m;
+	}
+
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
@@ -256,6 +269,8 @@ public class Token extends Group {
 		g.setTransform(t);
 		g.setComposite(c);
 		g.translate(-o.getX(), -o.getY());
+
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
 	// returns the absolute origin of this element's coordinate system. i.e. the absolute coordinates of this element if it's location were set to (0,0)

@@ -188,12 +188,17 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	}
 
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		Rectangle bounds = g.getClipBounds();
 		g.clearRect(bounds.x, bounds.y, bounds.width, bounds.height);
 		for (int i = model.getSize() - 1; i >= 0; i--) {
 			MapElement r = model.getElementAt(i);
 			if (r != null) r.paint(g);
 		}
+
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
 	public Point2D getElementOrigin(MapElement el) {
@@ -212,16 +217,31 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		}
 	}
 
-	public MemoryLog getMemoryUsage() {
-		List<MemoryLog> logs = new ArrayList<>();
+	public MeasurementLog getMemoryUsage() {
+		List<MeasurementLog> logs = new ArrayList<>();
 		for (int i = 0; i < model.getSize(); i++) {
 			MapElement e = model.elementAt(i);
-			MemoryLog l = e.getMemoryUsage();
+			MeasurementLog l = e.getMemoryUsage();
 			if (l != null) logs.add(l);
 		}
-		MemoryLog total = new MemoryLog("MapCanvas", hashCode(), logs.size());
+		MeasurementLog total = new MeasurementLog("MapCanvas", hashCode(), logs.size());
 		logs.toArray(total.components);
 		total.updateTotal();
+		return total;
+	}
+
+	long lastPaintTime = 0;
+
+	public MeasurementLog getPaintTiming() {
+		List<MeasurementLog> logs = new ArrayList<>();
+		for (int i = 0; i < model.getSize(); i++) {
+			MapElement e = model.elementAt(i);
+			MeasurementLog l = e.getPaintTiming();
+			if (l != null) logs.add(l);
+		}
+		MeasurementLog total = new MeasurementLog("MapCanvas", hashCode(), logs.size());
+		logs.toArray(total.components);
+		total.total = lastPaintTime;
 		return total;
 	}
 

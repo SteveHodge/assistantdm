@@ -311,7 +311,12 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	}
 
 	@Override
-	public MemoryLog getMemoryUsage() throws RemoteException {
+	public MeasurementLog getMemoryUsage() throws RemoteException {
 		return canvas.getMemoryUsage();
+	}
+
+	@Override
+	public MeasurementLog getPaintTiming() throws RemoteException {
+		return canvas.getPaintTiming();
 	}
 }

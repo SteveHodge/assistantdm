@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import digital_table.server.MapCanvas;
 import digital_table.server.MapCanvas.Order;
-import digital_table.server.MemoryLog;
+import digital_table.server.MeasurementLog;
 import digital_table.server.ScreenManager;
 
 // TODO should all MapElement's have a position? if so then it should be implemented here. otherwise could move the dragging stuff to a subclass
@@ -203,7 +203,13 @@ public abstract class MapElement implements Serializable {
 
 	// returns the memory usage of the object. typically will be an approximation only including rasters allocated for images.
 	// elements that use negligible memory can return 0.
-	public MemoryLog getMemoryUsage() {
+	public MeasurementLog getMemoryUsage() {
+		return null;
+	}
+
+	// returns the last paint timing of the object
+	// elements that do not painting can return 0.
+	public MeasurementLog getPaintTiming() {
 		return null;
 	}
 

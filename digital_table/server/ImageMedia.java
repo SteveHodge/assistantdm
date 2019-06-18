@@ -656,13 +656,13 @@ public abstract class ImageMedia {
 		}
 	}
 
-	public MemoryLog getMemoryUsage() {
-		List<MemoryLog> logs = new ArrayList<>();
+	public MeasurementLog getMemoryUsage() {
+		List<MeasurementLog> logs = new ArrayList<>();
 		if (frames != null) {
 			int i = 0;
 			for (BufferedImage img : frames) {
 				if (img != null) {
-					MemoryLog m = new MemoryLog("Source frame " + i++, hashCode());
+					MeasurementLog m = new MeasurementLog("Source frame " + i++, hashCode());
 					m.total = getMemoryUsage(img);
 					logs.add(m);
 				}
@@ -672,13 +672,13 @@ public abstract class ImageMedia {
 			int i = 0;
 			for (BufferedImage img : transformed) {
 				if (img != null) {
-					MemoryLog m = new MemoryLog("Transformed frame " + i++, hashCode());
+					MeasurementLog m = new MeasurementLog("Transformed frame " + i++, hashCode());
 					m.total = getMemoryUsage(img);
 					logs.add(m);
 				}
 			}
 		}
-		MemoryLog log = new MemoryLog("MediaImage", hashCode(), logs.size());
+		MeasurementLog log = new MeasurementLog("MediaImage", hashCode(), logs.size());
 		if (logs.size() > 0) logs.toArray(log.components);
 		log.updateTotal();
 		return log;

@@ -6,8 +6,8 @@ import java.net.URI;
 import digital_table.elements.MapElement;
 import digital_table.server.CoordinateConverter;
 import digital_table.server.MapCanvas;
+import digital_table.server.MeasurementLog;
 import digital_table.server.MediaManager;
-import digital_table.server.MemoryLog;
 
 /**
  * DisplayManager provides the interface between elements and the various displays. It insulates the elements from
@@ -153,10 +153,16 @@ class DisplayManager implements CoordinateConverter {
 		element.setProperty(property, uri);
 	}
 
-	public MemoryLog getRemoteMemoryUsage() {
+	public MeasurementLog getRemoteMemoryUsage() {
 		if (remote == null)
 			return null;
 		return remote.getMemoryUsage();
+	}
+
+	public MeasurementLog getRemotePaintTiming() {
+		if (remote == null)
+			return null;
+		return remote.getPaintTiming();
 	}
 
 	// CoordinateConverter methods

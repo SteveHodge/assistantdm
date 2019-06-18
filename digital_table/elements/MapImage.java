@@ -20,8 +20,8 @@ import javax.swing.ListModel;
 
 import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 import digital_table.server.MediaManager;
-import digital_table.server.MemoryLog;
 
 // TODO could have border color property
 // TODO dragging the image after clearing cells does not move the cleared cells which is weird
@@ -92,11 +92,20 @@ public class MapImage extends Group {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
 	}
 
+	long lastPaintTime = 0;
+
 	@Override
-	public MemoryLog getMemoryUsage() {
-		MemoryLog m = new MemoryLog("Image (" + label + ")", id);
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("Image (" + label + ")", id);
+		m.total = lastPaintTime;
+		return m;
+	}
+
+	@Override
+	public MeasurementLog getMemoryUsage() {
+		MeasurementLog m = new MeasurementLog("Image (" + label + ")", id);
 		if (image != null) {
-			m.components = new MemoryLog[1];
+			m.components = new MeasurementLog[1];
 			m.components[0] = image.getMemoryUsage();
 			m.updateTotal();
 		}
@@ -154,10 +163,11 @@ public class MapImage extends Group {
 
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		if (image == null || image.getImage() == null) return;
-
-//		long startTime = System.nanoTime();
 
 		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
 		g.translate(o.getX(), o.getY());
@@ -217,9 +227,7 @@ public class MapImage extends Group {
 		g.setClip(oldClip);
 		g.translate(-o.getX(), -o.getY());
 
-//		long micros = (System.nanoTime() - startTime) / 1000;
-//		logger.info("Painting complete for " + this + " in " + micros + "us");
-//		System.out.println(String.format("Image painting took %.3fms", micros / 1000d));
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
 	/**

@@ -39,5 +39,7 @@ public interface TableDisplay extends Remote {
 
 	public void addMedia(URI uri, byte[] bytes) throws RemoteException;
 
-	public MemoryLog getMemoryUsage() throws RemoteException;
+	public MeasurementLog getMemoryUsage() throws RemoteException;
+
+	public MeasurementLog getPaintTiming() throws RemoteException;
 }

@@ -11,6 +11,7 @@ import java.awt.geom.Point2D;
 
 import digital_table.controller.DisplayConfig;
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 
 public class ScreenBounds extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -28,6 +29,9 @@ public class ScreenBounds extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		Composite c = g.getComposite();
@@ -46,6 +50,16 @@ public class ScreenBounds extends MapElement {
 		}
 		g.fill(area);
 		g.setComposite(c);
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
+	}
+
+	long lastPaintTime = 0;
+
+	@Override
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("ScreenBounds", id);
+		m.total = lastPaintTime;
+		return m;
 	}
 
 	@Override

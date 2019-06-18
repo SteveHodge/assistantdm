@@ -18,8 +18,8 @@ import java.util.List;
 
 import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 import digital_table.server.MediaManager;
-import digital_table.server.MemoryLog;
 
 // TODO we don't detect changes in the underlying image - need to fix the architecture
 // TODO (check this, looks like it might be done) should detect changes in image location - if the fractional part of the location changes then any cleared cells will be incorrectly aligned
@@ -71,15 +71,15 @@ public class Mask extends MapElement {
 	}
 
 	@Override
-	public MemoryLog getMemoryUsage() {
-		List<MemoryLog> logs = new ArrayList<>();
+	public MeasurementLog getMemoryUsage() {
+		List<MeasurementLog> logs = new ArrayList<>();
 		if (combinedMask != null) {
-			MemoryLog m = new MemoryLog("Combined Mask", 0);
+			MeasurementLog m = new MeasurementLog("Combined Mask", 0);
 			m.total = ImageMedia.getMemoryUsage(combinedMask);
 			logs.add(m);
 		}
 		if (combinedImage != null) {
-			MemoryLog m = new MemoryLog("Combined Image", 0);
+			MeasurementLog m = new MeasurementLog("Combined Image", 0);
 			m.total = ImageMedia.getMemoryUsage(combinedImage);
 			logs.add(m);
 		}
@@ -89,7 +89,7 @@ public class Mask extends MapElement {
 			}
 		}
 		String name = "";
-		MemoryLog m = new MemoryLog("Mask" + name, id, logs.size());
+		MeasurementLog m = new MeasurementLog("Mask" + name, id, logs.size());
 		logs.toArray(m.components);
 		m.updateTotal();
 		return m;
@@ -102,7 +102,9 @@ public class Mask extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
 		long startTime = System.nanoTime();
+
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		if (parent != image) return;
 		if (image.getVisibility() != Visibility.VISIBLE) return;
@@ -117,13 +119,17 @@ public class Mask extends MapElement {
 
 		g.setComposite(c);
 		g.translate(-o.getX(), -o.getY());
-		logPainting(startTime);
+
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
-	void logPainting(long startTime) {
-		long micros = (System.nanoTime() - startTime) / 1000;
-		//logger.info("Painting complete for " + this + " in " + micros + "ms");
-		System.out.println("Image painting took " + micros + "ms");
+	long lastPaintTime = 0;
+
+	@Override
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("Mask", id);
+		m.total = lastPaintTime;
+		return m;
 	}
 
 	synchronized BufferedImage getMaskImage() {

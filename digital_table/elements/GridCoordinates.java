@@ -12,6 +12,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 
 public class GridCoordinates extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -48,6 +49,9 @@ public class GridCoordinates extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		g.setColor(color.getValue());
@@ -160,6 +164,16 @@ public class GridCoordinates extends MapElement {
 		}
 
 		g.setComposite(c);
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
+	}
+
+	long lastPaintTime = 0;
+
+	@Override
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("GridCoordinates", id);
+		m.total = lastPaintTime;
+		return m;
 	}
 
 	@Override

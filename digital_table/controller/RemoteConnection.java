@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 import digital_table.elements.MapElement;
-import digital_table.server.MemoryLog;
+import digital_table.server.MeasurementLog;
 import digital_table.server.TableDisplay;
 import javafx.application.Platform;
 
@@ -178,7 +178,7 @@ public class RemoteConnection {
 		try {
 			return remote.hasMedia(uri);
 		} catch (RemoteException e) {
-			System.err.printf("hasMedia(%s) failed: %s\n", uri.toString(), e);
+			System.err.printf("remote.hasMedia(%s) failed: %s\n", uri.toString(), e);
 		}
 		return false;
 	}
@@ -187,15 +187,24 @@ public class RemoteConnection {
 		try {
 			remote.addMedia(uri, bytes);
 		} catch (RemoteException e) {
-			System.err.printf("addMedia(%s, bytes) failed: %s\n", uri.toString(), e);
+			System.err.printf("remote.addMedia(%s, bytes) failed: %s\n", uri.toString(), e);
 		}
 	}
 
-	public MemoryLog getMemoryUsage() {
+	public MeasurementLog getMemoryUsage() {
 		try {
 			return remote.getMemoryUsage();
 		} catch (RemoteException e) {
-			System.err.printf("getMemoryUsage() failed: %s\n", e);
+			System.err.printf("remote.getMemoryUsage() failed: %s\n", e);
+		}
+		return null;
+	}
+
+	public MeasurementLog getPaintTiming() {
+		try {
+			return remote.getPaintTiming();
+		} catch (RemoteException e) {
+			System.err.printf("remote.getPaintTiming() failed: %s\n", e);
 		}
 		return null;
 	}

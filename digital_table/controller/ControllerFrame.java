@@ -69,8 +69,8 @@ import digital_table.elements.MapElement;
 import digital_table.elements.MapImage;
 import digital_table.elements.SpreadTemplate;
 import digital_table.elements.Token;
+import digital_table.server.MeasurementLog;
 import digital_table.server.MediaManager;
-import digital_table.server.MemoryLog;
 import gamesystem.Creature;
 import javafx.application.Platform;
 import monsters.Monster;
@@ -286,10 +286,18 @@ public class ControllerFrame extends JFrame {
 		debugButton.addActionListener(e -> {
 			System.out.print("Local memory usage: ");
 			printMemoryUsage(miniMapCanvas.getMemoryUsage());
-			MemoryLog remoteLog = display.getRemoteMemoryUsage();
+			MeasurementLog remoteLog = display.getRemoteMemoryUsage();
 			if (remoteLog != null) {
 				System.out.print("Remote memory usage: ");
 				printMemoryUsage(remoteLog);
+			}
+
+			System.out.print("\nLocal paint timing: ");
+			printTimingLog(miniMapCanvas.getPaintTiming());
+			remoteLog = display.getRemotePaintTiming();
+			if (remoteLog != null) {
+				System.out.print("Remote paint timing: ");
+				printTimingLog(remoteLog);
 			}
 		});
 
@@ -351,11 +359,29 @@ public class ControllerFrame extends JFrame {
 		}
 	}
 
-	private static void printMemoryUsage(MemoryLog log) {
+	private static void printTimingLog(MeasurementLog log) {
+		printTimingLog("", log);
+	}
+
+	private static void printTimingLog(String prefix, MeasurementLog log) {
+		if (log.total < 2000) return;	// arbitrarily not interested in elements that took less than 2ms to paint
+		System.out.printf("%s%s (%08x) %dms\n", prefix, log.name, log.id, log.total / 1000);
+		if (log.components != null && log.components.length > 0) {
+			for (int i = 0; i < log.components.length; i++) {
+				if (log.components[i] != null) {
+					printTimingLog(prefix + "  ", log.components[i]);
+				} else {
+					System.out.println(prefix + "** null component " + i);
+				}
+			}
+		}
+	}
+
+	private static void printMemoryUsage(MeasurementLog log) {
 		printMemoryUsage("", log);
 	}
 
-	private static void printMemoryUsage(String prefix, MemoryLog log) {
+	private static void printMemoryUsage(String prefix, MeasurementLog log) {
 		System.out.printf("%s%s (%08x) %s\n", prefix, log.name, log.id, formatMemoryValue(log.total));
 		if (log.components != null && log.components.length > 0) {
 			for (int i = 0; i < log.components.length; i++) {

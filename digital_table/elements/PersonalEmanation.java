@@ -12,6 +12,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 
 public class PersonalEmanation extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -46,6 +47,9 @@ public class PersonalEmanation extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
@@ -80,6 +84,17 @@ public class PersonalEmanation extends MapElement {
 		g.setStroke(oldStroke);
 		g.setComposite(c);
 		g.translate(-o.getX(), -o.getY());
+
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
+	}
+
+	long lastPaintTime = 0;
+
+	@Override
+	public MeasurementLog getPaintTiming() {
+		MeasurementLog m = new MeasurementLog("PersonalEmanation" + (label == null || label.getValue().length() == 0 ? "" : " (" + label + ")"), id);
+		m.total = lastPaintTime;
+		return m;
 	}
 
 	private Area getQuadrant(int x, int y, int xdir, int ydir, int radius) {
@@ -130,7 +145,7 @@ public class PersonalEmanation extends MapElement {
 
 	@Override
 	public String toString() {
-		if (label == null || label.getValue().length() == 0) return "Template (" + getID() + ")";
-		return "Template (" + label + ")";
+		if (label == null || label.getValue().length() == 0) return "Personal Emanation (" + getID() + ")";
+		return "Personal Emanation (" + label + ")";
 	}
 }
