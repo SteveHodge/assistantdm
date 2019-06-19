@@ -20,7 +20,6 @@ import java.util.List;
 import javax.swing.ListModel;
 
 import digital_table.server.MapCanvas.Order;
-import digital_table.server.MeasurementLog;
 
 // TODO processing the walls takes too long and happens for each display - it should be threaded and perhaps done before being passed to the MapElement
 
@@ -53,9 +52,6 @@ public class DarknessMask extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
-		lastPaintTime = 0;
-		long startTime = System.nanoTime();
-
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		// build the shape
@@ -154,16 +150,11 @@ public class DarknessMask extends MapElement {
 		}
 
 		g.setComposite(c);
-		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
-	long lastPaintTime = 0;
-
 	@Override
-	public MeasurementLog getPaintTiming() {
-		MeasurementLog m = new MeasurementLog("DarknessMask", id);
-		m.total = lastPaintTime;
-		return m;
+	public String getIDString() {
+		return "DarknessMask";
 	}
 
 	@Override
@@ -225,7 +216,7 @@ public class DarknessMask extends MapElement {
 					StringBuilder s2 = new StringBuilder();
 					appendCoords(s2, coords, 0, fmt);
 					s.append(s2);
-					System.out.println("output " + coords[0] + ", " + coords[1] + " -> " + s2);
+//					System.out.println("output " + coords[0] + ", " + coords[1] + " -> " + s2);
 				} else
 					appendCoords(s, coords, 0, fmt);
 			} else if (type == PathIterator.SEG_LINETO) {

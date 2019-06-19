@@ -364,8 +364,8 @@ public class ControllerFrame extends JFrame {
 	}
 
 	private static void printTimingLog(String prefix, MeasurementLog log) {
-		if (log.total < 2000) return;	// arbitrarily not interested in elements that took less than 2ms to paint
-		System.out.printf("%s%s (%08x) %dms\n", prefix, log.name, log.id, log.total / 1000);
+		if (log.average < 2000 && log.worst < 2000) return;	// arbitrarily not interested in elements that took less than 2ms to paint
+		System.out.printf("%s%s (%08x) Last: %dms, Avg: %dms, Worst: %dms\n", prefix, log.name, log.id, log.last / 1000, log.average / 1000, log.worst / 1000);
 		if (log.components != null && log.components.length > 0) {
 			for (int i = 0; i < log.components.length; i++) {
 				if (log.components[i] != null) {
@@ -382,7 +382,7 @@ public class ControllerFrame extends JFrame {
 	}
 
 	private static void printMemoryUsage(String prefix, MeasurementLog log) {
-		System.out.printf("%s%s (%08x) %s\n", prefix, log.name, log.id, formatMemoryValue(log.total));
+		System.out.printf("%s%s (%08x) %s\n", prefix, log.name, log.id, formatMemoryValue(log.last));
 		if (log.components != null && log.components.length > 0) {
 			for (int i = 0; i < log.components.length; i++) {
 				if (log.components[i] != null) {

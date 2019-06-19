@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 import digital_table.server.MapCanvas.Order;
-import digital_table.server.MeasurementLog;
 
 public class LightSource extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -107,9 +106,6 @@ public class LightSource extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
-		lastPaintTime = 0;
-		long startTime = System.nanoTime();
-
 		g.setColor(color.getValue());
 
 		if (isDragging() || selected || (showOrigin.getValue() && getVisibility() != Visibility.HIDDEN)) {
@@ -177,16 +173,11 @@ public class LightSource extends MapElement {
 			g.fill(area);
 			g.setComposite(c);
 		}
-		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
-	long lastPaintTime = 0;
-
 	@Override
-	public MeasurementLog getPaintTiming() {
-		MeasurementLog m = new MeasurementLog("LightSource" + (label == null || label.getValue().length() == 0 ? "" : " (" + label + ")"), id);
-		m.total = lastPaintTime;
-		return m;
+	public String getIDString() {
+		return "LightSource" + (label == null || label.getValue().length() == 0 ? "" : " (" + label + ")");
 	}
 
 	Area getBrightArea(List<Line2D.Double> walls) {

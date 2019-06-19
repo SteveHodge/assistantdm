@@ -44,6 +44,11 @@ public class BrowserRemote extends Browser {
 		}
 	}
 
+	@Override
+	public String getIDString() {
+		return "BrowserRemote";
+	}
+
 	public void checkScreenSetup() {
 		if (visible.getValue() == Visibility.HIDDEN) {
 			// make the panel not visible if it exists

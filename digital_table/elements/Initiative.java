@@ -16,7 +16,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import digital_table.server.MapCanvas.Order;
-import digital_table.server.MeasurementLog;
 
 // TODO this is very similar to Label. consider combining
 
@@ -56,9 +55,6 @@ public class Initiative extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
-		lastPaintTime = 0;
-		long startTime = System.nanoTime();
-
 		if (getVisibility() == Visibility.HIDDEN || canvas == null) return;
 
 //		Point2D o = canvas.getDisplayCoordinates(offset);
@@ -113,16 +109,11 @@ public class Initiative extends MapElement {
 			g.setFont(f);
 		}
 //		g.translate(-o.getX(), -o.getY());
-		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
-	long lastPaintTime = 0;
-
 	@Override
-	public MeasurementLog getPaintTiming() {
-		MeasurementLog m = new MeasurementLog("GridCoordinates", id);
-		m.total = lastPaintTime;
-		return m;
+	public String getIDString() {
+		return "GridCoordinates";
 	}
 
 	protected List<String[]> getTable() {

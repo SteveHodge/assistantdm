@@ -8,7 +8,9 @@ public class MeasurementLog implements Serializable {
 
 	public String name;
 	public int id;
-	public long total;
+	public long last;
+	public long worst;
+	public long average;
 	public MeasurementLog[] components;
 
 	public MeasurementLog(String name, int id) {
@@ -23,10 +25,13 @@ public class MeasurementLog implements Serializable {
 	}
 
 	public void updateTotal() {
-		total = 0;
+		last = 0;
 		if (components != null) {
 			for (int i = 0; i < components.length; i++) {
-				if (components[i] != null) total += components[i].total;
+				if (components[i] != null) {
+					last += components[i].last;
+					average += components[i].average;
+				}
 			}
 		}
 	}

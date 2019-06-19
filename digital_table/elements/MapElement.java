@@ -166,6 +166,21 @@ public abstract class MapElement implements Serializable {
 
 	public abstract void paint(Graphics2D g);
 
+	public void paintElement(Graphics2D g) {
+		lastPaintTime = 0;
+		long startTime = System.nanoTime();
+		paint(g);
+		lastPaintTime = (System.nanoTime() - startTime) / 1000;
+		if (lastPaintTime > worstPaintTime) worstPaintTime = lastPaintTime;
+		totalPaintTime += lastPaintTime;
+		numFrames++;
+	}
+
+	long lastPaintTime = 0;
+	long totalPaintTime = 0;
+	long worstPaintTime = 0;
+	int numFrames = 0;
+
 	@Override
 	public String toString() {
 		return super.toString() + " (ID " + id + ")";
@@ -207,10 +222,17 @@ public abstract class MapElement implements Serializable {
 		return null;
 	}
 
+	// return a string that identifies the element by type and by any user-supplied identifier (e.g. a label). Should not include the id.
+	public abstract String getIDString();
+
 	// returns the last paint timing of the object
 	// elements that do not painting can return 0.
 	public MeasurementLog getPaintTiming() {
-		return null;
+		MeasurementLog m = new MeasurementLog(getIDString(), getID());
+		m.last = lastPaintTime;
+		m.average = totalPaintTime / numFrames;
+		m.worst = worstPaintTime;
+		return m;
 	}
 
 	public static Color darken(Color c) {

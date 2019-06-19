@@ -92,13 +92,9 @@ public class MapImage extends Group {
 		this.label = new Property<String>(PROPERTY_LABEL, false, label, String.class);
 	}
 
-	long lastPaintTime = 0;
-
 	@Override
-	public MeasurementLog getPaintTiming() {
-		MeasurementLog m = new MeasurementLog("Image (" + label + ")", id);
-		m.total = lastPaintTime;
-		return m;
+	public String getIDString() {
+		return "Image (" + label + ")";
 	}
 
 	@Override
@@ -163,9 +159,6 @@ public class MapImage extends Group {
 
 	@Override
 	public void paint(Graphics2D g) {
-		lastPaintTime = 0;
-		long startTime = System.nanoTime();
-
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		if (image == null || image.getImage() == null) return;
 
@@ -226,8 +219,6 @@ public class MapImage extends Group {
 		g.setComposite(c);
 		g.setClip(oldClip);
 		g.translate(-o.getX(), -o.getY());
-
-		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
 	/**

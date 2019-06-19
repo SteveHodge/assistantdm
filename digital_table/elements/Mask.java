@@ -75,12 +75,12 @@ public class Mask extends MapElement {
 		List<MeasurementLog> logs = new ArrayList<>();
 		if (combinedMask != null) {
 			MeasurementLog m = new MeasurementLog("Combined Mask", 0);
-			m.total = ImageMedia.getMemoryUsage(combinedMask);
+			m.last = ImageMedia.getMemoryUsage(combinedMask);
 			logs.add(m);
 		}
 		if (combinedImage != null) {
 			MeasurementLog m = new MeasurementLog("Combined Image", 0);
-			m.total = ImageMedia.getMemoryUsage(combinedImage);
+			m.last = ImageMedia.getMemoryUsage(combinedImage);
 			logs.add(m);
 		}
 		for (MaskImage mask : masks) {
@@ -102,9 +102,6 @@ public class Mask extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
-		lastPaintTime = 0;
-		long startTime = System.nanoTime();
-
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 		if (parent != image) return;
 		if (image.getVisibility() != Visibility.VISIBLE) return;
@@ -119,17 +116,11 @@ public class Mask extends MapElement {
 
 		g.setComposite(c);
 		g.translate(-o.getX(), -o.getY());
-
-		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
-	long lastPaintTime = 0;
-
 	@Override
-	public MeasurementLog getPaintTiming() {
-		MeasurementLog m = new MeasurementLog("Mask", id);
-		m.total = lastPaintTime;
-		return m;
+	public String getIDString() {
+		return "Mask";
 	}
 
 	synchronized BufferedImage getMaskImage() {

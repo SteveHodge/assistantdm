@@ -11,6 +11,7 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 
 import digital_table.server.MapCanvas.Order;
+import digital_table.server.MeasurementLog;
 
 // TODO fix hardcoded sizes, change font-size property to something useful (small/med/large enum, for example)
 
@@ -154,5 +155,14 @@ public class PointOfInterest extends MapElement {
 		else
 			t = Integer.toString(getID());
 		return "Point of Interest (" + t + ")";
+	}
+
+	@Override
+	public String getIDString() {
+		return "PointOfInterest" + (text.getValue().length() > 0 ? " (" + text.getValue() + ")" : "");
+	}
+
+	public MeasurementLog getPaintTiming() {
+		return null;
 	}
 }

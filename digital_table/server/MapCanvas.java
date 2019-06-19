@@ -195,10 +195,13 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		g.clearRect(bounds.x, bounds.y, bounds.width, bounds.height);
 		for (int i = model.getSize() - 1; i >= 0; i--) {
 			MapElement r = model.getElementAt(i);
-			if (r != null) r.paint(g);
+			if (r != null) r.paintElement(g);
 		}
 
 		lastPaintTime = (System.nanoTime() - startTime) / 1000;
+		if (lastPaintTime > worstPaintTime) worstPaintTime = lastPaintTime;
+		totalPaintTime += lastPaintTime;
+		numFrames++;
 	}
 
 	public Point2D getElementOrigin(MapElement el) {
@@ -231,6 +234,9 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	}
 
 	long lastPaintTime = 0;
+	long worstPaintTime = 0;
+	long totalPaintTime = 0;
+	int numFrames = 0;
 
 	public MeasurementLog getPaintTiming() {
 		List<MeasurementLog> logs = new ArrayList<>();
@@ -241,7 +247,9 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		}
 		MeasurementLog total = new MeasurementLog("MapCanvas", hashCode(), logs.size());
 		logs.toArray(total.components);
-		total.total = lastPaintTime;
+		total.last = lastPaintTime;
+		total.average = totalPaintTime / numFrames;
+		total.worst = worstPaintTime;
 		return total;
 	}
 

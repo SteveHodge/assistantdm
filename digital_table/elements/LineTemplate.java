@@ -14,7 +14,6 @@ import java.net.URI;
 
 import digital_table.server.ImageMedia;
 import digital_table.server.MapCanvas.Order;
-import digital_table.server.MeasurementLog;
 import digital_table.server.MediaManager;
 
 public class LineTemplate extends MapElement {
@@ -59,9 +58,6 @@ public class LineTemplate extends MapElement {
 
 	@Override
 	public void paint(Graphics2D g) {
-		lastPaintTime = 0;
-		long startTime = System.nanoTime();
-
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 
 		Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
@@ -176,17 +172,11 @@ public class LineTemplate extends MapElement {
 		}
 
 		g.translate(-o.getX(), -o.getY());
-
-		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
-	long lastPaintTime = 0;
-
 	@Override
-	public MeasurementLog getPaintTiming() {
-		MeasurementLog m = new MeasurementLog("LineTemplate" + (label == null || label.getValue().length() == 0 ? "" : " (" + label + ")"), id);
-		m.total = lastPaintTime;
-		return m;
+	public String getIDString() {
+		return "LineTemplate" + (label == null || label.getValue().length() == 0 ? "" : " (" + label + ")");
 	}
 
 //	private long totalNanos = 0;

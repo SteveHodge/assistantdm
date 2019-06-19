@@ -41,23 +41,27 @@
 * StatisticsCollection should be expanded to provide the filtering required for selecting targets like weapons for spells. Also consider how it fits into notification of changes to collective properties
 
 ---=== DTT PERFORMANCE CHANGES ===---
-* Comprehensive logging
 * Threaded painting on remote?
 * Bounds and bounds-optimized painting?
 * Threaded media loading
 * Low res versions of images for faster loading (especially for animations)?
+* ImageMedia could use a soft/weak/strong reference for transformed images - probably need some way of tracking what is in use. might be able to drop source image if memory is tight
+* Hidden elements in table display should clear ImageMedia transforms
 
 ---=== DIGITAL TABLE PRIORITIES ===---
-* DTT: darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
-* DTT: Toggleable walls (workaround is to use separate walls element for each toggleable section)
-* DTT: When colouring lightsource area, clip the area using the walls. Would be best to do area painting from the darkness instance for this.
-* DTT: Darkness options panel could have list of all lightsources so they can be toggled on and off without having to find them in the element tree.
-* DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
 * DTT: split simple image (which supports animation) from map (which supports masks and walls)
 * DTT: split rendering into layers, have separate ui elements for selecting maps, tokens, and perhaps lightsources
 * 	layers for painting order
 * 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
 * DTT: tokens could show movement trail and measurement
+* Pre-guess the screen layout
+* Auto configure - set defaults according to OS screen layout
+* Recalibrate display - could be done using screen bounds element
+* DTT: darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
+* DTT: Toggleable walls (workaround is to use separate walls element for each toggleable section)
+* DTT: When colouring lightsource area, clip the area using the walls. Would be best to do area painting from the darkness instance for this.
+* DTT: Darkness options panel could have list of all lightsources so they can be toggled on and off without having to find them in the element tree.
+* DTT: Points of interest should be excluded from the tree view. Probably want to refactor UI around element tree/list anyway
 * DTT: Clean up grid references before A0
 * DTT: Allow grid references to be entered for element x/y coordinates in ui
 * BUG DTT: "reset" button caused index out of bounds error in RemoteImageDisplay
@@ -71,19 +75,11 @@ PART * tilemapper element - tilemapper editor added and maps supported as groups
 * performance improvements in animation code - bounding boxes for elements
 DONE? * grouping - changing parent should modify children to maintain position - probably need consistent location property to implement this
 * BUG exception if image width or height is set to 0 - slightly fixed by returning the unscaled/rotated image
-* asynchronous loading of images
-* soft references for ImageMedia - at least for transformed images
-* ImageMedia could use a soft/weak/strong reference for transformed images
 * BUG: "Set Image" on token options panel doesn't always immediately repaint with the new image
-* Pre-guess the screen layout
-* Auto configure - set defaults according to OS screen layout
-* Threaded remote display communication
-* Recalibrate display - could be done using screen bounds element
 * BUG: tries to pop up remote browser on the screen with the corresponding index, not the absolute screen number
 * parsing display xml resets the node priorty - need to save the list model order
 * BUG: LineTemplate: setting image after rotation draws the un-transformed image
 * REF: Factor clear cells code into support class
-* Hidden elements in table display should clear ImageMedia transforms
 * Consider separate element for darkness cleared cells - should be parent-relative - or perhaps add to LightSource
 * Allow reconnect to remote - partly works but seems to cause exception on 3rd reconnect
 * Add colour to the overlay tokens. either indicator of health or settable

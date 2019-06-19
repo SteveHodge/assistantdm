@@ -3,6 +3,8 @@ package digital_table.elements;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 
+import digital_table.server.MeasurementLog;
+
 public class Group extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -63,6 +65,15 @@ public class Group extends MapElement {
 	public String toString() {
 		if (label == null || label.getValue().length() == 0) return "Group (" + getID() + ")";
 		return "Group (" + label + ")";
+	}
+
+	@Override
+	public String getIDString() {
+		return "Group" + (label == null || label.getValue().length() == 0 ? "" : " (" + label + ")");
+	}
+
+	public MeasurementLog getPaintTiming() {
+		return null;
 	}
 
 	@Override

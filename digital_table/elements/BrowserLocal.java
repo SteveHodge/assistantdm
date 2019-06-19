@@ -8,7 +8,6 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 
 import digital_table.controller.DisplayConfig;
-import digital_table.server.MeasurementLog;
 
 // TODO delay jfxPanel creation until the user sets a URL or makes the remote visible
 
@@ -26,9 +25,6 @@ public class BrowserLocal extends Browser {
 
 	@Override
 	public void paint(Graphics2D g) {
-		lastPaintTime = 0;
-		long startTime = System.nanoTime();
-
 		if (getVisibility() == Visibility.HIDDEN || canvas == null) return;
 		// show bounds of the browser on the map based on the screen
 		Composite c = g.getComposite();
@@ -47,16 +43,10 @@ public class BrowserLocal extends Browser {
 		g.setColor(Color.BLACK);
 		g.drawRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 		// TODO should show the title in the area
-
-		lastPaintTime = (System.nanoTime() - startTime) / 1000;
 	}
 
-	long lastPaintTime = 0;
-
 	@Override
-	public MeasurementLog getPaintTiming() {
-		MeasurementLog m = new MeasurementLog("BrowserLocal (" + title.getValue() + ")", id);
-		m.total = lastPaintTime;
-		return m;
+	public String getIDString() {
+		return "BrowserLocal (" + title.getValue() + ")";
 	}
 }

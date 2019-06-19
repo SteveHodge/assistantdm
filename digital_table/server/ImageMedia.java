@@ -663,7 +663,7 @@ public abstract class ImageMedia {
 			for (BufferedImage img : frames) {
 				if (img != null) {
 					MeasurementLog m = new MeasurementLog("Source frame " + i++, hashCode());
-					m.total = getMemoryUsage(img);
+					m.last = getMemoryUsage(img);
 					logs.add(m);
 				}
 			}
@@ -673,7 +673,7 @@ public abstract class ImageMedia {
 			for (BufferedImage img : transformed) {
 				if (img != null) {
 					MeasurementLog m = new MeasurementLog("Transformed frame " + i++, hashCode());
-					m.total = getMemoryUsage(img);
+					m.last = getMemoryUsage(img);
 					logs.add(m);
 				}
 			}
