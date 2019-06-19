@@ -24,7 +24,7 @@ class MonitorConfigFrame extends JFrame {
 	boolean openScreens = false;
 	int[] screenNums;
 
-	public MonitorConfigFrame(TableDisplay disp) {
+	public MonitorConfigFrame(TableDisplay disp, String layout) {
 		super("Select screens");
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -68,6 +68,9 @@ class MonitorConfigFrame extends JFrame {
 		screensPanel.setLayout(new GridLayout(3, 2));
 
 		// make the combo boxes
+		String[] defaultScreens = null;
+		if (layout != null && layout.length() > 0)
+			defaultScreens = layout.split(" ");
 		DisplayConfig.getScreens(display);
 		String[] options = new String[DisplayConfig.screens.size() + 1];
 		options[0] = "unassigned";
@@ -76,6 +79,8 @@ class MonitorConfigFrame extends JFrame {
 		}
 		for (int i = 0; i < NUM_SCREENS; i++) {
 			JComboBox<String> combo = new JComboBox<>(options);
+			if (defaultScreens != null && defaultScreens.length > i && !defaultScreens[i].equals("0"))
+				combo.setSelectedItem(defaultScreens[i]);
 			screenCombos.add(combo);
 			screensPanel.add(combo);
 		}

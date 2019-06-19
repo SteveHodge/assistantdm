@@ -26,6 +26,7 @@ public class DigitalTableController implements DigitalTableModule {
 	TableDisplay display;
 	ControllerFrame controller = null;
 	private String remote_address = "corto";
+	String screenLayout = "";
 
 	public DigitalTableController() {
 		boolean enabled = true;
@@ -35,6 +36,7 @@ public class DigitalTableController implements DigitalTableModule {
 		Element config = ModuleRegistry.getConfig(this);
 		if (config.hasAttribute("display_address")) remote_address = config.getAttribute("display_address");
 		if (config.hasAttribute("enable")) enabled = config.getAttribute("enable").equals("true");
+		if (config.hasAttribute("screens")) screenLayout = config.getAttribute("screens");
 //		System.out.println("DigitalTableControllerController config: ");
 //		System.out.println("  disaply_address = " + remote_address);
 //		System.out.println("  enabled = " + enabled);
@@ -55,7 +57,7 @@ public class DigitalTableController implements DigitalTableModule {
 			}
 		});
 
-		RemoteConnection.attemptConnection(remote_address, controller::setRemote);
+		RemoteConnection.attemptConnection(remote_address, controller::setRemote, screenLayout);
 	}
 
 	public void close() {

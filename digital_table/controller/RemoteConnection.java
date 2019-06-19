@@ -63,7 +63,7 @@ public class RemoteConnection {
 		new Thread(new Sender()).start();
 	}
 
-	static void attemptConnection(String server, Consumer<RemoteConnection> consumer) {
+	static void attemptConnection(String server, Consumer<RemoteConnection> consumer, String layout) {
 		TableDisplay remote = null;
 		try {
 			String name = "TableDisplay";
@@ -77,7 +77,7 @@ public class RemoteConnection {
 		if (remote != null) {
 			RemoteConnection rc = new RemoteConnection(remote);
 			Platform.setImplicitExit(false);
-			final MonitorConfigFrame f = new MonitorConfigFrame(remote);
+			final MonitorConfigFrame f = new MonitorConfigFrame(remote, layout);
 			f.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosed(WindowEvent e) {

@@ -54,8 +54,6 @@
 * 	layers for painting order
 * 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
 * DTT: tokens could show movement trail and measurement
-* Pre-guess the screen layout
-* Auto configure - set defaults according to OS screen layout
 * Recalibrate display - could be done using screen bounds element
 * DTT: darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.
 * DTT: Toggleable walls (workaround is to use separate walls element for each toggleable section)
