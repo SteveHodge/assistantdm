@@ -483,7 +483,10 @@ public class Character extends Creature {
 		// FIXME override checks for greater focus, greater specialization
 		for (int i = 0; i < feats.getSize(); i++) {
 			Feat f = feats.get(i);
-			if (f.getName().equals(name) && f.target.equals(attack.getDescription())) return true;
+			if (f.getName().equals(name) && f.target != null) {
+				if (f.target.equalsIgnoreCase(attack.getDescription())) return true;
+				if (chrAtk != null && chrAtk.item != null && f.target.equalsIgnoreCase(chrAtk.item.getName())) return true;
+			}
 		}
 		return false;
 	}
