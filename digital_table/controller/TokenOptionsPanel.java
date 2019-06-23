@@ -214,10 +214,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 
 		JButton resetButton = new JButton("Reset Movement");
 		resetButton.addActionListener(e -> {
-			moving = false;
-			doubleDiagonal = false;
-			distance = 0;
-			moveLabel.setText(String.format("Distance: %d", 0));
+			panelSelected();
 		});
 
 		setLayout(new GridBagLayout());
@@ -341,6 +338,14 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	JLabel moveLabel;
 	int distance = 0;
 	boolean doubleDiagonal = false;
+
+	@Override
+	void panelSelected() {
+		moving = false;
+		doubleDiagonal = false;
+		distance = 0;
+		moveLabel.setText(String.format("Distance: %d", 0));
+	}
 
 	class MoveTokenAction extends AbstractAction {
 		int x, y;

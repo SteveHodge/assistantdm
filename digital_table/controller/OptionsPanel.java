@@ -317,6 +317,12 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 
 	abstract Element getElement(Document doc);
 
+	// Called when the option panel becomes active (selected). The ControllerFrame takes care of revalidating and repainting the panel and also
+	// requests focus, but this can be overridden if anything further needs to be done
+	// XXX might be better to make the MapElement selected status a full-blown property that would then report it's selection status to the option panel
+	void panelSelected() {
+	}
+
 	abstract void parseDOM(Element e, OptionsPanel<?> parent);
 
 	// sets attributes for all properties of the local MapElement

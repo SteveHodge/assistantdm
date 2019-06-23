@@ -209,6 +209,7 @@ public class ControllerFrame extends JFrame {
 						options.revalidate();
 						options.repaint();
 						options.requestFocusInWindow();
+						options.panelSelected();
 					}
 				}
 			}
