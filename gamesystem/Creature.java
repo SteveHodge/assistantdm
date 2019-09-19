@@ -2,7 +2,6 @@ package gamesystem;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,15 +16,14 @@ import gamesystem.CharacterClass.ClassOption;
 import gamesystem.core.OverridableProperty;
 import gamesystem.core.Property;
 import gamesystem.core.PropertyCollection;
-import gamesystem.core.PropertyEvent;
-import gamesystem.core.PropertyListener;
 import gamesystem.core.SettableProperty;
+import gamesystem.core.SimplePropertyCollection;
 import gamesystem.core.SimpleValueProperty;
 import swing.ListModelWithToolTips;
 
 // TODO the initiative property should either be the base value or the total - pick one
 // TODO should probably convert these constants to enums
-public abstract class Creature implements StatisticsCollection, PropertyCollection {
+public abstract class Creature extends SimplePropertyCollection implements StatisticsCollection, PropertyCollection {
 	// properties
 	public final static String PROPERTY_NAME = "Name";	// not currently sent to listeners
 	public final static String PROPERTY_MAXHPS = "Hit Points";
@@ -106,9 +104,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 
 	protected Sanity sanity;
 
-	protected Map<String, Property<?>> properties = new HashMap<>();
-	protected Map<String, List<PropertyListener>> listeners = new HashMap<>();
-
 	@SuppressWarnings("serial")
 	public class BuffListModel<T> extends DefaultListModel<T> implements ListModelWithToolTips<T> {
 		@Override
@@ -156,81 +151,6 @@ public abstract class Creature implements StatisticsCollection, PropertyCollecti
 		return idMap.get(id);
 	}
 
-	//------------------------ PropertyCollection --------------------------
-	public void debugDumpStructure() {
-		List<String> keys = new ArrayList<>(properties.keySet());
-		Collections.sort(keys);
-		for (String s : keys) {
-			System.out.println(s);
-		}
-	}
-
-	@Override
-	public void addProperty(Property<?> property) {
-		properties.put(property.getName(), property);
-	}
-
-	// doesn't remove any listeners
-	@Override
-	public void removeProperty(Property<?> property) {
-		properties.remove(property);
-	}
-
-	@Override
-	public void fireEvent(PropertyEvent event) {
-		String propName = event.source.getName();
-		while (true) {
-			List<PropertyListener> list = listeners.get(propName);
-			if (list != null) {
-				for (PropertyListener l : list) {
-					l.propertyChanged(event);
-				}
-			}
-			if (propName.equals("")) break;
-			int idx = propName.lastIndexOf('.');
-			if (idx >= 0)
-				propName = propName.substring(0, idx);
-			else
-				propName = "";
-		}
-	}
-
-	@Override
-	public void addPropertyListener(String propName, PropertyListener l) {
-		// TODO argument checking: check l is not null
-		List<PropertyListener> list = listeners.get(propName);
-		if (list == null) {
-			list = new ArrayList<>();
-			listeners.put(propName, list);
-		}
-		list.add(l);
-	}
-
-	@Override
-	public void addPropertyListener(Property<?> property, PropertyListener l) {
-		addPropertyListener(property.getName(), l);
-	}
-
-	@Override
-	public void removePropertyListener(String propName, PropertyListener l) {
-		Property<?> property = getProperty(propName);
-		if (property == null) return;
-		List<PropertyListener> list = listeners.get(property);
-		if (list == null) return;
-		list.remove(l);
-	}
-
-	@Override
-	public void removePropertyListener(Property<?> property, PropertyListener l) {
-		List<PropertyListener> list = listeners.get(property);
-		if (list == null) return;
-		list.remove(l);
-	}
-
-	@Override
-	public Property<?> getProperty(String name) {
-		return properties.get(name);
-	}
 	//----------------------------------------------------------------------
 
 	public void setName(String n) {

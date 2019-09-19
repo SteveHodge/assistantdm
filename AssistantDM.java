@@ -65,6 +65,7 @@ import ui.PartyPanel;
 import ui.RestDialog;
 import ui.RollsPanel;
 import ui.SelectPartyDialog;
+import ui.CasterPanel;
 import ui.XPEntryDialog;
 import util.ModuleRegistry;
 import util.Updater;
@@ -224,6 +225,9 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 
 		panel = new PartyPanel(party);
 		tabbedPane.addTab("Party", null, panel, "Character Details");
+
+		panel = new CasterPanel();
+		tabbedPane.addTab("Spells", null, panel, "Spell Lists");
 
 		panel = new RollsPanel(party);
 		tabbedPane.addTab("Rolls", null, panel, "Skills and Saves");
