@@ -1,11 +1,7 @@
 package gamesystem;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import javax.swing.AbstractListModel;
 
 import gamesystem.core.AbstractProperty;
 import gamesystem.core.PropertyCollection;
@@ -57,10 +53,6 @@ public class CasterLevels extends AbstractProperty<Integer> {
 			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, casterLevel));
 		}
 
-		public SpellSlotListModel createSpellSlotListModel() {
-			return new SpellSlotListModel(this);
-		}
-
 		// returns the slots per spell level (cleric, druid, paladin, ranger, wizard) or the spells known per level (sorcerer, bard)
 		// TODO modify for ability score
 		public int[] getSpellsArray() {
@@ -92,7 +84,8 @@ public class CasterLevels extends AbstractProperty<Integer> {
 			default:
 				return null;
 			}
-			return array;
+
+			return array.clone();
 		}
 
 		public int getMaxSpellLevel() {
@@ -117,37 +110,6 @@ public class CasterLevels extends AbstractProperty<Integer> {
 	@Override
 	public Integer getValue() {
 		return 0;
-	}
-
-	@SuppressWarnings("serial")
-	public static class SpellSlotListModel extends AbstractListModel<Spell> {
-		CasterClass casterClass;
-		Map<Integer, List<Spell>> selected = new HashMap<>();
-
-		public SpellSlotListModel(CasterClass cc) {
-			casterClass = cc;
-			casterClass.addPropertyListener(e -> update());
-
-			update();
-		}
-
-		void update() {
-			// determine the slots per level
-
-		}
-
-		@Override
-		public Spell getElementAt(int arg0) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public int getSize() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-
 	}
 
 	// TODO move these to the class definitions
