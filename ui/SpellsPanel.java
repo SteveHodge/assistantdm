@@ -27,12 +27,11 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
 import gamesystem.CasterLevels.CasterClass;
-import gamesystem.CharacterClass;
 import gamesystem.Spell;
 
-// TODO button could be disabled when no selection has been made
+// TODO buttons could be disabled when no selection has been made
 // TODO could have level filter option to only show levels with available slots
-// TODO level filter should probably apply to both lists
+// TODO level filter should probably apply to both lists (does for scribe panel already)
 
 @SuppressWarnings("serial")
 public class SpellsPanel extends JPanel {
@@ -43,7 +42,7 @@ public class SpellsPanel extends JPanel {
 		this.casterClass = casterClass;
 	}
 
-	public int getLevel(Spell s) {
+	int getLevel(Spell s) {
 		if (spellLevel.containsKey(s))
 			return spellLevel.get(s);
 
@@ -76,11 +75,26 @@ public class SpellsPanel extends JPanel {
 		}
 	};
 
-	public class LevelFilterCombo extends JComboBox<String> {
-		SpellListModel spellsModel;
+	DefaultListCellRenderer spellListRenderer = new DefaultListCellRenderer() {
+		@Override
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+			Spell spell = (Spell) value;
+			int level = getLevel(spell);
+			return super.getListCellRendererComponent(list, level + " " + spell.name, index, isSelected, cellHasFocus);
+		}
+	};
+
+	class LevelFilterCombo extends JComboBox<String> {
+		SpellListModel spellsModel1;
+		SpellListModel spellsModel2;
 
 		LevelFilterCombo(SpellListModel model) {
-			spellsModel = model;
+			this(model, null);
+		}
+
+		LevelFilterCombo(SpellListModel model1, SpellListModel model2) {
+			spellsModel1 = model1;
+			spellsModel2 = model2;
 			casterClass.addPropertyListener((e) -> updateOptions());
 			addActionListener(e -> updateSpellList());
 			updateOptions();
@@ -96,7 +110,8 @@ public class SpellsPanel extends JPanel {
 				maxLevel = minLevel;
 			}
 
-			spellsModel.filter(minLevel, maxLevel);
+			spellsModel1.filter(minLevel, maxLevel);
+			if (spellsModel2 != null) spellsModel2.filter(minLevel, maxLevel);
 		}
 
 		void updateOptions() {
@@ -105,7 +120,7 @@ public class SpellsPanel extends JPanel {
 			String filter = (String) getSelectedItem();
 			removeAllItems();
 			addItem("All");
-			for (int i = spellsModel.getMinimumLevel(); i <= maxLevel; i++)
+			for (int i = spellsModel1.getMinimumLevel(); i <= maxLevel; i++)
 				addItem(Integer.toString(i));
 			if (filter != null)
 				setSelectedItem(filter);
@@ -114,26 +129,15 @@ public class SpellsPanel extends JPanel {
 		}
 	}
 
-	static public class ScribePanel extends SpellsPanel {
-		SpellListModel spellsModel;
+	static class ScribePanel extends SpellsPanel {
+		AllSpellsListModel spellsModel;
 		SpellbookModel spellbookModel;
 		LevelFilterCombo levelFilter;
-		int[] slotData;
-
-		DefaultListCellRenderer spellListRenderer = new DefaultListCellRenderer() {
-			@Override
-			public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-				Spell spell = (Spell) value;
-				int level = getLevel(spell);
-				return super.getListCellRendererComponent(list, level + " " + spell.name, index, isSelected, cellHasFocus);
-			}
-		};
 
 		public ScribePanel(CasterClass cc) {
 			super(cc);
 
-			slotData = cc.getSpellsArray();
-			spellsModel = new SpellsPanel.SpellListModel(casterClass.getCharacterClass());
+			spellsModel = new AllSpellsListModel();
 			spellbookModel = new SpellbookModel();
 
 			JList<Spell> spellList = new JList<>(spellsModel);
@@ -169,7 +173,7 @@ public class SpellsPanel extends JPanel {
 				}
 			});
 
-			levelFilter = new LevelFilterCombo(spellsModel);
+			levelFilter = new LevelFilterCombo(spellsModel, spellbookModel);
 
 			setLayout(new GridBagLayout());
 			GridBagConstraints c = new GridBagConstraints();
@@ -192,32 +196,102 @@ public class SpellsPanel extends JPanel {
 		}
 	}
 
-	static public class PreparePanel extends SpellsPanel {
+	static class PreparePanel extends SpellsPanel {
+		SpellListModel spellListModel;
+		SpellSlotListModel spellSlotModel;
+		LevelFilterCombo levelFilter;
+
+		public PreparePanel(CasterClass cc, String[] domains) {
+			this(cc, null, domains);
+		}
+
 		public PreparePanel(CasterClass cc) {
+			this(cc, null, null);
+		}
+
+		public PreparePanel(CasterClass cc, SpellListModel sourceModel) {
+			this(cc, sourceModel, null);
+		}
+
+		// shouldn't have both sourceModel and domains
+		private PreparePanel(CasterClass cc, SpellListModel sourceModel, String[] domains) {
 			super(cc);
+
+			if (sourceModel != null) {
+				spellListModel = sourceModel;
+				spellSlotModel = new SpellSlotListModel(spellListModel, true);
+			} else if (domains != null && domains.length > 0) {
+				spellListModel = new AllSpellsListModel(domains);
+				spellSlotModel = new SpellSlotListModel(spellListModel, false, true);
+			} else {
+				spellListModel = new AllSpellsListModel();
+				spellSlotModel = new SpellSlotListModel(spellListModel, true);
+			}
+
+			JList<Spell> spellList = new JList<>(spellListModel);
+			spellList.setCellRenderer(spellListRenderer);
+			spellList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+			spellList.setLayoutOrientation(JList.VERTICAL);
+			spellList.setVisibleRowCount(-1);
+			JScrollPane listScroller = new JScrollPane(spellList);
+			listScroller.setPreferredSize(new Dimension(250, 400));
+
+			JList<SpellSlot> knownList = new JList<>(spellSlotModel);
+			knownList.setCellRenderer(spellSlotRenderer);
+			knownList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+			knownList.setLayoutOrientation(JList.VERTICAL);
+			knownList.setVisibleRowCount(-1);
+			JScrollPane bookScroller = new JScrollPane(knownList);
+			bookScroller.setPreferredSize(new Dimension(250, 400));
+
+			JButton prepareButton = new JButton("Prepare");
+			prepareButton.addActionListener(e -> {
+				List<Spell> selected = spellList.getSelectedValuesList();
+				for (Spell s : selected) {
+					spellSlotModel.addSpell(s, true);
+				}
+			});
+			JButton clearButton = new JButton("Clear");
+			clearButton.addActionListener(e -> {
+				List<SpellSlot> selected = knownList.getSelectedValuesList();
+				for (SpellSlot s : selected) {
+					spellSlotModel.removeSpell(s);
+				}
+				knownList.clearSelection();
+			});
+
+			levelFilter = new LevelFilterCombo(spellListModel);
+
+			setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.insets = new Insets(4, 2, 4, 2);
+			c.anchor = GridBagConstraints.WEST;
+			c.gridx = 0;
+			add(new JLabel("Available Spells"), c);
+			add(listScroller, c);
+			JPanel panel = new JPanel();
+			panel.add(prepareButton);
+			panel.add(new JLabel("Show level: "));
+			panel.add(levelFilter);
+			add(panel, c);
+
+			c.gridx = 1;
+			c.gridheight = 1;
+			add(new JLabel("Known"), c);
+			add(bookScroller, c);
+			add(clearButton, c);
 		}
 	}
 
-	static public class LearnPanel extends SpellsPanel {
-		SpellListModel spellsModel;
+	static class LearnPanel extends SpellsPanel {
+		AllSpellsListModel spellsModel;
 		SpellSlotListModel spellSlotModel;
 		LevelFilterCombo levelFilter;
-		int[] slotData;
-
-		DefaultListCellRenderer spellListRenderer = new DefaultListCellRenderer() {
-			@Override
-			public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-				Spell spell = (Spell) value;
-				int level = getLevel(spell);
-				return super.getListCellRendererComponent(list, level + " " + spell.name, index, isSelected, cellHasFocus);
-			}
-		};
 
 		public LearnPanel(CasterClass cc) {
 			super(cc);
 
-			slotData = cc.getSpellsArray();
-			spellsModel = new SpellsPanel.SpellListModel(casterClass.getCharacterClass());
+			spellsModel = new AllSpellsListModel();
 			spellSlotModel = new SpellSlotListModel(spellsModel);
 
 			JList<Spell> spellList = new JList<>(spellsModel);
@@ -278,17 +352,54 @@ public class SpellsPanel extends JPanel {
 		}
 	}
 
-	public class SpellListModel extends AbstractListModel<Spell> {
-		List<Spell> spellList;
+	abstract class SpellListModel extends AbstractListModel<Spell> {
 		List<Spell> filtered = new ArrayList<>();			// the list of currently visible spells
+		int filterMinLevel = 0;				// current filter setting
+		int filterMaxLevel = 9;
+
+		abstract void addSpell(Spell s);
+
+		abstract void removeSpell(Spell s);
+
+		abstract void updateFiltered();		// add all spells that are visible to the filtered list
+
+		abstract int getMinimumLevel();
+
+		void filter(int min, int max) {
+			if (filterMinLevel == min && filterMaxLevel == max) return;
+			filterMinLevel = min;
+			filterMaxLevel = max;
+			int oldSize = filtered.size();
+			filtered.clear();
+			updateFiltered();
+			int newSize = filtered.size();
+			if (newSize > oldSize)
+				fireIntervalAdded(this, oldSize, newSize - 1);
+			if (newSize < oldSize)
+				fireIntervalRemoved(this, newSize, oldSize - 1);
+			fireContentsChanged(this, 0, newSize - 1);
+		}
+
+		@Override
+		public Spell getElementAt(int i) {
+			return filtered.get(i);
+		}
+
+		@Override
+		public int getSize() {
+			return filtered.size();
+		}
+	}
+
+	// Provides a ListModel backed by a Collection of Spells (defaults to the set of known spells)
+	class AllSpellsListModel extends SpellListModel {
+		List<Spell> spellList;
 		Set<Spell> removed = new HashSet<>();				// spells that have been removed from the list
 		int minimumLevel = 999;			// minimum level spell in spellList
-		int filterMinLevel;				// current filter setting
-		int filterMaxLevel;
 
 		// create a ListModel of the spells from the supplied collection that are available to the specified class
-		public SpellListModel(CharacterClass cls, Collection<Spell> spellSet) {
-			String classAbbr = Spell.classMap.get(cls);
+		public AllSpellsListModel(Collection<Spell> spellSet) {
+			String classAbbr = Spell.classMap.get(casterClass.getCharacterClass());
 			spellList = spellSet.stream()
 					.filter(s -> {
 						if (classAbbr == null) return true;
@@ -313,29 +424,47 @@ public class SpellsPanel extends JPanel {
 			filtered.addAll(spellList);
 		}
 
-		public SpellListModel(CharacterClass cls) {
-			this(cls, Spell.spells);
+		public AllSpellsListModel() {
+			this(Spell.spells);
 		}
 
-		public void filter(int min, int max) {
-			filterMinLevel = min;
-			filterMaxLevel = max;
-			int oldSize = filtered.size();
-			filtered.clear();
+		public AllSpellsListModel(String[] domains) {
+			spellList = Spell.spells.stream()
+					.filter(s -> {
+						if (s.level == null || s.level.length() == 0) return false;
+						String[] bits = s.level.split("\\s*,\\s*");
+						for (int i = 0; i < bits.length; i++) {
+							String classStr = bits[i].replaceAll("\\r\\n|\\r|\\n", " ").trim();
+							for (String domain : domains) {
+								if (classStr.contains(domain)) {
+									String levelStr = classStr.substring(classStr.indexOf(" ") + 1);	// XXX this is a bit fragile
+									int l = Integer.parseInt(levelStr);
+									if (l < minimumLevel) minimumLevel = l;
+									if (l > filterMaxLevel) filterMaxLevel = l;
+									spellLevel.put(s, l);
+									return true;
+								}
+							}
+						}
+						return false;
+					})
+					.sorted(spellOrderComparator)
+					.collect(Collectors.toList());
+			filterMinLevel = minimumLevel;
+			filtered.addAll(spellList);
+		}
+
+		@Override
+		void updateFiltered() {
 			for (Spell s : spellList) {
 				int level = spellLevel.get(s);
 				if (level >= filterMinLevel && level <= filterMaxLevel && !removed.contains(s))
 					filtered.add(s);
 			}
-			int newSize = filtered.size();
-			if (newSize > oldSize)
-				fireIntervalAdded(this, oldSize, newSize - 1);
-			if (newSize < oldSize)
-				fireIntervalRemoved(this, newSize, oldSize - 1);
-			fireContentsChanged(this, 0, newSize - 1);
 		}
 
-		public void removeSpell(Spell s) {
+		@Override
+		void removeSpell(Spell s) {
 			int index = filtered.indexOf(s);
 			filtered.remove(s);
 			removed.add(s);
@@ -343,7 +472,8 @@ public class SpellsPanel extends JPanel {
 				fireIntervalRemoved(this, index, index);
 		}
 
-		public void addSpell(Spell s) {
+		@Override
+		void addSpell(Spell s) {
 			boolean refresh = false;
 			if (!spellList.contains(s)) {
 				spellList.add(s);
@@ -356,48 +486,52 @@ public class SpellsPanel extends JPanel {
 		}
 
 		// returns the minimum level of spells in this class (should typically be 0 or 1)
-		public int getMinimumLevel() {
+		@Override
+		int getMinimumLevel() {
 			return minimumLevel;
-		}
-
-		@Override
-		public Spell getElementAt(int i) {
-			return filtered.get(i);
-		}
-
-		@Override
-		public int getSize() {
-			return filtered.size();
 		}
 	}
 
-	class SpellbookModel extends AbstractListModel<Spell> {
+	class SpellbookModel extends SpellListModel {
 		List<Spell> spells = new ArrayList<>();
 
-		public void addSpell(Spell s) {
+		@Override
+		void addSpell(Spell s) {
 			if (spells.contains(s)) return;
 			spells.add(s);
 			Collections.sort(spells, spellOrderComparator);
-			int idx = spells.indexOf(s);
-			fireIntervalAdded(this, idx, idx);
+
+			int level = spellLevel.get(s);
+			if (level >= filterMinLevel && level <= filterMaxLevel) {
+				filtered.add(s);
+				Collections.sort(filtered, spellOrderComparator);
+				int idx = filtered.indexOf(s);
+				fireIntervalAdded(this, idx, idx);
+			}
 		}
 
-		public void removeSpell(Spell s) {
-			int idx = spells.indexOf(s);
+		@Override
+		void removeSpell(Spell s) {
+			spells.remove(s);
+			int idx = filtered.indexOf(s);
 			if (idx != -1) {
-				spells.remove(idx);
+				filtered.remove(idx);
 				fireIntervalRemoved(this, idx, idx);
 			}
 		}
 
 		@Override
-		public Spell getElementAt(int index) {
-			return spells.get(index);
+		void updateFiltered() {
+			for (Spell s : spells) {
+				int level = spellLevel.get(s);
+				if (level >= filterMinLevel && level <= filterMaxLevel)
+					filtered.add(s);
+			}
 		}
 
 		@Override
-		public int getSize() {
-			return spells.size();
+		int getMinimumLevel() {
+			return 0;
 		}
 	}
 
@@ -437,15 +571,28 @@ public class SpellsPanel extends JPanel {
 	class SpellSlotListModel extends AbstractListModel<SpellSlot> {
 		Map<Integer, List<SpellSlot>> slots = new HashMap<>();		// list of slots at each level
 		SpellListModel sourceList;
+		boolean addBonus = false;
+		boolean singleSlot = false;
 
 		// sourceList is the model that provided spells for this list. if a change in the casterClass causes slots to be deleted then any spells in those
 		// slots will be added to the sourceList, if it is not null
-		public SpellSlotListModel(SpellListModel sourceList) {
+		// if singleSlot is true then only creates a single slot for each available spell level (used for domain spells)
+		public SpellSlotListModel(SpellListModel sourceList, boolean addBonus, boolean singleSlot) {
 			this.sourceList = sourceList;
+			this.addBonus = addBonus;
+			this.singleSlot = singleSlot;
 
 			casterClass.addPropertyListener(e -> update());
 
 			update();
+		}
+
+		public SpellSlotListModel(SpellListModel sourceList, boolean addBonus) {
+			this(sourceList, false, false);
+		}
+
+		public SpellSlotListModel(SpellListModel sourceList) {
+			this(sourceList, false);
 		}
 
 		public Spell removeSpell(SpellSlot s) {
@@ -476,7 +623,7 @@ public class SpellsPanel extends JPanel {
 				if (l != null) index += l.size();
 			}
 			int limit = spellLevel;
-			if (allowHigherSlot) limit = 0;
+			if (allowHigherSlot) limit = 9;
 			for (int i = spellLevel; i <= limit; i++) {
 				List<SpellSlot> l = slots.get(i);
 				if (l == null) continue;
@@ -494,9 +641,11 @@ public class SpellsPanel extends JPanel {
 		}
 
 		void update() {
-			int[] slotCounts = casterClass.getSpellsArray();
+			int[] slotCounts = casterClass.getSpellsArray(addBonus);
 			Map<Integer, List<SpellSlot>> newSlots = new HashMap<>();
 			for (int i = 0; i < slotCounts.length; i++) {
+				if (singleSlot && slotCounts[i] > 0) slotCounts[i] = 1;
+				if (singleSlot && i == 0) slotCounts[i] = 0;	// disable level 0 for domain spells // TODO bit of a hack; find a better way
 				List<SpellSlot> list = new ArrayList<>();
 				List<SpellSlot> oldList = slots.get(i);
 				int firstNew = 0;

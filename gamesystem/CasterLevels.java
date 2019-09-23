@@ -1,6 +1,7 @@
 package gamesystem;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import gamesystem.core.AbstractProperty;
@@ -55,7 +56,7 @@ public class CasterLevels extends AbstractProperty<Integer> {
 
 		// returns the slots per spell level (cleric, druid, paladin, ranger, wizard) or the spells known per level (sorcerer, bard)
 		// TODO modify for ability score
-		public int[] getSpellsArray() {
+		public int[] getSpellsArray(boolean addBonus) {
 			int[] array;
 
 			if (casterLevel == 0) return new int[0];
@@ -85,15 +86,26 @@ public class CasterLevels extends AbstractProperty<Integer> {
 				return null;
 			}
 
-			return array.clone();
+			// copy data to new array, restricting to levels that the ability score allows
+			int maxLevel = ability - 10;
+			if (maxLevel < 0) return new int[0];
+			int[] spells = Arrays.copyOf(array, Math.min(array.length, maxLevel + 1));
+
+			if (addBonus) {
+				for (int i = 1; i < array.length; i++) {
+					int bonus = (int) Math.floor((ability - 2 - i * 2) / 8);
+					if (bonus > 0) {
+						spells[i] += bonus;
+					}
+				}
+			}
+
+			return spells;
 		}
 
 		public int getMaxSpellLevel() {
 			if (casterLevel < 1 || ability < 10) return -1;
-			int spellLevel = getSpellsArray().length - 1;
-			if (ability - 10 < spellLevel)
-				return ability - 10;
-			return spellLevel;
+			return getSpellsArray(false).length - 1;
 		}
 
 	}

@@ -29,6 +29,9 @@ import gamesystem.CharacterClass;
 import gamesystem.core.SimplePropertyCollection;
 
 // TODO fix bug where the editing an existing row's class, the combo box gets defaulted to the previously row's value instead of the current row's value
+// TODO load/save caster config to file (and/or website)
+// TODO load/save spell selections file (and/or website)
+// TODO create multiple casters
 
 @SuppressWarnings("serial")
 public class CasterPanel extends JPanel {
@@ -64,7 +67,7 @@ public class CasterPanel extends JPanel {
 						SpellsPanel.PreparePanel p = new SpellsPanel.PreparePanel(c);
 						tabs.add(p);
 						tabbedPane.addTab("Cleric", null, p, "Cleric Spells Prepared");
-						p = new SpellsPanel.PreparePanel(c);
+						p = new SpellsPanel.PreparePanel(c, new String[] { "Good", "Law" });
 						tabs.add(p);
 						tabbedPane.addTab("Domain", null, p, "Cleric Domain Spells Prepared");
 					} else if (c.getCharacterClass() == CharacterClass.DRUID) {
@@ -87,7 +90,7 @@ public class CasterPanel extends JPanel {
 						SpellsPanel.ScribePanel p = new SpellsPanel.ScribePanel(c);
 						tabs.add(p);
 						tabbedPane.addTab("Spellbook", null, p, "Wizard Spellbook");
-						SpellsPanel.PreparePanel pp = new SpellsPanel.PreparePanel(c);
+						SpellsPanel.PreparePanel pp = new SpellsPanel.PreparePanel(c, p.spellbookModel);
 						tabs.add(pp);
 						tabbedPane.addTab("Wizard", null, pp, "Wizard Spells Prepared");
 					}
