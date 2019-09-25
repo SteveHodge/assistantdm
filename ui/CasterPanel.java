@@ -32,6 +32,7 @@ import gamesystem.core.SimplePropertyCollection;
 // TODO load/save caster config to file (and/or website)
 // TODO load/save spell selections file (and/or website)
 // TODO create multiple casters
+// TODO ui to select feats for caster
 
 @SuppressWarnings("serial")
 public class CasterPanel extends JPanel {
