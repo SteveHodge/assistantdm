@@ -35,15 +35,19 @@ import gamesystem.Spell;
 
 // TODO could have level filter option to only show levels with available slots
 // TODO level filter should probably apply to both lists (does for scribe panel already)
-// TODO If a single spell is selected then show spell details
 
 @SuppressWarnings("serial")
 public class SpellsPanel extends JPanel {
 	CasterClass casterClass;
 	Map<Spell, Integer> spellLevel = new HashMap<>();	// used to store the level of the spell for the specified class
+	JLabel spellDetailsLabel;
+	JScrollPane spellDetailScroller;
 
 	private SpellsPanel(CasterClass casterClass) {
 		this.casterClass = casterClass;
+		spellDetailsLabel = new JLabel();
+		spellDetailScroller = new JScrollPane(spellDetailsLabel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		spellDetailScroller.setPreferredSize(new Dimension(450, 400));
 	}
 
 	JScrollPane setupSpellList(JList<?> list, ListCellRenderer<Object> renderer) {
@@ -64,7 +68,14 @@ public class SpellsPanel extends JPanel {
 				rightList.clearSelection();
 				leftButton.setEnabled(true);
 				if (selections.length == 1) {
-					// TODO show spell details
+					Object value = leftList.getSelectedValue();
+					if (value instanceof Spell) {
+						spellDetailsLabel.setText(((Spell) value).getHTML());
+					} else if (value instanceof SpellSlot) {
+						Spell s = ((SpellSlot) value).spell;
+						if (s != null)
+							spellDetailsLabel.setText(s.getHTML());
+					}
 				}
 			} else {
 				leftButton.setEnabled(false);
@@ -78,7 +89,14 @@ public class SpellsPanel extends JPanel {
 				leftList.clearSelection();
 				rightButton.setEnabled(true);
 				if (selections.length == 1) {
-					// TODO show spell details
+					Object value = rightList.getSelectedValue();
+					if (value instanceof Spell) {
+						spellDetailsLabel.setText(((Spell) value).getHTML());
+					} else if (value instanceof SpellSlot) {
+						Spell s = ((SpellSlot) value).spell;
+						if (s != null)
+							spellDetailsLabel.setText(s.getHTML());
+					}
 				}
 			} else {
 				rightButton.setEnabled(false);
@@ -121,8 +139,7 @@ public class SpellsPanel extends JPanel {
 
 	SpellListCellRenderer spellListRenderer = new SpellListCellRenderer();
 
-	class SpellListCellRenderer extends DefaultListCellRenderer
-	{
+	class SpellListCellRenderer extends DefaultListCellRenderer {
 		int levelAdjustment = 0;
 		String namePrefix = "";
 
@@ -240,6 +257,10 @@ public class SpellsPanel extends JPanel {
 			add(new JLabel("In Spellbook"), c);
 			add(bookScroller, c);
 			add(eraseButton, c);
+
+			c.gridx = 2;
+			c.gridheight = 3;
+			add(spellDetailScroller, c);
 		}
 	}
 
@@ -456,6 +477,10 @@ public class SpellsPanel extends JPanel {
 			add(rightScroller, c);
 			c.gridheight = 1;
 			add(clearButton, c);
+
+			c.gridx = 3;
+			c.gridheight = 15;
+			add(spellDetailScroller, c);
 		}
 	}
 
@@ -517,6 +542,10 @@ public class SpellsPanel extends JPanel {
 			add(new JLabel("Known"), c);
 			add(knownScroller, c);
 			add(unlearnButton, c);
+
+			c.gridx = 2;
+			c.gridheight = 3;
+			add(spellDetailScroller, c);
 		}
 	}
 
