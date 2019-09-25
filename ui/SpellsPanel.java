@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,19 +21,21 @@ import java.util.stream.Collectors;
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 
 import gamesystem.CasterLevels.CasterClass;
 import gamesystem.Spell;
 
-// TODO buttons could be disabled when no selection has been made
 // TODO could have level filter option to only show levels with available slots
 // TODO level filter should probably apply to both lists (does for scribe panel already)
+// TODO If a single spell is selected then show spell details
 
 @SuppressWarnings("serial")
 public class SpellsPanel extends JPanel {
@@ -40,6 +44,46 @@ public class SpellsPanel extends JPanel {
 
 	private SpellsPanel(CasterClass casterClass) {
 		this.casterClass = casterClass;
+	}
+
+	JScrollPane setupSpellList(JList<?> list, ListCellRenderer<Object> renderer) {
+		list.setCellRenderer(renderer);
+		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		list.setLayoutOrientation(JList.VERTICAL);
+		list.setVisibleRowCount(-1);
+		JScrollPane leftScroller = new JScrollPane(list);
+		leftScroller.setPreferredSize(new Dimension(250, 400));
+		return leftScroller;
+	}
+
+	void setupListSelection(JList<?> leftList, JButton leftButton, JList<?> rightList, JButton rightButton) {
+		leftButton.setEnabled(leftList.getSelectedIndices().length > 0);
+		leftList.addListSelectionListener(e -> {
+			int[] selections = leftList.getSelectedIndices();
+			if (selections.length > 0) {
+				rightList.clearSelection();
+				leftButton.setEnabled(true);
+				if (selections.length == 1) {
+					// TODO show spell details
+				}
+			} else {
+				leftButton.setEnabled(false);
+			}
+		});
+
+		rightButton.setEnabled(rightList.getSelectedIndices().length > 0);
+		rightList.addListSelectionListener(e -> {
+			int[] selections = rightList.getSelectedIndices();
+			if (selections.length > 0) {
+				leftList.clearSelection();
+				rightButton.setEnabled(true);
+				if (selections.length == 1) {
+					// TODO show spell details
+				}
+			} else {
+				rightButton.setEnabled(false);
+			}
+		});
 	}
 
 	int getLevel(Spell s) {
@@ -75,14 +119,25 @@ public class SpellsPanel extends JPanel {
 		}
 	};
 
-	DefaultListCellRenderer spellListRenderer = new DefaultListCellRenderer() {
+	SpellListCellRenderer spellListRenderer = new SpellListCellRenderer();
+
+	class SpellListCellRenderer extends DefaultListCellRenderer
+	{
+		int levelAdjustment = 0;
+		String namePrefix = "";
+
 		@Override
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 			Spell spell = (Spell) value;
-			int level = getLevel(spell);
-			return super.getListCellRendererComponent(list, level + " " + spell.name, index, isSelected, cellHasFocus);
+			int level = getLevel(spell) + levelAdjustment;
+			return super.getListCellRendererComponent(list, level + " " + namePrefix + spell.name, index, isSelected, cellHasFocus);
 		}
-	};
+
+		void setMetaFeats(int levelAdjust, String prefix) {
+			levelAdjustment = levelAdjust;
+			namePrefix = prefix;
+		}
+	}
 
 	class LevelFilterCombo extends JComboBox<String> {
 		SpellListModel spellsModel1;
@@ -141,20 +196,10 @@ public class SpellsPanel extends JPanel {
 			spellbookModel = new SpellbookModel();
 
 			JList<Spell> spellList = new JList<>(spellsModel);
-			spellList.setCellRenderer(spellListRenderer);
-			spellList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			spellList.setLayoutOrientation(JList.VERTICAL);
-			spellList.setVisibleRowCount(-1);
-			JScrollPane listScroller = new JScrollPane(spellList);
-			listScroller.setPreferredSize(new Dimension(250, 400));
+			JScrollPane listScroller = setupSpellList(spellList, spellListRenderer);
 
 			JList<Spell> spellbook = new JList<>(spellbookModel);
-			spellbook.setCellRenderer(spellListRenderer);
-			spellbook.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			spellbook.setLayoutOrientation(JList.VERTICAL);
-			spellbook.setVisibleRowCount(-1);
-			JScrollPane bookScroller = new JScrollPane(spellbook);
-			bookScroller.setPreferredSize(new Dimension(250, 400));
+			JScrollPane bookScroller = setupSpellList(spellbook, spellListRenderer);
 
 			JButton scribeButton = new JButton("Scribe");
 			scribeButton.addActionListener(e -> {
@@ -172,6 +217,8 @@ public class SpellsPanel extends JPanel {
 					spellsModel.addSpell(s);
 				}
 			});
+
+			setupListSelection(spellList, scribeButton, spellbook, eraseButton);
 
 			levelFilter = new LevelFilterCombo(spellsModel, spellbookModel);
 
@@ -196,10 +243,75 @@ public class SpellsPanel extends JPanel {
 		}
 	}
 
+	static interface MetaFeatControl {
+		public int getLevelAdjustment();
+
+		public String getAdjective();
+	}
+
+	static class MetaFeatCheck extends JCheckBox implements MetaFeatControl {
+		int levelAdjustment;
+		String adjective;
+
+		MetaFeatCheck(String name, int level, String adjective, ActionListener updateListener) {
+			super(name);
+			levelAdjustment = level;
+			this.adjective = adjective;
+			addActionListener(updateListener);
+		}
+
+		@Override
+		public int getLevelAdjustment() {
+			return isSelected() ? levelAdjustment : 0;
+		}
+
+		@Override
+		public String getAdjective() {
+			return isSelected() ? adjective : "";
+		}
+	}
+
+	static class MetaFeatCombo extends JComboBox<Integer> implements MetaFeatControl {
+		String adjective;
+
+		MetaFeatCombo(String adjective, ActionListener updateListener) {
+			this.adjective = adjective;
+			addActionListener(updateListener);
+		}
+
+		@Override
+		public int getLevelAdjustment() {
+			Integer value = (Integer) getSelectedItem();
+			return value == null ? 0 : value;
+		}
+
+		@Override
+		public String getAdjective() {
+			Integer value = (Integer) getSelectedItem();
+			return value != null && value.intValue() > 0 ? adjective : "";
+		}
+
+	}
+
 	static class PreparePanel extends SpellsPanel {
 		SpellListModel spellListModel;
 		SpellSlotListModel spellSlotModel;
 		LevelFilterCombo levelFilter;
+		SpellListCellRenderer spellRenderer = new SpellListCellRenderer();
+
+		MetaFeatCheck empowerCheck;
+		MetaFeatCheck enlargeCheck;
+		MetaFeatCheck extendCheck;
+		MetaFeatCheck maximizeCheck;
+		MetaFeatCheck quickenCheck;
+		MetaFeatCheck silentCheck;
+		MetaFeatCheck stillCheck;
+		MetaFeatCheck widenCheck;
+		JLabel heightenLabel = new JLabel("Heighten:");			// as selection
+		MetaFeatCombo heightenCombo;
+		int maxSpellLevel = 0;
+		int levelAdjustment = 0;
+		String spellPrefix = "";
 
 		public PreparePanel(CasterClass cc, String[] domains) {
 			this(cc, null, domains);
@@ -229,56 +341,120 @@ public class SpellsPanel extends JPanel {
 			}
 
 			JList<Spell> spellList = new JList<>(spellListModel);
-			spellList.setCellRenderer(spellListRenderer);
-			spellList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			spellList.setLayoutOrientation(JList.VERTICAL);
-			spellList.setVisibleRowCount(-1);
-			JScrollPane listScroller = new JScrollPane(spellList);
-			listScroller.setPreferredSize(new Dimension(250, 400));
+			JScrollPane leftScroller = setupSpellList(spellList, spellRenderer);
 
-			JList<SpellSlot> knownList = new JList<>(spellSlotModel);
-			knownList.setCellRenderer(spellSlotRenderer);
-			knownList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			knownList.setLayoutOrientation(JList.VERTICAL);
-			knownList.setVisibleRowCount(-1);
-			JScrollPane bookScroller = new JScrollPane(knownList);
-			bookScroller.setPreferredSize(new Dimension(250, 400));
+			JList<SpellSlot> preparedList = new JList<>(spellSlotModel);
+			JScrollPane rightScroller = setupSpellList(preparedList, spellSlotRenderer);
 
 			JButton prepareButton = new JButton("Prepare");
 			prepareButton.addActionListener(e -> {
 				List<Spell> selected = spellList.getSelectedValuesList();
 				for (Spell s : selected) {
-					spellSlotModel.addSpell(s, true);
+					spellSlotModel.addSpell(s, levelAdjustment, spellPrefix);
 				}
 			});
 			JButton clearButton = new JButton("Clear");
 			clearButton.addActionListener(e -> {
-				List<SpellSlot> selected = knownList.getSelectedValuesList();
+				List<SpellSlot> selected = preparedList.getSelectedValuesList();
 				for (SpellSlot s : selected) {
 					spellSlotModel.removeSpell(s);
 				}
-				knownList.clearSelection();
+				preparedList.clearSelection();
 			});
 
+			setupListSelection(spellList, prepareButton, preparedList, clearButton);
+
 			levelFilter = new LevelFilterCombo(spellListModel);
+
+			List<MetaFeatControl> metaControls = new ArrayList<>();
+			ActionListener metaUpdate = new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					int levelAdjust = 0;
+					String prefix = "";
+					for (MetaFeatControl c : metaControls) {
+						levelAdjust += c.getLevelAdjustment();
+						String pre = c.getAdjective();
+						if (pre.length() > 0)
+							prefix += pre + " ";
+					}
+					if (!prefix.equals(spellPrefix) || levelAdjustment != levelAdjust) {
+						spellPrefix = prefix;
+						levelAdjustment = levelAdjust;
+						spellRenderer.setMetaFeats(levelAdjustment, spellPrefix);
+						spellListModel.setLevelAdjustment(levelAdjustment);
+					}
+				}
+			};
+
+			empowerCheck = new MetaFeatCheck("Empower", 2, "Empowered", metaUpdate);
+			enlargeCheck = new MetaFeatCheck("Enlarge", 1, "Enlarged", metaUpdate);
+			extendCheck = new MetaFeatCheck("Extend", 1, "Extended", metaUpdate);
+			maximizeCheck = new MetaFeatCheck("Maximize", 3, "Maximized", metaUpdate);
+			quickenCheck = new MetaFeatCheck("Quicken", 4, "Quickened", metaUpdate);
+			silentCheck = new MetaFeatCheck("Silent", 1, "Silent", metaUpdate);
+			stillCheck = new MetaFeatCheck("Still", 1, "Stilled", metaUpdate);
+			widenCheck = new MetaFeatCheck("Widen", 3, "Widened", metaUpdate);
+
+			heightenCombo = new MetaFeatCombo("Heightened", metaUpdate);
+			Collections.addAll(metaControls, new MetaFeatControl[] { empowerCheck, enlargeCheck, extendCheck, maximizeCheck, quickenCheck, silentCheck, stillCheck, widenCheck, heightenCombo });
+
+			heightenCombo.setVisible(false);
+			heightenLabel.setVisible(false);
+			casterClass.addPropertyListener(e -> {
+				int maxLevel = casterClass.getSpellsArray(false).length - 1;
+				if (maxLevel != maxSpellLevel) {
+					maxSpellLevel = maxLevel;
+					if (maxLevel >= 1) {
+						heightenCombo.removeAllItems();
+						for (int i = 0; i <= maxLevel; i++) {
+							heightenCombo.addItem(i);
+						}
+						heightenCombo.setSelectedItem(0);
+						heightenLabel.setVisible(true);
+						heightenCombo.setVisible(true);
+					} else {
+						heightenLabel.setVisible(false);
+						heightenCombo.setVisible(false);
+					}
+				}
+			});
 
 			setLayout(new GridBagLayout());
 			GridBagConstraints c = new GridBagConstraints();
 			c.insets = new Insets(4, 2, 4, 2);
 			c.anchor = GridBagConstraints.WEST;
 			c.gridx = 0;
-			add(new JLabel("Available Spells"), c);
-			add(listScroller, c);
+			c.gridheight = 1;
+			add(new JLabel("Show level:"), c);
+			add(levelFilter, c);
 			JPanel panel = new JPanel();
-			panel.add(prepareButton);
-			panel.add(new JLabel("Show level: "));
-			panel.add(levelFilter);
+			panel.setMinimumSize(new Dimension(10, 30));
 			add(panel, c);
+			add(new JLabel("Metamagic Feats:"), c);
+			add(empowerCheck, c);
+			add(enlargeCheck, c);
+			add(extendCheck, c);
+			add(maximizeCheck, c);
+			add(quickenCheck, c);
+			add(silentCheck, c);
+			add(stillCheck, c);
+			add(widenCheck, c);
+			add(heightenLabel, c);
+			add(heightenCombo, c);
 
 			c.gridx = 1;
+			add(new JLabel("Available Spells"), c);
+			c.gridheight = 13;
+			add(leftScroller, c);
 			c.gridheight = 1;
+			add(prepareButton, c);
+
+			c.gridx = 2;
 			add(new JLabel("Known"), c);
-			add(bookScroller, c);
+			c.gridheight = 13;
+			add(rightScroller, c);
+			c.gridheight = 1;
 			add(clearButton, c);
 		}
 	}
@@ -295,20 +471,10 @@ public class SpellsPanel extends JPanel {
 			spellSlotModel = new SpellSlotListModel(spellsModel);
 
 			JList<Spell> spellList = new JList<>(spellsModel);
-			spellList.setCellRenderer(spellListRenderer);
-			spellList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			spellList.setLayoutOrientation(JList.VERTICAL);
-			spellList.setVisibleRowCount(-1);
-			JScrollPane listScroller = new JScrollPane(spellList);
-			listScroller.setPreferredSize(new Dimension(250, 400));
+			JScrollPane listScroller = setupSpellList(spellList, spellListRenderer);
 
 			JList<SpellSlot> knownList = new JList<>(spellSlotModel);
-			knownList.setCellRenderer(spellSlotRenderer);
-			knownList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			knownList.setLayoutOrientation(JList.VERTICAL);
-			knownList.setVisibleRowCount(-1);
-			JScrollPane bookScroller = new JScrollPane(knownList);
-			bookScroller.setPreferredSize(new Dimension(250, 400));
+			JScrollPane knownScroller = setupSpellList(knownList, spellSlotRenderer);
 
 			JButton learnButton = new JButton("Learn");
 			learnButton.addActionListener(e -> {
@@ -329,6 +495,8 @@ public class SpellsPanel extends JPanel {
 				knownList.clearSelection();
 			});
 
+			setupListSelection(spellList, learnButton, knownList, unlearnButton);
+
 			levelFilter = new LevelFilterCombo(spellsModel);
 
 			setLayout(new GridBagLayout());
@@ -347,7 +515,7 @@ public class SpellsPanel extends JPanel {
 			c.gridx = 1;
 			c.gridheight = 1;
 			add(new JLabel("Known"), c);
-			add(bookScroller, c);
+			add(knownScroller, c);
 			add(unlearnButton, c);
 		}
 	}
@@ -356,6 +524,7 @@ public class SpellsPanel extends JPanel {
 		List<Spell> filtered = new ArrayList<>();			// the list of currently visible spells
 		int filterMinLevel = 0;				// current filter setting
 		int filterMaxLevel = 9;
+		int levelAdjustment = 0;	// added to the level of each spell (for metamagic feats)
 
 		abstract void addSpell(Spell s);
 
@@ -380,6 +549,19 @@ public class SpellsPanel extends JPanel {
 			fireContentsChanged(this, 0, newSize - 1);
 		}
 
+		void setLevelAdjustment(int adj) {
+			levelAdjustment = adj;
+			int oldSize = filtered.size();
+			filtered.clear();
+			updateFiltered();
+			int newSize = filtered.size();
+			if (newSize > oldSize)
+				fireIntervalAdded(this, oldSize, newSize - 1);
+			if (newSize < oldSize)
+				fireIntervalRemoved(this, newSize, oldSize - 1);
+			fireContentsChanged(this, 0, newSize - 1);
+		}
+
 		@Override
 		public Spell getElementAt(int i) {
 			return filtered.get(i);
@@ -391,7 +573,7 @@ public class SpellsPanel extends JPanel {
 		}
 	}
 
-	// Provides a ListModel backed by a Collection of Spells (defaults to the set of known spells)
+// Provides a ListModel backed by a Collection of Spells (defaults to the set of known spells)
 	class AllSpellsListModel extends SpellListModel {
 		List<Spell> spellList;
 		Set<Spell> removed = new HashSet<>();				// spells that have been removed from the list
@@ -457,7 +639,7 @@ public class SpellsPanel extends JPanel {
 		@Override
 		void updateFiltered() {
 			for (Spell s : spellList) {
-				int level = spellLevel.get(s);
+				int level = spellLevel.get(s) + levelAdjustment;
 				if (level >= filterMinLevel && level <= filterMaxLevel && !removed.contains(s))
 					filtered.add(s);
 			}
@@ -523,7 +705,7 @@ public class SpellsPanel extends JPanel {
 		@Override
 		void updateFiltered() {
 			for (Spell s : spells) {
-				int level = spellLevel.get(s);
+				int level = spellLevel.get(s) + levelAdjustment;
 				if (level >= filterMinLevel && level <= filterMaxLevel)
 					filtered.add(s);
 			}
@@ -537,8 +719,9 @@ public class SpellsPanel extends JPanel {
 
 	class SpellSlot {
 		int slotLevel = -1;		// level of the slot
-		Spell spell;		// may be null for an empty slot
-		int spellLevel = -1;		// level of the spell for the current class
+		Spell spell;			// may be null for an empty slot
+		int spellLevel = -1;	// level of the spell for the current class
+		String prefix = "";		// metamagic prefix
 
 	}
 
@@ -560,6 +743,8 @@ public class SpellsPanel extends JPanel {
 			SpellSlot slot = (SpellSlot) value;
 			String text = Integer.toString(slot.slotLevel);
 			if (slot.spell != null) {
+				if (slot.prefix != null && slot.prefix.length() > 0)
+					text += " " + slot.prefix;
 				text += " " + slot.spell.name;
 				if (slot.spellLevel != slot.slotLevel)
 					text += " (" + slot.spellLevel + ")";
@@ -613,8 +798,16 @@ public class SpellsPanel extends JPanel {
 			return spell;
 		}
 
+		public void addSpell(Spell s, int levelAdj, String prefix) {
+			addSpell(s, true, levelAdj, prefix);
+		}
+
 		public void addSpell(Spell s, boolean allowHigherSlot) {
-			int spellLevel = getLevel(s);
+			addSpell(s, allowHigherSlot, 0, "");
+		}
+
+		void addSpell(Spell s, boolean allowHigherSlot, int levelAdj, String prefix) {
+			int spellLevel = getLevel(s) + levelAdj;
 			if (spellLevel == -1) return;
 			// put the spell in the first empty slot it can fit in
 			int index = 0;	// needed to fire change event
@@ -622,7 +815,7 @@ public class SpellsPanel extends JPanel {
 				List<SpellSlot> l = slots.get(i);
 				if (l != null) index += l.size();
 			}
-			int limit = spellLevel;
+			int limit = spellLevel;			// highest slot we can use
 			if (allowHigherSlot) limit = 9;
 			for (int i = spellLevel; i <= limit; i++) {
 				List<SpellSlot> l = slots.get(i);
@@ -631,6 +824,8 @@ public class SpellsPanel extends JPanel {
 					if (slot.spell == null) {
 						slot.spell = s;
 						slot.spellLevel = spellLevel;
+						if (slot.prefix != null)
+							slot.prefix = prefix;
 						Collections.sort(l, spellSlotComparator);
 						fireContentsChanged(this, index, index + l.size() - 1);
 						return;
