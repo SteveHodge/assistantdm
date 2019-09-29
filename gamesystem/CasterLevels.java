@@ -110,13 +110,35 @@ public class CasterLevels extends AbstractProperty<Integer> {
 
 	}
 
-	public List<CasterClass> classes;
-	public List<String> feats;	// empower spell, enlarge spell, extend spell, maximize spell, quicken spell, silent spell, still spell, widen spell, heighten spell
+	private List<CasterClass> classes;
+//	private List<String> feats;	// empower spell, enlarge spell, extend spell, maximize spell, quicken spell, silent spell, still spell, widen spell, heighten spell
 
 	public CasterLevels(PropertyCollection parent) {
 		super("caster_levels", parent);
 		classes = new ArrayList<CasterClass>();
-		feats = new ArrayList<String>();
+//		feats = new ArrayList<String>();
+	}
+
+	public int getCasterClassCount() {
+		return classes.size();
+	}
+
+	public CasterClass getCasterClass(int index) {
+		return classes.get(index);
+	}
+
+	public void addCasterClass(CasterClass cc) {
+		classes.add(cc);
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
+	}
+
+	public void clearCasterClasses() {
+		classes.clear();
+		fireEvent(createEvent(PropertyEvent.VALUE_CHANGED));
+	}
+
+	public Iterable<CasterClass> casterClassesIterable() {
+		return classes;
 	}
 
 	@Override
@@ -171,6 +193,7 @@ public class CasterLevels extends AbstractProperty<Integer> {
 			{ 0, 3, 3, 3, 2 },
 			{ 0, 3, 3, 3, 3 }
 	};
+
 	public static final int[][] sorcererPerDay = {
 			{ 5, 3 },
 			{ 6, 4 },

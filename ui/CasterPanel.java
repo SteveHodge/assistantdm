@@ -3,6 +3,10 @@ package ui;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,16 +14,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
@@ -28,11 +40,11 @@ import gamesystem.CasterLevels.CasterClass;
 import gamesystem.CharacterClass;
 import gamesystem.core.SimplePropertyCollection;
 
-// TODO fix bug where the editing an existing row's class, the combo box gets defaulted to the previously row's value instead of the current row's value
-// TODO load/save caster config to file (and/or website)
+// TODO save caster config to file (and/or website)
 // TODO load/save spell selections file (and/or website)
-// TODO create multiple casters
+// TODO add list of multiple casters
 // TODO ui to select feats for caster
+// TODO ui to select domains for cleric
 
 @SuppressWarnings("serial")
 public class CasterPanel extends JPanel {
@@ -49,7 +61,7 @@ public class CasterPanel extends JPanel {
 		classesTableModel.addTableModelListener((e)->{
 			// check tab config matches class levels
 			Set<CharacterClass> currentClasses = new HashSet<>();
-			for (CasterClass c : casterLevels.classes) {
+			for (CasterClass c : casterLevels.casterClassesIterable()) {
 				currentClasses.add(c.getCharacterClass());
 				List<SpellsPanel> tabs = classTabs.get(c.getCharacterClass());
 				if (tabs != null && tabs.size() > 0) {
@@ -118,6 +130,12 @@ public class CasterPanel extends JPanel {
 		scroller.setPreferredSize(new Dimension(400, 100));
 		scroller.setBorder(BorderFactory.createTitledBorder("Caster Levels"));
 
+		JButton exportButton = new JButton("Export");
+		exportButton.addActionListener(e -> exportCaster());
+
+		JButton importButton = new JButton("Import");
+		importButton.addActionListener(e -> importCaster());
+
 		tabbedPane = new JTabbedPane();
 
 		setLayout(new GridBagLayout());
@@ -125,16 +143,94 @@ public class CasterPanel extends JPanel {
 		c.gridx = 0;
 		c.gridy = 0;
 		c.fill = GridBagConstraints.NONE;
-		c.weightx = 0;
+		c.weightx = 1;
 		c.weighty = 0;
+		c.anchor = GridBagConstraints.EAST;
 		add(scroller, c);
+
+		c.gridx = 1;
+		c.weightx = 1;
+		c.anchor = GridBagConstraints.WEST;
+		c.insets = new Insets(8, 4, 8, 4);
+		JPanel buttons = new JPanel();
+		buttons.add(exportButton);
+		buttons.add(importButton);
+		add(buttons, c);
 
 		c.gridx = 0;
 		c.gridy = 1;
+		c.gridwidth = 2;
 		c.fill = GridBagConstraints.BOTH;
 		c.weightx = 1;
 		c.weighty = 1;
 		add(tabbedPane, c);
+	}
+
+	void exportCaster() {
+		System.out.println("Export of caster:");
+		List<String> classes = new ArrayList<>();
+		for (int i = 0; i < classesTableModel.getRowCount(); i++) {
+			CasterClass c = classesTableModel.getCasterClass(i);
+			if (c == null || c.getCharacterClass() == null || c.getCasterLevel() == 0) continue;
+			String clsStr = "\t{\n";
+			clsStr += "\t\t\"class\": \"" + c.getCharacterClass() + "\",\n";
+			clsStr += "\t\t\"level\": " + c.getCasterLevel() + ",\n";
+			clsStr += "\t\t\"ability\": " + c.getAbilityScore() + "\n";
+			clsStr += "\t}";
+			classes.add(clsStr);
+		}
+		String output = "[\n" + String.join(",\n", classes) + "\n]\n";
+		System.out.println(output);
+	}
+
+	File casterFile = new File("\\\\armitage\\website\\assistantdm\\characters");
+
+	void importCaster() {
+		JFileChooser fc = new JFileChooser();
+		fc.addChoosableFileFilter(new FileNameExtensionFilter("Character Files", "character"));
+		fc.setCurrentDirectory(casterFile);
+		int returnVal = fc.showOpenDialog(this);
+		if (returnVal != JFileChooser.APPROVE_OPTION) return;
+
+		casterFile = fc.getSelectedFile();
+		System.out.println("Import caster from " + casterFile.getAbsolutePath());
+
+		FileInputStream fis;
+		try {
+			fis = new FileInputStream(casterFile);
+//			BufferedReader rd = new BufferedReader(new InputStreamReader(fis));
+//			String line;
+//			StringBuffer response = new StringBuffer();
+//			while ((line = rd.readLine()) != null) {
+//				response.append(line);
+//				response.append("\r");
+//			}
+//			rd.close();
+//			System.out.println(response);
+
+			JsonReader reader = Json.createReader(fis);
+			JsonArray jArray = reader.readArray();
+
+			// empty the existing classes and reset the class combo
+			casterLevels.clearCasterClasses();
+			classesComboModel.updateOptions();
+
+			for (JsonValue jValue : jArray) {
+				if (jValue.getValueType() != JsonValue.ValueType.OBJECT) {
+					System.out.println("Unexpected json value (should be object): " + jValue);
+					return;
+				}
+				JsonObject ccJson = (JsonObject) jValue;
+				CharacterClass cls = CharacterClass.getCharacterClass(ccJson.getString("class"));
+				CasterClass casterClass = casterLevels.new CasterClass(cls);
+				casterClass.setCasterLevel(ccJson.getInt("level"));
+				casterClass.setAbilityScore(ccJson.getInt("ability"));
+				casterLevels.addCasterClass(casterClass);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	class CasterClassModel extends AbstractListModel<CharacterClass> implements ComboBoxModel<CharacterClass> {
@@ -189,6 +285,14 @@ public class CasterPanel extends JPanel {
 	class CasterLevelsModel extends AbstractTableModel {
 		static final public int MAX_ROWS = 7;
 
+		CasterLevelsModel() {
+			casterLevels.addPropertyListener(e -> {
+				// TODO should fire more specific events - can at least tell if it's an update from a specific row as that'll have a CasterClass as the source
+				//System.out.println("Update event from casterLevels: source = " + e.source);
+				fireTableDataChanged();
+			});
+		}
+
 		@Override
 		public int getColumnCount() {
 			return 3;
@@ -196,14 +300,21 @@ public class CasterPanel extends JPanel {
 
 		@Override
 		public int getRowCount() {
-			if (casterLevels.classes.size() >= MAX_ROWS) return MAX_ROWS;	// table is full
-			return casterLevels.classes.size() + 1;
+			if (casterLevels.getCasterClassCount() >= MAX_ROWS) return MAX_ROWS;	// table is full
+			return casterLevels.getCasterClassCount() + 1;
+		}
+
+		CasterClass getCasterClass(int row) {
+			if (row < casterLevels.getCasterClassCount()) {
+				return casterLevels.getCasterClass(row);
+			}
+			return null;
 		}
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			if (row < casterLevels.classes.size()) {
-				CasterClass casterClass = casterLevels.classes.get(row);
+			if (row < casterLevels.getCasterClassCount()) {
+				CasterClass casterClass = casterLevels.getCasterClass(row);
 				if (col == 0)
 					return casterClass.getCharacterClass();
 				else if (col == 1)
@@ -237,8 +348,8 @@ public class CasterPanel extends JPanel {
 		@Override
 		public void setValueAt(Object value, int row, int col) {
 			CasterClass casterClass;
-			if (row < casterLevels.classes.size()) {
-				casterClass = casterLevels.classes.get(row);
+			if (row < casterLevels.getCasterClassCount()) {
+				casterClass = casterLevels.getCasterClass(row);
 				if (col == 1) {
 					casterClass.setCasterLevel((Integer) value);
 				} else if (col == 2) {
@@ -250,16 +361,16 @@ public class CasterPanel extends JPanel {
 				if (col != 0) return;	// shouldn't happen - only class is editable for new rows
 				if (value == null) return;	// ignore new row with no class
 				casterClass = casterLevels.new CasterClass((CharacterClass) value);
-				casterLevels.classes.add(casterClass);
+				casterLevels.addCasterClass(casterClass);
 				classesComboModel.updateOptions();
-				if (casterLevels.classes.size() < MAX_ROWS)
+				if (casterLevels.getCasterClassCount() < MAX_ROWS)
 					fireTableRowsInserted(row + 1, row + 1);	// signal the table there is a new blank row, if one is needed
 			}
 		}
 
 		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			if (rowIndex < casterLevels.classes.size())
+			if (rowIndex < casterLevels.getCasterClassCount())
 				return columnIndex != 0;	// class not editable for existing rows
 			return columnIndex == 0;	// only class is editable for blank row
 		}
