@@ -32,7 +32,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 
-//TODO perhaps reposition view when minRow/minCol changes to prevent auto-scrolling
+//TODO should reposition view when minRow/minCol changes to prevent the placed tiles (apparently) moving
 //TODO consider going back to using component for the tiles
 
 /*
@@ -52,6 +52,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	int gridSize = 16;	// size of grid to snap to
 	int minCol = 0, maxCol = 9, minRow = 0, maxRow = 9;
 	int gridSnap = 1;	// tiles are aligned to multiples of this number of cells
+	int minBorder = 6;
 
 	ArrayList<PlacedTile> tiles = new ArrayList<PlacedTile>();
 	PlacedTile selected = null;
@@ -221,6 +222,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	}
 
 	public void setGridSize(int gridSize) {
+//		System.out.println("Setting gridSize to " + gridSize);
 		this.gridSize = gridSize;
 		// reset cached imges
 		for (PlacedTile t : tiles) {
@@ -228,7 +230,8 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 				t.image = null;
 			}
 		}
-		repaint();
+		setPreferredSize(new Dimension((maxCol - minCol + 1) * gridSize, (maxRow - minRow + 1) * gridSize));
+		revalidate();
 	}
 
 	public void reset() {
@@ -290,7 +293,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 
 	@Override
 	public void setSize(Dimension newSize) {
-		//System.out.println("setSize("+newSize+")");
+//		System.out.println("setSize(" + newSize + ")");
 		int newWidth = (int)Math.ceil(newSize.getWidth() / gridSize);
 		int newHeight = (int)Math.ceil(newSize.getHeight() / gridSize);
 		if (newWidth > (maxCol-minCol+1)) {
@@ -303,7 +306,7 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 		}
 		super.setSize(newSize);
 		setPreferredSize(new Dimension((maxCol-minCol+1)*gridSize, (maxRow-minRow+1)*gridSize));
-		//System.out.println("done setSize("+newSize+")");
+//		System.out.println("done setSize(" + newSize + ")");
 	}
 
 	public void deleteSelected() {
@@ -315,26 +318,27 @@ public class MapPanel extends JPanel implements Scrollable, DragTarget {
 	}
 
 	public void addTileGrid(Tile t, int x, int y, int o) {
+		//System.out.println("Placing tile " + t + " at " + x + ", " + y);
 		PlacedTile tile = new PlacedTile(t, x, y, o);
 		tiles.add(tile);
 		modified = true;
 
 		// check if resizing is necessary
 		boolean resize = false;
-		if (x < minCol) {
-			minCol = x;
+		if (x - minBorder < minCol) {
+			minCol = x - minBorder;
 			resize = true;
 		}
-		if (y < minRow) {
-			minRow = y;
+		if (y - minBorder < minRow) {
+			minRow = y - minBorder;
 			resize = true;
 		}
-		if (x+t.getWidth(o)-1 > maxCol) {
-			maxCol = x+t.getWidth(o)-1;
+		if (x + t.getWidth(o) - 1 + minBorder > maxCol) {
+			maxCol = x + t.getWidth(o) - 1 + minBorder;
 			resize = true;
 		}
-		if (y+t.getHeight(o)-1 > maxRow) {
-			maxRow = y+t.getHeight(o)-1;
+		if (y + t.getHeight(o) - 1 + minBorder > maxRow) {
+			maxRow = y + t.getHeight(o) - 1 + minBorder;
 			resize = true;
 		}
 		if (resize) {

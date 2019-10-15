@@ -64,6 +64,7 @@ import org.w3c.dom.NodeList;
 
 import tilemapper.MapPanel.TileSelectionEvent;
 import tilemapper.MapPanel.TileSelectionListener;
+import tilemapper.RadioFilterPanel.RadioFilters;
 
 /*
  * TODO
@@ -86,6 +87,7 @@ public class TileMapper extends JPanel {
 
 	MapPanel mapPanel;
 	TilePalette tilePanel;
+	RadioFilters tilesFilter;
 	File file = null;
 	JFrame frame;
 	JSplitPane splitPane;
@@ -99,6 +101,7 @@ public class TileMapper extends JPanel {
 
 		File tileDir = new File("media/Tiles");
 		System.out.println(tileDir.getAbsolutePath());
+		tilesFilter = new RadioFilterPanel.RadioFilters();	// needs to be created before the tiles are loaded
 		TileManager.scanDirectory(tileDir);
 		//TileManager.readXMLConfig("tiles.xml");
 
@@ -130,7 +133,7 @@ public class TileMapper extends JPanel {
 				}
 			}
 		};
-		tilePanel = new TilePalette(dragger);
+		tilePanel = new TilePalette(dragger, tilesFilter);
 		mapPanel = new MapPanel(dragger);
 
 		Action newAction = new MapperAction("New", new ImageIcon("tilemapper/Icons/New.png"), "New map", KeyEvent.VK_N) {
@@ -222,7 +225,7 @@ public class TileMapper extends JPanel {
 				//mapPanel.debug();
 				JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(TileMapper.this), "Styles");
 //				dialog.add(TileManager.getStylesPanel());
-				dialog.add(TileManager.getSetsPanel());
+//				dialog.add(TileManager.getSetsPanel());
 				dialog.pack();
 				dialog.setVisible(true);
 			}
@@ -298,12 +301,15 @@ public class TileMapper extends JPanel {
 		GridBagConstraints c = new GridBagConstraints();
 		c.anchor = GridBagConstraints.WEST;
 		c.gridx = 0;
-		JPanel p = TileManager.getStylesPanel();
+
+		RadioFilterPanel p = tilesFilter.styles;
+		p.layoutPanel();
 		filterPanel.add(p, c);
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0f;
 		c.weightx = 1.0f;
-		p = TileManager.getSetsPanel();
+		p = tilesFilter.sets;
+		p.layoutPanel();
 		JScrollPane setsScroll = new JScrollPane(p, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		filterPanel.add(setsScroll, c);
 		add(filterPanel, BorderLayout.WEST);

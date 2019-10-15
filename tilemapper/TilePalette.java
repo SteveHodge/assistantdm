@@ -27,9 +27,11 @@ public class TilePalette extends JPanel implements MouseListener, Scrollable {
 	JPanel mainPalette;
 	int cols = 5;
 	Map<Tile,DraggableTile> tileCache = new HashMap<Tile,DraggableTile>();
+	TilesFilter filter;
 
-	public TilePalette(ComponentDragger dragger) {
-		TileManager.addPropertyChangeListener(e -> {
+	public TilePalette(ComponentDragger dragger, TilesFilter filter) {
+		this.filter = filter;
+		filter.addPropertyChangeListener(e -> {
 			tilesChanged();
 		});
 
@@ -58,7 +60,7 @@ public class TilePalette extends JPanel implements MouseListener, Scrollable {
 
 	private void tilesChanged() {
 		mainPalette.removeAll();
-		for (Tile t : TileManager.getTiles()) {
+		for (Tile t : filter.getTiles()) {
 			DraggableTile tile = tileCache.get(t);
 			if (tile == null) {
 				tile = new DraggableTile(t, gridSize);
