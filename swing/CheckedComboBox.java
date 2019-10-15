@@ -9,8 +9,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.accessibility.Accessible;
@@ -71,6 +73,17 @@ public class CheckedComboBox<E> extends JComboBox<E> {
 			all = all && selectionModel.isSelectedIndex(i);
 		}
 		return all;
+	}
+
+	// Always returns a set, which may be empty
+	public Set<E> getSelectedItems() {
+		HashSet<E> selected = new HashSet<>();
+		for (int i = 0; i < dataModel.getSize(); i++) {
+			if (selectionModel.isSelectedIndex(i)) {
+				selected.add(dataModel.getElementAt(i));
+			}
+		}
+		return selected;
 	}
 
 	// XXX not sure updateUI is the right place for this stuff

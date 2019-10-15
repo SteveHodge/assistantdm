@@ -64,7 +64,6 @@ import org.w3c.dom.NodeList;
 
 import tilemapper.MapPanel.TileSelectionEvent;
 import tilemapper.MapPanel.TileSelectionListener;
-import tilemapper.RadioFilterPanel.RadioFilters;
 
 /*
  * TODO
@@ -87,7 +86,9 @@ public class TileMapper extends JPanel {
 
 	MapPanel mapPanel;
 	TilePalette tilePanel;
-	RadioFilters tilesFilter;
+//	RadioFilters tilesFilter;
+	DropdownTilesFilter newTilesFilter;
+
 	File file = null;
 	JFrame frame;
 	JSplitPane splitPane;
@@ -101,7 +102,8 @@ public class TileMapper extends JPanel {
 
 		File tileDir = new File("media/Tiles");
 		System.out.println(tileDir.getAbsolutePath());
-		tilesFilter = new RadioFilterPanel.RadioFilters();	// needs to be created before the tiles are loaded
+//		tilesFilter = new RadioFilterPanel.RadioFilters();	// needs to be created before the tiles are loaded
+		newTilesFilter = new DropdownTilesFilter();		// needs to be created before the tiles are loaded
 		TileManager.scanDirectory(tileDir);
 		//TileManager.readXMLConfig("tiles.xml");
 
@@ -133,7 +135,7 @@ public class TileMapper extends JPanel {
 				}
 			}
 		};
-		tilePanel = new TilePalette(dragger, tilesFilter);
+		tilePanel = new TilePalette(dragger, newTilesFilter);
 		mapPanel = new MapPanel(dragger);
 
 		Action newAction = new MapperAction("New", new ImageIcon("tilemapper/Icons/New.png"), "New map", KeyEvent.VK_N) {
@@ -296,24 +298,6 @@ public class TileMapper extends JPanel {
 		toolBar.add(new JButton(debugAction));
 		add(toolBar, BorderLayout.NORTH);
 
-		JPanel filterPanel = new JPanel();
-		filterPanel.setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.anchor = GridBagConstraints.WEST;
-		c.gridx = 0;
-
-		RadioFilterPanel p = tilesFilter.styles;
-		p.layoutPanel();
-		filterPanel.add(p, c);
-		c.fill = GridBagConstraints.BOTH;
-		c.weighty = 1.0f;
-		c.weightx = 1.0f;
-		p = tilesFilter.sets;
-		p.layoutPanel();
-		JScrollPane setsScroll = new JScrollPane(p, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		filterPanel.add(setsScroll, c);
-		add(filterPanel, BorderLayout.WEST);
-
 		JScrollPane mapScroll = new JScrollPane(mapPanel,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		mapScroll.getViewport().addChangeListener(new ChangeListener() {
 			@Override
@@ -329,7 +313,12 @@ public class TileMapper extends JPanel {
 			}
 		});
 
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tilePanel, mapScroll);
+		JPanel p = new JPanel();
+		p.setLayout(new BorderLayout());
+		p.add(newTilesFilter.getFilterPanel(), BorderLayout.NORTH);
+		p.add(tilePanel, BorderLayout.CENTER);
+
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, p, mapScroll);
 		splitPane.setDividerLocation(460);
 		splitPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 		setPreferredSize(new Dimension(1800, 1000));
