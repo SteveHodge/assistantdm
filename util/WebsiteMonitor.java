@@ -29,18 +29,31 @@ public class WebsiteMonitor implements Module {
 			String data = e.readData();
 
 			if (data != null && data.length() > 0 && !data.equals("x")) {
-				System.out.println("got message: '" + data + "'");
+//				System.out.println("got message: '" + data + "'");
 
 				JSONObject update = new JSONObject(data);
 
 				String name = update.getString("name");
 				Character character = party.get(name);
+				String type = update.getString("type");
 				if (character == null) {
 					System.out.println("Unknown character: " + name);
-				} else if (update.has("moveto")) {
+
+				} else if (type.equals("move") && update.has("moveto")) {
 					String newLoc = update.getString("moveto");
 					System.out.println("Moving " + character.getName() + " to " + newLoc);
 					dtt.moveToken(character, newLoc);
+
+				} else if (type.equals("roll")) {
+					String text = name + " rolled " + update.getString("dice-type") + " for " + update.getString("title") + " " + update.getString("suffix") + ": "
+							+ update.getJSONArray("rolls").join(" + ");
+					int mod = update.getInt("mod");
+					if (mod != 0) {
+						text += (mod > 0 ? " + " : " ") + mod;
+					}
+					text += " = " + update.getInt("total");
+					System.out.println(text);
+
 				} else {
 					System.out.println("got message: '" + data + "'");
 				}

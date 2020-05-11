@@ -1405,10 +1405,14 @@ function buildConfig(character, spells) {
 			setupMetamagic(tab, feats);
 
 			tab.availablespells = [];
-			for (j = 1; j <= tab.maxslot; j++) {
-				for (k = 0; k < character[i].domains.length; k++) {
-					tab.availablespells.push({ level: j, name: domainSpells[character[i].domains[k]][j-1] });
+			if (character[i].domains) {
+				for (j = 1; j <= tab.maxslot; j++) {
+					for (k = 0; k < character[i].domains.length; k++) {
+						tab.availablespells.push({ level: j, name: domainSpells[character[i].domains[k]][j-1] });
+					}
 				}
+			} else {
+				console.log("Warning: no domains specified for cleric");
 			}
 
 			tab.slots = [];

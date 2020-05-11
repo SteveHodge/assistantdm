@@ -21,7 +21,7 @@
 			<td colspan="13" class="weapon-subtitle">DAMAGE</td>
 			<td colspan="9" class="weapon-subtitle">CRITICAL</td>
 		</tr>
-		<tr style="height:3.84em;" title="{$weapon/@name}" info="{$weapon/@info}&lt;p&gt;{$weapon/@damage_info}" onclick="showInfo(this);" roll="{$weapon/@attacks}/{$weapon/@damage}">
+		<tr style="height:3.84em;" title="{$weapon/@name}" info="{$weapon/@info}&lt;p&gt;{$weapon/@damage_info}" onclick="showInfo(this);" roll="{$weapon/@attacks}/{$weapon/@damage}" roll-type="weapon">
 			<td colspan="17" class="weapon-name">
 				<xsl:value-of select="$weapon/@name"/>
 			</td>
@@ -108,7 +108,7 @@
 	<xsl:param name="abbr"/>
 	<xsl:param name="fullname"/>
 
-	<tr style="height:2.56em;" title="{$ability/@type}" info="{$ability/@info}" onclick="showInfo(this);" roll="{$ability/@modifier}">
+	<tr style="height:2.56em;" title="{$ability/@type}" info="{$ability/@info}" onclick="showInfo(this);" roll="{$ability/@modifier}" roll-type="ability">
 		<td class="title"><xsl:value-of select="$abbr"/></td>
 		<td/>
 		<td rowspan="2" class="data-value-important"><xsl:value-of select="$ability/@total"/></td>
@@ -203,7 +203,7 @@
 	<xsl:param name="save-name"/>
 	<xsl:param name="ability-name"/>
 
-	<tr style="height:2.56em;" title="{$save/@type}" info="{$save/@info}" onclick="showInfo(this);" roll="{$save/@total}">
+	<tr style="height:2.56em;" title="{$save/@type}" info="{$save/@info}" onclick="showInfo(this);" roll="{$save/@total}" roll-type="save">
 		<td colspan="11" class="title"><xsl:value-of select="$save-name"/></td>
 		<td/>
 		<td colspan="4" rowspan="2" class="data-value-important" title="{$save/@type}">
@@ -228,7 +228,7 @@
 			<xsl:value-of select="$save/@misc"/>
 		</td>
 	</tr>
-	<tr title="{$save/@type}" info="{$save/@info}" onclick="showInfo(this);" roll="{$save/@total}">
+	<tr title="{$save/@type}" info="{$save/@info}" onclick="showInfo(this);" roll="{$save/@total}" roll-type="save">
 		<td colspan="11" class="subtitle">(<xsl:value-of select="$ability-name"/>)</td>
 	</tr>
 </xsl:template>
@@ -284,7 +284,7 @@
 <xsl:template name="skill">
 	<xsl:param name="skill"/>
 
-	<tr style="height:2.56em;" title="{$skill/@type}" info="{$skill/@info}" onclick="showInfo(this);" roll="{$skill/@total}">
+	<tr style="height:2.56em;" title="{$skill/@type}" info="{$skill/@info}" onclick="showInfo(this);" roll="{$skill/@total}" roll-type="skill">
 		<td colspan="2" class="symbol">
 			<xsl:choose>
 				<xsl:when test="$skill/@cross">&#x2612;</xsl:when>
@@ -702,7 +702,7 @@
 		<tr>
 			<td colspan="26"/>
 		</tr>
-		<tr style="height:2.56em;" title="Initiative" info="{Initiative/@info}" onclick="showInfo(this);" roll="{Initiative/@total}">
+		<tr style="height:2.56em;" title="Initiative" info="{Initiative/@info}" onclick="showInfo(this);" roll="{Initiative/@total}" roll-type="initiative">
 			<td colspan="11" class="title">INITIATIVE</td>
 			<td/>
 			<td colspan="4" rowspan="2" class="data-value-important">
@@ -873,7 +873,7 @@
 			<td/>
 			<td colspan="4" class="label">TEMP. MODIFIER</td>
 		</tr>
-		<tr style="height:2.56em;" title="Melee Attack" info="{Attacks/Attack[@type='Melee']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Melee']/@attacks}">
+		<tr style="height:2.56em;" title="Melee Attack" info="{Attacks/Attack[@type='Melee']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Melee']/@attacks}" roll-type="raw_attack">
 			<td colspan="11" class="title">MELEE</td>
 			<td/>
 			<td colspan="12" rowspan="2" class="data-value-important">
@@ -909,7 +909,7 @@
 				<xsl:value-of select="Attacks/Attack[@type='Melee']/@temp-modifier"/>
 			</td>
 		</tr>
-		<tr title="Melee Attack" info="{Attacks/Attack[@type='Melee']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Melee']/@attacks}">
+		<tr title="Melee Attack" info="{Attacks/Attack[@type='Melee']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Melee']/@attacks}" roll-type="raw_attack">
 			<td colspan="11" class="subtitle">ATTACK BONUS</td>
 		</tr>
 		<tr>
@@ -920,7 +920,7 @@
 			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 			<td/><td/><td/><td/>
 		</tr>
-		<tr title="Ranged Attack" info="{Attacks/Attack[@type='Ranged']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Ranged']/@attacks}">
+		<tr title="Ranged Attack" info="{Attacks/Attack[@type='Ranged']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Ranged']/@attacks}" roll-type="raw_attack">
 			<td colspan="11" class="title">RANGED</td>
 			<td/>
 			<td colspan="12" rowspan="2" class="data-value-important">
@@ -956,7 +956,7 @@
 				<xsl:value-of select="Attacks/Attack[@type='Ranged']/@temp-modifier"/>
 			</td>
 		</tr>
-		<tr title="Ranged Attack" info="{Attacks/Attack[@type='Ranged']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Ranged']/@attacks}">
+		<tr title="Ranged Attack" info="{Attacks/Attack[@type='Ranged']/@info}" onclick="showInfo(this);" roll="{Attacks/Attack[@type='Ranged']/@attacks}" roll-type="raw_attack">
 			<td colspan="11" class="subtitle">ATTACK BONUS</td>
 		</tr>
 		<tr style="height:2.56em;">

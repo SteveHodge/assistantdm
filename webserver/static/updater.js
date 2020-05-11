@@ -1,4 +1,4 @@
-(function($) {
+var updater = (function($) {
 	var token = null;		// semi-unique token passed with each connection and download so the server can track our activity
 	var listeners = [];	// list of files we are interested in (actually list of objects with type and listener properties)
 	var source = null;
@@ -20,15 +20,15 @@
 		toggleTokens();
 	});
 
-	function moveToken(e) {
-		//$(e.target).attr('value', $(e.target).val());	// set the value attribute so the note text gets saved
+	function sendMessage(type, msg, success, failed) {
+		msg.name = name;
+		msg.type = type;
+
+		//console.log(JSON.stringify(msg, null, '\t'));
+
 		var a = document.createElement('a');
 		a.href = new String(window.location);
-		a.pathname = '/assistantdm/'+name+'/movetoken';
-
-		var output = {
-			'moveto': $('#movetoken input').val()
-		};
+		a.pathname = '/assistantdm/updates/input';
 
 		var req = new XMLHttpRequest();
 		req.open('PUT', a.href, true);
@@ -36,13 +36,36 @@
 		req.onreadystatechange = function() {
 			if (req.readyState === 4) {
 				if (req.status !== 200) {
-					alert("Error moving token: "+req.statusText);
+					if (typeof failed !== 'undefined') failed(req);
 				} else {
-					$('#movetoken input').val('');
+					if (typeof success !== 'undefined') success(req);
 				}
 			}
 		};
-		req.send(JSON.stringify(output, null, '\t'));
+		req.send(JSON.stringify(msg, null, '\t'));
+	}
+
+	function moveToken(e) {
+		var newloc = $('#movetoken input').val();
+		if (!newloc) return;
+
+		var output = {
+			'moveto': newloc
+		};
+
+		sendMessage('move', output, (req) => $('#movetoken input').val(''), (req) => alert("Error moving token: "+req.statusText));
+	}
+	
+	function sendRoll(msg) {
+		var logStr = name + ' rolled '+msg['dice-type']+' for '+msg.title+' '+msg.suffix+': '+msg.rolls.join(' + ');
+		if (msg.mod != 0) {
+			logStr += (msg.mod > 0 ? ' + ' : ' ') + msg.mod;
+		}
+		logStr += ' = ' + msg.total;
+		console.log(logStr);
+		logMessage(logStr);
+
+		sendMessage('roll', msg);
 	}
 
 	// this stuff seems a bit hackish
@@ -174,7 +197,7 @@
 				logMessage('Lost connection to server');
 				if (source) source.close();
 				source = null;
-				setTimeout(openConnection, 1000);
+				setTimeout(openConnection, 10000);
 			} else if (event.target.readyState === EventSource.CONNECTING) {
 				logMessage('Lost connection to server, attempting reconnect');
 			} else {
@@ -309,4 +332,7 @@
 		}
 	}
 
+	return {
+		sendRoll: sendRoll
+	}
 }(jQuery));

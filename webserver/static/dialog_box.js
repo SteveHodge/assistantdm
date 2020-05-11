@@ -125,6 +125,19 @@ function fadeDialog(flag) {
   }
 }
 
+var rollTypeSuffix = {
+	'initiative': '',
+	'save': 'save',
+	'ability': 'check',
+	'weapon': 'attack/damage',
+	'raw_attack': '',
+	'skill': 'skill check'
+};
+
+function nth(n) {
+	return["st","nd","rd"][((n+90)%100-10)%10-1]||"th"
+}
+
 function showInfo(element) {
 	var contents = element.getAttribute('info');
 	if (!contents || contents === '<p>') return;
@@ -132,9 +145,25 @@ function showInfo(element) {
 	if (roll && roll != '/') {
 		contents += '<br>';
 		var rolls = roll.split('/');
+		var rollType = element.getAttribute('roll-type');
+		var suffixes = rollTypeSuffix[rollType].split('/');
 		for (var i = 0; i < rolls.length; i++) {
 			if (rolls[i].indexOf('d') == -1) rolls[i] = '1d20'+rolls[i];
-			contents += '<button type="button" onmousedown="clearRoll();" onclick="roll(\''+rolls[i]+'\');">Roll '+rolls[i]+'</button>';
+
+			if (rollType === 'weapon' && i == rolls.length - 1 && suffixes.length > 1) {
+				// last suffix on weapon - should be damage
+				suffix = suffixes[1];
+			} else {
+				// not last on weapon or multiple raw attack - should be attack
+				suffix = suffixes[0];
+				if (rolls.length > (rollType === 'weapon' ? 2 : 1)) {
+					suffix += ' ('+(i+1)+nth(i+1)+')';
+				}
+			}
+
+			contents += '<button type="button" onmousedown="clearRoll();" onclick="roll(\''+rolls[i]+"', '"
+				+ element.getAttribute('roll-type')+"', '" + element.getAttribute('title').toLowerCase()+"', '"
+				+ suffix + '\');">Roll '+rolls[i]+'</button>';
 		}
 	}
 	contents += '<br><div id="roll"/>';
@@ -149,7 +178,7 @@ function clearRoll() {
 // TODO add info for ac (no rolls)
 // TODO add info and/or rolls for bab, grapple
 // TODO do something about criticals?
-function roll(diceSpec) {
+function roll(diceSpec, rollType, title, suffix) {
 	var rollDiv = document.getElementById('roll');
 	var dice = diceSpec.replace(/\s+/, '').replace('-', '+-').split('+');
 	var rolls = [];
@@ -179,5 +208,18 @@ function roll(diceSpec) {
 	} else {
 		rollTxt = '<b>' + rollTxt + '</b>';
 	}
+
+	if (updater) {
+		updater.sendRoll({
+			'roll-type': rollType,
+			'dice-type': diceSpec,
+			'title': title,
+			'suffix': suffix,
+			'rolls': rolls,
+			'mod': mod,
+			'total': totalRolls
+		});
+	}
+	
 	rollDiv.innerHTML = rollTxt;
 }

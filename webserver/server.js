@@ -26,8 +26,8 @@ web structure:
 /<character> - full character page (character sheet + spells) (GET+PUT character sheet updates)
 /<character>/xml - static character sheet (GET)
 /<character>/spells - spell tracking page (GET+PUT spell updates)
-/<character>/movetoken - request token move (PUT)
 /<character>/sheet<num> - character sheet <num>, num must be 1 or 2 or ommitted (defaults to 1) (GET)
+/updates/input - send message from web interface, e.g. move token, roll, etc (PUT)
 /updates/all - SSE stream for all file updates (GET)
 /updates/dm - SSE stream for dm updates (GET)
 /updates/<character> - SSE stream for character updates (GET)
@@ -93,6 +93,10 @@ app.get('/leds/:ip', function(req, res, next) {
 	console.log('LED Controller Registered at '+req.params.ip);
 
 	request.get({'url': 'http://'+req.params.ip+'/info'}, function(err, conRes, body) {
+		if (conRes == null) {
+			console.log('  LED Controller response missing');
+			return res.send('  LED Controller error: no response');
+		}
 		console.log('  LED Controller response status: ' + conRes.statusCode);
 
 		if (err) return res.send('  LED Controller error: '+err);
@@ -158,6 +162,19 @@ app.get('/updates/dm', function(req, res, next) { subscribe('DM', req, res, next
 
 app.get('/updates/:name.xml', function(req, res, next) { subscribe(req.params.name+'.xml', req, res, next); });
 
+app.put('/updates/input', function(req, res, next) {
+	'use strict';
+	
+	console.log(util.inspect(req.body));
+
+	if (req.body['name'] && req.body['type']) {
+		updateDM(req.body);
+		res.send(200);
+	} else {
+		res.send(400);
+	}
+});
+
 // character spells
 app.get('/:name/spells', function(req, res, next) {
 	'use strict';
@@ -180,14 +197,6 @@ app.put('/:name/spells', function(req, res, next) {
 		if (err) { return next('Error saving spells for '+req.params.name+':\n'+err); }
 		res.send(200);
 	});
-});
-
-app.put('/:name/movetoken', function(req, res, next) {
-	'use strict';
-
-	req.body['name'] = req.params.name;
-	updateDM(req.body);
-	res.send(200);
 });
 
 // character sheet
