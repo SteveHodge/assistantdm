@@ -1,3 +1,8 @@
+/*
+* TODO:
+* Dialog box should lock only the current tab, and should scroll overflow
+*/
+
 var updater = (function($) {
 	var token = null;		// semi-unique token passed with each connection and download so the server can track our activity
 	var listeners = [];	// list of files we are interested in (actually list of objects with type and listener properties)
@@ -57,14 +62,12 @@ var updater = (function($) {
 	}
 	
 	function sendRoll(msg) {
-		var logStr = name + ' rolled '+msg['dice-type']+' for '+msg.title+' '+msg.suffix+': '+msg.rolls.join(' + ');
+		var logStr = name + ' rolled '+msg['dice-type']+' for '+msg.title+' '+msg.suffix+':<br/>'+msg.rolls.join(' + ');
 		if (msg.mod != 0) {
 			logStr += (msg.mod > 0 ? ' + ' : ' ') + msg.mod;
 		}
-		logStr += ' = ' + msg.total;
-		console.log(logStr);
-		logMessage(logStr);
-
+		logStr += ' = <b>' + msg.total + '</b><br/>';
+		addMessage(logStr);
 		sendMessage('roll', msg);
 	}
 
@@ -78,6 +81,9 @@ var updater = (function($) {
 	function setupWebcam() {
 		$('#tokens1').click(openPhoto);
 		$('#tokens1check').click(toggleTokens);
+		$('#tokenswitch').click(switchTokenList);
+		$('#messageswitch').click(switchMessages);
+		$('#status img').click(showLog);
 
 		$('#photo1').on('load', adjustHeight);
 		if (document.getElementById('tab_webcam')) {
@@ -114,11 +120,11 @@ var updater = (function($) {
 		
 		addListener('tokens.png', function() {
 			document.getElementById("tokens1").src = "/assistantdm/static/tokens.png?token="+token+"&r="+(new Date()).valueOf();
-			logMessage('updated token overlay', true);
+			logMessage('updated token overlay');
 		});
 		
 		addListener('tokens.json', function() {
-			logMessage('updated token legend', true);
+			logMessage('updated token legend');
 			$.get('/assistantdm/static/tokens.json?token='+token+'&r='+(new Date()).valueOf(), function(data) {
 				updateTokensText(data);
 			});
@@ -187,21 +193,26 @@ var updater = (function($) {
 		source = new EventSource('http://updates.stevehodge.net/assistantdm/updates/'+type+'?token='+token, { withCredentials: true });
 
 		logMessage('Connecting to server');
+		updateStatus('pending');
 
 		source.addEventListener('open', function(e) {
 			logMessage('Connection to server open');
+			updateStatus('connected');
 		}, false);
 
 		source.addEventListener('error', function(event) {
 			if (event.target.readyState === EventSource.CLOSED) {
 				logMessage('Lost connection to server');
+				updateStatus('disconnected');
 				if (source) source.close();
 				source = null;
 				setTimeout(openConnection, 10000);
 			} else if (event.target.readyState === EventSource.CONNECTING) {
 				logMessage('Lost connection to server, attempting reconnect');
+				updateStatus('pending');
 			} else {
 				logError('Lost connection to server, unknown error');
+				updateStatus('disconnected');
 			}
 		}, false);
 
@@ -240,7 +251,7 @@ var updater = (function($) {
 			}
 			html += '>&nbsp;</td><td>'+entry.name+'</td></tr>';
 		});
-		$('#tokenlist').html(html+'</table>');
+		$('#tokenlist > table').replaceWith(html+'</table>');
 	}
 	
 	function displayCharacterXML(div,xml,xsl) {
@@ -301,6 +312,22 @@ var updater = (function($) {
 		document.getElementById("tokenlist").style.display = checked?"inline":"none";
 	}
 	
+	function switchTokenList() {
+		var span = document.getElementById("tokenswitch");
+		if (!span) return;
+		var state = span.innerHTML == "\u2bc6";
+		span.innerHTML = state ? "&#x2bc8" : "&#x2bc6";
+		$('#tokenlist > table').toggle(!state);
+	}
+
+	function switchMessages() {
+		var span = document.getElementById("messageswitch");
+		if (!span) return;
+		var state = span.innerHTML == "\u2bc6";
+		span.innerHTML = state ? "&#x2bc8" : "&#x2bc6";
+		$('#messages').toggle(!state);
+	}
+
 	function openPhoto() {
 		var win=window.open("http://stevehodge.net/assistantdm/static/camera.jpg", '_blank');
 		win.focus();
@@ -309,27 +336,35 @@ var updater = (function($) {
 	function addListener(t, l) {
 		listeners.push({type: t, listener: l});
 	}
-
-	function logMessage (msg, debug) {
-		if (document.getElementById('messageDiv')) {
-			if (document.getElementById('debugcheck').checked) {
-				$('#messageDiv').append((new Date()).toLocaleTimeString()+': '+msg+'<br>');
-			} else if (!debug) {
-				$('#messageDiv').html((new Date()).toLocaleTimeString()+': '+msg+'<br>');
-			}
-		}
+	
+	function updateStatus(status) {
+		$('#status img').attr("src", "/assistantdm/static/images/"+status+"_32px.png");
 	}
 
-	function logError (msg, debug) {
-		if (document.getElementById('messageDiv')) {
-			if (document.getElementById('debugcheck').checked) {
-				$('#messageDiv').append((new Date()).toLocaleTimeString()+': '+msg+'<br>');
-			} else if (!debug) {
-				$('#messageDiv').html((new Date()).toLocaleTimeString()+': '+msg+'<br>');
-			}
+	function addMessage (msg) {
+		if (document.getElementById('messages')) {
+			$('#messages').append(msg);
+		}		
+	}
+	
+	var log = "";
+
+	function logMessage (msg) {
+		log += (new Date()).toLocaleTimeString()+': '+msg+'<br>';
+	}
+
+	function logError (msg) {
+		var msg = (new Date()).toLocaleTimeString()+': '+msg+'<br>';
+		log += msg;
+		if (document.getElementById('messages')) {
+			$('#messages').append(msg);
 		} else {
 			alert(msg);
 		}
+	}
+	
+	function showLog() {
+		showDialog('Debug Log', log, 'info', false);
 	}
 
 	return {

@@ -30,13 +30,20 @@
 						<table>
 							<tr><th>Combat Round</th><th>0</th><th>Initiative</th></tr>
 						</table>
-					</div> 
-					<br/>
+					</div>
 					<div id="movetoken"></div>
-					<input id="tokens1check" type="checkbox" checked>Show token overlay</input>
-					<div id="tokenlist"></div>
-					<div id="messageDiv"></div>
-					<input id="debugcheck" type="checkbox">Keep message history</input>
+					<span id="tokenoverlaycheck"><input id="tokens1check" type="checkbox" checked>Show token overlay</input></span>
+					<div id="tokenlist" class="collapsible">
+						<h3><span id="tokenswitch">&#x2bc6</span>Token Key</h3>
+						<table></table>
+					</div>
+					<div id="messagelist" class="collapsible">
+						<h3><span id="messageswitch">&#x2bc6</span>Messages</h3>
+					</div>
+					<div id="messages"></div>
+					<div id="status">
+					    <img src="/assistantdm/static/images/pending_32px.png" />
+					</div>
 				</div>
 			</div>
 		</section>

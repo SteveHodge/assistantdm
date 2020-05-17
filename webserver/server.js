@@ -1,5 +1,7 @@
 /*
 enhancements:
+server should store recent messages and preload webpage with them
+make character and player names case insensitive in url
 reorder items/abilities
 enhanced diffing on character sheet update (different colours for increase/decreases, if value changes then changes back while sheet is hidden then don't colour it)
 debug page with more detail on subscribers
@@ -463,9 +465,13 @@ function saveFile(file, req, res, next) {
 		data = Buffer.concat([data, chunk]);
 	});
 	req.on('end', function() {
-		//console.log('Updating '+__dirname+file);
+		console.log('Updating '+__dirname+file);
 		fs.writeFile(__dirname+file, data, function(err) {
-			if (err) { return next('Error saving '+file+':\n'+err); }
+			if (err) {
+				console.log('Error saving '+file);
+				next(err);
+				return;
+			}
 			console.log('Updated '+file+' ('+data.length+' bytes)');
 			res.send(200);
 			

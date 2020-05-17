@@ -1,33 +1,40 @@
-#webcam {
-	width: 100%;
+html {
+	height: 98%;
+}
+
+body {
+	height: 98%;
 }
 
 #webcam table {
 	width: 100%;
 	border-collapse: collapse;
-	border: 1px solid black;
 }
 
 #webcam th {
 	border: 1px solid black;
+	background-color: #c0c0c0;
 }
 
 #webcam td {
 	border: 1px solid black;
 }
 
-#webcam th {
-	background-color: #c0c0c0;
-}
-
 #tokenlist td:first-of-type {
 	width: 30px;
-	border-right: none; 
+	border-left: none; 
 }
 
 #tokenlist td:nth-of-type(2) {
 	width: 30px;
-	border-left: none; 
+}
+
+#tokenlist td:last-of-type {
+	border-right: none;
+}
+
+#tokenlist tr:last-of-type td {
+	border-bottom: none;
 }
 
 #photo1 {
@@ -44,18 +51,92 @@
 	border: 1px solid black;
 }
 
+#webcam {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	flex-flow: row nowrap;
+	align-items: stretch;
+	justify-content: space-between;
+}
+
 #images {
+	order: 1;
 	width:75%;
 	float:left;
 }
 
 #info {
+	order: 2;
+	display: flex;
+	flex-flow: column nowrap;
+	align-items: stretch;
 	width: 23%;
 	float: right;
 	height: 100%;
 	overflow-y: auto;
 }
 
+#initiative {
+	order: 1;
+}
+
+#movetoken {
+	order: 2;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
+#tokenoverlaycheck {
+	order: 3;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
+#tokenlist {
+	order: 4;
+	margin-bottom: 2px;
+}
+
+#messagelist {
+	order: 5;
+}
+
+#messages {
+	order: 6;
+	flex-grow: 1;
+	flex-shrink: 1;
+	border: solid black;
+	border-width: 0px 1px 1px 1px;
+	overflow-y: auto;
+}
+
+#status {
+	order: 6;
+	position: absolute;
+	right:0;
+	bottom:0;
+	margin:0;
+}
+
 #messageDiv {
 	margin-top: 20px;
+}
+
+#status img {
+	width:100%;
+}
+
+.collapsible {
+	border: 1px solid black;
+	margin-top: 2px;
+}
+
+.collapsible span {
+	cursor: pointer;
+}
+
+.collapsible h3 {
+	margin: 0;
+	background-color: #c0c0c0;
 }

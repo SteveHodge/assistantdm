@@ -53,12 +53,11 @@ body {
 #tab_content { // this is the css class for the content displayed in each tab
 	padding: 0 15px;
 	clear:both;
-	overflow:hidden;
 	position: relative;
 	top: 1px;
 	z-index: 5;
-	overflow: hidden;
    border: 1px solid #000;
+   height: 99%;
 }
 
 #spellList {
@@ -83,6 +82,7 @@ section.tab {
     padding: 8px;
     background-color: #ffffff;
     overflow: auto;
+    height: 98%;
 }
 
 section.tab > div {
