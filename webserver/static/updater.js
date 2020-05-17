@@ -331,6 +331,9 @@ var updater = (function($) {
 		topImg.style.width  = width + "px";
 		var leftImg = document.getElementById("leftlegend");
 		leftImg.style.height = mapImg.clientHeight+"px";
+		var scroller = document.getElementById("images");
+		document.getElementById("toplegend").style.top = (scroller.scrollTop)+"px";
+		document.getElementById("leftlegend").style.left = (scroller.scrollLeft)+"px";
 	}
 
 	function toggleTokens() {
