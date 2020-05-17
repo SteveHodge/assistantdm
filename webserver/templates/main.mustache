@@ -11,6 +11,7 @@
 	<script defer src="/assistantdm/static/dialog_box.js"></script>
 	<script defer src="//code.jquery.com/jquery-2.1.1.min.js"></script>
 	<script defer src="/assistantdm/static/updater.js"></script>
+	<script type="text/javascript" src="/assistantdm/static/dragscroll.js"></script>
 	<script defer src="/assistantdm/static/spelllist.js"></script>
 </head>
 <body>
@@ -20,10 +21,17 @@
 		{{#webcam}}
 		<section id="tab_webcam" style="display:none;" class="tab" name="Webcam">
 			<div id="webcam">
-				<div id="images">
-					<img id="photo1" src="/assistantdm/static/camera.jpg"/>
+				<div id="images" class="dragscroll">
+					<img id="photo1" src="/assistantdm/static/map.png"/>
 					<img id="tokens1" src="/assistantdm/static/tokens.png"/>
+					<img id="toplegend" src="/assistantdm/static/toplegend.png"/>
+					<img id="leftlegend" src="/assistantdm/static/leftlegend.png"/>
 					&nbsp;
+				</div>
+				<div id="imagetools">
+					<button id="zoomin" type="button"><img src="/assistantdm/static/images/zoomin_32px.png" alt="Zoom In"/></button>
+					<button id="zoomout" type="button"><img src="/assistantdm/static/images/zoomout_32px.png" alt="Zoom Out"/></button>
+					<button id="overlaytoggle" type="button"><img src="/assistantdm/static/images/tokens_32px.png" alt="Toggle Token Overlay"/></button>
 				</div>
 				<div id="info">
 					<div id="initiative">
@@ -32,7 +40,6 @@
 						</table>
 					</div>
 					<div id="movetoken"></div>
-					<span id="tokenoverlaycheck"><input id="tokens1check" type="checkbox" checked>Show token overlay</input></span>
 					<div id="tokenlist" class="collapsible">
 						<h3><span id="tokenswitch">&#x2bc6</span>Token Key</h3>
 						<table></table>

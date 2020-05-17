@@ -6,6 +6,101 @@ body {
 	height: 98%;
 }
 
+#webcam {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	flex-flow: row nowrap;
+	align-items: stretch;
+	justify-content: space-between;
+}
+
+#images {
+	order: 1;
+	width:76%;
+	cursor: grab;
+	overflow: hidden;
+	position: relative;
+}
+
+#photo1 {
+	position:absolute;
+	z-index:1;
+	border: 1px solid black;
+}
+
+#tokens1 {
+	position:absolute;
+	z-index:2;
+	border: 1px solid black;
+}
+
+#toplegend {
+	position:absolute;
+	z-index:4;
+	border: 1px solid black;
+}
+
+#leftlegend {
+	position:absolute;
+	z-index:3;
+	border: 1px solid black;
+}
+
+#imagetools {
+	order: 2;
+	display: flex;
+	flex-flow: column nowrap;
+	align-items: stretch;
+	margin: 0px 10px 0px 10px;
+}
+
+#zoomin {
+	order: 1;
+}
+
+#imagetools img {
+	margin: 6px 0px 4px 0px;
+}
+
+#zoomout {
+	order: 2;
+}
+
+#overlaytoggle {
+	order: 3;
+}
+
+.toggleon {
+	background-color: lightsteelblue;
+}
+
+#info {
+	order: 3;
+	display: flex;
+	flex-flow: column nowrap;
+	align-items: stretch;
+	width: 21%;
+/*	float: right;*/
+	height: 100%;
+	overflow-y: auto;
+}
+
+#initiative {
+	order: 1;
+}
+
+#movetoken {
+	order: 2;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
+#tokenlist {
+	order: 4;
+	margin-bottom: 2px;
+}
+
 #webcam table {
 	width: 100%;
 	border-collapse: collapse;
@@ -35,67 +130,6 @@ body {
 
 #tokenlist tr:last-of-type td {
 	border-bottom: none;
-}
-
-#photo1 {
-	position:absolute;
-	z-index:1;
-	width:75%;
-	border: 1px solid black;
-}
-
-#tokens1 {
-	position:absolute;
-	z-index:2;
-	width:75%;
-	border: 1px solid black;
-}
-
-#webcam {
-	display: flex;
-	width: 100%;
-	height: 100%;
-	flex-flow: row nowrap;
-	align-items: stretch;
-	justify-content: space-between;
-}
-
-#images {
-	order: 1;
-	width:75%;
-	float:left;
-}
-
-#info {
-	order: 2;
-	display: flex;
-	flex-flow: column nowrap;
-	align-items: stretch;
-	width: 23%;
-	float: right;
-	height: 100%;
-	overflow-y: auto;
-}
-
-#initiative {
-	order: 1;
-}
-
-#movetoken {
-	order: 2;
-	margin-top: 2px;
-	margin-bottom: 2px;
-}
-
-#tokenoverlaycheck {
-	order: 3;
-	margin-top: 2px;
-	margin-bottom: 2px;
-}
-
-#tokenlist {
-	order: 4;
-	margin-bottom: 2px;
 }
 
 #messagelist {

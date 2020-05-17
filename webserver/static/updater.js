@@ -13,7 +13,7 @@ var updater = (function($) {
 	var xsl2 = null;	// xslt transform for character sheet 1
 	var name = null;	// character name, if any
 
-	$(window).on('load', adjustHeight);
+//	$(window).on('load', adjustHeight);
 
 	$(document).ready(function () {
 		if (token == null) token = (new Date()).valueOf();
@@ -66,29 +66,31 @@ var updater = (function($) {
 		if (msg.mod != 0) {
 			logStr += (msg.mod > 0 ? ' + ' : ' ') + msg.mod;
 		}
-		logStr += ' = <b>' + msg.total + '</b><br/>';
+		logStr += ' = <b>' + msg.total + '</b><br/><br/>';
 		addMessage(logStr);
 		sendMessage('roll', msg);
 	}
 
 	// this stuff seems a bit hackish
-	function adjustHeight() {
-		var h = $('#photo1').height();
-		if (!h) return;
-		$('#webcam').css('min-height', h+'px');
-	}
+//	function adjustHeight() {
+//		var h = $('#photo1').height();
+//		if (!h) return;
+//		$('#webcam').css('min-height', h+'px');
+//	}
 
 	function setupWebcam() {
-		$('#tokens1').click(openPhoto);
-		$('#tokens1check').click(toggleTokens);
+//		$('#tokens1').click(openPhoto);
+		$('#overlaytoggle').click(toggleTokens);
 		$('#tokenswitch').click(switchTokenList);
 		$('#messageswitch').click(switchMessages);
 		$('#status img').click(showLog);
+		$('#zoomin').click(zoomIn);
+		$('#zoomout').click(zoomOut);
 
-		$('#photo1').on('load', adjustHeight);
-		if (document.getElementById('tab_webcam')) {
-			document.getElementById('tab_webcam').onActivate = adjustHeight;
-		}
+//		$('#photo1').on('load', adjustHeight);
+//		if (document.getElementById('tab_webcam')) {
+//			document.getElementById('tab_webcam').onActivate = adjustHeight;
+//		}
 
 		if (name) {
 			$('#movetoken')
@@ -113,8 +115,8 @@ var updater = (function($) {
 			});
 		});
 		
-		addListener('camera.jpg', function() {
-			$('#photo1').attr('src', "/assistantdm/static/camera.jpg?token="+token+"&r="+(new Date()).valueOf());
+		addListener('map.png', function() {
+			$('#photo1').attr('src', "/assistantdm/static/map.png?token="+token+"&r="+(new Date()).valueOf());
 			logMessage('updated image');
 		});
 		
@@ -304,12 +306,43 @@ var updater = (function($) {
 		}
 	}
 
+	function zoomIn() {
+		var mapImg = document.getElementById("photo1");
+		var currWidth = mapImg.clientWidth;
+		if (currWidth >= 2500)
+			return false;
+		setZoom(currWidth + 100);
+	}
+	
+	function zoomOut() {
+		var mapImg = document.getElementById("photo1");
+		var currWidth = mapImg.clientWidth;
+		if (currWidth <= 100)
+			return false;
+		setZoom(currWidth - 100);
+	}
+
+	function setZoom(width) {
+		var mapImg = document.getElementById("photo1");
+		var tokenImg = document.getElementById("tokens1");
+		var topImg = document.getElementById("toplegend");
+		mapImg.style.width = width + "px";
+		tokenImg.style.width = width + "px";
+		topImg.style.width  = width + "px";
+		var leftImg = document.getElementById("leftlegend");
+		leftImg.style.height = mapImg.clientHeight+"px";
+	}
+
 	function toggleTokens() {
-		var cbox = document.getElementById("tokens1check");
-		if (!cbox) return;
-		var checked = cbox.checked;
-		document.getElementById("tokens1").style.display = checked?"inline":"none";
-		document.getElementById("tokenlist").style.display = checked?"inline":"none";
+		var $toggle = $('#overlaytoggle');
+		$toggle.toggleClass('toggleon');
+		if ($toggle.hasClass('toggleon')) {
+			document.getElementById("tokens1").style.display = "inline";
+			document.getElementById("tokenlist").style.display = "inline";
+		} else {
+			document.getElementById("tokens1").style.display = "none";
+			document.getElementById("tokenlist").style.display = "none";			
+		}
 	}
 	
 	function switchTokenList() {
@@ -329,7 +362,7 @@ var updater = (function($) {
 	}
 
 	function openPhoto() {
-		var win=window.open("http://stevehodge.net/assistantdm/static/camera.jpg", '_blank');
+		var win=window.open("http://stevehodge.net/assistantdm/static/map.png", '_blank');
 		win.focus();
 	}
 

@@ -39,7 +39,7 @@ TODO /debug/<character> - json character all config (GET)
 /debug/<character>/spells - json spell choices (GET)
 /debug/<character>/config - json spell page configuration (GET)
 /static/initiative.json (GET+PUT)
-/static/camera.jpg (GET+PUT)
+/static/map.png (GET+PUT)
 /static/tokens.json (GET+PUT)
 /static/tokens.png (GET+PUT)
 /static/* - other static files (GET)
@@ -51,7 +51,7 @@ node_modules/
 templates/ - mustache files
 server.js
 spells.js
-static/ - static files (including camera/token/initiative files)
+static/ - static files (including map/token/initiative files)
 */
 
 var express = require('express');
@@ -167,7 +167,7 @@ app.get('/updates/:name.xml', function(req, res, next) { subscribe(req.params.na
 app.put('/updates/input', function(req, res, next) {
 	'use strict';
 	
-	console.log(util.inspect(req.body));
+	//console.log(util.inspect(req.body));
 
 	if (req.body['name'] && req.body['type']) {
 		updateDM(req.body);
@@ -351,7 +351,7 @@ app.get('/:name', function(req, res, next) {
 
 // webcam media
 app.put('/static/initiative.json', function(req, res, next) { saveFile(req.path, req, res, next); });
-app.put('/static/camera.jpg', function(req, res, next) { saveFile(req.path, req, res, next); });
+app.put('/static/map.png', function(req, res, next) { saveFile(req.path, req, res, next); });
 app.put('/static/tokens.json', function(req, res, next) { saveFile(req.path, req, res, next); });
 app.put('/static/tokens.png', function(req, res, next) { saveFile(req.path, req, res, next); });
 
