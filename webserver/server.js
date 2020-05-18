@@ -40,6 +40,8 @@ TODO /debug/<character> - json character all config (GET)
 /debug/<character>/config - json spell page configuration (GET)
 /static/initiative.json (GET+PUT)
 /static/map.png (GET+PUT)
+/static/toplegend.png (GET+PUT)
+/static/leftlegend.png (GET+PUT)
 /static/tokens.json (GET+PUT)
 /static/tokens.png (GET+PUT)
 /static/* - other static files (GET)
@@ -167,10 +169,12 @@ app.get('/updates/:name.xml', function(req, res, next) { subscribe(req.params.na
 app.put('/updates/input', function(req, res, next) {
 	'use strict';
 	
-	//console.log(util.inspect(req.body));
+	console.log('Headers: '+util.inspect(req.headers));
+	console.log('Body: '+util.inspect(req.body));
 
 	if (req.body['name'] && req.body['type']) {
 		updateDM(req.body);
+		updateOther(req.body, req.headers['token']);
 		res.send(200);
 	} else {
 		res.send(400);
@@ -202,7 +206,9 @@ app.put('/:name/spells', function(req, res, next) {
 });
 
 // character sheet
-app.put('/:name', function(req, res, next) { saveFile('/characters/'+req.params.name+'.xml', req, res, next); });
+app.put('/:name', function(req, res, next) {
+	saveFile('/characters/'+req.params.name+'.xml', req, res, next);
+});
 
 app.get('/:name/sheet(:num?)', function(req, res, next) {
 	'use strict';
@@ -352,6 +358,8 @@ app.get('/:name', function(req, res, next) {
 // webcam media
 app.put('/static/initiative.json', function(req, res, next) { saveFile(req.path, req, res, next); });
 app.put('/static/map.png', function(req, res, next) { saveFile(req.path, req, res, next); });
+app.put('/static/toplegend.png', function(req, res, next) { saveFile(req.path, req, res, next); });
+app.put('/static/leftlegend.png', function(req, res, next) { saveFile(req.path, req, res, next); });
 app.put('/static/tokens.json', function(req, res, next) { saveFile(req.path, req, res, next); });
 app.put('/static/tokens.png', function(req, res, next) { saveFile(req.path, req, res, next); });
 
@@ -371,9 +379,12 @@ app.get('/debug/subscribers', function(req, res) {
 			if (subscribers[i].req.headers.authorization) {
 				html += 'Authorization: '+subscribers[i].req.headers.authorization + '<br>';
 			}
-			if(subscribers[i].token) {
+			
+			var token = subscribers[i].token;
+			if (!token) token = 'DM';
+			if(token) {
 				html += '<table style="border:thin solid black;"><tr><th>File</th><th>Last Downloaded</th><th>Last Updated</th><th>Got Latest</th></tr>';
-				var tracking = sub_tracking[subscribers[i].token];
+				var tracking = sub_tracking[token];
 				for (var file in tracking) {
 					if (tracking.hasOwnProperty(file)) {
 						html += '<tr><td>'+file+'</td><td>'+tracking[file].last_fetched+'</td>';
@@ -480,7 +491,7 @@ function saveFile(file, req, res, next) {
 				//console.log('data: '+f);
 				if (subscribers[i] && (subscribers[i].file === '*' || subscribers[i].file === f)) {
 					var now = new Date();
-					subscribers[i].res.write('data: '+f+'\n\n');
+					subscribers[i].res.write('event: fileupdate\ndata: '+f+'\n\n');
 					subscribers[i].last_messaged = now;
 					var token = subscribers[i].token;
 					if (token && sub_tracking[token] && sub_tracking[token][f]) {
@@ -493,17 +504,27 @@ function saveFile(file, req, res, next) {
 	});
 }
 
+function updateOther(obj, token) {
+	for (var i = 0; i < subscribers.length; i++) {
+		if (subscribers[i] && subscribers[i].token && subscribers[i].token !== token) {
+			var now = new Date();
+			subscribers[i].res.write('data: '+JSON.stringify(obj)+'\n\n');
+			subscribers[i].last_messaged = now;
+		}
+	}
+}
+
 function updateDM(obj) {
 	for (var i = 0; i < subscribers.length; i++) {
 		if (subscribers[i] && subscribers[i].file === 'DM') {
 			var now = new Date();
 			subscribers[i].res.write('data: '+JSON.stringify(obj)+'\n\n');
 			subscribers[i].last_messaged = now;
-			var token = subscribers[i].token;
-			if (token && sub_tracking[token] && sub_tracking[token]['DM']) {
-				sub_tracking[token]['DM'].updated = now;
-				sub_tracking[token]['DM'].latest = false;
-			}
+			//var token = subscribers[i].token;
+			//if (token && sub_tracking[token] && sub_tracking[token]['DM']) {
+			//	sub_tracking[token]['DM'].updated = now;
+			//	sub_tracking[token]['DM'].latest = false;
+			//}
 		}
 	}
 }
