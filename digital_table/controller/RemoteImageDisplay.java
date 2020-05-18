@@ -28,6 +28,8 @@ import util.Updater;
 // TODO probably better to create our own token overlay and forward changes to it.
 
 class RemoteImageDisplay extends TokenOverlay {
+	final static int PIXELS_PER_CELL = 20;
+
 	final int rows = 39;
 	final int columns = 32;
 	public RepaintThread repaintThread = new RepaintThread();
@@ -56,8 +58,8 @@ class RemoteImageDisplay extends TokenOverlay {
 				}
 				if (quit) return;
 
-				// if it's been < 15 seconds since last file update then wait until 15s is up
-				long toWait = lastUpdate + 15000 - System.currentTimeMillis();
+				// if it's been < 5 seconds since last file update then wait until 5s is up
+				long toWait = lastUpdate + 5000 - System.currentTimeMillis();
 				if (toWait > 0) {
 					//System.out.println("Repaint thread: waiting for " + toWait + "ms");
 					try {
@@ -73,9 +75,8 @@ class RemoteImageDisplay extends TokenOverlay {
 				SortedMap<String, MapElement> descriptions = new TreeMap<>();
 				do {
 					repaint = false;
-					image = getImage(20 * rows, 20 * columns, BufferedImage.TYPE_INT_RGB);
-					tokenImg = tokens.getImage(20 * rows, 20 * columns, descriptions);
-
+					image = getImage(PIXELS_PER_CELL * rows, PIXELS_PER_CELL * columns, BufferedImage.TYPE_INT_RGB);
+					tokenImg = tokens.getImage(PIXELS_PER_CELL * rows, PIXELS_PER_CELL * columns, descriptions);
 				} while (repaint && !quit);			// if repaint is required then repeat
 				if (quit) return;
 
@@ -85,6 +86,19 @@ class RemoteImageDisplay extends TokenOverlay {
 					ImageIO.write(image, "png", stream);
 					//System.out.println("Repaint thread: sending image");
 					Updater.updateURL(Updater.MAP_IMAGE, stream.toByteArray());
+
+					// top legend
+					BufferedImage img = image.getSubimage(0, 0, PIXELS_PER_CELL, image.getHeight());
+					stream = new ByteArrayOutputStream();
+					ImageIO.write(img, "png", stream);
+					Updater.updateURL(Updater.TOP_LEGEND_IMAGE, stream.toByteArray());
+
+					// left legend
+					img = image.getSubimage(0, 0, image.getWidth(), PIXELS_PER_CELL);
+					stream = new ByteArrayOutputStream();
+					ImageIO.write(img, "png", stream);
+					Updater.updateURL(Updater.LEFT_LEGEND_IMAGE, stream.toByteArray());
+
 					lastUpdate = System.currentTimeMillis();
 					tokens.updateOverlay(tokenImg, descriptions);
 				} catch (IOException e) {

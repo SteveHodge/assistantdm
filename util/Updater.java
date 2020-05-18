@@ -23,7 +23,10 @@ import org.w3c.dom.Element;
 
 
 public class Updater {
-	public static String MAP_IMAGE = "http://armitage/assistantdm/static/camera.jpg";
+	// NOTE: these constants may be overwritten by the config.xml file
+	public static String MAP_IMAGE = "http://armitage/assistantdm/static/map.png";
+	public static String TOP_LEGEND_IMAGE = "http://armitage/assistantdm/static/toplegend.png";
+	public static String LEFT_LEGEND_IMAGE = "http://armitage/assistantdm/static/leftlegend.png";
 	public static String INITIATIVE_FILE = "http://armitage/assistantdm/static/initiative.json";
 	public static String DOCUMENT_DIR = "http://armitage/assistantdm/";
 	public static String TOKEN_BASE_URL = "http://armitage/assistantdm/static/tokens";
@@ -94,6 +97,8 @@ public class Updater {
 			ModuleRegistry.register(UpdaterModule.class, this);
 			Element config = ModuleRegistry.getConfig(this);
 			if (config.hasAttribute("map_url")) MAP_IMAGE = config.getAttribute("map_url");
+			if (config.hasAttribute("left_legend_url")) TOP_LEGEND_IMAGE = config.getAttribute("left_legend_url");
+			if (config.hasAttribute("top_legend_url")) LEFT_LEGEND_IMAGE = config.getAttribute("top_legend_url");
 			if (config.hasAttribute("initiative_url")) INITIATIVE_FILE = config.getAttribute("initiative_url");
 			if (config.hasAttribute("document_url")) DOCUMENT_DIR = config.getAttribute("document_url");
 			if (config.hasAttribute("token_url")) TOKEN_BASE_URL = config.getAttribute("token_url");
@@ -179,8 +184,8 @@ public class Updater {
 			wr.flush();
 			wr.close();
 
-//	    	System.out.println("Response = "+connection.getResponseCode() + " - " + connection.getResponseMessage());
 			if (connection.getResponseCode() == 200) return null;
+			System.out.println("UpdateURL (" + dest + "): " + connection.getResponseCode() + " - " + connection.getResponseMessage());
 			return "Response = "+connection.getResponseCode() + " - " + connection.getResponseMessage();
 
 
