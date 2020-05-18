@@ -67,8 +67,12 @@ body {
 	order: 2;
 }
 
-#overlaytoggle {
+#zoom100 {
 	order: 3;
+}
+
+#overlaytoggle {
+	order: 4;
 }
 
 .toggleon {

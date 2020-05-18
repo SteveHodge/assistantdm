@@ -1,6 +1,7 @@
 /*
 * TODO:
 * Dialog box should lock only the current tab, and should scroll overflow
+* We're not subscribing to changes in the legend images. It shouldn't matter because they shouldn't change, but maybe we should handle that case.
 */
 
 var updater = (function($) {
@@ -38,6 +39,7 @@ var updater = (function($) {
 		var req = new XMLHttpRequest();
 		req.open('PUT', a.href, true);
 		req.setRequestHeader('Content-Type', 'application/json');
+		req.setRequestHeader('token', token);
 		req.onreadystatechange = function() {
 			if (req.readyState === 4) {
 				if (req.status !== 200) {
@@ -62,13 +64,17 @@ var updater = (function($) {
 	}
 	
 	function sendRoll(msg) {
-		var logStr = name + ' rolled '+msg['dice-type']+' for '+msg.title+' '+msg.suffix+':<br/>'+msg.rolls.join(' + ');
+		sendMessage('roll', msg);	// needs to be first as it sets the name in the mesasge and we need that for the output
+		logRoll(msg);
+	}
+
+	function logRoll(msg) {
+		var logStr = msg.name + ' rolled '+msg['dice-type']+' for '+msg.title+' '+msg.suffix+':<br/>'+msg.rolls.join(' + ');
 		if (msg.mod != 0) {
 			logStr += (msg.mod > 0 ? ' + ' : ' ') + msg.mod;
 		}
 		logStr += ' = <b>' + msg.total + '</b><br/><br/>';
 		addMessage(logStr);
-		sendMessage('roll', msg);
 	}
 
 	// this stuff seems a bit hackish
@@ -86,6 +92,7 @@ var updater = (function($) {
 		$('#status img').click(showLog);
 		$('#zoomin').click(zoomIn);
 		$('#zoomout').click(zoomOut);
+		$('#zoom100').click(zoom100);
 
 //		$('#photo1').on('load', adjustHeight);
 //		if (document.getElementById('tab_webcam')) {
@@ -218,7 +225,7 @@ var updater = (function($) {
 			}
 		}, false);
 
-		source.addEventListener('message', function(event) {
+		source.addEventListener('fileupdate', function(event) {
 			var lines = event.data.split("\n");
 			for (i = 0; i < lines.length; i++) {
 				for (j = 0; j < listeners.length; j++) {
@@ -227,6 +234,12 @@ var updater = (function($) {
 					}
 				}
 			}
+		}, false);
+
+		source.addEventListener('message', function(event) {
+			var msg = JSON.parse(event.data);
+			if (msg && msg.type === 'roll')
+				logRoll(msg);
 		}, false);
 
 		return true;
@@ -306,12 +319,15 @@ var updater = (function($) {
 		}
 	}
 
+	var zoomStep = 100;
+
 	function zoomIn() {
 		var mapImg = document.getElementById("photo1");
 		var currWidth = mapImg.clientWidth;
-		if (currWidth >= 2500)
+		if (currWidth >= 5000)
 			return false;
-		setZoom(currWidth + 100);
+		setZoom(currWidth + Math.min(Math.max(zoomStep, 100), 500));	// constrain the actual step to something reasonable
+		zoomStep *= 1.5;
 	}
 	
 	function zoomOut() {
@@ -319,7 +335,13 @@ var updater = (function($) {
 		var currWidth = mapImg.clientWidth;
 		if (currWidth <= 100)
 			return false;
-		setZoom(currWidth - 100);
+		zoomStep /= 1.5;
+		setZoom(currWidth - Math.min(Math.max(zoomStep, 100), 500));	// constrain the actual step to something reasonable
+	}
+
+	function zoom100() {
+		zoomStep = 100;
+		setZoom(document.getElementById("photo1").naturalWidth);
 	}
 
 	function setZoom(width) {
