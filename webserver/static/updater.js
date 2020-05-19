@@ -198,8 +198,15 @@ var updater = (function($) {
 				break;
 			}
 		}
+		
+		var url = 'http://updates.stevehodge.net/assistantdm/updates/'+type+'?token='+token;
+		if ($('#tab_webcam').attr('player'))
+			url += '&player='+$('#tab_webcam').attr('player');
+		if ($('#tab_webcam').attr('character'))
+			url += '&character='+$('#tab_webcam').attr('character');
 
-		source = new EventSource('http://updates.stevehodge.net/assistantdm/updates/'+type+'?token='+token, { withCredentials: true });
+		console.log('URL = '+url);
+		source = new EventSource(encodeURI(url), { withCredentials: true });
 
 		logMessage('Connecting to server');
 		updateStatus('pending');

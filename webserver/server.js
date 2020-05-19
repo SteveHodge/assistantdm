@@ -2,6 +2,8 @@
 enhancements:
 server should store recent messages and preload webpage with them
 make character and player names case insensitive in url
+because the SSE update streams are on a non-authenticated subdomain (see below), we don't get the authorization details when subscribing.
+  might be nice to cache this info from the player page request
 reorder items/abilities
 enhanced diffing on character sheet update (different colours for increase/decreases, if value changes then changes back while sheet is hidden then don't colour it)
 debug page with more detail on subscribers
@@ -63,6 +65,7 @@ var spells = require('./spells');
 var util = require('util');
 var path = require('path');
 var request = require('request');
+var cookieParser = require('cookie-parser');
 
 var subscribers = [];
 var sub_tracking = {};
@@ -82,6 +85,7 @@ app.use(express.logger(':remote-addr [:date] :method ":url" :status'));
 
 app.use(express.json());
 app.use(express.urlencoded());
+app.use(express.cookieParser());
 
 
 app.get('/static/:name', subscribeFile);	// static files
@@ -162,15 +166,25 @@ app.get('/updates/*', function(req, res, next) {
 
 app.get('/updates/all', function(req, res, next) { subscribe('*', req, res, next); });
 
-app.get('/updates/dm', function(req, res, next) { subscribe('DM', req, res, next); });
+app.get('/updates/dm', function(req, res, next) {
+	subscribe('DM', req, res, next);
+
+	// send events for existing subscribers
+	for (var i = 0; i < subscribers.length; i++) {
+		if (!subscribers[i].closed && subscribers[i].file !== 'DM') {
+			sendSubChange('subscribe', subscribers[i]);
+		}
+	}
+});
 
 app.get('/updates/:name.xml', function(req, res, next) { subscribe(req.params.name+'.xml', req, res, next); });
 
 app.put('/updates/input', function(req, res, next) {
 	'use strict';
 	
-	console.log('Headers: '+util.inspect(req.headers));
-	console.log('Body: '+util.inspect(req.body));
+//	console.log('Headers: '+util.inspect(req.headers));
+	console.log('Update: '+util.inspect(req.body));
+//	console.log('Cookies: '+util.inspect(req.cookies));
 
 	if (req.body['name'] && req.body['type']) {
 		updateDM(req.body);
@@ -292,6 +306,7 @@ app.get('/:name', function(req, res, next) {
 				pageData.name = config.character;
 				pageData.webcam = config.webcam;
 				pageData.config = true;
+				pageData.player = req.params.name;
 
 				if (config.character && (config.sheet1 || config.sheet2)) {
 					if (fs.existsSync(__dirname+'/characters/'+config.character+'.xml')) {
@@ -340,6 +355,8 @@ app.get('/:name', function(req, res, next) {
 app.get('/:name', function(req, res, next) {
 	'use strict';
 
+	console.log('New player');
+
 	var data = {
 		title: 'Assistant DM',
 		webcam: true,
@@ -348,7 +365,8 @@ app.get('/:name', function(req, res, next) {
 		spells: false,
 		fontsize: 8,
 		name: '',
-		config: true
+		config: true,
+		player: req.params.name
 	};
 
 	res.send(mustache.to_html(main_template, data));
@@ -375,6 +393,7 @@ app.get('/debug/subscribers', function(req, res) {
 			html += subscribers[i].req.ip + ', File: '+subscribers[i].file;
 			html += ', Token: '+subscribers[i].token+', Since: '+subscribers[i].first_connect;
 			html += ', Reconnects: '+subscribers[i].reconnects+'<br>';
+			html += 'Player: '+subscribers[i].player+', Character: '+subscribers[i].character+'<br>';
 			html += 'User agent: '+subscribers[i].req.headers['user-agent'] + '<br>';
 			if (subscribers[i].req.headers.authorization) {
 				html += 'Authorization: '+subscribers[i].req.headers.authorization + '<br>';
@@ -459,8 +478,8 @@ var server = app.listen(8888, function() {
 		for (var i = 0; i < subscribers.length; i++) {
 			if (subscribers[i] && !subscribers[i].closed) {
 				if (now - subscribers[i].last_messaged > 19000) {
-//					console.log("Sending keepalive message at "+now+" as no message since "+subscribers[i].last_messaged);
-					subscribers[i].res.write('data: x\n\n');
+					//console.log("Sending keepalive message at "+now+" as no message since "+subscribers[i].last_messaged);
+					subscribers[i].res.write(':keepalive\n\n');
 					subscribers[i].last_messaged = now;
 				}
 			}
@@ -565,15 +584,19 @@ function subscribe(file, req, res, next) {
 	//track subscriber
 	// if there is an existing connection with the same ip address and token we'll replace that, otherwise we'll add a new one
 	var found = false;
+	var subscriber;
 	for (var i = 0; i < subscribers.length; i++) {
 		if (subscribers[i] && subscribers[i].token === req.query.token && subscribers[i].req.ip === req.ip) {
 			found = true;
+			subscriber = subscribers[i];
 			subscribers[i].req = req;
 			subscribers[i].res = res;
 			subscribers[i].file = file;
 			subscribers[i].closed = false;
 			subscribers[i].reconnects++;
 			subscribers[i].last_messaged = new Date();
+			subscribers[i].player = req.query.player;
+			subscribers[i].character = req.query.character;
 			
 			// check if any updates have been missed (can happen if a reconnect misses a notification
 			var tracking = sub_tracking[subscribers[i].token];
@@ -588,16 +611,22 @@ function subscribe(file, req, res, next) {
 	}	
 	
 	if (!found) {
-		subscribers.push({
+		subscriber = {
 			'req': req,
 			'res': res,
 			'file': file,
 			'token': req.query.token,
 			'reconnects': 0,
 			'first_connect': new Date(),
-			'last_messaged': new Date()
-		});
+			'last_messaged': new Date(),
+			'player': req.query.player,
+			'character': req.query.character
+		};
+		subscribers.push(subscriber);
 	}
+	
+	// send notification to DM
+	sendSubChange('subscribe', subscriber);
 
 	req.on('close', function() {
 		for (var i = 0; i < subscribers.length; i++) {
@@ -605,8 +634,25 @@ function subscribe(file, req, res, next) {
 				//console.log('subscriber closed: '+req.ip);
 				//subscribers[i] = undefined;
 				subscribers[i].closed = true;
+				sendSubChange('unsubscribe', subscriber);
 				break;
 			}
 		}
 	});
+}
+
+function sendSubChange(type, subscriber)
+{
+	if (!subscriber || !subscriber.character)
+		return;
+	var msg = {
+		'type': type,
+		'token': subscriber.token,
+		'player': subscriber.player,
+		'name': subscriber.character,
+		'ip': subscriber.req.ip,
+		'user-agent': subscriber.req.headers['user-agent'],
+		'authorization': subscriber.req.headers.authorization
+	};
+	updateDM(msg);
 }

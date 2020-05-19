@@ -1,4 +1,14 @@
 ---=== IN PROGRESS ===---
+* DONE Output legend images
+* DONE Webpage: zoom to 100% button
+* DONE Webserver: propogate roll messages
+* IN WORK UI for messages etc
+* Webserver/webpage/java: DM request roll function
+* Webserver/java: subscriber list
+* Webserver: message history
+* Webpage: move token with mouse function
+* Webpage: alert on map function
+*
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).

@@ -84,6 +84,21 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 		if (toRemove != null) removeEntry(toRemove);
 	}
 
+	public void setRoll(Character c, int roll) {
+		CombatEntry toUpdate = null;
+		for (CombatEntry e : list) {
+			if (e.getSource() == c) {
+				toUpdate = e;
+				break;
+			}
+		}
+		if (toUpdate != null) {
+			toUpdate.setRoll(roll);
+		} else {
+			System.out.println("Can't find entry for " + c);
+		}
+	}
+
 	@Override
 	public int indexOf(Component item) {
 		return list.indexOf(item);

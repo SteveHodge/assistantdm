@@ -61,16 +61,16 @@ import party.Character;
 import party.CharacterLibrary;
 import party.Party;
 import swing.JTableWithToolTips;
+import ui.CasterPanel;
 import ui.PartyPanel;
 import ui.RestDialog;
 import ui.RollsPanel;
 import ui.SelectPartyDialog;
-import ui.CasterPanel;
 import ui.XPEntryDialog;
 import util.ModuleRegistry;
 import util.Updater;
-import util.WebsiteMonitor;
 import util.XMLUtils;
+import webmonitor.WebsiteMonitor;
 
 @SuppressWarnings("serial")
 public class AssistantDM extends javax.swing.JFrame implements ActionListener {
@@ -157,7 +157,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			}
 		};
 
-		dmmon = new WebsiteMonitor(party, controller);
+		dmmon = new WebsiteMonitor(party, controller, combatPanel);
 
 		// TODO convert to Actions where sensible
 		menuBar = new JMenuBar();
