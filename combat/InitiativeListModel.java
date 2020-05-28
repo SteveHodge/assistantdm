@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -26,6 +27,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import gamesystem.Creature;
 import party.Character;
 import party.Party;
 import party.PartyListener;
@@ -84,7 +86,7 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 		if (toRemove != null) removeEntry(toRemove);
 	}
 
-	public void setRoll(Character c, int roll) {
+	void setRoll(Creature c, int roll) {
 		CombatEntry toUpdate = null;
 		for (CombatEntry e : list) {
 			if (e.getSource() == c) {
@@ -504,6 +506,20 @@ public class InitiativeListModel implements ReorderableListModel<CombatEntry>, A
 		// reset entries' rolls to 0
 		for (CombatEntry e : toReset) {
 			e.setRoll(0);
+		}
+	}
+
+	// reset rolls (for non-characters a new roll is made)
+	void resetInitiative() {
+		ArrayList<CombatEntry> toUpdate = new ArrayList<>(list);
+
+		for (CombatEntry e : toUpdate) {
+			if (e.getSource() instanceof Character) {
+				e.setRoll(0);
+			} else if (e != blankInit) {
+				Random r = new Random();
+				e.setRoll(r.nextInt(20) + 1);
+			}
 		}
 	}
 

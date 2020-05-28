@@ -152,8 +152,12 @@ public class Updater {
 
 //	private static int sequence = 1;
 
-	// TODO probably should propagate exceptions upwards, and consider wrapping responses in exceptions too
 	public static String updateURL(String dest, byte[] bytes) {
+		return updateURL(dest, "application/octet-stream", bytes);
+	}
+
+	// TODO probably should propagate exceptions upwards, and consider wrapping responses in exceptions too
+	public static String updateURL(String dest, String contentType, byte[] bytes) {
 		// write local copy of image:
 //		if (dest == MAP_IMAGE) {
 //			try (FileOutputStream fos = new FileOutputStream(String.format("images\\image%03d.jpg", sequence++))) {
@@ -171,7 +175,7 @@ public class Updater {
 			URL url = new URL(dest);
 			connection = (HttpURLConnection)url.openConnection();
 			connection.setRequestMethod("PUT");
-			connection.setRequestProperty("Content-Type", "application/octet-stream");
+			connection.setRequestProperty("Content-Type", contentType);
 			//connection.setRequestProperty("Content-Disposition", "attachment;filename=initiative.json");
 			connection.setRequestProperty("Content-Length", ""+bytes.length);
 			connection.setRequestProperty("Content-Language", "en-US");

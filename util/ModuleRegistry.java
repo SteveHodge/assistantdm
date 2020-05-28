@@ -32,6 +32,7 @@ import party.Party;
  * * CameraModule - access to images from the camera
  * * DigitalTableModule - access to the digital table controller (perhaps split off remote display)
  * * LEDController - interfaces with the LED hardware
+ * * WebMonitor - interfaces with webserver
  */
 
 public class ModuleRegistry {
@@ -65,7 +66,7 @@ public class ModuleRegistry {
 
 	public static Element getConfig(Module m) {
 		Class<?> c = moduleClasses.get(m);
-		System.out.println("Class for " + m + " is " + c.getSimpleName());
+		System.out.println("ModuleRegistry.getConfig(): Class for " + m + " is " + c.getSimpleName());
 		return moduleConfig.get(c.getSimpleName());
 	}
 

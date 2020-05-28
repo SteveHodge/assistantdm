@@ -1,9 +1,8 @@
 package combat;
 
-import gamesystem.Creature;
-
 import java.util.Map;
 
+import gamesystem.Creature;
 import util.Module;
 
 public interface EncounterModule extends Module {
@@ -16,4 +15,5 @@ public interface EncounterModule extends Module {
 
 	void addInitiativeListener(InitiativeListener l);
 
+	void setRoll(Creature c, int roll);
 }

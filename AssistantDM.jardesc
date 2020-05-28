@@ -47,6 +47,7 @@
         <javaElement handleIdentifier="=AssistantDM/&lt;combat"/>
         <file path="/CanonCDSDK/CDSDK.dll"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;digital_table.elements"/>
+        <javaElement handleIdentifier="=AssistantDM/&lt;webmonitor"/>
         <javaElement handleIdentifier="=AssistantDM/&lt;party"/>
         <file path="/CanonCDSDK/cdDvlp.dll"/>
         <file path="/CanonCDSDK/CDPTPCLS.dll"/>

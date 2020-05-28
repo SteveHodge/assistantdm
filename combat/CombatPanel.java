@@ -37,6 +37,7 @@ import swing.ReorderableList;
 import swing.SpinnerCellEditor;
 import util.ModuleRegistry;
 import util.Updater;
+import webmonitor.WebsiteMonitorModule;
 
 // TODO consider removing ability to edit max hitpoints. Maybe have modifications on this tab be temporary
 // TODO provide events when the combat state changes (round or initiative list), then file updater can just register as listener
@@ -130,6 +131,16 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 
 		roundsLabel = new JLabel("Round " + round);
 
+		JButton requestInitiativeButton = new JButton("Request Initiative");
+		requestInitiativeButton.addActionListener(e -> {
+			initiativeListModel.resetInitiative();
+			round = 0;
+			roundsLabel.setText("Round " + round);
+			updateInitiative();
+			WebsiteMonitorModule web = ModuleRegistry.getModule(WebsiteMonitorModule.class);
+			web.requestInitiative();
+		});
+
 		JButton resetCombatButton = new JButton("Reset Combat");
 		resetCombatButton.addActionListener(e -> {
 			initiativeListModel.reset();
@@ -180,6 +191,7 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 		topPanel.add(advanceTimeButton);
 		topPanel.add(resetCombatButton);
 		topPanel.add(resetEffectsButton);
+		topPanel.add(requestInitiativeButton);
 
 		setLayout(new BorderLayout());
 		add(topPanel, BorderLayout.NORTH);
@@ -212,6 +224,11 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 
 	public void removeInitiativeListener(InitiativeListener l) {
 		listeners.remove(l);
+	}
+
+	@Override
+	public void setRoll(Creature c, int roll) {
+		initiativeListModel.setRoll(c, roll);
 	}
 
 	@Override

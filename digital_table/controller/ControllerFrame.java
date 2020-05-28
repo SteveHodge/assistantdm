@@ -179,6 +179,7 @@ public class ControllerFrame extends JFrame {
 				darknessAction,
 				lightSourceAction,
 				initiativeAction,
+				webMessageAction,
 				browserAction,
 				groupAction,
 				screensAction,
@@ -442,9 +443,10 @@ public class ControllerFrame extends JFrame {
 					&& !(panel instanceof BoundsOptionsPanel)
 					&& !(panel instanceof CalibrateOptionsPanel)
 					&& !(panel instanceof InitiativeOptionsPanel)
+					&& !(panel instanceof WebMessageOptionsPanel)
 					&& !(panel instanceof CameraOptionsPanel)
 					&& !(panel instanceof GroupOptionsPanel)) {
-				// will also want to skip tokens that are bound to characters and descendents of such tokens
+				// TODO will also want to skip tokens that are bound to characters and descendents of such tokens
 				display.removeElement(panel.getElement());
 				panels.remove();
 			}
@@ -1291,6 +1293,13 @@ public class ControllerFrame extends JFrame {
 		}
 	};
 
+	private AddElementAction<WebMessageOptionsPanel> webMessageAction = new AddElementAction<WebMessageOptionsPanel>("Web Messages") {
+		@Override
+		protected WebMessageOptionsPanel createOptionsPanel(MapElement parent) {
+			return new WebMessageOptionsPanel(parent, display);
+		}
+	};
+
 	private AddElementAction<LabelOptionsPanel> labelAction = new AddElementAction<LabelOptionsPanel>("Label") {
 		@Override
 		protected LabelOptionsPanel createOptionsPanel(MapElement parent) {
@@ -1398,6 +1407,8 @@ public class ControllerFrame extends JFrame {
 			p = lightSourceAction.addElement(parent);
 		} else if (tag.equals(InitiativeOptionsPanel.XML_TAG)) {
 			p = initiativeAction.addElement(parent);
+		} else if (tag.equals(WebMessageOptionsPanel.XML_TAG)) {
+			p = webMessageAction.addElement(parent);
 		} else if (tag.equals(GroupOptionsPanel.XML_TAG)) {
 			p = groupAction.addElement(parent);
 		} else if (tag.equals(BoundsOptionsPanel.XML_TAG)) {

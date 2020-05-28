@@ -150,14 +150,14 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 			System.out.println("Caught error: " + e);
 		}
 
+		dmmon = new WebsiteMonitor(party);
+
 		controller = new DigitalTableController() {
 			@Override
 			protected void quit() {
 				close();
 			}
 		};
-
-		dmmon = new WebsiteMonitor(party, controller, combatPanel);
 
 		// TODO convert to Actions where sensible
 		menuBar = new JMenuBar();
