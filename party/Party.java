@@ -33,7 +33,7 @@ public class Party implements Iterable<Character>, Module {
 	protected List<Character> characters;
 	protected List<PartyListener> listeners = new ArrayList<>();
 	protected Map<PartyXMLPlugin, String> plugins = new HashMap<>();
-	protected List<PartyXMLPlugin> pluginList = new ArrayList<>();	// we keep a list of plugins because the xsd requires the tags to be in a specific order 
+	protected List<PartyXMLPlugin> pluginList = new ArrayList<>();	// we keep a list of plugins because the xsd requires the tags to be in a specific order
 
 	public Party() {
 		ModuleRegistry.register(Party.class, this);
@@ -61,7 +61,9 @@ public class Party implements Iterable<Character>, Module {
 	public void add(Character c) {
 		if (characters.contains(c)) return;
 		characters.add(c);
-		for (PartyListener l : listeners) l.characterAdded(c);
+		for (PartyListener l : listeners) {
+			l.characterAdded(c);
+		}
 	}
 
 	public boolean remove(Character c) {
@@ -99,7 +101,8 @@ public class Party implements Iterable<Character>, Module {
 	public static Document parseXML(File xmlFile) {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			InputStream is = (new Party()).getClass().getClassLoader().getResourceAsStream("party.xsd");
+			InputStream is = (new Object() {
+			}).getClass().getClassLoader().getResourceAsStream("party.xsd");
 			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 			//XMLUtils.printNode(dom, "");

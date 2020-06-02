@@ -6,6 +6,10 @@ import java.awt.GridBagLayout;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -18,11 +22,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
-import digital_table.elements.Label;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.WebMessage;
+import digital_table.elements.WebMessage.ColorMode;
+import gamesystem.core.PropertyEvent;
+import gamesystem.core.PropertyListener;
 import party.Character;
+import party.Party;
+import party.PartyListener;
 import util.ModuleListener;
 import util.ModuleRegistry;
 import webmonitor.WebsiteMessageListener;
@@ -40,6 +48,7 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 	private JPanel bgColorPanel;
 	private JCheckBox visibleCheck;
 	private JTextField fontSizeField;
+	private JComboBox<ColorMode> modeCombo;
 
 	WebMessageOptionsPanel(MapElement parent, DisplayManager r) {
 		super(r);
@@ -74,6 +83,55 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 			}
 		});
 
+		ModuleRegistry.addModuleListener(Party.class, new ModuleListener<Party>() {
+			Map<Character, PropertyListener> listeners = new HashMap<>();
+			PartyListener partyListener = new PartyListener() {
+				@Override
+				public void characterAdded(Character c) {
+					setupCharacter(c);
+				}
+
+				@Override
+				public void characterRemoved(Character c) {
+					PropertyListener l = listeners.remove(c);
+					if (l != null)
+						c.removePropertyListener(Character.PROPERTY_COLOR, l);
+				}
+			};
+
+			@Override
+			public void moduleRegistered(Party party) {
+				for (Character c : party) {
+					setupCharacter(c);
+				}
+
+				party.addPartyListener(partyListener);
+			}
+
+			@Override
+			public void moduleRemoved(Party party) {
+				Set<Character> toRemove = new HashSet<>(listeners.keySet());
+				for (Character c : toRemove) {
+					PropertyListener l = listeners.remove(c);
+					if (l != null)
+						c.removePropertyListener(Character.PROPERTY_COLOR, l);
+					party.removePartyListener(partyListener);
+				}
+			}
+
+			void setupCharacter(Character c) {
+				PropertyListener l = new PropertyListener() {
+					@Override
+					public void propertyChanged(PropertyEvent event) {
+						display.setProperty(element, WebMessage.PROPERTY_PREFIX_PREFIX + c.getName(), c.getColor());
+					}
+				};
+				c.addPropertyListener(Character.PROPERTY_COLOR, l);
+				listeners.put(c, l);
+				display.setProperty(element, WebMessage.PROPERTY_PREFIX_PREFIX + c.getName(), c.getColor());
+			}
+		});
+
 		element.addPropertyChangeListener(listener);
 
 		xField = createDoubleControl(WebMessage.PROPERTY_X);
@@ -85,7 +143,8 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		bgColorPanel = createColorControl(WebMessage.PROPERTY_BACKGROUND_COLOR);
 		rotationsCombo = createRotationControl(WebMessage.PROPERTY_ROTATIONS, Mode.ALL);
 		visibleCheck = createVisibilityControl();
-		fontSizeField = createDoubleControl(Label.PROPERTY_FONT_SIZE);
+		fontSizeField = createDoubleControl(WebMessage.PROPERTY_FONT_SIZE);
+		modeCombo = createComboControl(WebMessage.PROPERTY_COLOR_MODE, WebMessage.ColorMode.values());
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -101,6 +160,7 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		add(new JLabel("Height:"), c);
 		add(new JLabel("Font size (in grid cells):"), c);
 		add(new JLabel("Rotation:"), c);
+		add(new JLabel("Colour Mode:"), c);
 		add(new JLabel("Colour:"), c);
 		add(new JLabel("Background:"), c);
 		add(new JLabel("Transparency:"), c);
@@ -114,6 +174,7 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		add(heightField, c);
 		add(fontSizeField, c);
 		add(rotationsCombo, c);
+		add(modeCombo, c);
 		add(colorPanel, c);
 		add(bgColorPanel, c);
 		add(alphaSlider, c);
@@ -153,6 +214,12 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 
 			} else if (e.getPropertyName().equals(WebMessage.PROPERTY_BACKGROUND_COLOR)) {
 				bgColorPanel.setBackground((Color) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(WebMessage.PROPERTY_FONT_SIZE)) {
+				fontSizeField.setText(e.getNewValue().toString());
+
+			} else if (e.getPropertyName().equals(WebMessage.PROPERTY_COLOR_MODE)) {
+				modeCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
 				// ignore
@@ -210,6 +277,8 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		parseDoubleAttribute(WebMessage.PROPERTY_WIDTH, e, Mode.ALL);
 		parseDoubleAttribute(WebMessage.PROPERTY_HEIGHT, e, Mode.ALL);
 		parseIntegerAttribute(WebMessage.PROPERTY_ROTATIONS, e, Mode.ALL);
+		parseDoubleAttribute(WebMessage.PROPERTY_FONT_SIZE, e, Mode.ALL);
+		parseEnumAttribute(WebMessage.PROPERTY_COLOR_MODE, WebMessage.ColorMode.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 }

@@ -394,6 +394,7 @@
 		<xs:attribute name="type" type="xs:string"/>
 		<xs:attribute name="weight" type="xs:string"/>
 		<xs:attribute name="campaign" type="xs:string"/>
+		<xs:attribute name="uicolor" type="xs:string"/>
 	</xs:complexType>
 </xs:element>
 

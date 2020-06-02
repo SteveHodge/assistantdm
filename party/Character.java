@@ -1,5 +1,6 @@
 package party;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -83,6 +84,8 @@ public class Character extends Creature {
 	public final static String PROPERTY_SPELL_RESISTANCE = "Spell Resistance";
 	public final static String PROPERTY_ARCANE_SPELL_FAILURE = "Arcane Spell Failure";
 	public final static String PROPERTY_ACTION_POINTS = "Action Points";
+
+	public final static String PROPERTY_COLOR = "Color";
 
 	// TODO the armor component override may go away
 	public enum ACComponentType {
@@ -229,6 +232,8 @@ public class Character extends Creature {
 		slots = new InventorySlots(this);
 
 		inventory = new Inventory(this);
+
+		new SimpleValueProperty<Color>("extra." + PROPERTY_COLOR, this, Color.BLACK);
 	}
 
 	//------------------- Skills -------------------
@@ -559,6 +564,17 @@ public class Character extends Creature {
 
 	public void setSlotItem(Slot slot, ItemDefinition item) {
 		slots.setItem(slot, item);
+	}
+
+//------------------- Colour -------------------
+	public Color getColor() {
+		return (Color) getPropertyValue(PROPERTY_COLOR);
+	}
+
+	public void setColor(Color c) {
+		@SuppressWarnings("unchecked")
+		SimpleValueProperty<Color> colourProp = (SimpleValueProperty<Color>) getProperty("extra." + PROPERTY_COLOR);
+		colourProp.setValue(c);
 	}
 
 //------------------- Import/Export and other methods -------------------

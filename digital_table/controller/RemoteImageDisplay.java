@@ -15,6 +15,7 @@ import digital_table.elements.GridCoordinates;
 import digital_table.elements.Initiative;
 import digital_table.elements.MapElement;
 import digital_table.elements.MapElement.Visibility;
+import digital_table.elements.WebMessage;
 import util.Updater;
 
 /**
@@ -184,7 +185,7 @@ class RemoteImageDisplay extends TokenOverlay {
 			MapElement copy = (MapElement) is.readObject();
 			is.close();
 
-			if ((copy instanceof Initiative)) {
+			if ((copy instanceof Initiative) || (copy instanceof WebMessage)) {
 				copy.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
 			}
 
@@ -207,7 +208,7 @@ class RemoteImageDisplay extends TokenOverlay {
 	void setProperty(MapElement element, String property, Object value) {
 		MapElement e = elements.get(element.getID());
 		if (e == null) return;
-		if (e instanceof Initiative) return;
+		if ((e instanceof Initiative) || (e instanceof WebMessage)) return;
 		if (e instanceof GridCoordinates && (property == GridCoordinates.PROPERTY_RULER_ROW || property == GridCoordinates.PROPERTY_RULER_COLUMN)) return;
 		e.setProperty(property, value);
 	}

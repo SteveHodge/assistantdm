@@ -1,17 +1,22 @@
 package ui;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -105,6 +110,23 @@ public class PartyPanel extends JPanel implements PartyListener {
 			CharacterDamagePanel.openDialog(this, "Damage and healing", c);
 		});
 		actionsPane.add(healButton);
+		final JPanel colorPanel = new JPanel();
+		colorPanel.setBackground(c.getColor());
+		colorPanel.setOpaque(true);
+		colorPanel.setMinimumSize(new Dimension(50, 20));
+		colorPanel.setPreferredSize(new Dimension(50, 20));
+		colorPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		colorPanel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Color newColor = JColorChooser.showDialog(PartyPanel.this, "Choose colour", c.getColor());
+				if (newColor != null) {
+					c.setColor(newColor);
+					colorPanel.setBackground(newColor);
+				}
+			}
+		});
+		actionsPane.add(colorPanel);
 		actionsPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, actionsPane.getMinimumSize().height));
 		leftPanel.add(actionsPane);
 

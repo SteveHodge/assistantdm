@@ -91,4 +91,11 @@ public class Sanity extends ValueProperty<Integer> {
 		setValue(getValue() - dmg);
 	}
 
+	public String getSummary() {
+		StringBuilder text = new StringBuilder();
+		text.append(maxSanity.getValue()).append(" maximum sanity<br/>");
+		text.append(startingSanity.getValue()).append(" starting sanity (limit for normal healing)<br/>");
+		text.append(getValue()).append(" current sanity<br/>");
+		return text.toString();
+	}
 }

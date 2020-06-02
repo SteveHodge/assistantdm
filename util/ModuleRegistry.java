@@ -19,8 +19,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import party.Party;
-
 /* Modules are independent parts of the system. There is some limited interaction between
  * modules, the ModuleRegistry facilitates this interaction by providing a central registry
  * for module discovery and module startup/shutdown notification.
@@ -42,7 +40,7 @@ public class ModuleRegistry {
 	private static Map<String, Element> moduleConfig = new HashMap<>();
 
 	public static <M extends Module> void register(Class<M> c, M module) {
-//		System.out.println("Registered " + c + ": " + module.hashCode());
+		//System.out.println("Registered " + c + ": " + module.hashCode());
 		if (modules.containsKey(c)) {
 			remove(modules.get(c));
 		}
@@ -124,7 +122,8 @@ public class ModuleRegistry {
 	public static void parseConfigFile(File xmlFile) {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			InputStream is = (new Party()).getClass().getClassLoader().getResourceAsStream("config.xsd");
+			InputStream is = (new Object() {
+			}).getClass().getClassLoader().getResourceAsStream("config.xsd");
 			factory.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is)));
 			Document dom = factory.newDocumentBuilder().parse(xmlFile);
 

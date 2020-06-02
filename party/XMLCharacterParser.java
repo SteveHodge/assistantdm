@@ -1,5 +1,7 @@
 package party;
 
+import java.awt.Color;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -37,6 +39,12 @@ public class XMLCharacterParser extends XMLParserHelper {
 		c.setProperty(Character.PROPERTY_ARCANE_SPELL_FAILURE, el.getAttribute("arcane-spell-failure"));
 		c.setProperty(Character.PROPERTY_ACTION_POINTS, el.getAttribute("action-points"));
 		c.setProperty(Character.PROPERTY_CAMPAIGN, el.getAttribute("campaign"));
+
+		String colourString = el.getAttribute("uicolor");
+		if (colourString != null && colourString.length() > 0) {
+			Color color = new Color((int) Long.parseLong(colourString, 16));
+			c.setColor(color);
+		}
 
 		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con and buffs to ensure temp hps are set correctly
 		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise

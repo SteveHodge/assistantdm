@@ -3,7 +3,7 @@
 * DONE Webpage: zoom to 100% button
 * DONE Webserver: propogate roll messages
 * IN WORK UI for messages etc
-* Webserver/webpage/java: DM request roll function
+* IN WORK Webserver/webpage/java: DM request roll function
 * Webserver/java: subscriber list
 * Webserver: message history
 * Webpage: move token with mouse function

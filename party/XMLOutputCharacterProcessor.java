@@ -1,5 +1,7 @@
 package party;
 
+import java.awt.Color;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -55,6 +57,9 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 		setAttributeFromProperty(c, creatureEl, "arcane-spell-failure", Character.PROPERTY_ARCANE_SPELL_FAILURE);
 		setAttributeFromProperty(c, creatureEl, "action-points", Character.PROPERTY_ACTION_POINTS);
 		setAttributeFromProperty(c, creatureEl, "campaign", Character.PROPERTY_CAMPAIGN);
+
+		Color color = character.getColor();
+		creatureEl.setAttribute("uicolor", Long.toString(Integer.toUnsignedLong(color.getRGB()), 16));
 
 		processItemSlots();
 		processInventory();

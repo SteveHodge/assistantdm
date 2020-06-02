@@ -474,6 +474,7 @@ public class CharacterSheetView {
 			e.setAttribute("maximum", "" + sanity.getMaximumSanityProperty().getValue());
 			e.setAttribute("starting", "" + sanity.getStartingSanityProperty().getValue());
 			e.setAttribute("knowledge-name", "Occult Knowledge");
+			e.setAttribute("info", sanity.getSummary());
 		}
 	}
 }
