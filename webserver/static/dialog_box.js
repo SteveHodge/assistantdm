@@ -193,16 +193,16 @@ function showInfo(element) {
 function showRollRequest(msg) {
 	var contents = 'Make a';
 	if (msg['roll-type'] == 'initiative') contents += 'n';
-	contents += ' '+msg['roll-type'] + ' roll: '+msg['dice-spec']+'<br><br>';
+	contents += ' '+msg.title + ' ' + msg.suffix + ' roll: '+msg['dice-spec']+'<br><br>';
 
 	contents += '<div id="roll"></div><br>';
 
 	contents += '<button id="rollbutton" type="button" onmousedown="clearRoll();" onclick="rollForRequest(\''+msg['dice-spec']+"', '"
-		+ msg['roll-type']+"', '"+msg['roll-type']+"', '', '', '"+msg['req-token']+'\');">Roll</button>';
+		+ msg['roll-type']+"', '"+msg.title+"', '"+msg.suffix+"', '', '"+msg['req-token']+'\');">Roll</button>';
 
 	contents += '<button id="cancelrollbutton" type="button" onclick="cancelRollRequest(\''+msg['req-token']+'\');">Cancel</button>';
 
-	showDialog('DM requests '+msg['roll-type'] + ' roll', contents, 'info', false);
+	showDialog('DM requests ' + msg.title + ' ' + msg.suffix + ' roll', contents, 'info', false);
 }
 
 function clearRoll()

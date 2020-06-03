@@ -145,7 +145,7 @@ public class CombatPanel extends JPanel implements EncounterModule, PartyXMLPlug
 		resetCombatButton.addActionListener(e -> {
 			initiativeListModel.reset();
 			round = 0;
-			roundsLabel.setText("Round "+round);
+			roundsLabel.setText("Round " + round);
 			updateInitiative();
 		});
 

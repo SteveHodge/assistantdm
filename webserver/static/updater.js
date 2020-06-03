@@ -81,7 +81,14 @@ var updater = (function($) {
 	}
 
 	function handleRollRequest(msg) {
-		logStr = 'DM requests '+msg['roll-type'] + ' roll: '+msg['dice-spec']+'<br/><br/>';
+		var description = msg.title;
+		if (msg['roll-type'] != msg.title) {
+			msg.suffix = msg['roll-type'];
+			description += ' '+msg['roll-type'];
+		} else {
+			msg.suffix = '';
+		}
+		logStr = 'DM requests ' + description + ' roll: '+msg['dice-spec'] + '<br/><br/>';
 		addMessage(logStr);
 		showRollRequest(msg);
 	}

@@ -56,6 +56,10 @@ public class SubscriberModel extends AbstractTableModel {
 		return subscribers.size();
 	}
 
+	public Subscriber getSubscriber(int row) {
+		return subscribers.get(row);
+	}
+
 	@Override
 	public Object getValueAt(int row, int column) {
 		Subscriber s = subscribers.get(row);

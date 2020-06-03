@@ -25,6 +25,7 @@ import party.Party;
 import util.Module;
 import util.ModuleRegistry;
 import util.Updater;
+import webmonitor.MonitorFrame.RequestType;
 import webmonitor.SubscriberModel.Subscriber;
 
 public class WebsiteMonitor implements WebsiteMonitorModule {
@@ -69,7 +70,7 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 
 		eventSource.open();
 
-		frame = new MonitorFrame(subModel);
+		frame = new MonitorFrame(subModel, this);
 		frame.setVisible(true);
 	}
 
@@ -86,13 +87,15 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 	static class RollRequest {
 		Character character;
 		String type;
+		String title;
 		String token;
 		String dice;
 
-		RollRequest(Character c, String t, String dice) {
+		RollRequest(Character c, String rollType, String title, String dice) {
 			character = c;
-			type = t;
+			type = rollType;
 			this.dice = dice;
+			this.title = title;
 			token = "" + hashCode();
 		}
 
@@ -100,8 +103,10 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 			return "{\n\t\"type\": \"rollreq\",\n"
 					+ "\t\"name\": \"" + character.getName() + "\",\n"
 					+ "\t\"roll-type\": \"" + type + "\",\n"
+					+ "\t\"title\": \"" + title + "\",\n"
 					+ "\t\"dice-spec\": \"" + dice + "\",\n"
-					+ "\t\"req-token\": \"" + token + "\"\n}";
+					+ "\t\"req-token\": \"" + token + "\"\n"
+					+ "}";
 		}
 	}
 
@@ -116,11 +121,28 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 		}
 
 		for (Character c : characters) {
-			int mod = +c.getInitiativeStatistic().getValue();
+			int mod = c.getInitiativeStatistic().getValue();
 			String dice = "1d20" + (mod > 0 ? "+" : "") + mod;
-			RollRequest req = new RollRequest(c, "initiative", dice);
+			RollRequest req = new RollRequest(c, "initiative", "initiative", dice);
 			requests.put(req.token, req);
-			System.out.println("Request Initiative from " + c.getName());
+			System.out.println("Request Initiative from " + c.getName() + " (" + req.dice + ")");
+
+			Updater.updateURL(SEND_URL, "application/json", req.getJSON().getBytes());
+		}
+	}
+
+	public void requestRoll(Set<Subscriber> subscribers, RequestType type) {
+		Set<Character> characters = new HashSet<>();
+		for (Subscriber s : subscribers) {
+			Character c = party.get(s.character);
+			characters.add(c);
+		}
+
+		for (Character c : characters) {
+			RollRequest req = new RollRequest(c, type.getRollType(), type.getTitle(), type.getRoll(c));
+			requests.put(req.token, req);
+			System.out.println("Request " + type.toString() + " from " + c.getName() + " (" + req.dice + ")");
+			System.out.println(req.getJSON());
 
 			Updater.updateURL(SEND_URL, "application/json", req.getJSON().getBytes());
 		}
@@ -150,7 +172,7 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 				text += (mod > 0 ? " + " : " ") + mod;
 			}
 			int customMod = update.getInt("extra-mod");
-			if (mod != 0) {
+			if (customMod != 0) {
 				text += (customMod > 0 ? " + " : " ") + customMod;
 			}
 			text += " = " + update.getInt("total");
