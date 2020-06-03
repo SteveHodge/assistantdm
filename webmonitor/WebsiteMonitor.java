@@ -149,6 +149,10 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 			if (mod != 0) {
 				text += (mod > 0 ? " + " : " ") + mod;
 			}
+			int customMod = update.getInt("extra-mod");
+			if (mod != 0) {
+				text += (customMod > 0 ? " + " : " ") + customMod;
+			}
 			text += " = " + update.getInt("total");
 			System.out.println(text);
 			frame.addMessage(text);

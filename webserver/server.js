@@ -32,6 +32,7 @@ web structure:
 /<character>/spells - spell tracking page (GET+PUT spell updates)
 /<character>/sheet<num> - character sheet <num>, num must be 1 or 2 or ommitted (defaults to 1) (GET)
 /updates/input - send message from web interface, e.g. move token, roll, etc (PUT)
+TODO /updates/input/<character> - send message to specific character
 /updates/all - SSE stream for all file updates (GET)
 /updates/dm - SSE stream for dm updates (GET)
 /updates/<character> - SSE stream for character updates (GET)
@@ -182,8 +183,9 @@ app.get('/updates/:name.xml', function(req, res, next) { subscribe(req.params.na
 app.put('/updates/input', function(req, res, next) {
 	'use strict';
 	
-//	console.log('Headers: '+util.inspect(req.headers));
-	console.log('Update: '+util.inspect(req.body));
+	console.log('Headers: '+util.inspect(req.headers));
+	console.log('Body: '+req.body);
+	console.log('Body json: '+util.inspect(req.body));
 //	console.log('Cookies: '+util.inspect(req.cookies));
 
 	if (req.body['name'] && req.body['type']) {

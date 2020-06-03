@@ -12,6 +12,8 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Map;
 
 import digital_table.server.MapCanvas.Order;
 
@@ -27,10 +29,30 @@ public class WebMessage extends MapElement {
 	public final static String PROPERTY_WIDTH = "width";	// double
 	public final static String PROPERTY_HEIGHT = "height";	// double
 	public final static String PROPERTY_COLOR = "color";	// Color
-	public static final String PROPERTY_BACKGROUND_COLOR = "background_color";	// Color
+	public final static String PROPERTY_BACKGROUND_COLOR = "background_color";	// Color
 	public final static String PROPERTY_MESSAGE = "message";	// String - add a new message to the list
 	public final static String PROPERTY_CLEAR = "clear";	// boolean - clear the message list
-	public static final String PROPERTY_FONT_SIZE = "font_size";	// double
+	public final static String PROPERTY_FONT_SIZE = "font_size";	// double
+
+	public enum ColorMode {
+		GLOBAL("Single Colour"),	// use the colour set by PROPERTY_COLOR for all text
+		COLOR_PREFIXES("Coloured Names"),	// use per-prefix colours for the prefix text, PROPERTY_COLOR colour for remaining text
+		COLOR_ALL("Coloured Messages");	// use per-prefix colours for whole messages
+
+		@Override
+		public String toString() {
+			return description;
+		}
+
+		private ColorMode(String d) {
+			description = d;
+		}
+
+		private final String description;
+	}
+
+	public final static String PROPERTY_COLOR_MODE = "color_mode";	// ColorMode
+	public final static String PROPERTY_PREFIX_PREFIX = "prefix_color_";	// Color - note remaining text of property defines the prefix the colour applies to
 
 	// position in grid coordinate-space
 	Property<Double> x = new Property<Double>(PROPERTY_X, 0d, Double.class);
@@ -49,7 +71,9 @@ public class WebMessage extends MapElement {
 	Property<Color> color = new Property<Color>(PROPERTY_COLOR, Color.BLACK, Color.class);
 	Property<Color> backgroundColor = new Property<Color>(PROPERTY_BACKGROUND_COLOR, Color.WHITE, Color.class);
 	Property<Double> fontSize = new Property<Double>(PROPERTY_FONT_SIZE, 0.333d, Double.class);
+	Property<ColorMode> colorMode = new Property<ColorMode>(PROPERTY_COLOR_MODE, ColorMode.GLOBAL, ColorMode.class);
 
+	Map<String, Color> prefixColors = new HashMap<>();
 	ArrayDeque<String> messages = new ArrayDeque<String>();		// stores all messages from last to first (most efficient order for drawing)
 
 	@Override
@@ -104,7 +128,26 @@ public class WebMessage extends MapElement {
 		g.setColor(color.getValue());
 		int y = p.y + h - 5 - metrics.getHeight() + metrics.getAscent();
 		for (String line : messages) {
-			g.drawString(line, p.x + 5, y);
+			String prefix = "";
+			if (colorMode.getValue() == ColorMode.COLOR_ALL || colorMode.getValue() == ColorMode.COLOR_PREFIXES) {
+				for (String pre : prefixColors.keySet()) {
+					if (line.startsWith(pre)) {
+						prefix = pre;
+						g.setColor(prefixColors.get(pre));
+					}
+				}
+			}
+			if (colorMode.getValue() == ColorMode.COLOR_PREFIXES) {
+				// TODO draw just the prefix
+				g.drawString(prefix, p.x + 5, y);
+				g.setColor(color.getValue());
+				g.drawString(line.substring(prefix.length()), (int) (p.x + metrics.getStringBounds(prefix, g).getWidth() + 5), y);
+			} else {
+				g.drawString(line, p.x + 5, y);
+				if (colorMode.getValue() == ColorMode.COLOR_ALL) {
+					g.setColor(color.getValue());
+				}
+			}
 			y -= metrics.getHeight();
 		}
 
@@ -130,14 +173,30 @@ public class WebMessage extends MapElement {
 	public void setProperty(String property, Object value) {
 		if (property.equals(PROPERTY_CLEAR)) {
 			messages.clear();
-			canvas.repaint();
+			if (canvas != null) canvas.repaint();
 
 		} else if (property.equals(PROPERTY_MESSAGE)) {
 			messages.addFirst(value.toString());
-			canvas.repaint();
+			if (canvas != null) canvas.repaint();
+
+		} else if (property.startsWith(PROPERTY_PREFIX_PREFIX)) {
+			String prefix = property.substring(PROPERTY_PREFIX_PREFIX.length());
+			prefixColors.put(prefix, (Color) value);
+			if (canvas != null) canvas.repaint();
 
 		} else {
 			super.setProperty(property, value);
+		}
+	}
+
+	@Override
+	public Object getProperty(String property) {
+		if (property.startsWith(PROPERTY_PREFIX_PREFIX)) {
+			String prefix = property.substring(PROPERTY_PREFIX_PREFIX.length());
+			return prefixColors.get(prefix);
+
+		} else {
+			return super.getProperty(property);
 		}
 	}
 }

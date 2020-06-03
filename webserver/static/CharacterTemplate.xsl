@@ -21,7 +21,7 @@
 			<td colspan="13" class="weapon-subtitle">DAMAGE</td>
 			<td colspan="9" class="weapon-subtitle">CRITICAL</td>
 		</tr>
-		<tr style="height:3.84em;" title="{$weapon/@name}" info="{$weapon/@info}&lt;p&gt;{$weapon/@damage_info}" onclick="showInfo(this);" roll="{$weapon/@attacks}/{$weapon/@damage}" roll-type="weapon">
+		<tr style="height:3.84em;" title="{$weapon/@name}" info="{$weapon/@info}" info2="{$weapon/@damage_info}" onclick="showInfo(this);" roll="{$weapon/@attacks}" roll2="{$weapon/@damage}" roll-type="weapon">
 			<td colspan="17" class="weapon-name">
 				<xsl:value-of select="$weapon/@name"/>
 			</td>
@@ -538,7 +538,7 @@
 			<td colspan="4" class="label">STARTING</td>
 		</tr>
 		<tr style="height:2.56em;">
-			<td colspan="6" class="title">HP</td>
+			<td colspan="6" class="title" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">HP</td>
 			<td/>
 			<td colspan="4" rowspan="2" class="data-value-important" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
 				<xsl:value-of select="HitPoints/@maximum"/>
@@ -558,17 +558,17 @@
 			<td/>
 			<td/>
 			<td/>
-			<td colspan="6" rowspan="2" class="title">SANITY</td>
+			<td colspan="6" rowspan="2" class="title" title="Sanity" info="{Sanity/@info}" roll="1d100" roll-type="sanity" onclick="showInfo(this);">SANITY</td>
 			<td/>
-			<td colspan="10" rowspan="2" class="data-value" style="text-align:left; padding-left:10px">
+			<td colspan="10" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Sanity" info="{Sanity/@info}" roll="1d100" roll-type="sanity" onclick="showInfo(this);">
 				<xsl:value-of select="Sanity/@current"/>
 			</td>
 			<td/>
-			<td colspan="4" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
+			<td colspan="4" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Sanity" info="{Sanity/@info}" roll="1d100" roll-type="sanity" onclick="showInfo(this);">
 				<xsl:value-of select="Sanity/@maximum"/>
 			</td>
 			<td/>
-			<td colspan="4" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Hit Points" info="{HitPoints/@info}" onclick="showInfo(this);">
+			<td colspan="4" rowspan="2" class="data-value" style="text-align:left; padding-left:10px" title="Sanity" info="{Sanity/@info}" roll="1d100" roll-type="sanity" onclick="showInfo(this);">
 				<xsl:value-of select="Sanity/@starting"/>
 			</td>
 		</tr>

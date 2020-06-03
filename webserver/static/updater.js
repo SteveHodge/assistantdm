@@ -73,8 +73,17 @@ var updater = (function($) {
 		if (msg.mod != 0) {
 			logStr += (msg.mod > 0 ? ' + ' : ' ') + msg.mod;
 		}
+		if (msg['extra-mod'] != 0) {
+			logStr += (msg['extra-mod'] > 0 ? ' + ' : ' ') + msg['extra-mod'];
+		}
 		logStr += ' = <b>' + msg.total + '</b><br/><br/>';
 		addMessage(logStr);
+	}
+
+	function handleRollRequest(msg) {
+		logStr = 'DM requests '+msg['roll-type'] + ' roll: '+msg['dice-spec']+'<br/><br/>';
+		addMessage(logStr);
+		showRollRequest(msg);
 	}
 
 	// this stuff seems a bit hackish
@@ -245,8 +254,12 @@ var updater = (function($) {
 
 		source.addEventListener('message', function(event) {
 			var msg = JSON.parse(event.data);
-			if (msg && msg.type === 'roll')
+			if (!msg) return;
+			if (msg.type === 'roll') {
 				logRoll(msg);
+			} else if (msg.type === 'rollreq' && msg.name === name) {
+				handleRollRequest(msg)
+			}
 		}, false);
 
 		return true;
@@ -366,6 +379,7 @@ var updater = (function($) {
 	}
 
 	function toggleTokens() {
+		if (!document.getElementById("tokens1")) return;
 		var $toggle = $('#overlaytoggle');
 		$toggle.toggleClass('toggleon');
 		if ($toggle.hasClass('toggleon')) {
@@ -380,16 +394,16 @@ var updater = (function($) {
 	function switchTokenList() {
 		var span = document.getElementById("tokenswitch");
 		if (!span) return;
-		var state = span.innerHTML == "\u2bc6";
-		span.innerHTML = state ? "&#x2bc8" : "&#x2bc6";
+		var state = span.innerHTML == "\u25be";
+		span.innerHTML = state ? "&#x25b8" : "&#x25be";
 		$('#tokenlist > table').toggle(!state);
 	}
 
 	function switchMessages() {
 		var span = document.getElementById("messageswitch");
 		if (!span) return;
-		var state = span.innerHTML == "\u2bc6";
-		span.innerHTML = state ? "&#x2bc8" : "&#x2bc6";
+		var state = span.innerHTML == "\u25be";
+		span.innerHTML = state ? "&#x25b8" : "&#x25be";
 		$('#messages').toggle(!state);
 	}
 
