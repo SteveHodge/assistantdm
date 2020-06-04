@@ -8,6 +8,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -118,16 +119,16 @@ public class WebMessage extends MapElement {
 		g.translate((newWidth - w) / 2, (newHeight - h) / 2);
 
 		Shape oldClip = g.getClip();
-		g.setClip(p.x, p.y, w, h);
+		g.clip(new Rectangle(p.x, p.y, w, h));
 
 		// paint background
 		g.setColor(backgroundColor.getValue());
 		g.fillRect(p.x, p.y, w, h);
 
 		// draw text
-		g.setColor(color.getValue());
 		int y = p.y + h - 5 - metrics.getHeight() + metrics.getAscent();
 		for (String line : messages) {
+			g.setColor(color.getValue());
 			String prefix = "";
 			if (colorMode.getValue() == ColorMode.COLOR_ALL || colorMode.getValue() == ColorMode.COLOR_PREFIXES) {
 				for (String pre : prefixColors.keySet()) {
@@ -136,17 +137,18 @@ public class WebMessage extends MapElement {
 						g.setColor(prefixColors.get(pre));
 					}
 				}
-			}
-			if (colorMode.getValue() == ColorMode.COLOR_PREFIXES) {
-				// TODO draw just the prefix
-				g.drawString(prefix, p.x + 5, y);
-				g.setColor(color.getValue());
-				g.drawString(line.substring(prefix.length()), (int) (p.x + metrics.getStringBounds(prefix, g).getWidth() + 5), y);
-			} else {
-				g.drawString(line, p.x + 5, y);
-				if (colorMode.getValue() == ColorMode.COLOR_ALL) {
+				if (prefix.length() > 0) {
+					Font normalFont = g.getFont();
+					g.setFont(normalFont.deriveFont(Font.BOLD));
+					g.drawString(prefix, p.x + 5, y);
+					double boldWidth = g.getFontMetrics().getStringBounds(prefix, g).getWidth();
 					g.setColor(color.getValue());
+					g.setFont(normalFont);
+					g.drawString(line.substring(prefix.length()), p.x + (int) boldWidth + 5, y);
 				}
+			}
+			if (prefix.length() == 0) {
+				g.drawString(line, p.x + 5, y);
 			}
 			y -= metrics.getHeight();
 		}

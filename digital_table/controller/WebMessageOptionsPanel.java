@@ -126,7 +126,7 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 						display.setProperty(element, WebMessage.PROPERTY_PREFIX_PREFIX + c.getName(), c.getColor());
 					}
 				};
-				c.addPropertyListener(Character.PROPERTY_COLOR, l);
+				c.addPropertyListener("extra." + Character.PROPERTY_COLOR, l);
 				listeners.put(c, l);
 				display.setProperty(element, WebMessage.PROPERTY_PREFIX_PREFIX + c.getName(), c.getColor());
 			}
