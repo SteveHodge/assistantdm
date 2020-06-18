@@ -35,7 +35,7 @@ public class CharacterClassesPanel extends CharacterSubPanel {
 		col.setPreferredWidth(60);
 		col = table.getColumnModel().getColumn(1);
 		col.setPreferredWidth(140);
-		JComboBox<CharacterClass> classCombo = new JComboBox<>(CharacterClass.getCoreClasses());
+		JComboBox<CharacterClass> classCombo = new JComboBox<>(CharacterClass.getPCClasses());
 		col.setCellEditor(new DefaultCellEditor(classCombo));
 
 		int visibleRows = 7;

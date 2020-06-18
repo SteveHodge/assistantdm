@@ -35,8 +35,8 @@ public enum CharacterClass {
 //	Dwarven Defender	d12	good bab, good fort, bad ref, good will
 //	Eldritch Knight	d6	good bab, good fort, bad ref, bad will
 //	Hierophant	d8	bad bab, good fort, bad ref, good will
-//	Horizon Walker	d8	good bab, good fort, bad ref, bad will
-//	Loremaster	d4	bad bab, bad fort, bad ref, good will
+	HORIZON_WALKER("Horizon Walker", 8, BABProgression.FAST, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW),
+	LOREMASTER("Loremaster", 4, BABProgression.SLOW, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST),
 //	Mystic Theurge	d4	bad bab, bad fort, bad ref, good will
 //	Red Wizard	d4	bad bab, bad fort, bad ref, good will
 //	Shadowdancer	d8	avg bab, bad fort, good ref, bad will
@@ -49,8 +49,12 @@ public enum CharacterClass {
 	EXPERT("Expert", 6, BABProgression.AVERAGE, SaveProgression.SLOW, SaveProgression.SLOW, SaveProgression.FAST),
 	WARRIOR("Warrior", 8, BABProgression.FAST, SaveProgression.FAST, SaveProgression.SLOW, SaveProgression.SLOW);
 
-	public static CharacterClass[] getCoreClasses() {
+	public static CharacterClass[] getPHBClasses() {
 		return new CharacterClass[] { BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WIZARD };
+	}
+
+	public static CharacterClass[] getPCClasses() {
+		return new CharacterClass[] { BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WIZARD, BLACKGUARD, HORIZON_WALKER, LOREMASTER };
 	}
 
 	@Override
