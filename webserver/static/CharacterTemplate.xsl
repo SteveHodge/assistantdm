@@ -585,9 +585,9 @@
 			<td/><td/><td/><td/><td/><td/><td/><td/><td/><td/>
 		</tr>
 		<tr style="height:2.56em;">
-			<td colspan="6" class="title">AC</td>
+			<td colspan="6" class="title" title="AC" info="{AC/@info}" onclick="showInfo(this);">AC</td>
 			<td/>
-			<td colspan="4" rowspan="2" class="data-value-important">
+			<td colspan="4" rowspan="2" class="data-value-important" title="AC" info="{AC/@info}" onclick="showInfo(this);">
 				<xsl:value-of select="AC/@total"/>
 			</td>
 			<td rowspan="2" class="symbol">=</td>
@@ -638,7 +638,7 @@
 			</td>
 		</tr>
 		<tr>
-			<td colspan="6" class="subtitle">ARMOR CLASS</td>
+			<td colspan="6" class="subtitle" title="AC" info="{AC/@info}" onclick="showInfo(this);">ARMOR CLASS</td>
 		</tr>
 		<tr style="height:2.56em;">
 			<td/>

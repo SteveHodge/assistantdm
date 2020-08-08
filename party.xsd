@@ -295,6 +295,8 @@
 					<xs:attribute name="id" type="xs:int"/>
 					<xs:attribute name="proficient" type="xs:boolean"/>
 					<xs:attribute name="base_item" type="xs:string"/>
+					<xs:attribute name="focus" type="xs:string"/>
+					<xs:attribute name="specialization" type="xs:string"/>
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>

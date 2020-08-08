@@ -349,12 +349,18 @@ public class CharacterSheetView {
 			setACComponent(doc, e, ACComponentType.SIZE.toString(), ac.getModifiersTotal(ACComponentType.SIZE.toString()));
 			setACComponent(doc, e, ACComponentType.NATURAL.toString(), ac.getModifiersTotal(ACComponentType.NATURAL.toString()));
 			setACComponent(doc, e, ACComponentType.DEFLECTION.toString(), ac.getModifiersTotal(ACComponentType.DEFLECTION.toString()));
-			int value = ac.getModifiersTotal(ACComponentType.OTHER.toString());
-			value += ac.getModifiersTotal(ACComponentType.DODGE.toString());
-			setACComponent(doc, e, ACComponentType.OTHER.toString(), value);
+			int other = ac.getValue() - 10;
+			other -= ac.getModifiersTotal(ACComponentType.SIZE.toString());
+			other -= ac.getModifiersTotal(ACComponentType.NATURAL.toString());
+			other -= ac.getModifiersTotal(ACComponentType.DEFLECTION.toString());
+			other -= ac.getModifiersTotal("Dexterity");
+			other -= ac.getModifiersTotal("Armor");
+			other -= ac.getModifiersTotal("Shield");
+			setACComponent(doc, e, ACComponentType.OTHER.toString(), other);
 			setACComponent(doc, e, "Dexterity", ac.getModifiersTotal("Dexterity"));
 			setACComponent(doc, e, "Armor", ac.getModifiersTotal("Armor"));
 			setACComponent(doc, e, "Shield", ac.getModifiersTotal("Shield"));
+			e.setAttribute("info", ac.getSummary());
 			creatureEl.appendChild(e);
 		}
 

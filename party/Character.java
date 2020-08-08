@@ -482,7 +482,7 @@ public class Character extends Creature {
 //------------ Feats -------------
 	@Override
 	public boolean hasFeat(String name, AttackForm attack) {
-		CharacterAttackForm chrAtk = attackForms.stream().filter(a -> a.attack == attack).findFirst().get();
+		CharacterAttackForm chrAtk = attackForms.stream().filter(a -> a.attack == attack).findFirst().orElse(null);
 		if (chrAtk != null && name.equals(Feat.FEAT_WEAPON_FOCUS) && chrAtk.focusLevel != WeaponFocus.DEFAULT) return chrAtk.focusLevel != WeaponFocus.NO;
 		if (chrAtk != null && name.equals(Feat.FEAT_WEAPON_SPECIALIZATION) && chrAtk.specLevel != WeaponSpecialization.DEFAULT) return chrAtk.specLevel != WeaponSpecialization.NO;
 		// FIXME override checks for greater focus, greater specialization

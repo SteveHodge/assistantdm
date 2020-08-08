@@ -100,6 +100,11 @@ public class AC extends Statistic implements StatisticsCollection {
 		return total;
 	}
 
+	@Override
+	public String getSummary() {
+		return "10<br/>" + super.getSummary();
+	}
+
 	public Statistic getTouchAC() {
 		return touchAC;
 	}
