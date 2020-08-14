@@ -6,7 +6,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,11 +18,16 @@ import java.util.Set;
 
 import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
+import javax.json.JsonWriterFactory;
+import javax.json.stream.JsonGenerator;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -31,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
@@ -55,10 +63,14 @@ public class CasterPanel extends JPanel {
 	Map<CharacterClass, List<SpellsPanel>> classTabs = new HashMap<>();
 	SimplePropertyCollection propCollect = new SimplePropertyCollection();
 
+	static File casterFile = new File("\\\\armitage\\website\\assistantdm\\characters");
+	JsonObject spellsFileJson;
+
 	public CasterPanel() {
 		casterLevels = new CasterLevels(propCollect);
 		classesTableModel = new CasterLevelsModel();
 		classesTableModel.addTableModelListener((e)->{
+			System.out.println("Update table");
 			// check tab config matches class levels
 			Set<CharacterClass> currentClasses = new HashSet<>();
 			for (CasterClass c : casterLevels.casterClassesIterable()) {
@@ -80,7 +92,7 @@ public class CasterPanel extends JPanel {
 						SpellsPanel.PreparePanel p = new SpellsPanel.PreparePanel(c);
 						tabs.add(p);
 						tabbedPane.addTab("Cleric", null, p, "Cleric Spells Prepared");
-						p = new SpellsPanel.PreparePanel(c, new String[] { "Good", "Law" });
+						p = new SpellsPanel.PreparePanel(c, new String[] { "Magic", "Death" });
 						tabs.add(p);
 						tabbedPane.addTab("Domain", null, p, "Cleric Domain Spells Prepared");
 					} else if (c.getCharacterClass() == CharacterClass.DRUID) {
@@ -111,13 +123,18 @@ public class CasterPanel extends JPanel {
 			}
 
 			// remove any tabs that are no longer required
+			List<CharacterClass> toRemove = new ArrayList<>();
 			for (CharacterClass c : classTabs.keySet()) {
 				List<SpellsPanel> tabs = classTabs.get(c);
 				if (tabs != null && tabs.size() > 0 && !currentClasses.contains(c)) {
 					for (JComponent t : tabs) {
 						tabbedPane.remove(t);
 					}
+					toRemove.add(c);
 				}
+			}
+			for (CharacterClass c : toRemove) {
+				classTabs.remove(c);
 			}
 		});
 		JTable classesTable = new JTable(classesTableModel);
@@ -130,11 +147,17 @@ public class CasterPanel extends JPanel {
 		scroller.setPreferredSize(new Dimension(400, 100));
 		scroller.setBorder(BorderFactory.createTitledBorder("Caster Levels"));
 
-		JButton exportButton = new JButton("Export");
+		JButton exportButton = new JButton("Export Caster");
 		exportButton.addActionListener(e -> exportCaster());
 
-		JButton importButton = new JButton("Import");
+		JButton importButton = new JButton("Import Caster");
 		importButton.addActionListener(e -> importCaster());
+
+		JButton exportSpellsButton = new JButton("Export Spells");
+		exportSpellsButton.addActionListener(e -> exportSpells());
+
+		JButton importSpellsButton = new JButton("Import Spells");
+		importSpellsButton.addActionListener(e -> importSpells());
 
 		tabbedPane = new JTabbedPane();
 
@@ -153,8 +176,11 @@ public class CasterPanel extends JPanel {
 		c.anchor = GridBagConstraints.WEST;
 		c.insets = new Insets(8, 4, 8, 4);
 		JPanel buttons = new JPanel();
+		buttons.setLayout(new BoxLayout(buttons, BoxLayout.Y_AXIS));
 		buttons.add(exportButton);
 		buttons.add(importButton);
+		buttons.add(exportSpellsButton);
+		buttons.add(importSpellsButton);
 		add(buttons, c);
 
 		c.gridx = 0;
@@ -166,28 +192,46 @@ public class CasterPanel extends JPanel {
 		add(tabbedPane, c);
 	}
 
+	// TODO backup old version and/or confirm replace
 	void exportCaster() {
-		System.out.println("Export of caster:");
-		List<String> classes = new ArrayList<>();
+		JFileChooser fc = new JFileChooser();
+		FileFilter filter = new FileNameExtensionFilter("Character Files", "character");
+		fc.addChoosableFileFilter(filter);
+		fc.setFileFilter(filter);
+		fc.setCurrentDirectory(casterFile);
+		int returnVal = fc.showSaveDialog(this);
+		if (returnVal != JFileChooser.APPROVE_OPTION) return;
+
+		casterFile = fc.getSelectedFile();
+
+		System.out.println("Export caster to :" + casterFile.getAbsolutePath());
+		JsonArrayBuilder classesBuilder = Json.createArrayBuilder();
 		for (int i = 0; i < classesTableModel.getRowCount(); i++) {
 			CasterClass c = classesTableModel.getCasterClass(i);
 			if (c == null || c.getCharacterClass() == null || c.getCasterLevel() == 0) continue;
-			String clsStr = "\t{\n";
-			clsStr += "\t\t\"class\": \"" + c.getCharacterClass() + "\",\n";
-			clsStr += "\t\t\"level\": " + c.getCasterLevel() + ",\n";
-			clsStr += "\t\t\"ability\": " + c.getAbilityScore() + "\n";
-			clsStr += "\t}";
-			classes.add(clsStr);
+			JsonObjectBuilder classBuilder = Json.createObjectBuilder()
+					.add("class", c.getCharacterClass().toString())
+					.add("level", c.getCasterLevel())
+					.add("ability", c.getAbilityScore());
+			classesBuilder.add(classBuilder);
 		}
-		String output = "[\n" + String.join(",\n", classes) + "\n]\n";
-		System.out.println(output);
-	}
+		JsonArray classes = classesBuilder.build();
 
-	File casterFile = new File("\\\\armitage\\website\\assistantdm\\characters");
+		Map<String, Boolean> config = new HashMap<>();
+		config.put(JsonGenerator.PRETTY_PRINTING, true);
+		JsonWriterFactory writerFactory = Json.createWriterFactory(config);
+		try (OutputStream out = new FileOutputStream(casterFile)) {
+			writerFactory.createWriter(out).write(classes);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	void importCaster() {
 		JFileChooser fc = new JFileChooser();
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("Character Files", "character"));
+		FileFilter filter = new FileNameExtensionFilter("Character Files", "character");
+		fc.addChoosableFileFilter(filter);
+		fc.setFileFilter(filter);
 		fc.setCurrentDirectory(casterFile);
 		int returnVal = fc.showOpenDialog(this);
 		if (returnVal != JFileChooser.APPROVE_OPTION) return;
@@ -198,15 +242,6 @@ public class CasterPanel extends JPanel {
 		FileInputStream fis;
 		try {
 			fis = new FileInputStream(casterFile);
-//			BufferedReader rd = new BufferedReader(new InputStreamReader(fis));
-//			String line;
-//			StringBuffer response = new StringBuffer();
-//			while ((line = rd.readLine()) != null) {
-//				response.append(line);
-//				response.append("\r");
-//			}
-//			rd.close();
-//			System.out.println(response);
 
 			JsonReader reader = Json.createReader(fis);
 			JsonArray jArray = reader.readArray();
@@ -230,7 +265,124 @@ public class CasterPanel extends JPanel {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
 
+	void exportSpells() {
+		JFileChooser fc = new JFileChooser();
+		FileFilter filter = new FileNameExtensionFilter("Character Spell Files", "spells");
+		fc.addChoosableFileFilter(filter);
+		fc.setFileFilter(filter);
+		fc.setCurrentDirectory(casterFile);
+		int returnVal = fc.showSaveDialog(this);
+		if (returnVal != JFileChooser.APPROVE_OPTION) return;
+
+		casterFile = fc.getSelectedFile();
+		System.out.println("Export character spells to " + casterFile.getAbsolutePath());
+
+		JsonObjectBuilder builder = Json.createObjectBuilder();
+		if (spellsFileJson == null) {
+			// setup new object
+			builder
+			.add("tab_cast", Json.createArrayBuilder())
+			.add("castList", Json.createArrayBuilder())
+			.add("dailies", Json.createArrayBuilder())
+			.add("charges", Json.createArrayBuilder());
+		} else {
+			// copy existing object
+			spellsFileJson.entrySet().forEach(e -> builder.add(e.getKey(), e.getValue()));
+		}
+		// replace tabs that we know about in spellsFileJson
+		for (CharacterClass cls : classTabs.keySet()) {
+			List<SpellsPanel> tabs = classTabs.get(cls);
+			for (SpellsPanel tab : tabs) {
+				System.out.println("Tab for " + cls + ": " + tab);
+
+				String tag = tab.getJsonTabName();
+				JsonValue json = tab.getSpellsJsonBuilder();
+				if (json != null) {
+					builder.add(tag, json);
+				}
+			}
+		}
+		/*
+		"tab_sorcerer"
+		"tab_wizard"
+		"tab_spellbook"
+		"tab_bard"
+		"tab_ranger"
+		"tab_cleric"
+		"tab_domain"
+		"tab_druid"
+		"tab_paladin"
+		 */
+		spellsFileJson = builder.build();
+
+		Map<String, Boolean> config = new HashMap<>();
+		config.put(JsonGenerator.PRETTY_PRINTING, true);
+		JsonWriterFactory writerFactory = Json.createWriterFactory(config);
+		try (OutputStream out = new FileOutputStream(casterFile)) {
+			writerFactory.createWriter(out).write(spellsFileJson);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	void importSpells() {
+		JFileChooser fc = new JFileChooser();
+		FileFilter filter = new FileNameExtensionFilter("Character Spell Files", "spells");
+		fc.addChoosableFileFilter(filter);
+		fc.setFileFilter(filter);
+		fc.setCurrentDirectory(casterFile);
+		int returnVal = fc.showOpenDialog(this);
+		if (returnVal != JFileChooser.APPROVE_OPTION) return;
+
+		casterFile = fc.getSelectedFile();
+		System.out.println("Import character spells from " + casterFile.getAbsolutePath());
+
+		FileInputStream fis;
+		try {
+			fis = new FileInputStream(casterFile);
+
+			JsonReader reader = Json.createReader(fis);
+			spellsFileJson = reader.readObject();
+
+			System.out.println("Processing character spells file:");
+			// process the tabs
+			/*
+			"tab_cast"
+			"castList"
+			"dailies"
+			"charges"
+			"tab_sorcerer"
+			"tab_wizard"
+			"tab_spellbook"
+			"tab_bard"
+			"tab_ranger"
+			"tab_cleric"
+			"tab_domain"
+			"tab_druid"
+			"tab_paladin"
+			 */
+			spellsFileJson.forEach((k, v) -> {
+				System.out.println("   " + k);
+			});
+
+			for (CharacterClass cls : classTabs.keySet()) {
+				System.out.println("Class: " + cls);
+				for (SpellsPanel panel : classTabs.get(cls)) {
+					if (spellsFileJson.containsKey(panel.getJsonTabName())) {
+						System.out.println("Found tab for " + cls + ": " + panel.getJsonTabName());
+						panel.loadJson(spellsFileJson.get(panel.getJsonTabName()).asJsonArray());
+					} else {
+						System.out.println("" + cls + " tab " + panel.getJsonTabName() + " not found in input spells file");
+					}
+				}
+			}
+
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	class CasterClassModel extends AbstractListModel<CharacterClass> implements ComboBoxModel<CharacterClass> {

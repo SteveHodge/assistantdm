@@ -18,6 +18,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonValue;
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -31,6 +37,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 
 import gamesystem.CasterLevels.CasterClass;
+import gamesystem.CharacterClass;
 import gamesystem.Spell;
 
 // TODO could have level filter option to only show levels with available slots
@@ -48,6 +55,14 @@ public class SpellsPanel extends JPanel {
 		spellDetailsLabel = new JLabel();
 		spellDetailScroller = new JScrollPane(spellDetailsLabel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		spellDetailScroller.setPreferredSize(new Dimension(450, 400));
+	}
+
+	JsonValue getSpellsJsonBuilder() {
+		return null;
+	}
+
+	String getJsonTabName() {
+		return "tab_" + casterClass.getCharacterClass().toString().toLowerCase();
 	}
 
 	JScrollPane setupSpellList(JList<?> list, ListCellRenderer<Object> renderer) {
@@ -122,6 +137,85 @@ public class SpellsPanel extends JPanel {
 			}
 		}
 		return -1;
+	}
+
+	void loadJson(JsonArray spells) {
+		System.out.println("Parsing spells for " + getJsonTabName());
+	}
+
+	Map<String, Integer> metaFeats;
+	{
+		metaFeats = new HashMap<>();
+		metaFeats.put("Empowered", 2);
+		metaFeats.put("Enlarged", 1);
+		metaFeats.put("Extended", 1);
+		metaFeats.put("Heightened", 0);
+		metaFeats.put("Maximized", 3);
+		metaFeats.put("Quickened", 4);
+		metaFeats.put("Silent", 1);
+		metaFeats.put("Stilled", 1);
+		metaFeats.put("Widened", 3);
+	};
+
+	static interface AddSpellAction {
+		void addSpell(Spell spell, int lvlAdj, String prefix);
+	}
+
+	void loadJson(JsonArray spells, SpellListModel spellList, AddSpellAction action) {
+		System.out.println("Parsing spells for " + getJsonTabName());
+		spells.forEach(s -> {
+			JsonObject spellJson = s.asJsonObject();
+			String name = spellJson.getString("description");
+			if (!name.startsWith(spellJson.getString("level") + " ")) {
+				System.out.println("Spell description '" + name + "' does not match level " + spellJson.getString("level"));
+			}
+			name = name.substring(name.indexOf(' ') + 1);
+
+			Spell spell = spellList.getSpell(name);
+			// check for meta feats
+			List<String> metas = new ArrayList<>();
+			boolean done = false;
+			int levelAdj = 0;
+			boolean heightened = false;
+			while (spell == null && !done) {
+				// try cutting words off the front to see if we can find the spell
+				String[] pieces = name.split(" ", 2);
+				if (metaFeats.containsKey(pieces[0])) {
+					int l = metaFeats.get(pieces[0]);
+					if (l == 0) heightened = true;
+					levelAdj += l;
+					metas.add(pieces[0]);
+					name = pieces[1];
+					spell = spellList.getSpell(name);
+				} else {
+					// did not recognise the first word as a meta feat, so assume we're done
+					done = true;
+				}
+			}
+
+			if (spell != null) {
+				int levelAdjust = 0;
+				String prefix = "";
+				if (metas.size() > 0) {
+					int finalLevel = Integer.parseInt(spellJson.getString("level"));
+					int spellLevel = getLevel(spell);
+					int heightenedBy = 0;
+					if (heightened) {
+						heightenedBy = finalLevel - levelAdj - spellLevel;
+					}
+					System.out.println("Spell = '" + spell.name + "' (" + spellLevel + ") Meta feats = " + String.join(", ", metas) + ": total level adjust = " + (levelAdj + heightenedBy)
+							+ (heightenedBy > 0 ? " heightened " + heightenedBy : ""));
+					if (finalLevel != spellLevel + levelAdj + heightenedBy || heightenedBy < 0) {
+						System.out.println("Could not calculate adjusted spell level");
+					}
+					prefix = String.join(" ", metas);
+					levelAdjust = levelAdj + heightenedBy;
+				}
+				action.addSpell(spell, levelAdjust, prefix);
+			} else {
+				System.out.println("Could not find spell '" + name + "'");
+			}
+		});
 	}
 
 	Comparator<Spell> spellOrderComparator = new Comparator<Spell>() {
@@ -262,6 +356,21 @@ public class SpellsPanel extends JPanel {
 			c.gridheight = 3;
 			add(spellDetailScroller, c);
 		}
+
+		@Override
+		void loadJson(JsonArray spells) {
+			super.loadJson(spells, spellsModel, (spell, lvl, prefix) -> {
+				spellsModel.removeSpell(spell);
+				spellbookModel.addSpell(spell);
+			});
+		}
+
+		@Override
+		String getJsonTabName() {
+			if (casterClass.getCharacterClass() == CharacterClass.WIZARD)
+				return "tab_spellbook";
+			return super.getJsonTabName();
+		}
 	}
 
 	static interface MetaFeatControl {
@@ -319,6 +428,7 @@ public class SpellsPanel extends JPanel {
 		SpellSlotListModel spellSlotModel;
 		LevelFilterCombo levelFilter;
 		SpellListCellRenderer spellRenderer = new SpellListCellRenderer();
+		String[] domains;
 
 		MetaFeatCheck empowerCheck;
 		MetaFeatCheck enlargeCheck;
@@ -349,16 +459,17 @@ public class SpellsPanel extends JPanel {
 		// shouldn't have both sourceModel and domains
 		private PreparePanel(CasterClass cc, SpellListModel sourceModel, String[] domains) {
 			super(cc);
+			this.domains = domains;
 
 			if (sourceModel != null) {
 				spellListModel = sourceModel;
-				spellSlotModel = new SpellSlotListModel(spellListModel, true);
+				spellSlotModel = new SpellSlotListModel(spellListModel);
 			} else if (domains != null && domains.length > 0) {
 				spellListModel = new AllSpellsListModel(domains);
-				spellSlotModel = new SpellSlotListModel(spellListModel, false, true);
+				spellSlotModel = new SpellSlotListModel(spellListModel, true);
 			} else {
 				spellListModel = new AllSpellsListModel();
-				spellSlotModel = new SpellSlotListModel(spellListModel, true);
+				spellSlotModel = new SpellSlotListModel(spellListModel);
 			}
 
 			JList<Spell> spellList = new JList<>(spellListModel);
@@ -482,6 +593,41 @@ public class SpellsPanel extends JPanel {
 			c.gridheight = 15;
 			add(spellDetailScroller, c);
 		}
+
+		@Override
+		String getJsonTabName() {
+			if (domains != null) return "tab_domain";
+			return super.getJsonTabName();
+		}
+
+		@Override
+		JsonValue getSpellsJsonBuilder() {
+			JsonArrayBuilder builder = Json.createArrayBuilder();
+
+			for (int level : spellSlotModel.slots.keySet()) {
+				for (SpellSlot slot : spellSlotModel.slots.get(level)) {
+					if (slot.spell != null) {
+						String description = slot.slotLevel + " " + slot.spell.name;
+						if (slot.spellLevel != slot.slotLevel)
+							description += " (" + slot.spellLevel + ")";
+						JsonObjectBuilder obj = Json.createObjectBuilder()
+								.add("level", "" + slot.slotLevel)
+								.add("locked", "false")
+								.add("description", description);
+						builder.add(obj);
+					}
+				}
+			}
+
+			return builder.build();
+		}
+
+		@Override
+		void loadJson(JsonArray spells) {
+			super.loadJson(spells, spellListModel, (spell, lvl, prefix) -> {
+				spellSlotModel.addSpell(spell, lvl, prefix);
+			});
+		}
 	}
 
 	static class LearnPanel extends SpellsPanel {
@@ -547,6 +693,33 @@ public class SpellsPanel extends JPanel {
 			c.gridheight = 3;
 			add(spellDetailScroller, c);
 		}
+
+		@Override
+		JsonValue getSpellsJsonBuilder() {
+			JsonArrayBuilder builder = Json.createArrayBuilder();
+
+			for (int level : spellSlotModel.slots.keySet()) {
+				for (SpellSlot slot : spellSlotModel.slots.get(level)) {
+					if (slot.spell != null) {
+						JsonObjectBuilder obj = Json.createObjectBuilder()
+								.add("level", "" + slot.slotLevel)
+								.add("locked", "false")
+								.add("description", slot.spellLevel + " " + slot.spell.name);
+						builder.add(obj);
+					}
+				}
+			}
+
+			return builder.build();
+		}
+
+		@Override
+		void loadJson(JsonArray spells) {
+			super.loadJson(spells, spellsModel, (spell, lvl, prefix) -> {
+				spellsModel.removeSpell(spell);
+				spellSlotModel.addSpell(spell, false);
+			});
+		}
 	}
 
 	abstract class SpellListModel extends AbstractListModel<Spell> {
@@ -596,6 +769,14 @@ public class SpellsPanel extends JPanel {
 			return filtered.get(i);
 		}
 
+		public Spell getSpell(String name) {
+			name = name.replace('’', '\'');
+			for (Spell s : filtered) {
+				if (s.name.replace('’', '\'').equals(name)) return s;
+			}
+			return null;
+		}
+
 		@Override
 		public int getSize() {
 			return filtered.size();
@@ -620,11 +801,16 @@ public class SpellsPanel extends JPanel {
 							String classStr = bits[i].replaceAll("\\r\\n|\\r|\\n", " ").trim();
 							if (classStr.contains(classAbbr)) {
 								String levelStr = classStr.substring(classStr.indexOf(" ") + 1);	// XXX this is a bit fragile
-								int l = Integer.parseInt(levelStr);
-								if (l < minimumLevel) minimumLevel = l;
-								if (l > filterMaxLevel) filterMaxLevel = l;
-								spellLevel.put(s, l);
-								return true;
+								try {
+									int l = Integer.parseInt(levelStr);
+									if (l < minimumLevel) minimumLevel = l;
+									if (l > filterMaxLevel) filterMaxLevel = l;
+									spellLevel.put(s, l);
+									return true;
+								} catch (NumberFormatException e) {
+									System.err.println("Error parsing spell '" + s.name + "': can't parse level '" + levelStr + "'");
+									return false;
+								}
 							}
 						}
 						return false;
@@ -785,24 +971,18 @@ public class SpellsPanel extends JPanel {
 	class SpellSlotListModel extends AbstractListModel<SpellSlot> {
 		Map<Integer, List<SpellSlot>> slots = new HashMap<>();		// list of slots at each level
 		SpellListModel sourceList;
-		boolean addBonus = false;
-		boolean singleSlot = false;
+		boolean domain = false;
 
 		// sourceList is the model that provided spells for this list. if a change in the casterClass causes slots to be deleted then any spells in those
 		// slots will be added to the sourceList, if it is not null
-		// if singleSlot is true then only creates a single slot for each available spell level (used for domain spells)
-		public SpellSlotListModel(SpellListModel sourceList, boolean addBonus, boolean singleSlot) {
+		// if domain is true then only creates a single slot for each available spell level and no bonus slots are added
+		public SpellSlotListModel(SpellListModel sourceList, boolean domain) {
 			this.sourceList = sourceList;
-			this.addBonus = addBonus;
-			this.singleSlot = singleSlot;
+			this.domain = domain;
 
 			casterClass.addPropertyListener(e -> update());
 
 			update();
-		}
-
-		public SpellSlotListModel(SpellListModel sourceList, boolean addBonus) {
-			this(sourceList, false, false);
 		}
 
 		public SpellSlotListModel(SpellListModel sourceList) {
@@ -822,8 +1002,12 @@ public class SpellsPanel extends JPanel {
 			Spell spell = s.spell;
 			s.spell = null;
 			s.spellLevel = -1;
-			Collections.sort(l, spellSlotComparator);
-			fireContentsChanged(this, index, index + l.size() - 1);
+			if (l != null) {
+				Collections.sort(l, spellSlotComparator);
+				fireContentsChanged(this, index, index + l.size() - 1);
+			} else {
+				fireContentsChanged(this, index, index);
+			}
 			return spell;
 		}
 
@@ -865,11 +1049,11 @@ public class SpellsPanel extends JPanel {
 		}
 
 		void update() {
-			int[] slotCounts = casterClass.getSpellsArray(addBonus);
+			int[] slotCounts = casterClass.getSpellsArray(!domain);
 			Map<Integer, List<SpellSlot>> newSlots = new HashMap<>();
 			for (int i = 0; i < slotCounts.length; i++) {
-				if (singleSlot && slotCounts[i] > 0) slotCounts[i] = 1;
-				if (singleSlot && i == 0) slotCounts[i] = 0;	// disable level 0 for domain spells // TODO bit of a hack; find a better way
+				if (domain && slotCounts[i] > 0) slotCounts[i] = 1;
+				if (domain && i == 0) slotCounts[i] = 0;	// disable level 0 for domain spells // TODO bit of a hack; find a better way
 				List<SpellSlot> list = new ArrayList<>();
 				List<SpellSlot> oldList = slots.get(i);
 				int firstNew = 0;
