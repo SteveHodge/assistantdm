@@ -10,6 +10,11 @@ import org.w3c.dom.Element;
 public class Spell {
 	public static Set<Spell> spells = new HashSet<>();
 
+	public static String[] domains = new String[] {
+			"Air", "Animal", "Chaos", "Death", "Destruction", "Earth", "Evil", "Fire", "Good", "Healing", "Knowledge", "Law", "Luck", "Magic", "Plant", "Protection", "Strength", "Sun", "Travel",
+			"Trickery", "War", "Water"
+	};
+
 	public String name;
 	public String school;
 	public String level;

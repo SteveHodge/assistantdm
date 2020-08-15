@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 
 import gamesystem.CasterLevels.CasterClass;
 import gamesystem.CharacterClass;
@@ -53,7 +55,20 @@ public class SpellsPanel extends JPanel {
 	private SpellsPanel(CasterClass casterClass) {
 		this.casterClass = casterClass;
 		spellDetailsLabel = new JLabel();
-		spellDetailScroller = new JScrollPane(spellDetailsLabel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		spellDetailsLabel.setAlignmentY(SwingConstants.TOP);
+		spellDetailsLabel.setAlignmentX(SwingConstants.LEFT);
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.insets = new Insets(0, 8, 0, 8);
+		c.weightx = 1;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(spellDetailsLabel, c);
+		c.weighty = 1;
+		c.fill = GridBagConstraints.BOTH;
+		panel.add(new JPanel(), c);
+		spellDetailScroller = new JScrollPane(panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		spellDetailScroller.setPreferredSize(new Dimension(450, 400));
 	}
 
@@ -266,6 +281,12 @@ public class SpellsPanel extends JPanel {
 			updateOptions();
 		}
 
+		void setModel(SpellListModel model) {
+			spellsModel1 = model;
+			updateOptions();
+			updateSpellList();
+		}
+
 		void updateSpellList() {
 			int minLevel = 0;
 			int maxLevel = casterClass.getMaxSpellLevel();
@@ -339,7 +360,11 @@ public class SpellsPanel extends JPanel {
 			c.anchor = GridBagConstraints.WEST;
 			c.gridx = 0;
 			add(new JLabel("Available Spells"), c);
+			c.weighty = 1;
+			c.fill = GridBagConstraints.VERTICAL;
 			add(listScroller, c);
+			c.weighty = 0;
+			c.fill = GridBagConstraints.NONE;
 			JPanel panel = new JPanel();
 			panel.add(scribeButton);
 			panel.add(new JLabel("Show level: "));
@@ -349,11 +374,18 @@ public class SpellsPanel extends JPanel {
 			c.gridx = 1;
 			c.gridheight = 1;
 			add(new JLabel("In Spellbook"), c);
+			c.weighty = 1;
+			c.fill = GridBagConstraints.VERTICAL;
 			add(bookScroller, c);
+			c.weighty = 0;
+			c.fill = GridBagConstraints.NONE;
 			add(eraseButton, c);
 
 			c.gridx = 2;
 			c.gridheight = 3;
+			c.weighty = 1;
+			c.weightx = 1;
+			c.fill = GridBagConstraints.BOTH;
 			add(spellDetailScroller, c);
 		}
 
@@ -426,9 +458,12 @@ public class SpellsPanel extends JPanel {
 	static class PreparePanel extends SpellsPanel {
 		SpellListModel spellListModel;
 		SpellSlotListModel spellSlotModel;
+		JList<Spell> spellList;
 		LevelFilterCombo levelFilter;
 		SpellListCellRenderer spellRenderer = new SpellListCellRenderer();
-		String[] domains;
+//		String[] domains;
+		JComboBox<String> domain1;
+		JComboBox<String> domain2;
 
 		MetaFeatCheck empowerCheck;
 		MetaFeatCheck enlargeCheck;
@@ -444,39 +479,51 @@ public class SpellsPanel extends JPanel {
 		int levelAdjustment = 0;
 		String spellPrefix = "";
 
-		public PreparePanel(CasterClass cc, String[] domains) {
-			this(cc, null, domains);
+		public PreparePanel(CasterClass cc) {
+			this(cc, null, false);
 		}
 
-		public PreparePanel(CasterClass cc) {
-			this(cc, null, null);
+		public PreparePanel(CasterClass cc, boolean doDomains) {
+			this(cc, null, doDomains);
 		}
 
 		public PreparePanel(CasterClass cc, SpellListModel sourceModel) {
-			this(cc, sourceModel, null);
+			this(cc, sourceModel, false);
 		}
 
 		// shouldn't have both sourceModel and domains
-		private PreparePanel(CasterClass cc, SpellListModel sourceModel, String[] domains) {
+		private PreparePanel(CasterClass cc, SpellListModel sourceModel, boolean doDomains) {
 			super(cc);
-			this.domains = domains;
 
 			if (sourceModel != null) {
 				spellListModel = sourceModel;
 				spellSlotModel = new SpellSlotListModel(spellListModel);
-			} else if (domains != null && domains.length > 0) {
-				spellListModel = new AllSpellsListModel(domains);
+			} else if (doDomains) {
+				spellListModel = new AllSpellsListModel(casterClass.getDomains());
 				spellSlotModel = new SpellSlotListModel(spellListModel, true);
+				domain1 = new JComboBox<>(Spell.domains);
+				if (casterClass.getDomain1() == null)
+					casterClass.setDomains("Air", "Air");
+				domain1.setSelectedItem(casterClass.getDomain1());
+				domain1.addActionListener(e -> updateDomains());
+				domain2 = new JComboBox<>(Spell.domains);
+				if (casterClass.getDomain2() == null)
+					casterClass.setDomains(casterClass.getDomain1(), "Air");
+				domain2.setSelectedItem(casterClass.getDomain2());
+				domain2.addActionListener(e -> updateDomains());
+				casterClass.addPropertyListener(e -> updateDomains());
 			} else {
 				spellListModel = new AllSpellsListModel();
 				spellSlotModel = new SpellSlotListModel(spellListModel);
 			}
 
-			JList<Spell> spellList = new JList<>(spellListModel);
+			spellList = new JList<>(spellListModel);
 			JScrollPane leftScroller = setupSpellList(spellList, spellRenderer);
+			leftScroller.setMinimumSize(new Dimension(300, 200));
 
 			JList<SpellSlot> preparedList = new JList<>(spellSlotModel);
 			JScrollPane rightScroller = setupSpellList(preparedList, spellSlotRenderer);
+			rightScroller.setMinimumSize(new Dimension(300, 200));
 
 			JButton prepareButton = new JButton("Prepare");
 			prepareButton.addActionListener(e -> {
@@ -533,31 +580,14 @@ public class SpellsPanel extends JPanel {
 
 			heightenCombo.setVisible(false);
 			heightenLabel.setVisible(false);
-			casterClass.addPropertyListener(e -> {
-				int maxLevel = casterClass.getSpellsArray(false).length - 1;
-				if (maxLevel != maxSpellLevel) {
-					maxSpellLevel = maxLevel;
-					if (maxLevel >= 1) {
-						heightenCombo.removeAllItems();
-						for (int i = 0; i <= maxLevel; i++) {
-							heightenCombo.addItem(i);
-						}
-						heightenCombo.setSelectedItem(0);
-						heightenLabel.setVisible(true);
-						heightenCombo.setVisible(true);
-					} else {
-						heightenLabel.setVisible(false);
-						heightenCombo.setVisible(false);
-					}
-				}
-			});
+			casterClass.addPropertyListener(e -> updateHeighten());
+			updateHeighten();
 
 			setLayout(new GridBagLayout());
 			GridBagConstraints c = new GridBagConstraints();
 			c.insets = new Insets(4, 2, 4, 2);
-			c.anchor = GridBagConstraints.WEST;
+			c.anchor = GridBagConstraints.NORTHWEST;
 			c.gridx = 0;
-			c.gridheight = 1;
 			add(new JLabel("Show level:"), c);
 			add(levelFilter, c);
 			JPanel panel = new JPanel();
@@ -574,29 +604,105 @@ public class SpellsPanel extends JPanel {
 			add(widenCheck, c);
 			add(heightenLabel, c);
 			add(heightenCombo, c);
+			panel = new JPanel();
+			c.weighty = 1;
+			c.fill = GridBagConstraints.VERTICAL;
+			add(panel, c);
 
 			c.gridx = 1;
+			c.weighty = 0;
+			c.fill = GridBagConstraints.NONE;
+
+			int remainder = 14;
+			if (domain1 != null) {
+				JPanel domPanel = new JPanel();
+				domPanel.setLayout(new GridLayout(1, 3, 10, 0));
+				domPanel.add(new JLabel("Domains:"));
+				domPanel.add(domain1);
+				domPanel.add(domain2);
+//				domPanel.setBorder(BorderFactory.createLineBorder(Color.RED));
+				remainder--;
+				c.gridwidth = 2;
+				add(domPanel, c);
+				c.gridwidth = 1;
+			}
+
 			add(new JLabel("Available Spells"), c);
-			c.gridheight = 13;
+			c.gridheight = remainder;
+			c.weighty = 1;
+			//c.weightx = 0.25;
+			c.fill = GridBagConstraints.BOTH;
 			add(leftScroller, c);
 			c.gridheight = 1;
+			c.weighty = 0;
+			c.weightx = 0;
+			c.fill = GridBagConstraints.NONE;
 			add(prepareButton, c);
 
 			c.gridx = 2;
 			add(new JLabel("Known"), c);
-			c.gridheight = 13;
+			c.gridheight = remainder;
+			c.weighty = 1;
+			//c.weightx = 0.25;
+			c.fill = GridBagConstraints.BOTH;
 			add(rightScroller, c);
 			c.gridheight = 1;
+			c.weighty = 0;
+			c.weightx = 0;
+			c.fill = GridBagConstraints.NONE;
 			add(clearButton, c);
 
 			c.gridx = 3;
-			c.gridheight = 15;
+			c.gridheight = 16;
+			c.weightx = 1;
+			c.weighty = 1;
+			c.fill = GridBagConstraints.BOTH;
 			add(spellDetailScroller, c);
+		}
+
+		void updateDomains() {
+			String d1 = domain1.getSelectedItem().toString();
+			String d2 = domain2.getSelectedItem().toString();
+
+			casterClass.setDomains(d1, d2);
+			spellListModel = new AllSpellsListModel(casterClass.getDomains());
+			spellList.setModel(spellListModel);
+			// remove any prepared spells that are no longer available
+			List<SpellSlot> toRemove = new ArrayList<>();
+			for (int i = 0; i < spellSlotModel.getSize(); i++) {
+				SpellSlot s = spellSlotModel.getElementAt(i);
+				if (s.spell != null && !spellListModel.contains(s.spell)) {
+					toRemove.add(s);
+				}
+			}
+			for (SpellSlot s : toRemove) {
+				spellSlotModel.removeSpell(s);
+			}
+			levelFilter.setModel(spellListModel);
+		}
+
+		void updateHeighten() {
+			int maxLevel = casterClass.getSpellsArray(false).length - 1;
+			if (maxLevel != maxSpellLevel) {
+				maxSpellLevel = maxLevel;
+				if (maxLevel >= 1) {
+					heightenCombo.removeAllItems();
+					for (int i = 0; i <= maxLevel; i++) {
+						heightenCombo.addItem(i);
+					}
+					heightenCombo.setSelectedItem(0);
+					heightenLabel.setVisible(true);
+					heightenCombo.setVisible(true);
+				} else {
+					heightenLabel.setVisible(false);
+					heightenCombo.setVisible(false);
+				}
+			}
 		}
 
 		@Override
 		String getJsonTabName() {
-			if (domains != null) return "tab_domain";
+			if (domain1 != null) return "tab_domain";
 			return super.getJsonTabName();
 		}
 
@@ -676,7 +782,11 @@ public class SpellsPanel extends JPanel {
 			c.anchor = GridBagConstraints.WEST;
 			c.gridx = 0;
 			add(new JLabel("Available Spells"), c);
+			c.weighty = 1;
+			c.fill = GridBagConstraints.VERTICAL;
 			add(listScroller, c);
+			c.weighty = 0;
+			c.fill = GridBagConstraints.NONE;
 			JPanel panel = new JPanel();
 			panel.add(learnButton);
 			panel.add(new JLabel("Show level: "));
@@ -686,11 +796,18 @@ public class SpellsPanel extends JPanel {
 			c.gridx = 1;
 			c.gridheight = 1;
 			add(new JLabel("Known"), c);
+			c.weighty = 1;
+			c.fill = GridBagConstraints.VERTICAL;
 			add(knownScroller, c);
+			c.weighty = 0;
+			c.fill = GridBagConstraints.NONE;
 			add(unlearnButton, c);
 
 			c.gridx = 2;
 			c.gridheight = 3;
+			c.weighty = 1;
+			c.weightx = 1;
+			c.fill = GridBagConstraints.BOTH;
 			add(spellDetailScroller, c);
 		}
 
@@ -729,6 +846,14 @@ public class SpellsPanel extends JPanel {
 		int levelAdjustment = 0;	// added to the level of each spell (for metamagic feats)
 
 		abstract void addSpell(Spell s);
+
+		public boolean contains(Spell spell) {
+			for (int i = 0; i < getSize(); i++) {
+				if (getElementAt(i).equals(spell))
+					return true;
+			}
+			return false;
+		}
 
 		abstract void removeSpell(Spell s);
 
@@ -833,7 +958,7 @@ public class SpellsPanel extends JPanel {
 						for (int i = 0; i < bits.length; i++) {
 							String classStr = bits[i].replaceAll("\\r\\n|\\r|\\n", " ").trim();
 							for (String domain : domains) {
-								if (classStr.contains(domain)) {
+								if (domain != null && classStr.contains(domain)) {
 									String levelStr = classStr.substring(classStr.indexOf(" ") + 1);	// XXX this is a bit fragile
 									int l = Integer.parseInt(levelStr);
 									if (l < minimumLevel) minimumLevel = l;

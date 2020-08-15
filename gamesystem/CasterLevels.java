@@ -17,7 +17,7 @@ public class CasterLevels extends AbstractProperty<Integer> {
 		CharacterClass casterClass;	// one of BARD, CLERIC, DRUID, PALADIN, RANGER, SORCERER, WIZARD
 		int casterLevel;
 		int ability;	// relevant ability score (charisma for BARD, SORCERER, wisdom for CLERIC, DRUID, PALADIN, RANGER, intelligence for WIZARD
-		List<String> domains;	// for CLERIC only
+		String[] domains = new String[2];	// for CLERIC only
 
 		public CasterClass(CharacterClass cls) {
 			super(CasterLevels.this.name + "." + cls.toString(), CasterLevels.this.parent);
@@ -37,6 +37,18 @@ public class CasterLevels extends AbstractProperty<Integer> {
 			return ability;
 		}
 
+		public String getDomain1() {
+			return domains[0];
+		}
+
+		public String getDomain2() {
+			return domains[1];
+		}
+
+		public String[] getDomains() {
+			return domains;		// TODO should probably duplicate the array instead of returning our copy
+		}
+
 		public CharacterClass getCharacterClass() {
 			return casterClass;
 		}
@@ -52,6 +64,11 @@ public class CasterLevels extends AbstractProperty<Integer> {
 			if (ability == a) return;
 			ability = a;
 			fireEvent(createEvent(PropertyEvent.VALUE_CHANGED, casterLevel));
+		}
+
+		public void setDomains(String d1, String d2) {
+			domains[0] = d1;
+			domains[1] = d2;
 		}
 
 		// returns the slots per spell level (cleric, druid, paladin, ranger, wizard) or the spells known per level (sorcerer, bard)

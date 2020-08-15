@@ -22,6 +22,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
@@ -70,7 +71,6 @@ public class CasterPanel extends JPanel {
 		casterLevels = new CasterLevels(propCollect);
 		classesTableModel = new CasterLevelsModel();
 		classesTableModel.addTableModelListener((e)->{
-			System.out.println("Update table");
 			// check tab config matches class levels
 			Set<CharacterClass> currentClasses = new HashSet<>();
 			for (CasterClass c : casterLevels.casterClassesIterable()) {
@@ -92,7 +92,7 @@ public class CasterPanel extends JPanel {
 						SpellsPanel.PreparePanel p = new SpellsPanel.PreparePanel(c);
 						tabs.add(p);
 						tabbedPane.addTab("Cleric", null, p, "Cleric Spells Prepared");
-						p = new SpellsPanel.PreparePanel(c, new String[] { "Magic", "Death" });
+						p = new SpellsPanel.PreparePanel(c, true);
 						tabs.add(p);
 						tabbedPane.addTab("Domain", null, p, "Cleric Domain Spells Prepared");
 					} else if (c.getCharacterClass() == CharacterClass.DRUID) {
@@ -146,6 +146,7 @@ public class CasterPanel extends JPanel {
 		JScrollPane scroller = new JScrollPane(classesTable);
 		scroller.setPreferredSize(new Dimension(400, 100));
 		scroller.setBorder(BorderFactory.createTitledBorder("Caster Levels"));
+		scroller.setMinimumSize(new Dimension(400, 100));
 
 		JButton exportButton = new JButton("Export Caster");
 		exportButton.addActionListener(e -> exportCaster());
@@ -260,6 +261,14 @@ public class CasterPanel extends JPanel {
 				CasterClass casterClass = casterLevels.new CasterClass(cls);
 				casterClass.setCasterLevel(ccJson.getInt("level"));
 				casterClass.setAbilityScore(ccJson.getInt("ability"));
+				if (ccJson.containsKey("domains")) {
+					JsonArray domainJson = ccJson.getJsonArray("domains");
+					List<JsonString> domains = domainJson.getValuesAs(JsonString.class);
+					String d1 = null, d2 = null;
+					if (domains.size() > 0) d1 = domains.get(0).getString();
+					if (domains.size() > 1) d2 = domains.get(1).getString();
+					casterClass.setDomains(d1, d2);
+				}
 				casterLevels.addCasterClass(casterClass);
 			}
 		} catch (IOException e) {
