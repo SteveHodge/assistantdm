@@ -3,6 +3,7 @@ package digital_table.elements;
 import java.awt.AlphaComposite;
 import java.awt.Composite;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -12,6 +13,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +53,8 @@ public class Mask extends MapElement {
 		transient ImageMedia image;
 		boolean visible = true;
 		boolean isImage = false;	// false = mask, true = image
+		int xOffset;	// offset from origin of base image
+		int yOffset;	// offset from origin of base image
 	}
 
 	private transient MapImage image;
@@ -155,13 +159,13 @@ public class Mask extends MapElement {
 			MaskImage m = masks.get(i);
 			if (m.visible && m.isImage == images) {
 				if (temp == null) {
-					temp = new BufferedImage(m.image.getSourceWidth(), m.image.getSourceHeight(), BufferedImage.TYPE_INT_ARGB);
+					temp = new BufferedImage(image.image.getSourceWidth(), image.image.getSourceHeight(), BufferedImage.TYPE_INT_ARGB);
 					tempG = temp.createGraphics();
 					trans = image.getTransform(temp.getWidth(), temp.getHeight());
 					if (combinedMask != null && trans.equals(transform)) return combinedMask;	// transform is unchanged and we already have a mask
 					transform = trans;
 				}
-				tempG.drawImage(m.image.getImage(), 0, 0, null);
+				tempG.drawImage(m.image.getImage(), m.xOffset, m.yOffset, null);
 			}
 		}
 		if (tempG != null) tempG.dispose();
@@ -207,7 +211,46 @@ public class Mask extends MapElement {
 	private void addMask(URI uri) {
 		MaskImage m = new MaskImage();
 //		m.uri = uri;
-		m.image = MediaManager.INSTANCE.getImageMedia(canvas, uri);
+
+		ImageMedia srcImg = MediaManager.INSTANCE.getImageMedia(canvas, uri);
+		BufferedImage src = srcImg.getImage();
+		if (srcImg.getFrameCount() != 1) {
+			m.image = srcImg;
+		} else {
+			// trim mask
+			WritableRaster raster = src.getRaster();
+			int[] row = null;
+			int minX = raster.getWidth() * 4;
+			int maxX = -1;
+			int minY = raster.getHeight();
+			int maxY = -1;
+			for (int y = 0; y < raster.getHeight(); y++) {
+				row = raster.getPixels(raster.getMinX(), y + raster.getMinY(), raster.getWidth(), 1, row);
+				int rowMinX = raster.getWidth() * 4;
+				int rowMaxX = -1;
+				for (int x = 0; x < row.length; x += 4) {
+					int val = row[x] << 24 | row[x + 1] << 16 | row[x + 2] << 8 | row[x + 3];
+					if (val != 0xffffff00) {
+						if (rowMaxX == -1) rowMinX = x;
+						if (x > rowMaxX) rowMaxX = x;
+						if (maxY == -1) minY = y;
+						if (y > maxY) maxY = y;
+					}
+				}
+				if (rowMinX < minX) minX = rowMinX;
+				if (rowMaxX > maxX) maxX = rowMaxX;
+			}
+			int trimmedWidth = (maxX - minX) / 4 + 1;
+			int trimmedHeight = maxY - minY + 1;
+			m.xOffset = minX / 4;
+			m.yOffset = minY;
+
+			BufferedImage dest = new BufferedImage(trimmedWidth, trimmedHeight, src.getType());
+			Graphics g = dest.getGraphics();
+			g.drawImage(src, 0, 0, trimmedWidth, trimmedHeight, m.xOffset, m.yOffset, m.xOffset + trimmedWidth, m.yOffset + trimmedHeight, null);
+			g.dispose();
+			m.image = ImageMedia.createImageMedia(canvas, dest);
+		}
 		masks.add(m);
 		clearMask();
 	}

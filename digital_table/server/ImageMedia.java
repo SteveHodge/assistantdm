@@ -58,6 +58,13 @@ public abstract class ImageMedia {
 	private ImageMedia() {
 	}
 
+	public static ImageMedia createImageMedia(MapCanvas canvas, BufferedImage image) {
+		ImageMedia m = new BufferedImageMedia(image);
+		m.canvas = canvas;
+		m.canvas.repaint();
+		return m;
+	}
+
 	static ImageMedia createImageMedia(MapCanvas canvas, byte[] bytes) {
 		ImageMedia m = null;
 		try {
@@ -350,6 +357,19 @@ public abstract class ImageMedia {
 	}*/
 
 	abstract void readImages();
+
+	private static class BufferedImageMedia extends ImageMedia {
+		public BufferedImageMedia(BufferedImage image) {
+			frames = new BufferedImage[1];
+			frames[0] = image;
+			transformed = new BufferedImage[1];
+			index = 0;
+		}
+
+		@Override
+		void readImages() {
+		}
+	}
 
 	private static class StaticImageMdia extends ImageMedia {
 		private ImageReader reader;

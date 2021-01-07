@@ -179,6 +179,20 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAsItem);
 		fileMenu.add(tableItem);
+		JMenuItem debugItem = new JMenuItem("Debug");
+		debugItem.addActionListener(e -> {
+			System.out.println("-----------------------------------------");
+			System.gc();
+			System.out.println("Runtime free memory (bytes): " + formatMem(Runtime.getRuntime().freeMemory()));
+			long maxMemory = Runtime.getRuntime().maxMemory();
+			System.out.println("Maximum memory (bytes): " + (maxMemory == Long.MAX_VALUE ? "no limit" : formatMem(maxMemory)));
+			System.out.println("Runtime total memory (bytes): " + formatMem(Runtime.getRuntime().totalMemory()));
+			long allocatedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+			long presumableFreeMemory = Runtime.getRuntime().maxMemory() - allocatedMemory;
+			System.out.println("Presumable free memory (bytes): " + formatMem(presumableFreeMemory));
+			System.out.println("-----------------------------------------");
+		});
+		fileMenu.add(debugItem);
 		fileMenu.add(new JMenuItem(new AbstractAction("Exit") {@Override
 			public void actionPerformed(ActionEvent arg0) {exit();}}));
 
@@ -270,6 +284,21 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		}
 	}
 
+	private String formatMem(double mem) {
+		String unit = "B";
+		if (mem >= 1024 && mem < 1024 * 1024) {
+			unit = "kB";
+			mem = mem / 1024;
+		} else if (mem < 1024 * 1024 * 1024) {
+			unit = "MB";
+			mem = mem / (1024 * 1024);
+		} else {
+			unit = "GB";
+			mem = mem / (1024 * 1024 * 1024);
+		}
+		return String.format("%.2f %s", mem, unit);
+	}
+
 	private Action newEncounterAction = new AbstractAction("New encounter...") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -299,7 +328,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		}
 	};
 
-	// WISH provide checkbox on dialog to add new character to party (default:checked)
+// WISH provide checkbox on dialog to add new character to party (default:checked)
 	public void newCharacter() {
 		String s = JOptionPane.showInputDialog(this,"Enter the new character's name:","Add New Character",JOptionPane.PLAIN_MESSAGE);
 		if ((s != null) && (s.length() > 0)) {
@@ -380,7 +409,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 //		}
 	}
 
-	// TODO open should ask to save modified parties
+// TODO open should ask to save modified parties
 	public void openParty() {
 		JFileChooser fc = new JFileChooser();
 		fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
@@ -417,7 +446,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		tabbedPane.setSelectedIndex(selected);
 	}
 
-	// TODO saveAs should probably ask to overwrite and forget about backups
+// TODO saveAs should probably ask to overwrite and forget about backups
 	public void saveAsParty() {
 		JFileChooser fc = new JFileChooser();
 		fc.addChoosableFileFilter(new FileNameExtensionFilter("XML Files", "xml"));

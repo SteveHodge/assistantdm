@@ -3,6 +3,7 @@ package maptool;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -56,6 +57,7 @@ import util.XMLUtils;
  * Open function should handle .map files
  * Functionality to trim masks
  * Add POI groups
+ * BUG: masks don't respect zoom settings
  */
 @SuppressWarnings("serial")
 public class MapTool extends JFrame {
@@ -365,6 +367,7 @@ public class MapTool extends JFrame {
 						if (mask.trimmedHeight > 0 && mask.trimmedWidth > 0) {
 							imgW = mask.trimmedWidth;
 							imgH = mask.trimmedHeight;
+							System.out.println("Trimmed size = " + imgW + " x " + imgH + ", original size = " + img.getWidth() + " x " + img.getHeight());
 						}
 						break;
 					}
@@ -381,6 +384,19 @@ public class MapTool extends JFrame {
 			}
 		}
 
+		System.out.println("   Total image memory = " + formatMem(mem));
+		System.out.println("   Runtime free memory (bytes): " + formatMem(Runtime.getRuntime().freeMemory()));
+		long maxMemory = Runtime.getRuntime().maxMemory();
+		System.out.println("   Maximum memory (bytes): " + (maxMemory == Long.MAX_VALUE ? "no limit" : formatMem(maxMemory)));
+		System.out.println("   Runtime total memory (bytes): " + formatMem(Runtime.getRuntime().totalMemory()));
+		long allocatedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+		long presumableFreeMemory = Runtime.getRuntime().maxMemory() - allocatedMemory;
+		System.out.println("   Presumable free memory (bytes): " + formatMem(presumableFreeMemory));
+
+		memLabel.setText(formatMem(mem));
+	}
+
+	private String formatMem(double mem) {
 		String unit = "B";
 		if (mem >= 1024 && mem < 1024 * 1024) {
 			unit = "kB";
@@ -392,7 +408,7 @@ public class MapTool extends JFrame {
 			unit = "GB";
 			mem = mem / (1024 * 1024 * 1024);
 		}
-		memLabel.setText(String.format("%.1f %s", mem, unit));
+		return String.format("%.2f %s", mem, unit);
 	}
 
 	private JPanel makeControls() {
@@ -731,6 +747,8 @@ public class MapTool extends JFrame {
 		ScalableImagePanel imagePane;
 		int trimmedWidth = -1;
 		int trimmedHeight = -1;
+		int xOffset = 0;
+		int yOffset = 0;
 	}
 
 
@@ -785,8 +803,18 @@ public class MapTool extends JFrame {
 					}
 					m.trimmedWidth = (maxX - minX) / 4 + 1;
 					m.trimmedHeight = maxY - minY + 1;
+					m.xOffset = minX / 4;
+					m.yOffset = minY;
+
+					BufferedImage dest = new BufferedImage(m.trimmedWidth, m.trimmedHeight, img.getType());
+					Graphics g = dest.getGraphics();
+					g.drawImage(img, 0, 0, m.trimmedWidth, m.trimmedHeight, m.xOffset, m.yOffset, m.xOffset + m.trimmedWidth, m.yOffset + m.trimmedHeight, null);
+					g.dispose();
+					m.image = dest;
+					m.imagePane.setImage(dest);
 				}
 			}
+			System.gc();
 			updateGrid();
 		}
 
