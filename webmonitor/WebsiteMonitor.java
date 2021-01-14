@@ -2,8 +2,10 @@ package webmonitor;
 
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -16,6 +18,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.sse.SseEventSource;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import combat.EncounterModule;
@@ -54,7 +57,7 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 			String data = e.readData();
 
 			if (data != null && data.length() > 0 && !data.equals("x")) {
-//				System.out.println("got message: '" + data + "'");
+				System.out.println("got message: '" + data + "'");
 
 				JSONObject update = new JSONObject(data);
 
@@ -165,18 +168,30 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 			moduleDo(DigitalTableModule.class, dtt -> dtt.moveToken(character, newLoc));
 
 		} else if (type.equals("roll")) {
-			String text = character.getName() + " rolled " + update.getString("dice-type") + " for " + update.getString("title") + " " + update.getString("suffix") + ": "
-					+ update.getJSONArray("rolls").join(" + ");
-			int mod = update.getInt("mod");
-			if (mod != 0) {
-				text += (mod > 0 ? " + " : " ") + mod;
+			List<String> rolls = new ArrayList<>();
+			int constant = 0;
+			JSONArray parts = update.getJSONArray("parts");
+			for (int i = 0; i < parts.length(); i++) {
+				JSONObject part = parts.getJSONObject(i);
+				if (part.has("constant")) {
+					constant += part.getInt("constant");
+				}
+				if (part.has("dice")) {
+					JSONArray rollsArray = part.getJSONArray("rolls");
+					for (int j = 0; j < rollsArray.length(); j++) {
+						int roll = rollsArray.getInt(j);
+						rolls.add(Integer.toString(roll));
+					}
+				}
 			}
-			int customMod = 0;
-			if (update.has("extra-mod")) {
-				customMod = update.getInt("extra-mod");
+
+			String text = character.getName() + " rolled " + update.getString("dice-spec");
+			if (update.has("custom-spec") && update.getString("custom-spec").length() > 0) {
+				text += " + " + update.getString("custom-spec");
 			}
-			if (customMod != 0) {
-				text += (customMod > 0 ? " + " : " ") + customMod;
+			text += " for " + update.getString("title") + " " + update.getString("suffix");
+			if (rolls.size() > 0) {
+				text += ": " + String.join(" + ", rolls) + (constant < 0 ? "" : " + ") + constant;
 			}
 			text += " = " + update.getInt("total");
 			System.out.println(text);
@@ -193,6 +208,7 @@ public class WebsiteMonitor implements WebsiteMonitorModule {
 				JOptionPane pane = new JOptionPane(text + "\nApply the roll?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
 				dialog = pane.createDialog(frame, character.getName() + " rolled for initiative");
 				dialog.setModal(false);
+				final int mod = constant;
 				dialog.addComponentListener(new ComponentListener() {
 					@Override
 					public void componentHidden(ComponentEvent e) {

@@ -143,10 +143,10 @@ public class CasterPanel extends JPanel {
 		JComboBox<CharacterClass> classCombo = new JComboBox<>(classesComboModel);
 		classCol.setCellEditor(new DefaultCellEditor(classCombo));
 
-		JScrollPane scroller = new JScrollPane(classesTable);
-		scroller.setPreferredSize(new Dimension(400, 100));
-		scroller.setBorder(BorderFactory.createTitledBorder("Caster Levels"));
-		scroller.setMinimumSize(new Dimension(400, 100));
+		JScrollPane classesScroller = new JScrollPane(classesTable);
+		classesScroller.setPreferredSize(new Dimension(400, 100));
+		classesScroller.setBorder(BorderFactory.createTitledBorder("Caster Levels"));
+		classesScroller.setMinimumSize(new Dimension(400, 100));
 
 		JButton exportButton = new JButton("Export Caster");
 		exportButton.addActionListener(e -> exportCaster());
@@ -170,7 +170,7 @@ public class CasterPanel extends JPanel {
 		c.weightx = 1;
 		c.weighty = 0;
 		c.anchor = GridBagConstraints.EAST;
-		add(scroller, c);
+		add(classesScroller, c);
 
 		c.gridx = 1;
 		c.weightx = 1;
@@ -271,6 +271,14 @@ public class CasterPanel extends JPanel {
 				}
 				casterLevels.addCasterClass(casterClass);
 			}
+
+			int index = casterFile.getName().indexOf(".");
+			if (index > 0) {
+				String spellFileName = casterFile.getName().substring(0, index) + ".spells";
+				File spellFile = new File(casterFile.getParentFile(), spellFileName);
+				importSpells(spellFile);
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -346,11 +354,15 @@ public class CasterPanel extends JPanel {
 		if (returnVal != JFileChooser.APPROVE_OPTION) return;
 
 		casterFile = fc.getSelectedFile();
-		System.out.println("Import character spells from " + casterFile.getAbsolutePath());
+		importSpells(casterFile);
+	}
+
+	void importSpells(File f) {
+		System.out.println("Import character spells from " + f.getAbsolutePath());
 
 		FileInputStream fis;
 		try {
-			fis = new FileInputStream(casterFile);
+			fis = new FileInputStream(f);
 
 			JsonReader reader = Json.createReader(fis);
 			spellsFileJson = reader.readObject();

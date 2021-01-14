@@ -480,8 +480,8 @@ public class TileMapper extends JPanel {
 	}
 
 	public void saveImage() {
-		String[] dpiOptions = { "33 dpi", "86 dpi (DTT)", "200 dpi" };
-		double[] dpis = { 33.0d, 25400.0d / 294.0d, 200.0d };	// 2nd element is the resolution of a 0.294 mm dot pitch monitor
+		String[] dpiOptions = { "33 dpi", "86 dpi (DTT)", "150 dpi", "200 dpi" };
+		double[] dpis = { 33.0d, 25400.0d / 294.0d, 150.0d, 200.0d };	// 2nd element is the resolution of a 0.294 mm dot pitch monitor
 
 		JComboBox<String> dpiCombo = new JComboBox<>(dpiOptions);
 		System.out.println("Combo preferred size = " + dpiCombo.getPreferredSize());

@@ -126,6 +126,7 @@ class ACPanel extends DetailPanel {
 		for (Modifier mod : mods.keySet()) {
 			if (!mods.get(mod)) continue;
 			String type = mod.getType();
+			if (type == null) type = "";
 //			System.err.println("'" + type + "': " + mod.getModifier());
 			if (type.equals(Modifier.StandardType.ARMOR.toString())) {
 			} else if (type.equals(Modifier.StandardType.SHIELD.toString())) {
@@ -136,10 +137,10 @@ class ACPanel extends DetailPanel {
 			} else {
 				String t = type;
 				if (!components.containsKey(type)) {
-					// FIXME totaling unknown mod types as "misc" doesn't work because SpinnerListener.stateChanged() only checks to see if the actual misc mod matches. i.e. if we have mod type A then we set misc to the same value but then
+					// totaling unknown mod types as "misc" doesn't work because SpinnerListener.stateChanged() only checks to see if the actual misc mod matches. i.e. if we have mod type A then we set misc to the same value but then
 					// SpinnerListener.stateChanged() will set a actual misc modifier to that value which results in update() being called which will then calculate the correct value of the misc modifier as A+misc (=A+A). this causes infinite recursion
-					System.err.println("ACPanel: Unknown modifier type " + type);
-					t = "Misc";
+					System.err.println("ACPanel: Unknown modifier type '" + type + "'");
+					t = "Other";
 				}
 				int total = 0;
 				if (totals.containsKey(t)) total = totals.get(t);
