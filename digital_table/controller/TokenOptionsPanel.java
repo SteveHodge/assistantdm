@@ -45,6 +45,7 @@ import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 import gamesystem.Creature;
@@ -56,6 +57,7 @@ import util.ModuleRegistry;
 
 @SuppressWarnings("serial")
 public class TokenOptionsPanel extends OptionsPanel<Token> {
+	private JComboBox<Layer> layerCombo;
 	private JTextField xField;
 	private JTextField yField;
 	private JComboBox<String> rotationsCombo;
@@ -97,6 +99,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 		visibleCheck = createVisibilityControl();
 		alphaSlider = createSliderControl(Token.PROPERTY_ALPHA);
 		xField = createIntegerControl(Group.PROPERTY_X);
@@ -221,8 +224,9 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;
-		add(visibleCheck, c);
+		add(new JLabel("Layer:"), c);
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("Label:"), c);
 		add(new JLabel("Remote Label:"), c);
 		add(new JLabel("Web Label:"), c);
 		if (enc != null) {
@@ -246,9 +250,10 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0;
+		add(layerCombo, c);
 		c.gridwidth = 2;
-		add(labelField, c);
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(labelField, c);
 		c.gridwidth = 1;
 		add(remoteLabelField, c);
 		add(webLabelField, c);
@@ -297,14 +302,16 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		add(filler, c);
 
 		c.gridx = 2;
-		c.gridy = 1;
+		c.gridy = 0;
 		c.gridwidth = 1;
 		c.fill = GridBagConstraints.NONE;
 		c.weightx = 0;
 		c.weighty = 0;
+		add(visibleCheck, c);
+		c.gridy = 2;
 		add(floatingLabelCheck, c);
 
-		c.gridy = 2;
+		c.gridy = 3;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.insets = new Insets(0, 4, 0, 4);
 		add(webLabel, c);
@@ -508,6 +515,9 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(Token.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int) ((Float) e.getNewValue() * 100));
@@ -824,6 +834,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			webLabelField.setText("");
 		}
 
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 
@@ -851,6 +862,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		copyProperty(Token.PROPERTY_STATUS_TYPE, from, Mode.ALL);
 		copyProperty(Token.PROPERTY_STATUS_DISPLAY, from, Mode.ALL);
 		copyProperty(Token.PROPERTY_SHOWREACH, from, Mode.LOCAL);
+		copyProperty(MapElement.PROPERTY_LAYER, from, Mode.ALL);
 		remoteReach.setSelected(from.remoteReach.isSelected());
 		// TODO size
 		if (from.imageFile != null) setImage(from.imageFile);

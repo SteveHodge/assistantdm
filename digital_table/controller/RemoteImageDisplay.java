@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 import digital_table.elements.GridCoordinates;
 import digital_table.elements.Initiative;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.WebMessage;
 import util.Updater;
@@ -210,6 +211,10 @@ class RemoteImageDisplay extends TokenOverlay {
 		if (e == null) return;
 		if ((e instanceof Initiative) || (e instanceof WebMessage)) return;
 		if (e instanceof GridCoordinates && (property == GridCoordinates.PROPERTY_RULER_ROW || property == GridCoordinates.PROPERTY_RULER_COLUMN)) return;
-		e.setProperty(property, value);
+		if (property.equals(MapElement.PROPERTY_LAYER)) {
+			canvas.changeLayer(e, (Layer) value);
+		} else {
+			e.setProperty(property, value);
+		}
 	}
 }

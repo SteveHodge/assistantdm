@@ -87,11 +87,6 @@ class MiniMapCanvas extends MapCanvas {
 		repaint();
 	}
 
-	public void reorganiseBefore(MapElement e1, MapElement e2) {
-		super.reorganiseBefore(e1, e2);
-		repaint();
-	}
-
 	@Override
 	protected int getResolutionNumeratorX() {
 		//return panel.getWidth();

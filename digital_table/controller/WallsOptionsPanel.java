@@ -15,7 +15,9 @@ import java.nio.file.Files;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -24,6 +26,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 import digital_table.elements.Walls;
@@ -34,6 +37,7 @@ import digital_table.server.MediaManager;
 class WallsOptionsPanel extends OptionsPanel<Walls> {
 	protected URI uri = null;
 
+	private JComboBox<Layer> layerCombo;
 	private JCheckBox visibleCheck;
 	private JTextField labelField;
 	private JCheckBox showWallsCheck;
@@ -46,6 +50,7 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		display.addElement(element, parent);
 		element.addPropertyChangeListener(listener);
 
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 		visibleCheck = createVisibilityControl();
 		visibleCheck.setSelected(false);
 
@@ -73,6 +78,10 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
+		c.gridy = 0; add(new JLabel("Layer:"), c);
+		c.gridy++; add(new JLabel("Label:"), c);
+
+		c.gridx = 2;
 		c.gridy = 0;
 		add(visibleCheck, c);
 
@@ -80,11 +89,13 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(layerCombo, c);
+		c.gridwidth = 2;
 		add(labelField, c);
 		add(loadWallsButton, c);
 		add(showWallsCheck, c);
 
-		c.gridwidth = 2;
+		c.gridwidth = 3;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
 		add(new JPanel(), c);
@@ -124,6 +135,9 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(Walls.PROPERTY_SHOW_WALLS)) {
 				showWallsCheck.setSelected((Boolean) e.getNewValue());
@@ -167,6 +181,7 @@ class WallsOptionsPanel extends OptionsPanel<Walls> {
 			}
 		}
 
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 }

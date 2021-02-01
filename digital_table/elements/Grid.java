@@ -22,6 +22,11 @@ public class Grid extends MapElement {
 	}
 
 	@Override
+	public Layer getDefaultLayer() {
+		return Layer.GRID;
+	}
+
+	@Override
 	public void paint(Graphics2D g) {
 		if (canvas == null || getVisibility() == Visibility.HIDDEN) return;
 

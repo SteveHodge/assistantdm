@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import digital_table.server.MapCanvas;
-import digital_table.server.MapCanvas.Order;
 import digital_table.server.MeasurementLog;
 import digital_table.server.ScreenManager;
 
@@ -27,6 +26,7 @@ public abstract class MapElement implements Serializable {
 
 	public static final String PROPERTY_VISIBLE = "visible";
 	public static final String PROPERTY_DRAGGING = "dragging";
+	public static final String PROPERTY_LAYER = "layer";
 
 	private static int nextID = 1;
 	protected final int id;
@@ -35,6 +35,7 @@ public abstract class MapElement implements Serializable {
 	protected Map<String, Property<?>> properties = new HashMap<>();
 	protected Property<Visibility> visible = new Property<Visibility>(PROPERTY_VISIBLE, true, Visibility.HIDDEN, Visibility.class);
 	protected Property<Boolean> dragging = new Property<>(PROPERTY_DRAGGING, true, false, Boolean.class);
+	protected Property<Layer> layer = new Property<>(PROPERTY_LAYER, true, getDefaultLayer(), Layer.class);
 	public Group parent = null;	// TODO should be private
 
 	protected boolean selected = false;
@@ -48,6 +49,23 @@ public abstract class MapElement implements Serializable {
 			int ord = Math.min(v1.ordinal(), v2.ordinal());
 			return Visibility.values()[ord];
 		}
+	}
+
+	public enum Layer {
+		INFORMATION("Information"), TEMPLATE("Template"), CHARACTER_TOKENS("Character Tokens"), OBFUSCATION("Map Obfuscation"), MONSTER_TOKENS("Monster Tokens"), GRID("Grid"), MAP_FOREGROUND(
+				"Map Foreground"), MAP_BACKGROUND("Map Background"), BACKGROUND(
+				"Background");
+
+		@Override
+		public String toString() {
+			return name;
+		}
+
+		Layer(String name) {
+			this.name = name;
+		}
+
+		private String name;
 	}
 
 	protected class Property<T> implements Serializable {
@@ -211,9 +229,8 @@ public abstract class MapElement implements Serializable {
 		return properties.keySet();
 	}
 
-	// TODO perhaps this should be a static field
-	public Order getDefaultOrder() {
-		return Order.BOTTOM;
+	public Layer getDefaultLayer() {
+		return Layer.BACKGROUND;
 	}
 
 	// returns the memory usage of the object. typically will be an approximation only including rasters allocated for images.

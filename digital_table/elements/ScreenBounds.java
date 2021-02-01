@@ -10,7 +10,6 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 
 import digital_table.controller.DisplayConfig;
-import digital_table.server.MapCanvas.Order;
 
 public class ScreenBounds extends MapElement {
 	private static final long serialVersionUID = 1L;
@@ -22,8 +21,8 @@ public class ScreenBounds extends MapElement {
 	Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.INFORMATION;
 	}
 
 	@Override

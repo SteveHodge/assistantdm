@@ -11,8 +11,6 @@ import java.awt.Stroke;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 
-import digital_table.server.MapCanvas.Order;
-
 public class PersonalEmanation extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -40,8 +38,8 @@ public class PersonalEmanation extends MapElement {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.TEMPLATE;
 	}
 
 	@Override

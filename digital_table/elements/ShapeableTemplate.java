@@ -13,8 +13,6 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-import digital_table.server.MapCanvas.Order;
-
 // TODO if maximum will be less than the number of defined cubes then need to truncate the list of defined cubes
 
 public class ShapeableTemplate extends MapElement {
@@ -38,8 +36,8 @@ public class ShapeableTemplate extends MapElement {
 	List<Point> squares = new ArrayList<>();
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.TEMPLATE;
 	}
 
 	@Override

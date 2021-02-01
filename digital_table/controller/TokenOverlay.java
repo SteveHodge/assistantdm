@@ -29,10 +29,10 @@ import javax.swing.JPanel;
 
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.Token;
 import digital_table.server.MapCanvas;
-import digital_table.server.MapCanvas.Order;
 import util.Updater;
 
 /**
@@ -77,6 +77,11 @@ class TokenOverlay {
 			return rows;
 		}
 
+		@Override
+		public boolean debug() {
+			return false;
+		}
+
 //		@Override
 //		public void paint(Graphics2D g) {
 //			if (TokenOverlay.this instanceof RemoteImageDisplay) {
@@ -103,8 +108,8 @@ class TokenOverlay {
 		}
 
 		@Override
-		public Order getDefaultOrder() {
-			return Order.ABOVEGRID;
+		public Layer getDefaultLayer() {
+			return Layer.INFORMATION;
 		}
 
 		@Override
@@ -217,6 +222,7 @@ class TokenOverlay {
 			} else if (property.equals(Token.PROPERTY_LABEL)
 					|| property.equals(MapElement.PROPERTY_VISIBLE)
 					|| property.equals(Group.PROPERTY_LOCATION)
+					|| property.equals(MapElement.PROPERTY_LAYER)
 					|| property.equals(Token.PROPERTY_SPACE)) {
 				super.setProperty(property, value);
 			}
@@ -384,16 +390,14 @@ class TokenOverlay {
 		canvas.demoteElement(e);
 	}
 
-	public void reorganiseBefore(MapElement el1, MapElement el2) {
-		el1 = elements.get(el1.getID());
-		el2 = elements.get(el2.getID());
-		canvas.reorganiseBefore(el1, el2);
-	}
-
 	void setProperty(MapElement element, String property, Object value) {
 		MapElement e = elements.get(element.getID());
 		if (e != null && (e instanceof MaskToken || e instanceof Group)) {
-			e.setProperty(property, value);
+			if (property.equals(MapElement.PROPERTY_LAYER)) {
+				canvas.changeLayer(e, (Layer) value);
+			} else {
+				e.setProperty(property, value);
+			}
 		}
 	}
 

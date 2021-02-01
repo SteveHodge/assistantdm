@@ -16,8 +16,6 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 
-import digital_table.server.MapCanvas.Order;
-
 // TODO this is very similar to Label. consider combining
 
 public class WebMessage extends MapElement {
@@ -78,8 +76,8 @@ public class WebMessage extends MapElement {
 	ArrayDeque<String> messages = new ArrayDeque<String>();		// stores all messages from last to first (most efficient order for drawing)
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.INFORMATION;
 	}
 
 	@Override

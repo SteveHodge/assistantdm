@@ -16,10 +16,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ListModel;
-
 import digital_table.server.ImageMedia;
-import digital_table.server.MapCanvas.Order;
 import digital_table.server.MeasurementLog;
 import digital_table.server.MediaManager;
 
@@ -109,8 +106,8 @@ public class MapImage extends Group {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.BOTTOM;
+	public Layer getDefaultLayer() {
+		return Layer.MAP_BACKGROUND;
 	}
 
 	@Override
@@ -282,9 +279,10 @@ public class MapImage extends Group {
 				|| property.equals(PROPERTY_HEIGHT)
 				|| property.equals(PROPERTY_LOCATION))
 				&& canvas != null) {
-			ListModel<MapElement> model = canvas.getModel();
-			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = model.getElementAt(i);
+			for (MapElement e : canvas) {
+//			ListModel<MapElement> model = canvas.getModel();
+//			for (int i = 0; i < model.getSize(); i++) {
+//				MapElement e = model.getElementAt(i);
 				if (e instanceof Walls && e.parent == this) {
 					Walls w = (Walls) e;
 					w.imageUpdated();

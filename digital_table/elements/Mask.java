@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import digital_table.server.ImageMedia;
-import digital_table.server.MapCanvas.Order;
 import digital_table.server.MeasurementLog;
 import digital_table.server.MediaManager;
 
@@ -70,8 +69,8 @@ public class Mask extends MapElement {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.ABOVEGRID;
+	public Layer getDefaultLayer() {
+		return Layer.OBFUSCATION;
 	}
 
 	@Override

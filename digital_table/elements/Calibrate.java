@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 
-import digital_table.server.MapCanvas.Order;
-
 public class Calibrate extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -20,8 +18,8 @@ public class Calibrate extends MapElement {
 	private Property<Boolean> showBackground = new Property<>(PROPERTY_SHOW_BACKGROUND, false, Boolean.class);
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.INFORMATION;
 	}
 
 	@Override

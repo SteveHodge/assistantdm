@@ -23,6 +23,7 @@ import org.w3c.dom.Element;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.WebMessage;
 import digital_table.elements.WebMessage.ColorMode;
@@ -38,6 +39,7 @@ import webmonitor.WebsiteMonitorModule;
 
 @SuppressWarnings("serial")
 class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
+	private JComboBox<Layer> layerCombo;
 	private JTextField xField;
 	private JTextField yField;
 	private JTextField widthField;
@@ -59,6 +61,7 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		}
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 
 		ModuleRegistry.addModuleListener(WebsiteMonitorModule.class, new ModuleListener<WebsiteMonitorModule>() {
 			WebsiteMonitorModule web = null;
@@ -146,6 +149,7 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		fontSizeField = createDoubleControl(WebMessage.PROPERTY_FONT_SIZE);
 		modeCombo = createComboControl(WebMessage.PROPERTY_COLOR_MODE, WebMessage.ColorMode.values());
 
+		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -153,7 +157,7 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		c.weightx = 0.0d;
 		c.weighty = 0.0d;
 		c.fill = GridBagConstraints.NONE;
-		add(visibleCheck, c);
+		add(new JLabel("Layer:"), c);
 		add(new JLabel("Left edge column:"), c);
 		add(new JLabel("Top edge Row:"), c);
 		add(new JLabel("Width:"), c);
@@ -165,9 +169,15 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		add(new JLabel("Background:"), c);
 		add(new JLabel("Transparency:"), c);
 
+		c.gridx = 2;
+		c.gridy = 0;
+		add(visibleCheck, c);
+
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
-		add(new JPanel(), c);
+		c.gridy = GridBagConstraints.RELATIVE;
+		add(layerCombo, c);
+		c.gridwidth = 2;
 		add(xField, c);
 		add(yField, c);
 		add(widthField, c);
@@ -181,8 +191,9 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
 		c.gridx = 0;
-		c.gridwidth = 2;
+		c.gridwidth = 3;
 		add(new JPanel(), c);
+		//@formatter:on
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -190,6 +201,9 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(WebMessage.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int) (100 * (Float) e.getNewValue()));
@@ -279,6 +293,7 @@ class WebMessageOptionsPanel extends OptionsPanel<WebMessage> {
 		parseIntegerAttribute(WebMessage.PROPERTY_ROTATIONS, e, Mode.ALL);
 		parseDoubleAttribute(WebMessage.PROPERTY_FONT_SIZE, e, Mode.ALL);
 		parseEnumAttribute(WebMessage.PROPERTY_COLOR_MODE, WebMessage.ColorMode.class, e, Mode.ALL);
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 }

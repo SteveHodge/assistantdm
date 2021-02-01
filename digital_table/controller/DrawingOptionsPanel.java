@@ -15,6 +15,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,12 +32,14 @@ import digital_table.elements.Drawing;
 import digital_table.elements.Drawing.Fill;
 import digital_table.elements.Drawing.Line;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 
 //TODO color chooser could use a proper recent list like the led controller has. Or have standard and recent colours in the ui
 
 @SuppressWarnings("serial")
 class DrawingOptionsPanel extends OptionsPanel<Drawing> {
+	private JComboBox<Layer> layerCombo;
 	private JPanel colorPanel;
 	private JTextField labelField;
 	private JSlider alphaSlider;
@@ -53,6 +56,8 @@ class DrawingOptionsPanel extends OptionsPanel<Drawing> {
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
+
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 
 		JColorChooser chooserPane = new JColorChooser();
 		colorChooser = JColorChooser.createDialog(DrawingOptionsPanel.this, "Choose colour", true, chooserPane, e -> {
@@ -93,27 +98,37 @@ class DrawingOptionsPanel extends OptionsPanel<Drawing> {
 		buttonPanel.add(fillButton);
 		buttonPanel.add(lineButton);
 
+		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 0; add(visibleCheck, c);
+		c.gridy = 0; add(new JLabel("Layer:"), c);
+		c.gridy++; add(new JLabel("Label:"), c);
 		c.gridy++; add(new JLabel("Colour:"), c);
 		c.gridy++; add(new JLabel("Transparency:"), c);
 
 
+		c.gridx = 2;
+		c.gridy = 0;
+		add(visibleCheck, c);
+
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 0; add(labelField, c);
+		c.gridy = 0; add(layerCombo, c);
+		c.gridwidth = 2;
+		c.gridy++; add(labelField, c);
 		c.gridy++; add(colorPanel, c);
 		c.gridy++; add(alphaSlider, c);
 
-		c.gridx = 0; c.gridy++; c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridy++;
+		c.gridwidth = 3;
 		add(buttonPanel, c);
 		c.gridy++;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
 		add(new JPanel(), c);
-
+		//@formatter:on
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -121,6 +136,9 @@ class DrawingOptionsPanel extends OptionsPanel<Drawing> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(Drawing.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
@@ -252,6 +270,7 @@ class DrawingOptionsPanel extends OptionsPanel<Drawing> {
 		parseFillList(Drawing.PROPERTY_ADD_FILL, e, FILL_LIST_ATTRIBUTE, Mode.ALL);
 		parseLineList(Drawing.PROPERTY_ADD_LINE, e, LINE_LIST_ATTRIBUTE, Mode.ALL);
 
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 

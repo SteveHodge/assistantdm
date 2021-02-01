@@ -34,7 +34,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.WindowConstants;
 import javax.swing.event.EventListenerList;
@@ -66,6 +65,7 @@ import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.Label;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapImage;
 import digital_table.elements.SpreadTemplate;
 import digital_table.elements.Token;
@@ -582,10 +582,9 @@ public class ControllerFrame extends JFrame {
 			display.setProperty(image, MapImage.PROPERTY_HEIGHT, (double) height, Mode.ALL);
 			imagePanel.visibleCheck.setSelected(visible);
 			display.setProperty(image, MapImage.PROPERTY_LABEL, options.element.getProperty(Token.PROPERTY_LABEL), Mode.LOCAL);
+			display.setProperty(image, MapElement.PROPERTY_LAYER, Layer.MAP_FOREGROUND);
 			image.addPropertyChangeListener(labelListener);
 			optionPanels.put(image, imagePanel);
-
-			display.reorganiseBefore(image, options.getElement());
 
 			display.removeElement(options.getElement());
 			optionPanels.remove(options.getElement());
@@ -1040,9 +1039,7 @@ public class ControllerFrame extends JFrame {
 			super(ControllerFrame.this, "Save...", true);
 
 			Vector<MapElement> list = new Vector<>();
-			ListModel<MapElement> m = miniMapCanvas.getModel();
-			for (int i = 0; i < m.getSize(); i++) {
-				MapElement e = m.getElementAt(i);
+			for (MapElement e : miniMapCanvas) {
 				if (e.getParent() == null && !(e instanceof Grid)) list.add(e);
 			}
 

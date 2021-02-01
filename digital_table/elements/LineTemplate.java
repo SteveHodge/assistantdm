@@ -13,7 +13,6 @@ import java.awt.geom.Point2D;
 import java.net.URI;
 
 import digital_table.server.ImageMedia;
-import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
 
 public class LineTemplate extends MapElement {
@@ -52,8 +51,8 @@ public class LineTemplate extends MapElement {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.TEMPLATE;
 	}
 
 	@Override

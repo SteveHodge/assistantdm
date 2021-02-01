@@ -31,6 +31,7 @@ import org.w3c.dom.NodeList;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.POIGroup;
 import digital_table.elements.PointOfInterest;
@@ -39,6 +40,7 @@ import digital_table.elements.PointOfInterest;
 public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 	POIsModel poisModel;
 	JTable poisTable;
+	private JComboBox<Layer> layerCombo;
 	private JSlider alphaSlider;
 	private JComboBox<String> rotationsCombo;
 	private JPanel colorPanel;
@@ -55,6 +57,14 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 		display.addElement(element, parent);
 		element.addPropertyChangeListener(listener);
 
+		poisModel = new POIsModel();
+
+		layerCombo = new JComboBox<>(Layer.values());
+		layerCombo.setSelectedItem(poisModel.getLayer());
+		layerCombo.addActionListener(e -> {
+			poisModel.setLayer((Layer) layerCombo.getSelectedItem());
+		});
+
 		alphaSlider = createSliderControl(POIGroup.PROPERTY_ALPHA);
 		colorPanel = createColorControl(POIGroup.PROPERTY_COLOR);
 		bgColorPanel = createColorControl(POIGroup.PROPERTY_BACKGROUND_COLOR);
@@ -68,7 +78,8 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 1; add(new JLabel("Label:"), c);
+		c.gridy = 0; add(new JLabel("Layer:"), c);
+		c.gridy++; add(new JLabel("Label:"), c);
 		c.gridy++; add(new JLabel("Font size (in grid cells):"), c);
 		c.gridy++; add(new JLabel("Rotation:"), c);
 		c.gridy++; add(new JLabel("Colour:"), c);
@@ -76,10 +87,15 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 		c.gridy++;
 		c.gridy++; add(new JLabel("Transparency:"), c);
 
+		c.gridx = 2;
+		c.gridy = 0;
+		add(visibleCheck, c);
+
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 0; add(visibleCheck, c);
+		c.gridy = 0; add(layerCombo, c);
+		c.gridwidth = 2;
 		c.gridy++; add(textField, c);
 		c.gridy++; add(fontSizeField, c);
 		c.gridy++; add(rotationsCombo, c);
@@ -90,7 +106,7 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 		//@formatter:on
 
 		c.gridx = 0;
-		c.gridwidth = 2;
+		c.gridwidth = 3;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
 		c.gridy = GridBagConstraints.RELATIVE;
@@ -132,7 +148,6 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
 
-		poisModel = new POIsModel();
 		poisTable = new JTable(poisModel);
 		poisTable.getColumnModel().getColumn(0).setPreferredWidth(5);
 		poisTable.getColumnModel().getColumn(1).setPreferredWidth(40);
@@ -155,6 +170,7 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 
 	private class POIsModel extends AbstractTableModel {
 		private List<POI> pois = new ArrayList<>();
+		Layer defaultLayer = Layer.MAP_FOREGROUND;
 
 		void add(POI poi) {
 			poi.element = new PointOfInterest();
@@ -194,6 +210,18 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 				pois.add(row + 1, pois.remove(row));
 				fireTableRowsUpdated(row, row + 1);
 				poisTable.setRowSelectionInterval(row + 1, row + 1);
+			}
+		}
+
+		Layer getLayer() {
+			if (pois.size() == 0) return defaultLayer;
+			return (Layer) pois.get(0).element.getProperty(MapElement.PROPERTY_LAYER);
+		}
+
+		void setLayer(Layer layer) {
+			defaultLayer = layer;
+			for (POI p : pois) {
+				display.setProperty(p.element, MapElement.PROPERTY_LAYER, layer);
 			}
 		}
 
@@ -292,6 +320,9 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
 
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
+
 			} else if (e.getPropertyName().equals(POIGroup.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int) (100 * (Float) e.getNewValue()));
 
@@ -359,6 +390,9 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 		parseDoubleAttribute(POIGroup.PROPERTY_FONT_SIZE, e, Mode.ALL);
 		parseBooleanAttribute(POIGroup.PROPERTY_SOLID_BACKGROUND, e, Mode.ALL);
 
+		Layer layer = Layer.MAP_FOREGROUND;
+		boolean layerFound = false;
+
 		NodeList nodes = e.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
@@ -375,6 +409,18 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 						poi.relY = Double.parseDouble(m.getAttribute(PointOfInterest.PROPERTY_REL_Y));
 					} catch (NumberFormatException ex) {
 						ex.printStackTrace();
+					}
+				}
+
+				if (!layerFound) {
+					attr = m.getAttribute(MapElement.PROPERTY_LAYER);
+					if (attr.length() > 0) {
+						try {
+							layer = Enum.valueOf(Layer.class, attr);
+							layerFound = true;
+						} catch (IllegalArgumentException ex) {
+							ex.printStackTrace();
+						}
 					}
 				}
 				poisModel.add(poi);
@@ -397,5 +443,7 @@ public class POIOptionsPanel extends OptionsPanel<POIGroup> {
 				ex.printStackTrace();
 			}
 		}
+
+		layerCombo.setSelectedItem(layer);
 	}
 }

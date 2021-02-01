@@ -10,8 +10,6 @@ import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
-import digital_table.server.MapCanvas.Order;
-
 public class Label extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -44,8 +42,8 @@ public class Label extends MapElement {
 	Property<Double> fontSize = new Property<Double>(PROPERTY_FONT_SIZE, 0.333d, Double.class);
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.ABOVEGRID;
+	public Layer getDefaultLayer() {
+		return Layer.INFORMATION;
 	}
 
 	@Override

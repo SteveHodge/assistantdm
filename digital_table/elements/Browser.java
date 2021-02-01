@@ -6,7 +6,6 @@ import java.net.URL;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
-import digital_table.server.MapCanvas.Order;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -87,8 +86,8 @@ public abstract class Browser extends MapElement {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.INFORMATION;
 	}
 
 	public JComponent getComponent() {

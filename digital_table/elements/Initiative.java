@@ -15,8 +15,6 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import digital_table.server.MapCanvas.Order;
-
 // TODO this is very similar to Label. consider combining
 
 public class Initiative extends MapElement {
@@ -49,8 +47,8 @@ public class Initiative extends MapElement {
 	float fontSize = 0.333f;	// font size in grid coordinate-space
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.INFORMATION;
 	}
 
 	@Override

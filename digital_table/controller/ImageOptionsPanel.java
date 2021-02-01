@@ -33,6 +33,7 @@ import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.Group;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
 import digital_table.server.MediaManager;
@@ -41,6 +42,7 @@ import digital_table.server.MediaManager;
 class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	protected URI uri = null;
 
+	private JComboBox<Layer> layerCombo;
 	private JTextField xField;
 	private JTextField yField;
 	private JTextField widthField;
@@ -87,6 +89,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 		xField = createDoubleControl(Group.PROPERTY_X);
 		yField = createDoubleControl(Group.PROPERTY_Y);
 		widthField = createDoubleControl(MapImage.PROPERTY_WIDTH);
@@ -154,11 +157,13 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			wallsFactory.addElement(element);
 		});
 
+		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0; add(visibleCheck, c);
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("Layer: "), c);
 		add(new JLabel("DM visibility: "), c);
 		add(new JLabel("Local label:"), c);
 		add(new JLabel("Left edge column:"), c);
@@ -173,6 +178,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
 		add(borderCheck, c);
+		add(layerCombo, c);
 		add(dmVisCombo, c);
 		add(labelField, c);
 		add(xField, c);
@@ -199,6 +205,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.gridx = 0;
 		c.gridwidth = 2;
 		add(new JPanel(), c);
+		//@formatter:on
 
 		if (mapNode != null) parseMapNode(mapNode, maskFactory, poiFactory);
 	}
@@ -233,6 +240,10 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 				String s = e.getNewValue().toString();
 				s = s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
 				dmVisCombo.setSelectedItem(s);
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
+
 			} else if (e.getPropertyName().equals(MapImage.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
 
@@ -407,6 +418,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 //			}
 		}
 
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 
 		String attr = e.getAttribute(MapElement.PROPERTY_VISIBLE);

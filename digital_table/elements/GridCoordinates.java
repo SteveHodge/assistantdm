@@ -11,8 +11,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-import digital_table.server.MapCanvas.Order;
-
 public class GridCoordinates extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -170,8 +168,8 @@ public class GridCoordinates extends MapElement {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.INFORMATION;
 	}
 
 	@Override

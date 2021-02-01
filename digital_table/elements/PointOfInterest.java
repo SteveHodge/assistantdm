@@ -10,7 +10,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 
-import digital_table.server.MapCanvas.Order;
 import digital_table.server.MeasurementLog;
 
 // TODO fix hardcoded sizes, change font-size property to something useful (small/med/large enum, for example)
@@ -31,8 +30,8 @@ public class PointOfInterest extends MapElement {
 	Property<String> id = new Property<String>(PROPERTY_ID, "", String.class);
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.ABOVEGRID;
+	public Layer getDefaultLayer() {
+		return Layer.MAP_FOREGROUND;
 	}
 
 	AffineTransform getTransform(MapImage map) {
@@ -162,6 +161,7 @@ public class PointOfInterest extends MapElement {
 		return "PointOfInterest" + (text.getValue().length() > 0 ? " (" + text.getValue() + ")" : "");
 	}
 
+	@Override
 	public MeasurementLog getPaintTiming() {
 		return null;
 	}

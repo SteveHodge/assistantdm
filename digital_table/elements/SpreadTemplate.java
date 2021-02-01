@@ -15,7 +15,6 @@ import java.awt.geom.Point2D;
 import java.net.URI;
 
 import digital_table.server.ImageMedia;
-import digital_table.server.MapCanvas.Order;
 import digital_table.server.MediaManager;
 
 // TODO convert PROPERTY constants to enum?
@@ -119,8 +118,8 @@ public class SpreadTemplate extends MapElement {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.TOP;
+	public Layer getDefaultLayer() {
+		return Layer.TEMPLATE;
 	}
 
 	@Override

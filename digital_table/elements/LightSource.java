@@ -16,8 +16,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import digital_table.server.MapCanvas.Order;
-
 public class LightSource extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -100,8 +98,8 @@ public class LightSource extends MapElement {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.ABOVEGRID;
+	public Layer getDefaultLayer() {
+		return Layer.OBFUSCATION;
 	}
 
 	@Override

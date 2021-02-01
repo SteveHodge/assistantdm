@@ -11,8 +11,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import digital_table.server.MapCanvas.Order;
-
 //TODO optimize by grouping fills (and lines) by color. test if caching an Area for each color is faster
 
 public class Drawing extends MapElement {
@@ -90,8 +88,8 @@ public class Drawing extends MapElement {
 	private Line tempLine;
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.ABOVEGRID;
+	public Layer getDefaultLayer() {
+		return Layer.MAP_FOREGROUND;
 	}
 
 	@Override

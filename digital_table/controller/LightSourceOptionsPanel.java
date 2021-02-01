@@ -21,6 +21,7 @@ import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.LightSource;
 import digital_table.elements.LightSource.Type;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.PersonalEmanation;
 import digital_table.elements.SpreadTemplate;
@@ -28,6 +29,7 @@ import digital_table.elements.SpreadTemplate;
 
 @SuppressWarnings("serial")
 class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
+	private JComboBox<Layer> layerCombo;
 	private JTextField radiusField;
 	private JTextField xField;
 	private JTextField yField;
@@ -49,6 +51,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.HIDDEN);
 		element.addPropertyChangeListener(listener);
 
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 		radiusField = createIntegerControl(LightSource.PROPERTY_RADIUS);
 		xField = createIntegerControl(LightSource.PROPERTY_X);
 		yField = createIntegerControl(LightSource.PROPERTY_Y);
@@ -64,21 +67,28 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 0; add(visibleCheck, c);
+		c.gridy = 0; add(new JLabel("Layer:"), c);
+		c.gridy++; add(new JLabel("Label:"), c);
 		c.gridy++; add(new JLabel("Type:"), c);
 		c.gridy++; add(new JLabel("Radius:"), c);
 		c.gridy++; add(new JLabel("Column:"), c);
 		c.gridy++; add(new JLabel("Row:"), c);
 
+		c.gridx = 2;
+		c.gridy = 0;
+		add(visibleCheck, c);
+
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 0; add(labelField, c);
+		c.gridy = 0; add(layerCombo, c);
+		c.gridwidth = 2;
+		c.gridy++; add(labelField, c);
 		c.gridy++; add(typeCombo, c);
 		c.gridy++; add(radiusField, c);
 		c.gridy++; add(xField, c);
 		c.gridy++; add(yField, c);
 
-		c.gridx = 0; c.gridwidth = 2;
+		c.gridx = 0; c.gridwidth = 3;
 		c.gridy++; add(allCornersCheck, c);
 		c.gridy++; add(showOriginCheck, c);
 		c.gridy++; add(paintLightCheck, c);
@@ -94,6 +104,9 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(LightSource.PROPERTY_LABEL)) {
 				labelField.setText(e.getNewValue().toString());
@@ -179,6 +192,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		parseBooleanAttribute(LightSource.PROPERTY_ALWAYS_SHOW_ORIGIN, e, Mode.ALL);
 		parseBooleanAttribute(LightSource.PROPERTY_PAINT_LIGHT, e, Mode.ALL);
 		parseColorAttribute(SpreadTemplate.PROPERTY_COLOR, e, Mode.ALL);
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 }

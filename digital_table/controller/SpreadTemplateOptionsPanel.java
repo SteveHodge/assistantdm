@@ -23,12 +23,14 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.SpreadTemplate;
 
 
 @SuppressWarnings("serial")
 class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
+	private JComboBox<Layer> layerCombo;
 	private JTextField radiusField;
 	private JTextField xField;
 	private JTextField yField;
@@ -50,6 +52,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 		radiusField = createIntegerControl(SpreadTemplate.PROPERTY_RADIUS);
 		xField = createIntegerControl(SpreadTemplate.PROPERTY_X);
 		yField = createIntegerControl(SpreadTemplate.PROPERTY_Y);
@@ -67,11 +70,13 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 
 		imagePanel = new ImageMediaOptionsPanel();
 
+		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 0; add(visibleCheck, c);
+		c.gridy = 0; add(new JLabel("Layer:"), c);
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("Label:"), c);
 		add(new JLabel("Radius:"), c);
 		add(new JLabel("Column:"), c);
 		add(new JLabel("Row:"), c);
@@ -80,10 +85,16 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		add(new JLabel("Type:"), c);
 		add(new JLabel("Direction:"), c);
 
+		c.gridx = 2;
+		c.gridy = 0;
+		add(visibleCheck, c);
+
 		c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0d;
 		c.gridx = 1;
-		c.gridy = 0; add(labelField, c);
+		c.gridy = 0; add(layerCombo, c);
+		c.gridwidth = 2;
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(labelField, c);
 		add(radiusField, c);
 		add(xField, c);
 		add(yField, c);
@@ -93,11 +104,12 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		add(directionCombo, c);
 
 		c.gridx = 0;
-		c.gridwidth = 2;
+		c.gridwidth = 3;
 		add(imagePanel, c);
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
 		add(new JPanel(), c);
+		//@formatter:on
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -105,6 +117,9 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(SpreadTemplate.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
@@ -192,6 +207,7 @@ class SpreadTemplateOptionsPanel extends OptionsPanel<SpreadTemplate> {
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_X, e, Mode.ALL);
 		parseIntegerAttribute(SpreadTemplate.PROPERTY_Y, e, Mode.ALL);
 		parseBooleanAttribute(SpreadTemplate.PROPERTY_IMAGE_VISIBLE, e, Mode.ALL);
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 
 		if (e.hasAttribute(FILE_ATTRIBUTE_NAME)) {

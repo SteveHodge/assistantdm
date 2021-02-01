@@ -17,10 +17,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ListModel;
-
-import digital_table.server.MapCanvas.Order;
-
 // TODO processing the walls takes too long and happens for each display - it should be threaded and perhaps done before being passed to the MapElement
 
 public class DarknessMask extends MapElement {
@@ -46,8 +42,8 @@ public class DarknessMask extends MapElement {
 	Area seen = null;
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.ABOVEGRID;
+	public Layer getDefaultLayer() {
+		return Layer.OBFUSCATION;
 	}
 
 	@Override
@@ -65,12 +61,10 @@ public class DarknessMask extends MapElement {
 			dark.subtract(new Area(new Rectangle(tl.x, tl.y, br.x - tl.x, br.y - tl.y)));
 		}
 
-		ListModel<MapElement> m = canvas.getModel();
 		List<Line2D.Double> wallLayout = new ArrayList<>();	// FIXME should cache this as then LightSource can use its cache more often
 
 		// find the wall layouts
-		for (int i = 0; i < m.getSize(); i++) {
-			Object e = m.getElementAt(i);
+		for (MapElement e : canvas) {
 			if (e instanceof Walls) {
 				List<Line2D.Double> points = ((Walls) e).getWalls();
 				if (points != null) wallLayout.addAll(points);
@@ -82,8 +76,7 @@ public class DarknessMask extends MapElement {
 		Area lowLight = new Area();
 		Area bright = new Area();
 
-		for (int i = 0; i < m.getSize(); i++) {
-			Object e = m.getElementAt(i);
+		for (MapElement e : canvas) {
 			if (e instanceof LightSource) {
 				LightSource l = (LightSource) e;
 				if (l.visible.getValue() != Visibility.HIDDEN) {

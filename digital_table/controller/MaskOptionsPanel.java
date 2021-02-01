@@ -6,12 +6,15 @@ import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -26,6 +29,7 @@ import org.w3c.dom.NodeList;
 
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
 import digital_table.elements.Mask;
@@ -33,6 +37,7 @@ import digital_table.server.MediaManager;
 
 @SuppressWarnings("serial")
 public class MaskOptionsPanel extends OptionsPanel<Mask> {
+	private JComboBox<Layer> layerCombo;
 	MasksModel masksModel;
 	JTable maskTable;
 
@@ -42,11 +47,21 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		display.addElement(element, parent);
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.FADED);
+		element.addPropertyChangeListener(listener);
+
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		add(new JLabel("Layer:"), c);
+		c.gridx = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
+		add(layerCombo, c);
+
+		c.gridwidth = 2;
 		c.gridx = 0;
 		c.gridy = GridBagConstraints.RELATIVE;
 
@@ -99,6 +114,18 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		maskTable.setFillsViewportHeight(true);
 		add(scrollPane, c);
 	}
+
+	private PropertyChangeListener listener = new PropertyChangeListener() {
+		@Override
+		public void propertyChange(PropertyChangeEvent e) {
+			if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
+
+			} else {
+				System.out.println(toString() + ": Unknown property: " + e.getPropertyName());
+			}
+		}
+	};
 
 	private class MasksModel extends AbstractTableModel {
 		// TODO time to change to a single list of mask objects
@@ -324,6 +351,7 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		}
 
 		setCellListAttribute(e, CLEARED_CELL_LIST_ATTRIBUTE, element.getCells());
+		setAttribute(e, MapElement.PROPERTY_LAYER, element.getProperty(MapElement.PROPERTY_LAYER));
 		return e;
 	}
 
@@ -353,6 +381,7 @@ public class MaskOptionsPanel extends OptionsPanel<Mask> {
 		}
 
 		parseCellList(MapImage.PROPERTY_CLEARCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 	}
 
 }

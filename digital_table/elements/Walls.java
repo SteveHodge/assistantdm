@@ -24,8 +24,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import digital_table.server.MapCanvas.Order;
-
 public class Walls extends MapElement {
 	private static final long serialVersionUID = 1L;
 
@@ -165,8 +163,8 @@ public class Walls extends MapElement {
 	}
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.ABOVEGRID;
+	public Layer getDefaultLayer() {
+		return Layer.MAP_FOREGROUND;
 	}
 
 	@Override

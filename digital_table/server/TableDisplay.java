@@ -31,8 +31,6 @@ public interface TableDisplay extends Remote {
 
 	public void demoteElement(int id) throws RemoteException;
 
-	public void reorganiseBefore(int id, int id2) throws RemoteException;
-
 	public void setElementProperty(int id, String property, Object value) throws RemoteException;
 
 	public boolean hasMedia(URI uri) throws RemoteException;

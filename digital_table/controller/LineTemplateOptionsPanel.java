@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -21,10 +22,12 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.LineTemplate;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
+	private JComboBox<Layer> layerCombo;
 	private JTextField xField;
 	private JTextField yField;
 	private JTextField rangeField;
@@ -45,6 +48,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		element.setProperty(MapElement.PROPERTY_VISIBLE, Visibility.VISIBLE);
 		element.addPropertyChangeListener(listener);
 
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 		xField = createIntegerControl(LineTemplate.PROPERTY_X);
 		yField = createIntegerControl(LineTemplate.PROPERTY_Y);
 		originXField = createIntegerControl(LineTemplate.PROPERTY_ORIGIN_X);
@@ -60,8 +64,9 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;
-		add(visibleCheck, c);
+		add(new JLabel("Layer:"), c);
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(new JLabel("Label:"), c);
 		add(new JLabel("Origin X:"), c);
 		add(new JLabel("Origin Y:"), c);
 		add(new JLabel("Target X:"), c);
@@ -70,12 +75,18 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		add(new JLabel("Colour:"), c);
 		add(new JLabel("Transparency:"), c);
 
+		c.gridx = 2;
+		c.gridy = 0;
+		add(visibleCheck, c);
+
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = 0;
-		add(labelField, c);
+		add(layerCombo, c);
+		c.gridwidth = 2;
 		c.gridy = GridBagConstraints.RELATIVE;
+		add(labelField, c);
 		add(originXField, c);
 		add(originYField, c);
 		add(xField, c);
@@ -85,7 +96,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		add(alphaSlider, c);
 
 		c.gridx = 0;
-		c.gridwidth = 2;
+		c.gridwidth = 3;
 		add(imagePanel, c);
 
 		c.fill = GridBagConstraints.BOTH;
@@ -98,6 +109,9 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(LineTemplate.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
@@ -182,6 +196,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_Y, e, Mode.ALL);
 		parseIntegerAttribute(LineTemplate.PROPERTY_RANGE, e, Mode.ALL);
 		parseBooleanAttribute(LineTemplate.PROPERTY_IMAGE_VISIBLE, e, Mode.ALL);
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 
 		if (e.hasAttribute(FILE_ATTRIBUTE_NAME)) {

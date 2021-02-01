@@ -25,7 +25,6 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import digital_table.server.MapCanvas.Order;
 import ui.CreatureStatus;
 import ui.SimpleStatus;
 import ui.Status;
@@ -144,8 +143,8 @@ public class Token extends Group {
 	private transient Dimension cachedSize;
 
 	@Override
-	public Order getDefaultOrder() {
-		return Order.ABOVEGRID;
+	public Layer getDefaultLayer() {
+		return Layer.MONSTER_TOKENS;
 	}
 
 	@Override

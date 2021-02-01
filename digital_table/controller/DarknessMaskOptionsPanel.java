@@ -11,6 +11,7 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -21,10 +22,12 @@ import org.w3c.dom.Element;
 import digital_table.controller.DisplayManager.Mode;
 import digital_table.elements.DarknessMask;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 
 @SuppressWarnings("serial")
 class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
+	private JComboBox<Layer> layerCombo;
 	private JPanel colorPanel;
 	private JSlider alphaSlider;
 	private JCheckBox lowLightCheck;
@@ -41,6 +44,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		element.setProperty(DarknessMask.PROPERTY_ALPHA, 0.5f);
 		element.addPropertyChangeListener(listener);
 
+		layerCombo = createComboControl(MapElement.PROPERTY_LAYER, Layer.values());
 		colorPanel = createColorControl(DarknessMask.PROPERTY_COLOR);
 		alphaSlider = createSliderControl(DarknessMask.PROPERTY_ALPHA, Mode.LOCAL);
 		lowLightCheck = createCheckBox(DarknessMask.PROPERTY_LOW_LIGHT, Mode.ALL, "Lowlight vision");
@@ -57,14 +61,20 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
+		c.gridy = 0; add(new JLabel("Layer:"), c);
 		c.gridy = 1; add(new JLabel("Colour:"), c);
 		c.gridy = 2; add(new JLabel("Transparency:"), c);
+
+		c.gridx = 2;
+		c.gridy = 0;
+		add(visibleCheck, c);
 
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0d;
 		c.gridx = 1;
 		c.gridy = GridBagConstraints.RELATIVE;
-		add(visibleCheck, c);
+		add(layerCombo, c);
+		c.gridwidth = 2;
 		add(colorPanel, c);
 		add(alphaSlider, c);
 		add(lowLightCheck, c);
@@ -72,7 +82,8 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		add(historyColorPanel, c);
 		add(resetHistory, c);
 
-		c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridwidth = 3;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
 		add(new JPanel(), c);
@@ -85,6 +96,9 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals(MapElement.PROPERTY_VISIBLE)) {
 				visibleCheck.setSelected(e.getNewValue().equals(MapElement.Visibility.VISIBLE));
+
+			} else if (e.getPropertyName().equals(MapElement.PROPERTY_LAYER)) {
+				layerCombo.setSelectedItem(e.getNewValue());
 
 			} else if (e.getPropertyName().equals(DarknessMask.PROPERTY_ALPHA)) {
 				alphaSlider.setValue((int)(100*(Float)e.getNewValue()));
@@ -188,6 +202,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		parseColorAttribute(DarknessMask.PROPERTY_HISTORY_COLOR, e, Mode.ALL);
 		parseStringAttribute(DarknessMask.PROPERTY_HISTORY, e, Mode.ALL);
 		parseCellList(DarknessMask.PROPERTY_UNMASKCELL, e, CLEARED_CELL_LIST_ATTRIBUTE, Mode.ALL);
+		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 	}
 }

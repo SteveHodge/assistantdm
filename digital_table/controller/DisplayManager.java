@@ -4,6 +4,7 @@ import java.awt.geom.Point2D;
 import java.net.URI;
 
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import digital_table.server.CoordinateConverter;
 import digital_table.server.MapCanvas;
 import digital_table.server.MeasurementLog;
@@ -112,13 +113,6 @@ class DisplayManager implements CoordinateConverter {
 		if (remote != null) remote.demoteElement(element);
 	}
 
-	public void reorganiseBefore(MapElement el1, MapElement el2) {
-		if (local != null) local.reorganiseBefore(el1, el2);
-		if (overlay != null) overlay.reorganiseBefore(el1, el2);
-		if (image != null) image.reorganiseBefore(el1, el2);
-		if (remote != null) remote.reorganiseBefore(el1, el2);
-	}
-
 	void setProperty(MapElement element, String property, Object value) {
 		setProperty(element, property, value, Mode.ALL);
 	}
@@ -131,7 +125,13 @@ class DisplayManager implements CoordinateConverter {
 				if (image != null) image.setProperty(element, property, value);
 			}
 		}
-		if (mode != Mode.REMOTE && mode != Mode.OVERLAY) element.setProperty(property, value);
+		if (mode != Mode.REMOTE && mode != Mode.OVERLAY) {
+			if (property.equals(MapElement.PROPERTY_LAYER)) {
+				local.changeLayer(element, (Layer) value);
+			} else {
+				element.setProperty(property, value);
+			}
+		}
 	}
 
 	// this doesn't bother setting the property on the overlay element

@@ -29,6 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 import javafx.application.Platform;
 
 //TODO JavaFX platform stuff should only be called if necessary (once Browser is added)
@@ -255,16 +256,12 @@ public class DigitalTable implements TableDisplay, ScreenManager {
 	}
 
 	@Override
-	public void reorganiseBefore(int id, int id2) throws RemoteException {
-		MapElement e1 = canvas.getElement(id);
-		MapElement e2 = canvas.getElement(id2);
-		if (e1 != null && e2 != null) canvas.reorganiseBefore(e1, e2);
-	}
-
-	@Override
 	public void setElementProperty(int id, String property, Object value) {
 		MapElement e = canvas.getElement(id);
-		if (e != null) {
+		if (e == null) return;
+		if (property.equals(MapElement.PROPERTY_LAYER)) {
+			canvas.changeLayer(e, (Layer) value);
+		} else {
 			e.setProperty(property, value);
 		}
 	}

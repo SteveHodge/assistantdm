@@ -162,12 +162,6 @@ public class RemoteConnection {
 		}));
 	}
 
-	public void reorganiseBefore(MapElement el1, MapElement el2) {
-		queue.add(new Operation(String.format("moveBefore(%s, %s)", el1, el2), () -> {
-			remote.reorganiseBefore(el1.getID(), el2.getID());
-		}));
-	}
-
 	public void setElementProperty(MapElement element, String property, Object value) {
 		queue.add(new Operation(String.format("setElementProperty(%s, %s, %s)", element, property, (value == null ? "<null>" : value.toString())), () -> {
 			remote.setElementProperty(element.getID(), property, value);

@@ -6,21 +6,20 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import javax.swing.DefaultListModel;
-import javax.swing.ListModel;
 import javax.swing.event.EventListenerList;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import digital_table.elements.Grid;
 import digital_table.elements.Group;
 import digital_table.elements.MapElement;
+import digital_table.elements.MapElement.Layer;
 
 /*
  * Represents the whole map area - an infinite plane which can contain elements arranged in layers
@@ -32,41 +31,55 @@ import digital_table.elements.MapElement;
 // TODO reimplement models and clean up
 // TODO probably should have root MapElement to avoid all the special cases
 
-public class MapCanvas implements ListDataListener, CoordinateConverter {
-	private DefaultListModel<MapElement> model;
+public class MapCanvas implements CoordinateConverter, Iterable<MapElement> {
+	private Map<Layer, List<MapElement>> layers = new HashMap<>();
 	private List<RepaintListener> listeners = new ArrayList<>();
-	private Grid grid;	// used to position other element above or below the grid
 
 	// xoffset and yoffset specify the number of grid squares that are added to grid coordinates during conversions
 	// the grid square at grid coordinates (xoffset,yoffset) will be the top left square of the "standard" display
 	protected int xoffset = 0;
 	protected int yoffset = 0;
 
-	public enum Order {
-		TOP,		// use for popups, informational elements
-		ABOVEGRID,	// use for creatures
-		BELOWGRID,	// use for templates
-		BOTTOM;		// use for background images
-	}
-
 	public MapCanvas() {
-		setModel(new DefaultListModel<MapElement>());
+		for (int i = 0; i < Layer.values().length; i++) {
+			layers.put(Layer.values()[i], new ArrayList<>());
+		}
 	}
 
-	public ListModel<MapElement> getModel() {
-		return model;
+	@Override
+	public Iterator<MapElement> iterator() {
+		return new CanvasIterator();
+	}
+
+	private class CanvasIterator implements Iterator<MapElement>
+	{
+		int currentLayer;
+		Iterator<MapElement> currentIterator;
+
+		CanvasIterator() {
+			currentLayer = 0;
+			currentIterator = layers.get(Layer.values()[currentLayer]).iterator();
+		}
+
+		@Override
+		public boolean hasNext() {
+			while (!currentIterator.hasNext()) {
+				// current iterator empty: move to next layer
+				currentLayer++;
+				if (currentLayer > Layer.values().length - 1) return false;
+				currentIterator = layers.get(Layer.values()[currentLayer]).iterator();
+			}
+			return true;
+		}
+
+		@Override
+		public MapElement next() {
+			return currentIterator.next();
+		}
 	}
 
 	public TreeModel getTreeModel() {
 		return treeModel;
-	}
-
-	public void setModel(DefaultListModel<MapElement> m) {
-		if (model != null) {
-			model.removeListDataListener(this);
-		}
-		model = m;
-		model.addListDataListener(this);
 	}
 
 	public void addRepaintListener(RepaintListener l) {
@@ -77,28 +90,34 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		listeners.remove(l);
 	}
 
+	private List<MapElement> getLayerList(MapElement e) {
+		Layer layer = (Layer) e.getProperty(MapElement.PROPERTY_LAYER);
+		List<MapElement> list = layers.get(layer);
+		return list;
+	}
+
 	public void addElement(MapElement element, MapElement parent) {
 		element.setMapCanvas(this);
-		if (element instanceof Grid) grid = (Grid) element;
-		int pos = 0;
-		switch (element.getDefaultOrder()) {
-		case TOP:
-			pos = 0;
-			break;
-		case ABOVEGRID:
-			pos = getIndexOf(grid);
-			break;
-		case BELOWGRID:
-			pos = getIndexOf(grid) + 1;
-			break;
-		case BOTTOM:
-			pos = model.getSize();
-		}
 		if (parent != null && parent instanceof Group) {
 			((Group) parent).addChild(element);
 		}
-		model.add(pos, element);
+		getLayerList(element).add(element);
 		treeModel.fireTreeNodeInserted(element);
+		repaint();
+	}
+
+	// assumes the current value of the layer property of element matches the layer list that contains element. this
+	// method will update the property after moving the element to the correct layer list. so this method should be
+	// called instead of changing the property on the element itself.
+	// the element will be placed at the top of the new layer.
+	public void changeLayer(MapElement element, Layer layer) {
+		List<MapElement> oldList = getLayerList(element);
+		List<MapElement> newList = layers.get(layer);
+		if (oldList.remove(element)) {
+			newList.add(0, element);
+			element.setProperty(MapElement.PROPERTY_LAYER, layer);
+		}
+		repaint();
 	}
 
 	public void changeParent(MapElement element, MapElement parent) {
@@ -116,25 +135,29 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 	}
 
 	private void removeChildren(Group parent) {
-		for (int i = model.getSize() - 1; i >= 0; i--) {
-			MapElement el = model.get(i);
-			if (el.getParent() == parent) {
-				if (el instanceof Group) {
-					removeChildren((Group) el);
-					if (i >= model.getSize()) i = model.getSize() - 1;	// the recursion above can remove enough elements that i becomes out of range
+		for (List<MapElement> list : layers.values()) {
+			for (int i = list.size() - 1; i >= 0; i--) {
+				MapElement el = list.get(i);
+				if (el.getParent() == parent) {
+					if (el instanceof Group) {
+						removeChildren((Group) el);
+						if (i >= list.size()) i = list.size() - 1;	// the recursion above can remove enough elements that i becomes out of range
+					}
+					parent.removeChild(el);
+					list.remove(el);
 				}
-				parent.removeChild(el);
-				model.removeElement(el);
 			}
 		}
 	}
 
+	// note this assumes the layer property of the element matches the layer list it is stored in
 	public boolean removeElement(int id) {
 		MapElement e = getElement(id);
 		if (e != null) {
 			Group parent = e.getParent();
 			int index = treeModel.getIndexOfChild(parent, e);
-			boolean removed = model.removeElement(e);
+			List<MapElement> list = getLayerList(e);
+			boolean removed = list.remove(e);
 			if (removed) {
 				if (e instanceof Group) removeChildren((Group) e);
 				if (parent != null) {
@@ -142,49 +165,37 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 				}
 				treeModel.fireTreeNodeRemoved(e, parent, index);
 			}
+			repaint();
 			return removed;
 		}
 		return false;
 	}
 
 	public void promoteElement(MapElement e) {
-		int index = model.indexOf(e);
+		List<MapElement> list = getLayerList(e);
+		int index = list.indexOf(e);
 		if (index < 1) return;
-		model.removeElement(e);
-		model.add(index - 1, e);
+		list.remove(e);
+		list.add(index - 1, e);
 		treeModel.fireTreeStructureChanged(null);
+		repaint();
 	}
 
 	public void demoteElement(MapElement e) {
-		int index = model.indexOf(e);
-		if (index < 0 || index == model.getSize() - 1) return;
-		model.removeElement(e);
-		model.add(index + 1, e);
+		List<MapElement> list = getLayerList(e);
+		int index = list.indexOf(e);
+		if (index < 0 || index == list.size() - 1) return;
+		list.remove(e);
+		list.add(index + 1, e);
 		treeModel.fireTreeStructureChanged(null);
-	}
-
-	public void reorganiseBefore(MapElement el1, MapElement el2) {
-		int index = model.indexOf(el2);
-		if (index < 0 || model.indexOf(el1) < 0) return;
-
-		model.removeElement(el1);
-		model.add(index, el1);
-		treeModel.fireTreeStructureChanged(null);
+		repaint();
 	}
 
 	public MapElement getElement(int id) {
-		for (int i = 0; i < model.getSize(); i++) {
-			MapElement e = model.getElementAt(i);
+		for (MapElement e : this) {
 			if (e.getID() == id) return e;
 		}
 		return null;
-	}
-
-	protected int getIndexOf(MapElement el) {
-		for (int i = 0; i < model.getSize(); i++) {
-			if (model.getElementAt(i) == grid) return i;
-		}
-		return 0;
 	}
 
 	public void paint(Graphics2D g) {
@@ -193,9 +204,13 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 		Rectangle bounds = g.getClipBounds();
 		g.clearRect(bounds.x, bounds.y, bounds.width, bounds.height);
-		for (int i = model.getSize() - 1; i >= 0; i--) {
-			MapElement r = model.getElementAt(i);
-			if (r != null) r.paintElement(g);
+
+		for (int l = Layer.values().length - 1; l >= 0; l--) {
+			List<MapElement> list = layers.get(Layer.values()[l]);
+			for (int i = list.size() - 1; i >= 0; i--) {
+				MapElement r = list.get(i);
+				if (r != null) r.paintElement(g);
+			}
 		}
 
 		lastPaintTime = (System.nanoTime() - startTime) / 1000;
@@ -222,8 +237,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	public MeasurementLog getMemoryUsage() {
 		List<MeasurementLog> logs = new ArrayList<>();
-		for (int i = 0; i < model.getSize(); i++) {
-			MapElement e = model.elementAt(i);
+		for (MapElement e : this) {
 			MeasurementLog l = e.getMemoryUsage();
 			if (l != null) logs.add(l);
 		}
@@ -240,8 +254,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	public MeasurementLog getPaintTiming() {
 		List<MeasurementLog> logs = new ArrayList<>();
-		for (int i = 0; i < model.getSize(); i++) {
-			MapElement e = model.elementAt(i);
+		for (MapElement e : this) {
 			MeasurementLog l = e.getPaintTiming();
 			if (l != null) logs.add(l);
 		}
@@ -322,8 +335,8 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	// returns the precise size in grid units of the rectangle defined by the supplied coordinates (which are in the
 	// coordinate system of the remote display)
-//	public Dimension2D getRemoteGridDimension(int left, int top, int right, int bottom) {
-//	}
+	//	public Dimension2D getRemoteGridDimension(int left, int top, int right, int bottom) {
+	//	}
 
 	// returns a Dimension representing the size on pixel units of a rectangle with the width and height specified (in grid
 	// units).
@@ -448,21 +461,6 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 
 	// ----------------------- tree model related methods -----------------------
 
-	@Override
-	public void contentsChanged(ListDataEvent arg0) {
-		repaint();
-	}
-
-	@Override
-	public void intervalAdded(ListDataEvent arg0) {
-		repaint();
-	}
-
-	@Override
-	public void intervalRemoved(ListDataEvent arg0) {
-		repaint();
-	}
-
 	// TODO probably should make ElementTree top level class and expose these methods in the model
 	public void updateTreeNode(MapElement element) {
 		treeModel.fireTreeNodeChanged(element);
@@ -486,8 +484,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		public int getChildCount(Object parent) {
 			if (parent == MapCanvas.this) parent = null;
 			int count = 0;
-			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = model.get(i);
+			for (MapElement e : MapCanvas.this) {
 				if (e.getParent() == parent) count++;
 			}
 			return count;
@@ -497,8 +494,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		public MapElement getChild(Object parent, int index) {
 			if (parent == MapCanvas.this) parent = null;
 			int count = 0;
-			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = model.get(i);
+			for (MapElement e : MapCanvas.this) {
 				if (e.getParent() == parent) {
 					if (count++ == index) return e;
 				}
@@ -510,8 +506,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		public int getIndexOfChild(Object parent, Object child) {
 			if (parent == MapCanvas.this) parent = null;
 			int count = 0;
-			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = model.get(i);
+			for (MapElement e : MapCanvas.this) {
 				if (e.getParent() == parent) {
 					if (e == child) return count;
 					count++;
@@ -523,8 +518,7 @@ public class MapCanvas implements ListDataListener, CoordinateConverter {
 		@Override
 		public boolean isLeaf(Object node) {
 			if (node == MapCanvas.this) return false;
-			for (int i = 0; i < model.getSize(); i++) {
-				MapElement e = model.get(i);
+			for (MapElement e : MapCanvas.this) {
 				if (e.getParent() == node) return false;
 			}
 			return true;
