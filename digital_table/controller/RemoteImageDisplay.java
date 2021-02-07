@@ -30,7 +30,7 @@ import util.Updater;
 // TODO probably better to create our own token overlay and forward changes to it.
 
 class RemoteImageDisplay extends TokenOverlay {
-	final static int PIXELS_PER_CELL = 20;
+	final static int PIXELS_PER_CELL = 30;
 
 	final int rows = 39;
 	final int columns = 32;
