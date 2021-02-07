@@ -751,6 +751,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	final static String XML_TAG = "Token";
 	private final static String FILE_ATTRIBUTE_NAME = "image_path";
 	private final static String CREATURE_ID = "creature_id";
+	private final static String SIZE = "size";
 
 	@Override
 	Element getElement(Document doc) {
@@ -766,6 +767,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			Creature c = (Creature) creatureCombo.getSelectedItem();
 			if (c != null) e.setAttribute(CREATURE_ID, Integer.toString(c.getID()));
 		}
+		e.setAttribute(SIZE, ((CreatureSize) sizeCombo.getSelectedItem()).name());
 		Point2D location = (Point2D) element.getProperty(Group.PROPERTY_LOCATION);
 		e.setAttribute(Group.PROPERTY_LOCATION, location.getX() + "," + location.getY());	// maybe should output X and Y separately
 		return e;
@@ -791,6 +793,18 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 				Creature c = idMap.get(Integer.parseInt(idStr));
 				setCreature(c);
 			}
+		}
+		if (e.hasAttribute(SIZE)) {
+			String attr = e.getAttribute(SIZE);
+			if (attr.length() > 0) {
+				try {
+					CreatureSize value = CreatureSize.valueOf(attr);
+					sizeCombo.setSelectedItem(value);
+				} catch (IllegalArgumentException ex) {
+					ex.printStackTrace();
+				}
+			}
+
 		}
 		parseStringAttribute(Token.PROPERTY_LABEL, e, Mode.LOCAL);
 		parseStringAttribute(Token.PROPERTY_LABEL, e, remoteLabelField);
@@ -845,6 +859,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 	void duplciate(TokenOptionsPanel from) {
 		copyProperty(Token.PROPERTY_LABEL, from, Mode.LOCAL);
 		// TODO floating label
+		sizeCombo.setSelectedItem(from.sizeCombo.getSelectedItem());
 		remoteLabelField.setText(from.remoteLabelField.getText());
 		display.setProperty(element, Token.PROPERTY_LABEL, remoteLabelField.getText(), Mode.REMOTE);
 		webLabelField.setText(from.webLabelField.getText());
@@ -864,7 +879,6 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		copyProperty(Token.PROPERTY_SHOWREACH, from, Mode.LOCAL);
 		copyProperty(MapElement.PROPERTY_LAYER, from, Mode.ALL);
 		remoteReach.setSelected(from.remoteReach.isSelected());
-		// TODO size
 		if (from.imageFile != null) setImage(from.imageFile);
 	}
 }

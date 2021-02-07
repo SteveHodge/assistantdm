@@ -1,4 +1,6 @@
 ---=== IN PROGRESS ===---
+* Fix performance of loading large numbers of masks - ImageMedia.getSourceImage is the main culprit
+*
 * IN WORK UI for messages etc
 * IN WORK Webserver/webpage/java: DM request roll function
 * Webserver/java: subscriber list
@@ -60,9 +62,7 @@
 
 ---=== DIGITAL TABLE PRIORITIES ===---
 * DTT: split simple image (which supports animation) from map (which supports masks and walls)
-* DTT: split rendering into layers, have separate ui elements for selecting maps, tokens, and perhaps lightsources
-* 	layers for painting order
-* 	Look at the map element order - should moving a tree move all children? - probably enough to have set layers and the ability to move between them
+* DTT: have separate ui elements for selecting maps, tokens, and perhaps lightsources
 * DTT: tokens could show movement trail and measurement
 * Recalibrate display - could be done using screen bounds element
 * DTT: darkness should be part of the map stack, with option to use map bounds or extend bounds. Only walls in same map stack should be considered.

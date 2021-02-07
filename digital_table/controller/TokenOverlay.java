@@ -3,12 +3,13 @@ package digital_table.controller;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -78,8 +79,7 @@ class TokenOverlay {
 		}
 
 		@Override
-		public boolean debug() {
-			return false;
+		public void debug(String title) {
 		}
 
 //		@Override
@@ -120,14 +120,19 @@ class TokenOverlay {
 			g.translate(o.getX(), o.getY());
 
 			int space = this.space.getValue();
-			if (space < 10) space = 10;	// TODO need to be able to draw sub-Small tokens slightly smaller
+			float offset = 0.1f;
+			if (space < 10) {
+				// draw tiny and smaller creatures slightly smaller
+				space = 10;
+				offset = 0.2f;
+			}
 
-			float arcWidth = canvas.getColumnWidth() * space / 30;
-			float arcHeight = canvas.getRowHeight() * space / 30;
-			int cells = space / 10;
-			Point tl = canvas.convertGridCoordsToDisplay(location.getValue());
-			Point br = canvas.convertGridCoordsToDisplay((int) getX() + cells, (int) getY() + cells);
-			BasicStroke stroke = getThickStroke();
+			float arcWidth = canvas.getColumnWidth() * space / (space > 10 ? 30 : 45);
+			float arcHeight = canvas.getRowHeight() * space / (space > 10 ? 30 : 45);
+			float cells = space / 10f - offset * 2;
+			Point tl = canvas.convertGridCoordsToDisplay(new Point2D.Double(getX() + offset, getY() + offset));
+			Point br = canvas.convertGridCoordsToDisplay(new Point2D.Double(getX() + offset + cells, getY() + offset + cells));
+			BasicStroke stroke = getBorderStroke(space);
 			float inset = stroke.getLineWidth() / 2;
 
 			// paint background:
@@ -138,38 +143,61 @@ class TokenOverlay {
 			// paint border:
 			g.setColor(color.getValue());
 			Stroke oldStroke = g.getStroke();
-			g.setStroke(getThickStroke());
+			g.setStroke(stroke);
 			g.draw(s);
 			g.setStroke(oldStroke);
 
+			float l = stroke.getLineWidth();
 			Shape oldClip = g.getClip();
-			Shape clip = new RoundRectangle2D.Float(tl.x + stroke.getLineWidth(), tl.y + stroke.getLineWidth(), br.x - tl.x - stroke.getLineWidth() * 2, br.y - tl.y - stroke.getLineWidth() * 2,
+			Shape clip = new RoundRectangle2D.Float(tl.x + l, tl.y + l, br.x - tl.x - l * 2, br.y - tl.y - l * 2,
 					arcWidth,
 					arcHeight);
 			g.setClip(clip);
-			Rectangle2D clipBounds = clip.getBounds2D();
 
 			if (webLabel != null && webLabel.length() > 0) {
-				FontMetrics metrics = g.getFontMetrics();
-				g.setColor(Color.BLACK);
-				Font f = g.getFont();
-				float newSize = (float) clipBounds.getHeight();
-				Rectangle2D bounds = metrics.getStringBounds(webLabel, g);
-				if (bounds.getWidth() > clipBounds.getWidth()) {
-					// scale the font down to fit the label
-					newSize = (float) Math.floor((newSize * clipBounds.getWidth() / bounds.getWidth())) - 1;	// even with floor it seems we're usually too big	// TODO fix this -1 hack. probably need to iterate smaller sizes until the label fits
-				}
-				if (newSize < 8.0f) newSize = 8.0f;
-				g.setFont(f.deriveFont(newSize));
-				metrics = g.getFontMetrics();
-				bounds = metrics.getStringBounds(webLabel, g);
-				double xPos = clipBounds.getCenterX() - bounds.getWidth() / 2;
-				if (xPos < clipBounds.getX()) xPos = clipBounds.getX();
-				double yPos = clipBounds.getMaxY() - metrics.getDescent() / 2;
-
+				Rectangle2D clipBounds = clip.getBounds2D();
+				Rectangle2D labelBounds = new Rectangle2D.Double(clipBounds.getX() + l / 2, clipBounds.getY() + l / 2, clipBounds.getWidth() - l, clipBounds.getHeight() - l);
 				AffineTransform t = g.getTransform();
-				g.rotate(Math.toRadians(-rotateAngle), clipBounds.getCenterX(), clipBounds.getCenterY());
+				g.rotate(Math.toRadians(-rotateAngle), labelBounds.getCenterX(), labelBounds.getCenterY());
+
+//				System.out.println(webLabel + ": labelBounds: " + labelBounds);
+				g.setColor(Color.BLACK);
+				Font f = g.getFont().deriveFont((float) labelBounds.getHeight());
+				g.setFont(f);
+
+				GlyphVector gv = g.getFont().createGlyphVector(g.getFontRenderContext(), webLabel);
+				Rectangle bounds = gv.getPixelBounds(null, 0f, 0f);
+//				System.out.println(webLabel + ": Bounds = " + bounds + ", fontsize = " + g.getFont().getSize());
+
+				if (Math.abs(bounds.getHeight() - labelBounds.getHeight()) > 1) {
+					// if height doesn't match then rescale the font to match height
+					float newSize = (float) (labelBounds.getHeight() * labelBounds.getHeight() / bounds.getHeight());
+					if (newSize < 7) newSize = 7;
+					f = f.deriveFont(newSize);
+					g.setFont(f);
+
+					gv = g.getFont().createGlyphVector(g.getFontRenderContext(), webLabel);
+					bounds = gv.getPixelBounds(null, 0f, 0f);
+//					System.out.println(webLabel + ": New bounds = " + bounds + ", fontsize = " + g.getFont().getSize());
+				}
+
+				if (bounds.getWidth() > labelBounds.getWidth()) {
+					// if label is too long then shrink to fit
+					float newSize = (float) (f.getSize2D() * labelBounds.getWidth() / bounds.getWidth());
+					if (newSize < 7) newSize = 7;
+					f = f.deriveFont(newSize);
+					g.setFont(f);
+				}
+
+				double yPos = labelBounds.getMaxY();
+				gv = g.getFont().createGlyphVector(g.getFontRenderContext(), webLabel);
+				bounds = gv.getPixelBounds(null, 0f, (float) yPos);
+//				System.out.println(webLabel + ": Final bounds = " + bounds + ", fontsize = " + g.getFont().getSize());
+				double xPos = (labelBounds.getCenterX() - bounds.getWidth() / 2);
+				if (xPos < labelBounds.getX()) xPos = labelBounds.getX();
+
 				g.drawString(webLabel, (float) xPos, (float) yPos);
+				//g.fill(gv.getOutline((float) xPos, (float) yPos));
 				g.setTransform(t);
 			}
 
@@ -178,9 +206,10 @@ class TokenOverlay {
 			g.translate(-o.getX(), -o.getY());
 		}
 
-		private BasicStroke getThickStroke() {
-			if (canvas.getColumnWidth() < 40) return new BasicStroke(4);
-			return new BasicStroke(6);
+		private BasicStroke getBorderStroke(int space) {
+			int stroke = canvas.getColumnWidth() < 40 ? 4 : 6;
+			if (space <= 10) stroke = stroke / 2;
+			return new BasicStroke(stroke);
 		}
 
 		@Override

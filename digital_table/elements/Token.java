@@ -160,15 +160,20 @@ public class Token extends Group {
 		g.translate(o.getX(), o.getY());
 
 		int space = this.space.getValue();
-		if (space < 10) space = 10;	// TODO need to be able to draw sub-Small tokens slightly smaller
+		float offset = 0.1f;
+		if (space < 10) {
+			// draw tiny and smaller creatures slightly smaller
+			space = 10;
+			offset = 0.2f;
+		}
 
 		if (showReach.getValue()) paintReach(g);
 
-		float arcWidth = canvas.getColumnWidth() * space / 30;
-		float arcHeight = canvas.getRowHeight() * space / 30;
-		int cells = space / 10;
-		Point tl = canvas.convertGridCoordsToDisplay(location.getValue());
-		Point br = canvas.convertGridCoordsToDisplay((int) getX() + cells, (int) getY() + cells);
+		float arcWidth = canvas.getColumnWidth() * space / (space > 10 ? 30 : 45);
+		float arcHeight = canvas.getRowHeight() * space / (space > 10 ? 30 : 45);
+		float cells = space / 10f - offset * 2;
+		Point tl = canvas.convertGridCoordsToDisplay(new Point2D.Double(getX() + offset, getY() + offset));
+		Point br = canvas.convertGridCoordsToDisplay(new Point2D.Double(getX() + offset + cells, getY() + offset + cells));
 		BasicStroke stroke = getThickStroke();
 		float inset = stroke.getLineWidth() / 2;
 
@@ -198,7 +203,7 @@ public class Token extends Group {
 			g.setColor(Color.BLACK);
 		}
 		Stroke oldStroke = g.getStroke();
-		g.setStroke(getThickStroke());
+		g.setStroke(stroke);
 		g.draw(s);
 		g.setStroke(oldStroke);
 
@@ -252,8 +257,8 @@ public class Token extends Group {
 		if (statusDisplay.getValue() == StatusDisplay.SPOT && status != null
 				&& statusType.getValue() != StatusType.EXACT) {
 			g.setColor(status.getColor());
-			int w = canvas.getColumnWidth() * cells / 6;
-			int h = canvas.getRowHeight() * cells / 6;
+			int w = (int) (canvas.getColumnWidth() * cells / 6);
+			int h = (int) (canvas.getRowHeight() * cells / 6);
 			g.fillOval((int) (tl.x + inset + w / 2), (int) (tl.y + inset + h / 2), w, h);
 		}
 
