@@ -151,8 +151,10 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		try {
 			int row = Integer.parseInt(nums) - 1;
 
-			System.out.println("Decoded " + newLoc + " to (" + col + ", " + row + ")");
-			Point p = new Point(col, row);
+			//System.out.println("Decoded " + newLoc + " to (" + col + ", " + row + ")");
+			//System.out.println("Canvas offset " + canvas.getXOffset() + ", " + canvas.getYOffset());		// canvas offset is local offset, need to remove this but reapply remote offset
+			//System.out.println("Display offset " + display.getXOffset() + ", " + display.getYOffset());
+			Point p = new Point(col + display.getXOffset() - canvas.getXOffset(), row + display.getYOffset() - canvas.getYOffset());	// includes adjustment for local offset (canvas.get*Offset) and remote offset (display.get*Offset)
 			return p;
 		} catch (NumberFormatException ex) {
 //			System.out.println("Invalid row number in '" + newLoc + "'");

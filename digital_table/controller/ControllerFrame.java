@@ -605,7 +605,7 @@ public class ControllerFrame extends JFrame {
 		private void setOffset(Point p) {
 			int x = (offset.x - p.x) / miniMapCanvas.getColumnWidth();
 			int y = (offset.y - p.y) / miniMapCanvas.getRowHeight();
-			if (button == MouseEvent.BUTTON3)
+			if (button == MouseEvent.BUTTON1)
 				gridPanel.setRemoteOffset(startOffsetX + x, startOffsetY + y);
 			miniMapCanvas.setOffset(localOffsetX + x, localOffsetY + y);
 		}

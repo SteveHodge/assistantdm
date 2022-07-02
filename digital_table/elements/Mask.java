@@ -181,11 +181,13 @@ public class Mask extends MapElement {
 					if (combinedMask != null && trans.equals(transform)) return combinedMask;	// transform is unchanged and we already have a mask
 					transform = trans;
 				}
-				if (m.image != null) {
-					tempG.drawImage(m.image.getImage(), m.xOffset, m.yOffset, null);
-				} else if (image.image != null) {
-					tempG.setColor(Color.GRAY);
-					tempG.fillRect(0, 0, image.image.getSourceWidth(), image.image.getSourceHeight());
+				if (tempG != null) {
+					if (m.image != null) {
+						tempG.drawImage(m.image.getImage(), m.xOffset, m.yOffset, null);
+					} else if (image.image != null) {
+						tempG.setColor(Color.GRAY);
+						tempG.fillRect(0, 0, image.image.getSourceWidth(), image.image.getSourceHeight());
+					}
 				}
 			}
 		}
