@@ -48,6 +48,7 @@ import combat.CombatPanel;
 import combat.InitiativeListModel;
 import combat.MonsterCombatEntry;
 import digital_table.controller.DigitalTableController;
+import digital_table.server.MediaManager;
 import gamesystem.RuleSet;
 import led_control.LEDController;
 import led_control.LEDControllerPanel;
@@ -569,6 +570,7 @@ public class AssistantDM extends javax.swing.JFrame implements ActionListener {
 		saveParty(file);
 		shopPanel.writeShopsXML("shops.xml");
 		Updater.updaterThread.quit();
+		MediaManager.INSTANCE.shutdown();
 		ModuleRegistry.exit();
 		System.exit(0);
 	}

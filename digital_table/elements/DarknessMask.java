@@ -76,6 +76,7 @@ public class DarknessMask extends MapElement {
 		Area lowLight = new Area();
 		Area bright = new Area();
 
+		// FIXME sometimes get concurrent modification exceptions here
 		for (MapElement e : canvas) {
 			if (e instanceof LightSource) {
 				LightSource l = (LightSource) e;

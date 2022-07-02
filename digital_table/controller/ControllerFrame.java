@@ -301,6 +301,7 @@ public class ControllerFrame extends JFrame {
 				System.out.print("Remote paint timing: ");
 				printTimingLog(remoteLog);
 			}
+//			miniMapCanvas.debug(" debug ");
 		});
 
 		JButton loadButton = new JButton("Load...");
@@ -1444,7 +1445,9 @@ public class ControllerFrame extends JFrame {
 			System.err.println("Unrecognised element tag: " + tag);
 		}
 
+		long start = System.nanoTime();
 		if (p != null) p.parseDOM(e, parentPanel);
+		System.out.printf("parseNode " + tag + " took %4.3f ms\n", (System.nanoTime() - start) / 1000000d);
 
 		NodeList nodes = e.getChildNodes();
 		for (int i = 0; i < nodes.getLength(); i++) {

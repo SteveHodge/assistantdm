@@ -8,6 +8,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFileChooser;
 
@@ -35,8 +40,11 @@ public enum MediaManager {
 	private JFileChooser chooser = new JFileChooser();
 	private File lastDir = mediaPath;
 
+	private final static int MAX_THREADS = 4;
+	private ExecutorService threadPool;
+
 	public ImageMedia getImageMedia(MapCanvas canvas, URI uri) {
-//		System.out.println("getImageMedia(" + uri + ")");
+		long start = System.nanoTime();
 		File f = cached.get(uri);
 		byte[] bytes = null;
 		if (f != null) {
@@ -52,7 +60,27 @@ public enum MediaManager {
 		}
 
 		if (bytes == null) return null;
-		return ImageMedia.createImageMedia(canvas, bytes);
+		ImageMedia img = ImageMedia.createImageMedia(canvas, bytes);
+		System.out.printf("getImageMedia " + uri.getPath() + " took %4.3f ms\n", (System.nanoTime() - start) / 1000000d);
+		return img;
+	}
+
+	public <T> Future<T> submitWork(Callable<T> task) {
+		return threadPool.submit(task);
+	}
+
+	public void shutdown() {
+		threadPool.shutdown();
+		try {
+			if (!threadPool.awaitTermination(10, TimeUnit.SECONDS)) {
+				threadPool.shutdownNow(); // Cancel currently executing tasks
+				if (!threadPool.awaitTermination(10, TimeUnit.SECONDS))
+					System.err.println("Pool did not terminate");
+			}
+		} catch (InterruptedException ie) {
+			threadPool.shutdownNow();
+			Thread.currentThread().interrupt();	// preserve interrupt status
+		}
 	}
 
 	// presents a file chooser dialog using the supplied component as the parent component for the dialog.
@@ -178,5 +206,6 @@ public enum MediaManager {
 	private MediaManager() {
 		if (!mediaPath.exists()) mediaPath.mkdirs();
 		if (!cachePath.exists()) cachePath.mkdirs();
+		threadPool = Executors.newFixedThreadPool(MAX_THREADS);
 	}
 }

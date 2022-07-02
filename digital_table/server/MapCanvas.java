@@ -116,8 +116,9 @@ public class MapCanvas implements CoordinateConverter, Iterable<MapElement> {
 		if (oldList.remove(element)) {
 			newList.add(0, element);
 			element.setProperty(MapElement.PROPERTY_LAYER, layer);
+			treeModel.fireTreeStructureChanged();
+			repaint();
 		}
-		repaint();
 	}
 
 	public void changeParent(MapElement element, MapElement parent) {
@@ -547,6 +548,7 @@ public class MapCanvas implements CoordinateConverter, Iterable<MapElement> {
 		}
 
 		void fireTreeNodeInserted(MapElement node) {
+			debug("fireTreeNodeInserted");
 			Object[] list = listeners.getListenerList();
 			for (int i = list.length - 2; i >= 0; i -= 2) {
 				if (list[i] == TreeModelListener.class) {
@@ -562,6 +564,7 @@ public class MapCanvas implements CoordinateConverter, Iterable<MapElement> {
 		}
 
 		void fireTreeNodeRemoved(MapElement node, MapElement parent, int index) {
+			debug("fireTreeNodeRemoved");
 			Object[] list = listeners.getListenerList();
 			for (int i = list.length - 2; i >= 0; i -= 2) {
 				if (list[i] == TreeModelListener.class) {
@@ -577,6 +580,7 @@ public class MapCanvas implements CoordinateConverter, Iterable<MapElement> {
 		}
 
 		void fireTreeNodeChanged(MapElement node) {
+			debug("fireTreeNodeChanged");
 			Object[] list = listeners.getListenerList();
 			for (int i = list.length - 2; i >= 0; i -= 2) {
 				if (list[i] == TreeModelListener.class) {
@@ -592,6 +596,7 @@ public class MapCanvas implements CoordinateConverter, Iterable<MapElement> {
 		}
 
 		void fireTreeStructureChanged(MapElement node) {
+			debug("fireTreeStructureChanged(" + node + ")");
 			Object[] list = listeners.getListenerList();
 			for (int i = list.length - 2; i >= 0; i -= 2) {
 				if (list[i] == TreeModelListener.class) {
@@ -603,6 +608,7 @@ public class MapCanvas implements CoordinateConverter, Iterable<MapElement> {
 		}
 
 		void fireTreeStructureChanged() {
+			debug("fireTreeStructureChanged");
 			Object[] list = listeners.getListenerList();
 			for (int i = list.length - 2; i >= 0; i -= 2) {
 				if (list[i] == TreeModelListener.class) {
@@ -618,20 +624,26 @@ public class MapCanvas implements CoordinateConverter, Iterable<MapElement> {
 			// TODO not sure if i need implementation
 		}
 
-//		void printTree() {
-//			for (int i = 0; i < model.size(); i++) {
-//				MapElement e = (MapElement) model.get(i);
-//				if (e.parent == null) {
-//					printSubtree(e, "+-");
-//				}
-//			}
-//		}
-//
-//		void printSubtree(Object node, String prefix) {
-//			System.out.println(prefix + node.toString() + " (" + getChildCount(node) + ")");
-//			for (int i = 0; i < getChildCount(node); i++) {
-//				printSubtree(getChild(node, i), "  " + prefix);
-//			}
-//		}
+		void printTree(String title) {
+			System.out.println("------------------- " + title + " ---------------------");
+			System.out.println("Canvas: " + MapCanvas.this);
+			System.out.println("Info layer: " + MapCanvas.this.layers.get(Layer.INFORMATION));
+			for (MapElement e : MapCanvas.this) {
+				if (e.parent == null) {
+					printSubtree(e, "+-");
+				}
+			}
+		}
+
+		void printSubtree(MapElement node, String prefix) {
+			System.out.println(prefix + node.toString() + " layer: " + node.getProperty(MapElement.PROPERTY_LAYER) + (getChildCount(node) > 0 ? " children: " + getChildCount(node) : ""));
+			for (int i = 0; i < getChildCount(node); i++) {
+				printSubtree(getChild(node, i), "  " + prefix);
+			}
+		}
 	};
+
+	public void debug(String title) {
+//		treeModel.printTree(title);
+	}
 }

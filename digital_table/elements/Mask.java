@@ -1,6 +1,7 @@
 package digital_table.elements;
 
 import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -17,6 +18,9 @@ import java.awt.image.WritableRaster;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import digital_table.server.ImageMedia;
 import digital_table.server.MeasurementLog;
@@ -45,11 +49,13 @@ public class Mask extends MapElement {
 	public final static String PROPERTY_DEMOTE_MASK = "demote_mask";		// move specified mask/image down one in the list. index of mask - write only
 	public final static String PROPERTY_REMOVE_MASK = "remove_mask";	// remove the specified mask/image. index of mask - write only
 
+	// FIXME not sure about having MaskImage.image transient but masks not transient. if the element is serialized after masks are added this is not going to work
 	private List<MaskImage> masks = new ArrayList<>();
 
 	private static class MaskImage {
 //		URI uri;
-		transient ImageMedia image;
+		transient ImageMedia image = null;
+		transient Future<ImageMedia> future;
 		boolean visible = true;
 		boolean isImage = false;	// false = mask, true = image
 		int xOffset;	// offset from origin of base image
@@ -157,14 +163,30 @@ public class Mask extends MapElement {
 		for (int i = 0; i < masks.size(); i++) {
 			MaskImage m = masks.get(i);
 			if (m.visible && m.isImage == images) {
-				if (temp == null) {
+				if (m.image == null) {
+					if (m.future.isDone()) {
+						try {
+							m.image = m.future.get();
+						} catch (InterruptedException e) {
+//							e.printStackTrace();
+						} catch (ExecutionException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				if (temp == null && image.image != null) {
 					temp = new BufferedImage(image.image.getSourceWidth(), image.image.getSourceHeight(), BufferedImage.TYPE_INT_ARGB);
 					tempG = temp.createGraphics();
 					trans = image.getTransform(temp.getWidth(), temp.getHeight());
 					if (combinedMask != null && trans.equals(transform)) return combinedMask;	// transform is unchanged and we already have a mask
 					transform = trans;
 				}
-				tempG.drawImage(m.image.getImage(), m.xOffset, m.yOffset, null);
+				if (m.image != null) {
+					tempG.drawImage(m.image.getImage(), m.xOffset, m.yOffset, null);
+				} else if (image.image != null) {
+					tempG.setColor(Color.GRAY);
+					tempG.fillRect(0, 0, image.image.getSourceWidth(), image.image.getSourceHeight());
+				}
 			}
 		}
 		if (tempG != null) tempG.dispose();
@@ -207,49 +229,61 @@ public class Mask extends MapElement {
 		canvas.repaint();
 	}
 
+	// FIXME this is pretty slow (~1 sec) because it loads the image to do the trimming. probably want to make trimming asynchronous (but need to monitor memory)
 	private void addMask(URI uri) {
 		MaskImage m = new MaskImage();
 //		m.uri = uri;
 
-		ImageMedia srcImg = MediaManager.INSTANCE.getImageMedia(canvas, uri);
-		BufferedImage src = srcImg.getImage();
-		if (srcImg.getFrameCount() != 1) {
-			m.image = srcImg;
-		} else {
-			// trim mask
-			WritableRaster raster = src.getRaster();
-			int[] row = null;
-			int minX = raster.getWidth() * 4;
-			int maxX = -1;
-			int minY = raster.getHeight();
-			int maxY = -1;
-			for (int y = 0; y < raster.getHeight(); y++) {
-				row = raster.getPixels(raster.getMinX(), y + raster.getMinY(), raster.getWidth(), 1, row);
-				int rowMinX = raster.getWidth() * 4;
-				int rowMaxX = -1;
-				for (int x = 0; x < row.length; x += 4) {
-					int val = row[x] << 24 | row[x + 1] << 16 | row[x + 2] << 8 | row[x + 3];
-					if (val != 0xffffff00) {
-						if (rowMaxX == -1) rowMinX = x;
-						if (x > rowMaxX) rowMaxX = x;
-						if (maxY == -1) minY = y;
-						if (y > maxY) maxY = y;
-					}
-				}
-				if (rowMinX < minX) minX = rowMinX;
-				if (rowMaxX > maxX) maxX = rowMaxX;
-			}
-			int trimmedWidth = (maxX - minX) / 4 + 1;
-			int trimmedHeight = maxY - minY + 1;
-			m.xOffset = minX / 4;
-			m.yOffset = minY;
+		m.future = MediaManager.INSTANCE.submitWork(new Callable<ImageMedia>() {
 
-			BufferedImage dest = new BufferedImage(trimmedWidth, trimmedHeight, src.getType());
-			Graphics g = dest.getGraphics();
-			g.drawImage(src, 0, 0, trimmedWidth, trimmedHeight, m.xOffset, m.yOffset, m.xOffset + trimmedWidth, m.yOffset + trimmedHeight, null);
-			g.dispose();
-			m.image = ImageMedia.createImageMedia(canvas, dest);
-		}
+			// FIXME have a used a callable here but probably better just to use synchronised access to the MaskImage fields
+			@Override
+			public ImageMedia call() throws Exception {
+				ImageMedia srcImg = MediaManager.INSTANCE.getImageMedia(canvas, uri);
+				if (srcImg == null)
+					return null;
+				BufferedImage src = srcImg.getImage();
+				if (srcImg.getFrameCount() != 1) {
+					return srcImg;
+				} else {
+					// trim mask
+					WritableRaster raster = src.getRaster();
+					int[] row = null;
+					int minX = raster.getWidth() * 4;
+					int maxX = -1;
+					int minY = raster.getHeight();
+					int maxY = -1;
+					for (int y = 0; y < raster.getHeight(); y++) {
+						row = raster.getPixels(raster.getMinX(), y + raster.getMinY(), raster.getWidth(), 1, row);
+						int rowMinX = raster.getWidth() * 4;
+						int rowMaxX = -1;
+						for (int x = 0; x < row.length; x += 4) {
+							int val = row[x] << 24 | row[x + 1] << 16 | row[x + 2] << 8 | row[x + 3];
+							if (val != 0xffffff00) {
+								if (rowMaxX == -1) rowMinX = x;
+								if (x > rowMaxX) rowMaxX = x;
+								if (maxY == -1) minY = y;
+								if (y > maxY) maxY = y;
+							}
+						}
+						if (rowMinX < minX) minX = rowMinX;
+						if (rowMaxX > maxX) maxX = rowMaxX;
+					}
+					int trimmedWidth = (maxX - minX) / 4 + 1;
+					int trimmedHeight = maxY - minY + 1;
+					m.xOffset = minX / 4;	// FIXME this is sketchy
+					m.yOffset = minY;		// FIXME this is sketchy
+
+					BufferedImage dest = new BufferedImage(trimmedWidth, trimmedHeight, src.getType());
+					Graphics g = dest.getGraphics();
+					g.drawImage(src, 0, 0, trimmedWidth, trimmedHeight, m.xOffset, m.yOffset, m.xOffset + trimmedWidth, m.yOffset + trimmedHeight, null);
+					g.dispose();
+					clearMask();	// FIXME possible issues with this: AWT repaint is no longer documented as thread-safe (though it probably is), and there is a race between the repaint and the return
+					return ImageMedia.createImageMedia(canvas, dest);
+				}
+			}
+		});
+
 		masks.add(m);
 		clearMask();
 	}

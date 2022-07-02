@@ -77,7 +77,7 @@ public abstract class ImageMedia {
 				if (reader.getFormatName().equals("gif")) {
 					m = new GIFMedia(reader);
 				} else {
-					m = new StaticImageMdia(reader);
+					m = new StaticImageMedia(reader);
 				}
 
 			} else {
@@ -247,9 +247,11 @@ public abstract class ImageMedia {
 	}
 
 	BufferedImage getSourceImage() {
+		long time = System.nanoTime();
 		if (frames == null || frames[index] == null) {
 			readImages();
 		}
+//		System.out.printf("  getSourceImage took %4.3f ms\n", (System.nanoTime() - time) / 1000000d);
 		return frames[index];
 	}
 
@@ -371,10 +373,10 @@ public abstract class ImageMedia {
 		}
 	}
 
-	private static class StaticImageMdia extends ImageMedia {
+	private static class StaticImageMedia extends ImageMedia {
 		private ImageReader reader;
 
-		public StaticImageMdia(ImageReader reader) {
+		public StaticImageMedia(ImageReader reader) {
 			this.reader = reader;
 		}
 
