@@ -77,6 +77,8 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 				if (b != null) {
 					el.setAttribute("buff_id", Integer.toString(b.id));
 				}
+				if (!character.isSlotItemEquipped(s))
+					el.setAttribute("equipped", Boolean.FALSE.toString());
 				slots.appendChild(el);
 			}
 		}

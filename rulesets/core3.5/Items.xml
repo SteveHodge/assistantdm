@@ -708,7 +708,8 @@
 	<item category="wondrous items" slot="waist" name="Belt of Dwarvenkind" price="14900 gp" weight="1 lb." magical="true" aura="Moderate divination">
 		<description>This belt gives the wearer a +4 competence bonus on Charisma checks and Charisma-based skill checks as they relate to dealing with dwarves, a +2 competence bonus on similar checks when dealing with gnomes and halflings, and a –2 competence penalty on similar checks when dealing with anyone else. The wearer can understand, speak, and read Dwarven. If the wearer is not a dwarf, he gains 60-foot darkvision, dwarven stonecunning, a +2 enhancement bonus to Constitution, and a +2 resistance bonus on saves against poison, spells, or spell-like effects.</description>
 		<creation caster_level="12" prerequisites="Craft Wondrous Item, tongues, creator must be a dwarf"/>
-		<!-- TODO modifiers-->
+		<modifiers><modifier statistic="ability_scores.constitution" type="Enhancement" value="2"/></modifiers>
+		<!-- TODO other modifiers-->
 	</item>
 	<item category="wondrous items" slot="arms" name="Bracers of Archery, Greater" price="25000 gp" weight="1 lb." magical="true" aura="Moderate transmutation">
 		<description>These wristbands look like normal protective wear. The bracers empower the wearer to use any bow (not including crossbows) as if she were proficient in its use. If she already has proficiency with any type of bow, she gains a +2 competence bonus on attack rolls and a +1 competence bonus on damage rolls whenever using that type of bow. Both bracers must be worn for the magic to be effective.</description>

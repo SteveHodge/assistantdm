@@ -10,6 +10,7 @@ import java.beans.PropertyChangeSupport;
  */
 public abstract class AbstractModifier implements Modifier {
 	final protected PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	boolean disabled = false;
 
 	@Override
 	public String getType() {
@@ -37,6 +38,19 @@ public abstract class AbstractModifier implements Modifier {
 	}
 
 	@Override
+	public boolean isDisabled() {
+		return disabled;
+	}
+
+	@Override
+	public void setDisabled(boolean disabled) {
+		System.out.println("Setting disabled = " + disabled + " on " + this.toString());
+		boolean old = this.disabled;
+		this.disabled = disabled;
+		pcs.firePropertyChange("disabled", old, this.disabled);
+	}
+
+	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pcs.addPropertyChangeListener(listener);
 	}
@@ -58,6 +72,7 @@ public abstract class AbstractModifier implements Modifier {
 
 		if (getCondition() != null) s += " " + getCondition();
 		if (getSource() != null) s += " (from "+getSource()+")";
+		if (isDisabled()) s += " (disabled)";
 		return s;
 	}
 }

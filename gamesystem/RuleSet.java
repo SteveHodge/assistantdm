@@ -220,7 +220,7 @@ public class RuleSet {
 					if (child.getTagName().equals("modifiers")) {
 						parseModifiers(child, f);
 					} else {
-						System.err.println("Ignoring unexpected node: " + e.getTagName());
+						System.err.println("Ignoring unexpected node: " + e.getTagName() + " in " + f.name);
 						continue;
 					}
 				}
@@ -340,6 +340,7 @@ public class RuleSet {
 			Element e = (Element) nodes.item(i);
 			if (e.getTagName().equals("spell")) {
 				Spell s = parseSpell(e);
+				//checkSpell(s);
 				Spell.spells.add(s);
 			} else {
 				System.err.println("Ignoring unexpected node: " + e.getTagName());
@@ -347,6 +348,27 @@ public class RuleSet {
 			}
 		}
 		System.out.println(Spell.spells.size() + " found");
+	}
+
+	private void checkSpell(Spell s) {
+		if (s.school == null)
+			System.err.println("Spell " + s.name + " has no school");
+		if (s.level == null)
+			System.err.println("Spell " + s.name + " has no level");
+		if (s.components == null)
+			System.err.println("Spell " + s.name + " has no components");
+		if (s.castingTime == null)
+			System.err.println("Spell " + s.name + " has no castingTime");
+		if (s.range == null)
+			System.err.println("Spell " + s.name + " has no range");
+		if (s.effect == null)
+			System.err.println("Spell " + s.name + " has no effect");
+		if (s.savingThrow == null && (s.range == null || !s.range.trim().equals("Personal")))
+			System.err.println("Spell " + s.name + " has no savingThrow");
+		if (s.spellResistance == null && (s.range == null || !s.range.trim().equals("Personal")))
+			System.err.println("Spell " + s.name + " has no spellResistance");
+		if (s.description == null)
+			System.err.println("Spell " + s.name + " has no description");
 	}
 
 	private Spell parseSpell(Element el) {
@@ -411,7 +433,7 @@ public class RuleSet {
 				s.buffFactories.put(variant, buff);
 
 			} else {
-				System.err.println("Ignoring unexpected node: " + e.getTagName());
+				System.err.println("Ignoring unexpected node: " + e.getTagName() + " in spell " + s.name);
 				continue;
 			}
 		}

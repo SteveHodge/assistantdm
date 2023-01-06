@@ -1,12 +1,9 @@
 package gamesystem;
 
-import java.beans.PropertyChangeListener;
-
-
 /*
- * ImmutableModifier - a single modifier that cannot be changed after creation
+ * ImmutableModifier - a single modifier that cannot be changed after creation, except to enable or disable it.
  */
-public class ImmutableModifier implements Modifier {
+public class ImmutableModifier extends AbstractModifier {
 	public int modifier;
 	public String type;
 	public String source;
@@ -30,21 +27,6 @@ public class ImmutableModifier implements Modifier {
 		if (type != null && type.length() > 0) this.type = type;
 		this.source = source;
 		this.condition = condition;
-	}
-
-	@Override
-	public String toString() {
-		String s = "";
-		if (type != null) s += " "+type;
-		if (modifier >= 0) {
-			s = "+" + modifier + s + " bonus";
-		} else {
-			s = modifier + s + " penalty";
-		}
-
-		if (condition != null) s += " " + condition;
-		if (source != null) s += " (from "+source+")";
-		return s;
 	}
 
 	@Override
@@ -77,21 +59,19 @@ public class ImmutableModifier implements Modifier {
 		return id;
 	}
 
-	// returns true if all modifier, source, type, and condition match (currently implemented
-	// by comparing the string representations)
+	// returns true if all modifier, source, type, and condition match. disabled state is not considered
 	@Override
 	public boolean equals(Object obj) {
-		return toString().equals(obj.toString());
+		if (!(obj instanceof Modifier)) return false;
+		Modifier m = (Modifier) obj;
+		String ours = "" + getType() + "|" + getSource() + "|" + getCondition() + "|" + getModifier();
+		String other = "" + m.getType() + "|" + m.getSource() + "|" + m.getCondition() + "|" + m.getModifier();
+		return ours.equals(other);
 	}
 
 	@Override
 	public int hashCode() {
-		return toString().hashCode();
+		String ours = "" + getType() + "|" + getSource() + "|" + getCondition() + "|" + getModifier();
+		return ours.hashCode();
 	}
-
-	// ImmutableModifiers never change so we can ignore listeners
-	@Override
-	public void addPropertyChangeListener(PropertyChangeListener listener) {}
-	@Override
-	public void removePropertyChangeListener(PropertyChangeListener listener) {}
 }

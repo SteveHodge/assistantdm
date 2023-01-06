@@ -566,6 +566,14 @@ public class Character extends Creature {
 		slots.setItem(slot, item);
 	}
 
+	public boolean isSlotItemEquipped(Slot slot) {
+		return slots.isEquipped(slot);
+	}
+
+	public void setSlotItemEquipped(Slot slot, boolean equipped) {
+		slots.setEquipped(slot, equipped);
+	}
+
 //------------------- Colour -------------------
 	public Color getColor() {
 		return (Color) getPropertyValue(PROPERTY_COLOR);

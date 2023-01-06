@@ -86,7 +86,7 @@ public class CharacterSlotsPanel extends CharacterSubPanel {
 	private class SlotsTableModel extends AbstractTableModel implements TableModelWithToolTips {
 		@Override
 		public int getColumnCount() {
-			return 2;
+			return 3;
 		}
 
 		@Override
@@ -100,6 +100,8 @@ public class CharacterSlotsPanel extends CharacterSubPanel {
 				return Slot.values()[row].toString();
 			} else if (col == 1) {
 				return character.getSlotItem(Slot.values()[row]);
+			} else if (col == 2) {
+				return character.getSlotItem(Slot.values()[row]) != null && character.isSlotItemEquipped(Slot.values()[row]);
 			}
 			return null;
 		}
@@ -107,27 +109,44 @@ public class CharacterSlotsPanel extends CharacterSubPanel {
 
 		@Override
 		public void setValueAt(Object value, int row, int column) {
-			if (column != 1) return;
-			if (value != null && !(value instanceof ItemDefinition)) return;
-			character.setSlotItem(Slot.values()[row], (ItemDefinition) value);
+			if (column == 1) {
+				if (value != null && !(value instanceof ItemDefinition)) return;
+				character.setSlotItem(Slot.values()[row], (ItemDefinition) value);
+			} else if (column == 2) {
+				if (!(value instanceof Boolean)) return;
+				character.setSlotItemEquipped(Slot.values()[row], ((Boolean) value).booleanValue());
+			}
 		}
 
 		@Override
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			return columnIndex == 1;
+			if (columnIndex == 1)
+				return true;
+			if (columnIndex == 2)
+				return character.getSlotItem(Slot.values()[rowIndex]) != null;
+			return false;
 		}
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
-			if (columnIndex == 0) return String.class;
-			return SlotType.class;
+			if (columnIndex == 0)
+				return String.class;
+			else if (columnIndex == 1)
+				return SlotType.class;
+			else
+				return Boolean.class;
 		}
 
 		@Override
 		public String getColumnName(int col) {
-			if (col == 0) return "Slot";
-			if (col == 1) return "Item";
-			return super.getColumnName(col);
+			if (col == 0)
+				return "Slot";
+			else if (col == 1)
+				return "Item";
+			else if (col == 2)
+				return "Equipped";
+			else
+				return super.getColumnName(col);
 		}
 
 		@Override

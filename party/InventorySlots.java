@@ -45,6 +45,7 @@ public class InventorySlots extends AbstractProperty<InventorySlots> {
 	Character character;
 	Map<Slot, ItemDefinition> items = new HashMap<>();	// the item in each slot
 	Map<Slot, Buff> buffs = new HashMap<>();	// the buff (if any) applied by the item in each slot
+	Map<Slot, Boolean> equipped = new HashMap<>();
 
 	public InventorySlots(Character c) {
 		super("inventory_slots", c);
@@ -72,6 +73,7 @@ public class InventorySlots extends AbstractProperty<InventorySlots> {
 			items.remove(slot);
 		} else {
 			items.put(slot, item);
+			equipped.put(slot, true);
 			BuffFactory factory = item.getBuffFactory();
 			if (factory != null) {
 				buff = factory.getBuff();
@@ -84,4 +86,19 @@ public class InventorySlots extends AbstractProperty<InventorySlots> {
 		fireEvent(e);
 	}
 
+	public boolean isEquipped(Slot slot) {
+		if (equipped.containsKey(slot))
+			return equipped.get(slot);
+		return false;
+	}
+
+	public void setEquipped(Slot slot, boolean equipped) {
+		this.equipped.put(slot, equipped);
+		Buff b = buffs.get(slot);
+		if (b != null)
+			b.setDisabled(!equipped);
+		PropertyEvent e = createEvent(PropertyEvent.VALUE_CHANGED);
+		e.set("slot", slot);
+		fireEvent(e);
+	}
 }

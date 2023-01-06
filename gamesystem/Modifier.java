@@ -94,5 +94,7 @@ public interface Modifier {
 	public String getCondition();	// returns null if no condition
 	public void addPropertyChangeListener(PropertyChangeListener listener);
 	public void removePropertyChangeListener(PropertyChangeListener listener);
+	public boolean isDisabled();	// if true then this modifier will not be applied
+	public void setDisabled(boolean disabled);
 	public int getID();
 }

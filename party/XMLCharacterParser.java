@@ -198,6 +198,10 @@ public class XMLCharacterParser extends XMLParserHelper {
 					System.err.println("Invalid item: " + itemEl.getAttribute("item"));
 				} else {
 					c.slots.items.put(slot, item);
+					boolean equipped = true;
+					if (itemEl.hasAttribute("equipped"))
+						equipped = Boolean.parseBoolean(itemEl.getAttribute("equipped"));
+					c.slots.equipped.put(slot, equipped);
 					if (itemEl.hasAttribute("buff_id")) {
 						int buffId = Integer.parseInt(itemEl.getAttribute("buff_id"));
 						boolean found = false;
@@ -205,6 +209,7 @@ public class XMLCharacterParser extends XMLParserHelper {
 							Buff b = c.buffs.get(j);
 							if (b.id == buffId) {
 								c.slots.buffs.put(slot, b);
+								b.setDisabled(!equipped);
 								found = true;
 								break;
 							}

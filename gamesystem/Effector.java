@@ -10,6 +10,7 @@ public abstract class Effector<T extends Effector<T, S>, S extends EffectorDefin
 	public S definition;
 	protected List<Modifier> modifiers = new ArrayList<>();
 	private List<String> targets = new ArrayList<>();
+	boolean disabled = false;
 
 	protected Effector(S def) {
 		definition = def;
@@ -43,6 +44,17 @@ public abstract class Effector<T extends Effector<T, S>, S extends EffectorDefin
 	protected void addModifier(Modifier m, String t) {
 		modifiers.add(m);
 		targets.add(t);
+	}
+
+	public boolean isDisabled() {
+		return disabled;
+	}
+
+	public void setDisabled(boolean disable) {
+		disabled = disable;
+		for (int i = 0; i < getModifierCount(); i++) {
+			getModifier(i).setDisabled(disabled);
+		}
 	}
 
 	public void apply(Creature c) {

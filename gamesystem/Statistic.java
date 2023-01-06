@@ -166,12 +166,12 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 		return total;
 	}
 
-	/* returns all current modifiers mapped to a boolean indicating whether or not each modifier is counted in the total
+	/* returns all current enabled modifiers mapped to a boolean indicating whether or not each modifier is counted in the total
 	 * never returns null, though may return an empty map
 	 */
 	// TODO inefficient implementation
 	public static Map<Modifier,Boolean> getModifiers(Set<Modifier> modifiers) {
-		// go through all the modifiers
+		// go through all the enabled modifiers
 		// non-conditional modifiers should be active unless
 		// 1. there is a modifier from the same source that is better
 		// 2. there is a modifier with the same type that is better (and the type is not dodge, circumstance, or untyped)
@@ -181,7 +181,7 @@ public class Statistic extends AbstractOverridableProperty<Integer> {
 
 		HashMap<Modifier, Boolean> map = new HashMap<>();
 		for (Modifier m : modifiers) {
-			boolean include = true;
+			boolean include = !m.isDisabled();
 
 			// if the modifier is 0 then exclude it
 			if (m.getModifier() == 0) include = false;

@@ -10,7 +10,11 @@
 *
 * BUG: Spells tab save does not add extensions
 * BUG: Spells tab character save does not save domains
+* BUG: some skills in the table don't get refreshed when ability scores change, but do update after scrolling
+* BUG: modifying abilities is unpredictable when modifiers are applied, e.g. with str+2 mod on base score of 10 (current = 12), setting strength to 13 sets the base score and results in a current score of 15.
 *
+* Monster ability changes are not reflected in attacks
+* ENH: monster block text output
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
 * Monster library needs to check for dupes and confirm replacement.
 * Show calculations for hit dice/hit points, abilities. Or use character panels for editing (which have info popups).

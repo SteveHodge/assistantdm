@@ -1,10 +1,5 @@
 package combat;
 
-import gamesystem.Buff;
-import gamesystem.BuffFactory;
-import gamesystem.Creature;
-import gamesystem.Spell;
-
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -46,6 +41,10 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import gamesystem.Buff;
+import gamesystem.BuffFactory;
+import gamesystem.Creature;
+import gamesystem.Spell;
 import party.Character;
 import swing.JListWithToolTips;
 import ui.BuffUI;
@@ -72,7 +71,7 @@ class BuffDialog extends JDialog {
 		JListWithToolTips<BuffFactory> buffs = ui.getBuffList(true);
 		buffs.addListSelectionListener(e -> {
 			BuffFactory buff = buffs.getSelectedValue();
-			if (buff != null && buff.source instanceof Spell) {
+			if (buff != null && buff.source instanceof Spell && ((Spell) buff.source).duration != null) {
 				Spell s = (Spell) buff.source;
 				durationHint.setText("(" + s.duration.trim() + ")");
 			} else {
