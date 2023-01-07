@@ -32,12 +32,15 @@ import gamesystem.AbilityScore;
 import gamesystem.Creature;
 import gamesystem.HPs;
 import gamesystem.Sanity;
+import gamesystem.core.Property;
 import gamesystem.core.PropertyEvent;
 import gamesystem.core.PropertyListener;
 import party.Character;
 import swing.JTableWithToolTips;
 import swing.SpinnerCellEditor;
 import swing.TableModelWithToolTips;
+
+// TODO should probably listen on the character for relevant changes
 
 @SuppressWarnings("serial")
 public class CharacterDamagePanel extends JPanel {
@@ -46,7 +49,7 @@ public class CharacterDamagePanel extends JPanel {
 	public CharacterDamagePanel(Character chr) {
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
-		hpPanel = new HPPanel(chr.getHPStatistic());
+		hpPanel = new HPPanel(chr);
 		add(hpPanel);
 
 		SanityPanel sanityPanel = new SanityPanel(chr.getSanity(), chr.getAbilityStatistic(AbilityScore.Type.WISDOM));
@@ -181,9 +184,10 @@ public class CharacterDamagePanel extends JPanel {
 		JFormattedTextField healField;
 		JCheckBox nonLethal = new JCheckBox("Non-lethal");
 		JLabel summary;
+		JLabel drLabel;
 
-		public HPPanel(HPs hps) {
-			this.hps = hps;
+		public HPPanel(Creature creature) {
+			hps = creature.getHPStatistic();
 			hps.addPropertyListener(e -> updateSummary());
 
 			setBorder(BorderFactory.createTitledBorder("Hit Points"));
@@ -211,6 +215,17 @@ public class CharacterDamagePanel extends JPanel {
 			healField.addPropertyChangeListener(e -> updateSummary());
 			healField.setColumns(3);
 			nonLethal.addChangeListener(e -> updateSummary());
+
+			// TODO we track the value of the property if it has one when the panel is created but we don't handle changes from value to no-value or vice versa properly
+			Property<?> drProp = creature.getProperty("extra." + Character.PROPERTY_DAMAGE_REDUCTION);
+			if (drProp != null && drProp.getValue() != null && drProp.getValue().toString().length() > 0) {
+				drLabel = new JLabel("DR: " + drProp.getValue());
+				drProp.addPropertyListener(e -> {
+					drLabel.setText("DR:" + e.source.getValue());
+				});
+			} else {
+				drLabel = null;
+			}
 
 			JButton apply = new JButton("Apply");
 			apply.addActionListener(e -> {
@@ -246,6 +261,10 @@ public class CharacterDamagePanel extends JPanel {
 			c.gridy = 0;
 			add(new JLabel("New Hit Points:"), c);
 			c.gridy++;
+			if (drLabel != null) {
+				add(drLabel, c);
+				c.gridy++;
+			}
 			add(new JLabel("Damage:"), c);
 			c.gridy++;
 			add(new JLabel("Healing:"), c);
@@ -253,6 +272,8 @@ public class CharacterDamagePanel extends JPanel {
 			c.gridx = 1;
 			c.gridy = 0;
 			add(summary, c);
+			if (drLabel != null)
+				c.gridy++;
 			c.gridy++;
 			add(dmgField, c);
 			c.gridy++;
@@ -260,6 +281,8 @@ public class CharacterDamagePanel extends JPanel {
 
 			c.gridx = 2;
 			c.gridy = 0;
+			if (drLabel != null)
+				c.gridy++;
 			add(apply, c);
 			c.gridy++;
 			add(nonLethal, c);

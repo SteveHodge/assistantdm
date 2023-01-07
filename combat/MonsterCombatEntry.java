@@ -166,7 +166,7 @@ public class MonsterCombatEntry extends CombatEntry {
 		Font f = name.getFont();
 		name.setFont(f.deriveFont(Font.BOLD, f.getSize2D() * 1.5f));
 
-		HPPanel dmg = new CharacterDamagePanel.HPPanel(hps);
+		HPPanel dmg = new CharacterDamagePanel.HPPanel(creature);
 		AbilityDamagePanel abs = new CharacterDamagePanel.AbilityDamagePanel(creature);
 
 		panel.setLayout(new GridBagLayout());

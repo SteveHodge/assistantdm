@@ -1,10 +1,5 @@
 package ui;
 
-import gamesystem.Buff;
-import gamesystem.BuffFactory;
-import gamesystem.Modifier;
-import gamesystem.StatisticsCollection.StatisticDescription;
-
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.GridBagConstraints;
@@ -31,6 +26,10 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import gamesystem.Buff;
+import gamesystem.BuffFactory;
+import gamesystem.Modifier;
+import gamesystem.StatisticsCollection.StatisticDescription;
 import party.Character;
 import swing.JListWithToolTips;
 
@@ -59,6 +58,20 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 			}
 		});
 
+		JButton disable = new JButton("Disable");
+		disable.addActionListener(e -> {
+			for (Buff b : applied.getSelectedValuesList()) {
+				b.setDisabled(true);
+			}
+		});
+
+		JButton enable = new JButton("Enable");
+		enable.addActionListener(e -> {
+			for (Buff b : applied.getSelectedValuesList()) {
+				b.setDisabled(false);
+			}
+		});
+
 		JButton custom = new JButton("Custom");
 		custom.addActionListener(e -> {
 			CustomBuffDialog dialog = new CustomBuffDialog(this, c);
@@ -79,6 +92,8 @@ public class CharacterBuffsPanel extends CharacterSubPanel {
 		JPanel buttons = new JPanel();
 		buttons.add(apply);
 		buttons.add(remove);
+		buttons.add(disable);
+		buttons.add(enable);
 		buttons.add(custom);
 		right.add(buttons);
 

@@ -41,6 +41,21 @@ public class PropertyFields {
 		return label;
 	}
 
+	public static JLabel createPropertyLabel(Character character, String propName, String prefix) {
+		Property<?> property = character.getProperty(propName);
+		if (property == null && !propName.startsWith("extra.")) {
+			property = character.getProperty("extra." + propName);
+		}
+		if (property == null)
+			return null;
+
+		JLabel label = new JLabel(prefix + property.getValue());
+		property.addPropertyListener(e -> {
+			label.setText(prefix + e.source.getValue());
+		});
+		return label;
+	}
+
 	// FIXME check if users of this should be using createSettableIntegerField instead
 	public static JTextField createOverrideIntegerField(OverridableProperty<Integer> property, int columns) {
 		return new BoundIntegerField(property, columns);

@@ -8,11 +8,16 @@
 * Webpage: move token with mouse function
 * Webpage: alert on map function
 *
+* BUG: negative level penalties don't stack
 * BUG: Spells tab save does not add extensions
 * BUG: Spells tab character save does not save domains
 * BUG: some skills in the table don't get refreshed when ability scores change, but do update after scrolling
 * BUG: modifying abilities is unpredictable when modifiers are applied, e.g. with str+2 mod on base score of 10 (current = 12), setting strength to 13 sets the base score and results in a current score of 15.
+* Minor issue: disabling and enabling item buffs via the buffs list does not change the equipped status in the slots panel. 
 *
+* Should have an ability checks statistic
+* Need some way to disable dex on AC. perhaps a property?
+* 
 * Monster ability changes are not reflected in attacks
 * ENH: monster block text output
 * BUG: Some feats not applied when manually added (e.g. "Weapon Focus (Gore)" on Triceratops
