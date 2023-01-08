@@ -741,6 +741,19 @@ public class StatsBlockCreatureView {
 		return s.toString();
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		s.append(getName()).append("\n");
+
+		for (Field p : Field.getStandardOrder()) {
+			s.append(p).append(" ");
+			s.append(getField(p, false));
+			s.append("\n");
+		}
+		return s.toString();
+	}
+
 	public Element getXMLElement(Document doc) {
 		Element root = doc.createElement("monster");
 		root.setAttribute("name", creature.getName());

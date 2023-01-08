@@ -156,6 +156,13 @@ class NamePanel extends DetailPanel {
 			}
 		});
 
+		JButton outputButton = new JButton("Write Out");
+		outputButton.addActionListener(e -> {
+			if (monster == null) return;
+			StatsBlockCreatureView view = StatsBlockCreatureView.getView(monster);
+			System.out.println(view.toString());
+		});
+
 		hdPanel = new JPanel();
 		hdPanel.setLayout(new BoxLayout(hdPanel, BoxLayout.LINE_AXIS));
 
@@ -184,7 +191,10 @@ class NamePanel extends DetailPanel {
 
 		c.gridy++;
 		c.fill = GridBagConstraints.NONE;
-		add(libraryButton, c);
+		JPanel p = new JPanel();
+		p.add(libraryButton);
+		p.add(outputButton);
+		add(p, c);
 
 		c.gridy++;
 		c.fill = GridBagConstraints.HORIZONTAL;
