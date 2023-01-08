@@ -27232,6 +27232,7 @@ truth. Creatures who leave the area are free to speak as they choose.</span>
 	     <modifier statistic="saving_throws.will" type="morale" value="3"/>
    </modifiers>
 </spell>
+
 <spell name="Condition: Blinded">
 	<description>
 		<p>The character cannot see. He takes a –2 penalty to Armor Class, loses his Dexterity bonus to AC (if any), moves at half speed, and takes a –4 penalty on Search checks and on most
@@ -27244,14 +27245,12 @@ Strength- and Dexterity-based skill checks. All checks and activities that rely 
 	     <modifier statistic="skills.Search" value="-4"/>
 	</modifiers>
 </spell>
-
 <spell name="Condition: Cowering">
 	<description><p>The character is frozen in fear and can take no actions. A cowering character takes a –2 penalty to Armor Class and loses her Dexterity bonus (if any).</p></description>
    <modifiers>
 	     <modifier statistic="ac" value="-2"/>
 	</modifiers>
 </spell>
-
 <spell name="Condition: Dazzled">
 	<description><p>The creature is unable to see well because of overstimulation of the eyes. A dazzled creature takes a –1 penalty on attack rolls, Search checks, and Spot checks.</p></description>
    <modifiers>
@@ -27260,8 +27259,6 @@ Strength- and Dexterity-based skill checks. All checks and activities that rely 
 	     <modifier statistic="skills.Spot" value="-1"/>
 	</modifiers>
 </spell>
-
-
 <spell name="Condition: Deafened">
 	<description>
 		<p>A deafened character cannot hear. She takes a –4 penalty on initiative checks, automatically fails Listen checks, and has a 20% chance of spell failure when casting spells with verbal components.</p>
@@ -27271,20 +27268,6 @@ Strength- and Dexterity-based skill checks. All checks and activities that rely 
 	     <modifier statistic="initiative" value="-4"/>
 	</modifiers>
 </spell>
-
-
-<spell name="Condition: Negative Level">
-	<description><p>The character gains one or more negative levels, which might permanently drain the character’s levels. If the subject has at least as many negative levels as Hit Dice, he dies. Each negative level gives a creature the following penalties:
-–1 penalty on attack rolls, saving throws, skill checks, ability checks; loss of 5 hit points; and –1 to effective level (for determining the power, duration, DC, and other details of spells or special abilities). In addition, a spellcaster loses one spell or spell slot from
-the highest spell level castable.</p></description>
-   <modifiers>
-	     <modifier statistic="attacks" value="-1"/>
-	     <modifier statistic="skills" value="-1"/>
-	     <modifier statistic="saving_throws" value="-1"/>
-	</modifiers>
-</spell>
-
-
 <spell name="Condition: Entangled">
 	<description><p>The character is ensnared. Being entangled impedes movement, but does not entirely prevent it unless the bonds are anchored to an immobile object or tethered by an opposing force. An entangled creature moves at half speed, cannot run or charge,
 and takes a –2 penalty on all attack rolls and a –4 penalty to Dexterity. An entangled character who attempts to cast a spell must make a Concentration check (DC 15 + the spell’s level) or lose the spell.</p></description>
@@ -27293,18 +27276,14 @@ and takes a –2 penalty on all attack rolls and a –4 penalty to Dexterity. An
 	     <modifier statistic="ability_scores.dexterity" value="-4"/>
 	</modifiers>
 </spell>
-
-
 <spell name="Condition: Exhausted">
-	<description><p>An exhausted character moves at half speed and takes a –6 penalty to Strength and Dexterity. After 1 hour of complete rest, an exhausted character becomes fatigued. A fatigued character becomes exhausted by doing something else that would
-normally cause fatigue.</p>
+	<description><p>An exhausted character moves at half speed and takes a –6 penalty to Strength and Dexterity. After 1 hour of complete rest, an exhausted character becomes fatigued. A fatigued character becomes exhausted by doing something else that would normally cause fatigue.</p>
 	</description>
    <modifiers>
 	     <modifier statistic="ability_scores.strength" value="-6"/>
 	     <modifier statistic="ability_scores.dexterity" value="-6"/>
 	</modifiers>
 </spell>
-
 <spell name="Condition: Fatigued">
 	<description><p>A fatigued character can neither run nor charge and takes a –2 penalty to Strength and Dexterity. Doing anything that would normally cause fatigue causes the fatigued character to become exhausted. After 8 hours of complete rest, fatigued characters are no longer fatigued.</p></description>
    <modifiers>
@@ -27312,8 +27291,6 @@ normally cause fatigue.</p>
 	     <modifier statistic="ability_scores.dexterity" value="-2"/>
 	</modifiers>
 </spell>
-
-
 <spell name="Condition: Frightened">
 	<description>
 		<p>A frightened creature flees from the source of its fear as best it can. If unable to flee, it may fight. A frightened creature takes a –2 penalty on all attack rolls, saving throws, skill checks, and ability checks. A frightened creature can use special abilities, including spells, to flee; indeed, the creature must use such means if they are the only way to escape.</p>
@@ -27325,12 +27302,9 @@ normally cause fatigue.</p>
 	     <modifier statistic="saving_throws" value="-2"/>
 	</modifiers>
 </spell>
-
-
 <spell name="Condition: Panicked">
 	<description>
-		<p>A panicked creature must drop anything it holds and flee at top speed from the source of its fear, as well as any other dangers it encounters, along a random path. It can’t take any other
-actions. In addition, the creature takes a –2 penalty on all saving throws, skill checks, and ability checks. If cornered, a panicked creature cowers and does not attack, typically using the total
+		<p>A panicked creature must drop anything it holds and flee at top speed from the source of its fear, as well as any other dangers it encounters, along a random path. It can’t take any other actions. In addition, the creature takes a –2 penalty on all saving throws, skill checks, and ability checks. If cornered, a panicked creature cowers and does not attack, typically using the total
 defense action in combat. A panicked creature can use special abilities, including spells, to flee; indeed, the creature must use such means if they are the only way to escape.</p>
 		<p>Panicked is a more extreme state of fear than shaken or frightened.</p>
 	</description>
@@ -27339,8 +27313,6 @@ defense action in combat. A panicked creature can use special abilities, includi
 	     <modifier statistic="saving_throws" value="-2"/>
 	</modifiers>
 </spell>
-
-
 <spell name="Condition: Shaken">
 	<description>
 		<p>A shaken character takes a –2 penalty on attack rolls, saving throws, skill checks, and ability checks.</p>
@@ -27352,8 +27324,6 @@ defense action in combat. A panicked creature can use special abilities, includi
 	     <modifier statistic="saving_throws" value="-2"/>
 	</modifiers>
 </spell>
-
-
 <spell name="Condition: Sickened">
 	<description><p>The character takes a –2 penalty on all attack rolls, weapon damage rolls, saving throws, skill checks, and ability checks.</p></description>
    <modifiers>
@@ -27363,8 +27333,6 @@ defense action in combat. A panicked creature can use special abilities, includi
 	     <modifier statistic="saving_throws" value="-2"/>
 	</modifiers>
 </spell>
-
-
 <spell name="Condition: Stunned">
 	<description><p>A stunned creature drops everything held, can’t take actions, takes a –2 penalty to AC, and loses his Dexterity bonus to AC (if any).</p></description>
    <modifiers>

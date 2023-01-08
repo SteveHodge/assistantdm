@@ -35,7 +35,7 @@ public interface CreatureProcessor {
 
 	public void processFeat(Feat feat);
 
-	public void processLevel(Levels level);
+	public void processLevel(Levels level, NegativeLevels negLevels);
 
 	public void processXPChange(XPChangeAdhoc xp);
 

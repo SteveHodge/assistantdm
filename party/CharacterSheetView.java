@@ -32,6 +32,7 @@ import gamesystem.HPs;
 import gamesystem.InitiativeModifier;
 import gamesystem.ItemDefinition;
 import gamesystem.Levels;
+import gamesystem.NegativeLevels;
 import gamesystem.Sanity;
 import gamesystem.SavingThrow;
 import gamesystem.SkillType;
@@ -199,7 +200,7 @@ public class CharacterSheetView {
 		}
 
 		@Override
-		public void processLevel(Levels level) {
+		public void processLevel(Levels level, NegativeLevels negLevels) {
 			// process class levels
 			Map<String,Integer> classes = new HashMap<>();
 			int defined = 0;
@@ -239,6 +240,7 @@ public class CharacterSheetView {
 			levelEl.setAttribute("class", classStr);
 			levelEl.setAttribute("xp", Integer.toString(XP.getXPRequired(level.getLevel())) + "+");
 			levelEl.setAttribute("xp-req", Integer.toString(XP.getXPRequired(level.getLevel() + 1)));
+			levelEl.setAttribute("negative-levels", negLevels.getValue().toString());
 			creatureEl.appendChild(levelEl);
 		}
 

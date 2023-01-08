@@ -32,6 +32,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements ActionListene
 	JTextField commentsField;
 	JFormattedTextField adhocField;
 	JFormattedTextField dateField;
+	JTextField negLevelsField;
 
 	public CharacterXPPanel(Character chr) {
 		super(chr);
@@ -54,6 +55,7 @@ public class CharacterXPPanel extends CharacterSubPanel implements ActionListene
 		dateField = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
 		dateField.setValue(new Date());
 		dateField.setToolTipText("Expects date as 'yyyy-mm-dd'");
+		negLevelsField = PropertyFields.createSettableIntegerField(character.getNegativeLevels(), 2);
 
 		setLayout(new GridBagLayout());
 
@@ -129,6 +131,18 @@ public class CharacterXPPanel extends CharacterSubPanel implements ActionListene
 		c.gridwidth = 5;
 		c.weightx = 1.0;
 		add(commentsField,c);
+
+		c.gridx = 0;
+		c.gridy = 3;
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.NONE;
+		c.anchor = GridBagConstraints.LINE_START;
+		add(new JLabel("Negative Levels: "), c);
+
+		c.gridx = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1.0;
+		add(negLevelsField, c);
 
 		// update fields when character changes
 		character.addPropertyListener("xp", e -> update());

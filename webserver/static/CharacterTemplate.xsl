@@ -463,6 +463,9 @@
 		<tr style="height:2.56em;">
 			<td colspan="7" class="info-value-small">
 				<xsl:value-of select="Level/@level"/>
+				<xsl:if test="Level/@negative-levels > 0">
+					<span> (-<xsl:value-of select="Level/@negative-levels"/>)</span>
+				</xsl:if>
 			</td>
 			<td/>
 			<td colspan="7" class="info-value-small">

@@ -22,6 +22,7 @@ import gamesystem.InitiativeModifier;
 import gamesystem.Levels;
 import gamesystem.Modifier;
 import gamesystem.MonsterType;
+import gamesystem.NegativeLevels;
 import gamesystem.Race;
 import gamesystem.SaveProgression;
 import gamesystem.SavingThrow;
@@ -115,6 +116,8 @@ public class Monster extends Creature {
 //		if (sizeMod != 0) attacks.addModifier(new ImmutableModifier(sizeMod, "Size"));
 		attackList = new ArrayList<>();
 		fullAttackList = new ArrayList<>();
+
+		negativeLevels = new NegativeLevels(this, this);
 	}
 
 	public HitDiceProperty getHitDice() {

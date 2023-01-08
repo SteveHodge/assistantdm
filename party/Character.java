@@ -36,6 +36,7 @@ import gamesystem.InitiativeModifier;
 import gamesystem.ItemDefinition;
 import gamesystem.Levels;
 import gamesystem.Modifier;
+import gamesystem.NegativeLevels;
 import gamesystem.Race;
 import gamesystem.Sanity;
 import gamesystem.SavingThrow;
@@ -226,6 +227,8 @@ public class Character extends Creature {
 		feats = new Feats(this, this);
 
 		attacks = new Attacks(this);
+
+		negativeLevels = new NegativeLevels(this, this);
 
 		sanity = new Sanity(this, abilities.get(AbilityScore.Type.WISDOM));
 
@@ -776,7 +779,7 @@ public class Character extends Creature {
 	public void executeProcess(CreatureProcessor processor) {
 		processor.processCreature(this);
 
-		processor.processLevel(level);
+		processor.processLevel(level, negativeLevels);
 		for (XPHistoryItem i : xpChanges) {
 			XP.XPChange cc = i.xpChange;
 			cc.executeProcess(processor);

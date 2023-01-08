@@ -11,6 +11,7 @@ import gamesystem.CreatureProcessor;
 import gamesystem.HitDiceProperty;
 import gamesystem.Levels;
 import gamesystem.Modifier;
+import gamesystem.NegativeLevels;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
 import monsters.Monster.MonsterAttackRoutine;
@@ -45,6 +46,7 @@ public class XMLOutputMonsterProcessor extends XMLOutputHelper implements Creatu
 		creatureEl.appendChild(propEl);
 	}
 
+	@Override
 	public void processStatisticsBlock(StatisticsBlock blk) {
 		try {
 			Element propEl = doc.createElement("StatisticsBlock");
@@ -89,7 +91,7 @@ public class XMLOutputMonsterProcessor extends XMLOutputHelper implements Creatu
 	}
 
 	@Override
-	public void processLevel(Levels level) {
+	public void processLevel(Levels level, NegativeLevels negLevels) {
 	}
 
 	@Override

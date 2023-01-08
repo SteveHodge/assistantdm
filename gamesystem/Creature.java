@@ -100,6 +100,7 @@ public abstract class Creature extends SimplePropertyCollection implements Stati
 	public Map<String, ClassOption> classOptions = new HashMap<>();
 	public List<ClassFeature> features = new ArrayList<>();		// TODO shouldn't be public
 	public HitDiceProperty hitDice;		// TODO shouldn't be public
+	protected NegativeLevels negativeLevels;
 	protected Feats feats;
 
 	protected Sanity sanity;
@@ -199,6 +200,10 @@ public abstract class Creature extends SimplePropertyCollection implements Stati
 
 	public Feats getFeats() {
 		return feats;
+	}
+
+	public NegativeLevels getNegativeLevels() {
+		return negativeLevels;
 	}
 
 	//------------ Features -------------

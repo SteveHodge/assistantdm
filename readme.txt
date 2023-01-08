@@ -8,7 +8,6 @@
 * Webpage: move token with mouse function
 * Webpage: alert on map function
 *
-* BUG: negative level penalties don't stack
 * BUG: Spells tab save does not add extensions
 * BUG: Spells tab character save does not save domains
 * BUG: some skills in the table don't get refreshed when ability scores change, but do update after scrolling

@@ -16,6 +16,7 @@ import gamesystem.HitDiceProperty;
 import gamesystem.ItemDefinition;
 import gamesystem.Levels;
 import gamesystem.Modifier;
+import gamesystem.NegativeLevels;
 import gamesystem.SavingThrow;
 import gamesystem.XMLOutputHelper;
 import monsters.Monster.MonsterAttackRoutine;
@@ -60,6 +61,8 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 
 		Color color = character.getColor();
 		creatureEl.setAttribute("uicolor", Long.toString(Integer.toUnsignedLong(color.getRGB()), 16));
+
+		creatureEl.setAttribute("negative-levels", character.getNegativeLevels().getValue().toString());
 
 		processItemSlots();
 		processInventory();
@@ -116,7 +119,7 @@ public class XMLOutputCharacterProcessor extends XMLOutputHelper implements Crea
 	}
 
 	@Override
-	public void processLevel(Levels level) {
+	public void processLevel(Levels level, NegativeLevels negLevels) {
 		levelEl = getLevelElement(level);
 		levelEl.setAttribute("xp", "" + character.xp.getValue());
 

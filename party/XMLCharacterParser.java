@@ -46,6 +46,11 @@ public class XMLCharacterParser extends XMLParserHelper {
 			c.setColor(color);
 		}
 
+		String val = el.getAttribute("negative-levels");
+		if (val != null && val.length() > 0) {
+			c.getNegativeLevels().setValue(Integer.parseInt(val));
+		}
+
 		Element hpElement = null;		// need to process after ability scores to avoid issues with changing con and buffs to ensure temp hps are set correctly
 		Element attacksElement = null;	// need to process after feats so we don't reset any values selected for power attack or combat expertise
 		Element buffsElement = null;	// need to process after attacks so that all target statistics are set up
