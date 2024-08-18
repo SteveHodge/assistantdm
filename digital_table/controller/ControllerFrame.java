@@ -169,7 +169,7 @@ public class ControllerFrame extends JFrame {
 		AddElementAction<?>[] availableElements = {
 				tokenAction,
 				imageElementAction,
-				cameraImageAction,
+//				cameraImageAction,
 				templateAction,
 				lineAction,
 				shapeableAction,
@@ -182,10 +182,11 @@ public class ControllerFrame extends JFrame {
 				webMessageAction,
 				browserAction,
 				groupAction,
-				screensAction,
-				callibrateAction
+				screensAction
+//				callibrateAction
 		};
 		availableCombo = new JComboBox<>(availableElements);
+		availableCombo.setMaximumRowCount(15);
 
 		elementTree = new JTree(miniMapCanvas.getTreeModel());
 		elementTree.setRootVisible(false);

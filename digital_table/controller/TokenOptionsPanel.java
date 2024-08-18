@@ -292,7 +292,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.weighty = 1.0d;
 		c.gridx = 0;
 		c.gridwidth = 3;
-		JPanel filler = new JPanel();
+		JPanel filler = createTipsPanel("Left drag moves token");
 		filler.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {

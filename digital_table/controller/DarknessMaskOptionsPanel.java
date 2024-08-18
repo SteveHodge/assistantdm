@@ -86,7 +86,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		c.gridwidth = 3;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
-		add(new JPanel(), c);
+		add(createTipsPanel("Left drag toggles squares"), c);
 
 		//@formatter:on
 	}

@@ -155,21 +155,24 @@ public class LightSource extends MapElement {
 			Area area = new Area();
 			int tokenSize = 0;
 			Point2D o = canvas.getElementOrigin(this);	// grid coordinates - converted to display coords by getRectangle
+//			Point2D o = canvas.convertGridCoordsToDisplay(canvas.getElementOrigin(this));
+//			g.translate(o.getX(), o.getY());
 			Point oo = new Point((int) o.getX() + x.getValue(), (int) o.getY() + y.getValue());
 			if (allCorners.getValue() && parent != null && parent instanceof Token) {
 				oo = new Point((int) o.getX(), (int) o.getY());			// if radiate from all corners, and there is a token then ignore the x, y values for this element
 				tokenSize = ((Token) parent).getSpace();
-				area.add(new Area(getRectangle(oo.x, oo.y, oo.x + tokenSize, oo.y + tokenSize + radius)));
-				area.add(new Area(getRectangle(oo.x, oo.y, oo.x + tokenSize + radius, oo.y + tokenSize)));
-				area.add(new Area(getRectangle(oo.x, oo.y, oo.x + tokenSize, oo.y + -radius)));
-				area.add(new Area(getRectangle(oo.x, oo.y, oo.x - radius, oo.y + tokenSize)));
+				area.add(new Area(getGridRectangle(oo.x, oo.y, oo.x + tokenSize, oo.y + tokenSize + radius)));
+				area.add(new Area(getGridRectangle(oo.x, oo.y, oo.x + tokenSize + radius, oo.y + tokenSize)));
+				area.add(new Area(getGridRectangle(oo.x, oo.y, oo.x + tokenSize, oo.y + -radius)));
+				area.add(new Area(getGridRectangle(oo.x, oo.y, oo.x - radius, oo.y + tokenSize)));
 			}
-			addQuadrant(area, oo.x + tokenSize, oo.y + tokenSize, 1, 1, radius);
-			addQuadrant(area, oo.x + tokenSize, oo.y, 1, -1, radius);
-			addQuadrant(area, oo.x, oo.y + tokenSize, -1, 1, radius);
-			addQuadrant(area, oo.x, oo.y, -1, -1, radius);
+			addGridQuadrant(area, oo.x + tokenSize, oo.y + tokenSize, 1, 1, radius);
+			addGridQuadrant(area, oo.x + tokenSize, oo.y, 1, -1, radius);
+			addGridQuadrant(area, oo.x, oo.y + tokenSize, -1, 1, radius);
+			addGridQuadrant(area, oo.x, oo.y, -1, -1, radius);
 			g.fill(area);
 			g.setComposite(c);
+//			g.translate(-o.getX(), -o.getY());
 		}
 	}
 
@@ -207,15 +210,15 @@ public class LightSource extends MapElement {
 		int tokenSize = 0;
 		if (allCorners.getValue() && parent != null && parent instanceof Token) {
 			tokenSize = ((Token) parent).getSpace();
-			area.add(new Area(getRectangle(o.x, o.y, o.x + tokenSize, o.y + tokenSize + radius)));
-			area.add(new Area(getRectangle(o.x, o.y, o.x + tokenSize + radius, o.y + tokenSize)));
-			area.add(new Area(getRectangle(o.x, o.y, o.x + tokenSize, o.y + -radius)));
-			area.add(new Area(getRectangle(o.x, o.y, o.x - radius, o.y + tokenSize)));
+			area.add(new Area(getCanvasRectangle(o.x, o.y, o.x + tokenSize, o.y + tokenSize + radius)));
+			area.add(new Area(getCanvasRectangle(o.x, o.y, o.x + tokenSize + radius, o.y + tokenSize)));
+			area.add(new Area(getCanvasRectangle(o.x, o.y, o.x + tokenSize, o.y + -radius)));
+			area.add(new Area(getCanvasRectangle(o.x, o.y, o.x - radius, o.y + tokenSize)));
 		}
-		addQuadrant(area, o.x + tokenSize, o.y + tokenSize, 1, 1, radius);
-		addQuadrant(area, o.x + tokenSize, o.y, 1, -1, radius);
-		addQuadrant(area, o.x, o.y + tokenSize, -1, 1, radius);
-		addQuadrant(area, o.x, o.y, -1, -1, radius);
+		addCanvasQuadrant(area, o.x + tokenSize, o.y + tokenSize, 1, 1, radius);
+		addCanvasQuadrant(area, o.x + tokenSize, o.y, 1, -1, radius);
+		addCanvasQuadrant(area, o.x, o.y + tokenSize, -1, 1, radius);
+		addCanvasQuadrant(area, o.x, o.y, -1, -1, radius);
 
 		// FIXME type/lowlight flag probably don't change often. we don't need to make this so large, we can predict the likely max based on type and just recalc if radius > r.
 		Double r = canvas.getDisplayDimension(4 * this.radius.getValue() + 1, 0).getWidth();			// the factor of 4 is the maximum shadowy radius with low light vision. the +1 helps make sure no bits that should be shadowed are seen
@@ -351,13 +354,25 @@ public class LightSource extends MapElement {
 		return lastLoc;
 	}
 
-	private void addQuadrant(Area area, int x, int y, int xdir, int ydir, int r) {
+	private void addGridQuadrant(Area area, int x, int y, int xdir, int ydir, int r) {
 		for (int i = 0; i < r; i++) {
 			for (int j = 0; j < r; j++) {
 				if (isAffected(r, i, j)) {
 					int gridx = xdir * i + x;
 					int gridy = ydir * j + y;
-					area.add(new Area(getRectangle(gridx, gridy, gridx + xdir, gridy + ydir)));
+					area.add(new Area(getGridRectangle(gridx, gridy, gridx + xdir, gridy + ydir)));
+				}
+			}
+		}
+	}
+
+	private void addCanvasQuadrant(Area area, int x, int y, int xdir, int ydir, int r) {
+		for (int i = 0; i < r; i++) {
+			for (int j = 0; j < r; j++) {
+				if (isAffected(r, i, j)) {
+					int gridx = xdir * i + x;
+					int gridy = ydir * j + y;
+					area.add(new Area(getCanvasRectangle(gridx, gridy, gridx + xdir, gridy + ydir)));
 				}
 			}
 		}
@@ -372,10 +387,20 @@ public class LightSource extends MapElement {
 		return false;
 	}
 
-// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
-	private Rectangle getRectangle(int x1, int y1, int x2, int y2) {
+	private Rectangle getGridRectangle(int x1, int y1, int x2, int y2) {
+		Point p1 = canvas.convertGridCoordsToDisplay(x1, y1, null);
+		Point p2 = canvas.convertGridCoordsToDisplay(x2, y2, null);
+		return getRectangle(p1, p2);
+	}
+
+	private Rectangle getCanvasRectangle(int x1, int y1, int x2, int y2) {
 		Point p1 = canvas.convertCanvasCoordsToDisplay(x1, y1, null);
 		Point p2 = canvas.convertCanvasCoordsToDisplay(x2, y2, null);
+		return getRectangle(p1, p2);
+	}
+
+	// if the rectangle has any negative dimensions it will be modified to make those dimensions positive
+	private Rectangle getRectangle(Point p1, Point p2) {
 		Rectangle rect = new Rectangle(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 		if (rect.width < 0) {
 			rect.width = -rect.width;

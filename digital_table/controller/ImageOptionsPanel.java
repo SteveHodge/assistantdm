@@ -52,6 +52,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	private JComboBox<String> rotationsCombo;
 	private JComboBox<String> dmVisCombo;
 	private JCheckBox snapCheck;
+	private JCheckBox positionLockCheck;
 	JCheckBox visibleCheck;		// accessed by ControllerFrame
 	private JCheckBox borderCheck;
 	private JCheckBox aspectCheck;
@@ -105,6 +106,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		colorPanel = createColorControl(MapImage.PROPERTY_BACKGROUND_COLOR);
 		snapCheck = new JCheckBox("snap to grid?");
 		snapCheck.setSelected(true);
+		positionLockCheck = new JCheckBox("lock position?");
 
 		visibleCheck = new JCheckBox("visible?");
 		visibleCheck.setSelected(false);
@@ -192,6 +194,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		JPanel checks = new JPanel();
 		checks.add(snapCheck);
 		checks.add(aspectCheck);
+		checks.add(positionLockCheck);
 		add(checks, c);
 		JPanel panel = new JPanel();
 		panel.add(addMaskButton);
@@ -204,7 +207,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.weighty = 1.0d;
 		c.gridx = 0;
 		c.gridwidth = 2;
-		add(new JPanel(), c);
+		add(createTipsPanel("Left drag move image\nLeft click erases square"), c);
 		//@formatter:on
 
 		if (mapNode != null) parseMapNode(mapNode, maskFactory, poiFactory);
@@ -300,6 +303,8 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 	}
 
 	private MapElementMouseListener mouseListener = new DefaultDragger() {
+		Point2D imageOffset = null;
+
 		@Override
 		String getDragTarget(Point2D gridLocation) {
 			return "location";
@@ -310,8 +315,8 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			double x = p.getX();
 			double y = p.getY();
 			if (snapCheck.isSelected()) {
-				x = Math.floor(x);
-				y = Math.floor(y);
+				x = Math.floor(x) + imageOffset.getX();
+				y = Math.floor(y) + imageOffset.getY();
 			}
 			display.setProperty(element, Group.PROPERTY_X, x);
 			display.setProperty(element, Group.PROPERTY_Y, y);
@@ -321,6 +326,13 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		Point2D getTargetLocation() {
 			return new Point2D.Double((Double)element.getProperty(Group.PROPERTY_X),
 					(Double)element.getProperty(Group.PROPERTY_Y));
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e, Point2D gridloc) {
+			super.mousePressed(e, gridloc);
+			Point2D p = getTargetLocation();
+			imageOffset = new Point2D.Double(p.getX() - Math.floor(p.getX()), p.getY() - Math.floor(p.getY()));
 		}
 
 		@Override
@@ -335,6 +347,13 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
 			} else {
 				display.setProperty(element, MapImage.PROPERTY_UNCLEARCELL, p, Mode.REMOTE);
+			}
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent e, Point2D gridloc) {
+			if (!positionLockCheck.isSelected()) {
+				super.mouseDragged(e, gridloc);
 			}
 		}
 	};

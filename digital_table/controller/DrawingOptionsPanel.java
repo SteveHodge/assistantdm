@@ -127,7 +127,7 @@ class DrawingOptionsPanel extends OptionsPanel<Drawing> {
 		c.gridy++;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
-		add(new JPanel(), c);
+		add(createTipsPanel("In fill mode, dragging toggles squares"), c);
 		//@formatter:on
 	}
 

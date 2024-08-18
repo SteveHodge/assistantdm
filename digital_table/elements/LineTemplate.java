@@ -32,6 +32,7 @@ public class LineTemplate extends MapElement {
 	public final static String PROPERTY_IMAGE_VISIBLE = "image_visible";	// boolean
 	public final static String PROPERTY_IMAGE_PLAY = "play";	// write only
 	public final static String PROPERTY_IMAGE_STOP = "stop";	// write only
+	public final static String PROPERTY_SHADING_VISIBLE = "shading_visible";	// boolean
 
 	private Property<Integer> originX, originY, targetX, targetY;
 	private Property<Integer> range = new Property<Integer>(PROPERTY_RANGE, 12, Integer.class);
@@ -39,6 +40,7 @@ public class LineTemplate extends MapElement {
 	private Property<Float> alpha = new Property<Float>(PROPERTY_ALPHA, 0.5f, Float.class);
 	private Property<String> label = new Property<String>(PROPERTY_LABEL, false, "", String.class);
 	private Property<Boolean> imageVisible = new Property<Boolean>(PROPERTY_IMAGE_VISIBLE, true, false, Boolean.class);
+	private Property<Boolean> shadingVisible = new Property<Boolean>(PROPERTY_SHADING_VISIBLE, true, true, Boolean.class);
 
 	private transient ImageMedia image = null;	// don't access directly as it's transient
 	private transient AffineTransform transform = null;
@@ -75,61 +77,63 @@ public class LineTemplate extends MapElement {
 		double endX = ox + range.getValue() * (tx - ox) / dist;
 		double endY = oy + range.getValue() * (ty - oy) / dist;
 
-		// test for affected cells
-		g.setColor(color.getValue());
-		// this version uses intersections of the line with the rectangle formed by each cell
-		// it doesn't work consistently for cells that have a corner on the line. could simply special-case those
-		// cells but the below implementation *should* be more efficient
-		//		int minX, maxX, minY, maxY;
-		//		minX = (int)(originX < endX ? originX : endX-1);
-		//		minY = (int)(originY < endY ? originY : endY-1);
-		//		maxX = (int)(endX < originX ? originX : endX+1);
-		//		maxY = (int)(endY < originY ? originY : endY+1);
-		//		for (int x = minX; x < maxX; x++) {
-		//			boolean seen = false;
-		//			for (int y = minY; y < maxY; y++) {
-		//				Rectangle2D r = new Rectangle2D.Double(x,y,1,1);
-		//				if (r.intersectsLine(originX, originY, endX, endY)) {
-		//					Point tl = canvas.getDisplayCoordinates(x, y);
-		//					Point br = canvas.getDisplayCoordinates(x+1, y+1);
-		//					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
-		//					seen = true;
-		//				} else if (seen) {
-		//					break;	// this cell is not included so no other cells in this column can be included either
-		//				}
-		//			}
-		//		}
-		//		System.out.println();
-		if (tx == ox) {
-			int minY = oy;
-			int maxY = 1 + (int) endY;
-			if (maxY < minY) {
-				int t = minY;
-				minY = maxY - 2;
-				maxY = t;
-			}
-			Point tl = canvas.convertGridCoordsToDisplay(ox - 1, minY);
-			Point br = canvas.convertGridCoordsToDisplay(ox + 1, maxY);
-			g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
-		} else if (tx > ox) {
-			for (int x = 0; x <= endX - ox; x++) {
-				Point range = getVerticalRange(x, tx, endX, endY);
-				//System.out.println("x = "+x+", miny = "+range.x+", maxy = "+range.y+", endX = "+endX);
-				for (int y = range.x; y <= range.y; y++) {
-					Point tl = canvas.convertGridCoordsToDisplay(x + ox, y);
-					Point br = canvas.convertGridCoordsToDisplay(x + ox + 1, y + 1);
-					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+		if (shadingVisible.getValue()) {
+			// test for affected cells
+			g.setColor(color.getValue());
+			// this version uses intersections of the line with the rectangle formed by each cell
+			// it doesn't work consistently for cells that have a corner on the line. could simply special-case those
+			// cells but the below implementation *should* be more efficient
+			//		int minX, maxX, minY, maxY;
+			//		minX = (int)(originX < endX ? originX : endX-1);
+			//		minY = (int)(originY < endY ? originY : endY-1);
+			//		maxX = (int)(endX < originX ? originX : endX+1);
+			//		maxY = (int)(endY < originY ? originY : endY+1);
+			//		for (int x = minX; x < maxX; x++) {
+			//			boolean seen = false;
+			//			for (int y = minY; y < maxY; y++) {
+			//				Rectangle2D r = new Rectangle2D.Double(x,y,1,1);
+			//				if (r.intersectsLine(originX, originY, endX, endY)) {
+			//					Point tl = canvas.getDisplayCoordinates(x, y);
+			//					Point br = canvas.getDisplayCoordinates(x+1, y+1);
+			//					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+			//					seen = true;
+			//				} else if (seen) {
+			//					break;	// this cell is not included so no other cells in this column can be included either
+			//				}
+			//			}
+			//		}
+			//		System.out.println();
+			if (tx == ox) {
+				int minY = oy;
+				int maxY = 1 + (int) endY;
+				if (maxY < minY) {
+					int t = minY;
+					minY = maxY - 2;
+					maxY = t;
 				}
-			}
-		} else {
-			// targetX < originX
-			for (int x = 0; x >= endX - ox; x--) {
-				// we mirror the relevant x coordinates to calculate the range as if it were the other case
-				Point range = getVerticalRange(-x, ox * 2 - tx, ox * 2 - endX, endY);
-				for (int y = range.x; y <= range.y; y++) {
-					Point tl = canvas.convertGridCoordsToDisplay(x + ox - 1, y);
-					Point br = canvas.convertGridCoordsToDisplay(x + ox, y + 1);
-					g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+				Point tl = canvas.convertGridCoordsToDisplay(ox - 1, minY);
+				Point br = canvas.convertGridCoordsToDisplay(ox + 1, maxY);
+				g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+			} else if (tx > ox) {
+				for (int x = 0; x <= endX - ox; x++) {
+					Point range = getVerticalRange(x, tx, endX, endY);
+					//System.out.println("x = "+x+", miny = "+range.x+", maxy = "+range.y+", endX = "+endX);
+					for (int y = range.x; y <= range.y; y++) {
+						Point tl = canvas.convertGridCoordsToDisplay(x + ox, y);
+						Point br = canvas.convertGridCoordsToDisplay(x + ox + 1, y + 1);
+						g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+					}
+				}
+			} else {
+				// targetX < originX
+				for (int x = 0; x >= endX - ox; x--) {
+					// we mirror the relevant x coordinates to calculate the range as if it were the other case
+					Point range = getVerticalRange(-x, ox * 2 - tx, ox * 2 - endX, endY);
+					for (int y = range.x; y <= range.y; y++) {
+						Point tl = canvas.convertGridCoordsToDisplay(x + ox - 1, y);
+						Point br = canvas.convertGridCoordsToDisplay(x + ox, y + 1);
+						g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+					}
 				}
 			}
 		}
@@ -140,6 +144,8 @@ public class LineTemplate extends MapElement {
 		Point e = canvas.convertGridCoordsToDisplay(new Point2D.Double(endX, endY));
 		g.drawLine(s.x, s.y, e.x, e.y);
 		Point t = canvas.convertGridCoordsToDisplay(tx, ty);
+		g.fillOval(t.x - 5, t.y - 5, 10, 10);
+		t = canvas.convertGridCoordsToDisplay(ox, oy);
 		g.fillOval(t.x - 5, t.y - 5, 10, 10);
 		g.setStroke(oldStroke);
 		g.setComposite(c);

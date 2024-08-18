@@ -1,5 +1,6 @@
 package digital_table.controller;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -48,6 +49,15 @@ abstract class OptionsPanel<E extends MapElement> extends JPanel {
 
 	E getElement() {
 		return element;
+	}
+
+	JPanel createTipsPanel(String text) {
+		JPanel tipsPanel = new JPanel();
+		tipsPanel.setLayout(new BorderLayout());
+		tipsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JLabel tips = new JLabel("<html>" + text.replace("\n", "<br>") + "</html>");
+		tipsPanel.add(tips, BorderLayout.PAGE_END);
+		return tipsPanel;
 	}
 
 	// ------ control creation factory methods ------

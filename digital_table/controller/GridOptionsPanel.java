@@ -116,7 +116,7 @@ class GridOptionsPanel extends OptionsPanel<Grid> {
 		c.gridy = 10;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
-		add(new JPanel(), c);
+		add(createTipsPanel("Left drag moves view for everyone\nRight drag moves DM's view"), c);
 	}
 
 	void setRemoteOffset(int x, int y) {

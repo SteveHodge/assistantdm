@@ -37,6 +37,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 	private JTextField labelField;
 	private JSlider alphaSlider;
 	private JCheckBox visibleCheck;
+	private JCheckBox shadingVisibleCheck;
 	private ImageMediaOptionsPanel imagePanel;
 
 	LineTemplateOptionsPanel(MapElement parent, DisplayManager r) {
@@ -58,6 +59,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		alphaSlider = createSliderControl(LineTemplate.PROPERTY_ALPHA);
 		labelField = createStringControl(LineTemplate.PROPERTY_LABEL, Mode.LOCAL);
 		visibleCheck = createVisibilityControl();
+		shadingVisibleCheck = createCheckBox(LineTemplate.PROPERTY_SHADING_VISIBLE, Mode.ALL, "Show affected squares?");
 		imagePanel = new ImageMediaOptionsPanel();
 
 		setLayout(new GridBagLayout());
@@ -74,6 +76,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		add(new JLabel("Range:"), c);
 		add(new JLabel("Colour:"), c);
 		add(new JLabel("Transparency:"), c);
+		add(new JPanel(), c);
 
 		c.gridx = 2;
 		c.gridy = 0;
@@ -94,6 +97,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		add(rangeField, c);
 		add(colorPanel, c);
 		add(alphaSlider, c);
+		add(shadingVisibleCheck, c);
 
 		c.gridx = 0;
 		c.gridwidth = 3;
@@ -101,7 +105,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
-		add(new JPanel(), c);
+		add(createTipsPanel("Left drag moves the nearest line anchor point"), c);
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {
@@ -139,6 +143,9 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 
 			} else if (e.getPropertyName().equals(LineTemplate.PROPERTY_IMAGE_VISIBLE)) {
 				imagePanel.imageVisibleCheck.setSelected((Boolean) e.getNewValue());
+
+			} else if (e.getPropertyName().equals(LineTemplate.PROPERTY_SHADING_VISIBLE)) {
+				shadingVisibleCheck.setSelected((Boolean) e.getNewValue());
 
 			} else if (e.getPropertyName().equals(MapElement.PROPERTY_DRAGGING)) {
 				// ignore
@@ -196,6 +203,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 		parseIntegerAttribute(LineTemplate.PROPERTY_ORIGIN_Y, e, Mode.ALL);
 		parseIntegerAttribute(LineTemplate.PROPERTY_RANGE, e, Mode.ALL);
 		parseBooleanAttribute(LineTemplate.PROPERTY_IMAGE_VISIBLE, e, Mode.ALL);
+		parseBooleanAttribute(LineTemplate.PROPERTY_SHADING_VISIBLE, e, Mode.ALL);
 		parseEnumAttribute(MapElement.PROPERTY_LAYER, Layer.class, e, Mode.ALL);
 		parseVisibility(e, visibleCheck);
 
