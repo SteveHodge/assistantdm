@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -247,6 +248,10 @@ public class PartyPanel extends JPanel implements PartyListener {
 //				System.out.println(t.target + ": " + t.name);
 //			}
 			c.debugDumpStructure();
+//			Calendar.outputCalendar(Calendar.defaultYear, 11);
+
+			JFrame frame = CalendarPanel.MakeCalendarFrame();
+			frame.setVisible(true);
 		});
 
 		return scroller;

@@ -69,6 +69,7 @@
 * Hidden elements in table display should clear ImageMedia transforms
 
 ---=== DIGITAL TABLE PRIORITIES ===---
+* BUG? DTT: toggled image cells are absolute - they do not move as the image moves
 * DTT: split simple image (which supports animation) from map (which supports masks and walls)
 * DTT: have separate ui elements for selecting maps, tokens, and perhaps lightsources
 * DTT: tokens could show movement trail and measurement
@@ -81,6 +82,7 @@
 * DTT: Clean up grid references before A0
 * DTT: Allow grid references to be entered for element x/y coordinates in ui
 * BUG DTT: "reset" button caused index out of bounds error in RemoteImageDisplay
+* BUG DTT: if darkness has a cell cleared and a lightsource has that cell as dim then it shows as dim. dim should probably be overridden by darkness' cleared cells
 * DTT: Drawing lines should optionally add walls and/or allow editing of walls elements
 * Drawing element: freehand paint, eraser, map symbols
 * Allow modifying Mask colours
@@ -191,6 +193,7 @@ Properties:
 	BAB
 	Race
 	Sanity
+	NegativeLevels
 
 3.5 System classes:
 	AbstractModifier
@@ -233,7 +236,7 @@ Game system things to implement:
   (in progress) Feats - better UI support for targeted feats, implement weapon and armor proficiencies
   (in progress) Grapple modifier - done?
   Ability score checks
-  (in progress) Class levels - negative levels
+  (in progress) Class levels - negative levels done. anything else?
   Spell lists / spells per day (web version done)
   Damage reduction
   Spell resistance
@@ -246,7 +249,6 @@ Game system things to implement:
 * fix monster stats tooltip, it's annoying
 * website track saves to verify not overwriting other client changes
 * Remote input - joysticks, web
-* implement negative levels
 * implement conditions
 * implement StatisticsCollection for Attacks so they can be used for custom buffs
 * implement caster levels with saving to website. (probably easiest to have a dedicated field for the relevant ability for rememorising, to be eventually replaced with a system that knows what modifiers are temporary and therefore shouldn't be counted)
@@ -268,7 +270,7 @@ Game system things to implement:
  * Rework Statistic change notification. Consider making it a subclass of property (override would override total value). Consider factoring out interface. (all done)
  * ? properties for statistics: bab, convert temp hps
  * ? consider reimplementing hps. it's not really a statistic, really more a property of the creature or perhaps of the
- * ?    level or hitdice statistic. figure out how to implement hitdice/character levels. implement negative levels as well
+ * ?    level or hitdice statistic. figure out how to implement hitdice/character levels
  * ? review Statistics vs creature Properties
  * ? ... need to review how properties work on Character and BoundIntegerField (done)
  * ? character is not registered as a listener on the attack forms so it doesn't get notified of changes. probably should revisit the whole property/statistic notification system

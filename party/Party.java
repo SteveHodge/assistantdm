@@ -23,6 +23,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import gamesystem.Calendar;
+import gamesystem.Calendar.Comment;
+import gamesystem.Calendar.Event;
 import util.Module;
 import util.ModuleRegistry;
 import util.XMLUtils;
@@ -168,6 +171,29 @@ public class Party implements Iterable<Character>, Module {
 						}
 					}
 
+				} else if (name.equals("Calendar")) {
+					if (child.hasAttribute("year"))
+						Calendar.currentYear = Integer.parseInt(child.getAttribute("year"));
+					if (child.hasAttribute("month"))
+						Calendar.currentMonth = Integer.parseInt(child.getAttribute("month"));
+					if (child.hasAttribute("day"))
+						Calendar.currentDay = Integer.parseInt(child.getAttribute("day"));
+					NodeList calChildren = child.getChildNodes();
+					for (int j = 0; j < calChildren.getLength(); j++) {
+						if (calChildren.item(j).getNodeName().equals("CustomEvent")) {
+							Element e = (Element) calChildren.item(j);
+							int month = Integer.parseInt(e.getAttribute("month"));
+							int day = Integer.parseInt(e.getAttribute("day"));
+							Calendar.setCustomEvent(Calendar.months[month - 1], day, e.getTextContent());
+						} else if (calChildren.item(j).getNodeName().equals("Comment")) {
+							Element e = (Element) calChildren.item(j);
+							int month = Integer.parseInt(e.getAttribute("month"));
+							int day = Integer.parseInt(e.getAttribute("day"));
+							int year = Integer.parseInt(e.getAttribute("year"));
+							Calendar.setComment(year, Calendar.months[month - 1], day, e.getTextContent());
+						}
+					}
+
 				} else if (pluginMap.containsKey(name)) {
 					// we have a plugin to manage this element
 					PartyXMLPlugin plugin = pluginMap.get(name);
@@ -206,6 +232,27 @@ public class Party implements Iterable<Character>, Module {
 			p.appendChild(m);
 		}
 		e.appendChild(p);
+
+		Element c = doc.createElement("Calendar");
+		c.setAttribute("year", "" + Calendar.currentYear);
+		c.setAttribute("month", "" + Calendar.currentMonth);
+		c.setAttribute("day", "" + Calendar.currentDay);
+		for (Event evt : Calendar.customEvents) {
+			Element evtEl = doc.createElement("CustomEvent");
+			evtEl.setAttribute("month", "" + evt.month.number);
+			evtEl.setAttribute("day", "" + evt.day);
+			evtEl.setTextContent(evt.name);
+			c.appendChild(evtEl);
+		}
+		for (Comment note : Calendar.comments) {
+			Element noteEl = doc.createElement("Comment");
+			noteEl.setAttribute("year", "" + note.year);
+			noteEl.setAttribute("month", "" + note.month.number);
+			noteEl.setAttribute("day", "" + note.day);
+			noteEl.setTextContent(note.comment);
+			c.appendChild(noteEl);
+		}
+		e.appendChild(c);
 
 		for (PartyXMLPlugin plugin : pluginList) {
 			Element el = plugin.getElement(doc);

@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -19,11 +22,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import gamesystem.Calendar.Event;
+import gamesystem.Calendar.Month;
+import gamesystem.Calendar.Weekday;
 import gamesystem.ItemDefinition.SlotType;
 import gamesystem.dice.HDDice;
 
 // A RuleSet encapsulates the specific options used in a campaign, e.g. spells, feats, skills, classes, etc.
-// Currently only spells are  supported
 public class RuleSet {
 	File directory;
 
@@ -90,6 +95,9 @@ public class RuleSet {
 
 			} else if (tag.equals("items")) {
 				parseItems(e);
+
+			} else if (tag.equals("calendar-definition")) {
+				parseCalendar(e);
 
 			} else {
 				System.err.println("Ignoring unexpected node: " + e.getTagName());
@@ -439,6 +447,150 @@ public class RuleSet {
 		}
 
 		return s;
+	}
+
+	private void parseCalendar(Element el) {
+		if (!el.getTagName().equals("calendar-definition")) return;
+		System.out.print("Parsing calendar... ");
+
+		List<Month> months = null;
+		List<Weekday> week = null;
+		List<Event> events = null;
+		Map<Event, String> eventMonths = new HashMap<>();
+
+		NodeList nodes = el.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element) nodes.item(i);
+			if (e.getTagName().equals("months")) {
+				months = parseMonths(e);
+
+			} else if (e.getTagName().equals("week")) {
+				week = parseWeek(e);
+
+			} else if (e.getTagName().equals("events")) {
+				events = parseEvents(e, eventMonths);
+
+			} else {
+				System.err.println("Ignoring unexpected node: " + e.getTagName());
+				continue;
+			}
+		}
+
+		if (months != null) {
+			for (Month m : months) {
+				Calendar.monthMap.put(m.name, m);
+			}
+			Calendar.months = new Month[months.size()];
+			months.sort((a, b) -> {
+				return a.number - b.number;
+			});
+			Calendar.months = months.toArray(new Month[0]);
+		}
+
+		if (week != null) {
+			week.sort((a, b) -> {
+				return a.number - b.number;
+			});
+			Calendar.weekdays = week.toArray(new Weekday[0]);
+		}
+
+		if (events != null) {
+			for (Event evt : events) {
+				evt.month = Calendar.monthMap.get(eventMonths.get(evt));
+			}
+			Calendar.events = events.toArray(new Event[0]);
+		}
+
+		Calendar.defaultYear = Integer.parseInt(el.getAttribute("default-year"));
+		Calendar.firstWeekday = Calendar.weekdays[Integer.parseInt(el.getAttribute("first-weekday")) - 1];
+
+		System.out.println("done");
+	}
+
+	private List<Calendar.Month> parseMonths(Element el) {
+		if (!el.getTagName().equals("months")) return null;
+
+		List<Calendar.Month> months = new ArrayList<>();
+		NodeList nodes = el.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element) nodes.item(i);
+			if (e.getTagName().equals("month")) {
+				Calendar.Month m = new Calendar.Month();
+
+				m.name = e.getAttribute("name");
+				m.season = e.getAttribute("season");
+				m.number = Integer.parseInt(e.getAttribute("number"));
+				m.days = Integer.parseInt(e.getAttribute("days"));
+
+				Node body = e.cloneNode(true);
+				body.getOwnerDocument().renameNode(body, null, "body");
+				Element html = body.getOwnerDocument().createElement("html");
+				html.appendChild(body);
+				m.description = html;
+
+				months.add(m);
+			} else {
+				System.err.println("Ignoring unexpected node: " + e.getTagName());
+				continue;
+			}
+		}
+		return months;
+	}
+
+	private List<Calendar.Event> parseEvents(Element el, Map<Calendar.Event, String> months) {
+		if (!el.getTagName().equals("events")) return null;
+
+		List<Calendar.Event> events = new ArrayList<>();
+		NodeList nodes = el.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element) nodes.item(i);
+			if (e.getTagName().equals("event")) {
+				Calendar.Event event = new Calendar.Event();
+
+				event.name = e.getAttribute("name");
+				event.day = Integer.parseInt(e.getAttribute("day"));
+				months.put(event, e.getAttribute("month"));
+
+				Node body = e.cloneNode(true);
+				body.getOwnerDocument().renameNode(body, null, "body");
+				Element html = body.getOwnerDocument().createElement("html");
+				html.appendChild(body);
+				event.description = html;
+
+				events.add(event);
+			} else {
+				System.err.println("Ignoring unexpected node: " + e.getTagName());
+				continue;
+			}
+		}
+		return events;
+	}
+
+	private List<Calendar.Weekday> parseWeek(Element el) {
+		if (!el.getTagName().equals("week")) return null;
+
+		List<Calendar.Weekday> week = new ArrayList<>();
+		NodeList nodes = el.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element e = (Element) nodes.item(i);
+			if (e.getTagName().equals("weekday")) {
+				Calendar.Weekday w = new Calendar.Weekday();
+
+				w.name = e.getAttribute("name");
+				w.number = Integer.parseInt(e.getAttribute("number"));
+				w.abbreviation = e.getAttribute("abbreviation");
+
+				week.add(w);
+			} else {
+				System.err.println("Ignoring unexpected node: " + e.getTagName());
+				continue;
+			}
+		}
+		return week;
 	}
 
 	private static String getNodeString(Node node) {

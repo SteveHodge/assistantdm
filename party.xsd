@@ -397,6 +397,7 @@
 		<xs:attribute name="weight" type="xs:string"/>
 		<xs:attribute name="campaign" type="xs:string"/>
 		<xs:attribute name="uicolor" type="xs:string"/>
+		<xs:attribute name="negative-levels" type="xs:int"/>
 	</xs:complexType>
 </xs:element>
 
@@ -515,6 +516,40 @@
 	</xs:complexType>
 </xs:element>
 
+<xs:element name="CustomEvent">
+	<xs:complexType>
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="day" type="xs:integer"/>
+				<xs:attribute name="month" type="xs:integer"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Comment">
+	<xs:complexType>
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="day" type="xs:integer"/>
+				<xs:attribute name="month" type="xs:integer"/>
+				<xs:attribute name="year" type="xs:integer"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+</xs:element>
+
+<xs:element name="Calendar">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element ref="CustomEvent" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="Comment" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="day" type="xs:integer"/>
+		<xs:attribute name="month" type="xs:integer"/>
+		<xs:attribute name="year" type="xs:integer"/>
+	</xs:complexType>
+</xs:element>
 
 <xs:element name="Combat">
 	<xs:complexType>
@@ -533,6 +568,7 @@
 		<xs:sequence>
 			<xs:element ref="Character" maxOccurs="unbounded"/>
 			<xs:element ref="Party" minOccurs="0" maxOccurs="1"/>
+			<xs:element ref="Calendar" minOccurs="0" maxOccurs="1"/>
 			<xs:element ref="Combat" minOccurs="0" maxOccurs="1"/>
 			<xs:element ref="LEDControl" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
