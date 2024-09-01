@@ -86,7 +86,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		c.gridwidth = 3;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
-		add(createTipsPanel("Left drag toggles squares"), c);
+		add(createTipsPanel("Right click/drag: toggle squares"), c);
 
 		//@formatter:on
 	}
@@ -156,7 +156,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 
 		@Override
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
-			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getButton() != MouseEvent.BUTTON3) return;
 			if (e.getClickCount() != 1) return;
 			setMasked(gridCell(gridloc), !element.isMasked(gridCell(gridloc)));
 		}
@@ -165,7 +165,7 @@ class DarknessMaskOptionsPanel extends OptionsPanel<DarknessMask> {
 		public void mouseDragged(MouseEvent e, Point2D gridloc) {
 			if (dragging) {
 				setMasked(gridCell(gridloc), !dragClear);
-			} else if (button == MouseEvent.BUTTON1) {
+			} else if (button == MouseEvent.BUTTON3) {
 				dragging = true;
 			}
 		}

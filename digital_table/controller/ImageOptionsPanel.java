@@ -207,7 +207,7 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		c.weighty = 1.0d;
 		c.gridx = 0;
 		c.gridwidth = 2;
-		add(createTipsPanel("Left drag move image\nLeft click erases square"), c);
+		add(createTipsPanel("Left drag: move image\nDouble left click: move to selected square\nRight click: toggle square"), c);
 		//@formatter:on
 
 		if (mapNode != null) parseMapNode(mapNode, maskFactory, poiFactory);
@@ -337,16 +337,20 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 
 		@Override
 		public void mouseClicked(MouseEvent e, Point2D gridloc) {
-			if (e.getButton() != MouseEvent.BUTTON1) return;
-			if (e.getClickCount() != 1) return;
+			if (e.getButton() == MouseEvent.BUTTON3 && e.getClickCount() == 1) {
+				// right-click: toggle cell
+				Point p = gridCell(gridloc);
+				boolean clear = !element.isCleared(p);
+				element.setCleared(p, clear);
+				if (clear) {
+					display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
+				} else {
+					display.setProperty(element, MapImage.PROPERTY_UNCLEARCELL, p, Mode.REMOTE);
+				}
 
-			Point p = gridCell(gridloc);
-			boolean clear = !element.isCleared(p);
-			element.setCleared(p, clear);
-			if (clear) {
-				display.setProperty(element, MapImage.PROPERTY_CLEARCELL, p, Mode.REMOTE);
-			} else {
-				display.setProperty(element, MapImage.PROPERTY_UNCLEARCELL, p, Mode.REMOTE);
+			} else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+				// left double-click: move image to mouse
+				setTargetLocation(gridCell(gridloc));
 			}
 		}
 

@@ -105,7 +105,7 @@ class LineTemplateOptionsPanel extends OptionsPanel<LineTemplate> {
 
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
-		add(createTipsPanel("Left drag moves the nearest line anchor point"), c);
+		add(createTipsPanel("Left drag: move the nearest line anchor point"), c);
 	}
 
 	private PropertyChangeListener listener = new PropertyChangeListener() {

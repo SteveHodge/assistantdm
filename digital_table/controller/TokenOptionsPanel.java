@@ -292,7 +292,7 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 		c.weighty = 1.0d;
 		c.gridx = 0;
 		c.gridwidth = 3;
-		JPanel filler = createTipsPanel("Left drag moves token");
+		JPanel filler = createTipsPanel("Left drag: drag token\nDouble left click: move to selected square");
 		filler.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
@@ -604,6 +604,14 @@ public class TokenOptionsPanel extends OptionsPanel<Token> {
 			int x = (int) Math.round((Double) element.getProperty(Group.PROPERTY_X));
 			int y = (int) Math.round((Double) element.getProperty(Group.PROPERTY_Y));
 			return new Point(x, y);
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e, Point2D gridloc) {
+			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getClickCount() != 2) return;
+
+			setTargetLocation(gridCell(gridloc));
 		}
 	};
 

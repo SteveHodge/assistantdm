@@ -95,7 +95,7 @@ class LightSourceOptionsPanel extends OptionsPanel<LightSource> {
 		c.gridy++; add(colorPanel, c);
 		c.gridy++;
 		c.fill = GridBagConstraints.BOTH; c.weighty = 1.0d;
-		add(new JPanel(), c);
+		add(createTipsPanel("Left drag: move lightsource"), c);
 		// @formatter:on
 	}
 
