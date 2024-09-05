@@ -37,6 +37,7 @@ import digital_table.elements.MapElement.Layer;
 import digital_table.elements.MapElement.Visibility;
 import digital_table.elements.MapImage;
 import digital_table.server.MediaManager;
+import maptool.MapToolFrame;
 
 @SuppressWarnings("serial")
 class ImageOptionsPanel extends OptionsPanel<MapImage> {
@@ -159,6 +160,19 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 			wallsFactory.addElement(element);
 		});
 
+		final JButton mapToolButton = new JButton("Map Tool");
+		mapToolButton.addActionListener(e -> {
+			MapToolFrame inst = new MapToolFrame(this.uri, b -> {
+				double x = Math.floor((Double) element.getProperty(Group.PROPERTY_X)) + b.getX();
+				double y = Math.floor((Double) element.getProperty(Group.PROPERTY_Y)) + b.getY();
+				display.setProperty(element, Group.PROPERTY_LOCATION, new Point2D.Double(x, y));
+				display.setProperty(element, MapImage.PROPERTY_WIDTH, b.getWidth());
+				display.setProperty(element, MapImage.PROPERTY_HEIGHT, b.getHeight());
+			});
+			inst.setLocationRelativeTo(null);
+			inst.setVisible(true);
+		});
+
 		//@formatter:off
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -191,22 +205,25 @@ class ImageOptionsPanel extends OptionsPanel<MapImage> {
 		add(new JPanel(), c);
 		add(alphaSlider, c);
 		add(colorPanel, c);
+
+		c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
+		c.gridwidth = 2;
 		JPanel checks = new JPanel();
 		checks.add(snapCheck);
 		checks.add(aspectCheck);
 		checks.add(positionLockCheck);
 		add(checks, c);
+
 		JPanel panel = new JPanel();
+		panel.add(mapToolButton);
 		panel.add(addMaskButton);
 		panel.add(addWallsButton);
 		panel.add(addPOIsButton);
 		add(panel, c);
 		add(imagePanel, c);
 
-		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1.0d;
-		c.gridx = 0;
-		c.gridwidth = 2;
 		add(createTipsPanel("Left drag: move image\nDouble left click: move to selected square\nRight click: toggle square"), c);
 		//@formatter:on
 

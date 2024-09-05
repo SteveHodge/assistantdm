@@ -14,8 +14,6 @@ import java.util.Set;
 
 import javax.swing.JPanel;
 
-import maptool.MapTool.POI;
-
 @SuppressWarnings("serial")
 public class GridPanel extends JPanel {
 	Point2D ref1;	// stored as fraction of image width/height
@@ -53,7 +51,7 @@ public class GridPanel extends JPanel {
 		repaint();
 	}
 
-	void setPOI(POI poi) {
+	void setPOI(maptool.POI poi) {
 		pois.add(poi);
 		repaint();
 	}
